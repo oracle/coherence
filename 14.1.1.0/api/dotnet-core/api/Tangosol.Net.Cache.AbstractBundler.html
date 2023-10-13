@@ -1,0 +1,639 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class AbstractBundler
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class AbstractBundler
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Cache.AbstractBundler">
+  
+  
+  <h1 id="Tangosol_Net_Cache_AbstractBundler" data-uid="Tangosol.Net.Cache.AbstractBundler" class="text-break">Class AbstractBundler
+  </h1>
+  <div class="markdown level0 summary"><p>An abstract base for processors that implement bundling strategy.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">AbstractBundler</span></div>
+      <div class="level2"><a class="xref" href="Tangosol.Net.Cache.AbstractEntryBundler.html">AbstractEntryBundler</a></div>
+      <div class="level2"><a class="xref" href="Tangosol.Net.Cache.AbstractKeyBundler.html">AbstractKeyBundler</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Cache.html">Tangosol.Net.Cache</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Cache_AbstractBundler_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract class AbstractBundler</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Cache_AbstractBundler_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>Assume that we receive a continuous and concurrent stream of individual
+operations on multiple threads in parallel. Let's also assume those individual
+operations have relatively high latency (network or database-related) and
+there are functionally analogous [bulk] operations that take a collection of
+arguments instead of a single one without causing the latency to grow
+linearly, as a function of the collection size. Examples of operations and
+topologies that satisfy these assumptions are:</p>
+<ul><li></li><li></li><li></li></ul>
+<p>
+Under these assumptions, it&apos;s quite clear that the bundler could achieve a
+better utilization of system resources and better throughput if slightly
+delays the individual execution requests with a purpose of &quot;bundling&quot; them
+together and passing into a corresponding bulk operation. Additionally,
+the &quot;bundled&quot; request should be triggered if a bundle reaches a &quot;preferred
+bundle size&quot; threshold, eliminating a need to wait till a bundle timeout is
+reached.
+<p>
+<div class="NOTE"><h5>note</h5><p> 
+We assume that all bundle-able operations are idempotent and could be
+repeated if un-bundling is necessary due to a bundled operation failure.
+</p></div>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractBundler__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractBundler.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractBundler.cs/#L64">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractBundler__ctor_" data-uid="Tangosol.Net.Cache.AbstractBundler.#ctor*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractBundler__ctor" data-uid="Tangosol.Net.Cache.AbstractBundler.#ctor">AbstractBundler()</h4>
+  <div class="markdown level1 summary"><p>Construct the bundler. By default, the timeout delay value is set to
+one millisecond and the auto-adjustment feature is turned on.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public AbstractBundler()</code></pre>
+  </div>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractBundler_ADJUSTMENT_FREQUENCY.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractBundler.ADJUSTMENT_FREQUENCY%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractBundler.cs/#L1001">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_AbstractBundler_ADJUSTMENT_FREQUENCY" data-uid="Tangosol.Net.Cache.AbstractBundler.ADJUSTMENT_FREQUENCY">ADJUSTMENT_FREQUENCY</h4>
+  <div class="markdown level1 summary"><p>Frequency of the adjustment attempts. This number represents a number of
+iterations of the master bundle usage after which an adjustment attempt
+will be performed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int ADJUSTMENT_FREQUENCY = 128</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractBundler_m_countThreads.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractBundler.m_countThreads%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractBundler.cs/#L1041">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_AbstractBundler_m_countThreads" data-uid="Tangosol.Net.Cache.AbstractBundler.m_countThreads">m_countThreads</h4>
+  <div class="markdown level1 summary"><p>A counter for the total number of threads that have started any bundle
+related execution. This counter is used by subclasses to reduce an impact
+of bundled execution for lightly loaded environments.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected AtomicCounter m_countThreads</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.AtomicCounter.html">AtomicCounter</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractBundler_m_listBundle.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractBundler.m_listBundle%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractBundler.cs/#L1029">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_AbstractBundler_m_listBundle" data-uid="Tangosol.Net.Cache.AbstractBundler.m_listBundle">m_listBundle</h4>
+  <div class="markdown level1 summary"><p>A pool of Bundle objects. Note that this list never shrinks.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IList m_listBundle</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IList</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractBundler_m_previousSizeThreshold.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractBundler.m_previousSizeThreshold%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractBundler.cs/#L1013">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_AbstractBundler_m_previousSizeThreshold" data-uid="Tangosol.Net.Cache.AbstractBundler.m_previousSizeThreshold">m_previousSizeThreshold</h4>
+  <div class="markdown level1 summary"><p>The previous bundle size threshold value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected double m_previousSizeThreshold</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractBundler_AllowAutoAdjust.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractBundler.AllowAutoAdjust%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractBundler.cs/#L141">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractBundler_AllowAutoAdjust_" data-uid="Tangosol.Net.Cache.AbstractBundler.AllowAutoAdjust*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractBundler_AllowAutoAdjust" data-uid="Tangosol.Net.Cache.AbstractBundler.AllowAutoAdjust">AllowAutoAdjust</h4>
+  <div class="markdown level1 summary"><p>Specifies whether or not auto-adjustment is on. Default value is &quot;true&quot;.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool AllowAutoAdjust { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractBundler_DelayMillis.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractBundler.DelayMillis%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractBundler.cs/#L125">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractBundler_DelayMillis_" data-uid="Tangosol.Net.Cache.AbstractBundler.DelayMillis*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractBundler_DelayMillis" data-uid="Tangosol.Net.Cache.AbstractBundler.DelayMillis">DelayMillis</h4>
+  <div class="markdown level1 summary"><p>The timeout delay value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public long DelayMillis { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The timeout delay value in milliseconds. Default value is one
+millisecond.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractBundler_SizeThreshold.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractBundler.SizeThreshold%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractBundler.cs/#L82">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractBundler_SizeThreshold_" data-uid="Tangosol.Net.Cache.AbstractBundler.SizeThreshold*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractBundler_SizeThreshold" data-uid="Tangosol.Net.Cache.AbstractBundler.SizeThreshold">SizeThreshold</h4>
+  <div class="markdown level1 summary"><p>The bundle size threshold value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int SizeThreshold { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The bundle size threshold, a positive value expressed in the same
+units as the value returned by the <a class="xref" href="Tangosol.Net.Cache.AbstractBundler.Bundle.html#Tangosol_Net_Cache_AbstractBundler_Bundle_BundleSize">BundleSize</a> property.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractBundler_SyncRoot.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractBundler.SyncRoot%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractBundler.cs/#L152">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractBundler_SyncRoot_" data-uid="Tangosol.Net.Cache.AbstractBundler.SyncRoot*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractBundler_SyncRoot" data-uid="Tangosol.Net.Cache.AbstractBundler.SyncRoot">SyncRoot</h4>
+  <div class="markdown level1 summary"><p>Gets an object that can be used to synchronize access to the
+<strong>ICollection</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object SyncRoot { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>An object that can be used to synchronize access to the
+<strong>ICollection</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractBundler_ThreadThreshold.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractBundler.ThreadThreshold%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractBundler.cs/#L105">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractBundler_ThreadThreshold_" data-uid="Tangosol.Net.Cache.AbstractBundler.ThreadThreshold*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractBundler_ThreadThreshold" data-uid="Tangosol.Net.Cache.AbstractBundler.ThreadThreshold">ThreadThreshold</h4>
+  <div class="markdown level1 summary"><p>The minimum number of threads that will trigger the bundler to
+switch from a pass through to a bundled mode.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int ThreadThreshold { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The number of threads threshold.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractBundler_Adjust.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractBundler.Adjust%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractBundler.cs/#L165">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractBundler_Adjust_" data-uid="Tangosol.Net.Cache.AbstractBundler.Adjust*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractBundler_Adjust" data-uid="Tangosol.Net.Cache.AbstractBundler.Adjust">Adjust()</h4>
+  <div class="markdown level1 summary"><p>Adjust this Bundler's parameters according to the available
+statistical information.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Adjust()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractBundler_getOpenBundle.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractBundler.getOpenBundle%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractBundler.cs/#L353">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractBundler_getOpenBundle_" data-uid="Tangosol.Net.Cache.AbstractBundler.getOpenBundle*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractBundler_getOpenBundle" data-uid="Tangosol.Net.Cache.AbstractBundler.getOpenBundle">getOpenBundle()</h4>
+  <div class="markdown level1 summary"><p>Retrieve any Bundle that is currently in the open state. This method does
+not assume any external synchronization and as a result, a caller must
+double check the returned bundle open state (after synchronizing on it).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected AbstractBundler.Bundle getOpenBundle()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.AbstractBundler.Bundle.html">AbstractBundler.Bundle</a></td>
+        <td><p>An open Bundle.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractBundler_InstantiateBundle.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractBundler.InstantiateBundle%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractBundler.cs/#L415">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractBundler_InstantiateBundle_" data-uid="Tangosol.Net.Cache.AbstractBundler.InstantiateBundle*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractBundler_InstantiateBundle" data-uid="Tangosol.Net.Cache.AbstractBundler.InstantiateBundle">InstantiateBundle()</h4>
+  <div class="markdown level1 summary"><p>Instantiate a new Bundle object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected abstract AbstractBundler.Bundle InstantiateBundle()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.AbstractBundler.Bundle.html">AbstractBundler.Bundle</a></td>
+        <td><p>A new Bundle object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractBundler_ResetStatistics.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractBundler.ResetStatistics%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractBundler.cs/#L234">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractBundler_ResetStatistics_" data-uid="Tangosol.Net.Cache.AbstractBundler.ResetStatistics*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractBundler_ResetStatistics" data-uid="Tangosol.Net.Cache.AbstractBundler.ResetStatistics">ResetStatistics()</h4>
+  <div class="markdown level1 summary"><p>Reset this Bundler statistics.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ResetStatistics()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractBundler_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractBundler.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractBundler.cs/#L331">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractBundler_ToString_" data-uid="Tangosol.Net.Cache.AbstractBundler.ToString*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractBundler_ToString" data-uid="Tangosol.Net.Cache.AbstractBundler.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Provide a human readable description for the Bundler object
+(for debugging).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A human readable description for the Bundler object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractBundler_UpdateStatistics.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractBundler.UpdateStatistics%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractBundler.cs/#L263">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractBundler_UpdateStatistics_" data-uid="Tangosol.Net.Cache.AbstractBundler.UpdateStatistics*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractBundler_UpdateStatistics" data-uid="Tangosol.Net.Cache.AbstractBundler.UpdateStatistics">UpdateStatistics()</h4>
+  <div class="markdown level1 summary"><p>Update the statistics for this Bundle.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void UpdateStatistics()</code></pre>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractBundler.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractBundler%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractBundler.cs/#L56" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

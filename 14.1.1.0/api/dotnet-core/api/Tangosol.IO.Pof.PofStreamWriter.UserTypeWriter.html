@@ -1,0 +1,1635 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class PofStreamWriter.UserTypeWriter
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class PofStreamWriter.UserTypeWriter
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter">
+  
+  
+  <h1 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter" class="text-break">Class PofStreamWriter.UserTypeWriter
+  </h1>
+  <div class="markdown level0 summary"><p>The <strong>UserTypeWriter</strong> implementation is a contextually-aware
+<a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a> whose purpose is to write the properties
+of a value of a specified user type.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html">PofStreamWriter</a></div>
+    <div class="level2"><span class="xref">PofStreamWriter.UserTypeWriter</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_PofContext">PofStreamWriter.PofContext</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_PofHandler">PofStreamWriter.PofHandler</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_IsReferenceEnabled">PofStreamWriter.IsReferenceEnabled()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteBoolean_System_Int32_System_Boolean_">PofStreamWriter.WriteBoolean(Int32, Boolean)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteByte_System_Int32_System_Byte_">PofStreamWriter.WriteByte(Int32, Byte)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteChar_System_Int32_System_Char_">PofStreamWriter.WriteChar(Int32, Char)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteInt16_System_Int32_System_Int16_">PofStreamWriter.WriteInt16(Int32, Int16)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteInt32_System_Int32_System_Int32_">PofStreamWriter.WriteInt32(Int32, Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteInt64_System_Int32_System_Int64_">PofStreamWriter.WriteInt64(Int32, Int64)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteRawInt128_System_Int32_Tangosol_IO_Pof_RawInt128_">PofStreamWriter.WriteRawInt128(Int32, RawInt128)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteSingle_System_Int32_System_Single_">PofStreamWriter.WriteSingle(Int32, Single)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteDouble_System_Int32_System_Double_">PofStreamWriter.WriteDouble(Int32, Double)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteBooleanArray_System_Int32_System_Boolean___">PofStreamWriter.WriteBooleanArray(Int32, Boolean[])</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteByteArray_System_Int32_System_Byte___">PofStreamWriter.WriteByteArray(Int32, Byte[])</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteCharArray_System_Int32_System_Char___">PofStreamWriter.WriteCharArray(Int32, Char[])</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteInt16Array_System_Int32_System_Int16___">PofStreamWriter.WriteInt16Array(Int32, Int16[])</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteInt32Array_System_Int32_System_Int32___">PofStreamWriter.WriteInt32Array(Int32, Int32[])</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteInt64Array_System_Int32_System_Int64___">PofStreamWriter.WriteInt64Array(Int32, Int64[])</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteSingleArray_System_Int32_System_Single___">PofStreamWriter.WriteSingleArray(Int32, Single[])</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteDoubleArray_System_Int32_System_Double___">PofStreamWriter.WriteDoubleArray(Int32, Double[])</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteDecimal_System_Int32_System_Decimal_">PofStreamWriter.WriteDecimal(Int32, Decimal)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteString_System_Int32_System_String_">PofStreamWriter.WriteString(Int32, String)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteDate_System_Int32_System_DateTime_">PofStreamWriter.WriteDate(Int32, DateTime)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteDateTime_System_Int32_System_DateTime_">PofStreamWriter.WriteDateTime(Int32, DateTime)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteLocalDateTime_System_Int32_System_DateTime_">PofStreamWriter.WriteLocalDateTime(Int32, DateTime)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteUniversalDateTime_System_Int32_System_DateTime_">PofStreamWriter.WriteUniversalDateTime(Int32, DateTime)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteRawDateTime_System_Int32_Tangosol_IO_Pof_RawDateTime_">PofStreamWriter.WriteRawDateTime(Int32, RawDateTime)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteRawTime_System_Int32_Tangosol_IO_Pof_RawTime_">PofStreamWriter.WriteRawTime(Int32, RawTime)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteTime_System_Int32_System_DateTime_">PofStreamWriter.WriteTime(Int32, DateTime)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteLocalTime_System_Int32_System_DateTime_">PofStreamWriter.WriteLocalTime(Int32, DateTime)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteUniversalTime_System_Int32_System_DateTime_">PofStreamWriter.WriteUniversalTime(Int32, DateTime)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteRawYearMonthInterval_System_Int32_Tangosol_IO_Pof_RawYearMonthInterval_">PofStreamWriter.WriteRawYearMonthInterval(Int32, RawYearMonthInterval)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteTimeInterval_System_Int32_System_TimeSpan_">PofStreamWriter.WriteTimeInterval(Int32, TimeSpan)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteDayTimeInterval_System_Int32_System_TimeSpan_">PofStreamWriter.WriteDayTimeInterval(Int32, TimeSpan)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteUserType_System_Int32_System_Object_">PofStreamWriter.WriteUserType(Int32, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteBinary_System_Int32_Tangosol_Util_Binary_">PofStreamWriter.WriteBinary(Int32, Binary)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteArray_System_Int32_System_Array_">PofStreamWriter.WriteArray(Int32, Array)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteArray_System_Int32_System_Array_System_Type_">PofStreamWriter.WriteArray(Int32, Array, Type)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteCollection_System_Int32_System_Collections_ICollection_">PofStreamWriter.WriteCollection(Int32, ICollection)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteCollection_System_Int32_System_Collections_ICollection_System_Type_">PofStreamWriter.WriteCollection(Int32, ICollection, Type)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteLongArray_System_Int32_Tangosol_Util_ILongArray_">PofStreamWriter.WriteLongArray(Int32, ILongArray)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteLongArray_System_Int32_Tangosol_Util_ILongArray_System_Type_">PofStreamWriter.WriteLongArray(Int32, ILongArray, Type)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteDictionary_System_Int32_System_Collections_IDictionary_">PofStreamWriter.WriteDictionary(Int32, IDictionary)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteDictionary_System_Int32_System_Collections_IDictionary_System_Type_">PofStreamWriter.WriteDictionary(Int32, IDictionary, Type)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteDictionary_System_Int32_System_Collections_IDictionary_System_Type_System_Type_">PofStreamWriter.WriteDictionary(Int32, IDictionary, Type, Type)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteCollection__1_System_Int32_System_Collections_Generic_ICollection___0__">PofStreamWriter.WriteCollection&lt;T&gt;(Int32, ICollection&lt;T&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteDictionary__2_System_Int32_System_Collections_Generic_IDictionary___0___1__">PofStreamWriter.WriteDictionary&lt;TKey, TValue&gt;(Int32, IDictionary&lt;TKey, TValue&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_AssertEqual_System_Type_System_Type_">PofStreamWriter.AssertEqual(Type, Type)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_m_writer">PofStreamWriter.m_writer</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_m_ctx">PofStreamWriter.m_ctx</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_m_evolvable">PofStreamWriter.m_evolvable</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_m_handler">PofStreamWriter.m_handler</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_m_refs">PofStreamWriter.m_refs</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.IO.Pof.html">Tangosol.IO.Pof</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class UserTypeWriter : PofStreamWriter, IPofWriter</code></pre>
+  </div>
+  <h5 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+The &quot;contextual awareness&quot; refers to the fact that the
+<strong>UserTypeWriter</strong> maintains state about the type identifier,
+the PofWriter&apos;s property index position within the user type
+value, and an <a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a> that may differ from the
+<strong>IPofContext</strong> that provided the <a class="xref" href="Tangosol.IO.Pof.IPofSerializer.html">IPofSerializer</a>
+which is using this <strong>UserTypeWriter</strong> to serialize a user
+type.</p>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter__ctor_Tangosol_IO_DataWriter_Tangosol_IO_Pof_IPofContext_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.%23ctor(Tangosol.IO.DataWriter%2CTangosol.IO.Pof.IPofContext%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3377">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter__ctor_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.#ctor*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter__ctor_Tangosol_IO_DataWriter_Tangosol_IO_Pof_IPofContext_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.#ctor(Tangosol.IO.DataWriter,Tangosol.IO.Pof.IPofContext,System.Int32,System.Int32)">UserTypeWriter(DataWriter, IPofContext, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>UserTypeWriter</strong> for writing the property
+values of a user type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public UserTypeWriter(DataWriter writer, IPofContext ctx, int typeId, int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.DataWriter.html">DataWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The <a class="xref" href="Tangosol.IO.DataWriter.html">DataWriter</a> object to write to; must not be
+<code>null</code>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a></td>
+        <td><span class="parametername">ctx</span></td>
+        <td><p>The <a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a> to use for writing the user
+type property values within the user type that this writer
+will be writing.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">typeId</span></td>
+        <td><p>The type identifier of the user type; must be non-negative.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The index of the user type being written.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter__ctor_Tangosol_IO_Pof_PofStreamWriter_Tangosol_IO_DataWriter_Tangosol_IO_Pof_IPofContext_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.%23ctor(Tangosol.IO.Pof.PofStreamWriter%2CTangosol.IO.DataWriter%2CTangosol.IO.Pof.IPofContext%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3404">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter__ctor_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.#ctor*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter__ctor_Tangosol_IO_Pof_PofStreamWriter_Tangosol_IO_DataWriter_Tangosol_IO_Pof_IPofContext_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.#ctor(Tangosol.IO.Pof.PofStreamWriter,Tangosol.IO.DataWriter,Tangosol.IO.Pof.IPofContext,System.Int32,System.Int32)">UserTypeWriter(PofStreamWriter, DataWriter, IPofContext, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>UserTypeWriter</strong> for writing the property
+values of a user type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public UserTypeWriter(PofStreamWriter parent, DataWriter writer, IPofContext ctx, int typeId, int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html">PofStreamWriter</a></td>
+        <td><span class="parametername">parent</span></td>
+        <td><p>the containing PofBufferWriter</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.DataWriter.html">DataWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The <a class="xref" href="Tangosol.IO.DataWriter.html">DataWriter</a> object to write to; must not be
+<code>null</code>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a></td>
+        <td><span class="parametername">ctx</span></td>
+        <td><p>The <a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a> to use for writing the user
+type property values within the user type that this writer
+will be writing.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">typeId</span></td>
+        <td><p>The type identifier of the user type; must be non-negative.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The index of the user type being written.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter__ctor_Tangosol_IO_Pof_PofStreamWriter_Tangosol_IO_Pof_WritingPofHandler_Tangosol_IO_Pof_IPofContext_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.%23ctor(Tangosol.IO.Pof.PofStreamWriter%2CTangosol.IO.Pof.WritingPofHandler%2CTangosol.IO.Pof.IPofContext%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3464">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter__ctor_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.#ctor*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter__ctor_Tangosol_IO_Pof_PofStreamWriter_Tangosol_IO_Pof_WritingPofHandler_Tangosol_IO_Pof_IPofContext_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.#ctor(Tangosol.IO.Pof.PofStreamWriter,Tangosol.IO.Pof.WritingPofHandler,Tangosol.IO.Pof.IPofContext,System.Int32,System.Int32)">UserTypeWriter(PofStreamWriter, WritingPofHandler, IPofContext, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>UserTypeWriter</strong> for writing the property
+values of a user type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public UserTypeWriter(PofStreamWriter parent, WritingPofHandler handler, IPofContext ctx, int typeId, int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html">PofStreamWriter</a></td>
+        <td><span class="parametername">parent</span></td>
+        <td><p>the containing PofBufferWriter</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.WritingPofHandler.html">WritingPofHandler</a></td>
+        <td><span class="parametername">handler</span></td>
+        <td><p>The <a class="xref" href="Tangosol.IO.Pof.WritingPofHandler.html">WritingPofHandler</a> used to write user type
+data (except for the user type id itself, which is passed as
+a constructor argument).</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a></td>
+        <td><span class="parametername">ctx</span></td>
+        <td><p>The <a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a> to use for writing the user
+type property values within the user type that this writer
+will be writing.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">typeId</span></td>
+        <td><p>The type identifier of the user type; must be non-negative.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The index of the user type being written.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter__ctor_Tangosol_IO_Pof_PofStreamWriter_Tangosol_IO_Pof_WritingPofHandler_Tangosol_IO_Pof_IPofContext_System_Int32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.%23ctor(Tangosol.IO.Pof.PofStreamWriter%2CTangosol.IO.Pof.WritingPofHandler%2CTangosol.IO.Pof.IPofContext%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3496">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter__ctor_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.#ctor*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter__ctor_Tangosol_IO_Pof_PofStreamWriter_Tangosol_IO_Pof_WritingPofHandler_Tangosol_IO_Pof_IPofContext_System_Int32_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.#ctor(Tangosol.IO.Pof.PofStreamWriter,Tangosol.IO.Pof.WritingPofHandler,Tangosol.IO.Pof.IPofContext,System.Int32,System.Int32,System.Int32)">UserTypeWriter(PofStreamWriter, WritingPofHandler, IPofContext, Int32, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>UserTypeWriter</strong> for writing the property
+values of a user type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public UserTypeWriter(PofStreamWriter parent, WritingPofHandler handler, IPofContext ctx, int typeId, int index, int id)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html">PofStreamWriter</a></td>
+        <td><span class="parametername">parent</span></td>
+        <td><p>the containing PofBufferWriter</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.WritingPofHandler.html">WritingPofHandler</a></td>
+        <td><span class="parametername">handler</span></td>
+        <td><p>The <a class="xref" href="Tangosol.IO.Pof.WritingPofHandler.html">WritingPofHandler</a> used to write user type
+data (except for the user type id itself, which is passed as
+a constructor argument).</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a></td>
+        <td><span class="parametername">ctx</span></td>
+        <td><p>The <a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a> to use for writing the user
+type property values within the user type that this writer
+will be writing.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">typeId</span></td>
+        <td><p>The type identifier of the user type; must be non-negative.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The index of the user type being written.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>the identity of the object to encode, or -1 if the identity
+shouldn't be encoded in the POF stream</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter__ctor_Tangosol_IO_Pof_WritingPofHandler_Tangosol_IO_Pof_IPofContext_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.%23ctor(Tangosol.IO.Pof.WritingPofHandler%2CTangosol.IO.Pof.IPofContext%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3436">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter__ctor_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.#ctor*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter__ctor_Tangosol_IO_Pof_WritingPofHandler_Tangosol_IO_Pof_IPofContext_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.#ctor(Tangosol.IO.Pof.WritingPofHandler,Tangosol.IO.Pof.IPofContext,System.Int32,System.Int32)">UserTypeWriter(WritingPofHandler, IPofContext, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>UserTypeWriter</strong> for writing the property
+values of a user type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public UserTypeWriter(WritingPofHandler handler, IPofContext ctx, int typeId, int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.WritingPofHandler.html">WritingPofHandler</a></td>
+        <td><span class="parametername">handler</span></td>
+        <td><p>The <a class="xref" href="Tangosol.IO.Pof.WritingPofHandler.html">WritingPofHandler</a> used to write user type
+data (except for the user type id itself, which is passed as
+a constructor argument).</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a></td>
+        <td><span class="parametername">ctx</span></td>
+        <td><p>The <a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a> to use for writing the user
+type property values within the user type that this writer
+will be writing.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">typeId</span></td>
+        <td><p>The type identifier of the user type; must be non-negative.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The index of the user type being written.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_m_complex.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.m_complex%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3913">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_m_complex" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.m_complex">m_complex</h4>
+  <div class="markdown level1 summary"><p>The <strong>Complex</strong> value that corresponds to the user type
+that is being written.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected WritingPofHandler.Complex m_complex</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.WritingPofHandler.Complex.html">WritingPofHandler.Complex</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_m_id.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.m_id%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3890">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_m_id" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.m_id">m_id</h4>
+  <div class="markdown level1 summary"><p>The identity of the object to encode, or -1 if the identity
+shouldn't be encoded in the POF stream</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected int m_id</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_m_isUserTypeBegin.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.m_isUserTypeBegin%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3902">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_m_isUserTypeBegin" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.m_isUserTypeBegin">m_isUserTypeBegin</h4>
+  <div class="markdown level1 summary"><p><strong>true</strong> if the type and version identifier of the user
+type was written to the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected bool m_isUserTypeBegin</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_m_isUserTypeEnd.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.m_isUserTypeEnd%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3907">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_m_isUserTypeEnd" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.m_isUserTypeEnd">m_isUserTypeEnd</h4>
+  <div class="markdown level1 summary"><p><strong>true</strong> if the user type was written to the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected bool m_isUserTypeEnd</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_m_prevProp.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.m_prevProp%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3896">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_m_prevProp" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.m_prevProp">m_prevProp</h4>
+  <div class="markdown level1 summary"><p>The index of the last property written to the POF stream or
+-1 if the first property has yet to be written.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected int m_prevProp</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_m_prop.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.m_prop%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3884">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_m_prop" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.m_prop">m_prop</h4>
+  <div class="markdown level1 summary"><p>The index of the user type being written.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected int m_prop</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_m_typeId.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.m_typeId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3873">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_m_typeId" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.m_typeId">m_typeId</h4>
+  <div class="markdown level1 summary"><p>The type identifier of the user type that is being written.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected int m_typeId</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_m_versionId.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.m_versionId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3879">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_m_versionId" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.m_versionId">m_versionId</h4>
+  <div class="markdown level1 summary"><p>The version identifier of the user type that is being
+written.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected int m_versionId</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_m_writerNested.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.m_writerNested%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3918">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_m_writerNested" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.m_writerNested">m_writerNested</h4>
+  <div class="markdown level1 summary"><p>The currently open nested writer, if any.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected PofStreamWriter.UserTypeWriter m_writerNested</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.html">PofStreamWriter.UserTypeWriter</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_IsEvolvable.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.IsEvolvable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3337">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_IsEvolvable_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.IsEvolvable*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_IsEvolvable" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.IsEvolvable">IsEvolvable</h4>
+  <div class="markdown level1 summary"><p>Gets the flag that indicate if the object to be written is
+either evolvable or part of an evolvable object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override bool IsEvolvable { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>True iff the object to be written is IEvolvable.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_IsEvolvable">PofStreamWriter.IsEvolvable</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_UserTypeId.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.UserTypeId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3292">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_UserTypeId_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.UserTypeId*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_UserTypeId" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.UserTypeId">UserTypeId</h4>
+  <div class="markdown level1 summary"><p>Gets the user type that is currently being written.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int UserTypeId { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The user type information, or -1 if the
+<strong>PofStreamWriter</strong> is not currently writing a user type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_UserTypeId">PofStreamWriter.UserTypeId</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_VersionId.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.VersionId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3310">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_VersionId_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.VersionId*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_VersionId" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.VersionId">VersionId</h4>
+  <div class="markdown level1 summary"><p>Gets or sets the version identifier of the user type that is
+currently being written.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int VersionId { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The integer version ID of the user type; always non-negative.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_VersionId">PofStreamWriter.VersionId</a></div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the given version ID is negative.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If no user type is being written.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_WriterParent.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.WriterParent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3327">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_WriterParent_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.WriterParent*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_WriterParent" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.WriterParent">WriterParent</h4>
+  <div class="markdown level1 summary"><p>If this writer is contextually within a user type, obtain the writer
+which created this writer in order to write the user type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public PofStreamWriter WriterParent { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html">PofStreamWriter</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_BeginProperty_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.BeginProperty(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3723">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_BeginProperty_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.BeginProperty*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_BeginProperty_System_Int32_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.BeginProperty(System.Int32)">BeginProperty(Int32)</h4>
+  <div class="markdown level1 summary"><p>Report that a POF property is about to be written to the POF
+stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void BeginProperty(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The index of the property being written.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_BeginProperty_System_Int32_">PofStreamWriter.BeginProperty(Int32)</a></div>
+  <h5 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_BeginProperty_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+This method call will be followed by one or more separate
+calls to a &quot;write&quot; method and the property extent will then
+be terminated by a call to <a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.html#Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_EndProperty_System_Int32_">EndProperty(Int32)</a>.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the property <code data-dev-comment-type="paramref" class="paramref">index</code> is invalid; or is
+less than or equal to the index of the previous property
+written to the POF stream.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_CloseNested.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.CloseNested%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3764">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_CloseNested_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.CloseNested*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_CloseNested" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.CloseNested">CloseNested()</h4>
+  <div class="markdown level1 summary"><p>Notify the UserTypeWriter that it is being &quot;closed&quot;. This
+notification allows the UserTypeWriter to write any remaining data
+that it has pending to write.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void CloseNested()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_CreateNestedPofWriter_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.CreateNestedPofWriter(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3596">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_CreateNestedPofWriter_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.CreateNestedPofWriter*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_CreateNestedPofWriter_System_Int32_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.CreateNestedPofWriter(System.Int32)">CreateNestedPofWriter(Int32)</h4>
+  <div class="markdown level1 summary"><p>Obtain a PofWriter that can be used to write a set of properties into
+a single property of the current user type. The returned PofWriter is
+only valid from the time that it is returned until the next call is
+made to this PofWriter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override IPofWriter CreateNestedPofWriter(int iProp)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">iProp</span></td>
+        <td><p>the property index</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a></td>
+        <td><p>a PofWriter whose contents are nested into a single property
+of this PofWriter</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_CreateNestedPofWriter_System_Int32_">PofStreamWriter.CreateNestedPofWriter(Int32)</a></div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>if the property index is invalid, or is less than or equal to the index
+of the previous property written to the POF stream</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>if no user type is being written</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>if an I/O error occurs</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_CreateNestedPofWriter_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.CreateNestedPofWriter(System.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3628">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_CreateNestedPofWriter_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.CreateNestedPofWriter*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_CreateNestedPofWriter_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.CreateNestedPofWriter(System.Int32,System.Int32)">CreateNestedPofWriter(Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Obtain a PofWriter that can be used to write a set of properties into
+a single property of the current user type. The returned PofWriter is
+only valid from the time that it is returned until the next call is
+made to this PofWriter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override IPofWriter CreateNestedPofWriter(int iProp, int nTypeId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">iProp</span></td>
+        <td><p>the property index</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">nTypeId</span></td>
+        <td><p>the type identifier of the nested property</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a></td>
+        <td><p>a PofWriter whose contents are nested into a single property
+of this PofWriter</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_CreateNestedPofWriter_System_Int32_System_Int32_">PofStreamWriter.CreateNestedPofWriter(Int32, Int32)</a></div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>if the property index is invalid, or is less than or equal to the index
+of the previous property written to the POF stream</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>if no user type is being written</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>if an I/O error occurs</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_EnableReference.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.EnableReference%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3843">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_EnableReference_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.EnableReference*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_EnableReference" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.EnableReference">EnableReference()</h4>
+  <div class="markdown level1 summary"><p>Ensure that reference support (necessary for cyclic dependencies) is
+enabled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void EnableReference()</code></pre>
+  </div>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_EnableReference">PofStreamWriter.EnableReference()</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_EndProperty_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.EndProperty(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3751">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_EndProperty_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.EndProperty*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_EndProperty_System_Int32_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.EndProperty(System.Int32)">EndProperty(Int32)</h4>
+  <div class="markdown level1 summary"><p>Signifies the termination of the current POF property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void EndProperty(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The index of the current property.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_EndProperty_System_Int32_">PofStreamWriter.EndProperty(Int32)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_OnException_System_Exception_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.OnException(System.Exception)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3800">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_OnException_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.OnException*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_OnException_System_Exception_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.OnException(System.Exception)">OnException(Exception)</h4>
+  <div class="markdown level1 summary"><p>Called when an unexpected exception is caught while writing
+to the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void OnException(Exception e)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Exception</span></td>
+        <td><span class="parametername">e</span></td>
+        <td><p>The exception.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_OnException_System_Exception_">PofStreamWriter.OnException(Exception)</a></div>
+  <h5 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_OnException_System_Exception__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If the given exception wraps an IOException, the IOException
+is unwrapped and rethrown; otherwise the given exception is
+rethrown.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>The wrapped <strong>IOException</strong>, if the given exception is a
+wrapped <strong>IOException.</strong></p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_WriteObject_System_Int32_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.WriteObject(System.Int32%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3559">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_WriteObject_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.WriteObject*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_WriteObject_System_Int32_System_Object_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.WriteObject(System.Int32,System.Object)">WriteObject(Int32, Object)</h4>
+  <div class="markdown level1 summary"><p>Write an <strong>Object</strong> property to the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void WriteObject(int index, object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>The <strong>Object</strong> property value to write.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteObject_System_Int32_System_Object_">PofStreamWriter.WriteObject(Int32, Object)</a></div>
+  <h5 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_WriteObject_System_Int32_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The given object must be an instance (or an array of instances)
+of one of the following:
+<ul><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></p>
+<p>
+Otherwise, an <a class="xref" href="Tangosol.IO.Pof.IPofSerializer.html">IPofSerializer</a> for the object must
+be obtainable from the <a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a> associated
+with this <strong>IPofWriter</strong>.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the property <code data-dev-comment-type="paramref" class="paramref">index</code> is invalid, or is
+less than or equal to the index of the previous property
+written to the POF stream, or if the given property cannot be
+encoded into a POF stream.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_WriteRemainder_Tangosol_Util_Binary_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.WriteRemainder(Tangosol.Util.Binary)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3674">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_WriteRemainder_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.WriteRemainder*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_WriteRemainder_Tangosol_Util_Binary_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.WriteRemainder(Tangosol.Util.Binary)">WriteRemainder(Binary)</h4>
+  <div class="markdown level1 summary"><p>Write the remaining properties to the POF stream, terminating
+the writing of the currrent user type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void WriteRemainder(Binary properties)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><span class="parametername">properties</span></td>
+        <td><p>A <strong>Byte[]</strong> object containing zero or more indexed
+properties in binary POF encoded form; may be <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.IO.Pof.PofStreamWriter.html#Tangosol_IO_Pof_PofStreamWriter_WriteRemainder_Tangosol_Util_Binary_">PofStreamWriter.WriteRemainder(Binary)</a></div>
+  <h5 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_WriteRemainder_Tangosol_Util_Binary__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+As part of writing out a user type, this method must be
+called by the <a class="xref" href="Tangosol.IO.Pof.IPofSerializer.html">IPofSerializer</a> that is writing
+out the user type, or the POF stream will be corrupted.</p>
+<p>
+Calling this method terminates the current user type by
+writing a -1 to the POF stream after the last indexed
+property. Subsequent calls to the various <strong>WriteXYZ</strong>
+methods of this interface will fail after this method is
+called.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If no user type is being written.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_WriteUserTypeInfo.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.WriteUserTypeInfo%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3815">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_WriteUserTypeInfo_" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.WriteUserTypeInfo*"></a>
+  <h4 id="Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter_WriteUserTypeInfo" data-uid="Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.WriteUserTypeInfo">WriteUserTypeInfo()</h4>
+  <div class="markdown level1 summary"><p>Write out the type and version identifiers of the user type
+to the POF stream, if they haven't already been written.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void WriteUserTypeInfo()</code></pre>
+  </div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>On I/O error.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_PofStreamWriter_UserTypeWriter.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/PofStreamWriter.cs/#L3281" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

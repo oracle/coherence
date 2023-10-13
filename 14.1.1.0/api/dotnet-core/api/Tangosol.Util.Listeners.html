@@ -1,0 +1,471 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class Listeners
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class Listeners
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Listeners">
+  
+  
+  <h1 id="Tangosol_Util_Listeners" data-uid="Tangosol.Util.Listeners" class="text-break">Class Listeners
+  </h1>
+  <div class="markdown level0 summary"><p>Provide a simple, efficient, and thread-safe implementation of a list
+of event listeners.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">Listeners</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.html">Tangosol.Util</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Listeners_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class Listeners</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Listeners_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+The implementation is optimized based on the assumption that
+listeners are added and removed relatively rarely, and that the list
+of listeners is requested relatively often.</p>
+<p>
+Thread safety is implemented by synchronizing on all methods that
+modify any data member of the class. Read-only methods are not
+synchronized.</p>
+</div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Listeners_FiltersArray.md&amp;value=---%0Auid%3A%20Tangosol.Util.Listeners.FiltersArray%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Listeners.cs/#L83">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Listeners_FiltersArray_" data-uid="Tangosol.Util.Listeners.FiltersArray*"></a>
+  <h4 id="Tangosol_Util_Listeners_FiltersArray" data-uid="Tangosol.Util.Listeners.FiltersArray">FiltersArray</h4>
+  <div class="markdown level1 summary"><p>Get the filters for this listener.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IFilter[] FiltersArray { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a>[]</td>
+        <td><p>The list of filters.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Listeners_IsEmpty.md&amp;value=---%0Auid%3A%20Tangosol.Util.Listeners.IsEmpty%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Listeners.cs/#L95">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Listeners_IsEmpty_" data-uid="Tangosol.Util.Listeners.IsEmpty*"></a>
+  <h4 id="Tangosol_Util_Listeners_IsEmpty" data-uid="Tangosol.Util.Listeners.IsEmpty">IsEmpty</h4>
+  <div class="markdown level1 summary"><p>Check if there are no listeners.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsEmpty { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if there are no listeners.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Listeners_ListenersArray.md&amp;value=---%0Auid%3A%20Tangosol.Util.Listeners.ListenersArray%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Listeners.cs/#L50">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Listeners_ListenersArray_" data-uid="Tangosol.Util.Listeners.ListenersArray*"></a>
+  <h4 id="Tangosol_Util_Listeners_ListenersArray" data-uid="Tangosol.Util.Listeners.ListenersArray">ListenersArray</h4>
+  <div class="markdown level1 summary"><p>Get the list of listeners.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICacheListener[] ListenersArray { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a>[]</td>
+        <td><p>The list of listeners.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Listeners_ListenersArray_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The contents of this array are immutable; to add or remove
+listeners, a copy of this array is made and the new array
+replaces the old.</p>
+</div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Listeners_Add_Tangosol_Net_Cache_ICacheListener_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Listeners.Add(Tangosol.Net.Cache.ICacheListener)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Listeners.cs/#L144">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Listeners_Add_" data-uid="Tangosol.Util.Listeners.Add*"></a>
+  <h4 id="Tangosol_Util_Listeners_Add_Tangosol_Net_Cache_ICacheListener_" data-uid="Tangosol.Util.Listeners.Add(Tangosol.Net.Cache.ICacheListener)">Add(ICacheListener)</h4>
+  <div class="markdown level1 summary"><p>Add a listener.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Add(ICacheListener listener)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> to add.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Listeners_AddAll_Tangosol_Util_Listeners_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Listeners.AddAll(Tangosol.Util.Listeners)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Listeners.cs/#L222">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Listeners_AddAll_" data-uid="Tangosol.Util.Listeners.AddAll*"></a>
+  <h4 id="Tangosol_Util_Listeners_AddAll_Tangosol_Util_Listeners_" data-uid="Tangosol.Util.Listeners.AddAll(Tangosol.Util.Listeners)">AddAll(Listeners)</h4>
+  <div class="markdown level1 summary"><p>Add all listeners from another <strong>Listeners</strong> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void AddAll(Listeners listeners)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a></td>
+        <td><span class="parametername">listeners</span></td>
+        <td><p>The <strong>Listeners</strong> to add.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Listeners_Contains_Tangosol_Net_Cache_ICacheListener_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Listeners.Contains(Tangosol.Net.Cache.ICacheListener)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Listeners.cs/#L256">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Listeners_Contains_" data-uid="Tangosol.Util.Listeners.Contains*"></a>
+  <h4 id="Tangosol_Util_Listeners_Contains_Tangosol_Net_Cache_ICacheListener_" data-uid="Tangosol.Util.Listeners.Contains(Tangosol.Net.Cache.ICacheListener)">Contains(ICacheListener)</h4>
+  <div class="markdown level1 summary"><p>Check if a listener is in the list of listeners.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool Contains(ICacheListener listener)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> to search for.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the listener is in the list of listeners.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Listeners_Remove_Tangosol_Net_Cache_ICacheListener_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Listeners.Remove(Tangosol.Net.Cache.ICacheListener)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Listeners.cs/#L173">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Listeners_Remove_" data-uid="Tangosol.Util.Listeners.Remove*"></a>
+  <h4 id="Tangosol_Util_Listeners_Remove_Tangosol_Net_Cache_ICacheListener_" data-uid="Tangosol.Util.Listeners.Remove(Tangosol.Net.Cache.ICacheListener)">Remove(ICacheListener)</h4>
+  <div class="markdown level1 summary"><p>Remove a listener.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Remove(ICacheListener listener)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> to remove.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Listeners_RemoveAll.md&amp;value=---%0Auid%3A%20Tangosol.Util.Listeners.RemoveAll%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Listeners.cs/#L238">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Listeners_RemoveAll_" data-uid="Tangosol.Util.Listeners.RemoveAll*"></a>
+  <h4 id="Tangosol_Util_Listeners_RemoveAll" data-uid="Tangosol.Util.Listeners.RemoveAll">RemoveAll()</h4>
+  <div class="markdown level1 summary"><p>Remove all listeners.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void RemoveAll()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Listeners_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Util.Listeners.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Listeners.cs/#L388">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Listeners_ToString_" data-uid="Tangosol.Util.Listeners.ToString*"></a>
+  <h4 id="Tangosol_Util_Listeners_ToString" data-uid="Tangosol.Util.Listeners.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Return a string representation of the <strong>Listeners</strong> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A string representation of the <strong>Listeners</strong> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.ToString()</span></div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Listeners.md&amp;value=---%0Auid%3A%20Tangosol.Util.Listeners%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Listeners.cs/#L34" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

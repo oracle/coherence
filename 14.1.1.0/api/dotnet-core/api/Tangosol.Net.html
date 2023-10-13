@@ -1,0 +1,302 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Namespace Tangosol.Net
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Namespace Tangosol.Net
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net">
+  
+  <h1 id="Tangosol_Net" data-uid="Tangosol.Net" class="text-break">Namespace Tangosol.Net
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+    <h3 id="classes">Classes
+  </h3>
+      <h4><a class="xref" href="Tangosol.Net.AbstractInvocable.html">AbstractInvocable</a></h4>
+      <section><p>An abstract base for <a class="xref" href="Tangosol.Net.IInvocable.html">IInvocable</a> and
+<a class="xref" href="Tangosol.Net.IPriorityTask.html">IPriorityTask</a> implementations.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.AbstractPriorityTask.html">AbstractPriorityTask</a></h4>
+      <section><p>An abstract base for <a class="xref" href="Tangosol.Net.IPriorityTask.html">IPriorityTask</a> implementations.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.CacheFactory.html">CacheFactory</a></h4>
+      <section><p>Factory for the <strong>Oracle Coherence™ for .NET</strong> product.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.CompressionFilter.html">CompressionFilter</a></h4>
+      <section><p>Provides a compression wrapper for an <span class="xref">System.IO.Stream</span>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.CompressionFilter.GZipInputStream.html">CompressionFilter.GZipInputStream</a></h4>
+      <section><p>Provides a wrapper around <see cref="!:GZipStream"></see> that supports
+getting a current position within the stream.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.CompressionFilter.GZipOutputStream.html">CompressionFilter.GZipOutputStream</a></h4>
+      <section><p>Provides a wrapper around <see cref="!:GZipStream"></see>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.ConfigurableAddressProvider.html">ConfigurableAddressProvider</a></h4>
+      <section><p>ConfigurableAddressProvider is an implementation of the
+<a class="xref" href="Tangosol.Net.IAddressProvider.html">IAddressProvider</a> interface based on a static list of
+addresses configured in an XML element that contains one or more
+items in the following format:</p>
+<pre>
+&lt;socket-address>
+    &lt;address>...&lt;/address>
+    &lt;port>...&lt;/port>
+&lt;/socket-address>
+</pre>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.ConfigurableAddressProvider.AddressHolder.html">ConfigurableAddressProvider.AddressHolder</a></h4>
+      <section><p>A stateful holder for obtaining an <see cref="!:IPEndPoint"></see> object.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.ConfigurableAddressProviderFactory.html">ConfigurableAddressProviderFactory</a></h4>
+      <section><p>A <a class="xref" href="Tangosol.Net.IAddressProviderFactory.html">IAddressProviderFactory</a> implementation that creates instances of a
+AddressProvider class configured using an XmlElement of the following structure:</p>
+<pre>
+&lt;socket-address>
+    &lt;address>...&lt;/address>
+    &lt;port>...&lt;/port>
+&lt;/socket-address>
+</pre>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.DefaultConfigurableCacheFactory.html">DefaultConfigurableCacheFactory</a></h4>
+      <section><p>The <strong>DefaultConfigurableCacheFactory</strong> provides a facility to
+access caches declared in a &quot;cache-config.xsd&quot; compliant configuration
+file.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.DefaultConfigurableCacheFactory.CacheInfo.html">DefaultConfigurableCacheFactory.CacheInfo</a></h4>
+      <section><p>A <strong>CacheInfo</strong> is a placeholder for cache attributes retrieved
+during parsing the corresponding cache mapping element.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.DefaultConfigurableCacheFactory.ClassSchemeParameterResolver.html">DefaultConfigurableCacheFactory.ClassSchemeParameterResolver</a></h4>
+      <section><p>An <a class="xref" href="Tangosol.Run.Xml.XmlHelper.IParameterResolver.html">XmlHelper.IParameterResolver</a> implementation used
+by DefaultConfigurableCacheFactory when resolving class scheme
+configuration.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.DefaultOperationalContext.html">DefaultOperationalContext</a></h4>
+      <section><p>The DefaultOperationalContext provides an <a class="xref" href="Tangosol.Net.IOperationalContext.html">IOperationalContext</a>
+with information optained from XML in coherence.xsd format and default
+values.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.LocalMember.html">LocalMember</a></h4>
+      <section><p>Simple <a class="xref" href="Tangosol.Net.IMember.html">IMember</a> implementation used as &quot;local&quot; member
+for <span class="xref">Tangosol.Net.Impl.RemoteService</span> instances started by
+<a class="xref" href="Tangosol.Net.IConfigurableCacheFactory.html">IConfigurableCacheFactory</a>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.MemberEventArgs.html">MemberEventArgs</a></h4>
+      <section><p>An event which indicates that membership has changed.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.RequestIncompleteException.html">RequestIncompleteException</a></h4>
+      <section><p>Signals that a request execution in a distributed environment failed to
+complete successfully.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.RequestTimeoutException.html">RequestTimeoutException</a></h4>
+      <section><p>Signals that a request execution in a clustered environment did not
+complete in a pre-determined amount of time.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.SingleAddressProvider.html">SingleAddressProvider</a></h4>
+      <section><p>SingleAddressProvider is is an implementation of the
+<a class="xref" href="Tangosol.Net.IAddressProvider.html">IAddressProvider</a> interface that wraps a single address
+dynamically added to this provider.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.SslStreamProvider.html">SslStreamProvider</a></h4>
+      <section><p>Provide a secured network stream (SslStream) for a given connected TcpClient.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.StreamProviderFactory.html">StreamProviderFactory</a></h4>
+      <section><p>Provides a mechanism for creating StreamProviders.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.SystemStreamProvider.html">SystemStreamProvider</a></h4>
+      <section><p>Will retrun the default (unsecure) network stream.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.ViewBuilder.html">ViewBuilder</a></h4>
+      <section><p>The ViewBuilder provides a means to #build() a view (ContinuousQueryCache)
+using a fluent pattern / style.</p>
+</section>
+    <h3 id="interfaces">Interfaces
+  </h3>
+      <h4><a class="xref" href="Tangosol.Net.IAddressProvider.html">IAddressProvider</a></h4>
+      <section><p>The IAddressProvider is an interface that serves as a means to
+provide addresses to a consumer.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.IAddressProviderFactory.html">IAddressProviderFactory</a></h4>
+      <section><p>A factory for <a class="xref" href="Tangosol.Net.IAddressProvider.html">IAddressProvider</a> objects.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.ICacheService.html">ICacheService</a></h4>
+      <section><p>An <strong>ICacheService</strong> is a service providing a collection of
+named caches that hold resources.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.IConfigurableCacheFactory.html">IConfigurableCacheFactory</a></h4>
+      <section><p>An interface for XML-driven cache factory.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.IInvocable.html">IInvocable</a></h4>
+      <section><p>An <strong>IInvocable</strong> object is a portable object that can be invoked on the
+remote cluster member to which the client is connected and can
+optionally register a return value for the invocation.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.IInvocationService.html">IInvocationService</a></h4>
+      <section><p>The <strong>IInvocationService</strong> is an <a class="xref" href="Tangosol.Net.IService.html">IService</a> for
+delivering executable objects to a remote cluster member for
+invocation.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.IMember.html">IMember</a></h4>
+      <section><p>The IMember interface represents a process connected to or running
+within a cluster.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.INamedCache.html">INamedCache</a></h4>
+      <section><p>An INamedCache is an <a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a> that adds lifecycle management,
+event support, concurrency control, the ability to query cache content,
+and entry-targeted processing and aggregating operations.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.INameService.html">INameService</a></h4>
+      <section><p>This <a class="xref" href="Tangosol.Net.INameService.html">INameService</a> interface represents a service that
+accepts connections from external clients(e.g. Coherence*Extend) and
+provides a name lookup service.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.IOperationalContext.html">IOperationalContext</a></h4>
+      <section><p>IOperationalConetxt is an interface for providing Oracle Coherence
+operational configuration.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.IPriorityTask.html">IPriorityTask</a></h4>
+      <section><p>The IPriorityTask interface allows to control the ordering in which a
+service schedules tasks for execution using a thread pool and limit
+their execution times to a specified duration.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.IService.html">IService</a></h4>
+      <section><p>This <a class="xref" href="Tangosol.Net.IService.html">IService</a> interface represents a controllable
+service that operates in a clustered network environment.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.IServiceInfo.html">IServiceInfo</a></h4>
+      <section><p>The IServiceInfo represents information about an <a class="xref" href="Tangosol.Net.IService.html">IService</a>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.IStreamProvider.html">IStreamProvider</a></h4>
+      <section><p>IStreamProvider provides an abstraction for configuring an getting
+NetworkStreams for the TcpInitiator.
+<br>
+INetworkStreamFactories are provided by the StreamProviderFactory.</p>
+</section>
+    <h3 id="enums">Enums
+  </h3>
+      <h4><a class="xref" href="Tangosol.Net.CacheFactory.LogLevel.html">CacheFactory.LogLevel</a></h4>
+      <section><p>The logging level a message must meet or exceed in order to be
+logged.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.DefaultConfigurableCacheFactory.SchemeType.html">DefaultConfigurableCacheFactory.SchemeType</a></h4>
+      <section><p>Scheme type enumeration.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.MemberEventType.html">MemberEventType</a></h4>
+      <section><p>Member event type enumeration.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.PriorityTaskScheduling.html">PriorityTaskScheduling</a></h4>
+      <section><p><a class="xref" href="Tangosol.Net.IPriorityTask.html">IPriorityTask</a> scheduling priority constants.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.PriorityTaskTimeout.html">PriorityTaskTimeout</a></h4>
+      <section><p><a class="xref" href="Tangosol.Net.IPriorityTask.html">IPriorityTask</a> timeout constants.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.ServiceType.html">ServiceType</a></h4>
+      <section><p>Service type constants.</p>
+</section>
+    <h3 id="delegates">Delegates
+  </h3>
+      <h4><a class="xref" href="Tangosol.Net.MemberEventHandler.html">MemberEventHandler</a></h4>
+      <section><p>Represents the method that will handle member event.</p>
+</section>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

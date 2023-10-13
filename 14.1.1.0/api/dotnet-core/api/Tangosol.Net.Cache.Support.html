@@ -1,0 +1,195 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Namespace Tangosol.Net.Cache.Support
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Namespace Tangosol.Net.Cache.Support
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Cache.Support">
+  
+  <h1 id="Tangosol_Net_Cache_Support" data-uid="Tangosol.Net.Cache.Support" class="text-break">Namespace Tangosol.Net.Cache.Support
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+    <h3 id="classes">Classes
+  </h3>
+      <h4><a class="xref" href="Tangosol.Net.Cache.Support.AbstractCacheListener.html">AbstractCacheListener</a></h4>
+      <section><p>A base class that simplifies the implementation of a
+<a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a>, particularly classes that only implement
+one or two of the three event methods.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html">AbstractKeyBasedCache</a></h4>
+      <section><p><strong>AbstractKeyBasedCache</strong> is a base class for <a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a>
+implementations.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.html">AbstractKeySetBasedCache</a></h4>
+      <section><p><strong>AbstractKeySetBasedCache</strong> is an extension to the
+<a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html">AbstractKeyBasedCache</a> that has a full awareness of the
+set of keys upon which the cache is based.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Cache.Support.CacheListenerSupport.html">CacheListenerSupport</a></h4>
+      <section><p>This class provides support for advanced
+<a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> functionality.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Cache.Support.CacheListenerSupport.WrapperPrimingListener.html">CacheListenerSupport.WrapperPrimingListener</a></h4>
+      <section><p>A wrapper class that turns the specified
+<a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> into a priming listener.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Cache.Support.CacheListenerSupport.WrapperSynchronousListener.html">CacheListenerSupport.WrapperSynchronousListener</a></h4>
+      <section><p>A wrapper class that turns the specified
+<a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> into a synchronous listener.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Cache.Support.DelegatingCacheListener.html">DelegatingCacheListener</a></h4>
+      <section><p>Basic .NET style <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> implementation.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Cache.Support.DisposableCacheListener.html">DisposableCacheListener</a></h4>
+      <section><p>Utility listener that checks if the value removed from the cache
+implements <code>IDisposable</code>, and calls <code>Dispose</code> method
+if it does.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Cache.Support.IndexAdapter.html">IndexAdapter</a></h4>
+      <section><p>ICacheListener implementation that routes the cache events into the
+corresponding ICacheIndex calls.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Cache.Support.InvocableCacheHelper.html">InvocableCacheHelper</a></h4>
+      <section><p>Helper methods for <a class="xref" href="Tangosol.Net.Cache.IInvocableCache.html">IInvocableCache</a> implementations
+and <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> related evaluations.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Cache.Support.InvocableCacheHelper.EntryToKeyConverter.html">InvocableCacheHelper.EntryToKeyConverter</a></h4>
+      <section><p>Trivial Entry-to-Key <a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Cache.Support.MultiplexingCacheListener.html">MultiplexingCacheListener</a></h4>
+      <section><p>A base class that simplifies the implementation of a
+<a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> by multiplexing all events into a single
+listener method.</p>
+</section>
+    <h3 id="interfaces">Interfaces
+  </h3>
+      <h4><a class="xref" href="Tangosol.Net.Cache.Support.CacheListenerSupport.IPrimingListener.html">CacheListenerSupport.IPrimingListener</a></h4>
+      <section><p>A tag interface indicating that tagged
+<a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> implementation receives &quot;lite&quot;
+the <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> notifications (carrying only a key)
+and generates a &quot;priming&quot; event when registered.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Cache.Support.CacheListenerSupport.ISynchronousListener.html">CacheListenerSupport.ISynchronousListener</a></h4>
+      <section><p>A tag interface indicating that tagged
+<a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> implementation has to receive
+the <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> notifications in a synchronous
+manner.</p>
+</section>
+    <h3 id="enums">Enums
+  </h3>
+      <h4><a class="xref" href="Tangosol.Net.Cache.Support.CacheListenerSupport.OptimizationPlan.html">CacheListenerSupport.OptimizationPlan</a></h4>
+      <section><p>The values for CacheListenerSupport optimization plan, which
+indicates the fastest way to put together a list of listeners.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Cache.Support.InvocableCacheHelper.QueryType.html">InvocableCacheHelper.QueryType</a></h4>
+      <section><p>The enum type used to pass to the method that will query cache
+against one of the <strong>QueryType</strong> modes.</p>
+</section>
+    <h3 id="delegates">Delegates
+  </h3>
+      <h4><a class="xref" href="Tangosol.Net.Cache.Support.CacheEventHandler.html">CacheEventHandler</a></h4>
+      <section><p>Represents the method that will handle cache events.</p>
+</section>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

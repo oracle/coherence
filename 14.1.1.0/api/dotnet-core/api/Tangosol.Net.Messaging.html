@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Namespace Tangosol.Net.Messaging
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Namespace Tangosol.Net.Messaging
+   ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Messaging">
+  
+  <h1 id="Tangosol_Net_Messaging" data-uid="Tangosol.Net.Messaging" class="text-break">Namespace Tangosol.Net.Messaging
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+    <h3 id="classes">Classes
+  </h3>
+      <h4><a class="xref" href="Tangosol.Net.Messaging.ConnectionEventArgs.html">ConnectionEventArgs</a></h4>
+      <section><p>An event which indicates that an <a class="xref" href="Tangosol.Net.Messaging.IConnection.html">IConnection</a> was:</p>
+<ul><li></li><li></li><li></li></ul>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Messaging.ConnectionException.html">ConnectionException</a></h4>
+      <section><p>Signals that an underlying communication channel used by a
+<a class="xref" href="Tangosol.Net.Messaging.IConnection.html">IConnection</a> may have been closed, severed, or become
+unusable.</p>
+</section>
+    <h3 id="interfaces">Interfaces
+  </h3>
+      <h4><a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a></h4>
+      <section><p>An IChannel is a communication construct that allows one or more
+threads to send and receive <a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a> objects via a
+<a class="xref" href="Tangosol.Net.Messaging.IConnection.html">IConnection</a>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Messaging.ICodec.html">ICodec</a></h4>
+      <section><p>An ICodec converts an <a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a> object to and from a
+binary representation.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Messaging.IConnection.html">IConnection</a></h4>
+      <section><p>An IConnection represents a bi-directional communication channel for
+exchanging <a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a> objects between two endpoints.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Messaging.IConnectionAcceptor.html">IConnectionAcceptor</a></h4>
+      <section><p>An IConnectionAcceptor represents an <a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html">IConnectionManager</a>
+running on a server, and as a server, it is responsible for accepting
+a connection request initiated by a
+<a class="xref" href="Tangosol.Net.Messaging.IConnectionInitiator.html">IConnectionInitiator</a>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Messaging.IConnectionInitiator.html">IConnectionInitiator</a></h4>
+      <section><p>An IConnectionInitiator represents an <a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html">IConnectionManager</a>
+running on a client, and as a client, it is responsible for
+initiating the connection process.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html">IConnectionManager</a></h4>
+      <section><p>The IConnectionManager is the base SPI (Service Provider Interface)
+for both <a class="xref" href="Tangosol.Net.Messaging.IConnectionAcceptor.html">IConnectionAcceptor</a> and
+<a class="xref" href="Tangosol.Net.Messaging.IConnectionInitiator.html">IConnectionInitiator</a> implementations.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a></h4>
+      <section><p>IMessage is the root interface for all message objects sent by peer
+endpoints through an <a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Messaging.IMessageFactory.html">IMessageFactory</a></h4>
+      <section><p>An IMessageFactory is a factory for <a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a> objects.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Messaging.IProtocol.html">IProtocol</a></h4>
+      <section><p>An IProtocol is a binding between a unique name, version information,
+and a set of <a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a> types.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Messaging.IReceiver.html">IReceiver</a></h4>
+      <section><p>An IReceiver processes unsolicited <a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a> objects sent
+via any number of <a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a> objects.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Messaging.IRequest.html">IRequest</a></h4>
+      <section><p>IRequest is the root interface for all request messages sent by peer
+endpoints through an <a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Messaging.IResponse.html">IResponse</a></h4>
+      <section><p>IResponse is the root interface for all response messages sent by
+peer endpoints through an <a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Messaging.IRunnable.html">IRunnable</a></h4>
+      <section><p>Defines method Run() that executes action specific to the object in
+which it is implemented.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Net.Messaging.IStatus.html">IStatus</a></h4>
+      <section><p>An IStatus represents an asynchronous <a class="xref" href="Tangosol.Net.Messaging.IRequest.html">IRequest</a>
+sent to a peer.</p>
+</section>
+    <h3 id="enums">Enums
+  </h3>
+      <h4><a class="xref" href="Tangosol.Net.Messaging.ConnectionEventType.html">ConnectionEventType</a></h4>
+      <section><p>Connect event type enumeration.</p>
+</section>
+    <h3 id="delegates">Delegates
+  </h3>
+      <h4><a class="xref" href="Tangosol.Net.Messaging.ConnectionEventHandler.html">ConnectionEventHandler</a></h4>
+      <section><p>Represents the method that will handle connection event.</p>
+</section>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

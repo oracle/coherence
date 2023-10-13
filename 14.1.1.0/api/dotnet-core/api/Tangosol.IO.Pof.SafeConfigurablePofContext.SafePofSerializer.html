@@ -1,0 +1,422 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class SafeConfigurablePofContext.SafePofSerializer
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class SafeConfigurablePofContext.SafePofSerializer
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.SafePofSerializer">
+  
+  
+  <h1 id="Tangosol_IO_Pof_SafeConfigurablePofContext_SafePofSerializer" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.SafePofSerializer" class="text-break">Class SafeConfigurablePofContext.SafePofSerializer
+  </h1>
+  <div class="markdown level0 summary"><p>Serializer used for objects implementing the IPortableObject
+interface.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Util.SerializationHelper.html">SerializationHelper</a></div>
+    <div class="level2"><span class="xref">SafeConfigurablePofContext.SafePofSerializer</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPofSerializer.html">IPofSerializer</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Util.SerializationHelper.html#Tangosol_Util_SerializationHelper_ToBinary_System_Object_Tangosol_IO_ISerializer_">SerializationHelper.ToBinary(Object, ISerializer)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.SerializationHelper.html#Tangosol_Util_SerializationHelper_FromBinary_Tangosol_Util_Binary_Tangosol_IO_ISerializer_">SerializationHelper.FromBinary(Binary, ISerializer)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.SerializationHelper.html#Tangosol_Util_SerializationHelper_ConvertUTF_System_Byte___System_Int32_System_Int32_">SerializationHelper.ConvertUTF(Byte[], Int32, Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.SerializationHelper.html#Tangosol_Util_SerializationHelper_DecorateBinary_Tangosol_Util_Binary_System_Int32_">SerializationHelper.DecorateBinary(Binary, Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.SerializationHelper.html#Tangosol_Util_SerializationHelper_ExtractIntDecoration_Tangosol_Util_Binary_">SerializationHelper.ExtractIntDecoration(Binary)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.SerializationHelper.html#Tangosol_Util_SerializationHelper_IsIntDecorated_Tangosol_Util_Binary_">SerializationHelper.IsIntDecorated(Binary)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.SerializationHelper.html#Tangosol_Util_SerializationHelper_RemoveIntDecoration_Tangosol_Util_Binary_">SerializationHelper.RemoveIntDecoration(Binary)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.SerializationHelper.html#Tangosol_Util_SerializationHelper_DECO_VALUE">SerializationHelper.DECO_VALUE</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.IO.Pof.html">Tangosol.IO.Pof</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_IO_Pof_SafeConfigurablePofContext_SafePofSerializer_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class SafePofSerializer : SerializationHelper, IPofSerializer</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext_SafePofSerializer__ctor_Tangosol_IO_Pof_ConfigurablePofContext_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.SafePofSerializer.%23ctor(Tangosol.IO.Pof.ConfigurablePofContext)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L543">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_SafeConfigurablePofContext_SafePofSerializer__ctor_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.SafePofSerializer.#ctor*"></a>
+  <h4 id="Tangosol_IO_Pof_SafeConfigurablePofContext_SafePofSerializer__ctor_Tangosol_IO_Pof_ConfigurablePofContext_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.SafePofSerializer.#ctor(Tangosol.IO.Pof.ConfigurablePofContext)">SafePofSerializer(ConfigurablePofContext)</h4>
+  <div class="markdown level1 summary"><p>Construct a new instance of SafePofSerializer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SafePofSerializer(ConfigurablePofContext ctx)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html">ConfigurablePofContext</a></td>
+        <td><span class="parametername">ctx</span></td>
+        <td><p>The ConfigurablePofContext to use.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext_SafePofSerializer_Deserialize_Tangosol_IO_Pof_IPofReader_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.SafePofSerializer.Deserialize(Tangosol.IO.Pof.IPofReader)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L657">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_SafeConfigurablePofContext_SafePofSerializer_Deserialize_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.SafePofSerializer.Deserialize*"></a>
+  <h4 id="Tangosol_IO_Pof_SafeConfigurablePofContext_SafePofSerializer_Deserialize_Tangosol_IO_Pof_IPofReader_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.SafePofSerializer.Deserialize(Tangosol.IO.Pof.IPofReader)">Deserialize(IPofReader)</h4>
+  <div class="markdown level1 summary"><p>Deserialize a user type instance from a POF stream by reading its
+state using the specified <a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public object Deserialize(IPofReader reader)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a></td>
+        <td><span class="parametername">reader</span></td>
+        <td><p>The <strong>IPofReader</strong> with which to read the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The deserialized user type instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_SafeConfigurablePofContext_SafePofSerializer_Deserialize_Tangosol_IO_Pof_IPofReader__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>An implementation of <strong>IPofSerializer</strong> is required to follow
+the following steps in sequence for reading in an object of a
+user type:</p>
+<ol><li>
+If the object is evolvable, the implementation must get the
+version by calling <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html#Tangosol_IO_Pof_IPofWriter_VersionId">VersionId</a>.
+</li><li>
+The implementation may read any combination of the
+properties of the user type by using &quot;read&quot; methods of the
+<strong>IPofReader</strong>, but it must do so in the order of the property
+indexes.
+</li><li>
+After all desired properties of the user type have been read,
+the implementation must terminate the reading of the user type by
+calling <a class="xref" href="Tangosol.IO.Pof.IPofReader.html#Tangosol_IO_Pof_IPofReader_ReadRemainder">ReadRemainder()</a>.
+</li></ol>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext_SafePofSerializer_Register_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.SafePofSerializer.Register(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L704">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_SafeConfigurablePofContext_SafePofSerializer_Register_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.SafePofSerializer.Register*"></a>
+  <h4 id="Tangosol_IO_Pof_SafeConfigurablePofContext_SafePofSerializer_Register_System_String_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.SafePofSerializer.Register(System.String)">Register(String)</h4>
+  <div class="markdown level1 summary"><p>Register a class as having been encountered by the serializer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void Register(string typeName)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">typeName</span></td>
+        <td><p>The name of a class that is being serialized or deserialized.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext_SafePofSerializer_Serialize_Tangosol_IO_Pof_IPofWriter_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.SafePofSerializer.Serialize(Tangosol.IO.Pof.IPofWriter%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L593">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_SafeConfigurablePofContext_SafePofSerializer_Serialize_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.SafePofSerializer.Serialize*"></a>
+  <h4 id="Tangosol_IO_Pof_SafeConfigurablePofContext_SafePofSerializer_Serialize_Tangosol_IO_Pof_IPofWriter_System_Object_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.SafePofSerializer.Serialize(Tangosol.IO.Pof.IPofWriter,System.Object)">Serialize(IPofWriter, Object)</h4>
+  <div class="markdown level1 summary"><p>Serialize a user type instance to a POF stream by writing its
+state using the specified <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Serialize(IPofWriter writer, object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The <strong>IPofWriter</strong> with which to write the object's state.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>The object to serialize.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_SafeConfigurablePofContext_SafePofSerializer_Serialize_Tangosol_IO_Pof_IPofWriter_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>An implementation of <strong>IPofSerializer</strong> is required to follow
+the following steps in sequence for writing out an object of a
+user type:</p>
+<ol><li>
+If the object is evolvable, the implementation must set the
+version by calling <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html#Tangosol_IO_Pof_IPofWriter_VersionId">VersionId</a>.
+</li><li>
+The implementation may write any combination of the properties of
+the user type by using the &quot;write&quot; methods of the
+<strong>IPofWriter</strong>, but it must do so in the order of the property
+indexes.
+</li><li>
+After all desired properties of the user type have been written,
+the implementation must terminate the writing of the user type by
+calling <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html#Tangosol_IO_Pof_IPofWriter_WriteRemainder_Tangosol_Util_Binary_">WriteRemainder(Binary)</a>.
+</li></ol>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPofSerializer.html">IPofSerializer</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext_SafePofSerializer.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.SafePofSerializer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L533" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

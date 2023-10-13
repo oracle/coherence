@@ -1,0 +1,1147 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class DataWriter
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class DataWriter
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.IO.DataWriter">
+  
+  
+  <h1 id="Tangosol_IO_DataWriter" data-uid="Tangosol.IO.DataWriter" class="text-break">Class DataWriter
+  </h1>
+  <div class="markdown level0 summary"><p><strong>BinaryWriter</strong> extension that adds methods for writing 32 and
+64-bit integer values in a packed format.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">System.IO.BinaryWriter</span></div>
+    <div class="level2"><span class="xref">DataWriter</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><span class="xref">System.IDisposable</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Null</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.OutStream</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Dispose()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Dispose(System.Boolean)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Flush()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Seek(System.Int32, System.IO.SeekOrigin)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.Boolean)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.Byte)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.Byte[])</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.Byte[], System.Int32, System.Int32)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.Char)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.Char[])</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.Char[], System.Int32, System.Int32)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.Decimal)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write(System.SByte)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.Write7BitEncodedInt(System.Int32)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryWriter.BaseStream</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.IO.html">Tangosol.IO</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_IO_DataWriter_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class DataWriter : BinaryWriter, IDisposable</code></pre>
+  </div>
+  <h5 id="Tangosol_IO_DataWriter_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+The &quot;packed&quot; format includes a sign bit (0x40) and a continuation
+bit (0x80) in the first byte, followed by the least 6 significant
+bits of the int value. Subsequent bytes (each appearing only if
+the previous byte had its continuation bit set) include a
+continuation bit (0x80) and the next least 7 significant bits of
+the int value.</p>
+<p>
+In this way, a 32-bit value is encoded into 1-5 bytes, and 64-bit
+value is encoded into 1-10 bytes, depending on the magnitude of the
+value being encoded.</p>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter__ctor_System_IO_Stream_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.%23ctor(System.IO.Stream)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L46">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataWriter__ctor_" data-uid="Tangosol.IO.DataWriter.#ctor*"></a>
+  <h4 id="Tangosol_IO_DataWriter__ctor_System_IO_Stream_" data-uid="Tangosol.IO.DataWriter.#ctor(System.IO.Stream)">DataWriter(Stream)</h4>
+  <div class="markdown level1 summary"><p>Construct a new <strong>DataWriter</strong> that will write data to the
+specified <strong>Stream</strong> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DataWriter(Stream output)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.Stream</span></td>
+        <td><span class="parametername">output</span></td>
+        <td><p>The <strong>Stream</strong> object to write to; must not be <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_CHAR_BUF_MASK.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.CHAR_BUF_MASK%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L632">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_DataWriter_CHAR_BUF_MASK" data-uid="Tangosol.IO.DataWriter.CHAR_BUF_MASK">CHAR_BUF_MASK</h4>
+  <div class="markdown level1 summary"><p>Bitmask used against a raw offset to determine the offset within
+the temporary character buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected const int CHAR_BUF_MASK = 255</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_CHAR_BUF_SIZE.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.CHAR_BUF_SIZE%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L626">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_DataWriter_CHAR_BUF_SIZE" data-uid="Tangosol.IO.DataWriter.CHAR_BUF_SIZE">CHAR_BUF_SIZE</h4>
+  <div class="markdown level1 summary"><p>Size of the temporary character buffer. Must be a power of 2.
+Size is: 256 characters (.25 KB).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected const int CHAR_BUF_SIZE = 256</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_m_achBuf.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.m_achBuf%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L645">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_DataWriter_m_achBuf" data-uid="Tangosol.IO.DataWriter.m_achBuf">m_achBuf</h4>
+  <div class="markdown level1 summary"><p>A lazily instantiated temp buffer used to avoid allocations from
+and repeated calls to String functions.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected char[] m_achBuf</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Char</span>[]</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_CharBuf.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.CharBuf%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L60">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataWriter_CharBuf_" data-uid="Tangosol.IO.DataWriter.CharBuf*"></a>
+  <h4 id="Tangosol_IO_DataWriter_CharBuf" data-uid="Tangosol.IO.DataWriter.CharBuf">CharBuf</h4>
+  <div class="markdown level1 summary"><p>Obtain a temp buffer used to avoid allocations from
+repeated calls to String APIs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected char[] CharBuf { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Char</span>[]</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_CalcUTF_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.CalcUTF(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L428">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataWriter_CalcUTF_" data-uid="Tangosol.IO.DataWriter.CalcUTF*"></a>
+  <h4 id="Tangosol_IO_DataWriter_CalcUTF_System_String_" data-uid="Tangosol.IO.DataWriter.CalcUTF(System.String)">CalcUTF(String)</h4>
+  <div class="markdown level1 summary"><p>Figure out how many bytes it will take to hold the passed String.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected int CalcUTF(string s)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">s</span></td>
+        <td><p>the String</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_DataWriter_CalcUTF_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method is tightly bound to formatUTF.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_FormatUTF_System_Byte___System_Int32_System_Char___System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.FormatUTF(System.Byte%5B%5D%2CSystem.Int32%2CSystem.Char%5B%5D%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L551">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataWriter_FormatUTF_" data-uid="Tangosol.IO.DataWriter.FormatUTF*"></a>
+  <h4 id="Tangosol_IO_DataWriter_FormatUTF_System_Byte___System_Int32_System_Char___System_Int32_" data-uid="Tangosol.IO.DataWriter.FormatUTF(System.Byte[],System.Int32,System.Char[],System.Int32)">FormatUTF(Byte[], Int32, Char[], Int32)</h4>
+  <div class="markdown level1 summary"><p>Format the passed characters as UTF into the passed byte array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected int FormatUTF(byte[] ab, int ofb, char[] ach, int cch)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">ab</span></td>
+        <td><p>The byte array to format into.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">ofb</span></td>
+        <td><p>The offset into the byte array to write the first byte.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Char</span>[]</td>
+        <td><span class="parametername">ach</span></td>
+        <td><p>The array of characters to format.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">cch</span></td>
+        <td><p>The number of characters to format.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_FormatUTF_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.FormatUTF(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L491">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataWriter_FormatUTF_" data-uid="Tangosol.IO.DataWriter.FormatUTF*"></a>
+  <h4 id="Tangosol_IO_DataWriter_FormatUTF_System_String_" data-uid="Tangosol.IO.DataWriter.FormatUTF(System.String)">FormatUTF(String)</h4>
+  <div class="markdown level1 summary"><p>Format the passed String as UTF into the passed byte array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public byte[] FormatUTF(string s)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">s</span></td>
+        <td><p>the string.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><p>The formated UTF byte array.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_DataWriter_FormatUTF_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method is tightly bound to calcUTF.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_Tmpbuf_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.Tmpbuf(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L591">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataWriter_Tmpbuf_" data-uid="Tangosol.IO.DataWriter.Tmpbuf*"></a>
+  <h4 id="Tangosol_IO_DataWriter_Tmpbuf_System_Int32_" data-uid="Tangosol.IO.DataWriter.Tmpbuf(System.Int32)">Tmpbuf(Int32)</h4>
+  <div class="markdown level1 summary"><p>Get a buffer for formating data to bytes. Note that the resulting buffer
+may be shorter than the requested size.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected byte[] Tmpbuf(int cb)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">cb</span></td>
+        <td><p>the requested size for the buffer</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_Write_System_Double_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.Write(System.Double)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L382">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataWriter_Write_" data-uid="Tangosol.IO.DataWriter.Write*"></a>
+  <h4 id="Tangosol_IO_DataWriter_Write_System_Double_" data-uid="Tangosol.IO.DataWriter.Write(System.Double)">Write(Double)</h4>
+  <div class="markdown level1 summary"><p>Converts a Double value to its bits and writes an Int64 instance
+which stores the bits.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Write(double value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>A Double value to write.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryWriter.Write(System.Double)</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_Write_System_Int16_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.Write(System.Int16)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L278">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataWriter_Write_" data-uid="Tangosol.IO.DataWriter.Write*"></a>
+  <h4 id="Tangosol_IO_DataWriter_Write_System_Int16_" data-uid="Tangosol.IO.DataWriter.Write(System.Int16)">Write(Int16)</h4>
+  <div class="markdown level1 summary"><p>Writes a two-byte signed integer to the current stream and
+advances the stream position by two bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Write(short value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int16</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The two-byte signed integer to write.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryWriter.Write(System.Int16)</span></div>
+  <h5 id="Tangosol_IO_DataWriter_Write_System_Int16__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Overrides BinaryWriter.Write(Int16) by changing endian of the
+value written to the stream.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_Write_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.Write(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L310">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataWriter_Write_" data-uid="Tangosol.IO.DataWriter.Write*"></a>
+  <h4 id="Tangosol_IO_DataWriter_Write_System_Int32_" data-uid="Tangosol.IO.DataWriter.Write(System.Int32)">Write(Int32)</h4>
+  <div class="markdown level1 summary"><p>Writes a four-byte signed integer to the current stream and
+advances the stream position by four bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Write(int value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The four-byte signed integer to write.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryWriter.Write(System.Int32)</span></div>
+  <h5 id="Tangosol_IO_DataWriter_Write_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Overrides BinaryWriter.Write(Int32) by changing endian of the
+value written to the stream.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_Write_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.Write(System.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L342">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataWriter_Write_" data-uid="Tangosol.IO.DataWriter.Write*"></a>
+  <h4 id="Tangosol_IO_DataWriter_Write_System_Int64_" data-uid="Tangosol.IO.DataWriter.Write(System.Int64)">Write(Int64)</h4>
+  <div class="markdown level1 summary"><p>Writes a eight-byte signed integer to the current stream and
+advances the stream position by eight bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Write(long value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The eight-byte signed integer to write.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryWriter.Write(System.Int64)</span></div>
+  <h5 id="Tangosol_IO_DataWriter_Write_System_Int64__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Overrides BinaryWriter.Write(Int64) by changing endian of the
+value written to the stream.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_Write_System_Single_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.Write(System.Single)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L370">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataWriter_Write_" data-uid="Tangosol.IO.DataWriter.Write*"></a>
+  <h4 id="Tangosol_IO_DataWriter_Write_System_Single_" data-uid="Tangosol.IO.DataWriter.Write(System.Single)">Write(Single)</h4>
+  <div class="markdown level1 summary"><p>Converts a Single value to its bits and writes an Int32 instance
+which stores the bits.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Write(float value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>A Single value to write.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryWriter.Write(System.Single)</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_Write_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.Write(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L394">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataWriter_Write_" data-uid="Tangosol.IO.DataWriter.Write*"></a>
+  <h4 id="Tangosol_IO_DataWriter_Write_System_String_" data-uid="Tangosol.IO.DataWriter.Write(System.String)">Write(String)</h4>
+  <div class="markdown level1 summary"><p>Writes string to the stream prefixed by its length in &quot;packed&quot;
+format.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Write(string text)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">text</span></td>
+        <td><p>A string to write.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryWriter.Write(System.String)</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_Write_System_UInt16_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.Write(System.UInt16)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L294">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataWriter_Write_" data-uid="Tangosol.IO.DataWriter.Write*"></a>
+  <h4 id="Tangosol_IO_DataWriter_Write_System_UInt16_" data-uid="Tangosol.IO.DataWriter.Write(System.UInt16)">Write(UInt16)</h4>
+  <div class="markdown level1 summary"><p>Writes a two-byte unsigned integer to the current stream and
+advances the stream position by two bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Write(ushort value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt16</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The two-byte unsigned integer to write.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryWriter.Write(System.UInt16)</span></div>
+  <h5 id="Tangosol_IO_DataWriter_Write_System_UInt16__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Overrides BinaryWriter.Write(UInt16) by changing endian of the
+value written to the stream.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_Write_System_UInt32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.Write(System.UInt32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L326">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataWriter_Write_" data-uid="Tangosol.IO.DataWriter.Write*"></a>
+  <h4 id="Tangosol_IO_DataWriter_Write_System_UInt32_" data-uid="Tangosol.IO.DataWriter.Write(System.UInt32)">Write(UInt32)</h4>
+  <div class="markdown level1 summary"><p>Writes a four-byte unsigned integer to the current stream and
+advances the stream position by four bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Write(uint value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The four-byte unsigned integer to write.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryWriter.Write(System.UInt32)</span></div>
+  <h5 id="Tangosol_IO_DataWriter_Write_System_UInt32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Overrides BinaryWriter.Write(UInt32) by changing endian of the
+value written to the stream.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_Write_System_UInt64_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.Write(System.UInt64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L358">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataWriter_Write_" data-uid="Tangosol.IO.DataWriter.Write*"></a>
+  <h4 id="Tangosol_IO_DataWriter_Write_System_UInt64_" data-uid="Tangosol.IO.DataWriter.Write(System.UInt64)">Write(UInt64)</h4>
+  <div class="markdown level1 summary"><p>Writes a eight-byte unsigned integer to the current stream and
+advances the stream position by eight bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Write(ulong value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The eight-byte unsigned integer to write.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryWriter.Write(System.UInt64)</span></div>
+  <h5 id="Tangosol_IO_DataWriter_Write_System_UInt64__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Overrides BinaryWriter.Write(UInt64) by changing endian of the
+value written to the stream.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_WritePackedInt32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.WritePackedInt32(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L98">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataWriter_WritePackedInt32_" data-uid="Tangosol.IO.DataWriter.WritePackedInt32*"></a>
+  <h4 id="Tangosol_IO_DataWriter_WritePackedInt32_System_Int32_" data-uid="Tangosol.IO.DataWriter.WritePackedInt32(System.Int32)">WritePackedInt32(Int32)</h4>
+  <div class="markdown level1 summary"><p>Write an <strong>Int32</strong> value using a variable-length storage
+format.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void WritePackedInt32(int n)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">n</span></td>
+        <td><p>An <strong>Int32</strong> value to write.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_DataWriter_WritePackedInt32_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The &quot;packed&quot; format includes a sign bit (0x40) and a continuation
+bit (0x80) in the first byte, followed by the least 6 significant
+bits of the int value. Subsequent bytes (each appearing only if
+the previous byte had its continuation bit set) include a
+continuation bit (0x80) and the next least 7 significant bits of
+the int value. In this way, a 32-bit value is encoded into 1-5
+bytes, depending on the magnitude of the value being encoded.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_WritePackedInt64_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.WritePackedInt64(System.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L156">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataWriter_WritePackedInt64_" data-uid="Tangosol.IO.DataWriter.WritePackedInt64*"></a>
+  <h4 id="Tangosol_IO_DataWriter_WritePackedInt64_System_Int64_" data-uid="Tangosol.IO.DataWriter.WritePackedInt64(System.Int64)">WritePackedInt64(Int64)</h4>
+  <div class="markdown level1 summary"><p>Write an <strong>Int64</strong> value using a variable-length storage
+format.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void WritePackedInt64(long l)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">l</span></td>
+        <td><p>An <strong>Int64</strong> value to write.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_DataWriter_WritePackedInt64_System_Int64__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The &quot;packed&quot; format includes a sign bit (0x40) and a continuation
+bit (0x80) in the first byte, followed by the least 6 significant
+bits of the long value. Subsequent bytes (each appearing only if
+the previous byte had its continuation bit set) include a
+continuation bit (0x80) and the next least 7 significant bits of
+the long value. In this way, a 64-bit value is encoded into 1-10
+bytes, depending on the magnitude of the value being encoded.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter_WritePackedRawInt128_Tangosol_IO_DataWriter_Tangosol_IO_Pof_RawInt128_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter.WritePackedRawInt128(Tangosol.IO.DataWriter%2CTangosol.IO.Pof.RawInt128)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L207">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataWriter_WritePackedRawInt128_" data-uid="Tangosol.IO.DataWriter.WritePackedRawInt128*"></a>
+  <h4 id="Tangosol_IO_DataWriter_WritePackedRawInt128_Tangosol_IO_DataWriter_Tangosol_IO_Pof_RawInt128_" data-uid="Tangosol.IO.DataWriter.WritePackedRawInt128(Tangosol.IO.DataWriter,Tangosol.IO.Pof.RawInt128)">WritePackedRawInt128(DataWriter, RawInt128)</h4>
+  <div class="markdown level1 summary"><p>Write a <strong>RawInt128</strong> value to <strong>DataWriter</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void WritePackedRawInt128(DataWriter writer, RawInt128 rawInt128)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.DataWriter.html">DataWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The DataWriter to write to.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.RawInt128.html">RawInt128</a></td>
+        <td><span class="parametername">rawInt128</span></td>
+        <td><p><strong>RawInt128</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_DataWriter_WritePackedRawInt128_Tangosol_IO_DataWriter_Tangosol_IO_Pof_RawInt128__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p><strong>RawInt128</strong> value, which is represented as array of
+signed bytes.</p>
+</div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <span class="xref">System.IDisposable</span>
+  </div>
+  <h3 id="seealso">See Also</h3>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.IO.DataReader.html">DataReader</a></div>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataWriter.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataWriter%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataWriter.cs/#L35" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

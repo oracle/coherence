@@ -1,0 +1,976 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class LiteDictionary
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class LiteDictionary
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.LiteDictionary">
+  
+  
+  <h1 id="Tangosol_Util_LiteDictionary" data-uid="Tangosol.Util.LiteDictionary" class="text-break">Class LiteDictionary
+  </h1>
+  <div class="markdown level0 summary"><p>An implementation of <strong>IDictionary</strong> that is optimal (in terms of
+both size and speed) for very small sets of data but still works
+excellently with large sets of data.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">LiteDictionary</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><span class="xref">System.Collections.IDictionary</span></div>
+    <div><span class="xref">System.Collections.ICollection</span></div>
+    <div><span class="xref">System.Collections.IEnumerable</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.html">Tangosol.Util</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_LiteDictionary_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class LiteDictionary : IDictionary, ICollection, IEnumerable</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_LiteDictionary_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+This implementation is not thread-safe.</p>
+<p>
+The LiteDictionary implementation switches at runtime between several
+different sub-implementations for storing the <strong>IDictionary</strong> of
+objects, described here:</p>
+<p>
+<ol><li></li><li></li><li></li><li></li></ol></p>
+<p>
+The LiteDictionary implementation supports the <code>null</code> key value.
+</p>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L162">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary__ctor_" data-uid="Tangosol.Util.LiteDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary__ctor" data-uid="Tangosol.Util.LiteDictionary.#ctor">LiteDictionary()</h4>
+  <div class="markdown level1 summary"><p>Constructs a LiteDictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public LiteDictionary()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary__ctor_System_Collections_IDictionary_.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.%23ctor(System.Collections.IDictionary)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L173">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary__ctor_" data-uid="Tangosol.Util.LiteDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary__ctor_System_Collections_IDictionary_" data-uid="Tangosol.Util.LiteDictionary.#ctor(System.Collections.IDictionary)">LiteDictionary(IDictionary)</h4>
+  <div class="markdown level1 summary"><p>Construct a LiteDictionary with the same mappings as the given
+dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public LiteDictionary(IDictionary dictionary)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">dictionary</span></td>
+        <td><p>The dictionary whose mappings are to be placed in this
+dictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_Count.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.Count%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L63">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_Count_" data-uid="Tangosol.Util.LiteDictionary.Count*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_Count" data-uid="Tangosol.Util.LiteDictionary.Count">Count</h4>
+  <div class="markdown level1 summary"><p>Gets the number of elements contained in this dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int Count { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The number of elements contained in this dictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_IsEmpty.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.IsEmpty%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L102">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_IsEmpty_" data-uid="Tangosol.Util.LiteDictionary.IsEmpty*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_IsEmpty" data-uid="Tangosol.Util.LiteDictionary.IsEmpty">IsEmpty</h4>
+  <div class="markdown level1 summary"><p>Gets <strong>true</strong> if this dictionary contains no key-value
+mappings.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsEmpty { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if this dictionary contains no key-value
+mappings.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_IsFixedSize.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.IsFixedSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L453">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_IsFixedSize_" data-uid="Tangosol.Util.LiteDictionary.IsFixedSize*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_IsFixedSize" data-uid="Tangosol.Util.LiteDictionary.IsFixedSize">IsFixedSize</h4>
+  <div class="markdown level1 summary"><p>Gets a value indicating whether the <strong>IDictionary</strong> object has
+a fixed size.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsFixedSize { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>Always <strong>false</strong> for LiteDictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_IsReadOnly.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.IsReadOnly%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L441">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_IsReadOnly_" data-uid="Tangosol.Util.LiteDictionary.IsReadOnly*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_IsReadOnly" data-uid="Tangosol.Util.LiteDictionary.IsReadOnly">IsReadOnly</h4>
+  <div class="markdown level1 summary"><p>Gets a value indicating whether the <strong>IDictionary</strong> object is
+read-only.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsReadOnly { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>Always <strong>false</strong> for LiteDictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_IsSynchronized.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.IsSynchronized%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L478">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_IsSynchronized_" data-uid="Tangosol.Util.LiteDictionary.IsSynchronized*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_IsSynchronized" data-uid="Tangosol.Util.LiteDictionary.IsSynchronized">IsSynchronized</h4>
+  <div class="markdown level1 summary"><p>Gets a value indicating whether access to the <strong>ICollection</strong>
+is synchronized (thread safe).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsSynchronized { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>Always <strong>false</strong> for LiteDictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_Item_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.Item(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L118">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_Item_" data-uid="Tangosol.Util.LiteDictionary.Item*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_Item_System_Object_" data-uid="Tangosol.Util.LiteDictionary.Item(System.Object)">Item[Object]</h4>
+  <div class="markdown level1 summary"><p>Returns the value to which this dictionary maps the specified
+key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object this[object key] { get; set; }</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key of the element to get or set.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The value to which this dictionary maps the specified key, or
+<code>null</code> if the dictionary contains no mapping for this key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_Keys.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.Keys%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L402">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_Keys_" data-uid="Tangosol.Util.LiteDictionary.Keys*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_Keys" data-uid="Tangosol.Util.LiteDictionary.Keys">Keys</h4>
+  <div class="markdown level1 summary"><p>Gets a collection containing the keys of the LiteDictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICollection Keys { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><p>A collection containing the keys of the LiteDictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_SyncRoot.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.SyncRoot%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L466">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_SyncRoot_" data-uid="Tangosol.Util.LiteDictionary.SyncRoot*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_SyncRoot" data-uid="Tangosol.Util.LiteDictionary.SyncRoot">SyncRoot</h4>
+  <div class="markdown level1 summary"><p>Gets an object that can be used to synchronize access to the
+<strong>ICollection</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object SyncRoot { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>An object that can be used to synchronize access to the
+<strong>ICollection&quot;&gt;</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_Values.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.Values%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L421">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_Values_" data-uid="Tangosol.Util.LiteDictionary.Values*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_Values" data-uid="Tangosol.Util.LiteDictionary.Values">Values</h4>
+  <div class="markdown level1 summary"><p>Gets a collection containing the values in the LiteDictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICollection Values { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><p>A collection containing the values in the LiteDictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_Add_System_Object_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.Add(System.Object%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L247">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_Add_" data-uid="Tangosol.Util.LiteDictionary.Add*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_Add_System_Object_System_Object_" data-uid="Tangosol.Util.LiteDictionary.Add(System.Object,System.Object)">Add(Object, Object)</h4>
+  <div class="markdown level1 summary"><p>Adds an element with the provided key and value to the
+<strong>IDictionary</strong> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Add(object key, object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The object to use as the key of the element to add.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The object to use as the value of the element to add.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_CheckShrinkFromOther.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.CheckShrinkFromOther%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L560">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_CheckShrinkFromOther_" data-uid="Tangosol.Util.LiteDictionary.CheckShrinkFromOther*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_CheckShrinkFromOther" data-uid="Tangosol.Util.LiteDictionary.CheckShrinkFromOther">CheckShrinkFromOther()</h4>
+  <div class="markdown level1 summary"><p>After a mutation operation has reduced the size of an underlying
+dictionary, check if the delegation model should be replaced with
+a more size-efficient storage approach, and switch accordingly.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void CheckShrinkFromOther()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_Clear.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.Clear%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L185">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_Clear_" data-uid="Tangosol.Util.LiteDictionary.Clear*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_Clear" data-uid="Tangosol.Util.LiteDictionary.Clear">Clear()</h4>
+  <div class="markdown level1 summary"><p>Removes all elements from the dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Clear()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_Contains_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.Contains(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L202">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_Contains_" data-uid="Tangosol.Util.LiteDictionary.Contains*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_Contains_System_Object_" data-uid="Tangosol.Util.LiteDictionary.Contains(System.Object)">Contains(Object)</h4>
+  <div class="markdown level1 summary"><p>Returns <strong>true</strong> if this dictionary contains a mapping for the
+specified key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool Contains(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key to locate in the dictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if this dictionary contains a mapping for the
+specified key, <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_CopyTo_System_Array_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.CopyTo(System.Array%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L494">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_CopyTo_" data-uid="Tangosol.Util.LiteDictionary.CopyTo*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_CopyTo_System_Array_System_Int32_" data-uid="Tangosol.Util.LiteDictionary.CopyTo(System.Array,System.Int32)">CopyTo(Array, Int32)</h4>
+  <div class="markdown level1 summary"><p>Copies the elements of the <strong>ICollection</strong> to an <strong>Array</strong>,
+starting at a particular index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void CopyTo(Array array, int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Array</span></td>
+        <td><span class="parametername">array</span></td>
+        <td><p>The one-dimensional <strong>Array</strong> that is the destination of the
+elements copied from <strong>ICollection</strong>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The zero-based index in array at which copying begins.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_GetEnumerator.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L347">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_GetEnumerator_" data-uid="Tangosol.Util.LiteDictionary.GetEnumerator*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_GetEnumerator" data-uid="Tangosol.Util.LiteDictionary.GetEnumerator">GetEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Returns an <strong>IEnumerator</strong> object for this LiteDictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IEnumerator GetEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IEnumerator</span></td>
+        <td><p>An <strong>IEnumerator</strong> object for this LiteDictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_InstantiateDictionary.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.InstantiateDictionary%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L623">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_InstantiateDictionary_" data-uid="Tangosol.Util.LiteDictionary.InstantiateDictionary*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_InstantiateDictionary" data-uid="Tangosol.Util.LiteDictionary.InstantiateDictionary">InstantiateDictionary()</h4>
+  <div class="markdown level1 summary"><p>Instantiate an <strong>IDictionary</strong> object to store entries in once
+the &quot;lite&quot; threshold has been exceeded.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual IDictionary InstantiateDictionary()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>An instance of <strong>IDictionary</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_InstantiateEntry_System_Object_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.InstantiateEntry(System.Object%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L611">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_InstantiateEntry_" data-uid="Tangosol.Util.LiteDictionary.InstantiateEntry*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_InstantiateEntry_System_Object_System_Object_" data-uid="Tangosol.Util.LiteDictionary.InstantiateEntry(System.Object,System.Object)">InstantiateEntry(Object, Object)</h4>
+  <div class="markdown level1 summary"><p>Instantiate a <strong>DictionaryEntry</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual DictionaryEntry InstantiateEntry(object key, object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.DictionaryEntry</span></td>
+        <td><p>An instance of <strong>DictionaryEntry</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_Remove_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.Remove(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L336">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_Remove_" data-uid="Tangosol.Util.LiteDictionary.Remove*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_Remove_System_Object_" data-uid="Tangosol.Util.LiteDictionary.Remove(System.Object)">Remove(Object)</h4>
+  <div class="markdown level1 summary"><p>Removes the mapping for this key from this dictionary if present.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Remove(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key of the element to remove.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_RemoveEx_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.RemoveEx(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L644">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_RemoveEx_" data-uid="Tangosol.Util.LiteDictionary.RemoveEx*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_RemoveEx_System_Object_" data-uid="Tangosol.Util.LiteDictionary.RemoveEx(System.Object)">RemoveEx(Object)</h4>
+  <div class="markdown level1 summary"><p>Removes the mapping for this key from this map if present.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object RemoveEx(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key of the element to remove.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>Previous value associated with specified key, or <code>null</code> if
+there was no mapping for key. A <code>null</code> return can also
+indicate that the dictionary previously associated <code>null</code>
+with the specified key, if the implementation supports
+<code>null</code> values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_LiteDictionary_RemoveEx_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Expensive: updates both the underlying cache and the local cache.</p>
+</div>
+  <h3 id="eii">Explicit Interface Implementations
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary_System_Collections_IDictionary_GetEnumerator.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary.System%23Collections%23IDictionary%23GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L391">View Source</a>
+  </span>
+  <a id="Tangosol_Util_LiteDictionary_System_Collections_IDictionary_GetEnumerator_" data-uid="Tangosol.Util.LiteDictionary.System#Collections#IDictionary#GetEnumerator*"></a>
+  <h4 id="Tangosol_Util_LiteDictionary_System_Collections_IDictionary_GetEnumerator" data-uid="Tangosol.Util.LiteDictionary.System#Collections#IDictionary#GetEnumerator">IDictionary.GetEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Returns an <strong>IDictionaryEnumerator</strong> object for this
+LiteDictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IDictionaryEnumerator IDictionary.GetEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionaryEnumerator</span></td>
+        <td><p>An <strong>IDictionaryEnumerator</strong> object for this LiteDictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <span class="xref">System.Collections.IDictionary</span>
+  </div>
+  <div>
+      <span class="xref">System.Collections.ICollection</span>
+  </div>
+  <div>
+      <span class="xref">System.Collections.IEnumerable</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_LiteDictionary.md&amp;value=---%0Auid%3A%20Tangosol.Util.LiteDictionary%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/LiteDictionary.cs/#L53" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,1614 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class NumberUtils
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class NumberUtils
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.NumberUtils">
+  
+  
+  <h1 id="Tangosol_Util_NumberUtils" data-uid="Tangosol.Util.NumberUtils" class="text-break">Class NumberUtils
+  </h1>
+  <div class="markdown level0 summary"><p>Miscellaneuos utility methods for numbers manipulation.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">NumberUtils</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.html">Tangosol.Util</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_NumberUtils_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract class NumberUtils</code></pre>
+  </div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_ChangeEndian_System_Int16_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.ChangeEndian(System.Int16)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L367">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_ChangeEndian_" data-uid="Tangosol.Util.NumberUtils.ChangeEndian*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_ChangeEndian_System_Int16_" data-uid="Tangosol.Util.NumberUtils.ChangeEndian(System.Int16)">ChangeEndian(Int16)</h4>
+  <div class="markdown level1 summary"><p>Changes the endian of <strong>Int16</strong> value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static short ChangeEndian(short value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int16</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Value for which endian is being changed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int16</span></td>
+        <td><p>Value with changed endian.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_ChangeEndian_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.ChangeEndian(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L403">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_ChangeEndian_" data-uid="Tangosol.Util.NumberUtils.ChangeEndian*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_ChangeEndian_System_Int32_" data-uid="Tangosol.Util.NumberUtils.ChangeEndian(System.Int32)">ChangeEndian(Int32)</h4>
+  <div class="markdown level1 summary"><p>Changes the endian of <strong>Int32</strong> value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static int ChangeEndian(int value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Value for which endian is being changed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>Value with changed endian.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_ChangeEndian_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.ChangeEndian(System.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L443">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_ChangeEndian_" data-uid="Tangosol.Util.NumberUtils.ChangeEndian*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_ChangeEndian_System_Int64_" data-uid="Tangosol.Util.NumberUtils.ChangeEndian(System.Int64)">ChangeEndian(Int64)</h4>
+  <div class="markdown level1 summary"><p>Changes the endian of <strong>Int64</strong> value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static long ChangeEndian(long value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Value for which endian is being changed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>Value with changed endian.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_ChangeEndian_System_UInt16_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.ChangeEndian(System.UInt16)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L385">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_ChangeEndian_" data-uid="Tangosol.Util.NumberUtils.ChangeEndian*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_ChangeEndian_System_UInt16_" data-uid="Tangosol.Util.NumberUtils.ChangeEndian(System.UInt16)">ChangeEndian(UInt16)</h4>
+  <div class="markdown level1 summary"><p>Changes the endian of <strong>UInt16</strong> value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ushort ChangeEndian(ushort value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt16</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Value for which endian is being changed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt16</span></td>
+        <td><p>Value with changed endian.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_ChangeEndian_System_UInt32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.ChangeEndian(System.UInt32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L423">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_ChangeEndian_" data-uid="Tangosol.Util.NumberUtils.ChangeEndian*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_ChangeEndian_System_UInt32_" data-uid="Tangosol.Util.NumberUtils.ChangeEndian(System.UInt32)">ChangeEndian(UInt32)</h4>
+  <div class="markdown level1 summary"><p>Changes the endian of <strong>UInt32</strong> value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static uint ChangeEndian(uint value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Value for which endian is being changed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><p>Value with changed endian.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_ChangeEndian_System_UInt64_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.ChangeEndian(System.UInt64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L468">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_ChangeEndian_" data-uid="Tangosol.Util.NumberUtils.ChangeEndian*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_ChangeEndian_System_UInt64_" data-uid="Tangosol.Util.NumberUtils.ChangeEndian(System.UInt64)">ChangeEndian(UInt64)</h4>
+  <div class="markdown level1 summary"><p>Changes the endian of <strong>UInt64</strong> value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong ChangeEndian(ulong value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Value for which endian is being changed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><p>Value with changed endian.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_DecimalToRawInt128_System_Decimal_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.DecimalToRawInt128(System.Decimal)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L160">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_DecimalToRawInt128_" data-uid="Tangosol.Util.NumberUtils.DecimalToRawInt128*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_DecimalToRawInt128_System_Decimal_" data-uid="Tangosol.Util.NumberUtils.DecimalToRawInt128(System.Decimal)">DecimalToRawInt128(Decimal)</h4>
+  <div class="markdown level1 summary"><p>Converts <strong>Decimal</strong> to unscaled <strong>RawInt128</strong>
+representation - compatible with Java BigInteger type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static RawInt128 DecimalToRawInt128(decimal value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Decimal</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Decimal value to convert.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.RawInt128.html">RawInt128</a></td>
+        <td><p>Signed-byte array representing unscaled <strong>RawInt128</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_DoubleToInt64Bits_System_Double_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.DoubleToInt64Bits(System.Double)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L317">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_DoubleToInt64Bits_" data-uid="Tangosol.Util.NumberUtils.DoubleToInt64Bits*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_DoubleToInt64Bits_System_Double_" data-uid="Tangosol.Util.NumberUtils.DoubleToInt64Bits(System.Double)">DoubleToInt64Bits(Double)</h4>
+  <div class="markdown level1 summary"><p>Converts <strong>Double</strong> to its bits, which are stored in a
+<strong>Int64</strong> instance.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static long DoubleToInt64Bits(double value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Value to convert to bits.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>Bits packed within an <strong>Int64</strong> instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_EncodeDecimalBits_Tangosol_IO_Pof_RawInt128_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.EncodeDecimalBits(Tangosol.IO.Pof.RawInt128)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L247">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_EncodeDecimalBits_" data-uid="Tangosol.Util.NumberUtils.EncodeDecimalBits*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_EncodeDecimalBits_Tangosol_IO_Pof_RawInt128_" data-uid="Tangosol.Util.NumberUtils.EncodeDecimalBits(Tangosol.IO.Pof.RawInt128)">EncodeDecimalBits(RawInt128)</h4>
+  <div class="markdown level1 summary"><p>Encode <strong>RawInt128</strong> value provided to array of int values
+representing <strong>Decimal</strong> unscaled value bits.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static int[] EncodeDecimalBits(RawInt128 int128)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.RawInt128.html">RawInt128</a></td>
+        <td><span class="parametername">int128</span></td>
+        <td><p><strong>RawInt128</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span>[]</td>
+        <td><p>Decimal unscaled value bits as array of int.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_GetRandom.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.GetRandom%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L675">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_GetRandom_" data-uid="Tangosol.Util.NumberUtils.GetRandom*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_GetRandom" data-uid="Tangosol.Util.NumberUtils.GetRandom">GetRandom()</h4>
+  <div class="markdown level1 summary"><p>Obtain a <strong>Random</strong> object that can be used to get random
+values.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Random GetRandom()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Random</span></td>
+        <td><p>A random number generator.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_GetScale_System_Decimal_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.GetScale(System.Decimal)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L143">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_GetScale_" data-uid="Tangosol.Util.NumberUtils.GetScale*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_GetScale_System_Decimal_" data-uid="Tangosol.Util.NumberUtils.GetScale(System.Decimal)">GetScale(Decimal)</h4>
+  <div class="markdown level1 summary"><p>Gets a scale of <strong>Decimal</strong> value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static int GetScale(decimal value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Decimal</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The <strong>Decimal</strong> value to get scale from.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>Scale of a <strong>Decimal</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_GetUnscaledValue_System_Decimal_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.GetUnscaledValue(System.Decimal)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L99">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_GetUnscaledValue_" data-uid="Tangosol.Util.NumberUtils.GetUnscaledValue*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_GetUnscaledValue_System_Decimal_" data-uid="Tangosol.Util.NumberUtils.GetUnscaledValue(System.Decimal)">GetUnscaledValue(Decimal)</h4>
+  <div class="markdown level1 summary"><p>Gets the unscaled value of <strong>Decimal</strong> value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static decimal GetUnscaledValue(decimal value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Decimal</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The <strong>Decimal</strong> value to get scale from.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Decimal</span></td>
+        <td><p>Decimal which is unscaled value of a <strong>Decimal</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_Int32BitsToSingle_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.Int32BitsToSingle(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L303">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_Int32BitsToSingle_" data-uid="Tangosol.Util.NumberUtils.Int32BitsToSingle*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_Int32BitsToSingle_System_Int32_" data-uid="Tangosol.Util.NumberUtils.Int32BitsToSingle(System.Int32)">Int32BitsToSingle(Int32)</h4>
+  <div class="markdown level1 summary"><p>Converts bits which are stored in an <strong>Int32</strong> instance into
+the <strong>Single</strong> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static float Int32BitsToSingle(int value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Bits packed within an <strong>Int32</strong> instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><p><strong>Single</strong> value represented by the bits in
+<code data-dev-comment-type="paramref" class="paramref">value</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_Int64BitsToDouble_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.Int64BitsToDouble(System.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L333">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_Int64BitsToDouble_" data-uid="Tangosol.Util.NumberUtils.Int64BitsToDouble*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_Int64BitsToDouble_System_Int64_" data-uid="Tangosol.Util.NumberUtils.Int64BitsToDouble(System.Int64)">Int64BitsToDouble(Int64)</h4>
+  <div class="markdown level1 summary"><p>Converts bits which are stored in an <strong>Int64</strong> instance into
+the <strong>Double</strong> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static double Int64BitsToDouble(long value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Bits packed within an <strong>Int64</strong> instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><p><strong>Double</strong> value represented by the bits in
+<code data-dev-comment-type="paramref" class="paramref">value</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_IntToByteArray_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.IntToByteArray(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L347">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_IntToByteArray_" data-uid="Tangosol.Util.NumberUtils.IntToByteArray*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_IntToByteArray_System_Int32_" data-uid="Tangosol.Util.NumberUtils.IntToByteArray(System.Int32)">IntToByteArray(Int32)</h4>
+  <div class="markdown level1 summary"><p>Converts <strong>Int32</strong> to its byte array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static byte[] IntToByteArray(int number)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">number</span></td>
+        <td><p>Value to convert to byte array.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><p>Number packed within a <strong>Byte</strong> array.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_IsNumber_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.IsNumber(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L741">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_IsNumber_" data-uid="Tangosol.Util.NumberUtils.IsNumber*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_IsNumber_System_Object_" data-uid="Tangosol.Util.NumberUtils.IsNumber(System.Object)">IsNumber(Object)</h4>
+  <div class="markdown level1 summary"><p>Returns <strong>true</strong> if specified object is one of .NET supported
+numeric types:</p>
+<ul><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool IsNumber(object num)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">num</span></td>
+        <td><p>An object being tested.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if <code data-dev-comment-type="paramref" class="paramref">num</code> is numeric, <strong>false</strong>
+otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_ParseHex_System_Char_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.ParseHex(System.Char)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L541">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_ParseHex_" data-uid="Tangosol.Util.NumberUtils.ParseHex*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_ParseHex_System_Char_" data-uid="Tangosol.Util.NumberUtils.ParseHex(System.Char)">ParseHex(Char)</h4>
+  <div class="markdown level1 summary"><p>Return the integer value of a hexidecimal digit.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static int ParseHex(char ch)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Char</span></td>
+        <td><span class="parametername">ch</span></td>
+        <td><p>The hex character to evaluate.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The integer value of the passed hex character.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_ParseHex_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.ParseHex(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L498">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_ParseHex_" data-uid="Tangosol.Util.NumberUtils.ParseHex*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_ParseHex_System_String_" data-uid="Tangosol.Util.NumberUtils.ParseHex(System.String)">ParseHex(String)</h4>
+  <div class="markdown level1 summary"><p>Parse the passed string of hexidecimal characters into a binary
+value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static byte[] ParseHex(string s)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">s</span></td>
+        <td><p>The hex string to evaluate.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><p>The byte array value of the passed hex string.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_NumberUtils_ParseHex_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This implementation allows the passed string to be prefixed with
+&quot;0x&quot;.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_SingleToInt32Bits_System_Single_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.SingleToInt32Bits(System.Single)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L287">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_SingleToInt32Bits_" data-uid="Tangosol.Util.NumberUtils.SingleToInt32Bits*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_SingleToInt32Bits_System_Single_" data-uid="Tangosol.Util.NumberUtils.SingleToInt32Bits(System.Single)">SingleToInt32Bits(Single)</h4>
+  <div class="markdown level1 summary"><p>Converts <strong>Single</strong> to its bits, which are stored in a
+<strong>Int32</strong> instance.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static int SingleToInt32Bits(float value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Value to convert to bits.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>Bits packed within an <strong>Int32</strong> instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_ToCrc_System_Byte___.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.ToCrc(System.Byte%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L763">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_ToCrc_" data-uid="Tangosol.Util.NumberUtils.ToCrc*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_ToCrc_System_Byte___" data-uid="Tangosol.Util.NumberUtils.ToCrc(System.Byte[])">ToCrc(Byte[])</h4>
+  <div class="markdown level1 summary"><p>Calculate a CRC32 value from a byte array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static uint ToCrc(byte[] ab)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">ab</span></td>
+        <td><p>An array of bytes.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><p>The 32-bit CRC value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_ToCrc_System_Byte___System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.ToCrc(System.Byte%5B%5D%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L783">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_ToCrc_" data-uid="Tangosol.Util.NumberUtils.ToCrc*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_ToCrc_System_Byte___System_Int32_System_Int32_" data-uid="Tangosol.Util.NumberUtils.ToCrc(System.Byte[],System.Int32,System.Int32)">ToCrc(Byte[], Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Calculate a CRC32 value from a portion of a byte array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static uint ToCrc(byte[] ab, int of, int cb)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">ab</span></td>
+        <td><p>An array of bytes.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">of</span></td>
+        <td><p>The offset into the array.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">cb</span></td>
+        <td><p>The number of bytes to evaluate.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><p>The 32-bit CRC value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_ToCrc_System_Byte___System_Int32_System_Int32_System_UInt32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.ToCrc(System.Byte%5B%5D%2CSystem.Int32%2CSystem.Int32%2CSystem.UInt32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L807">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_ToCrc_" data-uid="Tangosol.Util.NumberUtils.ToCrc*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_ToCrc_System_Byte___System_Int32_System_Int32_System_UInt32_" data-uid="Tangosol.Util.NumberUtils.ToCrc(System.Byte[],System.Int32,System.Int32,System.UInt32)">ToCrc(Byte[], Int32, Int32, UInt32)</h4>
+  <div class="markdown level1 summary"><p>Continue to calculate a CRC32 value from a portion of a byte
+array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static uint ToCrc(byte[] ab, int of, int cb, uint crc)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">ab</span></td>
+        <td><p>An array of bytes.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">of</span></td>
+        <td><p>The offset into the array.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">cb</span></td>
+        <td><p>The number of bytes to evaluate.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="parametername">crc</span></td>
+        <td><p>The previous CRC value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><p>The 32-bit CRC value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_ToHex_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.ToHex(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L587">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_ToHex_" data-uid="Tangosol.Util.NumberUtils.ToHex*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_ToHex_System_Int32_" data-uid="Tangosol.Util.NumberUtils.ToHex(System.Int32)">ToHex(Int32)</h4>
+  <div class="markdown level1 summary"><p>Convert a byte to the hex sequence of 2 hex digits.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static string ToHex(int b)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">b</span></td>
+        <td><p>The byte.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The hex sequence.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_ToHexEscape_System_Byte_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.ToHexEscape(System.Byte)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L607">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_ToHexEscape_" data-uid="Tangosol.Util.NumberUtils.ToHexEscape*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_ToHexEscape_System_Byte_" data-uid="Tangosol.Util.NumberUtils.ToHexEscape(System.Byte)">ToHexEscape(Byte)</h4>
+  <div class="markdown level1 summary"><p>Convert a byte to a hex sequence of '0' + 'x' + 2 hex digits.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static string ToHexEscape(byte b)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span></td>
+        <td><span class="parametername">b</span></td>
+        <td><p>The byte.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The hex sequence.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_ToHexEscape_System_Byte___.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.ToHexEscape(System.Byte%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L630">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_ToHexEscape_" data-uid="Tangosol.Util.NumberUtils.ToHexEscape*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_ToHexEscape_System_Byte___" data-uid="Tangosol.Util.NumberUtils.ToHexEscape(System.Byte[])">ToHexEscape(Byte[])</h4>
+  <div class="markdown level1 summary"><p>Convert a byte array to a hex sequence of '0' + 'x' + 2 hex
+digits per byte.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static string ToHexEscape(byte[] bytes)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">bytes</span></td>
+        <td><p>The byte array.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The hex sequence.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_ToHexEscape_System_Byte___System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.ToHexEscape(System.Byte%5B%5D%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L651">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_ToHexEscape_" data-uid="Tangosol.Util.NumberUtils.ToHexEscape*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_ToHexEscape_System_Byte___System_Int32_System_Int32_" data-uid="Tangosol.Util.NumberUtils.ToHexEscape(System.Byte[],System.Int32,System.Int32)">ToHexEscape(Byte[], Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Convert a byte array to a hex sequence of '0' + 'x' + 2 hex
+digits per byte.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static string ToHexEscape(byte[] bytes, int offset, int bytesCount)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">bytes</span></td>
+        <td><p>The byte array.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">offset</span></td>
+        <td><p>The offset into array.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">bytesCount</span></td>
+        <td><p>The number of bytes to convert.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The hex sequence.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_URShift_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.URShift(System.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L54">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_URShift_" data-uid="Tangosol.Util.NumberUtils.URShift*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_URShift_System_Int32_System_Int32_" data-uid="Tangosol.Util.NumberUtils.URShift(System.Int32,System.Int32)">URShift(Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Performs an unsigned bitwise right shift with the specified number.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static int URShift(int number, int bits)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">number</span></td>
+        <td><p>Number to operate on.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">bits</span></td>
+        <td><p>Ammount of bits to shift.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The resulting number from the shift operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils_URShift_System_Int64_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils.URShift(System.Int64%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L78">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NumberUtils_URShift_" data-uid="Tangosol.Util.NumberUtils.URShift*"></a>
+  <h4 id="Tangosol_Util_NumberUtils_URShift_System_Int64_System_Int32_" data-uid="Tangosol.Util.NumberUtils.URShift(System.Int64,System.Int32)">URShift(Int64, Int32)</h4>
+  <div class="markdown level1 summary"><p>Performs an unsigned bitwise right shift with the specified number.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static long URShift(long number, int bits)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">number</span></td>
+        <td><p>Number to operate on.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">bits</span></td>
+        <td><p>Ammount of bits to shift.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The resulting number from the shift operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NumberUtils.md&amp;value=---%0Auid%3A%20Tangosol.Util.NumberUtils%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NumberUtils.cs/#L20" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

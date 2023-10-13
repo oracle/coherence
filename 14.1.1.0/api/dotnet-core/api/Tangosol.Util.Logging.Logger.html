@@ -1,0 +1,1841 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class Logger
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class Logger
+   ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Logging.Logger">
+  
+  
+  <h1 id="Tangosol_Util_Logging_Logger" data-uid="Tangosol.Util.Logging.Logger" class="text-break">Class Logger
+  </h1>
+  <div class="markdown level0 summary"><p>A Logger class is used to to asynchronously log messages for a
+specific system or application component.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">Tangosol.Util.Daemon.Daemon</span></div>
+    <div class="level2"><span class="xref">Tangosol.Util.Daemon.QueueProcessor.QueueProcessor</span></div>
+    <div class="level3"><span class="xref">Logger</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.Messaging.IRunnable.html">IRunnable</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.Logging.html">Tangosol.Util.Logging</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Logging_Logger_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class Logger : QueueProcessor, IRunnable</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Logging_Logger_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+Each Logger instance has an associated logging level. Only Log
+messages that meet or exceed this level are logged. Currently, the
+Logger defines 10 logging levels (from highest to lowest level):
+<p>LEVEL_INTERNAL (All messages without a Log level)
+LEVEL_ERROR    (Error messages)
+LEVEL_WARNING  (Warning messages)
+LEVEL_INFO     (Informational messages)
+LEVEL_D4       (Debug messages)
+LEVEL_D5
+LEVEL_D6
+LEVEL_D7
+LEVEL_D8
+LEVEL_D9</p>
+<p>Additionally, the Logger defines two &quot;psuedo&quot; levels that instruct
+the Logger to either log all messages or to not log any messages:</p>
+<p>LEVEL_ALL
+LEVEL_NONE</p>
+<p>Log messages are logged using the Log() method. There are several
+versions of the Log() method that allow both string messages and
+Exception stack traces to be logged. The Logger uses a string
+template to format the Log message before it is logged using the
+underlying logging mechanism. The template may contain the following
+parameterizable strings:</p>
+<p>{date}    -the date and time that the message was logged
+{level}   -the level of the Log message
+{thread}  -the thread that logged the message
+{text}    -the text of the message
+{product} -the executing assembly product
+{version} -the executing assembly version</p>
+<p>Subclasses of the Logger are free to define additional parameters.</p>
+<p>The Logger class uses a <a class="xref" href="Tangosol.Util.Logging.Logger.html#Tangosol_Util_Logging_Logger_LogOutput">LogOutput</a> to log messages to an
+underlying logging mechanism, such as Out, Error, a file. See the
+Configure() method for additional detail.</p>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L289">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger__ctor_" data-uid="Tangosol.Util.Logging.Logger.#ctor*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger__ctor" data-uid="Tangosol.Util.Logging.Logger.#ctor">Logger()</h4>
+  <div class="markdown level1 summary"><p>Default constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Logger()</code></pre>
+  </div>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_LEVEL_ALL.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.LEVEL_ALL%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L1058">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Logging_Logger_LEVEL_ALL" data-uid="Tangosol.Util.Logging.Logger.LEVEL_ALL">LEVEL_ALL</h4>
+  <div class="markdown level1 summary"><p>Logging level that instructs the Logger to log all messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int LEVEL_ALL = 10</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_LEVEL_D4.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.LEVEL_D4%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L1028">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Logging_Logger_LEVEL_D4" data-uid="Tangosol.Util.Logging.Logger.LEVEL_D4">LEVEL_D4</h4>
+  <div class="markdown level1 summary"><p>Logging level associated with debug messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int LEVEL_D4 = 4</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_LEVEL_D5.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.LEVEL_D5%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L1033">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Logging_Logger_LEVEL_D5" data-uid="Tangosol.Util.Logging.Logger.LEVEL_D5">LEVEL_D5</h4>
+  <div class="markdown level1 summary"><p>Logging level associated with debug messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int LEVEL_D5 = 5</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_LEVEL_D6.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.LEVEL_D6%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L1038">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Logging_Logger_LEVEL_D6" data-uid="Tangosol.Util.Logging.Logger.LEVEL_D6">LEVEL_D6</h4>
+  <div class="markdown level1 summary"><p>Logging level associated with debug messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int LEVEL_D6 = 6</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_LEVEL_D7.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.LEVEL_D7%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L1043">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Logging_Logger_LEVEL_D7" data-uid="Tangosol.Util.Logging.Logger.LEVEL_D7">LEVEL_D7</h4>
+  <div class="markdown level1 summary"><p>Logging level associated with debug messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int LEVEL_D7 = 7</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_LEVEL_D8.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.LEVEL_D8%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L1048">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Logging_Logger_LEVEL_D8" data-uid="Tangosol.Util.Logging.Logger.LEVEL_D8">LEVEL_D8</h4>
+  <div class="markdown level1 summary"><p>Logging level associated with debug messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int LEVEL_D8 = 8</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_LEVEL_D9.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.LEVEL_D9%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L1053">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Logging_Logger_LEVEL_D9" data-uid="Tangosol.Util.Logging.Logger.LEVEL_D9">LEVEL_D9</h4>
+  <div class="markdown level1 summary"><p>Logging level associated with debug messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int LEVEL_D9 = 9</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_LEVEL_ERROR.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.LEVEL_ERROR%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L1013">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Logging_Logger_LEVEL_ERROR" data-uid="Tangosol.Util.Logging.Logger.LEVEL_ERROR">LEVEL_ERROR</h4>
+  <div class="markdown level1 summary"><p>Logging level associated with error messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int LEVEL_ERROR = 1</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_LEVEL_INFO.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.LEVEL_INFO%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L1023">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Logging_Logger_LEVEL_INFO" data-uid="Tangosol.Util.Logging.Logger.LEVEL_INFO">LEVEL_INFO</h4>
+  <div class="markdown level1 summary"><p>Logging level associated with informational messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int LEVEL_INFO = 3</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_LEVEL_INTERNAL.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.LEVEL_INTERNAL%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L1008">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Logging_Logger_LEVEL_INTERNAL" data-uid="Tangosol.Util.Logging.Logger.LEVEL_INTERNAL">LEVEL_INTERNAL</h4>
+  <div class="markdown level1 summary"><p>Logging level associated with internal Log messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int LEVEL_INTERNAL = 0</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_LEVEL_NONE.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.LEVEL_NONE%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L1063">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Logging_Logger_LEVEL_NONE" data-uid="Tangosol.Util.Logging.Logger.LEVEL_NONE">LEVEL_NONE</h4>
+  <div class="markdown level1 summary"><p>Logging level that instructs the Logger to not log any messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int LEVEL_NONE = -1</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_LEVEL_TEXT.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.LEVEL_TEXT%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L1069">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Logging_Logger_LEVEL_TEXT" data-uid="Tangosol.Util.Logging.Logger.LEVEL_TEXT">LEVEL_TEXT</h4>
+  <div class="markdown level1 summary"><p>A String array containing descriptions of each of the supported
+logging levels indexed by the level.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static string[] LEVEL_TEXT</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span>[]</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_LEVEL_WARNING.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.LEVEL_WARNING%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L1018">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Logging_Logger_LEVEL_WARNING" data-uid="Tangosol.Util.Logging.Logger.LEVEL_WARNING">LEVEL_WARNING</h4>
+  <div class="markdown level1 summary"><p>Logging level associated with warning messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int LEVEL_WARNING = 2</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_THREAD_NAME_DELIM.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.THREAD_NAME_DELIM%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L976">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Logging_Logger_THREAD_NAME_DELIM" data-uid="Tangosol.Util.Logging.Logger.THREAD_NAME_DELIM">THREAD_NAME_DELIM</h4>
+  <div class="markdown level1 summary"><p>A delimiter used to decorate service thread names with
+information useful for a thread dump analysis.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly char THREAD_NAME_DELIM</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Char</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_DefaultDestination.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.DefaultDestination%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L89">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_DefaultDestination_" data-uid="Tangosol.Util.Logging.Logger.DefaultDestination*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_DefaultDestination" data-uid="Tangosol.Util.Logging.Logger.DefaultDestination">DefaultDestination</h4>
+  <div class="markdown level1 summary"><p>Gets the virtual constant DefaultDestination.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static string DefaultDestination { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The default logging destination.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_DefaultFormat.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.DefaultFormat%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L100">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_DefaultFormat_" data-uid="Tangosol.Util.Logging.Logger.DefaultFormat*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_DefaultFormat" data-uid="Tangosol.Util.Logging.Logger.DefaultFormat">DefaultFormat</h4>
+  <div class="markdown level1 summary"><p>Gets the virtual constant DefaultFormat.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static string DefaultFormat { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>Default log message format template.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_DefaultLevel.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.DefaultLevel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L111">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_DefaultLevel_" data-uid="Tangosol.Util.Logging.Logger.DefaultLevel*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_DefaultLevel" data-uid="Tangosol.Util.Logging.Logger.DefaultLevel">DefaultLevel</h4>
+  <div class="markdown level1 summary"><p>Gets the virtual constant DefaultLevel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static int DefaultLevel { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>Default logging level.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_DefaultLimit.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.DefaultLimit%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L122">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_DefaultLimit_" data-uid="Tangosol.Util.Logging.Logger.DefaultLimit*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_DefaultLimit" data-uid="Tangosol.Util.Logging.Logger.DefaultLimit">DefaultLimit</h4>
+  <div class="markdown level1 summary"><p>Gets the virtual constant DefaultLimit.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static int DefaultLimit { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The default logging character limit.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_DefaultName.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.DefaultName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L133">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_DefaultName_" data-uid="Tangosol.Util.Logging.Logger.DefaultName*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_DefaultName" data-uid="Tangosol.Util.Logging.Logger.DefaultName">DefaultName</h4>
+  <div class="markdown level1 summary"><p>Gets the virtual constant DefaultName.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static string DefaultName { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The default logger name.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_DefaultParameters.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.DefaultParameters%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L145">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_DefaultParameters_" data-uid="Tangosol.Util.Logging.Logger.DefaultParameters*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_DefaultParameters" data-uid="Tangosol.Util.Logging.Logger.DefaultParameters">DefaultParameters</h4>
+  <div class="markdown level1 summary"><p>Gets the virtual constant DefaultParameters.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual string[] DefaultParameters { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span>[]</td>
+        <td><p>An array of default parameterizable strings that may appear in
+formatted log messages.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_Destination.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.Destination%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L222">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_Destination_" data-uid="Tangosol.Util.Logging.Logger.Destination*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_Destination" data-uid="Tangosol.Util.Logging.Logger.Destination">Destination</h4>
+  <div class="markdown level1 summary"><p>Gets or sets the logging destination.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual string Destination { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The logging destination.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Logging_Logger_Destination_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Can be one of Error, Out, or a file name.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_Format.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.Format%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L156">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_Format_" data-uid="Tangosol.Util.Logging.Logger.Format*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_Format" data-uid="Tangosol.Util.Logging.Logger.Format">Format</h4>
+  <div class="markdown level1 summary"><p>Gets or sets the Log message format template.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual string Format { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>Log message format template.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_Integer.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.Integer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L77">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_Integer_" data-uid="Tangosol.Util.Logging.Logger.Integer*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_Integer" data-uid="Tangosol.Util.Logging.Logger.Integer">Integer</h4>
+  <div class="markdown level1 summary"><p>Gets or sets a cache of frequently used Integer objects that
+represent logging levels.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static int[] Integer { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span>[]</td>
+        <td><p>An array of integers representing cache of frequently used
+logging levels.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_Level.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.Level%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L168">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_Level_" data-uid="Tangosol.Util.Logging.Logger.Level*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_Level" data-uid="Tangosol.Util.Logging.Logger.Level">Level</h4>
+  <div class="markdown level1 summary"><p>Gets or sets the logging level.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int Level { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>Logging level.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_Limit.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.Limit%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L180">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_Limit_" data-uid="Tangosol.Util.Logging.Logger.Limit*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_Limit" data-uid="Tangosol.Util.Logging.Logger.Limit">Limit</h4>
+  <div class="markdown level1 summary"><p>Gets or sets the logging character limit.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int Limit { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The logging character limit.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_LogOutput.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.LogOutput%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L193">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_LogOutput_" data-uid="Tangosol.Util.Logging.Logger.LogOutput*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_LogOutput" data-uid="Tangosol.Util.Logging.Logger.LogOutput">LogOutput</h4>
+  <div class="markdown level1 summary"><p>Gets or sets the <a class="xref" href="Tangosol.Util.Logging.Logger.html#Tangosol_Util_Logging_Logger_LogOutput">LogOutput</a> used to log all
+formatted Log messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual LogOutput LogOutput { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Logging.LogOutput.html">LogOutput</a></td>
+        <td><p><strong>LogOutput</strong> used to log all log messages.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_Parameters.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.Parameters%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L207">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_Parameters_" data-uid="Tangosol.Util.Logging.Logger.Parameters*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_Parameters" data-uid="Tangosol.Util.Logging.Logger.Parameters">Parameters</h4>
+  <div class="markdown level1 summary"><p>Gets or sets the set of parameterizable strings that may appear
+in formatted Log messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual string[] Parameters { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span>[]</td>
+        <td><p>An array of parameterizable strings that may appear in formatted
+log messages.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_Configure_Tangosol_Net_IOperationalContext_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.Configure(Tangosol.Net.IOperationalContext)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L387">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_Configure_" data-uid="Tangosol.Util.Logging.Logger.Configure*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_Configure_Tangosol_Net_IOperationalContext_" data-uid="Tangosol.Util.Logging.Logger.Configure(Tangosol.Net.IOperationalContext)">Configure(IOperationalContext)</h4>
+  <div class="markdown level1 summary"><p>Configure a newly created Logger instance using the supplied
+OperationalContext.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Configure(IOperationalContext operationalContext)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.IOperationalContext.html">IOperationalContext</a></td>
+        <td><span class="parametername">operationalContext</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Logging_Logger_Configure_Tangosol_Net_IOperationalContext__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>destination
+-specifies the output device used by the logging system; can be
+one of Error, Out, a file name</p>
+<p>
+severity-level
+-specifies which logged messages are to be displayed
+<p>
+message-format
+-specifies how messages that have a logging level specified will
+be formatted in the Log
+<p>
+character-limit
+-specifies the maximum number of characters that the logger
+daemon will process from the message queue before discarding all
+remaining messages in the queue
+<p>
+See the coherence.xsd for additional documentation for each of
+these parameters.
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_CreateLogger_Tangosol_Run_Xml_IXmlElement_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.CreateLogger(Tangosol.Run.Xml.IXmlElement)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L509">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_CreateLogger_" data-uid="Tangosol.Util.Logging.Logger.CreateLogger*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_CreateLogger_Tangosol_Run_Xml_IXmlElement_" data-uid="Tangosol.Util.Logging.Logger.CreateLogger(Tangosol.Run.Xml.IXmlElement)">CreateLogger(IXmlElement)</h4>
+  <div class="markdown level1 summary"><p>Create and initialize a new Logger instance using the supplied
+XML configuration:</p>
+<p>
+destination
+-specifies the output device used by the logging system; can be
+one of Error, Out or a file name
+<p>
+severity-level
+-specifies which logged messages are to be displayed
+<p>
+message-format
+-specifies how messages that have a logging level specified will
+be formatted in the Log
+<p>
+character-limit
+-specifies the maximum number of characters that the logger
+daemon will process from the message queue before discarding all
+remaining messages in the queue
+<p>
+See the coherence.xsd for additional documentation for each of
+these parameters.
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Logger CreateLogger(IXmlElement xmlConfig)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a></td>
+        <td><span class="parametername">xmlConfig</span></td>
+        <td><p><strong>IXmlElement</strong> with configuration information.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Logging.Logger.html">Logger</a></td>
+        <td><p>New Logger instance configured using supplied xml configuration.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_CreateMessage_System_Int32_System_Exception_System_String_System_Object___.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.CreateMessage(System.Int32%2CSystem.Exception%2CSystem.String%2CSystem.Object%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L545">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_CreateMessage_" data-uid="Tangosol.Util.Logging.Logger.CreateMessage*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_CreateMessage_System_Int32_System_Exception_System_String_System_Object___" data-uid="Tangosol.Util.Logging.Logger.CreateMessage(System.Int32,System.Exception,System.String,System.Object[])">CreateMessage(Int32, Exception, String, Object[])</h4>
+  <div class="markdown level1 summary"><p>Create a new Log message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual object[] CreateMessage(int level, Exception exception, string message, object[] parameterValues)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">level</span></td>
+        <td><p>Logging level.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Exception</span></td>
+        <td><span class="parametername">exception</span></td>
+        <td><p>Exception to log.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">message</span></td>
+        <td><p>Message to log.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td><span class="parametername">parameterValues</span></td>
+        <td><p>An array of parameter values to be used when formatting message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td><p>An array of objects representing log message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Logging_Logger_CreateMessage_System_Int32_System_Exception_System_String_System_Object____remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The Log message has the following structure:</p>
+<p>new Object[]
+{
+[Timestamp],
+[Level],
+[Thread],
+[Throwable],
+[Message],
+[Parameter Value]*
+};</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_FormatMessage_System_Object___.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.FormatMessage(System.Object%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L588">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_FormatMessage_" data-uid="Tangosol.Util.Logging.Logger.FormatMessage*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_FormatMessage_System_Object___" data-uid="Tangosol.Util.Logging.Logger.FormatMessage(System.Object[])">FormatMessage(Object[])</h4>
+  <div class="markdown level1 summary"><p>Format the given Log message by parameterizing the message
+format string with the values contained in the given message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual string FormatMessage(object[] message)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td><span class="parametername">message</span></td>
+        <td><p>Log message to format.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>Formatted message text.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Logging_Logger_FormatMessage_System_Object____remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Log messages must be in the form of an Object array with the
+following structure:</p>
+<p>new Object[]
+{
+[Timestamp],
+[Level],
+[Thread],
+[Throwable],
+[Message],
+[Parameter Value]*
+};</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_FormatParameter_System_String_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.FormatParameter(System.String%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L624">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_FormatParameter_" data-uid="Tangosol.Util.Logging.Logger.FormatParameter*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_FormatParameter_System_String_System_Object_" data-uid="Tangosol.Util.Logging.Logger.FormatParameter(System.String,System.Object)">FormatParameter(String, Object)</h4>
+  <div class="markdown level1 summary"><p>Format the given parameter with the given name for output to the
+underlying logger.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual string FormatParameter(string name, object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>Parameter name.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Parameter value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>Formatted parameter.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_GetInteger_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.GetInteger(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L718">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_GetInteger_" data-uid="Tangosol.Util.Logging.Logger.GetInteger*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_GetInteger_System_Int32_" data-uid="Tangosol.Util.Logging.Logger.GetInteger(System.Int32)">GetInteger(Int32)</h4>
+  <div class="markdown level1 summary"><p>Returns value from a cache of frequently used Integer objects
+that represent logging levels.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static int GetInteger(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>Logging level.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>Logging level value between <a class="xref" href="Tangosol.Util.Logging.Logger.html#Tangosol_Util_Logging_Logger_LEVEL_INTERNAL">LEVEL_INTERNAL</a> and
+<a class="xref" href="Tangosol.Util.Logging.Logger.html#Tangosol_Util_Logging_Logger_LEVEL_D9">LEVEL_D9</a>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Logging_Logger_GetInteger_System_Int32__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Util.Logging.Logger.html#Tangosol_Util_Logging_Logger_Integer">Integer</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_Init.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.Init%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L297">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_Init_" data-uid="Tangosol.Util.Logging.Logger.Init*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_Init" data-uid="Tangosol.Util.Logging.Logger.Init">Init()</h4>
+  <div class="markdown level1 summary"><p>Initializing state and thread priority.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Init()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_InitStatic.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.InitStatic%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L344">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_InitStatic_" data-uid="Tangosol.Util.Logging.Logger.InitStatic*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_InitStatic" data-uid="Tangosol.Util.Logging.Logger.InitStatic">InitStatic()</h4>
+  <div class="markdown level1 summary"><p>Initialization of static array of Log levels.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static void InitStatic()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_IsEnabled_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.IsEnabled(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L358">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_IsEnabled_" data-uid="Tangosol.Util.Logging.Logger.IsEnabled*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_IsEnabled_System_Int32_" data-uid="Tangosol.Util.Logging.Logger.IsEnabled(System.Int32)">IsEnabled(Int32)</h4>
+  <div class="markdown level1 summary"><p>Return <strong>true</strong> if the Logger would log a message with the
+given log level.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsEnabled(int level)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">level</span></td>
+        <td><p>The log level.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_Log_System_Int32_System_Exception_System_Object___.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.Log(System.Int32%2CSystem.Exception%2CSystem.Object%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L761">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_Log_" data-uid="Tangosol.Util.Logging.Logger.Log*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_Log_System_Int32_System_Exception_System_Object___" data-uid="Tangosol.Util.Logging.Logger.Log(System.Int32,System.Exception,System.Object[])">Log(Int32, Exception, Object[])</h4>
+  <div class="markdown level1 summary"><p>Log the given Exception with the specified Log level.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Log(int level, Exception exception, object[] parameters)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">level</span></td>
+        <td><p>Logging level.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Exception</span></td>
+        <td><span class="parametername">exception</span></td>
+        <td><p>Exception to log.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td><span class="parametername">parameters</span></td>
+        <td><p>Parameters used for message formatting.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Logging_Logger_Log_System_Int32_System_Exception_System_Object____remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The supplied object array will be used to format the Log message.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_Log_System_Int32_System_Exception_System_String_System_Object___.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.Log(System.Int32%2CSystem.Exception%2CSystem.String%2CSystem.Object%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L785">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_Log_" data-uid="Tangosol.Util.Logging.Logger.Log*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_Log_System_Int32_System_Exception_System_String_System_Object___" data-uid="Tangosol.Util.Logging.Logger.Log(System.Int32,System.Exception,System.String,System.Object[])">Log(Int32, Exception, String, Object[])</h4>
+  <div class="markdown level1 summary"><p>Log the given Exception and associated message with the specified
+Log level.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Log(int level, Exception exception, string message, object[] parameters)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">level</span></td>
+        <td><p>Logging level.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Exception</span></td>
+        <td><span class="parametername">exception</span></td>
+        <td><p>Exception to log.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">message</span></td>
+        <td><p>Message text to log.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td><span class="parametername">parameters</span></td>
+        <td><p>Parameters used to format message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Logging_Logger_Log_System_Int32_System_Exception_System_String_System_Object____remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The supplied object array will be used to format the Log message.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_Log_System_Int32_System_String_System_Object___.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.Log(System.Int32%2CSystem.String%2CSystem.Object%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L741">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_Log_" data-uid="Tangosol.Util.Logging.Logger.Log*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_Log_System_Int32_System_String_System_Object___" data-uid="Tangosol.Util.Logging.Logger.Log(System.Int32,System.String,System.Object[])">Log(Int32, String, Object[])</h4>
+  <div class="markdown level1 summary"><p>Log the given message with the specified Log level.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Log(int level, string message, object[] parameters)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">level</span></td>
+        <td><p>Logging level.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">message</span></td>
+        <td><p>Message text.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td><span class="parametername">parameters</span></td>
+        <td><p>Parameters used for message formatting.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Logging_Logger_Log_System_Int32_System_String_System_Object____remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The supplied object array will be used to format the Log message.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_OnException_System_Exception_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.OnException(System.Exception)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L812">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_OnException_" data-uid="Tangosol.Util.Logging.Logger.OnException*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_OnException_System_Exception_" data-uid="Tangosol.Util.Logging.Logger.OnException(System.Exception)">OnException(Exception)</h4>
+  <div class="markdown level1 summary"><p>This event occurs when an exception is thrown from OnEnter,
+OnWait, OnNotify and onExit.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void OnException(Exception e)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Exception</span></td>
+        <td><span class="parametername">e</span></td>
+        <td><p>The Exception object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">Tangosol.Util.Daemon.Daemon.OnException(System.Exception)</span></div>
+  <h5 id="Tangosol_Util_Logging_Logger_OnException_System_Exception__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+If the exception should terminate the daemon, call
+<span class="xref">Tangosol.Util.Daemon.Daemon.Stop</span>. The default
+implementation prints debugging information and terminates the
+daemon.
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_OnLog.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.OnLog%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L822">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_OnLog_" data-uid="Tangosol.Util.Logging.Logger.OnLog*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_OnLog" data-uid="Tangosol.Util.Logging.Logger.OnLog">OnLog()</h4>
+  <div class="markdown level1 summary"><p>Called immediately before a Log message is logged to the
+underlying LogOutput.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void OnLog()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_OnNotify.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.OnNotify%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L834">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_OnNotify_" data-uid="Tangosol.Util.Logging.Logger.OnNotify*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_OnNotify" data-uid="Tangosol.Util.Logging.Logger.OnNotify">OnNotify()</h4>
+  <div class="markdown level1 summary"><p>Event notification to perform a regular daemon activity.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void OnNotify()</code></pre>
+  </div>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">Tangosol.Util.Daemon.Daemon.OnNotify()</span></div>
+  <h5 id="Tangosol_Util_Logging_Logger_OnNotify_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>To get it called, another thread has to set
+<span class="xref">Tangosol.Util.Daemon.Daemon.IsNotification</span> to <strong>true</strong>:</p>
+<pre><code>daemon.IsNotification = true;</code></pre>
+</div>
+  <h5 id="Tangosol_Util_Logging_Logger_OnNotify_seealso">See Also</h5>
+  <div class="seealso">
+      <div><span class="xref">Tangosol.Util.Daemon.Daemon.OnWait</span></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_SetInteger_System_Int32_System_Int32__.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.SetInteger(System.Int32%2CSystem.Int32%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L931">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_SetInteger_" data-uid="Tangosol.Util.Logging.Logger.SetInteger*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_SetInteger_System_Int32_System_Int32__" data-uid="Tangosol.Util.Logging.Logger.SetInteger(System.Int32,System.Int32@)">SetInteger(Int32, ref Int32)</h4>
+  <div class="markdown level1 summary"><p>A cache of frequently used Integer objects that represent logging
+levels.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static void SetInteger(int index, ref int integer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>Index of specified <code data-dev-comment-type="paramref" class="paramref">integer</code> in the cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">integer</span></td>
+        <td><p>Value to be set.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger_Shutdown.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger.Shutdown%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L944">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Logging_Logger_Shutdown_" data-uid="Tangosol.Util.Logging.Logger.Shutdown*"></a>
+  <h4 id="Tangosol_Util_Logging_Logger_Shutdown" data-uid="Tangosol.Util.Logging.Logger.Shutdown">Shutdown()</h4>
+  <div class="markdown level1 summary"><p>Stop the Logger and release any resources held by the Logger.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Shutdown()</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Logging_Logger_Shutdown_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method has no effect if the Logger has already been stopped.
+Stopping a Logger makes it unusable. Any attempt to use a stopped
+Logger may result in an exception.</p>
+</div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IRunnable.html">IRunnable</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Logging_Logger.md&amp;value=---%0Auid%3A%20Tangosol.Util.Logging.Logger%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Logging/Logger.cs/#L65" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

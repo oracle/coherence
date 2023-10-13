@@ -1,0 +1,904 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class BinaryDeltaCompressor
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class BinaryDeltaCompressor
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.IO.BinaryDeltaCompressor">
+  
+  
+  <h1 id="Tangosol_IO_BinaryDeltaCompressor" data-uid="Tangosol.IO.BinaryDeltaCompressor" class="text-break">Class BinaryDeltaCompressor
+  </h1>
+  <div class="markdown level0 summary"><p>An IDeltaCompressor implementation that works with opaque (binary) values.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">BinaryDeltaCompressor</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.IO.IDeltaCompressor.html">IDeltaCompressor</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.IO.html">Tangosol.IO</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_IO_BinaryDeltaCompressor_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class BinaryDeltaCompressor : IDeltaCompressor</code></pre>
+  </div>
+  <h5 id="Tangosol_IO_BinaryDeltaCompressor_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>The delta format is composed of a leading byte that indicates the format;
+the format indicator byte is one of the FMT_* field values. If the delta
+value does not begin with one of the FMT_* indicators, then the delta value
+is itself the new value. If the delta is null, then it indicates no change.
+The grammar follows:</p>
+<pre>
+BinaryDelta:
+  FMT_EMPTY
+  FMT_BINDIFF BinaryChangeList-opt OP_TERM
+  FMT_REPLACE-opt Bytes
+  null
+
+BinaryChangeList:
+  OP_EXTRACT Offset Length BinaryChangeList-opt
+  OP_APPEND Length Bytes BinaryChangeList-opt
+
+Offset:
+Length:
+  packed-integer
+
+Bytes:
+  byte Bytes-opt
+</pre>
+</div>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_BinaryDeltaCompressor_DELTA_TRUNCATE.md&amp;value=---%0Auid%3A%20Tangosol.IO.BinaryDeltaCompressor.DELTA_TRUNCATE%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/BinaryDeltaCompressor.cs/#L481">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_BinaryDeltaCompressor_DELTA_TRUNCATE" data-uid="Tangosol.IO.BinaryDeltaCompressor.DELTA_TRUNCATE">DELTA_TRUNCATE</h4>
+  <div class="markdown level1 summary"><p>A delta value that indicates an empty new value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static readonly Binary DELTA_TRUNCATE</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_BinaryDeltaCompressor_FMT_BINDIFF.md&amp;value=---%0Auid%3A%20Tangosol.IO.BinaryDeltaCompressor.FMT_BINDIFF%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/BinaryDeltaCompressor.cs/#L441">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_BinaryDeltaCompressor_FMT_BINDIFF" data-uid="Tangosol.IO.BinaryDeltaCompressor.FMT_BINDIFF">FMT_BINDIFF</h4>
+  <div class="markdown level1 summary"><p>A format indicator (the first byte of the binary delta) that indicates
+that the new value is formed by applying a series of modifications to
+the old value. The possible modifications are defined by the OP_*
+constants.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected const byte FMT_BINDIFF = 244</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_BinaryDeltaCompressor_FMT_EMPTY.md&amp;value=---%0Auid%3A%20Tangosol.IO.BinaryDeltaCompressor.FMT_EMPTY%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/BinaryDeltaCompressor.cs/#L425">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_BinaryDeltaCompressor_FMT_EMPTY" data-uid="Tangosol.IO.BinaryDeltaCompressor.FMT_EMPTY">FMT_EMPTY</h4>
+  <div class="markdown level1 summary"><p>A format indicator (the first byte of the binary delta) that indicates
+that the new value is a zero-length binary value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected const byte FMT_EMPTY = 246</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_BinaryDeltaCompressor_FMT_REPLACE.md&amp;value=---%0Auid%3A%20Tangosol.IO.BinaryDeltaCompressor.FMT_REPLACE%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/BinaryDeltaCompressor.cs/#L433">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_BinaryDeltaCompressor_FMT_REPLACE" data-uid="Tangosol.IO.BinaryDeltaCompressor.FMT_REPLACE">FMT_REPLACE</h4>
+  <div class="markdown level1 summary"><p>A format indicator (the first byte of the binary delta) that indicates
+that the new value is found in its entirety in the delta value. In
+other words, other than the first byte, the delta is itself the new
+value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected const byte FMT_REPLACE = 245</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_BinaryDeltaCompressor_MIN_BLOCK.md&amp;value=---%0Auid%3A%20Tangosol.IO.BinaryDeltaCompressor.MIN_BLOCK%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/BinaryDeltaCompressor.cs/#L471">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_BinaryDeltaCompressor_MIN_BLOCK" data-uid="Tangosol.IO.BinaryDeltaCompressor.MIN_BLOCK">MIN_BLOCK</h4>
+  <div class="markdown level1 summary"><p>Minimum length of an &quot;extract&quot; block to encode.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected const int MIN_BLOCK = 12</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_BinaryDeltaCompressor_NO_BINARY.md&amp;value=---%0Auid%3A%20Tangosol.IO.BinaryDeltaCompressor.NO_BINARY%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/BinaryDeltaCompressor.cs/#L476">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_BinaryDeltaCompressor_NO_BINARY" data-uid="Tangosol.IO.BinaryDeltaCompressor.NO_BINARY">NO_BINARY</h4>
+  <div class="markdown level1 summary"><p>An empty Binary object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static readonly Binary NO_BINARY</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_BinaryDeltaCompressor_OP_APPEND.md&amp;value=---%0Auid%3A%20Tangosol.IO.BinaryDeltaCompressor.OP_APPEND%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/BinaryDeltaCompressor.cs/#L460">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_BinaryDeltaCompressor_OP_APPEND" data-uid="Tangosol.IO.BinaryDeltaCompressor.OP_APPEND">OP_APPEND</h4>
+  <div class="markdown level1 summary"><p>A binary delta operator that instructs the {@link #applyDelta} method
+to copy the following bytes from the delta value and append them to the
+new value. The format is the one-byte OP_APPEND indicator followed by a
+packed int length and then a series of bytes. The length indicates the
+length of the series of bytes to copy from the delta value and append
+to the new value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected const byte OP_APPEND = 2</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_BinaryDeltaCompressor_OP_EXTRACT.md&amp;value=---%0Auid%3A%20Tangosol.IO.BinaryDeltaCompressor.OP_EXTRACT%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/BinaryDeltaCompressor.cs/#L450">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_BinaryDeltaCompressor_OP_EXTRACT" data-uid="Tangosol.IO.BinaryDeltaCompressor.OP_EXTRACT">OP_EXTRACT</h4>
+  <div class="markdown level1 summary"><p>A binary delta operator that instructs the <a class="xref" href="Tangosol.IO.BinaryDeltaCompressor.html#Tangosol_IO_BinaryDeltaCompressor_ApplyDelta_Tangosol_Util_Binary_Tangosol_Util_Binary_">ApplyDelta(Binary, Binary)</a> method
+to extract bytes from the old value and append them to the new value.
+The format is the one-byte OP_EXTRACT indicator followed by a packed
+int offset and packed int length. The offset and length indicate the
+region of the old value to extract and append to the new value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected const byte OP_EXTRACT = 1</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_BinaryDeltaCompressor_OP_TERM.md&amp;value=---%0Auid%3A%20Tangosol.IO.BinaryDeltaCompressor.OP_TERM%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/BinaryDeltaCompressor.cs/#L466">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_BinaryDeltaCompressor_OP_TERM" data-uid="Tangosol.IO.BinaryDeltaCompressor.OP_TERM">OP_TERM</h4>
+  <div class="markdown level1 summary"><p>A binary delta operator that instructs the {@link #applyDelta} method
+that the delta has been fully applied.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected const byte OP_TERM = 3</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_BinaryDeltaCompressor_ApplyDelta_Tangosol_Util_Binary_Tangosol_Util_Binary_.md&amp;value=---%0Auid%3A%20Tangosol.IO.BinaryDeltaCompressor.ApplyDelta(Tangosol.Util.Binary%2CTangosol.Util.Binary)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/BinaryDeltaCompressor.cs/#L101">View Source</a>
+  </span>
+  <a id="Tangosol_IO_BinaryDeltaCompressor_ApplyDelta_" data-uid="Tangosol.IO.BinaryDeltaCompressor.ApplyDelta*"></a>
+  <h4 id="Tangosol_IO_BinaryDeltaCompressor_ApplyDelta_Tangosol_Util_Binary_Tangosol_Util_Binary_" data-uid="Tangosol.IO.BinaryDeltaCompressor.ApplyDelta(Tangosol.Util.Binary,Tangosol.Util.Binary)">ApplyDelta(Binary, Binary)</h4>
+  <div class="markdown level1 summary"><p>Apply a delta to an old value in order to create a new value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Binary ApplyDelta(Binary binOld, Binary binDelta)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><span class="parametername">binOld</span></td>
+        <td><p>The old value.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><span class="parametername">binDelta</span></td>
+        <td><p>The delta information returned from <a class="xref" href="Tangosol.IO.IDeltaCompressor.html#Tangosol_IO_IDeltaCompressor_ExtractDelta_Tangosol_Util_Binary_Tangosol_Util_Binary_">ExtractDelta(Binary, Binary)</a>
+to apply to the old value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><p>The new value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_BinaryDeltaCompressor_CreateDelta_Tangosol_Util_Binary_Tangosol_Util_Binary_.md&amp;value=---%0Auid%3A%20Tangosol.IO.BinaryDeltaCompressor.CreateDelta(Tangosol.Util.Binary%2CTangosol.Util.Binary)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/BinaryDeltaCompressor.cs/#L175">View Source</a>
+  </span>
+  <a id="Tangosol_IO_BinaryDeltaCompressor_CreateDelta_" data-uid="Tangosol.IO.BinaryDeltaCompressor.CreateDelta*"></a>
+  <h4 id="Tangosol_IO_BinaryDeltaCompressor_CreateDelta_Tangosol_Util_Binary_Tangosol_Util_Binary_" data-uid="Tangosol.IO.BinaryDeltaCompressor.CreateDelta(Tangosol.Util.Binary,Tangosol.Util.Binary)">CreateDelta(Binary, Binary)</h4>
+  <div class="markdown level1 summary"><p>Actually create a delta in the binary delta format. This method is
+designed to be overridden by subclasses that have more intimate
+knowledge of the contents of the buffers.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected Binary CreateDelta(Binary binOld, Binary binNew)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><span class="parametername">binOld</span></td>
+        <td><p>The old value.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><span class="parametername">binNew</span></td>
+        <td><p>The new value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><p>A delta in the binary delta format.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_BinaryDeltaCompressor_EnsureWriter_Tangosol_IO_DataWriter_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.BinaryDeltaCompressor.EnsureWriter(Tangosol.IO.DataWriter%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/BinaryDeltaCompressor.cs/#L331">View Source</a>
+  </span>
+  <a id="Tangosol_IO_BinaryDeltaCompressor_EnsureWriter_" data-uid="Tangosol.IO.BinaryDeltaCompressor.EnsureWriter*"></a>
+  <h4 id="Tangosol_IO_BinaryDeltaCompressor_EnsureWriter_Tangosol_IO_DataWriter_System_Int32_" data-uid="Tangosol.IO.BinaryDeltaCompressor.EnsureWriter(Tangosol.IO.DataWriter,System.Int32)">EnsureWriter(DataWriter, Int32)</h4>
+  <div class="markdown level1 summary"><p>Make sure that a DataWriter exists if one doesn't already.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static DataWriter EnsureWriter(DataWriter writer, int cbMax)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.DataWriter.html">DataWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The existing DataWriter or null.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">cbMax</span></td>
+        <td><p>The expected resulting size of the write buffer</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.DataWriter.html">DataWriter</a></td>
+        <td><p>A DataWriter, never null</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_BinaryDeltaCompressor_ExtractDelta_Tangosol_Util_Binary_Tangosol_Util_Binary_.md&amp;value=---%0Auid%3A%20Tangosol.IO.BinaryDeltaCompressor.ExtractDelta(Tangosol.Util.Binary%2CTangosol.Util.Binary)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/BinaryDeltaCompressor.cs/#L62">View Source</a>
+  </span>
+  <a id="Tangosol_IO_BinaryDeltaCompressor_ExtractDelta_" data-uid="Tangosol.IO.BinaryDeltaCompressor.ExtractDelta*"></a>
+  <h4 id="Tangosol_IO_BinaryDeltaCompressor_ExtractDelta_Tangosol_Util_Binary_Tangosol_Util_Binary_" data-uid="Tangosol.IO.BinaryDeltaCompressor.ExtractDelta(Tangosol.Util.Binary,Tangosol.Util.Binary)">ExtractDelta(Binary, Binary)</h4>
+  <div class="markdown level1 summary"><p>Compare an old value to a new value and generate a delta that
+represents the changes that must be made to the old value in order to
+transform it into the new value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Binary ExtractDelta(Binary binOld, Binary binNew)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><span class="parametername">binOld</span></td>
+        <td><p>The old value.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><span class="parametername">binNew</span></td>
+        <td><p>The new value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><p>The changes that must be made to the old value in order to
+transform it into the new value, or null to indicate no change.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_BinaryDeltaCompressor_FinalizeDelta_Tangosol_IO_DataWriter_.md&amp;value=---%0Auid%3A%20Tangosol.IO.BinaryDeltaCompressor.FinalizeDelta(Tangosol.IO.DataWriter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/BinaryDeltaCompressor.cs/#L411">View Source</a>
+  </span>
+  <a id="Tangosol_IO_BinaryDeltaCompressor_FinalizeDelta_" data-uid="Tangosol.IO.BinaryDeltaCompressor.FinalizeDelta*"></a>
+  <h4 id="Tangosol_IO_BinaryDeltaCompressor_FinalizeDelta_Tangosol_IO_DataWriter_" data-uid="Tangosol.IO.BinaryDeltaCompressor.FinalizeDelta(Tangosol.IO.DataWriter)">FinalizeDelta(DataWriter)</h4>
+  <div class="markdown level1 summary"><p>Convert an open delta output stream into a finalized Binary delta.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static Binary FinalizeDelta(DataWriter writer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.DataWriter.html">DataWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The delta writer.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><p>Finalized Binary delta.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_BinaryDeltaCompressor_WriteAppend_Tangosol_IO_DataWriter_System_Int32_System_Byte___System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.BinaryDeltaCompressor.WriteAppend(Tangosol.IO.DataWriter%2CSystem.Int32%2CSystem.Byte%5B%5D%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/BinaryDeltaCompressor.cs/#L363">View Source</a>
+  </span>
+  <a id="Tangosol_IO_BinaryDeltaCompressor_WriteAppend_" data-uid="Tangosol.IO.BinaryDeltaCompressor.WriteAppend*"></a>
+  <h4 id="Tangosol_IO_BinaryDeltaCompressor_WriteAppend_Tangosol_IO_DataWriter_System_Int32_System_Byte___System_Int32_System_Int32_" data-uid="Tangosol.IO.BinaryDeltaCompressor.WriteAppend(Tangosol.IO.DataWriter,System.Int32,System.Byte[],System.Int32,System.Int32)">WriteAppend(DataWriter, Int32, Byte[], Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Encode a binary diff &quot;append&quot; operator to indicate that bytes should
+be appended from the delta stream to the new value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static DataWriter WriteAppend(DataWriter writer, int cbMax, byte[] ab, int of, int cb)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.DataWriter.html">DataWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The existing DataWriter for the diff, or null</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">cbMax</span></td>
+        <td><p>The expected resulting size of the write buffer.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">ab</span></td>
+        <td><p>The byte array from which to get the bytes to append.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">of</span></td>
+        <td><p>The offset of the old buffer to append.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">cb</span></td>
+        <td><p>The length of the old buffer to append.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.DataWriter.html">DataWriter</a></td>
+        <td><p>A DataWriter, never null.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_BinaryDeltaCompressor_WriteExtract_Tangosol_IO_DataWriter_System_Int32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.BinaryDeltaCompressor.WriteExtract(Tangosol.IO.DataWriter%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/BinaryDeltaCompressor.cs/#L392">View Source</a>
+  </span>
+  <a id="Tangosol_IO_BinaryDeltaCompressor_WriteExtract_" data-uid="Tangosol.IO.BinaryDeltaCompressor.WriteExtract*"></a>
+  <h4 id="Tangosol_IO_BinaryDeltaCompressor_WriteExtract_Tangosol_IO_DataWriter_System_Int32_System_Int32_System_Int32_" data-uid="Tangosol.IO.BinaryDeltaCompressor.WriteExtract(Tangosol.IO.DataWriter,System.Int32,System.Int32,System.Int32)">WriteExtract(DataWriter, Int32, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Encode a binary diff &quot;extract&quot; operator to indicate that bytes should
+be copied from the old value to the new value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static DataWriter WriteExtract(DataWriter writer, int cbMax, int of, int cb)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.DataWriter.html">DataWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The existing DataWriter for the diff, or null</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">cbMax</span></td>
+        <td><p>The expected resulting size of the write buffer.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">of</span></td>
+        <td><p>The offset of the old buffer to append.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">cb</span></td>
+        <td><p>The length of the old buffer to append.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.DataWriter.html">DataWriter</a></td>
+        <td><p>A DataWriter, never null.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.IO.IDeltaCompressor.html">IDeltaCompressor</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_BinaryDeltaCompressor.md&amp;value=---%0Auid%3A%20Tangosol.IO.BinaryDeltaCompressor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/BinaryDeltaCompressor.cs/#L43" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

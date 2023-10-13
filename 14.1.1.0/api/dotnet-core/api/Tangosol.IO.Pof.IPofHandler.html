@@ -1,0 +1,1990 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IPofHandler
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IPofHandler
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.IO.Pof.IPofHandler">
+  
+  
+  <h1 id="Tangosol_IO_Pof_IPofHandler" data-uid="Tangosol.IO.Pof.IPofHandler" class="text-break">Interface IPofHandler
+  </h1>
+  <div class="markdown level0 summary"><p>This interface defines the handler for an event-driven approach to
+parsing (or assembling) a POF stream.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.IO.Pof.html">Tangosol.IO.Pof</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_IO_Pof_IPofHandler_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IPofHandler</code></pre>
+  </div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_BeginArray_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.BeginArray(System.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L559">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_BeginArray_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginArray*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_BeginArray_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginArray(System.Int32,System.Int32)">BeginArray(Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Report that an array of values has been encountered in the POF
+stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void BeginArray(int position, int elementCount)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">elementCount</span></td>
+        <td><p>The exact number of values (elements) in the array.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofHandler_BeginArray_System_Int32_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method call will be followed by a separate call to an &quot;on&quot;
+or &quot;begin&quot; method for each of the <tt>elementCount</tt> elements
+in the array, and the array extent will then be terminated by a
+call to <a class="xref" href="Tangosol.IO.Pof.IPofHandler.html#Tangosol_IO_Pof_IPofHandler_EndComplexValue">EndComplexValue()</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_BeginCollection_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.BeginCollection(System.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L515">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_BeginCollection_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginCollection*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_BeginCollection_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginCollection(System.Int32,System.Int32)">BeginCollection(Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Report that a collection of values has been encountered in the
+POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void BeginCollection(int position, int elementCount)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">elementCount</span></td>
+        <td><p>The exact number of values (elements) in the collection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofHandler_BeginCollection_System_Int32_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method call will be followed by a separate call to an &quot;on&quot;
+or &quot;begin&quot; method for each of the <tt>elementCount</tt> elements
+in the collection, and the collection extent will then be
+terminated by a call to <a class="xref" href="Tangosol.IO.Pof.IPofHandler.html#Tangosol_IO_Pof_IPofHandler_EndComplexValue">EndComplexValue()</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_BeginMap_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.BeginMap(System.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L652">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_BeginMap_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginMap*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_BeginMap_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginMap(System.Int32,System.Int32)">BeginMap(Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Report that a map of key/value pairs has been encountered in the
+POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void BeginMap(int position, int elementCount)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">elementCount</span></td>
+        <td><p>The exact number of key/value pairs (entries) in the map.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofHandler_BeginMap_System_Int32_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method call will be followed by a separate call to an &quot;on&quot;
+or &quot;begin&quot; method for each of the <tt>elementCount</tt> elements
+in the map, and the map extent will then be terminated by a call
+to <a class="xref" href="Tangosol.IO.Pof.IPofHandler.html#Tangosol_IO_Pof_IPofHandler_EndComplexValue">EndComplexValue()</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_BeginSparseArray_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.BeginSparseArray(System.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L605">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_BeginSparseArray_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginSparseArray*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_BeginSparseArray_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginSparseArray(System.Int32,System.Int32)">BeginSparseArray(Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Report that a sparse array of values has been encountered in the
+POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void BeginSparseArray(int position, int elementCount)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">elementCount</span></td>
+        <td><p>The exact number of elements in the array, which is greater than
+or equal to the number of values in the sparse POF stream; in
+other words, the number of values that will subsequently be
+reported will not exceed this number.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofHandler_BeginSparseArray_System_Int32_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method call will be followed by a separate call to an &quot;on&quot;
+or &quot;begin&quot; method for present element in the sparse array (up to
+<tt>elementCount</tt> elements), and the array extent will then
+be terminated by a call to <a class="xref" href="Tangosol.IO.Pof.IPofHandler.html#Tangosol_IO_Pof_IPofHandler_EndComplexValue">EndComplexValue()</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_BeginUniformArray_System_Int32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.BeginUniformArray(System.Int32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L582">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_BeginUniformArray_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginUniformArray*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_BeginUniformArray_System_Int32_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginUniformArray(System.Int32,System.Int32,System.Int32)">BeginUniformArray(Int32, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Report that a uniform array of values has been encountered in the
+POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void BeginUniformArray(int position, int elementCount, int typeId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">elementCount</span></td>
+        <td><p>The exact number of values (elements) in the array.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">typeId</span></td>
+        <td><p>The type identifier for all of the values in the uniform array.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofHandler_BeginUniformArray_System_Int32_System_Int32_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method call will be followed by a separate call to an &quot;on&quot;
+or &quot;begin&quot; method for each of the <tt>cElements</tt> elements in
+the array, and the array extent will then be terminated by a call
+to <a class="xref" href="Tangosol.IO.Pof.IPofHandler.html#Tangosol_IO_Pof_IPofHandler_EndComplexValue">EndComplexValue()</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_BeginUniformCollection_System_Int32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.BeginUniformCollection(System.Int32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L539">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_BeginUniformCollection_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginUniformCollection*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_BeginUniformCollection_System_Int32_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginUniformCollection(System.Int32,System.Int32,System.Int32)">BeginUniformCollection(Int32, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Report that a uniform collection of values has been encountered
+in the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void BeginUniformCollection(int position, int elementCount, int typeId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">elementCount</span></td>
+        <td><p>The exact number of values (elements) in the collection.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">typeId</span></td>
+        <td><p>The type identifier for all of the values in the uniform
+collection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofHandler_BeginUniformCollection_System_Int32_System_Int32_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method call will be followed by a separate call to an &quot;on&quot;
+or &quot;begin&quot; method for each of the <tt>elementCount</tt> elements
+in the collection, and the collection extent will then be
+terminated by a call to <a class="xref" href="Tangosol.IO.Pof.IPofHandler.html#Tangosol_IO_Pof_IPofHandler_EndComplexValue">EndComplexValue()</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_BeginUniformKeysMap_System_Int32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.BeginUniformKeysMap(System.Int32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L675">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_BeginUniformKeysMap_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginUniformKeysMap*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_BeginUniformKeysMap_System_Int32_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginUniformKeysMap(System.Int32,System.Int32,System.Int32)">BeginUniformKeysMap(Int32, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Report that a map of key/value pairs (with the keys being of a
+uniform type) has been encountered in the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void BeginUniformKeysMap(int position, int elementCount, int typeIdKeys)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">elementCount</span></td>
+        <td><p>The exact number of key/value pairs (entries) in the map.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">typeIdKeys</span></td>
+        <td><p>The type identifier for all of the keys in the uniform-keys map.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofHandler_BeginUniformKeysMap_System_Int32_System_Int32_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method call will be followed by a separate call to an &quot;on&quot;
+or &quot;begin&quot; method for each of the <tt>elementCount</tt> elements
+in the map, and the map extent will then be terminated by a call
+to <a class="xref" href="Tangosol.IO.Pof.IPofHandler.html#Tangosol_IO_Pof_IPofHandler_EndComplexValue">EndComplexValue()</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_BeginUniformMap_System_Int32_System_Int32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.BeginUniformMap(System.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L702">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_BeginUniformMap_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginUniformMap*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_BeginUniformMap_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginUniformMap(System.Int32,System.Int32,System.Int32,System.Int32)">BeginUniformMap(Int32, Int32, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Report that a map of key/value pairs (with the keys being of a
+uniform type and the values being of a uniform type) has been
+encountered in the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void BeginUniformMap(int position, int elementCount, int typeIdKeys, int typeIdValues)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">elementCount</span></td>
+        <td><p>The exact number of key/value pairs (entries) in the map.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">typeIdKeys</span></td>
+        <td><p>The type identifier for all of the keys in the uniform map.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">typeIdValues</span></td>
+        <td><p>The type identifier for all of the values in the uniform map.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofHandler_BeginUniformMap_System_Int32_System_Int32_System_Int32_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method call will be followed by a separate call to an &quot;on&quot;
+or &quot;begin&quot; method for each of the <tt>elementCount</tt> elements
+in the map, and the map extent will then be terminated by a call
+to <a class="xref" href="Tangosol.IO.Pof.IPofHandler.html#Tangosol_IO_Pof_IPofHandler_EndComplexValue">EndComplexValue()</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_BeginUniformSparseArray_System_Int32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.BeginUniformSparseArray(System.Int32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L632">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_BeginUniformSparseArray_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginUniformSparseArray*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_BeginUniformSparseArray_System_Int32_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginUniformSparseArray(System.Int32,System.Int32,System.Int32)">BeginUniformSparseArray(Int32, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Report that a uniform sparse array of values has been encountered
+in the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void BeginUniformSparseArray(int position, int elementCount, int typeId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">elementCount</span></td>
+        <td><p>The exact number of elements in the array, which is greater than
+or equal to the number of values in the sparse POF stream; in
+other words, the number of  values that will subsequently be
+reported will not exceed this number.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">typeId</span></td>
+        <td><p>The type identifier for all of the values in the uniform sparse
+array.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofHandler_BeginUniformSparseArray_System_Int32_System_Int32_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method call will be followed by a separate call to an &quot;on&quot;
+or &quot;begin&quot; method for present element in the sparse array (up to
+<tt>elementCount</tt> elements), and the array extent will then
+be terminated by a call to <a class="xref" href="Tangosol.IO.Pof.IPofHandler.html#Tangosol_IO_Pof_IPofHandler_EndComplexValue">EndComplexValue()</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_BeginUserType_System_Int32_System_Int32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.BeginUserType(System.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L731">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_BeginUserType_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginUserType*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_BeginUserType_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.BeginUserType(System.Int32,System.Int32,System.Int32,System.Int32)">BeginUserType(Int32, Int32, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Report that a value of a &quot;user type&quot; has been encountered in the
+POF stream. A user type is analogous to a &quot;type&quot;, and a value of
+a user type is analogous to an &quot;object&quot;.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void BeginUserType(int position, int nId, int typeId, int versionId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">nId</span></td>
+        <td><p>Identity of the object to encode, or -1 if identity
+shouldn't be encoded in the POF stream.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">typeId</span></td>
+        <td><p>The user type identifier, <tt>(typeId &gt;= 0)</tt>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">versionId</span></td>
+        <td><p>The version identifier for the user data type data in the POF
+stream, <tt>(versionId &gt;= 0)</tt>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofHandler_BeginUserType_System_Int32_System_Int32_System_Int32_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method call will be followed by a separate call to an &quot;on&quot;
+or &quot;begin&quot; method for each of the property values in the user
+type, and the user type will then be terminated by a call to
+<a class="xref" href="Tangosol.IO.Pof.IPofHandler.html#Tangosol_IO_Pof_IPofHandler_EndComplexValue">EndComplexValue()</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_EndComplexValue.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.EndComplexValue%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L742">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_EndComplexValue_" data-uid="Tangosol.IO.Pof.IPofHandler.EndComplexValue*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_EndComplexValue" data-uid="Tangosol.IO.Pof.IPofHandler.EndComplexValue">EndComplexValue()</h4>
+  <div class="markdown level1 summary"><p>Signifies the termination of the current complex value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void EndComplexValue()</code></pre>
+  </div>
+  <h5 id="Tangosol_IO_Pof_IPofHandler_EndComplexValue_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Complex values are any of the collection, array, map and user
+types. For each call to one of the &quot;begin&quot; methods, there will be
+a corresponding call to this method, even if there were no
+contents in the complex value.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnBoolean_System_Int32_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnBoolean(System.Int32%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L207">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnBoolean_" data-uid="Tangosol.IO.Pof.IPofHandler.OnBoolean*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnBoolean_System_Int32_System_Boolean_" data-uid="Tangosol.IO.Pof.IPofHandler.OnBoolean(System.Int32,System.Boolean)">OnBoolean(Int32, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Report that a boolean value has been encountered in the
+POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnBoolean(int position, bool f)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">f</span></td>
+        <td><p>The boolean value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnChar_System_Int32_System_Char_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnChar(System.Int32%2CSystem.Char)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L250">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnChar_" data-uid="Tangosol.IO.Pof.IPofHandler.OnChar*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnChar_System_Int32_System_Char_" data-uid="Tangosol.IO.Pof.IPofHandler.OnChar(System.Int32,System.Char)">OnChar(Int32, Char)</h4>
+  <div class="markdown level1 summary"><p>Report that a character value has been encountered in the POF
+stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnChar(int position, char ch)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Char</span></td>
+        <td><span class="parametername">ch</span></td>
+        <td><p>The character value as a <strong>Char</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnCharString_System_Int32_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnCharString(System.Int32%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L264">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnCharString_" data-uid="Tangosol.IO.Pof.IPofHandler.OnCharString*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnCharString_System_Int32_System_String_" data-uid="Tangosol.IO.Pof.IPofHandler.OnCharString(System.Int32,System.String)">OnCharString(Int32, String)</h4>
+  <div class="markdown level1 summary"><p>Report that a character string value has been encountered in the
+POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnCharString(int position, string s)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">s</span></td>
+        <td><p>The character string value as a <strong>String</strong> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnDate_System_Int32_System_Int32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnDate(System.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L284">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnDate_" data-uid="Tangosol.IO.Pof.IPofHandler.OnDate*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnDate_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.OnDate(System.Int32,System.Int32,System.Int32,System.Int32)">OnDate(Int32, Int32, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Report that a date value has been encountered in the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnDate(int position, int year, int month, int day)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">year</span></td>
+        <td><p>The year number as defined by ISO8601.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">month</span></td>
+        <td><p>The month number between 1 and 12 inclusive as defined by
+ISO8601.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">day</span></td>
+        <td><p>The day number between 1 and 31 inclusive as defined by ISO8601.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnDateTime_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnDateTime(System.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L424">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnDateTime_" data-uid="Tangosol.IO.Pof.IPofHandler.OnDateTime*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnDateTime_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Boolean_" data-uid="Tangosol.IO.Pof.IPofHandler.OnDateTime(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean)">OnDateTime(Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Report that a date-time value has been encountered in the POF
+stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnDateTime(int position, int year, int month, int day, int hour, int minute, int second, int nano, bool isUTC)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">year</span></td>
+        <td><p>The year number as defined by ISO8601; note the difference with
+the Java Date class, whose year is relative to 1900.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">month</span></td>
+        <td><p>The month number between 1 and 12 inclusive as defined by ISO8601;
+note the difference from the Java Date class, whose month value
+is 0-based (0-11).</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">day</span></td>
+        <td><p>The day number between 1 and 31 inclusive as defined by ISO8601.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">hour</span></td>
+        <td><p>The hour between 0 and 23 inclusive.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">minute</span></td>
+        <td><p>The minute value between 0 and 59 inclusive.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">second</span></td>
+        <td><p>The second value between 0 and 59 inclusive (and theoretically 60
+for a leap-second).</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">nano</span></td>
+        <td><p>The nanosecond value between 0 and 999999999 inclusive.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isUTC</span></td>
+        <td><p><strong>true</strong> if the time value is UTC or <strong>false</strong> if the time
+value does not have an explicit time zone.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnDateTime_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_TimeSpan_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnDateTime(System.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.TimeSpan)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L464">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnDateTime_" data-uid="Tangosol.IO.Pof.IPofHandler.OnDateTime*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnDateTime_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_TimeSpan_" data-uid="Tangosol.IO.Pof.IPofHandler.OnDateTime(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.TimeSpan)">OnDateTime(Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32, TimeSpan)</h4>
+  <div class="markdown level1 summary"><p>Report that a date-time value (with a timezone offset) has been
+encountered in the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnDateTime(int position, int year, int month, int day, int hour, int minute, int second, int nano, TimeSpan zoneOffset)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">year</span></td>
+        <td><p>The year number as defined by ISO8601; note the difference with
+the Java Date class, whose year is relative to 1900.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">month</span></td>
+        <td><p>The month number between 1 and 12 inclusive as defined by
+ISO8601; note the difference from the Java Date class, whose
+month value is 0-based (0-11).</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">day</span></td>
+        <td><p>The day number between 1 and 31 inclusive as defined by ISO8601.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">hour</span></td>
+        <td><p>The hour between 0 and 23 inclusive.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">minute</span></td>
+        <td><p>The minute value between 0 and 59 inclusive.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">second</span></td>
+        <td><p>The second value between 0 and 59 inclusive (and theoretically 60
+for a leap-second).</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">nano</span></td>
+        <td><p>The nanosecond value between 0 and 999999999 inclusive.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.TimeSpan</span></td>
+        <td><span class="parametername">zoneOffset</span></td>
+        <td><p>The timezone offset from UTC, for example 0 for BST, -5 for EST
+and +1 for CET.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnDayTimeInterval_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnDayTimeInterval(System.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L495">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnDayTimeInterval_" data-uid="Tangosol.IO.Pof.IPofHandler.OnDayTimeInterval*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnDayTimeInterval_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.OnDayTimeInterval(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)">OnDayTimeInterval(Int32, Int32, Int32, Int32, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Report that a day-time interval value has been encountered in the
+POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnDayTimeInterval(int position, int days, int hours, int minutes, int seconds, int nanos)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">days</span></td>
+        <td><p>The number of days in the day-time interval.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">hours</span></td>
+        <td><p>The number of hours in the day-time interval, from 0 to 23
+inclusive.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">minutes</span></td>
+        <td><p>The number of minutes in the day-time interval, from 0 to 59
+inclusive.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">seconds</span></td>
+        <td><p>The number of seconds in the day-time interval, from 0 to 59
+inclusive.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">nanos</span></td>
+        <td><p>The number of nanoseconds in the day-time interval, from 0 to
+999999999 inclusive.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnDecimal128_System_Int32_System_Decimal_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnDecimal128(System.Int32%2CSystem.Decimal)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L193">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnDecimal128_" data-uid="Tangosol.IO.Pof.IPofHandler.OnDecimal128*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnDecimal128_System_Int32_System_Decimal_" data-uid="Tangosol.IO.Pof.IPofHandler.OnDecimal128(System.Int32,System.Decimal)">OnDecimal128(Int32, Decimal)</h4>
+  <div class="markdown level1 summary"><p>Report that a <strong>Decimal</strong> value has been encountered in the
+POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnDecimal128(int position, decimal dec)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Decimal</span></td>
+        <td><span class="parametername">dec</span></td>
+        <td><p>The decimal value as a <strong>Decimal</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnDecimal32_System_Int32_System_Decimal_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnDecimal32(System.Int32%2CSystem.Decimal)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L165">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnDecimal32_" data-uid="Tangosol.IO.Pof.IPofHandler.OnDecimal32*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnDecimal32_System_Int32_System_Decimal_" data-uid="Tangosol.IO.Pof.IPofHandler.OnDecimal32(System.Int32,System.Decimal)">OnDecimal32(Int32, Decimal)</h4>
+  <div class="markdown level1 summary"><p>Report that a <strong>Decimal</strong> value has been encountered in the
+POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnDecimal32(int position, decimal dec)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Decimal</span></td>
+        <td><span class="parametername">dec</span></td>
+        <td><p>The decimal value as a <strong>Decimal</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnDecimal64_System_Int32_System_Decimal_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnDecimal64(System.Int32%2CSystem.Decimal)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L179">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnDecimal64_" data-uid="Tangosol.IO.Pof.IPofHandler.OnDecimal64*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnDecimal64_System_Int32_System_Decimal_" data-uid="Tangosol.IO.Pof.IPofHandler.OnDecimal64(System.Int32,System.Decimal)">OnDecimal64(Int32, Decimal)</h4>
+  <div class="markdown level1 summary"><p>Report that a <strong>Decimal</strong> value has been encountered in the
+POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnDecimal64(int position, decimal dec)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Decimal</span></td>
+        <td><span class="parametername">dec</span></td>
+        <td><p>The decimal value as a <strong>Decimal</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnFloat32_System_Int32_System_Single_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnFloat32(System.Int32%2CSystem.Single)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L134">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnFloat32_" data-uid="Tangosol.IO.Pof.IPofHandler.OnFloat32*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnFloat32_System_Int32_System_Single_" data-uid="Tangosol.IO.Pof.IPofHandler.OnFloat32(System.Int32,System.Single)">OnFloat32(Int32, Single)</h4>
+  <div class="markdown level1 summary"><p>Report that a base-2 single-precision floating point value has
+been encountered in the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnFloat32(int position, float fl)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><span class="parametername">fl</span></td>
+        <td><p>The floating point value as a <strong>Single</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnFloat64_System_Int32_System_Double_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnFloat64(System.Int32%2CSystem.Double)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L148">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnFloat64_" data-uid="Tangosol.IO.Pof.IPofHandler.OnFloat64*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnFloat64_System_Int32_System_Double_" data-uid="Tangosol.IO.Pof.IPofHandler.OnFloat64(System.Int32,System.Double)">OnFloat64(Int32, Double)</h4>
+  <div class="markdown level1 summary"><p>Report that a base-2 double-precision floating point value has
+been encountered in the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnFloat64(int position, double dfl)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><span class="parametername">dfl</span></td>
+        <td><p>The floating point value as a <strong>Double</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnIdentityReference_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnIdentityReference(System.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L64">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnIdentityReference_" data-uid="Tangosol.IO.Pof.IPofHandler.OnIdentityReference*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnIdentityReference_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.OnIdentityReference(System.Int32,System.Int32)">OnIdentityReference(Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Specifies that a reference to a previously-identified value has
+been encountered in the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnIdentityReference(int position, int id)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The identity of the previously encountered value, as was
+specified in a previous call to <a class="xref" href="Tangosol.IO.Pof.IPofHandler.html#Tangosol_IO_Pof_IPofHandler_RegisterIdentity_System_Int32_">RegisterIdentity(Int32)</a>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnInt128_System_Int32_Tangosol_IO_Pof_RawInt128_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnInt128(System.Int32%2CTangosol.IO.Pof.RawInt128)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L120">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnInt128_" data-uid="Tangosol.IO.Pof.IPofHandler.OnInt128*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnInt128_System_Int32_Tangosol_IO_Pof_RawInt128_" data-uid="Tangosol.IO.Pof.IPofHandler.OnInt128(System.Int32,Tangosol.IO.Pof.RawInt128)">OnInt128(Int32, RawInt128)</h4>
+  <div class="markdown level1 summary"><p>Report that an <strong>Int128</strong> value has been encountered in the
+POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnInt128(int position, RawInt128 n)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.RawInt128.html">RawInt128</a></td>
+        <td><span class="parametername">n</span></td>
+        <td><p>The integer value as an <strong>Int128</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnInt16_System_Int32_System_Int16_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnInt16(System.Int32%2CSystem.Int16)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L78">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnInt16_" data-uid="Tangosol.IO.Pof.IPofHandler.OnInt16*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnInt16_System_Int32_System_Int16_" data-uid="Tangosol.IO.Pof.IPofHandler.OnInt16(System.Int32,System.Int16)">OnInt16(Int32, Int16)</h4>
+  <div class="markdown level1 summary"><p>Report that an <strong>Int16</strong> value has been encountered in the
+POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnInt16(int position, short n)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int16</span></td>
+        <td><span class="parametername">n</span></td>
+        <td><p>The integer value as an <strong>Int16</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnInt32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnInt32(System.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L92">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnInt32_" data-uid="Tangosol.IO.Pof.IPofHandler.OnInt32*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnInt32_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.OnInt32(System.Int32,System.Int32)">OnInt32(Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Report that an <strong>Int32</strong> value has been encountered in the
+POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnInt32(int position, int n)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">n</span></td>
+        <td><p>The integer value as an <strong>Int32</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnInt64_System_Int32_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnInt64(System.Int32%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L106">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnInt64_" data-uid="Tangosol.IO.Pof.IPofHandler.OnInt64*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnInt64_System_Int32_System_Int64_" data-uid="Tangosol.IO.Pof.IPofHandler.OnInt64(System.Int32,System.Int64)">OnInt64(Int32, Int64)</h4>
+  <div class="markdown level1 summary"><p>Report that an <strong>Int64</strong> value has been encountered in the
+POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnInt64(int position, long n)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">n</span></td>
+        <td><p>The integer value as an <strong>Int64</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnNullReference_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnNullReference(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L49">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnNullReference_" data-uid="Tangosol.IO.Pof.IPofHandler.OnNullReference*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnNullReference_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.OnNullReference(System.Int32)">OnNullReference(Int32)</h4>
+  <div class="markdown level1 summary"><p>Specifies that a <code>null</code> value has been encountered in the
+POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnNullReference(int position)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnOctet_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnOctet(System.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L222">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnOctet_" data-uid="Tangosol.IO.Pof.IPofHandler.OnOctet*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnOctet_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.OnOctet(System.Int32,System.Int32)">OnOctet(Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Report that an octet value (a byte) has been encountered in the
+POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnOctet(int position, int b)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">b</span></td>
+        <td><p>The octet value as an int whose value is in the range 0 to 255
+(0x00-0xFF) inclusive.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnOctetString_System_Int32_Tangosol_Util_Binary_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnOctetString(System.Int32%2CTangosol.Util.Binary)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L236">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnOctetString_" data-uid="Tangosol.IO.Pof.IPofHandler.OnOctetString*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnOctetString_System_Int32_Tangosol_Util_Binary_" data-uid="Tangosol.IO.Pof.IPofHandler.OnOctetString(System.Int32,Tangosol.Util.Binary)">OnOctetString(Int32, Binary)</h4>
+  <div class="markdown level1 summary"><p>Report that a octet string value has been encountered in the POF
+stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnOctetString(int position, Binary bin)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><span class="parametername">bin</span></td>
+        <td><p>The octect string value as a <strong>Binary</strong> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnTime_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnTime(System.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L328">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnTime_" data-uid="Tangosol.IO.Pof.IPofHandler.OnTime*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnTime_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Boolean_" data-uid="Tangosol.IO.Pof.IPofHandler.OnTime(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean)">OnTime(Int32, Int32, Int32, Int32, Int32, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Report that a time value has been encountered in the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnTime(int position, int hour, int minute, int second, int nanosecond, bool isUTC)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">hour</span></td>
+        <td><p>The hour between 0 and 23 inclusive.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">minute</span></td>
+        <td><p>The minute value between 0 and 59 inclusive.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">second</span></td>
+        <td><p>The second value between 0 and 59 inclusive (and theoretically 60
+for a leap-second).</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">nanosecond</span></td>
+        <td><p>The nanosecond value between 0 and 999999999 inclusive.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isUTC</span></td>
+        <td><p><strong>true</strong> if the time value is UTC or <strong>false</strong> if the time
+value does not have an explicit time zone.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnTime_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_TimeSpan_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnTime(System.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.TimeSpan)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L359">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnTime_" data-uid="Tangosol.IO.Pof.IPofHandler.OnTime*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnTime_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_TimeSpan_" data-uid="Tangosol.IO.Pof.IPofHandler.OnTime(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.TimeSpan)">OnTime(Int32, Int32, Int32, Int32, Int32, TimeSpan)</h4>
+  <div class="markdown level1 summary"><p>Report that a time value (with a timezone offset) has been
+encountered in the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnTime(int position, int hour, int minute, int second, int nano, TimeSpan zoneOffset)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">hour</span></td>
+        <td><p>The hour between 0 and 23 inclusive.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">minute</span></td>
+        <td><p>The minute value between 0 and 59 inclusive.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">second</span></td>
+        <td><p>The second value between 0 and 59 inclusive (and theoretically 60
+for a leap-second).</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">nano</span></td>
+        <td><p>The nanosecond value between 0 and 999999999 inclusive.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.TimeSpan</span></td>
+        <td><span class="parametername">zoneOffset</span></td>
+        <td><p>The timezone offset from UTC, for example 0 for BST, -5 for EST
+and +1 for CET.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofHandler_OnTime_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_TimeSpan__seealso">See Also</h5>
+  <div class="seealso">
+      <div><span><a href="http://www.worldtimezone.com/faq.html">
+worldtimezone.com
+</a></span></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnTimeInterval_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnTimeInterval(System.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L384">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnTimeInterval_" data-uid="Tangosol.IO.Pof.IPofHandler.OnTimeInterval*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnTimeInterval_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.OnTimeInterval(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)">OnTimeInterval(Int32, Int32, Int32, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Report that a time interval value has been encountered in the POF
+stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnTimeInterval(int position, int hours, int minutes, int seconds, int nanos)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">hours</span></td>
+        <td><p>The number of hours in the time interval.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">minutes</span></td>
+        <td><p>The number of minutes in the time interval, from 0 to 59
+inclusive.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">seconds</span></td>
+        <td><p>The number of seconds in the time interval, from 0 to 59
+inclusive.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">nanos</span></td>
+        <td><p>The number of nanoseconds, from 0 to 999999999 inclusive.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_OnYearMonthInterval_System_Int32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.OnYearMonthInterval(System.Int32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L301">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_OnYearMonthInterval_" data-uid="Tangosol.IO.Pof.IPofHandler.OnYearMonthInterval*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_OnYearMonthInterval_System_Int32_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.OnYearMonthInterval(System.Int32,System.Int32,System.Int32)">OnYearMonthInterval(Int32, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Report that a year-month interval value has been encountered in
+the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnYearMonthInterval(int position, int years, int months)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>Context-sensitive position information: property index within a
+user type, array index within an array, element counter within a
+collection, entry counter within a dictionary, -1 otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">years</span></td>
+        <td><p>The number of years in the year-month interval.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">months</span></td>
+        <td><p>The number of months in the year-month interval.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler_RegisterIdentity_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler.RegisterIdentity(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L38">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofHandler_RegisterIdentity_" data-uid="Tangosol.IO.Pof.IPofHandler.RegisterIdentity*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofHandler_RegisterIdentity_System_Int32_" data-uid="Tangosol.IO.Pof.IPofHandler.RegisterIdentity(System.Int32)">RegisterIdentity(Int32)</h4>
+  <div class="markdown level1 summary"><p>This method is invoked when an identity is encountered in the POF
+stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void RegisterIdentity(int id)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>If <strong>(id &gt;= 0)</strong>, then this is the identity encountered in the
+POF stream, otherwise it is an indicator that the following value
+<em>could</em> have been assigned an identifier but was not (i.e.
+that the subsequent value is of a referenceable data type).</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofHandler_RegisterIdentity_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The identity is used to uniquely identify the next value in the
+POF stream, and can be later referenced by the
+<a class="xref" href="Tangosol.IO.Pof.IPofHandler.html#Tangosol_IO_Pof_IPofHandler_OnIdentityReference_System_Int32_System_Int32_">OnIdentityReference(Int32, Int32)</a> method.</p>
+</div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofHandler.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofHandler%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofHandler.cs/#L21" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

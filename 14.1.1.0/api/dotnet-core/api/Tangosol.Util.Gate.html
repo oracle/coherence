@@ -1,0 +1,396 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface Gate
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface Gate
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Gate">
+  
+  
+  <h1 id="Tangosol_Util_Gate" data-uid="Tangosol.Util.Gate" class="text-break">Interface Gate
+  </h1>
+  <div class="markdown level0 summary"><p>Use a Gate in cases that large numbers of threads can operate
+concurrently with an additional requirement that all threads be
+blocked for certain operations.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.html">Tangosol.Util</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Gate_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface Gate</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Gate_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>The algorithm is based on a gate concept, allowing threads in
+<a class="xref" href="Tangosol.Util.Gate.html#Tangosol_Util_Gate_Enter_System_Int64_">Enter(Int64)</a> and out <a class="xref" href="Tangosol.Util.Gate.html#Tangosol_Util_Gate_Exit">Exit()</a>, but occasionally
+shutting the gate <a class="xref" href="Tangosol.Util.Gate.html#Tangosol_Util_Gate_Close_System_Int64_">Close(Int64)</a> such that other threads cannot
+enter and exit. However, since threads may &quot;be inside&quot;, the gate
+cannot fully close until they leave <a class="xref" href="Tangosol.Util.Gate.html#Tangosol_Util_Gate_Exit">Exit()</a>. Once all
+threads are out, the gate is closed, and can be re-opened
+<a class="xref" href="Tangosol.Util.Gate.html#Tangosol_Util_Gate_Open">Open()</a>.</p>
+<p>
+Each call to <strong>Enter</strong> requires a corresponding call to
+<strong>Exit</strong>. For example, the following would ensure proper clean-up
+using a Gate:</p>
+<p>
+<pre>
+gate.Enter();
+try
+{
+    ...
+}
+finally
+{
+    gate.Exit();
+}
+</pre></p>
+<p>
+Similarly, each call to <strong>Close</strong> should be matched with a call to
+<strong>Open</strong>:</p>
+<p>
+<pre>
+gate.Close();
+try
+{
+    ...
+}
+finally
+{
+    gate.Open();
+}
+</pre></p>
+<p>
+The Enter/Exit calls can be nested; the same thread can invoke Enter
+multiple times as long as Exit is invoked a corresponding number of
+times. The Close/Open calls work in the same manner. Lastly, the
+thread that closes the gate may continue to Enter/Exit the gate even
+when it is closed since that thread has exclusive control of the
+gate.</p>
+</div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Gate_IsClosedByCurrentThread.md&amp;value=---%0Auid%3A%20Tangosol.Util.Gate.IsClosedByCurrentThread%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Gate.cs/#L124">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Gate_IsClosedByCurrentThread_" data-uid="Tangosol.Util.Gate.IsClosedByCurrentThread*"></a>
+  <h4 id="Tangosol_Util_Gate_IsClosedByCurrentThread" data-uid="Tangosol.Util.Gate.IsClosedByCurrentThread">IsClosedByCurrentThread</h4>
+  <div class="markdown level1 summary"><p>Determines if the current thread has Closed the Gate but not yet
+Opened the Gate.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsClosedByCurrentThread { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Gate_IsEnteredByCurrentThread.md&amp;value=---%0Auid%3A%20Tangosol.Util.Gate.IsEnteredByCurrentThread%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Gate.cs/#L118">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Gate_IsEnteredByCurrentThread_" data-uid="Tangosol.Util.Gate.IsEnteredByCurrentThread*"></a>
+  <h4 id="Tangosol_Util_Gate_IsEnteredByCurrentThread" data-uid="Tangosol.Util.Gate.IsEnteredByCurrentThread">IsEnteredByCurrentThread</h4>
+  <div class="markdown level1 summary"><p>Determines if the current thread has Entered, but not yet Exited
+the Gate.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsEnteredByCurrentThread { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Gate_Close_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Gate.Close(System.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Gate.cs/#L78">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Gate_Close_" data-uid="Tangosol.Util.Gate.Close*"></a>
+  <h4 id="Tangosol_Util_Gate_Close_System_Int64_" data-uid="Tangosol.Util.Gate.Close(System.Int64)">Close(Int64)</h4>
+  <div class="markdown level1 summary"><p>Tries to acquire the exclusive lock, the attempt is
+willing to wait up the specified millis or -1 to wait
+infinite.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool Close(long millis)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">millis</span></td>
+        <td><p>If the value is positive the caller
+will block for this long until either the lock has been
+acquired. If 0 an immediate attempt is made. If -1 wait an
+infinite time for the lock to be acquired.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>true if the lock has been acquired.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Gate_Enter_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Gate.Enter(System.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Gate.cs/#L104">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Gate_Enter_" data-uid="Tangosol.Util.Gate.Enter*"></a>
+  <h4 id="Tangosol_Util_Gate_Enter_System_Int64_" data-uid="Tangosol.Util.Gate.Enter(System.Int64)">Enter(Int64)</h4>
+  <div class="markdown level1 summary"><p>Tries to acquire the non-exclusive lock, the attempt is
+willing to wait up the specified millis or -1 to wait
+infinite.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool Enter(long millis)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">millis</span></td>
+        <td><p>If the value is positive the caller
+will block for this long until either the lock has been
+acquired. If 0 an immediate attempt is made. If -1 wait an
+infinite time for the lock to be acquired.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>true if the lock has been acquired.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Gate_Exit.md&amp;value=---%0Auid%3A%20Tangosol.Util.Gate.Exit%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Gate.cs/#L112">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Gate_Exit_" data-uid="Tangosol.Util.Gate.Exit*"></a>
+  <h4 id="Tangosol_Util_Gate_Exit" data-uid="Tangosol.Util.Gate.Exit">Exit()</h4>
+  <div class="markdown level1 summary"><p>Releases the non-exclusive lock. If the non-exclusive lock has
+no more matching Enter(millis) from any thread the exclusive
+lock is released so that threads wanting to Close the Gate
+can proceed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Exit()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Gate_Open.md&amp;value=---%0Auid%3A%20Tangosol.Util.Gate.Open%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Gate.cs/#L91">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Gate_Open_" data-uid="Tangosol.Util.Gate.Open*"></a>
+  <h4 id="Tangosol_Util_Gate_Open" data-uid="Tangosol.Util.Gate.Open">Open()</h4>
+  <div class="markdown level1 summary"><p>Releases the exclusive lock. If the exclusive lock has
+no more matching Close(millis) the exclusive lock is released.
+Any Threads waiting to Enter(millis) or Close(millis) will
+continue executing.</p>
+<p>If the thread currently is also holding the non-exclusive
+lock, the thread will immediately Enter the lock. The thread
+will have to match all calls to Enter(millis) with the
+corresponding count of Exit().</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Open()</code></pre>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Gate.md&amp;value=---%0Auid%3A%20Tangosol.Util.Gate%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Gate.cs/#L65" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,747 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class InvokeFilterRequest
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class InvokeFilterRequest
+   ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest">
+  
+  
+  <h1 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest" class="text-break">Class InvokeFilterRequest
+  </h1>
+  <div class="markdown level0 summary"><p>The InvokeFilterRequest is a <a class="xref" href="Tangosol.Net.Messaging.Impl.NamedCache.FilterRequest.html">FilterRequest</a> sent to
+process one or more entries (specified by a Filter) in a remote
+NamedCache.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Net.Impl.Extend.html">Extend</a></div>
+    <div class="level2"><a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html">Message</a></div>
+    <div class="level3"><a class="xref" href="Tangosol.Net.Messaging.Impl.Request.html">Request</a></div>
+    <div class="level4"><a class="xref" href="Tangosol.Net.Messaging.Impl.NamedCache.NamedCacheRequest.html">NamedCacheRequest</a></div>
+    <div class="level5"><a class="xref" href="Tangosol.Net.Messaging.Impl.NamedCache.FilterRequest.html">FilterRequest</a></div>
+    <div class="level6"><span class="xref">InvokeFilterRequest</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.IO.Pof.IEvolvablePortableObject.html">IEvolvablePortableObject</a></div>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a></div>
+    <div><a class="xref" href="Tangosol.IO.IEvolvable.html">IEvolvable</a></div>
+    <div><a class="xref" href="Tangosol.Net.Messaging.IRequest.html">IRequest</a></div>
+    <div><a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a></div>
+    <div><a class="xref" href="Tangosol.Net.Messaging.IRunnable.html">IRunnable</a></div>
+    <div><a class="xref" href="Tangosol.Net.IPriorityTask.html">IPriorityTask</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.NamedCache.FilterRequest.html#Tangosol_Net_Messaging_Impl_NamedCache_FilterRequest_Filter">FilterRequest.Filter</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Request.html#Tangosol_Net_Messaging_Impl_Request_Response">Request.Response</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Request.html#Tangosol_Net_Messaging_Impl_Request_IsIncoming">Request.IsIncoming</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Request.html#Tangosol_Net_Messaging_Impl_Request_Id">Request.Id</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Request.html#Tangosol_Net_Messaging_Impl_Request_Status">Request.Status</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Request.html#Tangosol_Net_Messaging_Impl_Request_EnsureResponse">Request.EnsureResponse()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Request.html#Tangosol_Net_Messaging_Impl_Request_OnException_System_Exception_">Request.OnException(Exception)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Request.html#Tangosol_Net_Messaging_Impl_Request_OnRun_Tangosol_Net_Messaging_Impl_Response_">Request.OnRun(Response)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Request.html#Tangosol_Net_Messaging_Impl_Request_Run">Request.Run()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html#Tangosol_Net_Messaging_Impl_Message_Channel">Message.Channel</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html#Tangosol_Net_Messaging_Impl_Message_ExecuteInOrder">Message.ExecuteInOrder</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html#Tangosol_Net_Messaging_Impl_Message_DataVersion">Message.DataVersion</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html#Tangosol_Net_Messaging_Impl_Message_FutureData">Message.FutureData</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html#Tangosol_Net_Messaging_Impl_Message_ImplVersion">Message.ImplVersion</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.Extend.html#Tangosol_Net_Impl_Extend_ToString">Extend.ToString()</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Messaging.Impl.NamedCache.html">Tangosol.Net.Messaging.Impl.NamedCache</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class InvokeFilterRequest : FilterRequest, IEvolvablePortableObject, IPortableObject, IEvolvable, IRequest, IMessage, IRunnable, IPriorityTask</code></pre>
+  </div>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_TYPE_ID.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.TYPE_ID%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/InvokeFilterRequest.cs/#L247">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_TYPE_ID" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.TYPE_ID">TYPE_ID</h4>
+  <div class="markdown level1 summary"><p>The type identifier for this Message class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int TYPE_ID = 55</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_Cookie.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.Cookie%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/InvokeFilterRequest.cs/#L32">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_Cookie_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.Cookie*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_Cookie" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.Cookie">Cookie</h4>
+  <div class="markdown level1 summary"><p>Opaque cookie used to support streaming.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual Binary Cookie { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_Cookie_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.Impl.PartialResponse.html#Tangosol_Net_Messaging_Impl_PartialResponse_Cookie">Cookie</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_ExecutionTimeoutMillis.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.ExecutionTimeoutMillis%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/InvokeFilterRequest.cs/#L102">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_ExecutionTimeoutMillis_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.ExecutionTimeoutMillis*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_ExecutionTimeoutMillis" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.ExecutionTimeoutMillis">ExecutionTimeoutMillis</h4>
+  <div class="markdown level1 summary"><p>The maximum amount of time this task is allowed to run before the
+corresponding service will attempt to stop it.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public long ExecutionTimeoutMillis { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The execution timeout value in millisecods or one of the special
+<a class="xref" href="Tangosol.Net.PriorityTaskTimeout.html">PriorityTaskTimeout</a> values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_ExecutionTimeoutMillis_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If the underlying <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> implements
+<a class="xref" href="Tangosol.Net.IPriorityTask.html">IPriorityTask</a> then the value of the processor's
+ExecutionTimeoutMillis attribute is returned otherwise the value
+of <a class="xref" href="Tangosol.Net.PriorityTaskTimeout.html#Tangosol_Net_PriorityTaskTimeout_Default">Default</a> is returned.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_Processor.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.Processor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/InvokeFilterRequest.cs/#L58">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_Processor_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.Processor*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_Processor" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.Processor">Processor</h4>
+  <div class="markdown level1 summary"><p>The <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> used to process entries in a
+remote cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IEntryProcessor Processor { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a></td>
+        <td><p><strong>IEntryProcessor</strong> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_RequestTimeoutMillis.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.RequestTimeoutMillis%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/InvokeFilterRequest.cs/#L125">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_RequestTimeoutMillis_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.RequestTimeoutMillis*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_RequestTimeoutMillis" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.RequestTimeoutMillis">RequestTimeoutMillis</h4>
+  <div class="markdown level1 summary"><p>The maximum amount of time a calling thread is willing to wait
+for a result of the request execution.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public long RequestTimeoutMillis { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The execution timeout value in millisecods or one of the special
+<a class="xref" href="Tangosol.Net.PriorityTaskTimeout.html">PriorityTaskTimeout</a> values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_RequestTimeoutMillis_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If the underlying <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> implements
+<a class="xref" href="Tangosol.Net.IPriorityTask.html">IPriorityTask</a> then the value of the processor's
+RequestTimeoutMillis attribute is returned otherwise the value
+of <a class="xref" href="Tangosol.Net.PriorityTaskTimeout.html#Tangosol_Net_PriorityTaskTimeout_Default">Default</a> is returned.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_SchedulingPriority.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.SchedulingPriority%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/InvokeFilterRequest.cs/#L79">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_SchedulingPriority_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.SchedulingPriority*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_SchedulingPriority" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.SchedulingPriority">SchedulingPriority</h4>
+  <div class="markdown level1 summary"><p>This task's scheduling priority.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public PriorityTaskScheduling SchedulingPriority { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.PriorityTaskScheduling.html">PriorityTaskScheduling</a></td>
+        <td><p>One of the <a class="xref" href="Tangosol.Net.PriorityTaskScheduling.html">PriorityTaskScheduling</a> constants.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_SchedulingPriority_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If the underlying <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> implements
+<a class="xref" href="Tangosol.Net.IPriorityTask.html">IPriorityTask</a> then the value of the processor's
+SchedulingPriority attribute is returned otherwise the value
+of <a class="xref" href="Tangosol.Net.PriorityTaskScheduling.html#Tangosol_Net_PriorityTaskScheduling_Standard">Standard</a> is returned.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_TypeId.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.TypeId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/InvokeFilterRequest.cs/#L46">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_TypeId_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.TypeId*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_TypeId" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.TypeId">TypeId</h4>
+  <div class="markdown level1 summary"><p>Return the identifier for <strong>Message</strong> object's class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int TypeId { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>An identifier that uniquely identifies <strong>Message</strong> object's
+class.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html#Tangosol_Net_Messaging_Impl_Message_TypeId">Message.TypeId</a></div>
+  <h5 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_TypeId_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html#Tangosol_Net_Messaging_Impl_Message_TypeId">TypeId</a></div>
+  </div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_GetDescription.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.GetDescription%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/InvokeFilterRequest.cs/#L223">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_GetDescription_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.GetDescription*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_GetDescription" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.GetDescription">GetDescription()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override string GetDescription()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Messaging.Impl.NamedCache.FilterRequest.html#Tangosol_Net_Messaging_Impl_NamedCache_FilterRequest_GetDescription">FilterRequest.GetDescription()</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_InstantiateResponse_Tangosol_Net_Messaging_IMessageFactory_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.InstantiateResponse(Tangosol.Net.Messaging.IMessageFactory)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/InvokeFilterRequest.cs/#L171">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_InstantiateResponse_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.InstantiateResponse*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_InstantiateResponse_Tangosol_Net_Messaging_IMessageFactory_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.InstantiateResponse(Tangosol.Net.Messaging.IMessageFactory)">InstantiateResponse(IMessageFactory)</h4>
+  <div class="markdown level1 summary"><p>Create a new <a class="xref" href="Tangosol.Net.Messaging.Impl.Response.html">Response</a> for this IRequest.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override Response InstantiateResponse(IMessageFactory factory)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IMessageFactory.html">IMessageFactory</a></td>
+        <td><span class="parametername">factory</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Messaging.IMessageFactory.html">IMessageFactory</a> that must be used to create the
+returned <strong>Response</strong>; never <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.Impl.Response.html">Response</a></td>
+        <td><p>A new <strong>Response</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Messaging.Impl.Request.html#Tangosol_Net_Messaging_Impl_Request_InstantiateResponse_Tangosol_Net_Messaging_IMessageFactory_">Request.InstantiateResponse(IMessageFactory)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_ReadExternal_Tangosol_IO_Pof_IPofReader_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.ReadExternal(Tangosol.IO.Pof.IPofReader)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/InvokeFilterRequest.cs/#L191">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_ReadExternal_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.ReadExternal*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_ReadExternal_Tangosol_IO_Pof_IPofReader_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.ReadExternal(Tangosol.IO.Pof.IPofReader)">ReadExternal(IPofReader)</h4>
+  <div class="markdown level1 summary"><p>Restore the contents of a user type instance by reading its state
+using the specified <a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void ReadExternal(IPofReader reader)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a></td>
+        <td><span class="parametername">reader</span></td>
+        <td><p>The <strong>IPofReader</strong> from which to read the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Messaging.Impl.NamedCache.FilterRequest.html#Tangosol_Net_Messaging_Impl_NamedCache_FilterRequest_ReadExternal_Tangosol_IO_Pof_IPofReader_">FilterRequest.ReadExternal(IPofReader)</a></div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_ReadExternal_Tangosol_IO_Pof_IPofReader__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.Impl.Request.html#Tangosol_Net_Messaging_Impl_Request_ReadExternal_Tangosol_IO_Pof_IPofReader_">ReadExternal</a>(<a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a>)</div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_RunCanceled_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.RunCanceled(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/InvokeFilterRequest.cs/#L150">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_RunCanceled_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.RunCanceled*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_RunCanceled_System_Boolean_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.RunCanceled(System.Boolean)">RunCanceled(Boolean)</h4>
+  <div class="markdown level1 summary"><p>This method will be called if and only if all attempts to
+interrupt this task were unsuccesful in stopping the execution or
+if the execution was canceled <strong>before</strong> it had a chance to
+run at all.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void RunCanceled(bool isAbandoned)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isAbandoned</span></td>
+        <td><p><strong>true</strong> if the task has timed-out, but all attempts to
+interrupt it were unsuccesful in stopping the execution;
+otherwise the task was never started.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_RunCanceled_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If the underlying <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> implements
+<a class="xref" href="Tangosol.Net.IPriorityTask.html">IPriorityTask</a> then the processor's
+RunCanceled method is called.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_WriteExternal_Tangosol_IO_Pof_IPofWriter_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.WriteExternal(Tangosol.IO.Pof.IPofWriter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/InvokeFilterRequest.cs/#L210">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_WriteExternal_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.WriteExternal*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_WriteExternal_Tangosol_IO_Pof_IPofWriter_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest.WriteExternal(Tangosol.IO.Pof.IPofWriter)">WriteExternal(IPofWriter)</h4>
+  <div class="markdown level1 summary"><p>Save the contents of a POF user type instance by writing its
+state using the specified <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void WriteExternal(IPofWriter writer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The <strong>IPofWriter</strong> to which to write the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Messaging.Impl.NamedCache.FilterRequest.html#Tangosol_Net_Messaging_Impl_NamedCache_FilterRequest_WriteExternal_Tangosol_IO_Pof_IPofWriter_">FilterRequest.WriteExternal(IPofWriter)</a></div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest_WriteExternal_Tangosol_IO_Pof_IPofWriter__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.Impl.Request.html#Tangosol_Net_Messaging_Impl_Request_WriteExternal_Tangosol_IO_Pof_IPofWriter_">WriteExternal</a>(<a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a>)</div>
+  </div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IEvolvablePortableObject.html">IEvolvablePortableObject</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.IEvolvable.html">IEvolvable</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IRequest.html">IRequest</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IRunnable.html">IRunnable</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.IPriorityTask.html">IPriorityTask</a>
+  </div>
+  <h3 id="seealso">See Also</h3>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a></div>
+      <div><a class="xref" href="Tangosol.Net.Messaging.Impl.NamedCache.FilterRequest.html">FilterRequest</a></div>
+      <div><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></div>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_InvokeFilterRequest.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.InvokeFilterRequest%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/InvokeFilterRequest.cs/#L24" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

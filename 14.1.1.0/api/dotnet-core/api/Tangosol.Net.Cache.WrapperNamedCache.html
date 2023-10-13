@@ -1,0 +1,2730 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class WrapperNamedCache
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class WrapperNamedCache
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Cache.WrapperNamedCache">
+  
+  
+  <h1 id="Tangosol_Net_Cache_WrapperNamedCache" data-uid="Tangosol.Net.Cache.WrapperNamedCache" class="text-break">Class WrapperNamedCache
+  </h1>
+  <div class="markdown level0 summary"><p>Wrapper for a given NamedCache.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">WrapperNamedCache</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.INamedCache.html">INamedCache</a></div>
+    <div><a class="xref" href="Tangosol.Net.Cache.IObservableCache.html">IObservableCache</a></div>
+    <div><a class="xref" href="Tangosol.Net.Cache.IConcurrentCache.html">IConcurrentCache</a></div>
+    <div><a class="xref" href="Tangosol.Net.Cache.IQueryCache.html">IQueryCache</a></div>
+    <div><a class="xref" href="Tangosol.Net.Cache.IInvocableCache.html">IInvocableCache</a></div>
+    <div><a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a></div>
+    <div><span class="xref">System.Collections.IDictionary</span></div>
+    <div><span class="xref">System.Collections.ICollection</span></div>
+    <div><span class="xref">System.Collections.IEnumerable</span></div>
+    <div><span class="xref">System.IDisposable</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Cache.html">Tangosol.Net.Cache</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class WrapperNamedCache : INamedCache, IObservableCache, IConcurrentCache, IQueryCache, IInvocableCache, ICache, IDictionary, ICollection, IEnumerable, IDisposable</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache__ctor_Tangosol_Net_INamedCache_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.%23ctor(Tangosol.Net.INamedCache)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L212">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache__ctor_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.#ctor*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache__ctor_Tangosol_Net_INamedCache_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.#ctor(Tangosol.Net.INamedCache)">WrapperNamedCache(INamedCache)</h4>
+  <div class="markdown level1 summary"><p>Default constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public WrapperNamedCache(INamedCache cache)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.INamedCache.html">INamedCache</a></td>
+        <td><span class="parametername">cache</span></td>
+        <td><p>The cache to be wrapped.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_CacheName.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.CacheName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L43">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_CacheName_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.CacheName*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_CacheName" data-uid="Tangosol.Net.Cache.WrapperNamedCache.CacheName">CacheName</h4>
+  <div class="markdown level1 summary"><p>Gets the cache name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual string CacheName { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The cache name.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_CacheService.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.CacheService%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L58">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_CacheService_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.CacheService*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_CacheService" data-uid="Tangosol.Net.Cache.WrapperNamedCache.CacheService">CacheService</h4>
+  <div class="markdown level1 summary"><p>Gets the <a class="xref" href="Tangosol.Net.ICacheService.html">ICacheService</a> that this INamedCache
+is a part of.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICacheService CacheService { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.ICacheService.html">ICacheService</a></td>
+        <td><p>The cache service this INamedCache is a part of.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Count.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Count%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L86">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Count_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Count*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Count" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Count">Count</h4>
+  <div class="markdown level1 summary"><p>Returns the number of key-value mappings in this cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int Count { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The number of key-value mappings in this cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Entries.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Entries%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L490">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Entries_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Entries*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Entries" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Entries">Entries</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of <a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a> instances
+within the cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICollection Entries { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><p>A collection of <strong>ICacheEntry</strong> objects.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_IsActive.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.IsActive%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L72">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_IsActive_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.IsActive*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_IsActive" data-uid="Tangosol.Net.Cache.WrapperNamedCache.IsActive">IsActive</h4>
+  <div class="markdown level1 summary"><p>Specifies whether or not the INamedCache is active.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsActive { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the INamedCache is active; <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_IsFixedSize.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.IsFixedSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L197">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_IsFixedSize_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.IsFixedSize*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_IsFixedSize" data-uid="Tangosol.Net.Cache.WrapperNamedCache.IsFixedSize">IsFixedSize</h4>
+  <div class="markdown level1 summary"><p>Gets a value indicating whether the <strong>IDictionary</strong> object has
+a fixed size.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsFixedSize { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>Always <strong>false</strong> for this <strong>INamedCache</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_IsReadOnly.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.IsReadOnly%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L185">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_IsReadOnly_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.IsReadOnly*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_IsReadOnly" data-uid="Tangosol.Net.Cache.WrapperNamedCache.IsReadOnly">IsReadOnly</h4>
+  <div class="markdown level1 summary"><p>Gets a value indicating whether the <strong>IDictionary</strong> object is
+read-only.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsReadOnly { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>Always <strong>true</strong> for this <strong>INamedCache</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_IsSynchronized.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.IsSynchronized%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L112">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_IsSynchronized_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.IsSynchronized*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_IsSynchronized" data-uid="Tangosol.Net.Cache.WrapperNamedCache.IsSynchronized">IsSynchronized</h4>
+  <div class="markdown level1 summary"><p>Gets a value indicating whether access to the <strong>ICollection</strong>
+is synchronized (thread safe).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsSynchronized { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if access to the <strong>ICollection</strong> is synchronized
+(thread safe); otherwise, <strong>false</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Item_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Item(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L146">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Item_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Item*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Item_System_Object_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Item(System.Object)">Item[Object]</h4>
+  <div class="markdown level1 summary"><p>Returns the value to which this cache maps the specified key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object this[object key] { get; set; }</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key whose associated value is to be returned.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The value to which this cache maps the specified key, or
+<code>null</code> if the cache contains no mapping for this key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_Item_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+Returns <code>null</code> if the cache contains no mapping for
+this key. A return value of <code>null</code> does not
+<em>necessarily</em> indicate that the cache contains no mapping
+for the key; it&apos;s also possible that the cache explicitly maps
+the key to <code>null</code>.</p>
+<p>
+The <span class="xref">System.Collections.IDictionary.Contains(System.Object)</span> operation may be used to
+distinguish these two cases.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidCastException</span></td>
+        <td><p>If the key is of an inappropriate type for this cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.NullReferenceException</span></td>
+        <td><p>If the key is <code>null</code> and this cache does not permit
+<code>null</code> keys.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_Item_System_Object__seealso">See Also</h5>
+  <div class="seealso">
+      <div><span class="xref">System.Collections.IDictionary.Contains</span>(<span class="xref">System.Object</span>)</div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Keys.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Keys%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L160">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Keys_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Keys*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Keys" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Keys">Keys</h4>
+  <div class="markdown level1 summary"><p>Gets an <strong>ICollection</strong> containing the keys of the
+<strong>IDictionary</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICollection Keys { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><p>An <strong>ICollection</strong> object containing the keys of the
+<strong>IDictionary</strong> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_NamedCache.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.NamedCache%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L29">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_NamedCache_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.NamedCache*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_NamedCache" data-uid="Tangosol.Net.Cache.WrapperNamedCache.NamedCache">NamedCache</h4>
+  <div class="markdown level1 summary"><p>Actual (wrapped) <a class="xref" href="Tangosol.Net.INamedCache.html">INamedCache</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual INamedCache NamedCache { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.INamedCache.html">INamedCache</a></td>
+        <td><p>Wrapped <strong>INamedCache</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_SyncRoot.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.SyncRoot%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L99">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_SyncRoot_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.SyncRoot*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_SyncRoot" data-uid="Tangosol.Net.Cache.WrapperNamedCache.SyncRoot">SyncRoot</h4>
+  <div class="markdown level1 summary"><p>Gets an object that can be used to synchronize access to this
+object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object SyncRoot { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>An object that can be used to synchronize access to this
+object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Values.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Values%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L173">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Values_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Values*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Values" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Values">Values</h4>
+  <div class="markdown level1 summary"><p>Gets an <strong>ICollection</strong> containing the values of the
+<strong>IDictionary</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICollection Values { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><p>An <strong>ICollection</strong> object containing the values of the
+<strong>IDictionary</strong> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Add_System_Object_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Add(System.Object%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L265">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Add_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Add*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Add_System_Object_System_Object_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Add(System.Object,System.Object)">Add(Object, Object)</h4>
+  <div class="markdown level1 summary"><p>Adds an element with the provided key and value to the
+<strong>IDictionary</strong> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Add(object key, object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The object to use as the key of the element to add.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The object to use as the value of the element to add.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_AddCacheListener_Tangosol_Net_Cache_ICacheListener_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.AddCacheListener(Tangosol.Net.Cache.ICacheListener)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L586">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_AddCacheListener_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.AddCacheListener*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_AddCacheListener_Tangosol_Net_Cache_ICacheListener_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.AddCacheListener(Tangosol.Net.Cache.ICacheListener)">AddCacheListener(ICacheListener)</h4>
+  <div class="markdown level1 summary"><p>Add a standard cache listener that will receive all events
+(inserts, updates, deletes) that occur against the cache, with
+the key, old-value and new-value included.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void AddCacheListener(ICacheListener listener)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> to add.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_AddCacheListener_Tangosol_Net_Cache_ICacheListener__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This has the same result as the following call:</p>
+<pre>
+AddCacheListener(listener, (IFilter) null, false);
+</pre>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_AddCacheListener_Tangosol_Net_Cache_ICacheListener_System_Object_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.AddCacheListener(Tangosol.Net.Cache.ICacheListener%2CSystem.Object%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L635">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_AddCacheListener_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.AddCacheListener*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_AddCacheListener_Tangosol_Net_Cache_ICacheListener_System_Object_System_Boolean_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.AddCacheListener(Tangosol.Net.Cache.ICacheListener,System.Object,System.Boolean)">AddCacheListener(ICacheListener, Object, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Add a cache listener for a specific key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void AddCacheListener(ICacheListener listener, object key, bool isLite)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> to add.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key that identifies the entry for which to raise events.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isLite</span></td>
+        <td><p><strong>true</strong> to indicate that the <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a>
+objects do not have to include the <strong>OldValue</strong> and
+<strong>NewValue</strong> property values in order to allow optimizations.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_AddCacheListener_Tangosol_Net_Cache_ICacheListener_System_Object_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The listeners will receive <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> objects,
+but if <code data-dev-comment-type="paramref" class="paramref">isLite</code> is passed as <strong>true</strong>, they
+<em>might</em> not contain the
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html#Tangosol_Net_Cache_CacheEventArgs_OldValue">OldValue</a> and
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html#Tangosol_Net_Cache_CacheEventArgs_NewValue">NewValue</a> properties.</p>
+<p>
+To unregister the ICacheListener, use the
+<a class="xref" href="Tangosol.Net.Cache.WrapperNamedCache.html#Tangosol_Net_Cache_WrapperNamedCache_RemoveCacheListener_Tangosol_Net_Cache_ICacheListener_System_Object_">RemoveCacheListener(ICacheListener, Object)</a>
+method.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_AddCacheListener_Tangosol_Net_Cache_ICacheListener_Tangosol_Util_IFilter_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.AddCacheListener(Tangosol.Net.Cache.ICacheListener%2CTangosol.Util.IFilter%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L684">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_AddCacheListener_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.AddCacheListener*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_AddCacheListener_Tangosol_Net_Cache_ICacheListener_Tangosol_Util_IFilter_System_Boolean_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.AddCacheListener(Tangosol.Net.Cache.ICacheListener,Tangosol.Util.IFilter,System.Boolean)">AddCacheListener(ICacheListener, IFilter, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Add a cache listener that receives events based on a filter
+evaluation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void AddCacheListener(ICacheListener listener, IFilter filter, bool isLite)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> to add.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>A filter that will be passed <strong>CacheEvent</strong> objects to
+select from; a <strong>CacheEvent</strong> will be delivered to the
+listener only if the filter evaluates to <strong>true</strong> for that
+<strong>CacheEvent</strong>; <code>null</code> is equivalent to a filter
+that alway returns <strong>true</strong>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isLite</span></td>
+        <td><p><strong>true</strong> to indicate that the <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a>
+objects do not have to include the <strong>OldValue</strong> and
+<strong>NewValue</strong> property values in order to allow optimizations.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_AddCacheListener_Tangosol_Net_Cache_ICacheListener_Tangosol_Util_IFilter_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The listeners will receive <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> objects,
+but if <code data-dev-comment-type="paramref" class="paramref">isLite</code> is passed as <strong>true</strong>, they
+<em>might</em> not contain the <strong>OldValue</strong> and <strong>NewValue</strong>
+properties.</p>
+<p>
+To unregister the <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a>, use the
+<a class="xref" href="Tangosol.Net.Cache.WrapperNamedCache.html#Tangosol_Net_Cache_WrapperNamedCache_RemoveCacheListener_Tangosol_Net_Cache_ICacheListener_Tangosol_Util_IFilter_">RemoveCacheListener(ICacheListener, IFilter)</a>
+method.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_AddIndex_Tangosol_Util_IValueExtractor_System_Boolean_System_Collections_IComparer_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.AddIndex(Tangosol.Util.IValueExtractor%2CSystem.Boolean%2CSystem.Collections.IComparer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L926">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_AddIndex_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.AddIndex*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_AddIndex_Tangosol_Util_IValueExtractor_System_Boolean_System_Collections_IComparer_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.AddIndex(Tangosol.Util.IValueExtractor,System.Boolean,System.Collections.IComparer)">AddIndex(IValueExtractor, Boolean, IComparer)</h4>
+  <div class="markdown level1 summary"><p>Add an index to this IQueryCache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void AddIndex(IValueExtractor extractor, bool isOrdered, IComparer comparer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><span class="parametername">extractor</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a> object that is used to extract
+an indexable object from a value stored in the indexed
+cache. Must not be <code>null</code>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isOrdered</span></td>
+        <td><p><strong>true</strong> if the contents of the indexed information should be
+ordered; <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td><span class="parametername">comparer</span></td>
+        <td><p>The <strong>IComparer</strong> object which imposes an ordering on entries
+in the indexed cache; or <code>null</code> if the entries' values
+natural ordering should be used.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_AddIndex_Tangosol_Util_IValueExtractor_System_Boolean_System_Collections_IComparer__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This allows to correlate values stored in this
+<em>indexed cache</em> (or attributes of those values) to the
+corresponding keys in the indexed cache and increase the
+performance of <strong>GetKeys</strong> and <strong>GetEntries</strong> methods.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Aggregate_System_Collections_ICollection_Tangosol_Net_Cache_IEntryAggregator_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Aggregate(System.Collections.ICollection%2CTangosol.Net.Cache.IEntryAggregator)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L1042">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Aggregate_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Aggregate*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Aggregate_System_Collections_ICollection_Tangosol_Net_Cache_IEntryAggregator_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Aggregate(System.Collections.ICollection,Tangosol.Net.Cache.IEntryAggregator)">Aggregate(ICollection, IEntryAggregator)</h4>
+  <div class="markdown level1 summary"><p>Perform an aggregating operation against the entries specified by
+the passed keys.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Aggregate(ICollection keys, IEntryAggregator agent)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">keys</span></td>
+        <td><p>The collection of keys that specify the entries within this cache
+to aggregate across.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IEntryAggregator.html">IEntryAggregator</a></td>
+        <td><span class="parametername">agent</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.IEntryAggregator.html">IEntryAggregator</a> that is used to aggregate
+across the specified entries of this cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The result of the aggregation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Aggregate_Tangosol_Util_IFilter_Tangosol_Net_Cache_IEntryAggregator_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Aggregate(Tangosol.Util.IFilter%2CTangosol.Net.Cache.IEntryAggregator)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L1062">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Aggregate_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Aggregate*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Aggregate_Tangosol_Util_IFilter_Tangosol_Net_Cache_IEntryAggregator_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Aggregate(Tangosol.Util.IFilter,Tangosol.Net.Cache.IEntryAggregator)">Aggregate(IFilter, IEntryAggregator)</h4>
+  <div class="markdown level1 summary"><p>Perform an aggregating operation against the collection of
+entries that are selected by the given <strong>IFilter</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Aggregate(IFilter filter, IEntryAggregator agent)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>an <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> that is used to select entries within
+this cache to aggregate across.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IEntryAggregator.html">IEntryAggregator</a></td>
+        <td><span class="parametername">agent</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.IEntryAggregator.html">IEntryAggregator</a> that is used to aggregate
+across the selected entries of this cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The result of the aggregation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Clear.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Clear%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L250">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Clear_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Clear*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Clear" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Clear">Clear()</h4>
+  <div class="markdown level1 summary"><p>Removes all mappings from this dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Clear()</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_Clear_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Some implementations will attempt to lock the entire dictionary
+(if necessary) before preceeding with the clear operation. For
+such implementations, the entire dictionary has to be either
+already locked or able to be locked for this operation to
+succeed.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the lock could not be succesfully obtained for some key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Contains_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Contains(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L232">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Contains_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Contains*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Contains_System_Object_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Contains(System.Object)">Contains(Object)</h4>
+  <div class="markdown level1 summary"><p>Determines whether the <strong>IDictionary</strong> contains an element
+with the specified key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool Contains(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key to locate in the <strong>IDictionary</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the <strong>IDictionary</strong> contains an element with
+the key; otherwise, <strong>false</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_CopyTo_System_Array_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.CopyTo(System.Array%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L293">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_CopyTo_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.CopyTo*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_CopyTo_System_Array_System_Int32_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.CopyTo(System.Array,System.Int32)">CopyTo(Array, Int32)</h4>
+  <div class="markdown level1 summary"><p>Copies the elements of the <strong>ICollection</strong> to an array,
+starting at a particular array index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void CopyTo(Array array, int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Array</span></td>
+        <td><span class="parametername">array</span></td>
+        <td><p>The one-dimensional array that is the destination of the elements
+copied from <strong>ICollection</strong>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The zero-based index in array at which copying begins.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Destroy.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Destroy%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L539">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Destroy_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Destroy*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Destroy" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Destroy">Destroy()</h4>
+  <div class="markdown level1 summary"><p>Release and destroy this instance of INamedCache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Destroy()</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_Destroy_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+<strong>Warning:</strong> This method is used to completely destroy the
+specified cache across the cluster. All references in the entire
+cluster to this cache will be invalidated, the cached data will
+be cleared, and all resources will be released.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Dispose.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L1074">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Dispose_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Dispose*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Dispose" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Dispose">Dispose()</h4>
+  <div class="markdown level1 summary"><p>Calls <a class="xref" href="Tangosol.Net.Cache.WrapperNamedCache.html#Tangosol_Net_Cache_WrapperNamedCache_Release">Release()</a> to release the resources associated with this cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Dispose()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_GetAll_System_Collections_ICollection_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.GetAll(System.Collections.ICollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L375">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_GetAll_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.GetAll*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_GetAll_System_Collections_ICollection_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.GetAll(System.Collections.ICollection)">GetAll(ICollection)</h4>
+  <div class="markdown level1 summary"><p>Get the values for all the specified keys, if they are in the
+cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IDictionary GetAll(ICollection keys)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">keys</span></td>
+        <td><p>A collection of keys that may be in the named cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>A dictionary of keys to values for the specified keys passed in
+<code data-dev-comment-type="paramref" class="paramref">keys</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_GetAll_System_Collections_ICollection__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+For each key that is in the cache, that key and its corresponding
+value will be placed in the dictionary that is returned by this
+method. The absence of a key in the returned dictionary indicates
+that it was not in the cache, which may imply (for caches that
+can load behind the scenes) that the requested data could not be
+loaded.</p>
+<p>
+The result of this method is defined to be semantically the same
+as the following implementation, without regards to threading
+issues:</p>
+<pre>
+IDictionary dict = new AnyDictionary();
+// could be a Hashtable (but does not have to)
+foreach (object key in colKeys)
+{
+    object value = this[key];
+    if (value != null || Contains(key))
+    {
+        dict[key] = value;
+    }
+}
+return dict;
+</pre>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_GetEntries_Tangosol_Util_IFilter_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.GetEntries(Tangosol.Util.IFilter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L870">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_GetEntries_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.GetEntries*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_GetEntries_Tangosol_Util_IFilter_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.GetEntries(Tangosol.Util.IFilter)">GetEntries(IFilter)</h4>
+  <div class="markdown level1 summary"><p>Return a collectioin of the entries contained in this cache
+that satisfy the criteria expressed by the filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICacheEntry[] GetEntries(IFilter filter)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> object representing the criteria that
+the entries of this cache should satisfy.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a>[]</td>
+        <td><p>A collection of entries that satisfy the specified criteria.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_GetEntries_Tangosol_Util_IFilter_System_Collections_IComparer_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.GetEntries(Tangosol.Util.IFilter%2CSystem.Collections.IComparer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L898">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_GetEntries_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.GetEntries*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_GetEntries_Tangosol_Util_IFilter_System_Collections_IComparer_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.GetEntries(Tangosol.Util.IFilter,System.Collections.IComparer)">GetEntries(IFilter, IComparer)</h4>
+  <div class="markdown level1 summary"><p>Return a collection of the entries contained in this cache
+that satisfy the criteria expressed by the filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICacheEntry[] GetEntries(IFilter filter, IComparer comparer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> object representing the criteria that
+the entries of this cache should satisfy.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td><span class="parametername">comparer</span></td>
+        <td><p>The <strong>IComparable</strong> object which imposes an ordering on
+entries in the resulting collection; or <code>null</code> if the
+entries' values natural ordering should be used.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a>[]</td>
+        <td><p>A collection of entries that satisfy the specified criteria.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_GetEntries_Tangosol_Util_IFilter_System_Collections_IComparer__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+It is guaranteed that enumerator will traverse the array in such
+a way that the entry values come up in ascending order, sorted by
+the specified comparer or according to the
+<em>natural ordering</em>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_GetEnumerator.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L502">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_GetEnumerator_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.GetEnumerator*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_GetEnumerator" data-uid="Tangosol.Net.Cache.WrapperNamedCache.GetEnumerator">GetEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Returns an enumerator that iterates through cache items.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICacheEnumerator GetEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEnumerator.html">ICacheEnumerator</a></td>
+        <td><p>An <strong>IEnumerator</strong> object that can be used to iterate through
+cache items.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_GetKeys_Tangosol_Util_IFilter_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.GetKeys(Tangosol.Util.IFilter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L810">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_GetKeys_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.GetKeys*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_GetKeys_Tangosol_Util_IFilter_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.GetKeys(Tangosol.Util.IFilter)">GetKeys(IFilter)</h4>
+  <div class="markdown level1 summary"><p>Return a collection of the keys contained in this cache for
+entries that satisfy the criteria expressed by the filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object[] GetKeys(IFilter filter)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> object representing the criteria that
+the entries of this cache should satisfy.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td><p>A collection of keys for entries that satisfy the specified
+criteria.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_GetValues_Tangosol_Util_IFilter_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.GetValues(Tangosol.Util.IFilter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L827">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_GetValues_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.GetValues*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_GetValues_Tangosol_Util_IFilter_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.GetValues(Tangosol.Util.IFilter)">GetValues(IFilter)</h4>
+  <div class="markdown level1 summary"><p>Return a collection of the values contained in this cache for
+entries that satisfy the criteria expressed by the filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object[] GetValues(IFilter filter)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> object representing the criteria that
+the entries of this cache should satisfy.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td><p>A collection of the values for entries that satisfy the specified
+criteria.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_GetValues_Tangosol_Util_IFilter_System_Collections_IComparer_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.GetValues(Tangosol.Util.IFilter%2CSystem.Collections.IComparer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L854">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_GetValues_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.GetValues*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_GetValues_Tangosol_Util_IFilter_System_Collections_IComparer_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.GetValues(Tangosol.Util.IFilter,System.Collections.IComparer)">GetValues(IFilter, IComparer)</h4>
+  <div class="markdown level1 summary"><p>Return a collection of the values contained in this cache for
+entries that satisfy the criteria expressed by the filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object[] GetValues(IFilter filter, IComparer comparer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> object representing the criteria that
+the entries of this cache should satisfy.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td><span class="parametername">comparer</span></td>
+        <td><p>The <strong>IComparable</strong> object which imposes an ordering on
+entries in the resulting collection; or <code>null</code> if the
+entries' values natural ordering should be used.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td><p>A collection of entries that satisfy the specified criteria.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_GetValues_Tangosol_Util_IFilter_System_Collections_IComparer__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>It is guaranteed that enumerator will traverse the array in such
+a way that the values come up in ascending order, sorted by
+the specified comparer or according to the
+<em>natural ordering</em>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Insert_System_Object_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Insert(System.Object%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L407">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Insert_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Insert*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Insert_System_Object_System_Object_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Insert(System.Object,System.Object)">Insert(Object, Object)</h4>
+  <div class="markdown level1 summary"><p>Associates the specified value with the specified key in this
+cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Insert(object key, object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key with which the specified value is to be associated.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Value to be associated with the specified key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>Previous value associated with specified key, or <code>null</code> if
+there was no mapping for key. A <code>null</code> return can also
+indicate that the cache previously associated <code>null</code>
+with the specified key, if the implementation supports
+<code>null</code> values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_Insert_System_Object_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+If the cache previously contained a mapping for this key, the old
+value is replaced.</p>
+<p>
+Invoking this method is equivalent to the following call:
+<pre>
+Insert(key, value, CacheExpiration.Default);
+</pre></p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Insert_System_Object_System_Object_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Insert(System.Object%2CSystem.Object%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L451">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Insert_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Insert*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Insert_System_Object_System_Object_System_Int64_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Insert(System.Object,System.Object,System.Int64)">Insert(Object, Object, Int64)</h4>
+  <div class="markdown level1 summary"><p>Associates the specified value with the specified key in this
+cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Insert(object key, object value, long millis)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key with which the specified value is to be associated.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Value to be associated with the specified key.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">millis</span></td>
+        <td><p>The number of milliseconds until the cache entry will expire,
+also referred to as the entry's &quot;time to live&quot;; pass
+<a class="xref" href="Tangosol.Net.Cache.CacheExpiration.html#Tangosol_Net_Cache_CacheExpiration_DEFAULT">DEFAULT</a> to use the cache's
+default time-to-live setting; pass
+<a class="xref" href="Tangosol.Net.Cache.CacheExpiration.html#Tangosol_Net_Cache_CacheExpiration_NEVER">NEVER</a> to indicate that the
+cache entry should never expire; this milliseconds value is
+<strong>not</strong> a date/time value, but the amount of time object will
+be kept in the cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>Previous value associated with specified key, or <code>null</code> if
+there was no mapping for key. A <code>null</code> return can also
+indicate that the cache previously associated <code>null</code> with
+the specified key, if the implementation supports <code>null</code>
+values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_Insert_System_Object_System_Object_System_Int64__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+If the cache previously contained a mapping for this key, the old
+value is replaced.</p>
+This variation of the <a class="xref" href="Tangosol.Net.Cache.WrapperNamedCache.html#Tangosol_Net_Cache_WrapperNamedCache_Insert_System_Object_System_Object_">Insert(Object, Object)</a>
+method allows the caller to specify an expiry (or &quot;time to live&quot;)
+for the cache entry.
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.NotSupportedException</span></td>
+        <td><p>If the requested expiry is a positive value and the
+implementation does not support expiry of cache entries.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_InsertAll_System_Collections_IDictionary_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.InsertAll(System.Collections.IDictionary)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L478">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_InsertAll_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.InsertAll*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_InsertAll_System_Collections_IDictionary_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.InsertAll(System.Collections.IDictionary)">InsertAll(IDictionary)</h4>
+  <div class="markdown level1 summary"><p>Copies all of the mappings from the specified dictionary to this
+cache (optional operation).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void InsertAll(IDictionary dictionary)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">dictionary</span></td>
+        <td><p>Mappings to be stored in this cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_InsertAll_System_Collections_IDictionary__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>These mappings will replace any mappings that this cache had for
+any of the keys currently in the specified dictionary.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidCastException</span></td>
+        <td><p>If the class of a key or value in the specified dictionary
+prevents it from being stored in this cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the lock could not be succesfully obtained for some key.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.NullReferenceException</span></td>
+        <td><p>This cache does not permit <code>null</code> keys or values, and the
+specified key or value is <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Invoke_System_Object_Tangosol_Net_Cache_IEntryProcessor_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Invoke(System.Object%2CTangosol.Net.Cache.IEntryProcessor)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L963">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Invoke_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Invoke*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Invoke_System_Object_Tangosol_Net_Cache_IEntryProcessor_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Invoke(System.Object,Tangosol.Net.Cache.IEntryProcessor)">Invoke(Object, IEntryProcessor)</h4>
+  <div class="markdown level1 summary"><p>Invoke the passed <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> against the entry
+specified by the passed key, returning the result of the
+invocation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Invoke(object key, IEntryProcessor agent)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key to process; it is not required to exist within the
+cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a></td>
+        <td><span class="parametername">agent</span></td>
+        <td><p>The <strong>IEntryProcessor</strong> to use to process the specified key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The result of the invocation as returned from the
+<strong>IEntryProcessor</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_InvokeAll_System_Collections_ICollection_Tangosol_Net_Cache_IEntryProcessor_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.InvokeAll(System.Collections.ICollection%2CTangosol.Net.Cache.IEntryProcessor)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L984">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_InvokeAll_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.InvokeAll*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_InvokeAll_System_Collections_ICollection_Tangosol_Net_Cache_IEntryProcessor_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.InvokeAll(System.Collections.ICollection,Tangosol.Net.Cache.IEntryProcessor)">InvokeAll(ICollection, IEntryProcessor)</h4>
+  <div class="markdown level1 summary"><p>Invoke the passed <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> against the
+entries specified by the passed keys, returning the result of the
+invocation for each.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IDictionary InvokeAll(ICollection keys, IEntryProcessor agent)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">keys</span></td>
+        <td><p>The keys to process; these keys are not required to exist within
+the cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a></td>
+        <td><span class="parametername">agent</span></td>
+        <td><p>The <strong>IEntryProcessor</strong> to use to process the specified keys.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>A dictionary containing the results of invoking the
+<strong>IEntryProcessor</strong> against each of the specified keys.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_InvokeAll_Tangosol_Util_IFilter_Tangosol_Net_Cache_IEntryProcessor_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.InvokeAll(Tangosol.Util.IFilter%2CTangosol.Net.Cache.IEntryProcessor)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L1022">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_InvokeAll_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.InvokeAll*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_InvokeAll_Tangosol_Util_IFilter_Tangosol_Net_Cache_IEntryProcessor_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.InvokeAll(Tangosol.Util.IFilter,Tangosol.Net.Cache.IEntryProcessor)">InvokeAll(IFilter, IEntryProcessor)</h4>
+  <div class="markdown level1 summary"><p>Invoke the passed <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> against the set
+of entries that are selected by the given <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a>,
+returning the result of the invocation for each.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IDictionary InvokeAll(IFilter filter, IEntryProcessor agent)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>An <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> that results in the collection of keys to
+be processed.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a></td>
+        <td><span class="parametername">agent</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> to use to process the specified
+keys.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>A dictionary containing the results of invoking the
+<strong>IEntryProcessor</strong> against the keys that are selected by the
+given <strong>IFilter</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_InvokeAll_Tangosol_Util_IFilter_Tangosol_Net_Cache_IEntryProcessor__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+Unless specified otherwise, IInvocableCache implementations
+will perform this operation in two steps: (1) use the filter to
+retrieve a matching entry collection; (2) apply the agent to
+every filtered entry. This algorithm assumes that the agent&apos;s
+processing does not affect the result of the specified filter
+evaluation, since the filtering and processing could be
+performed in parallel on different threads.</p>
+<p>
+If this assumption does not hold, the processor logic has to be
+idempotent, or at least re-evaluate the filter. This could be
+easily accomplished by wrapping the processor with the
+<a class="xref" href="Tangosol.Util.Processor.ConditionalProcessor.html">ConditionalProcessor</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Lock_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Lock(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L769">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Lock_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Lock*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Lock_System_Object_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Lock(System.Object)">Lock(Object)</h4>
+  <div class="markdown level1 summary"><p>Attempt to lock the specified item and return immediately.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool Lock(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key being locked.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the item was successfully locked; <strong>false</strong>
+otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_Lock_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method behaves exactly as if it simply performs the call
+<strong>Lock(key, 0)</strong>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Lock_System_Object_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Lock(System.Object%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L750">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Lock_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Lock*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Lock_System_Object_System_Int64_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Lock(System.Object,System.Int64)">Lock(Object, Int64)</h4>
+  <div class="markdown level1 summary"><p>Attempt to lock the specified item within the specified period of
+time.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool Lock(object key, long waitTimeMillis)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key being locked.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">waitTimeMillis</span></td>
+        <td><p>The number of milliseconds to continue trying to obtain a lock;
+pass zero to return immediately; pass -1 to block the calling
+thread until the lock could be obtained.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the item was successfully locked within the
+specified time; <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_Lock_System_Object_System_Int64__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The item doesn&apos;t have to exist to be <em>locked</em>. While the
+item is locked there is known to be a <em>lock holder</em> which
+has an exclusive right to modify (calling put and remove methods)
+that item.</p>
+<p>
+Lock holder is an abstract concept that depends on the
+IConcurrentCache implementation. For example, holder could
+be a cluster member or a thread (or both).</p>
+<p>
+Locking strategy may vary for concrete implementations as well.
+Lock could have an expiration time (this lock is sometimes called
+a &quot;lease&quot;) or be held indefinitely (until the lock holder
+terminates).</p>
+<p>
+Some implementations may allow the entire map to be locked. If
+the map is locked in such a way, then only a lock holder is
+allowed to perform any of the &quot;put&quot; or &quot;remove&quot; operations.</p>
+<p>
+Passing the special constant
+<a class="xref" href="Tangosol.Net.Cache.LockScope.html#Tangosol_Net_Cache_LockScope_LOCK_ALL">LOCK_ALL</a> as the <em>key</em>
+parameter to indicate the cache lock is not allowed for
+WrapperNamedCache and will cause an exception to be thrown.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Release.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Release%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L524">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Release_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Release*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Release" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Release">Release()</h4>
+  <div class="markdown level1 summary"><p>Release local resources associated with this instance of
+INamedCache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Release()</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_Release_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+Releasing a cache makes it no longer usable, but does not affect
+the cache itself. In other words, all other references to the
+cache will still be valid, and the cache data is not affected by
+releasing the reference.
+Any attempt to use this reference afterword will result in an
+exception.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Remove_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Remove(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L277">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Remove_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Remove*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Remove_System_Object_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Remove(System.Object)">Remove(Object)</h4>
+  <div class="markdown level1 summary"><p>Removes the element with the specified key from the
+<strong>IDictionary</strong> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Remove(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key of the element to remove.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_RemoveCacheListener_Tangosol_Net_Cache_ICacheListener_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.RemoveCacheListener(Tangosol.Net.Cache.ICacheListener)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L604">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_RemoveCacheListener_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.RemoveCacheListener*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_RemoveCacheListener_Tangosol_Net_Cache_ICacheListener_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.RemoveCacheListener(Tangosol.Net.Cache.ICacheListener)">RemoveCacheListener(ICacheListener)</h4>
+  <div class="markdown level1 summary"><p>Remove a standard cache listener that previously signed up for
+all events.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void RemoveCacheListener(ICacheListener listener)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> to remove.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_RemoveCacheListener_Tangosol_Net_Cache_ICacheListener__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This has the same result as the following call:</p>
+<pre>
+RemoveCacheListener(listener, (IFilter) null);
+</pre>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_RemoveCacheListener_Tangosol_Net_Cache_ICacheListener_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.RemoveCacheListener(Tangosol.Net.Cache.ICacheListener%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L650">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_RemoveCacheListener_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.RemoveCacheListener*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_RemoveCacheListener_Tangosol_Net_Cache_ICacheListener_System_Object_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.RemoveCacheListener(Tangosol.Net.Cache.ICacheListener,System.Object)">RemoveCacheListener(ICacheListener, Object)</h4>
+  <div class="markdown level1 summary"><p>Remove a cache listener that previously signed up for events
+about a specific key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void RemoveCacheListener(ICacheListener listener, object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The listener to remove.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key that identifies the entry for which to raise events.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_RemoveCacheListener_Tangosol_Net_Cache_ICacheListener_Tangosol_Util_IFilter_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.RemoveCacheListener(Tangosol.Net.Cache.ICacheListener%2CTangosol.Util.IFilter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L700">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_RemoveCacheListener_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.RemoveCacheListener*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_RemoveCacheListener_Tangosol_Net_Cache_ICacheListener_Tangosol_Util_IFilter_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.RemoveCacheListener(Tangosol.Net.Cache.ICacheListener,Tangosol.Util.IFilter)">RemoveCacheListener(ICacheListener, IFilter)</h4>
+  <div class="markdown level1 summary"><p>Remove a cache listener that previously signed up for events
+based on a filter evaluation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void RemoveCacheListener(ICacheListener listener, IFilter filter)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> to remove.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>A filter used to evaluate events; <code>null</code> is equivalent to a
+filter that alway returns <strong>true</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_RemoveIndex_Tangosol_Util_IValueExtractor_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.RemoveIndex(Tangosol.Util.IValueExtractor)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L938">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_RemoveIndex_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.RemoveIndex*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_RemoveIndex_Tangosol_Util_IValueExtractor_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.RemoveIndex(Tangosol.Util.IValueExtractor)">RemoveIndex(IValueExtractor)</h4>
+  <div class="markdown level1 summary"><p>Remove an index from this IQueryCache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void RemoveIndex(IValueExtractor extractor)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><span class="parametername">extractor</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a> object that is used to extract
+an indexable object from a value stored in the cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L1089">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_ToString_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.ToString*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_ToString" data-uid="Tangosol.Net.Cache.WrapperNamedCache.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Provide a human-readable representation of this <strong>WrapperNamedCache</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A human-readable representation of this <strong>WrapperNamedCache</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.ToString()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Truncate.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Truncate%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L552">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Truncate_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Truncate*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Truncate" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Truncate">Truncate()</h4>
+  <div class="markdown level1 summary"><p>Removes all mappings from this instance of INamedCache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Truncate()</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_Truncate_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Note: the removal of entries caused by this truncate operation will
+not be observable.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Unlock_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Unlock(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L789">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Unlock_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Unlock*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Unlock_System_Object_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Unlock(System.Object)">Unlock(Object)</h4>
+  <div class="markdown level1 summary"><p>Unlock the specified item.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool Unlock(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key being unlocked.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the item was successfully unlocked; <strong>false</strong>
+otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_WrapperNamedCache_Unlock_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The item doesn't have to exist to be <em>unlocked</em>.
+If the item is currently locked, only the <em>holder</em> of the
+lock could successfully unlock it.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_View.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.View%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L563">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_View_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.View*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_View" data-uid="Tangosol.Net.Cache.WrapperNamedCache.View">View()</h4>
+  <div class="markdown level1 summary"><p>Construct a view of this INamedCache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ViewBuilder View()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.ViewBuilder.html">ViewBuilder</a></td>
+        <td><p>A local view for this INamedCache</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="eii">Explicit Interface Implementations
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_System_Collections_IDictionary_GetEnumerator.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.System%23Collections%23IDictionary%23GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L317">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_System_Collections_IDictionary_GetEnumerator_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.System#Collections#IDictionary#GetEnumerator*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_System_Collections_IDictionary_GetEnumerator" data-uid="Tangosol.Net.Cache.WrapperNamedCache.System#Collections#IDictionary#GetEnumerator">IDictionary.GetEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Returns an enumerator that iterates through a collection.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IDictionaryEnumerator IDictionary.GetEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionaryEnumerator</span></td>
+        <td><p>An <strong>IEnumerator</strong> object that can be used to iterate through
+the collection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_System_Collections_IEnumerable_GetEnumerator.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.System%23Collections%23IEnumerable%23GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L305">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_System_Collections_IEnumerable_GetEnumerator_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.System#Collections#IEnumerable#GetEnumerator*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_System_Collections_IEnumerable_GetEnumerator" data-uid="Tangosol.Net.Cache.WrapperNamedCache.System#Collections#IEnumerable#GetEnumerator">IEnumerable.GetEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Returns an enumerator that iterates through a collection.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IEnumerator IEnumerable.GetEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IEnumerator</span></td>
+        <td><p>An <strong>IEnumerator</strong> object that can be used to iterate through
+the collection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache_Tangosol_Net_Cache_ICache_GetEnumerator.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache.Tangosol%23Net%23Cache%23ICache%23GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L329">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_WrapperNamedCache_Tangosol_Net_Cache_ICache_GetEnumerator_" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Tangosol#Net#Cache#ICache#GetEnumerator*"></a>
+  <h4 id="Tangosol_Net_Cache_WrapperNamedCache_Tangosol_Net_Cache_ICache_GetEnumerator" data-uid="Tangosol.Net.Cache.WrapperNamedCache.Tangosol#Net#Cache#ICache#GetEnumerator">ICache.GetEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Returns an enumerator that iterates through a collection.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ICacheEnumerator ICache.GetEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEnumerator.html">ICacheEnumerator</a></td>
+        <td><p>An <strong>IEnumerator</strong> object that can be used to iterate through
+the collection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.INamedCache.html">INamedCache</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.IObservableCache.html">IObservableCache</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.IConcurrentCache.html">IConcurrentCache</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.IQueryCache.html">IQueryCache</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.IInvocableCache.html">IInvocableCache</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a>
+  </div>
+  <div>
+      <span class="xref">System.Collections.IDictionary</span>
+  </div>
+  <div>
+      <span class="xref">System.Collections.ICollection</span>
+  </div>
+  <div>
+      <span class="xref">System.Collections.IEnumerable</span>
+  </div>
+  <div>
+      <span class="xref">System.IDisposable</span>
+  </div>
+  <h3 id="extensionmethods">Extension Methods</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.InvocableCacheEx.html#Tangosol_Net_Cache_InvocableCacheEx_GetOrDefault_Tangosol_Net_Cache_IInvocableCache_System_Object_System_Object_">InvocableCacheEx.GetOrDefault(IInvocableCache, Object, Object)</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.InvocableCacheEx.html#Tangosol_Net_Cache_InvocableCacheEx_InsertIfAbsent_Tangosol_Net_Cache_IInvocableCache_System_Object_System_Object_">InvocableCacheEx.InsertIfAbsent(IInvocableCache, Object, Object)</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.InvocableCacheEx.html#Tangosol_Net_Cache_InvocableCacheEx_Remove_Tangosol_Net_Cache_IInvocableCache_System_Object_System_Object_">InvocableCacheEx.Remove(IInvocableCache, Object, Object)</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.InvocableCacheEx.html#Tangosol_Net_Cache_InvocableCacheEx_Replace_Tangosol_Net_Cache_IInvocableCache_System_Object_System_Object_System_Object_">InvocableCacheEx.Replace(IInvocableCache, Object, Object, Object)</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.InvocableCacheEx.html#Tangosol_Net_Cache_InvocableCacheEx_Replace_Tangosol_Net_Cache_IInvocableCache_System_Object_System_Object_">InvocableCacheEx.Replace(IInvocableCache, Object, Object)</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_WrapperNamedCache.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.WrapperNamedCache%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/WrapperNamedCache.cs/#L19" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

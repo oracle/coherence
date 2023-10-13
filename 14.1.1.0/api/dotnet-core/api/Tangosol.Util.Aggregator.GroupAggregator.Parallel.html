@@ -1,0 +1,348 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class GroupAggregator.Parallel
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class GroupAggregator.Parallel
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Aggregator.GroupAggregator.Parallel">
+  
+  
+  <h1 id="Tangosol_Util_Aggregator_GroupAggregator_Parallel" data-uid="Tangosol.Util.Aggregator.GroupAggregator.Parallel" class="text-break">Class GroupAggregator.Parallel
+  </h1>
+  <div class="markdown level0 summary"><p>Parallel implementation of the GroupAggregator.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Util.Aggregator.GroupAggregator.html">GroupAggregator</a></div>
+    <div class="level2"><span class="xref">GroupAggregator.Parallel</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a></div>
+    <div><a class="xref" href="Tangosol.Net.Cache.IParallelAwareAggregator.html">IParallelAwareAggregator</a></div>
+    <div><a class="xref" href="Tangosol.Net.Cache.IEntryAggregator.html">IEntryAggregator</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.GroupAggregator.html#Tangosol_Util_Aggregator_GroupAggregator_Extractor">GroupAggregator.Extractor</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.GroupAggregator.html#Tangosol_Util_Aggregator_GroupAggregator_Aggregator">GroupAggregator.Aggregator</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.GroupAggregator.html#Tangosol_Util_Aggregator_GroupAggregator_Aggregate_System_Collections_ICollection_">GroupAggregator.Aggregate(ICollection)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.GroupAggregator.html#Tangosol_Util_Aggregator_GroupAggregator_ReadExternal_Tangosol_IO_Pof_IPofReader_">GroupAggregator.ReadExternal(IPofReader)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.GroupAggregator.html#Tangosol_Util_Aggregator_GroupAggregator_WriteExternal_Tangosol_IO_Pof_IPofWriter_">GroupAggregator.WriteExternal(IPofWriter)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.GroupAggregator.html#Tangosol_Util_Aggregator_GroupAggregator_Equals_System_Object_">GroupAggregator.Equals(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.GroupAggregator.html#Tangosol_Util_Aggregator_GroupAggregator_GetHashCode">GroupAggregator.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.GroupAggregator.html#Tangosol_Util_Aggregator_GroupAggregator_ToString">GroupAggregator.ToString()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.GroupAggregator.html#Tangosol_Util_Aggregator_GroupAggregator_CreateInstance_System_String_Tangosol_Net_Cache_IEntryAggregator_">GroupAggregator.CreateInstance(String, IEntryAggregator)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.GroupAggregator.html#Tangosol_Util_Aggregator_GroupAggregator_CreateInstance_System_String_Tangosol_Net_Cache_IEntryAggregator_Tangosol_Util_IFilter_">GroupAggregator.CreateInstance(String, IEntryAggregator, IFilter)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.GroupAggregator.html#Tangosol_Util_Aggregator_GroupAggregator_CreateInstance_Tangosol_Util_IValueExtractor_Tangosol_Net_Cache_IEntryAggregator_">GroupAggregator.CreateInstance(IValueExtractor, IEntryAggregator)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.GroupAggregator.html#Tangosol_Util_Aggregator_GroupAggregator_CreateInstance_Tangosol_Util_IValueExtractor_Tangosol_Net_Cache_IEntryAggregator_Tangosol_Util_IFilter_">GroupAggregator.CreateInstance(IValueExtractor, IEntryAggregator, IFilter)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.GroupAggregator.html#Tangosol_Util_Aggregator_GroupAggregator_m_extractor">GroupAggregator.m_extractor</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.GroupAggregator.html#Tangosol_Util_Aggregator_GroupAggregator_m_aggregator">GroupAggregator.m_aggregator</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.GroupAggregator.html#Tangosol_Util_Aggregator_GroupAggregator_m_filter">GroupAggregator.m_filter</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.Aggregator.html">Tangosol.Util.Aggregator</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Aggregator_GroupAggregator_Parallel_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[Obsolete(&quot;Obsolete as of Coherence 12.2.1&quot;)]
+public class Parallel : GroupAggregator, IPortableObject, IParallelAwareAggregator, IEntryAggregator</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_GroupAggregator_Parallel__ctor_Tangosol_Util_IValueExtractor_Tangosol_Net_Cache_IParallelAwareAggregator_Tangosol_Util_IFilter_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.GroupAggregator.Parallel.%23ctor(Tangosol.Util.IValueExtractor%2CTangosol.Net.Cache.IParallelAwareAggregator%2CTangosol.Util.IFilter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/GroupAggregator.cs/#L456">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_GroupAggregator_Parallel__ctor_" data-uid="Tangosol.Util.Aggregator.GroupAggregator.Parallel.#ctor*"></a>
+  <h4 id="Tangosol_Util_Aggregator_GroupAggregator_Parallel__ctor_Tangosol_Util_IValueExtractor_Tangosol_Net_Cache_IParallelAwareAggregator_Tangosol_Util_IFilter_" data-uid="Tangosol.Util.Aggregator.GroupAggregator.Parallel.#ctor(Tangosol.Util.IValueExtractor,Tangosol.Net.Cache.IParallelAwareAggregator,Tangosol.Util.IFilter)">Parallel(IValueExtractor, IParallelAwareAggregator, IFilter)</h4>
+  <div class="markdown level1 summary"><p>Construct a Parallel aggregator based on a specified
+<strong>IValueExtractor</strong> and underlying
+<strong>IParallelAwareAggregator</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected Parallel(IValueExtractor extractor, IParallelAwareAggregator aggregator, IFilter filter)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><span class="parametername">extractor</span></td>
+        <td><p>An <strong>IValueExtractor</strong> object; may not be <code>null</code>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IParallelAwareAggregator.html">IParallelAwareAggregator</a></td>
+        <td><span class="parametername">aggregator</span></td>
+        <td><p>An <strong>IEntryAggregator</strong> object; may not be <code>null</code>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>An <strong>IFilter</strong> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_GroupAggregator_Parallel_ParallelAggregator.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.GroupAggregator.Parallel.ParallelAggregator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/GroupAggregator.cs/#L472">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_GroupAggregator_Parallel_ParallelAggregator_" data-uid="Tangosol.Util.Aggregator.GroupAggregator.Parallel.ParallelAggregator*"></a>
+  <h4 id="Tangosol_Util_Aggregator_GroupAggregator_Parallel_ParallelAggregator" data-uid="Tangosol.Util.Aggregator.GroupAggregator.Parallel.ParallelAggregator">ParallelAggregator</h4>
+  <div class="markdown level1 summary"><p>Get an aggregator that can take the place of this aggregator in
+situations in which the <a class="xref" href="Tangosol.Net.Cache.IInvocableCache.html">IInvocableCache</a> can
+aggregate in parallel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IEntryAggregator ParallelAggregator { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IEntryAggregator.html">IEntryAggregator</a></td>
+        <td><p>The aggregator that will be run in parallel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_GroupAggregator_Parallel_AggregateResults_System_Collections_ICollection_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.GroupAggregator.Parallel.AggregateResults(System.Collections.ICollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/GroupAggregator.cs/#L490">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_GroupAggregator_Parallel_AggregateResults_" data-uid="Tangosol.Util.Aggregator.GroupAggregator.Parallel.AggregateResults*"></a>
+  <h4 id="Tangosol_Util_Aggregator_GroupAggregator_Parallel_AggregateResults_System_Collections_ICollection_" data-uid="Tangosol.Util.Aggregator.GroupAggregator.Parallel.AggregateResults(System.Collections.ICollection)">AggregateResults(ICollection)</h4>
+  <div class="markdown level1 summary"><p>Aggregate the results of the parallel aggregations.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object AggregateResults(ICollection results)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">results</span></td>
+        <td><p>Results to aggregate.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The aggregation of the parallel aggregation results.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.IParallelAwareAggregator.html">IParallelAwareAggregator</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.IEntryAggregator.html">IEntryAggregator</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_GroupAggregator_Parallel.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.GroupAggregator.Parallel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/GroupAggregator.cs/#L437" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,225 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Namespace Tangosol.IO.Pof.Reflection.Internal
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Namespace Tangosol.IO.Pof.Reflection.Internal
+   ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.IO.Pof.Reflection.Internal">
+  
+  <h1 id="Tangosol_IO_Pof_Reflection_Internal" data-uid="Tangosol.IO.Pof.Reflection.Internal" class="text-break">Namespace Tangosol.IO.Pof.Reflection.Internal
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+    <h3 id="classes">Classes
+  </h3>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.AnnotationVisitor-2.html">AnnotationVisitor&lt;T, TB&gt;</a></h4>
+      <section><p>An AnnotationVisitor is a <a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.IVisitor-1.html">IVisitor&lt;B&gt;</a> implementation
+that injects information obtained by inspecting a provided type into
+a <a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.TypeMetadataBuilder-1.html">TypeMetadataBuilder&lt;T&gt;</a>. The modified builder will
+then realize a <a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.ITypeMetadata-1.html">ITypeMetadata&lt;T&gt;</a> instance with this
+injected information.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.InvocationStrategies.html">InvocationStrategies</a></h4>
+      <section><p>InvocationStrategies contains two
+<a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.IInvocationStrategy-1.html">IInvocationStrategy&lt;T&gt;</a> implementations that abstract
+the underlying mechanisms to retrieve and set a property's value.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.InvocationStrategies.FieldInvcationStrategy-1.html">InvocationStrategies.FieldInvcationStrategy&lt;T&gt;</a></h4>
+      <section><p>A FieldInvocationStrategy uses a <span class="xref">System.Reflection.FieldInfo</span> to
+dynamically invoke gets and sets on the field.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.InvocationStrategies.MethodInvocationStrategy-1.html">InvocationStrategies.MethodInvocationStrategy&lt;T&gt;</a></h4>
+      <section><p>A MethodInvocationStrategy uses <span class="xref">System.Reflection.MethodInfo</span>s to
+dynamically invoke getter and setter methods to retrieve and set
+property values.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.InvocationStrategies.PropertyInvcationStrategy-1.html">InvocationStrategies.PropertyInvcationStrategy&lt;T&gt;</a></h4>
+      <section><p>A PropertyInvcationStrategy uses a <span class="xref">System.Reflection.PropertyInfo</span> to
+dynamically invoke gets and sets on the property.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.NameManglers.html">NameManglers</a></h4>
+      <section><p>NameManglers contain singleton access to both a
+<a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.NameManglers.FieldMangler.html">NameManglers.FieldMangler</a> and <a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.NameManglers.MethodMangler.html">NameManglers.MethodMangler</a>.
+NameManglers provide the ability to derive the same name of a
+property regardless of their access or inspection methodology.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.NameManglers.FieldMangler.html">NameManglers.FieldMangler</a></h4>
+      <section><p>A <a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.INameMangler.html">INameMangler</a> implementation that is aware of
+field naming conventions and is able to convert from a field name
+to a generic name.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.NameManglers.MethodMangler.html">NameManglers.MethodMangler</a></h4>
+      <section><p>A <a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.INameMangler.html">INameMangler</a> implementation that is aware of
+method naming conventions and is able to convert from a method
+name to a generic name.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.NameManglers.PropertyMangler.html">NameManglers.PropertyMangler</a></h4>
+      <section><p>A <a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.INameMangler.html">INameMangler</a> implementation that is aware of
+property naming conventions and is able to convert from a method
+name to a generic name.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.TypeMetadata-1.html">TypeMetadata&lt;T&gt;</a></h4>
+      <section><p>A <a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.ITypeMetadata-1.html">ITypeMetadata&lt;T&gt;</a> implementation coupled to the .NET
+type metadata definition language: <span class="xref">System.Type</span>,
+<span class="xref">System.Reflection.PropertyInfo</span>, <span class="xref">System.Reflection.FieldInfo</span>,
+and <span class="xref">System.Reflection.MethodInfo</span>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.TypeMetadata-1.TypeAttribute.html">TypeMetadata&lt;T&gt;.TypeAttribute</a></h4>
+      <section><p>An <a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata-1.html">IAttributeMetadata&lt;T&gt;</a> implementation acting as
+a container for attribute inspection and invocation.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.TypeMetadata-1.TypeKey.html">TypeMetadata&lt;T&gt;.TypeKey</a></h4>
+      <section><p>A TypeKey contains information to uniquely identify this<br>
+type instance. Specifically unique identification is a product of</p>
+<pre><code>typeId + version + type-hash</code></pre>.
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.TypeMetadataBuilder-1.html">TypeMetadataBuilder&lt;T&gt;</a></h4>
+      <section><p>TypeMetadataBuilder provides a simple mechanism to
+instantiate and inject state into a <a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.ITypeMetadata-1.html">ITypeMetadata&lt;T&gt;</a>
+instance. Parsers that read a source will use this builder to derive
+a <a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.ITypeMetadata-1.html">ITypeMetadata&lt;T&gt;</a> destination.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.TypeMetadataBuilder-1.ClassAttributeBuilder.html">TypeMetadataBuilder&lt;T&gt;.ClassAttributeBuilder</a></h4>
+      <section><p>The ClassAttributeBuilder provide the ability to build a
+<a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata-1.html">IAttributeMetadata&lt;T&gt;</a> implementation.</p>
+</section>
+    <h3 id="interfaces">Interfaces
+  </h3>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata-1.html">IAttributeMetadata&lt;T&gt;</a></h4>
+      <section><p>IAttributeMetadata represents all appropriate information relating to
+an attribute within a type. This contract has similar forms in all
+supported languages providing a language agnostic mechanism to
+describe elements within a structure and an invocation mechanism for
+setting or retrieving the value for an attribute.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.IInvocationStrategy-1.html">IInvocationStrategy&lt;T&gt;</a></h4>
+      <section><p>An IInvocationStrategy provides an abstraction of the underlying
+mechanisms used to retrieve and set a property's value.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.INameMangler.html">INameMangler</a></h4>
+      <section><p>INameMangler implementations provide the ability to transform a
+string to the string convention employed by the mangler
+implementation. An example of this would be to convert a non-camel
+case string to a camel case string.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.IRecipient-1.html">IRecipient&lt;B&gt;</a></h4>
+      <section><p>A recipient informs a visitor of it's willingness to be visited.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.ITypeKey.html">ITypeKey</a></h4>
+      <section><p>A type key embodies contributors to the uniqueness representing an
+ITypeMetadata instance. This is the sum of typeId, versionId and a
+hash.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.ITypeMetadata-1.html">ITypeMetadata&lt;T&gt;</a></h4>
+      <section><p>ITypeMetadata represents the definition of a type including
+uniqueness <a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.ITypeKey.html">ITypeKey</a> and all structural properties.
+This definition is used to uniformly define types and their internal
+structures. Uniformity in this context is in relation to the
+supported languages.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.IVisitor-1.html">IVisitor&lt;B&gt;</a></h4>
+      <section><p>Visitor pattern description. This pattern implementation is targeted
+at builders that require <span class="xref">System.Type</span> information.</p>
+</section>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

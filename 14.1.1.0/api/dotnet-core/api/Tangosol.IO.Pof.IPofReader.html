@@ -1,0 +1,3315 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IPofReader
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IPofReader
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.IO.Pof.IPofReader">
+  
+  
+  <h1 id="Tangosol_IO_Pof_IPofReader" data-uid="Tangosol.IO.Pof.IPofReader" class="text-break">Interface IPofReader
+  </h1>
+  <div class="markdown level0 summary"><p>The <strong>IPofReader</strong> interface provides the capability of reading a
+set of non-primitive .NET types (&quot;user types&quot;) from a POF stream as an
+ordered sequence of indexed properties.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.IO.Pof.html">Tangosol.IO.Pof</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_IO_Pof_IPofReader_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IPofReader</code></pre>
+  </div>
+  <h5 id="Tangosol_IO_Pof_IPofReader_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>See <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a> for a complete description of the POF
+user type serialization format.</p>
+</div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_PofContext.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.PofContext%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L62">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_PofContext_" data-uid="Tangosol.IO.Pof.IPofReader.PofContext*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_PofContext" data-uid="Tangosol.IO.Pof.IPofReader.PofContext">PofContext</h4>
+  <div class="markdown level1 summary"><p>Gets or sets the <a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a> object used by this
+<strong>IPofReader</strong> to deserialize user types from a POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IPofContext PofContext { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a></td>
+        <td><p>The <strong>IPofContext</strong> object that contains user type meta-data.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofReader_PofContext_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This is an advanced method that should be used with care.
+For example, if this method is being used to switch to another
+<strong>IPofContext</strong> mid-POF stream, it is important to eventually
+restore the original <strong>IPofContext</strong>. For example:</p>
+<pre>
+IPofContext ctxOrig = reader.PofContext;
+try
+{
+    // switch to another IPofContext
+    reader.PofContext = ...;
+
+    // read POF data using the reader
+}
+finally
+{
+    // restore the original PofContext
+    reader.PofContext = ctxOrig;
+}
+</pre>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_UserTypeId.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.UserTypeId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L71">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_UserTypeId_" data-uid="Tangosol.IO.Pof.IPofReader.UserTypeId*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_UserTypeId" data-uid="Tangosol.IO.Pof.IPofReader.UserTypeId">UserTypeId</h4>
+  <div class="markdown level1 summary"><p>Gets the user type that is currently being parsed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int UserTypeId { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The user type information, or -1 if the <strong>IPofReader</strong> is not
+currently parsing a user type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_VersionId.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.VersionId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L84">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_VersionId_" data-uid="Tangosol.IO.Pof.IPofReader.VersionId*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_VersionId" data-uid="Tangosol.IO.Pof.IPofReader.VersionId">VersionId</h4>
+  <div class="markdown level1 summary"><p>Gets the version identifier of the user type that is currently
+being parsed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int VersionId { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The integer version ID read from the POF stream; always
+non-negative.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If no user type is being parsed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_CreateNestedPofReader_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.CreateNestedPofReader(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L951">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_CreateNestedPofReader_" data-uid="Tangosol.IO.Pof.IPofReader.CreateNestedPofReader*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_CreateNestedPofReader_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.CreateNestedPofReader(System.Int32)">CreateNestedPofReader(Int32)</h4>
+  <div class="markdown level1 summary"><p>Obtain an IPofReader that can be used to read a set of properties
+from a single property of the current user type. The returned
+IPofReader is only valid from the time that it is returned until
+the next call is made to this IPofReader.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IPofReader CreateNestedPofReader(int iProp)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">iProp</span></td>
+        <td><p>The property index to read from.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a></td>
+        <td><p>An IPofReader that reads its contents from  a single property of
+this IPofReader.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property, or if no user type is being parsed.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>if an I/O error occurs</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadArray_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadArray(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L748">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadArray_" data-uid="Tangosol.IO.Pof.IPofReader.ReadArray*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadArray_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadArray(System.Int32)">ReadArray(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read an array of object values.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Array ReadArray(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Array</span></td>
+        <td><p>An array of object values, or <code>null</code> if
+there is no array data in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadArray_System_Int32_System_Array_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadArray(System.Int32%2CSystem.Array)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L772">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadArray_" data-uid="Tangosol.IO.Pof.IPofReader.ReadArray*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadArray_System_Int32_System_Array_" data-uid="Tangosol.IO.Pof.IPofReader.ReadArray(System.Int32,System.Array)">ReadArray(Int32, Array)</h4>
+  <div class="markdown level1 summary"><p>Read an array of object values.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Array ReadArray(int index, Array array)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Array</span></td>
+        <td><span class="parametername">array</span></td>
+        <td><p>The optional array to use to store the values, or to use as a
+typed template for creating an array to store the values,
+following the documentation for <strong>ArrayList.ToArray(Type)</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Array</span></td>
+        <td><p>An array of object values, or <code>null</code> if no array is passed
+and there is no array data in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadBinary_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadBinary(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L725">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadBinary_" data-uid="Tangosol.IO.Pof.IPofReader.ReadBinary*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadBinary_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadBinary(System.Int32)">ReadBinary(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <a class="xref" href="Tangosol.Util.Binary.html">Binary</a> from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Binary ReadBinary(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><p>The <strong>Binary</strong> property value, or <code>null</code> if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadBoolean_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadBoolean(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L107">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadBoolean_" data-uid="Tangosol.IO.Pof.IPofReader.ReadBoolean*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadBoolean_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadBoolean(System.Int32)">ReadBoolean(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>Boolean</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool ReadBoolean(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>The <strong>Boolean</strong> property value, or zero if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadBooleanArray_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadBooleanArray(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L282">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadBooleanArray_" data-uid="Tangosol.IO.Pof.IPofReader.ReadBooleanArray*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadBooleanArray_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadBooleanArray(System.Int32)">ReadBooleanArray(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>Boolean[]</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool[] ReadBooleanArray(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span>[]</td>
+        <td><p>The <strong>Boolean[]</strong> property value, or null if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadByte_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadByte(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L126">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadByte_" data-uid="Tangosol.IO.Pof.IPofReader.ReadByte*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadByte_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadByte(System.Int32)">ReadByte(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>Byte</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">byte ReadByte(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span></td>
+        <td><p>The <strong>Byte</strong> property value, or zero if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadByteArray_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadByteArray(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L301">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadByteArray_" data-uid="Tangosol.IO.Pof.IPofReader.ReadByteArray*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadByteArray_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadByteArray(System.Int32)">ReadByteArray(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>Byte[]</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">byte[] ReadByteArray(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><p>The <strong>Byte[]</strong> property value, or null if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadChar_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadChar(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L145">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadChar_" data-uid="Tangosol.IO.Pof.IPofReader.ReadChar*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadChar_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadChar(System.Int32)">ReadChar(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>Char</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">char ReadChar(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Char</span></td>
+        <td><p>The <strong>Char</strong> property value, or zero if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadCharArray_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadCharArray(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L320">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadCharArray_" data-uid="Tangosol.IO.Pof.IPofReader.ReadCharArray*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadCharArray_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadCharArray(System.Int32)">ReadCharArray(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>Char[]</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">char[] ReadCharArray(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Char</span>[]</td>
+        <td><p>The <strong>Char[]</strong> property value, or null if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadCollection_System_Int32_System_Collections_ICollection_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadCollection(System.Int32%2CSystem.Collections.ICollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L817">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadCollection_" data-uid="Tangosol.IO.Pof.IPofReader.ReadCollection*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadCollection_System_Int32_System_Collections_ICollection_" data-uid="Tangosol.IO.Pof.IPofReader.ReadCollection(System.Int32,System.Collections.ICollection)">ReadCollection(Int32, ICollection)</h4>
+  <div class="markdown level1 summary"><p>Read an <strong>ICollection</strong> of object values from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ICollection ReadCollection(int index, ICollection coll)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">coll</span></td>
+        <td><p>The optional <strong>ICollection</strong> to use to store the values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><p>A collection of object values, or <code>null</code> if no collection is
+passed and there is no collection data in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadCollection__1_System_Int32_System_Collections_Generic_ICollection___0__.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadCollection%60%601(System.Int32%2CSystem.Collections.Generic.ICollection%7B%60%600%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L871">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadCollection_" data-uid="Tangosol.IO.Pof.IPofReader.ReadCollection*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadCollection__1_System_Int32_System_Collections_Generic_ICollection___0__" data-uid="Tangosol.IO.Pof.IPofReader.ReadCollection``1(System.Int32,System.Collections.Generic.ICollection{``0})">ReadCollection&lt;T&gt;(Int32, ICollection&lt;T&gt;)</h4>
+  <div class="markdown level1 summary"><p>Read a generic <strong>ICollection&lt;T&gt;</strong> of object values from
+the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ICollection&lt;T&gt; ReadCollection&lt;T&gt;(int index, ICollection&lt;T&gt; coll)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.ICollection</span>&lt;T&gt;</td>
+        <td><span class="parametername">coll</span></td>
+        <td><p>The optional <strong>ICollection&lt;T&gt;</strong> to use to store the
+values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.ICollection</span>&lt;T&gt;</td>
+        <td><p>A generic collection of object values, or <code>null</code> if no
+collection is passed and there is no collection data in the POF
+stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">T</span></td>
+        <td><p>The type of the elements it the collection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadDate_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadDate(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L571">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadDate_" data-uid="Tangosol.IO.Pof.IPofReader.ReadDate*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadDate_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadDate(System.Int32)">ReadDate(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>DateTime</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">DateTime ReadDate(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.DateTime</span></td>
+        <td><p>The <strong>DateTime</strong> property value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofReader_ReadDate_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method will read only the date component of a date-time value
+from the POF stream. It will ignore the time component if present
+and initialize the time-related fields of the return value to their
+default values.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadDateTime_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadDateTime(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L489">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadDateTime_" data-uid="Tangosol.IO.Pof.IPofReader.ReadDateTime*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadDateTime_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadDateTime(System.Int32)">ReadDateTime(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>DateTime</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">DateTime ReadDateTime(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.DateTime</span></td>
+        <td><p>The <strong>DateTime</strong> property value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofReader_ReadDateTime_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+This method will attempt to read both the date and time component
+from the POF stream. If the value in the stream does not contain
+both components, the corresponding values in the returned
+<strong>DateTime</strong> instance will be set to default values.</p>
+<p>
+If the encoded value in the POF stream contains time zone
+information, this method will ignore time zone information
+and return a literal <strong>DateTime</strong> value, as read from the
+stream.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadDayTimeInterval_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadDayTimeInterval(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L687">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadDayTimeInterval_" data-uid="Tangosol.IO.Pof.IPofReader.ReadDayTimeInterval*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadDayTimeInterval_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadDayTimeInterval(System.Int32)">ReadDayTimeInterval(Int32)</h4>
+  <div class="markdown level1 summary"><p>Reads a <strong>TimeSpan</strong> from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">TimeSpan ReadDayTimeInterval(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.TimeSpan</span></td>
+        <td><p>The <strong>TimeSpan</strong> property value, or <code>null</code> if no value
+was available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadDecimal_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadDecimal(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L440">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadDecimal_" data-uid="Tangosol.IO.Pof.IPofReader.ReadDecimal*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadDecimal_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadDecimal(System.Int32)">ReadDecimal(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>Decimal</strong> from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">decimal ReadDecimal(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Decimal</span></td>
+        <td><p>The <strong>Decimal</strong> property value, or zero if no value was
+available in the POF stream</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadDictionary_System_Int32_System_Collections_IDictionary_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadDictionary(System.Int32%2CSystem.Collections.IDictionary)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L843">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadDictionary_" data-uid="Tangosol.IO.Pof.IPofReader.ReadDictionary*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadDictionary_System_Int32_System_Collections_IDictionary_" data-uid="Tangosol.IO.Pof.IPofReader.ReadDictionary(System.Int32,System.Collections.IDictionary)">ReadDictionary(Int32, IDictionary)</h4>
+  <div class="markdown level1 summary"><p>Read an <strong>IDictionary</strong> of key/value pairs from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IDictionary ReadDictionary(int index, IDictionary dict)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">dict</span></td>
+        <td><p>The optional <strong>IDictionary</strong> to initialize.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>An <strong>IDictionary</strong> of key/value pairs object values, or
+<code>null</code> if no dictionary is passed and there is no key/value
+data in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentNullException</span></td>
+        <td><p>If <code data-dev-comment-type="paramref" class="paramref">dict</code> is <code>null</code>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadDictionary__2_System_Int32_System_Collections_Generic_IDictionary___0___1__.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadDictionary%60%602(System.Int32%2CSystem.Collections.Generic.IDictionary%7B%60%600%2C%60%601%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L904">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadDictionary_" data-uid="Tangosol.IO.Pof.IPofReader.ReadDictionary*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadDictionary__2_System_Int32_System_Collections_Generic_IDictionary___0___1__" data-uid="Tangosol.IO.Pof.IPofReader.ReadDictionary``2(System.Int32,System.Collections.Generic.IDictionary{``0,``1})">ReadDictionary&lt;TKey, TValue&gt;(Int32, IDictionary&lt;TKey, TValue&gt;)</h4>
+  <div class="markdown level1 summary"><p>Read a generic <strong>IDictionary&lt;TKey, TValue&gt;</strong> of
+key/value pairs from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IDictionary&lt;TKey, TValue&gt; ReadDictionary&lt;TKey, TValue&gt;(int index, IDictionary&lt;TKey, TValue&gt; dictionary)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IDictionary</span>&lt;TKey, TValue&gt;</td>
+        <td><span class="parametername">dictionary</span></td>
+        <td><p>The optional <strong>IDictionary&lt;TKey, TValue&gt;</strong> to initialize.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IDictionary</span>&lt;TKey, TValue&gt;</td>
+        <td><p>An <strong>IDictionary&lt;TKey, TValue&gt;</strong> of key/value pairs
+object values, or <code>null</code> if no dictionary is passed and
+there is no key/value data in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TKey</span></td>
+        <td><p>The type of the keys in the dictionary.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="parametername">TValue</span></td>
+        <td><p>The type of the values in the dictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentNullException</span></td>
+        <td><p>If <code data-dev-comment-type="paramref" class="paramref">dictionary</code> is <code>null</code>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadDouble_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadDouble(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L259">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadDouble_" data-uid="Tangosol.IO.Pof.IPofReader.ReadDouble*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadDouble_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadDouble(System.Int32)">ReadDouble(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>Double</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">double ReadDouble(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><p>The <strong>Double</strong> property value, or zero if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadDoubleArray_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadDoubleArray(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L415">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadDoubleArray_" data-uid="Tangosol.IO.Pof.IPofReader.ReadDoubleArray*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadDoubleArray_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadDoubleArray(System.Int32)">ReadDoubleArray(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>Double[]</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">double[] ReadDoubleArray(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span>[]</td>
+        <td><p>The <strong>Double[]</strong> property value, or null if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadInt16_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadInt16(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L164">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadInt16_" data-uid="Tangosol.IO.Pof.IPofReader.ReadInt16*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadInt16_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadInt16(System.Int32)">ReadInt16(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read an <strong>Int16</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">short ReadInt16(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int16</span></td>
+        <td><p>The <strong>Int16</strong> property value, or zero if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadInt16Array_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadInt16Array(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L339">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadInt16Array_" data-uid="Tangosol.IO.Pof.IPofReader.ReadInt16Array*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadInt16Array_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadInt16Array(System.Int32)">ReadInt16Array(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read an <strong>Int16[]</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">short[] ReadInt16Array(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int16</span>[]</td>
+        <td><p>The <strong>Int16[]</strong> property value, or null if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadInt32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadInt32(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L183">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadInt32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadInt32*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadInt32_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadInt32(System.Int32)">ReadInt32(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read an <strong>Int32</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int ReadInt32(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The <strong>Int32</strong> property value, or zero if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadInt32Array_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadInt32Array(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L358">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadInt32Array_" data-uid="Tangosol.IO.Pof.IPofReader.ReadInt32Array*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadInt32Array_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadInt32Array(System.Int32)">ReadInt32Array(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read an <strong>Int32[]</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int[] ReadInt32Array(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span>[]</td>
+        <td><p>The <strong>Int32[]</strong> property value, or null if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadInt64_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadInt64(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L202">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadInt64_" data-uid="Tangosol.IO.Pof.IPofReader.ReadInt64*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadInt64_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadInt64(System.Int32)">ReadInt64(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read an <strong>Int64</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long ReadInt64(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The <strong>Int64</strong> property value, or zero if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadInt64Array_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadInt64Array(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L377">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadInt64Array_" data-uid="Tangosol.IO.Pof.IPofReader.ReadInt64Array*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadInt64Array_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadInt64Array(System.Int32)">ReadInt64Array(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read an <strong>Int64[]</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long[] ReadInt64Array(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span>[]</td>
+        <td><p>The <strong>Int64[]</strong> property value, or null if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadLocalDateTime_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadLocalDateTime(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L518">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadLocalDateTime_" data-uid="Tangosol.IO.Pof.IPofReader.ReadLocalDateTime*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadLocalDateTime_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadLocalDateTime(System.Int32)">ReadLocalDateTime(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>DateTime</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">DateTime ReadLocalDateTime(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.DateTime</span></td>
+        <td><p>The <strong>DateTime</strong> property value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofReader_ReadLocalDateTime_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+This method will attempt to read both the date and time component
+from the POF stream. If the value in the stream does not contain
+both components, the corresponding values in the returned
+<strong>DateTime</strong> instance will be set to default values.</p>
+<p>
+If the encoded value in the POF stream contains time zone
+information, this method will use it to determine and return
+the local time <strong>for the reading thread</strong>.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadLongArray_System_Int32_Tangosol_Util_ILongArray_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadLongArray(System.Int32%2CTangosol.Util.ILongArray)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L795">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadLongArray_" data-uid="Tangosol.IO.Pof.IPofReader.ReadLongArray*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadLongArray_System_Int32_Tangosol_Util_ILongArray_" data-uid="Tangosol.IO.Pof.IPofReader.ReadLongArray(System.Int32,Tangosol.Util.ILongArray)">ReadLongArray(Int32, ILongArray)</h4>
+  <div class="markdown level1 summary"><p>Read an <strong>ILongArray</strong> of object values.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ILongArray ReadLongArray(int index, ILongArray array)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.ILongArray.html">ILongArray</a></td>
+        <td><span class="parametername">array</span></td>
+        <td><p>The optional <strong>ILongArray</strong> object to use to store the values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.ILongArray.html">ILongArray</a></td>
+        <td><p>An <strong>ILongArray</strong> of object values, or <code>null</code> if no
+<strong>ILongArray</strong> is passed and there is no array data in the
+POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadObject_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadObject(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L706">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadObject_" data-uid="Tangosol.IO.Pof.IPofReader.ReadObject*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadObject_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadObject(System.Int32)">ReadObject(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a property of any type, including a user type,
+from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">object ReadObject(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The object value; may be <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadRawDateTime_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadRawDateTime(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L619">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadRawDateTime_" data-uid="Tangosol.IO.Pof.IPofReader.ReadRawDateTime*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadRawDateTime_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadRawDateTime(System.Int32)">ReadRawDateTime(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>RawDateTime</strong> from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">RawDateTime ReadRawDateTime(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.RawDateTime.html">RawDateTime</a></td>
+        <td><p>The <strong>RawDateTime</strong> property value, or <code>null</code> if no value
+was available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofReader_ReadRawDateTime_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The <a class="xref" href="Tangosol.IO.Pof.RawDateTime.html">RawDateTime</a> class contains the raw date and
+time information that was carried in the POF stream, including
+raw timezone information.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadRawInt128_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadRawInt128(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L221">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadRawInt128_" data-uid="Tangosol.IO.Pof.IPofReader.ReadRawInt128*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadRawInt128_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadRawInt128(System.Int32)">ReadRawInt128(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read an <strong>RawInt128</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">RawInt128 ReadRawInt128(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.RawInt128.html">RawInt128</a></td>
+        <td><p>The <strong>RawInt128</strong> property value, or zero if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadRawTime_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadRawTime(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L595">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadRawTime_" data-uid="Tangosol.IO.Pof.IPofReader.ReadRawTime*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadRawTime_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadRawTime(System.Int32)">ReadRawTime(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>RawTime</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">RawTime ReadRawTime(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.RawTime.html">RawTime</a></td>
+        <td><p>The <strong>RawTime</strong> property value, or null if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofReader_ReadRawTime_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The <a class="xref" href="Tangosol.IO.Pof.RawTime.html">RawTime</a> class contains the raw time information
+that was carried in the POF stream, including raw timezone
+information.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadRawYearMonthInterval_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadRawYearMonthInterval(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L643">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadRawYearMonthInterval_" data-uid="Tangosol.IO.Pof.IPofReader.ReadRawYearMonthInterval*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadRawYearMonthInterval_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadRawYearMonthInterval(System.Int32)">ReadRawYearMonthInterval(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>RawYearMonthInterval</strong> from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">RawYearMonthInterval ReadRawYearMonthInterval(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.RawYearMonthInterval.html">RawYearMonthInterval</a></td>
+        <td><p>The <strong>RawYearMonthInterval</strong> property value, or <code>null</code> if no
+value was available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofReader_ReadRawYearMonthInterval_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The <a class="xref" href="Tangosol.IO.Pof.RawYearMonthInterval.html">RawYearMonthInterval</a> struct contains the raw
+year-month interval information that was carried in the POF
+stream.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadRemainder.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadRemainder%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L977">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadRemainder_" data-uid="Tangosol.IO.Pof.IPofReader.ReadRemainder*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadRemainder" data-uid="Tangosol.IO.Pof.IPofReader.ReadRemainder">ReadRemainder()</h4>
+  <div class="markdown level1 summary"><p>Read all remaining indexed properties of the current user type
+from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Binary ReadRemainder()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><p>A <strong>Binary</strong> object containing zero or more indexed properties
+in binary POF encoded form, or null if no value was available
+in the POF stream</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofReader_ReadRemainder_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+As part of reading in a user type, this method must be called by
+the <a class="xref" href="Tangosol.IO.Pof.IPofSerializer.html">IPofSerializer</a> that is reading the user type,
+or the read position within the POF stream will be corrupted.</p>
+<p>
+Subsequent calls to the various <strong>ReadXYZ</strong> methods of this
+interface will fail after this method is called.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If no user type is being parsed.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadSingle_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadSingle(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L240">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadSingle_" data-uid="Tangosol.IO.Pof.IPofReader.ReadSingle*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadSingle_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadSingle(System.Int32)">ReadSingle(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>Single</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">float ReadSingle(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><p>The <strong>Single</strong> property value, or zero if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadSingleArray_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadSingleArray(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L396">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadSingleArray_" data-uid="Tangosol.IO.Pof.IPofReader.ReadSingleArray*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadSingleArray_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadSingleArray(System.Int32)">ReadSingleArray(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>Single[]</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">float[] ReadSingleArray(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Single</span>[]</td>
+        <td><p>The <strong>Single[]</strong> property value, or null if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadString_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadString(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L459">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadString_" data-uid="Tangosol.IO.Pof.IPofReader.ReadString*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadString_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadString(System.Int32)">ReadString(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>String</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string ReadString(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The <strong>String</strong> property value, or null if no value was
+available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadTimeInterval_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadTimeInterval(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L668">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadTimeInterval_" data-uid="Tangosol.IO.Pof.IPofReader.ReadTimeInterval*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadTimeInterval_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadTimeInterval(System.Int32)">ReadTimeInterval(Int32)</h4>
+  <div class="markdown level1 summary"><p>Reads a <strong>TimeSpan</strong> from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">TimeSpan ReadTimeInterval(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.TimeSpan</span></td>
+        <td><p>The <strong>TimeSpan</strong> property value, or <code>null</code> if no value
+was available in the POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofReader_ReadTimeInterval_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method will read only the time component of a day-time-interval
+value from the POF stream. It will ignore the day component if present
+and initialize day-related fields of the return value to their default
+values.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_ReadUniversalDateTime_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.ReadUniversalDateTime(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L547">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_ReadUniversalDateTime_" data-uid="Tangosol.IO.Pof.IPofReader.ReadUniversalDateTime*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_ReadUniversalDateTime_System_Int32_" data-uid="Tangosol.IO.Pof.IPofReader.ReadUniversalDateTime(System.Int32)">ReadUniversalDateTime(Int32)</h4>
+  <div class="markdown level1 summary"><p>Read a <strong>DateTime</strong> property from the POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">DateTime ReadUniversalDateTime(int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The property index to read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.DateTime</span></td>
+        <td><p>The <strong>DateTime</strong> property value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofReader_ReadUniversalDateTime_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+This method will attempt to read both the date and time components
+from the POF stream. If the value in the stream does not contain
+both components, the corresponding values in the returned
+<strong>DateTime</strong> instance will be set to default values.</p>
+<p>
+If the encoded value in the POF stream contains time zone
+information, this method will use it to determine and return
+a Coordinated Universal Time (UTC) value.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the POF stream has already advanced past the
+desired property.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader_RegisterIdentity_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader.RegisterIdentity(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L929">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_IPofReader_RegisterIdentity_" data-uid="Tangosol.IO.Pof.IPofReader.RegisterIdentity*"></a>
+  <h4 id="Tangosol_IO_Pof_IPofReader_RegisterIdentity_System_Object_" data-uid="Tangosol.IO.Pof.IPofReader.RegisterIdentity(System.Object)">RegisterIdentity(Object)</h4>
+  <div class="markdown level1 summary"><p>Register an identity for a newly created user type instance.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void RegisterIdentity(object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>The object to register the identity for.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_IPofReader_RegisterIdentity_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If identity/reference types are enabled, an identity is used to
+uniquely identify a user type instance within a POF stream. The
+identity immediately proceeds the instance value in the POF stream
+and can be used later in the stream to reference the instance.</p>
+<p>
+IPofSerializer implementations must call this method with each
+user type instance instantiated during deserialization prior to 
+reading any properties of the instance which are user type
+instances themselves.
+</div>
+  <h3 id="seealso">See Also</h3>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a></div>
+      <div><a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a></div>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_IPofReader.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.IPofReader%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/IPofReader.cs/#L30" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

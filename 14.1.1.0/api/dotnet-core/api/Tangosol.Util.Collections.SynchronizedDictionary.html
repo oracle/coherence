@@ -1,0 +1,1399 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class SynchronizedDictionary
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class SynchronizedDictionary
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Collections.SynchronizedDictionary">
+  
+  
+  <h1 id="Tangosol_Util_Collections_SynchronizedDictionary" data-uid="Tangosol.Util.Collections.SynchronizedDictionary" class="text-break">Class SynchronizedDictionary
+  </h1>
+  <div class="markdown level0 summary"><p>Synchronized <strong>IDictionary</strong> wrapper that uses read/write locks
+to synchronize access to the underlying dictionary.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">SynchronizedDictionary</span></div>
+      <div class="level2"><a class="xref" href="Tangosol.Net.Cache.LocalCache.html">LocalCache</a></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><span class="xref">System.Collections.IDictionary</span></div>
+    <div><span class="xref">System.Collections.ICollection</span></div>
+    <div><span class="xref">System.Collections.IEnumerable</span></div>
+    <div><span class="xref">ISerializable</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.Collections.html">Tangosol.Util.Collections</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class SynchronizedDictionary : IDictionary, ICollection, IEnumerable, ISerializable</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>This class uses read/write locks to ensure that only a single thread
+can modify the underlying dictionary at any given time, while allowing
+concurrent reads by multiple threads.</p>
+<p>
+While all individual operations exposed by this class are thread-safe,
+you may still need to synchronize access to an instance of this class 
+if you need to perform multiple operations atomically. 
+<p>
+In order to do that, you can do one of the following:
+<ul><li></li><li></li><li></li></ul>
+<p>
+<strong>Note 1:</strong> If you attempt to acquire a write lock on a thread that 
+holds a read lock, the read lock will be promoted to a write lock as 
+soon as all read locks held by other threads are released.
+<p>
+<strong>Note 2:</strong> The enumerator returned by the <a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_GetEnumerator">GetEnumerator()</a> 
+method is  <strong>not</strong> thread-safe. You should either acquire a read 
+lock or lock the <a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_SyncRoot">SyncRoot</a> explicitly if you need to 
+enumerate dictionary entries in a thread-safe manner.
+<p>
+<strong>Note 3:</strong> This class has been renamed from SynchronizedHashtable to 
+SynchronizedDictionary in Coherence 3.5, to better reflect the fact
+that it can be used to wrap any <code>IDictionary</code> implementation.
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L127">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary__ctor_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary__ctor" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.#ctor">SynchronizedDictionary()</h4>
+  <div class="markdown level1 summary"><p>Create <code>SynchronizedDictionary</code> instance.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SynchronizedDictionary()</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary__ctor_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This constructor will create a wrapper around the internal
+<a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> instance, which means that the
+created dictionary instance will support <code>null</code> keys,
+contrary to the general <code>IDictionary</code> contract.</p>
+</div>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary__ctor_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary__ctor_SerializationInfo_StreamingContext_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.%23ctor(SerializationInfo%2CStreamingContext)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L176">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary__ctor_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary__ctor_SerializationInfo_StreamingContext_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.#ctor(SerializationInfo,StreamingContext)">SynchronizedDictionary(SerializationInfo, StreamingContext)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <code>SynchronizedDictionary</code>
+class using the specified
+<span class="xref">System.Runtime.Serialization.SerializationInfo</span>
+and <span class="xref">System.Runtime.Serialization.StreamingContext</span>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected SynchronizedDictionary(SerializationInfo info, StreamingContext context)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">SerializationInfo</span></td>
+        <td><span class="parametername">info</span></td>
+        <td><p>A <span class="xref">System.Runtime.Serialization.SerializationInfo</span>
+object containing the information required to initialize this
+<code>SynchronizedDictionary</code> instance.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">StreamingContext</span></td>
+        <td><span class="parametername">context</span></td>
+        <td><p>A <span class="xref">System.Runtime.Serialization.StreamingContext</span>
+object containing the source and destination of the serialized
+stream associated with this dictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary__ctor_System_Collections_IDictionary_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.%23ctor(System.Collections.IDictionary)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L154">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary__ctor_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary__ctor_System_Collections_IDictionary_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.#ctor(System.Collections.IDictionary)">SynchronizedDictionary(IDictionary)</h4>
+  <div class="markdown level1 summary"><p>specified dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SynchronizedDictionary(IDictionary dict)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">dict</span></td>
+        <td><p>Dictionary to wrap.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary__ctor_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.%23ctor(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L144">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary__ctor_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary__ctor_System_Int32_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.#ctor(System.Int32)">SynchronizedDictionary(Int32)</h4>
+  <div class="markdown level1 summary"><p>Create <code>SynchronizedDictionary</code> instance.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SynchronizedDictionary(int capacity)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">capacity</span></td>
+        <td><p>The initial capacity of the internal <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary__ctor_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This constructor will create a wrapper around the internal
+<a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> instance, which means that the
+created dictionary instance will support <code>null</code> keys,
+contrary to the general <code>IDictionary</code> contract.</p>
+</div>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary__ctor_System_Int32__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a></div>
+  </div>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_m_dict.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.m_dict%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L746">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_m_dict" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.m_dict">m_dict</h4>
+  <div class="markdown level1 summary"><p>Wrapped, non-thread safe dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected readonly IDictionary m_dict</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_Count.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.Count%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L665">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_Count_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.Count*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_Count" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.Count">Count</h4>
+  <div class="markdown level1 summary"><p>Gets the number of key/value pairs in this dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int Count { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The number of key/value pairs in this dictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_Delegate.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.Delegate%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L74">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_Delegate_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.Delegate*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_Delegate" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.Delegate">Delegate</h4>
+  <div class="markdown level1 summary"><p>Return the delegate IDictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IDictionary Delegate { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_IsFixedSize.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.IsFixedSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L602">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_IsFixedSize_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.IsFixedSize*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_IsFixedSize" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.IsFixedSize">IsFixedSize</h4>
+  <div class="markdown level1 summary"><p>Get a value indicating whether this dictionary has a fixed size.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsFixedSize { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if this dictionary has a fixed size,
+<strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_IsReadLockHeld.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.IsReadLockHeld%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L88">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_IsReadLockHeld_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.IsReadLockHeld*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_IsReadLockHeld" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.IsReadLockHeld">IsReadLockHeld</h4>
+  <div class="markdown level1 summary"><p>Determines whether or not the current thread holds a read lock.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsReadLockHeld { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the current thread holds a read lock; <strong>false</strong>
+otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary_IsReadLockHeld_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_AcquireReadLock">AcquireReadLock()</a></div>
+      <div><a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_AcquireReadLock_System_Int32_">AcquireReadLock(Int32)</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_IsReadOnly.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.IsReadOnly%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L579">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_IsReadOnly_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.IsReadOnly*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_IsReadOnly" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.IsReadOnly">IsReadOnly</h4>
+  <div class="markdown level1 summary"><p>Get a value indicating whether this dictionary is read-only.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsReadOnly { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if this dictionary is read-only,
+<strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_IsSynchronized.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.IsSynchronized%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L688">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_IsSynchronized_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.IsSynchronized*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_IsSynchronized" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.IsSynchronized">IsSynchronized</h4>
+  <div class="markdown level1 summary"><p>Gets a value indicating whether access to this dictionary
+is thread-safe.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsSynchronized { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>Always <strong>true</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_IsWriteLockHeld.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.IsWriteLockHeld%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L105">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_IsWriteLockHeld_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.IsWriteLockHeld*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_IsWriteLockHeld" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.IsWriteLockHeld">IsWriteLockHeld</h4>
+  <div class="markdown level1 summary"><p>Determines whether or not the current thread holds the write lock.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsWriteLockHeld { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the current thread holds the write lock; <strong>false</strong>
+otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary_IsWriteLockHeld_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_AcquireWriteLock">AcquireWriteLock()</a></div>
+      <div><a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_AcquireWriteLock_System_Int32_">AcquireWriteLock(Int32)</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_Item_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.Item(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L500">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_Item_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.Item*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_Item_System_Object_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.Item(System.Object)">Item[Object]</h4>
+  <div class="markdown level1 summary"><p>Get or set the value associated with the specified key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object this[object key] { get; set; }</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key whose value to get or set.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The value associated with the specified key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_Keys.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.Keys%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L534">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_Keys_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.Keys*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_Keys" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.Keys">Keys</h4>
+  <div class="markdown level1 summary"><p>Get a collection containing the keys in this dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICollection Keys { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><p>A collection of the keys in this dictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_SyncRoot.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.SyncRoot%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L712">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_SyncRoot_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.SyncRoot*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_SyncRoot" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.SyncRoot">SyncRoot</h4>
+  <div class="markdown level1 summary"><p>Get an object that can be used to synchronize access to this
+dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object SyncRoot { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>An object that is used to synchronize access to this dictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary_SyncRoot_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This property is used internally to synchronize mutating
+operations on this dictionary.</p>
+<p>
+You can use it externally to block mutating operations as well, 
+but keep in mind that simply locking this property will not 
+prevent concurrent read operations. If you need to block both read 
+and write operations, use <a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_AcquireWriteLock">AcquireWriteLock()</a> method
+instead.
+</div>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary_SyncRoot_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_AcquireReadLock">AcquireReadLock()</a></div>
+      <div><a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_AcquireWriteLock">AcquireWriteLock()</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_Values.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.Values%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L556">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_Values_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.Values*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_Values" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.Values">Values</h4>
+  <div class="markdown level1 summary"><p>Get a collection containing the values in this dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICollection Values { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><p>A collection of the values in this dictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_AcquireReadLock.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.AcquireReadLock%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L213">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_AcquireReadLock_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.AcquireReadLock*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_AcquireReadLock" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.AcquireReadLock">AcquireReadLock()</h4>
+  <div class="markdown level1 summary"><p>Acquire a read lock.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void AcquireReadLock()</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary_AcquireReadLock_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method will block until the read lock is acquired.</p>
+<p>
+Multiple threads can hold read locks at the same time, but no
+thread will be able to acquire a write lock until all read locks
+are released.
+<p>
+This method should always be used in combination with a
+<a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_ReleaseReadLock">ReleaseReadLock()</a> method in the following manner:
+<pre><code>dict.AcquireReadLock();
+try
+{
+    // access dictionary
+}
+finally
+{
+    dict.ReleaseReadLock();
+}</code></pre>
+This will ensure that the lock is released properly even if an
+exception is thrown by the code within the <code>try</code> block.
+</div>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary_AcquireReadLock_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_AcquireReadLock_System_Int32_">AcquireReadLock(Int32)</a></div>
+      <div><a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_ReleaseReadLock">ReleaseReadLock()</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_AcquireReadLock_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.AcquireReadLock(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L264">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_AcquireReadLock_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.AcquireReadLock*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_AcquireReadLock_System_Int32_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.AcquireReadLock(System.Int32)">AcquireReadLock(Int32)</h4>
+  <div class="markdown level1 summary"><p>Acquire a read lock.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool AcquireReadLock(int timeout)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">timeout</span></td>
+        <td><p>Timeout in milliseconds.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if a lock was acquired within the specified time,
+<code>false</code> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary_AcquireReadLock_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method will attempt to acquire a read lock for up to
+<code data-dev-comment-type="paramref" class="paramref">timeout</code> milliseconds, and will return a boolean
+value specifying whether or not the lock was acquired successfully.</p>
+<p>
+Multiple threads can hold read locks at the same time, but no
+thread will be able to acquire a write lock until all read locks
+are released.
+<p>
+This method should always be used in combination with a
+<a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_ReleaseReadLock">ReleaseReadLock()</a> method in the following manner:
+<pre><code>if (dict.AcquireReadLock(timeout))
+{
+    try
+    {
+        // access dictionary
+    }
+    finally
+    {
+        dict.ReleaseReadLock();
+    }
+}</code></pre>
+This will ensure that the dictionary is not accessed unless the 
+lock was acquired successfully, and that the lock is released 
+properly even if an exception is thrown by the code within the 
+<code>try</code> block. 
+<p>
+It is entirely up to you how to handle the case when the 
+<code>AcquireReadLock</code> method returns <code>false</code>. For example,
+you can ignore the fact, throw an exception, or retry the 
+operation by placing the code above within a loop.
+</div>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary_AcquireReadLock_System_Int32__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_AcquireReadLock">AcquireReadLock()</a></div>
+      <div><a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_ReleaseReadLock">ReleaseReadLock()</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_AcquireWriteLock.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.AcquireWriteLock%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L307">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_AcquireWriteLock_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.AcquireWriteLock*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_AcquireWriteLock" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.AcquireWriteLock">AcquireWriteLock()</h4>
+  <div class="markdown level1 summary"><p>Acquire a write lock.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void AcquireWriteLock()</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary_AcquireWriteLock_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method will block until the write lock is acquired.</p>
+<p>
+Only a single thread can hold the write lock at any given time, 
+and no other threads will be able to acquire either a read lock
+or a write lock until the write lock is released.
+<p>
+This method should always be used in combination with a
+<a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_ReleaseWriteLock">ReleaseWriteLock()</a> method in the following manner:
+<pre><code>dict.AcquireWriteLock();
+try
+{
+    // access dictionary
+}
+finally
+{
+    dict.ReleaseWriteLock();
+}</code></pre>
+This will ensure that the lock is released properly even if an
+exception is thrown by the code within the <code>try</code> block.
+</div>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary_AcquireWriteLock_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_AcquireWriteLock_System_Int32_">AcquireWriteLock(Int32)</a></div>
+      <div><a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_ReleaseWriteLock">ReleaseWriteLock()</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_AcquireWriteLock_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.AcquireWriteLock(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L358">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_AcquireWriteLock_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.AcquireWriteLock*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_AcquireWriteLock_System_Int32_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.AcquireWriteLock(System.Int32)">AcquireWriteLock(Int32)</h4>
+  <div class="markdown level1 summary"><p>Acquire a write lock.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool AcquireWriteLock(int timeout)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">timeout</span></td>
+        <td><p>Timeout in milliseconds.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if a lock was acquired within the specified time,
+<code>false</code> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary_AcquireWriteLock_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method will attempt to acquire a write lock for up to
+<code data-dev-comment-type="paramref" class="paramref">timeout</code> milliseconds, and will return a boolean
+value specifying whether or not the lock was acquired successfully.</p>
+<p>
+Only a single thread can hold the write lock at any given time, 
+and no other threads will be able to acquire either a read lock
+or a write lock until the write lock is released.
+<p>
+This method should always be used in combination with a
+<a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_ReleaseWriteLock">ReleaseWriteLock()</a> method in the following manner:
+<pre><code>if (dict.AcquireWriteLock(timeout))
+{
+    try
+    {
+        // access dictionary
+    }
+    finally
+    {
+        dict.ReleaseWriteLock();
+    }
+}</code></pre>
+This will ensure that the dictionary is not accessed unless the 
+lock was acquired successfully, and that the lock is released 
+properly even if an exception is thrown by the code within the 
+<code>try</code> block. 
+<p>
+It is entirely up to you how to handle the case when the 
+<code>AcquireWriteLock</code> method returns <code>false</code>. For example,
+you can ignore the fact, throw an exception, or retry the 
+operation by placing the code above within a loop.
+</div>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary_AcquireWriteLock_System_Int32__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_AcquireWriteLock">AcquireWriteLock()</a></div>
+      <div><a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_ReleaseWriteLock">ReleaseWriteLock()</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_Add_System_Object_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.Add(System.Object%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L400">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_Add_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.Add*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_Add_System_Object_System_Object_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.Add(System.Object,System.Object)">Add(Object, Object)</h4>
+  <div class="markdown level1 summary"><p>Add an entry with the specified key and value to this dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Add(object key, object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Entry key.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Entry value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_Clear.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.Clear%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L416">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_Clear_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.Clear*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_Clear" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.Clear">Clear()</h4>
+  <div class="markdown level1 summary"><p>Remove all entries from this dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Clear()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_Contains_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.Contains(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L438">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_Contains_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.Contains*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_Contains_System_Object_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.Contains(System.Object)">Contains(Object)</h4>
+  <div class="markdown level1 summary"><p>Determine whether this dictionary contains the specified key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool Contains(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key to search for.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if this dictionary contains the specified key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_CopyTo_System_Array_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.CopyTo(System.Array%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L646">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_CopyTo_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.CopyTo*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_CopyTo_System_Array_System_Int32_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.CopyTo(System.Array,System.Int32)">CopyTo(Array, Int32)</h4>
+  <div class="markdown level1 summary"><p>Copy entries from this dictionary into the one-dimensional array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void CopyTo(Array array, int arrayIndex)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Array</span></td>
+        <td><span class="parametername">array</span></td>
+        <td><p>An array to which entries should be copied.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">arrayIndex</span></td>
+        <td><p>Index in <code data-dev-comment-type="paramref" class="paramref">array</code> at which copying should start.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_GetEnumerator.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L459">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_GetEnumerator_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.GetEnumerator*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_GetEnumerator" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.GetEnumerator">GetEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Return an <strong>IDictionaryEnumerator</strong> that iterates through this
+dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IDictionaryEnumerator GetEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionaryEnumerator</span></td>
+        <td><p>An <strong>IDictionaryEnumerator</strong> that iterates through this
+dictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_GetObjectData_SerializationInfo_StreamingContext_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.GetObjectData(SerializationInfo%2CStreamingContext)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L734">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_GetObjectData_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.GetObjectData*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_GetObjectData_SerializationInfo_StreamingContext_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.GetObjectData(SerializationInfo,StreamingContext)">GetObjectData(SerializationInfo, StreamingContext)</h4>
+  <div class="markdown level1 summary"><p>Populates SerializationInfo with the data needed to serialize this
+object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void GetObjectData(SerializationInfo info, StreamingContext context)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">SerializationInfo</span></td>
+        <td><span class="parametername">info</span></td>
+        <td><p>The SerializationInfo to populate with data.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">StreamingContext</span></td>
+        <td><span class="parametername">context</span></td>
+        <td><p>The serialization context.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Security.SecurityException</span></td>
+        <td><p>The caller does not have the required permission.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_ReleaseReadLock.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.ReleaseReadLock%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L274">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_ReleaseReadLock_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.ReleaseReadLock*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_ReleaseReadLock" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.ReleaseReadLock">ReleaseReadLock()</h4>
+  <div class="markdown level1 summary"><p>Release a read lock.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ReleaseReadLock()</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary_ReleaseReadLock_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_AcquireReadLock">AcquireReadLock()</a></div>
+      <div><a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_AcquireReadLock_System_Int32_">AcquireReadLock(Int32)</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_ReleaseWriteLock.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.ReleaseWriteLock%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L381">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_ReleaseWriteLock_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.ReleaseWriteLock*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_ReleaseWriteLock" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.ReleaseWriteLock">ReleaseWriteLock()</h4>
+  <div class="markdown level1 summary"><p>Release a write lock.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ReleaseWriteLock()</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Collections_SynchronizedDictionary_ReleaseWriteLock_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_AcquireWriteLock">AcquireWriteLock()</a></div>
+      <div><a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html#Tangosol_Util_Collections_SynchronizedDictionary_AcquireWriteLock_System_Int32_">AcquireWriteLock(Int32)</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_Remove_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.Remove(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L478">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_Remove_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.Remove*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_Remove_System_Object_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.Remove(System.Object)">Remove(Object)</h4>
+  <div class="markdown level1 summary"><p>Remove the entrty with the specified key from this dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Remove(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key that determines the entry to remove.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="eii">Explicit Interface Implementations
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary_System_Collections_IEnumerable_GetEnumerator.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary.System%23Collections%23IEnumerable%23GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L628">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SynchronizedDictionary_System_Collections_IEnumerable_GetEnumerator_" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.System#Collections#IEnumerable#GetEnumerator*"></a>
+  <h4 id="Tangosol_Util_Collections_SynchronizedDictionary_System_Collections_IEnumerable_GetEnumerator" data-uid="Tangosol.Util.Collections.SynchronizedDictionary.System#Collections#IEnumerable#GetEnumerator">IEnumerable.GetEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Return an <strong>IEnumerator</strong> that iterates through this dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IEnumerator IEnumerable.GetEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IEnumerator</span></td>
+        <td><p>An <strong>IEnumerator</strong> that iterates through this dictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <span class="xref">System.Collections.IDictionary</span>
+  </div>
+  <div>
+      <span class="xref">System.Collections.ICollection</span>
+  </div>
+  <div>
+      <span class="xref">System.Collections.IEnumerable</span>
+  </div>
+  <div>
+      <span class="xref">ISerializable</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SynchronizedDictionary.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SynchronizedDictionary%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SynchronizedDictionary.cs/#L66" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

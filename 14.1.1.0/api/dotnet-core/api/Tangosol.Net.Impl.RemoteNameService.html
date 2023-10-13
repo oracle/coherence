@@ -1,0 +1,609 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class RemoteNameService
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class RemoteNameService
+   ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Impl.RemoteNameService">
+  
+  
+  <h1 id="Tangosol_Net_Impl_RemoteNameService" data-uid="Tangosol.Net.Impl.RemoteNameService" class="text-break">Class RemoteNameService
+  </h1>
+  <div class="markdown level0 summary"><p><a class="xref" href="Tangosol.Net.INameService.html">INameService</a> implementation that allows a client to
+use a remote NameService without having to join the Cluster.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Net.Impl.Extend.html">Extend</a></div>
+    <div class="level2"><a class="xref" href="Tangosol.Net.Impl.RemoteService.html">RemoteService</a></div>
+    <div class="level3"><span class="xref">RemoteNameService</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.IServiceInfo.html">IServiceInfo</a></div>
+    <div><a class="xref" href="Tangosol.Net.INameService.html">INameService</a></div>
+    <div><a class="xref" href="Tangosol.Net.IService.html">IService</a></div>
+    <div><a class="xref" href="Tangosol.Util.IService.html">IService</a></div>
+    <div><a class="xref" href="Tangosol.Util.IControllable.html">IControllable</a></div>
+    <div><a class="xref" href="Tangosol.IO.ISerializerFactory.html">ISerializerFactory</a></div>
+    <div><span class="xref">System.IDisposable</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_Channel">RemoteService.Channel</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_ServiceName">RemoteService.ServiceName</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_ServiceVersion">RemoteService.ServiceVersion</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_IsRunning">RemoteService.IsRunning</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_Initiator">RemoteService.Initiator</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_IsNameServiceAddressProvider">RemoteService.IsNameServiceAddressProvider</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_OperationalContext">RemoteService.OperationalContext</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_RemoteClusterName">RemoteService.RemoteClusterName</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_RemoteServiceName">RemoteService.RemoteServiceName</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_ScopeName">RemoteService.ScopeName</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_Xml">RemoteService.Xml</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_Info">RemoteService.Info</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_UserContext">RemoteService.UserContext</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_Serializer">RemoteService.Serializer</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_MemberJoined">RemoteService.MemberJoined</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_MemberLeaving">RemoteService.MemberLeaving</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_MemberLeft">RemoteService.MemberLeft</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_ServiceStarting">RemoteService.ServiceStarting</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_ServiceStarted">RemoteService.ServiceStarted</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_ServiceStopping">RemoteService.ServiceStopping</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_ServiceStopped">RemoteService.ServiceStopped</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_Configure_Tangosol_Run_Xml_IXmlElement_">RemoteService.Configure(IXmlElement)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_Start">RemoteService.Start()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_Shutdown">RemoteService.Shutdown()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_Stop">RemoteService.Stop()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_GetDescription">RemoteService.GetDescription()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_OnConnectionOpened_System_Object_Tangosol_Net_Messaging_ConnectionEventArgs_">RemoteService.OnConnectionOpened(Object, ConnectionEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_OnConnectionClosed_System_Object_Tangosol_Net_Messaging_ConnectionEventArgs_">RemoteService.OnConnectionClosed(Object, ConnectionEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_OnConnectionError_System_Object_Tangosol_Net_Messaging_ConnectionEventArgs_">RemoteService.OnConnectionError(Object, ConnectionEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_OnServiceStarting_System_Object_Tangosol_Util_ServiceEventArgs_">RemoteService.OnServiceStarting(Object, ServiceEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_OnServiceStarted_System_Object_Tangosol_Util_ServiceEventArgs_">RemoteService.OnServiceStarted(Object, ServiceEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_OnServiceStopping_System_Object_Tangosol_Util_ServiceEventArgs_">RemoteService.OnServiceStopping(Object, ServiceEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_OnServiceStopped_System_Object_Tangosol_Util_ServiceEventArgs_">RemoteService.OnServiceStopped(Object, ServiceEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_DoShutdown">RemoteService.DoShutdown()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_DoStart">RemoteService.DoStart()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_DoStop">RemoteService.DoStop()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_IsServiceThread_System_Boolean_">RemoteService.IsServiceThread(Boolean)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_LookupProxyServiceAddress">RemoteService.LookupProxyServiceAddress()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_EnsureChannel">RemoteService.EnsureChannel()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_EnsureEventDispatcher">RemoteService.EnsureEventDispatcher()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_DrainEvents">RemoteService.DrainEvents()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_DispatchMemberEvent_Tangosol_Net_MemberEventType_">RemoteService.DispatchMemberEvent(MemberEventType)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_DispatchServiceEvent_Tangosol_Util_ServiceEventType_">RemoteService.DispatchServiceEvent(ServiceEventType)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.Extend.html#Tangosol_Net_Impl_Extend_ToString">Extend.ToString()</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Impl.html">Tangosol.Net.Impl</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Impl_RemoteNameService_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class RemoteNameService : RemoteService, IServiceInfo, INameService, IService, IService, IControllable, ISerializerFactory, IDisposable</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_RemoteNameService_ServiceType.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.RemoteNameService.ServiceType%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/RemoteNameService.cs/#L97">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_RemoteNameService_ServiceType_" data-uid="Tangosol.Net.Impl.RemoteNameService.ServiceType*"></a>
+  <h4 id="Tangosol_Net_Impl_RemoteNameService_ServiceType" data-uid="Tangosol.Net.Impl.RemoteNameService.ServiceType">ServiceType</h4>
+  <div class="markdown level1 summary"><p>Gets the type of the <a class="xref" href="Tangosol.Net.IService.html">IService</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override ServiceType ServiceType { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.ServiceType.html">ServiceType</a></td>
+        <td><p>The type of the <strong>IService</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_ServiceType">RemoteService.ServiceType</a></div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_RemoteNameService_Bind_System_String_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.RemoteNameService.Bind(System.String%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/RemoteNameService.cs/#L37">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_RemoteNameService_Bind_" data-uid="Tangosol.Net.Impl.RemoteNameService.Bind*"></a>
+  <h4 id="Tangosol_Net_Impl_RemoteNameService_Bind_System_String_System_Object_" data-uid="Tangosol.Net.Impl.RemoteNameService.Bind(System.String,System.Object)">Bind(String, Object)</h4>
+  <div class="markdown level1 summary"><p>Binds a name to an object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Bind(string name, object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name to bind; may not be empty.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>The object to bind; possibly null.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_RemoteNameService_CreateSerializer.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.RemoteNameService.CreateSerializer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/RemoteNameService.cs/#L153">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_RemoteNameService_CreateSerializer_" data-uid="Tangosol.Net.Impl.RemoteNameService.CreateSerializer*"></a>
+  <h4 id="Tangosol_Net_Impl_RemoteNameService_CreateSerializer" data-uid="Tangosol.Net.Impl.RemoteNameService.CreateSerializer">CreateSerializer()</h4>
+  <div class="markdown level1 summary"><p>Create a new <a class="xref" href="Tangosol.IO.ISerializer.html">ISerializer</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ISerializer CreateSerializer()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.ISerializer.html">ISerializer</a></td>
+        <td><p>The new <a class="xref" href="Tangosol.IO.ISerializer.html">ISerializer</a>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_RemoteNameService_Dispose.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.RemoteNameService.Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/RemoteNameService.cs/#L137">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_RemoteNameService_Dispose_" data-uid="Tangosol.Net.Impl.RemoteNameService.Dispose*"></a>
+  <h4 id="Tangosol_Net_Impl_RemoteNameService_Dispose" data-uid="Tangosol.Net.Impl.RemoteNameService.Dispose">Dispose()</h4>
+  <div class="markdown level1 summary"><p>Performs application-defined tasks associated with freeing, releasing, or
+resetting unmanaged resources.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Dispose()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_RemoteNameService_DoConfigure_Tangosol_Run_Xml_IXmlElement_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.RemoteNameService.DoConfigure(Tangosol.Run.Xml.IXmlElement)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/RemoteNameService.cs/#L113">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_RemoteNameService_DoConfigure_" data-uid="Tangosol.Net.Impl.RemoteNameService.DoConfigure*"></a>
+  <h4 id="Tangosol_Net_Impl_RemoteNameService_DoConfigure_Tangosol_Run_Xml_IXmlElement_" data-uid="Tangosol.Net.Impl.RemoteNameService.DoConfigure(Tangosol.Run.Xml.IXmlElement)">DoConfigure(IXmlElement)</h4>
+  <div class="markdown level1 summary"><p>The <a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_Configure_Tangosol_Run_Xml_IXmlElement_">Configure(IXmlElement)</a> implementation method.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void DoConfigure(IXmlElement xml)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a></td>
+        <td><span class="parametername">xml</span></td>
+        <td><p>The <strong>IXmlElement</strong> containing the new configuration for this
+RemoteService.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_DoConfigure_Tangosol_Run_Xml_IXmlElement_">RemoteService.DoConfigure(IXmlElement)</a></div>
+  <h5 id="Tangosol_Net_Impl_RemoteNameService_DoConfigure_Tangosol_Run_Xml_IXmlElement__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method must only be called by a thread that has synchronized
+on this RemoteService.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_RemoteNameService_Lookup_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.RemoteNameService.Lookup(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/RemoteNameService.cs/#L51">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_RemoteNameService_Lookup_" data-uid="Tangosol.Net.Impl.RemoteNameService.Lookup*"></a>
+  <h4 id="Tangosol_Net_Impl_RemoteNameService_Lookup_System_String_" data-uid="Tangosol.Net.Impl.RemoteNameService.Lookup(System.String)">Lookup(String)</h4>
+  <div class="markdown level1 summary"><p>Retrieves the named object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public object Lookup(string name)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name of the object to look up.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The object bound to name.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_RemoteNameService_OpenChannel.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.RemoteNameService.OpenChannel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/RemoteNameService.cs/#L81">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_RemoteNameService_OpenChannel_" data-uid="Tangosol.Net.Impl.RemoteNameService.OpenChannel*"></a>
+  <h4 id="Tangosol_Net_Impl_RemoteNameService_OpenChannel" data-uid="Tangosol.Net.Impl.RemoteNameService.OpenChannel">OpenChannel()</h4>
+  <div class="markdown level1 summary"><p>Open an <strong>IChannel</strong> to the remote Service proxy.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override IChannel OpenChannel()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_OpenChannel">RemoteService.OpenChannel()</a></div>
+  <h5 id="Tangosol_Net_Impl_RemoteNameService_OpenChannel_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Impl.RemoteService.html#Tangosol_Net_Impl_RemoteService_OpenChannel">OpenChannel</a>()</div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_RemoteNameService_Unbind_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.RemoteNameService.Unbind(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/RemoteNameService.cs/#L68">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_RemoteNameService_Unbind_" data-uid="Tangosol.Net.Impl.RemoteNameService.Unbind*"></a>
+  <h4 id="Tangosol_Net_Impl_RemoteNameService_Unbind_System_String_" data-uid="Tangosol.Net.Impl.RemoteNameService.Unbind(System.String)">Unbind(String)</h4>
+  <div class="markdown level1 summary"><p>Unbinds the named object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Unbind(string name)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name of the object to unbind.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.IServiceInfo.html">IServiceInfo</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.INameService.html">INameService</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.IService.html">IService</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Util.IService.html">IService</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Util.IControllable.html">IControllable</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.ISerializerFactory.html">ISerializerFactory</a>
+  </div>
+  <div>
+      <span class="xref">System.IDisposable</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_RemoteNameService.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.RemoteNameService%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/RemoteNameService.cs/#L24" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

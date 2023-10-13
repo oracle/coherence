@@ -1,0 +1,388 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class TcpConnection
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class TcpConnection
+   ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Messaging.Impl.TcpConnection">
+  
+  
+  <h1 id="Tangosol_Net_Messaging_Impl_TcpConnection" data-uid="Tangosol.Net.Messaging.Impl.TcpConnection" class="text-break">Class TcpConnection
+  </h1>
+  <div class="markdown level0 summary"><p><a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html">Connection</a> implementation that wraps a TCP/IP Socket.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Net.Impl.Extend.html">Extend</a></div>
+    <div class="level2"><a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html">Connection</a></div>
+    <div class="level3"><span class="xref">TcpConnection</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.Messaging.IConnection.html">IConnection</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_Channels">Connection.Channels</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_ChannelsPending">Connection.ChannelsPending</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_Codec">Connection.Codec</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_ConnectionManager">Connection.ConnectionManager</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_Id">Connection.Id</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_Member">Connection.Member</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_MessageFactoryMap">Connection.MessageFactoryMap</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_PeerId">Connection.PeerId</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_IsActiveThread">Connection.IsActiveThread</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_IsOpen">Connection.IsOpen</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_CloseNotify">Connection.CloseNotify</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_CloseOnExit">Connection.CloseOnExit</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_CloseException">Connection.CloseException</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_PeerEdition">Connection.PeerEdition</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_PingLastMillis">Connection.PingLastMillis</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_StatsBytesReceived">Connection.StatsBytesReceived</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_StatsBytesSent">Connection.StatsBytesSent</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_StatsReceived">Connection.StatsReceived</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_StatsReset">Connection.StatsReset</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_StatsSent">Connection.StatsSent</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_Gate">Connection.Gate</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_Close">Connection.Close()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_Close_System_Boolean_System_Exception_">Connection.Close(Boolean, Exception)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_Close_System_Boolean_System_Exception_System_Boolean_">Connection.Close(Boolean, Exception, Boolean)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_CloseInternal_System_Boolean_System_Exception_System_Int32_">Connection.CloseInternal(Boolean, Exception, Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_OpenChannel_Tangosol_Net_Messaging_IProtocol_System_String_Tangosol_Net_Messaging_IReceiver_IPrincipal_">Connection.OpenChannel(IProtocol, String, IReceiver, IPrincipal)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_OpenChannelInternal_Tangosol_Net_Messaging_IProtocol_System_String_Tangosol_IO_ISerializer_Tangosol_Net_Messaging_IReceiver_IPrincipal_System_Byte___">Connection.OpenChannelInternal(IProtocol, String, ISerializer, IReceiver, IPrincipal, Byte[])</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_OpenChannelRequest_System_String_Tangosol_IO_ISerializer_Tangosol_Net_Messaging_IReceiver_IPrincipal_">Connection.OpenChannelRequest(String, ISerializer, IReceiver, IPrincipal)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_OpenChannelResponse_System_Int32_Tangosol_Net_Messaging_IMessageFactory_Tangosol_IO_ISerializer_Tangosol_Net_Messaging_IReceiver_IPrincipal_">Connection.OpenChannelResponse(Int32, IMessageFactory, ISerializer, IReceiver, IPrincipal)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_OpenInternal">Connection.OpenInternal()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_Ping">Connection.Ping()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_CreateChannel_Tangosol_Net_Messaging_IProtocol_Tangosol_Net_Messaging_IReceiver_">Connection.CreateChannel(IProtocol, IReceiver)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_CreateChannelInternal_Tangosol_Net_Messaging_IProtocol_Tangosol_IO_ISerializer_Tangosol_Net_Messaging_IReceiver_">Connection.CreateChannelInternal(IProtocol, ISerializer, IReceiver)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_GateClose_System_Int32_">Connection.GateClose(Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_GateEnter">Connection.GateEnter()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_GateExit">Connection.GateExit()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_GateOpen">Connection.GateOpen()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_AcceptChannel_System_Uri_Tangosol_Net_Messaging_IReceiver_IPrincipal_">Connection.AcceptChannel(Uri, IReceiver, IPrincipal)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_AcceptChannelInternal_System_Uri_Tangosol_IO_ISerializer_Tangosol_Net_Messaging_IReceiver_IPrincipal_System_Byte___">Connection.AcceptChannelInternal(Uri, ISerializer, IReceiver, IPrincipal, Byte[])</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_AcceptChannelRequest_System_Int32_IPrincipal_">Connection.AcceptChannelRequest(Int32, IPrincipal)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_AcceptChannelResponse_System_Int32_Tangosol_Net_Messaging_IMessageFactory_Tangosol_IO_ISerializer_Tangosol_Net_Messaging_IReceiver_IPrincipal_">Connection.AcceptChannelResponse(Int32, IMessageFactory, ISerializer, IReceiver, IPrincipal)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_AssertOpen">Connection.AssertOpen()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_GetChannel_System_Int32_">Connection.GetChannel(Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_GetChannels">Connection.GetChannels()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_GenerateChannelId">Connection.GenerateChannelId()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_Open">Connection.Open()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_RegisterChannel_Tangosol_Net_Messaging_IChannel_">Connection.RegisterChannel(IChannel)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_ResetStats">Connection.ResetStats()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_Send_Tangosol_IO_DataWriter_">Connection.Send(DataWriter)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_UnregisterChannel_Tangosol_Net_Messaging_IChannel_">Connection.UnregisterChannel(IChannel)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.Extend.html#Tangosol_Net_Impl_Extend_ToString">Extend.ToString()</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Messaging.Impl.html">Tangosol.Net.Messaging.Impl</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Messaging_Impl_TcpConnection_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class TcpConnection : Connection, IConnection</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_TcpConnection_Client.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.TcpConnection.Client%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/TcpConnection.cs/#L61">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_TcpConnection_Client_" data-uid="Tangosol.Net.Messaging.Impl.TcpConnection.Client*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_TcpConnection_Client" data-uid="Tangosol.Net.Messaging.Impl.TcpConnection.Client">Client</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TcpClient Client { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">TcpClient</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_TcpConnection_GetDescription.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.TcpConnection.GetDescription%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/TcpConnection.cs/#L30">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_TcpConnection_GetDescription_" data-uid="Tangosol.Net.Messaging.Impl.TcpConnection.GetDescription*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_TcpConnection_GetDescription" data-uid="Tangosol.Net.Messaging.Impl.TcpConnection.GetDescription">GetDescription()</h4>
+  <div class="markdown level1 summary"><p>Return a human-readable description of this TcpConnection.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override string GetDescription()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A string representation of this TcpConnection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html#Tangosol_Net_Messaging_Impl_Connection_GetDescription">Connection.GetDescription()</a></div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IConnection.html">IConnection</a>
+  </div>
+  <h3 id="seealso">See Also</h3>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.Impl.Connection.html">Connection</a></div>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_TcpConnection.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.TcpConnection%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/TcpConnection.cs/#L19" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

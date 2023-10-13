@@ -1,0 +1,390 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IReceiver
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IReceiver
+   ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Messaging.IReceiver">
+  
+  
+  <h1 id="Tangosol_Net_Messaging_IReceiver" data-uid="Tangosol.Net.Messaging.IReceiver" class="text-break">Interface IReceiver
+  </h1>
+  <div class="markdown level0 summary"><p>An IReceiver processes unsolicited <a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a> objects sent
+via any number of <a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a> objects.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Messaging.html">Tangosol.Net.Messaging</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Messaging_IReceiver_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IReceiver</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Messaging_IReceiver_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+An <strong>IReceiver</strong> acts as a server-side proxy, in that it can be
+registered with an <a class="xref" href="Tangosol.Net.Messaging.IConnectionAcceptor.html">IConnectionAcceptor</a>, it can be looked
+up, and <strong>IChannels</strong> from multiple clients can be established to
+it. In this sense, the IReceiver represents server-side state shared
+across any number of client <strong>IChannels</strong>, and thus provides an
+efficient mechanism for demultiplexing multi-client communication
+into a shared service proxy, and locating state that is shared across
+all of those client <strong>IChannels</strong>. Conversely, the <strong>IChannel</strong>
+object represents client-specific state, allowing per-client
+information to be efficiently managed on the server side.</p>
+<p>
+While the IReceiver is particularly useful as a server-side proxy, it
+is also useful on the client, allowing a client to publish named
+services to a server, and in the case of both named services and any
+other <strong>IChannels</strong> created by a client, it allows a client to
+efficiently manage stateful communication and process unsolicited
+<strong>IMessage</strong> objects.</p>
+</div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IReceiver_Name.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IReceiver.Name%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IReceiver.cs/#L51">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IReceiver_Name_" data-uid="Tangosol.Net.Messaging.IReceiver.Name*"></a>
+  <h4 id="Tangosol_Net_Messaging_IReceiver_Name" data-uid="Tangosol.Net.Messaging.IReceiver.Name">Name</h4>
+  <div class="markdown level1 summary"><p>The name of this IReceiver.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string Name { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The IReceiver name.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_IReceiver_Name_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If the IReceiver is registered with a
+<a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html">IConnectionManager</a>, the registration and any
+subsequent accesses are by the IReceiver's name, meaning that the
+name must be unique within the domain of the
+<strong>IConnectionManager</strong>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IReceiver_Protocol.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IReceiver.Protocol%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IReceiver.cs/#L63">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IReceiver_Protocol_" data-uid="Tangosol.Net.Messaging.IReceiver.Protocol*"></a>
+  <h4 id="Tangosol_Net_Messaging_IReceiver_Protocol" data-uid="Tangosol.Net.Messaging.IReceiver.Protocol">Protocol</h4>
+  <div class="markdown level1 summary"><p>The <a class="xref" href="Tangosol.Net.Messaging.IProtocol.html">IProtocol</a> understood by the IReceiver.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IProtocol Protocol { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IProtocol.html">IProtocol</a></td>
+        <td><p>The <strong>IProtocol</strong> used by this IReceiver.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_IReceiver_Protocol_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Only <strong>IChannel</strong> objects with the specified <strong>IProtocol</strong>
+can be registered with this IReceiver.</p>
+</div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IReceiver_OnChannelClosed_Tangosol_Net_Messaging_IChannel_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IReceiver.OnChannelClosed(Tangosol.Net.Messaging.IChannel)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IReceiver.cs/#L123">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IReceiver_OnChannelClosed_" data-uid="Tangosol.Net.Messaging.IReceiver.OnChannelClosed*"></a>
+  <h4 id="Tangosol_Net_Messaging_IReceiver_OnChannelClosed_Tangosol_Net_Messaging_IChannel_" data-uid="Tangosol.Net.Messaging.IReceiver.OnChannelClosed(Tangosol.Net.Messaging.IChannel)">OnChannelClosed(IChannel)</h4>
+  <div class="markdown level1 summary"><p>Notify this IReceiver that the <strong>IChannel</strong> it was associated with has
+been closed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnChannelClosed(IChannel channel)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a></td>
+        <td><span class="parametername">channel</span></td>
+        <td><p>An <strong>IChannel</strong> that was associated with this IReceiver.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IReceiver_OnMessage_Tangosol_Net_Messaging_IMessage_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IReceiver.OnMessage(Tangosol.Net.Messaging.IMessage)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IReceiver.cs/#L96">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IReceiver_OnMessage_" data-uid="Tangosol.Net.Messaging.IReceiver.OnMessage*"></a>
+  <h4 id="Tangosol_Net_Messaging_IReceiver_OnMessage_Tangosol_Net_Messaging_IMessage_" data-uid="Tangosol.Net.Messaging.IReceiver.OnMessage(Tangosol.Net.Messaging.IMessage)">OnMessage(IMessage)</h4>
+  <div class="markdown level1 summary"><p>Called when an unsolicited (non-Response) <strong>IMessage</strong> is
+received by an <strong>IChannel</strong> that had been previously
+registered with this IReceiver.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnMessage(IMessage message)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a></td>
+        <td><span class="parametername">message</span></td>
+        <td><p>An unsolicited <strong>IMessage</strong> received by a registered
+<strong>IChannel</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IReceiver_RegisterChannel_Tangosol_Net_Messaging_IChannel_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IReceiver.RegisterChannel(Tangosol.Net.Messaging.IChannel)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IReceiver.cs/#L85">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IReceiver_RegisterChannel_" data-uid="Tangosol.Net.Messaging.IReceiver.RegisterChannel*"></a>
+  <h4 id="Tangosol_Net_Messaging_IReceiver_RegisterChannel_Tangosol_Net_Messaging_IChannel_" data-uid="Tangosol.Net.Messaging.IReceiver.RegisterChannel(Tangosol.Net.Messaging.IChannel)">RegisterChannel(IChannel)</h4>
+  <div class="markdown level1 summary"><p>Notify this IReceiver that it has been associated with a
+<strong>IChannel</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void RegisterChannel(IChannel channel)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a></td>
+        <td><span class="parametername">channel</span></td>
+        <td><p>An <strong>IChannel</strong> that has been associated with this IReceiver.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_IReceiver_RegisterChannel_Tangosol_Net_Messaging_IChannel__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+This method is invoked by the <strong>IChannel</strong> when an IReceiver is
+associated with the <strong>IChannel</strong>.</p>
+<p>
+Once registered, the IReceiver will receive all unsolicited
+<strong>IMessage</strong> objects sent through the <strong>IChannel</strong> until
+the <strong>IChannel</strong> is unregistered or closed. Without a
+IReceiver, the unsolicited <strong>IMessage</strong> objects are executed
+with only an <strong>IChannel</strong> as context; with an IReceiver, the
+IReceiver is given the <strong>IMessage</strong> to process, and may
+execute the <strong>IMessage</strong> in turn.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IReceiver_UnregisterChannel_Tangosol_Net_Messaging_IChannel_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IReceiver.UnregisterChannel(Tangosol.Net.Messaging.IChannel)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IReceiver.cs/#L113">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IReceiver_UnregisterChannel_" data-uid="Tangosol.Net.Messaging.IReceiver.UnregisterChannel*"></a>
+  <h4 id="Tangosol_Net_Messaging_IReceiver_UnregisterChannel_Tangosol_Net_Messaging_IChannel_" data-uid="Tangosol.Net.Messaging.IReceiver.UnregisterChannel(Tangosol.Net.Messaging.IChannel)">UnregisterChannel(IChannel)</h4>
+  <div class="markdown level1 summary"><p>Unregister the given <strong>IChannel</strong> with this IReceiver.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void UnregisterChannel(IChannel channel)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a></td>
+        <td><span class="parametername">channel</span></td>
+        <td><p>An <strong>IChannel</strong> that was disassociated with this IReceiver.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_IReceiver_UnregisterChannel_Tangosol_Net_Messaging_IChannel__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+This method is invoked by the <strong>IChannel</strong> when an IReceiver is
+disassociated with the <strong>IChannel</strong>.</p>
+<p>
+Once unregistered, the IReceiver will no longer receive
+unsolicited <strong>IMessage</strong> objects sent through the
+<strong>IChannel</strong>.</p>
+</div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IReceiver.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IReceiver%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IReceiver.cs/#L36" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

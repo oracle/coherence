@@ -1,0 +1,2113 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class SimpleElement
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class SimpleElement
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Run.Xml.SimpleElement">
+  
+  
+  <h1 id="Tangosol_Run_Xml_SimpleElement" data-uid="Tangosol.Run.Xml.SimpleElement" class="text-break">Class SimpleElement
+  </h1>
+  <div class="markdown level0 summary"><p>A simple implementation of the IXmlElement interface.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Run.Xml.SimpleValue.html">SimpleValue</a></div>
+    <div class="level2"><span class="xref">SimpleElement</span></div>
+      <div class="level3"><a class="xref" href="Tangosol.Run.Xml.SimpleDocument.html">SimpleDocument</a></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a></div>
+    <div><a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a></div>
+    <div><a class="xref" href="Tangosol.Run.Xml.IXmlValue.html">IXmlValue</a></div>
+    <div><span class="xref">ICloneable</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_GetBoolean">SimpleValue.GetBoolean()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_GetBoolean_System_Boolean_">SimpleValue.GetBoolean(Boolean)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_SetBoolean_System_Boolean_">SimpleValue.SetBoolean(Boolean)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_GetInt">SimpleValue.GetInt()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_GetInt_System_Int32_">SimpleValue.GetInt(Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_SetInt_System_Int32_">SimpleValue.SetInt(Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_GetLong">SimpleValue.GetLong()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_GetLong_System_Int64_">SimpleValue.GetLong(Int64)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_SetLong_System_Int64_">SimpleValue.SetLong(Int64)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_GetDouble">SimpleValue.GetDouble()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_GetDouble_System_Double_">SimpleValue.GetDouble(Double)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_SetDouble_System_Double_">SimpleValue.SetDouble(Double)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_GetDecimal">SimpleValue.GetDecimal()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_GetDecimal_System_Decimal_">SimpleValue.GetDecimal(Decimal)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_SetDecimal_System_Decimal_">SimpleValue.SetDecimal(Decimal)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_GetString">SimpleValue.GetString()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_GetString_System_String_">SimpleValue.GetString(String)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_SetString_System_String_">SimpleValue.SetString(String)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_GetBinary">SimpleValue.GetBinary()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_GetBinary_Tangosol_Util_Binary_">SimpleValue.GetBinary(Binary)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_SetBinary_Tangosol_Util_Binary_">SimpleValue.SetBinary(Binary)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_GetDateTime">SimpleValue.GetDateTime()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_GetDateTime_System_DateTime_">SimpleValue.GetDateTime(DateTime)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_SetDateTime_System_DateTime_">SimpleValue.SetDateTime(DateTime)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_Value">SimpleValue.Value</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_Parent">SimpleValue.Parent</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_IsEmpty">SimpleValue.IsEmpty</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_IsAttribute">SimpleValue.IsAttribute</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_IsContent">SimpleValue.IsContent</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_IsMutable">SimpleValue.IsMutable</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_InternalValue">SimpleValue.InternalValue</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_EnsureType_Tangosol_Run_Xml_XmlValueType_">SimpleValue.EnsureType(XmlValueType)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_Convert_System_Object_Tangosol_Run_Xml_XmlValueType_">SimpleValue.Convert(Object, XmlValueType)</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Run.Xml.html">Tangosol.Run.Xml</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class SimpleElement : SimpleValue, IPortableObject, IXmlElement, IXmlValue, ICloneable</code></pre>
+  </div>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>Protected methods are provided to support inheriting classes.</p>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L33">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement__ctor_" data-uid="Tangosol.Run.Xml.SimpleElement.#ctor*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement__ctor" data-uid="Tangosol.Run.Xml.SimpleElement.#ctor">SimpleElement()</h4>
+  <div class="markdown level1 summary"><p>Construct an empty SimpleElement.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SimpleElement()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement__ctor_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.%23ctor(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L42">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement__ctor_" data-uid="Tangosol.Run.Xml.SimpleElement.#ctor*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement__ctor_System_String_" data-uid="Tangosol.Run.Xml.SimpleElement.#ctor(System.String)">SimpleElement(String)</h4>
+  <div class="markdown level1 summary"><p>Construct a SimpleElement.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SimpleElement(string name)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name of the element.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement__ctor_System_String_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.%23ctor(System.String%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L54">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement__ctor_" data-uid="Tangosol.Run.Xml.SimpleElement.#ctor*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement__ctor_System_String_System_Object_" data-uid="Tangosol.Run.Xml.SimpleElement.#ctor(System.String,System.Object)">SimpleElement(String, Object)</h4>
+  <div class="markdown level1 summary"><p>Construct a SimpleElement.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SimpleElement(string name, object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name of the element.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>An initial value for this element.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_AbsolutePath.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.AbsolutePath%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L133">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_AbsolutePath_" data-uid="Tangosol.Run.Xml.SimpleElement.AbsolutePath*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_AbsolutePath" data-uid="Tangosol.Run.Xml.SimpleElement.AbsolutePath">AbsolutePath</h4>
+  <div class="markdown level1 summary"><p>Get the '/'-delimited path of the element starting from the root
+element.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual string AbsolutePath { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The element path.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_AbsolutePath_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This is a convenience property. Elements are retrieved by simple
+name using <a class="xref" href="Tangosol.Run.Xml.SimpleElement.html#Tangosol_Run_Xml_SimpleElement_Name">Name</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_Attributes.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.Attributes%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L405">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_Attributes_" data-uid="Tangosol.Run.Xml.SimpleElement.Attributes*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_Attributes" data-uid="Tangosol.Run.Xml.SimpleElement.Attributes">Attributes</h4>
+  <div class="markdown level1 summary"><p>Get the dictionary of all attributes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IDictionary Attributes { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>A <strong>IDictionary</strong> containing all attributes of this
+IXmlElement; the return value will never be <code>null</code>, although
+it may be an empty dictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_Attributes_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The dictionary is keyed by attribute names. The corresponding
+values are non-null objects that implement the <strong>IXmlValue</strong>
+interface.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_Comment.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.Comment%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L552">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_Comment_" data-uid="Tangosol.Run.Xml.SimpleElement.Comment*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_Comment" data-uid="Tangosol.Run.Xml.SimpleElement.Comment">Comment</h4>
+  <div class="markdown level1 summary"><p>Get or set the text of any comments that are in the XML element.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual string Comment { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The comment text from this element (not including the &quot;<!--" and
+"-->&quot;) or <code>null</code> if there was no comment.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_Comment_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p><strong>The XML specification does not allow a comment to contain the
+string &quot;--&quot;.</strong><br>
+An element can contain many comments interspersed randomly with
+textual values and child elements. In reality, comments are
+rarely used. The purpose of this method and the corresponding
+mutator are to ensure that if comments do exist, that their text
+will be accessible through this interface and not lost through a
+transfer from one instance of this interface to another.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_ElementList.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.ElementList%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L159">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_ElementList_" data-uid="Tangosol.Run.Xml.SimpleElement.ElementList*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_ElementList" data-uid="Tangosol.Run.Xml.SimpleElement.ElementList">ElementList</h4>
+  <div class="markdown level1 summary"><p>Get the list of all child elements.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IList ElementList { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IList</span></td>
+        <td><p>An <strong>IList</strong> containing all elements of this IXmlElement.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_ElementList_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The contents of the list implement the <a class="xref" href="Tangosol.Run.Xml.IXmlValue.html">IXmlValue</a>
+interface. If this IXmlElement is mutable, then the list returned
+from this method is expected to be mutable as well.<br>
+An element should be fully configured before it is added to the
+list:</p>
+<ul><li></li><li></li></ul>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_IsNameMutable.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.IsNameMutable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L803">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_IsNameMutable_" data-uid="Tangosol.Run.Xml.SimpleElement.IsNameMutable*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_IsNameMutable" data-uid="Tangosol.Run.Xml.SimpleElement.IsNameMutable">IsNameMutable</h4>
+  <div class="markdown level1 summary"><p>Determine if the name can be changed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual bool IsNameMutable { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the name can be changed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_IsNameMutable_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The default implementation allows a name to be changed. This can
+be overridden by inheriting implementations.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_Name.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.Name%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L84">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_Name_" data-uid="Tangosol.Run.Xml.SimpleElement.Name*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_Name" data-uid="Tangosol.Run.Xml.SimpleElement.Name">Name</h4>
+  <div class="markdown level1 summary"><p>Get or set the name of the element.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual string Name { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The element name.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_Name_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Setter is intended primarily to be utilized to configure a newly
+instantiated element before adding it as a child element to
+another element.<br>
+Implementations of this interface that support read-only
+documents are expected to throw <strong>InvalidOperationException</strong>
+from this method if the document (or this element) is in a
+read-only state.<br>
+If this IXmlElement has a parent IXmlElement, then the
+implementation of this interface is permitted to throw
+<strong>InvalidOperationException</strong> from this method. This results
+from typical document implementations in which the name of an
+element that is a child of another element is immutable; the W3C
+DOM interfaces are one example.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_Root.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.Root%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L113">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_Root_" data-uid="Tangosol.Run.Xml.SimpleElement.Root*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_Root" data-uid="Tangosol.Run.Xml.SimpleElement.Root">Root</h4>
+  <div class="markdown level1 summary"><p>Get the root element.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IXmlElement Root { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a></td>
+        <td><p>The root element for this element.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_Root_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This is a convenience property. Parent element is retrived using
+<a class="xref" href="Tangosol.Run.Xml.IXmlValue.html#Tangosol_Run_Xml_IXmlValue_Parent">Parent</a>.</p>
+</div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_AddAttribute_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.AddAttribute(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L494">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_AddAttribute_" data-uid="Tangosol.Run.Xml.SimpleElement.AddAttribute*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_AddAttribute_System_String_" data-uid="Tangosol.Run.Xml.SimpleElement.AddAttribute(System.String)">AddAttribute(String)</h4>
+  <div class="markdown level1 summary"><p>Provides a means to add a new attribute value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IXmlValue AddAttribute(string name)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name of the attribute.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlValue.html">IXmlValue</a></td>
+        <td><p>The newly added attribute value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_AddAttribute_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If the attribute of the same name already exists, it is returned,
+otherwise a new value is created and added as an attribute.<br>
+This is a convenience method. Attributes are accessed and
+manipulated via the dictionary returned from
+<a class="xref" href="Tangosol.Run.Xml.SimpleElement.html#Tangosol_Run_Xml_SimpleElement_Attributes">Attributes</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_AddElement_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.AddElement(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L239">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_AddElement_" data-uid="Tangosol.Run.Xml.SimpleElement.AddElement*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_AddElement_System_String_" data-uid="Tangosol.Run.Xml.SimpleElement.AddElement(System.String)">AddElement(String)</h4>
+  <div class="markdown level1 summary"><p>Create a new element and add it as a child element to this
+element.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IXmlElement AddElement(string name)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name for the new element.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a></td>
+        <td><p>The new IXmlElement object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_AddElement_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This is a convenience method. Elements are accessed and
+manipulated via the list returned from
+<a class="xref" href="Tangosol.Run.Xml.SimpleElement.html#Tangosol_Run_Xml_SimpleElement_ElementList">ElementList</a>.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the name is <code>null</code> or if the name is not a legal XML tag
+name.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If this element is immutable or otherwise can not add a child
+element.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_CheckMutable.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.CheckMutable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L785">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_CheckMutable_" data-uid="Tangosol.Run.Xml.SimpleElement.CheckMutable*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_CheckMutable" data-uid="Tangosol.Run.Xml.SimpleElement.CheckMutable">CheckMutable()</h4>
+  <div class="markdown level1 summary"><p>Validates that the element is mutable, otherwise throws an
+<span class="xref">System.InvalidOperationException</span>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void CheckMutable()</code></pre>
+  </div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_Clone.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.Clone%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L1104">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_Clone_" data-uid="Tangosol.Run.Xml.SimpleElement.Clone*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_Clone" data-uid="Tangosol.Run.Xml.SimpleElement.Clone">Clone()</h4>
+  <div class="markdown level1 summary"><p>Creates and returns a copy of this SimpleElement.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override object Clone()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>A clone of this instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_Clone">SimpleValue.Clone()</a></div>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_Clone_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The returned copy is a deep clone of this SimpleElement
+&quot;unlinked&quot; from the parent and mutable.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_EnsureElement_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.EnsureElement(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L387">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_EnsureElement_" data-uid="Tangosol.Run.Xml.SimpleElement.EnsureElement*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_EnsureElement_System_String_" data-uid="Tangosol.Run.Xml.SimpleElement.EnsureElement(System.String)">EnsureElement(String)</h4>
+  <div class="markdown level1 summary"><p>Ensure that a child element exists.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IXmlElement EnsureElement(string path)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">path</span></td>
+        <td><p>Element path.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a></td>
+        <td><p>The existing or new IXmlElement object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_EnsureElement_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This is a convenience method. It combines the functionality of
+<a class="xref" href="Tangosol.Run.Xml.SimpleElement.html#Tangosol_Run_Xml_SimpleElement_FindElement_System_String_">FindElement(String)</a> and
+<a class="xref" href="Tangosol.Run.Xml.SimpleElement.html#Tangosol_Run_Xml_SimpleElement_AddElement_System_String_">AddElement(String)</a>. If any part of the path does
+not exist create new child elements to match the path.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the name is <code>null</code> or if any part of the path is not a
+legal XML tag name.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If any element in the path is immutable or otherwise can not add
+a child element.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_Equals_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.Equals(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L1080">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_Equals_" data-uid="Tangosol.Run.Xml.SimpleElement.Equals*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_Equals_System_Object_" data-uid="Tangosol.Run.Xml.SimpleElement.Equals(System.Object)">Equals(Object)</h4>
+  <div class="markdown level1 summary"><p>Compare this XML element and all of its contained information
+with another XML element for equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Equals(object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>The object to compare to.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the elements are equal, <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_Equals_System_Object_">SimpleValue.Equals(Object)</a></div>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_Equals_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Note that this overrides the contract of the Equals() method in
+the super interface IXmlValue.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_FindElement_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.FindElement(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L271">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_FindElement_" data-uid="Tangosol.Run.Xml.SimpleElement.FindElement*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_FindElement_System_String_" data-uid="Tangosol.Run.Xml.SimpleElement.FindElement(System.String)">FindElement(String)</h4>
+  <div class="markdown level1 summary"><p>Find a child element with the specified '/'-delimited path.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IXmlElement FindElement(string path)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">path</span></td>
+        <td><p>Element path.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a></td>
+        <td><p>The specified element as an object implementing IXmlElement, or
+<code>null</code> if the specified child element does not exist.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_FindElement_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This is based on a subset of the XPath specification, supporting:</p>
+<ul><li></li><li></li><li></li></ul>
+This is a convenience method. Elements are accessed and
+manipulated via the list returned from
+<a class="xref" href="Tangosol.Run.Xml.SimpleElement.html#Tangosol_Run_Xml_SimpleElement_ElementList">ElementList</a>.<br>
+If multiple child elements exist that have the specified name,
+then the behavior of this method is undefined, and it is
+permitted to return any one of the matching elements, to return
+<code>null</code>, or to throw an arbitrary runtime exception.
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_GetAttribute_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.GetAttribute(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L433">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_GetAttribute_" data-uid="Tangosol.Run.Xml.SimpleElement.GetAttribute*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_GetAttribute_System_String_" data-uid="Tangosol.Run.Xml.SimpleElement.GetAttribute(System.String)">GetAttribute(String)</h4>
+  <div class="markdown level1 summary"><p>Get an attribute value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IXmlValue GetAttribute(string name)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name of the attribute.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlValue.html">IXmlValue</a></td>
+        <td><p>The value of the specified attribute, or <code>null</code> if the
+attribute does not exist.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_GetAttribute_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This is a convenience method. Attributes are accessed and
+manipulated via the dictionary returned from
+<a class="xref" href="Tangosol.Run.Xml.SimpleElement.html#Tangosol_Run_Xml_SimpleElement_Attributes">Attributes</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_GetElement_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.GetElement(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L191">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_GetElement_" data-uid="Tangosol.Run.Xml.SimpleElement.GetElement*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_GetElement_System_String_" data-uid="Tangosol.Run.Xml.SimpleElement.GetElement(System.String)">GetElement(String)</h4>
+  <div class="markdown level1 summary"><p>Get a child element.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IXmlElement GetElement(string name)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name of child element.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a></td>
+        <td><p>The specified element as an object implementing IXmlElement, or
+<code>null</code> if the specified child element does not exist.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_GetElement_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This is a convenience method. Elements are accessed and
+manipulated via the list returned from
+<a class="xref" href="Tangosol.Run.Xml.SimpleElement.html#Tangosol_Run_Xml_SimpleElement_ElementList">ElementList</a>.<br>
+If multiple child elements exist that have the specified name,
+then the behavior of this method is undefined, and it is
+permitted to return any one of the matching elements, to return
+<code>null</code>, or to throw an arbitrary runtime exception.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_GetElements_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.GetElements(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L211">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_GetElements_" data-uid="Tangosol.Run.Xml.SimpleElement.GetElements*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_GetElements_System_String_" data-uid="Tangosol.Run.Xml.SimpleElement.GetElements(System.String)">GetElements(String)</h4>
+  <div class="markdown level1 summary"><p>Get an enumerator of child elements that have a specific name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IEnumerator GetElements(string name)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name of child elements.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IEnumerator</span></td>
+        <td><p>An enumerator containing all child elements of the specified
+name.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_GetElements_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This is a convenience method. Elements are accessed and
+manipulated via the list returned from
+<a class="xref" href="Tangosol.Run.Xml.SimpleElement.html#Tangosol_Run_Xml_SimpleElement_ElementList">ElementList</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_GetHashCode.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.GetHashCode%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L1061">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_GetHashCode_" data-uid="Tangosol.Run.Xml.SimpleElement.GetHashCode*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_GetHashCode" data-uid="Tangosol.Run.Xml.SimpleElement.GetHashCode">GetHashCode()</h4>
+  <div class="markdown level1 summary"><p>Provide a hash value for this XML element and all of its
+contained information.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetHashCode()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The hash value for this XML element.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_GetHashCode">SimpleValue.GetHashCode()</a></div>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_GetHashCode_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Note that this overrides the contract of the GetHashCode() method
+in the super interface IXmlValue. The hash value is defined as a
+xor of the following:</p>
+<ol><li></li><li></li><li></li><li></li></ol>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_GetSafeAttribute_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.GetSafeAttribute(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L519">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_GetSafeAttribute_" data-uid="Tangosol.Run.Xml.SimpleElement.GetSafeAttribute*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_GetSafeAttribute_System_String_" data-uid="Tangosol.Run.Xml.SimpleElement.GetSafeAttribute(System.String)">GetSafeAttribute(String)</h4>
+  <div class="markdown level1 summary"><p>Get an attribute value, and return a temporary value if the
+attribute does not exist.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IXmlValue GetSafeAttribute(string name)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name of the attribute.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlValue.html">IXmlValue</a></td>
+        <td><p>The value of the specified attribute, or a temporary value if
+the attribute does not exist.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_GetSafeElement_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.GetSafeElement(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L298">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_GetSafeElement_" data-uid="Tangosol.Run.Xml.SimpleElement.GetSafeElement*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_GetSafeElement_System_String_" data-uid="Tangosol.Run.Xml.SimpleElement.GetSafeElement(System.String)">GetSafeElement(String)</h4>
+  <div class="markdown level1 summary"><p>Return the specified child element using the same path notation
+as supported by <a class="xref" href="Tangosol.Run.Xml.SimpleElement.html#Tangosol_Run_Xml_SimpleElement_FindElement_System_String_">FindElement(String)</a>, but return a
+read-only element if the specified element does not exist.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IXmlElement GetSafeElement(string path)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">path</span></td>
+        <td><p>Element path.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a></td>
+        <td><p>The specified element (never <code>null</code>) as an object
+implementing IXmlElement for read-only use.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_GetSafeElement_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p><strong>This method never returns <code>null</code>.</strong><br>
+This is a convenience method. Elements are accessed and
+manipulated via the list returned from
+<a class="xref" href="Tangosol.Run.Xml.SimpleElement.html#Tangosol_Run_Xml_SimpleElement_ElementList">ElementList</a>.<br>
+If multiple child elements exist that have the specified name,
+then the behavior of this method is undefined, and it is
+permitted to return any one of the matching elements, to return
+<code>null</code>, or to throw an arbitrary runtime exception.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_InstantiateAttribute.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.InstantiateAttribute%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L857">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_InstantiateAttribute_" data-uid="Tangosol.Run.Xml.SimpleElement.InstantiateAttribute*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_InstantiateAttribute" data-uid="Tangosol.Run.Xml.SimpleElement.InstantiateAttribute">InstantiateAttribute()</h4>
+  <div class="markdown level1 summary"><p>Instantiate an <a class="xref" href="Tangosol.Run.Xml.IXmlValue.html">IXmlValue</a> implementation for an
+attribute value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual IXmlValue InstantiateAttribute()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlValue.html">IXmlValue</a></td>
+        <td><p>A new <strong>IXmlValue</strong> to be used as an attribute value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_InstantiateAttributes.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.InstantiateAttributes%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L845">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_InstantiateAttributes_" data-uid="Tangosol.Run.Xml.SimpleElement.InstantiateAttributes*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_InstantiateAttributes" data-uid="Tangosol.Run.Xml.SimpleElement.InstantiateAttributes">InstantiateAttributes()</h4>
+  <div class="markdown level1 summary"><p>Instantiate an <strong>IDictionary</strong> implementation that will
+support the name to value dictionary used to hold attributes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual IDictionary InstantiateAttributes()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>A IDictionary that supports string keys and <strong>IXmlValue</strong>
+values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_InstantiateElement_System_String_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.InstantiateElement(System.String%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L832">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_InstantiateElement_" data-uid="Tangosol.Run.Xml.SimpleElement.InstantiateElement*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_InstantiateElement_System_String_System_Object_" data-uid="Tangosol.Run.Xml.SimpleElement.InstantiateElement(System.String,System.Object)">InstantiateElement(String, Object)</h4>
+  <div class="markdown level1 summary"><p>Instantiate an IXmlElement implementation for an element.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual IXmlElement InstantiateElement(string name, object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>Element name.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Element value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a></td>
+        <td><p>A new IXmlElement to be used as an element.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_InstantiateElementList.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.InstantiateElementList%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L815">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_InstantiateElementList_" data-uid="Tangosol.Run.Xml.SimpleElement.InstantiateElementList*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_InstantiateElementList" data-uid="Tangosol.Run.Xml.SimpleElement.InstantiateElementList">InstantiateElementList()</h4>
+  <div class="markdown level1 summary"><p>Instantiate an <strong>IList</strong> implementation that will hold child
+elements.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual IList InstantiateElementList()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IList</span></td>
+        <td><p>A IList that supports IXmlElements.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_ReadExternal_Tangosol_IO_Pof_IPofReader_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.ReadExternal(Tangosol.IO.Pof.IPofReader)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L683">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_ReadExternal_" data-uid="Tangosol.Run.Xml.SimpleElement.ReadExternal*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_ReadExternal_Tangosol_IO_Pof_IPofReader_" data-uid="Tangosol.Run.Xml.SimpleElement.ReadExternal(Tangosol.IO.Pof.IPofReader)">ReadExternal(IPofReader)</h4>
+  <div class="markdown level1 summary"><p>Restore the contents of a user type instance by reading its state
+using the specified <a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void ReadExternal(IPofReader reader)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a></td>
+        <td><span class="parametername">reader</span></td>
+        <td><p>The <strong>IPofReader</strong> from which to read the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_ReadExternal_Tangosol_IO_Pof_IPofReader_">SimpleValue.ReadExternal(IPofReader)</a></div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_SetAttribute_System_String_Tangosol_Run_Xml_IXmlValue_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.SetAttribute(System.String%2CTangosol.Run.Xml.IXmlValue)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L465">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_SetAttribute_" data-uid="Tangosol.Run.Xml.SimpleElement.SetAttribute*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_SetAttribute_System_String_Tangosol_Run_Xml_IXmlValue_" data-uid="Tangosol.Run.Xml.SimpleElement.SetAttribute(System.String,Tangosol.Run.Xml.IXmlValue)">SetAttribute(String, IXmlValue)</h4>
+  <div class="markdown level1 summary"><p>Set an attribute value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void SetAttribute(string name, IXmlValue value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name of the attribute.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlValue.html">IXmlValue</a></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The new value for the attribute; <code>null</code> indicates that the
+attribute should be removed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_SetAttribute_System_String_Tangosol_Run_Xml_IXmlValue__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If the attribute does not already exist, and the new value is
+non-null, then the attribute is added and its value is set to the
+passed value. If the attribute does exist, and the new value is
+non-null, then the attribute's value is updated to the passed
+value. If the attribute does exist, but the new value is
+<code>null</code>, then the attribute and its corresponding value are
+removed.<br>
+This is a convenience method. Attributes are accessed and
+manipulated via the dictionary returned from
+<a class="xref" href="Tangosol.Run.Xml.SimpleElement.html#Tangosol_Run_Xml_SimpleElement_Attributes">Attributes</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L1017">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_ToString_" data-uid="Tangosol.Run.Xml.SimpleElement.ToString*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_ToString" data-uid="Tangosol.Run.Xml.SimpleElement.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Format the XML element and all its contained information into a
+string in a display format.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A string representation of the XML element.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_ToString">SimpleValue.ToString()</a></div>
+  <h5 id="Tangosol_Run_Xml_SimpleElement_ToString_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Note that this overrides the contract of the ToString() method in
+the super interface IXmlValue.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_ToString_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.ToString(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L1033">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_ToString_" data-uid="Tangosol.Run.Xml.SimpleElement.ToString*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_ToString_System_Boolean_" data-uid="Tangosol.Run.Xml.SimpleElement.ToString(System.Boolean)">ToString(Boolean)</h4>
+  <div class="markdown level1 summary"><p>Format the XML element and all its contained information into a
+string in a display format.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual string ToString(bool isPretty)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isPretty</span></td>
+        <td><p><strong>true</strong> to specify that the output is intended to be as human
+readable as possible.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A string representation of the XML element.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_WriteAttributes_System_IO_TextWriter_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.WriteAttributes(System.IO.TextWriter%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L929">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_WriteAttributes_" data-uid="Tangosol.Run.Xml.SimpleElement.WriteAttributes*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_WriteAttributes_System_IO_TextWriter_System_Boolean_" data-uid="Tangosol.Run.Xml.SimpleElement.WriteAttributes(System.IO.TextWriter,System.Boolean)">WriteAttributes(TextWriter, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Write the attributes as part of a start tag.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void WriteAttributes(TextWriter writer, bool isPretty)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.TextWriter</span></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>A <strong>TextWriter</strong> object to use to write to.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isPretty</span></td>
+        <td><p><strong>true</strong> to specify that the output is intended to be as human
+readable as possible.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_WriteChildren_System_IO_TextWriter_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.WriteChildren(System.IO.TextWriter%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L983">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_WriteChildren_" data-uid="Tangosol.Run.Xml.SimpleElement.WriteChildren*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_WriteChildren_System_IO_TextWriter_System_Boolean_" data-uid="Tangosol.Run.Xml.SimpleElement.WriteChildren(System.IO.TextWriter,System.Boolean)">WriteChildren(TextWriter, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Write the element's children.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void WriteChildren(TextWriter writer, bool isPretty)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.TextWriter</span></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>A <strong>TextWriter</strong> object to use to write to.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isPretty</span></td>
+        <td><p><strong>true</strong> to specify that the output is intended to be as human
+readable as possible.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_WriteComment_System_IO_TextWriter_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.WriteComment(System.IO.TextWriter%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L952">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_WriteComment_" data-uid="Tangosol.Run.Xml.SimpleElement.WriteComment*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_WriteComment_System_IO_TextWriter_System_Boolean_" data-uid="Tangosol.Run.Xml.SimpleElement.WriteComment(System.IO.TextWriter,System.Boolean)">WriteComment(TextWriter, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Write the comment as it will appear in XML.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void WriteComment(TextWriter writer, bool isPretty)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.TextWriter</span></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>A <strong>TextWriter</strong> object to use to write to.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isPretty</span></td>
+        <td><p><strong>true</strong> to specify that the output is intended to be as human
+readable as possible.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_WriteEmptyTag_System_IO_TextWriter_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.WriteEmptyTag(System.IO.TextWriter%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L876">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_WriteEmptyTag_" data-uid="Tangosol.Run.Xml.SimpleElement.WriteEmptyTag*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_WriteEmptyTag_System_IO_TextWriter_System_Boolean_" data-uid="Tangosol.Run.Xml.SimpleElement.WriteEmptyTag(System.IO.TextWriter,System.Boolean)">WriteEmptyTag(TextWriter, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Write the element as a combined start/end tag.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void WriteEmptyTag(TextWriter writer, bool isPretty)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.TextWriter</span></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>A <strong>TextWriter</strong> object to use to write to.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isPretty</span></td>
+        <td><p><strong>true</strong> to specify that the output is intended to be as human
+readable as possible.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_WriteEndTag_System_IO_TextWriter_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.WriteEndTag(System.IO.TextWriter%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L912">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_WriteEndTag_" data-uid="Tangosol.Run.Xml.SimpleElement.WriteEndTag*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_WriteEndTag_System_IO_TextWriter_System_Boolean_" data-uid="Tangosol.Run.Xml.SimpleElement.WriteEndTag(System.IO.TextWriter,System.Boolean)">WriteEndTag(TextWriter, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Write the element's end tag.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void WriteEndTag(TextWriter writer, bool isPretty)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.TextWriter</span></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>A <strong>TextWriter</strong> object to use to write to.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isPretty</span></td>
+        <td><p><strong>true</strong> to specify that the output is intended to be as human
+readable as possible.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_WriteExternal_Tangosol_IO_Pof_IPofWriter_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.WriteExternal(Tangosol.IO.Pof.IPofWriter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L735">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_WriteExternal_" data-uid="Tangosol.Run.Xml.SimpleElement.WriteExternal*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_WriteExternal_Tangosol_IO_Pof_IPofWriter_" data-uid="Tangosol.Run.Xml.SimpleElement.WriteExternal(Tangosol.IO.Pof.IPofWriter)">WriteExternal(IPofWriter)</h4>
+  <div class="markdown level1 summary"><p>Save the contents of a POF user type instance by writing its
+state using the specified <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void WriteExternal(IPofWriter writer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The <strong>IPofWriter</strong> to which to write the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_WriteExternal_Tangosol_IO_Pof_IPofWriter_">SimpleValue.WriteExternal(IPofWriter)</a></div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_WriteStartTag_System_IO_TextWriter_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.WriteStartTag(System.IO.TextWriter%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L894">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_WriteStartTag_" data-uid="Tangosol.Run.Xml.SimpleElement.WriteStartTag*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_WriteStartTag_System_IO_TextWriter_System_Boolean_" data-uid="Tangosol.Run.Xml.SimpleElement.WriteStartTag(System.IO.TextWriter,System.Boolean)">WriteStartTag(TextWriter, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Write the element's start tag.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void WriteStartTag(TextWriter writer, bool isPretty)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.TextWriter</span></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>A <strong>TextWriter</strong> object to use to write to.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isPretty</span></td>
+        <td><p><strong>true</strong> to specify that the output is intended to be as human
+readable as possible.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_WriteValue_System_IO_TextWriter_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.WriteValue(System.IO.TextWriter%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L655">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_WriteValue_" data-uid="Tangosol.Run.Xml.SimpleElement.WriteValue*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_WriteValue_System_IO_TextWriter_System_Boolean_" data-uid="Tangosol.Run.Xml.SimpleElement.WriteValue(System.IO.TextWriter,System.Boolean)">WriteValue(TextWriter, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Write the value as it will appear in XML.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void WriteValue(TextWriter writer, bool isPretty)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.TextWriter</span></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>A <strong>TextWriter</strong> object to use to write to.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isPretty</span></td>
+        <td><p><strong>true</strong> to specify that the output is intended to be as human
+readable as possible.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Run.Xml.SimpleValue.html#Tangosol_Run_Xml_SimpleValue_WriteValue_System_IO_TextWriter_System_Boolean_">SimpleValue.WriteValue(TextWriter, Boolean)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement_WriteXml_System_IO_TextWriter_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement.WriteXml(System.IO.TextWriter%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L578">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_SimpleElement_WriteXml_" data-uid="Tangosol.Run.Xml.SimpleElement.WriteXml*"></a>
+  <h4 id="Tangosol_Run_Xml_SimpleElement_WriteXml_System_IO_TextWriter_System_Boolean_" data-uid="Tangosol.Run.Xml.SimpleElement.WriteXml(System.IO.TextWriter,System.Boolean)">WriteXml(TextWriter, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Write the element as it will appear in XML.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void WriteXml(TextWriter writer, bool isPretty)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.TextWriter</span></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>A <strong>TextWriter</strong> object to use to write to.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isPretty</span></td>
+        <td><p><strong>true</strong> to specify that the output is intended to be as human
+readable as possible.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Run.Xml.IXmlValue.html">IXmlValue</a>
+  </div>
+  <div>
+      <span class="xref">ICloneable</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_SimpleElement.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.SimpleElement%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/SimpleElement.cs/#L26" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

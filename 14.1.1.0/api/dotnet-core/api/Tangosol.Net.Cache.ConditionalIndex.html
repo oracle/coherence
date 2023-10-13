@@ -1,0 +1,857 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class ConditionalIndex
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class ConditionalIndex
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Cache.ConditionalIndex">
+  
+  
+  <h1 id="Tangosol_Net_Cache_ConditionalIndex" data-uid="Tangosol.Net.Cache.ConditionalIndex" class="text-break">Class ConditionalIndex
+  </h1>
+  <div class="markdown level0 summary"><p>ConditionalIndex is an <a class="xref" href="Tangosol.Net.Cache.ICacheIndex.html">ICacheIndex</a> implementation that
+uses an associated filter to evaluate whether or not an entry should be
+indexed. An entry's extracted value is only added to the index if the
+filter evaluates to true.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html">SimpleCacheIndex</a></div>
+    <div class="level2"><span class="xref">ConditionalIndex</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.Cache.ICacheIndex.html">ICacheIndex</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_ValueExtractor">SimpleCacheIndex.ValueExtractor</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_IsOrdered">SimpleCacheIndex.IsOrdered</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_Comparer">SimpleCacheIndex.Comparer</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_IndexContents">SimpleCacheIndex.IndexContents</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_IndexForward">SimpleCacheIndex.IndexForward</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_Insert_Tangosol_Net_Cache_ICacheEntry_">SimpleCacheIndex.Insert(ICacheEntry)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_Update_Tangosol_Net_Cache_ICacheEntry_">SimpleCacheIndex.Update(ICacheEntry)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_Delete_Tangosol_Net_Cache_ICacheEntry_">SimpleCacheIndex.Delete(ICacheEntry)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_Initialize_System_Boolean_">SimpleCacheIndex.Initialize(Boolean)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_ExtractNewValue_Tangosol_Net_Cache_ICacheEntry_">SimpleCacheIndex.ExtractNewValue(ICacheEntry)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_ExtractOldValue_Tangosol_Net_Cache_CacheEntry_">SimpleCacheIndex.ExtractOldValue(CacheEntry)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_EnsureCollection_System_Object_">SimpleCacheIndex.EnsureCollection(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_InstatiateInverseIndex_System_Boolean_System_Collections_IComparer_">SimpleCacheIndex.InstatiateInverseIndex(Boolean, IComparer)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_AddInverseMapping_System_Object_System_Object_">SimpleCacheIndex.AddInverseMapping(Object, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_AddInverseMapping_System_Collections_IDictionary_System_Object_System_Object_">SimpleCacheIndex.AddInverseMapping(IDictionary, Object, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_AddInverseCollectionMapping_System_Collections_IDictionary_System_Collections_ICollection_System_Object_">SimpleCacheIndex.AddInverseCollectionMapping(IDictionary, ICollection, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_RemoveInverseMapping_System_Object_System_Object_System_Collections_ICollection_">SimpleCacheIndex.RemoveInverseMapping(Object, Object, ICollection)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_RemoveInverseMapping_System_Object_System_Object_">SimpleCacheIndex.RemoveInverseMapping(Object, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_RemoveInverseMapping_System_Collections_IDictionary_System_Object_System_Object_">SimpleCacheIndex.RemoveInverseMapping(IDictionary, Object, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_CollectRemoved_System_Object_System_Object_">SimpleCacheIndex.CollectRemoved(Object, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_LogMissingIdx_System_Object_System_Object_">SimpleCacheIndex.LogMissingIdx(Object, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_UpdateExcludedKeys_Tangosol_Net_Cache_ICacheEntry_System_Boolean_">SimpleCacheIndex.UpdateExcludedKeys(ICacheEntry, Boolean)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_IsKeyExcluded_System_Object_">SimpleCacheIndex.IsKeyExcluded(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_Equals_System_Object_">SimpleCacheIndex.Equals(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_GetHashCode">SimpleCacheIndex.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_NO_VALUE">SimpleCacheIndex.NO_VALUE</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_m_splitCollection">SimpleCacheIndex.m_splitCollection</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_m_ldtLogMissingIdx">SimpleCacheIndex.m_ldtLogMissingIdx</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_m_cLogMissingIdx">SimpleCacheIndex.m_cLogMissingIdx</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_m_keysExcluded">SimpleCacheIndex.m_keysExcluded</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_m_fImmutableValues">SimpleCacheIndex.m_fImmutableValues</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Cache.html">Tangosol.Net.Cache</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Cache_ConditionalIndex_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class ConditionalIndex : SimpleCacheIndex, ICacheIndex</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ConditionalIndex__ctor_Tangosol_Util_IFilter_Tangosol_Util_IValueExtractor_System_Boolean_System_Collections_IComparer_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ConditionalIndex.%23ctor(Tangosol.Util.IFilter%2CTangosol.Util.IValueExtractor%2CSystem.Boolean%2CSystem.Collections.IComparer%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ConditionalIndex.cs/#L82">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ConditionalIndex__ctor_" data-uid="Tangosol.Net.Cache.ConditionalIndex.#ctor*"></a>
+  <h4 id="Tangosol_Net_Cache_ConditionalIndex__ctor_Tangosol_Util_IFilter_Tangosol_Util_IValueExtractor_System_Boolean_System_Collections_IComparer_System_Boolean_" data-uid="Tangosol.Net.Cache.ConditionalIndex.#ctor(Tangosol.Util.IFilter,Tangosol.Util.IValueExtractor,System.Boolean,System.Collections.IComparer,System.Boolean)">ConditionalIndex(IFilter, IValueExtractor, Boolean, IComparer, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Construct a ConditionalIndex.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ConditionalIndex(IFilter filter, IValueExtractor extractor, bool ordered, IComparer comparer, bool forwardIndex)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>the filter that is used to evaluate the
+entries of the resource cache that is being indexed.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><span class="parametername">extractor</span></td>
+        <td><p>the <a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a> that is used to extract an
+indexed value from a resource cache entry.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">ordered</span></td>
+        <td><p><code>true</code> iff the contents of the indexed information should be
+ordered; <code>false</code> otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td><span class="parametername">comparer</span></td>
+        <td><p>the IComparer object which imposes an ordering on entries in the
+index; or <tt>null</tt> if the entries' values natural ordering
+should be used.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">forwardIndex</span></td>
+        <td><p>specifies whether or not this index supports a forward map</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ConditionalIndex_Filter.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ConditionalIndex.Filter%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ConditionalIndex.cs/#L44">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ConditionalIndex_Filter_" data-uid="Tangosol.Net.Cache.ConditionalIndex.Filter*"></a>
+  <h4 id="Tangosol_Net_Cache_ConditionalIndex_Filter" data-uid="Tangosol.Net.Cache.ConditionalIndex.Filter">Filter</h4>
+  <div class="markdown level1 summary"><p>Get the associated filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IFilter Filter { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><p>The filter.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ConditionalIndex_IsForwardIndexSupported.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ConditionalIndex.IsForwardIndexSupported%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ConditionalIndex.cs/#L54">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ConditionalIndex_IsForwardIndexSupported_" data-uid="Tangosol.Net.Cache.ConditionalIndex.IsForwardIndexSupported*"></a>
+  <h4 id="Tangosol_Net_Cache_ConditionalIndex_IsForwardIndexSupported" data-uid="Tangosol.Net.Cache.ConditionalIndex.IsForwardIndexSupported">IsForwardIndexSupported</h4>
+  <div class="markdown level1 summary"><p>Determine whether or not this ConditionalIndex supports a forward
+index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsForwardIndexSupported { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if this ConditionalIndex supports a forward index;
+<code>false</code> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ConditionalIndex_IsPartial.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ConditionalIndex.IsPartial%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ConditionalIndex.cs/#L38">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ConditionalIndex_IsPartial_" data-uid="Tangosol.Net.Cache.ConditionalIndex.IsPartial*"></a>
+  <h4 id="Tangosol_Net_Cache_ConditionalIndex_IsPartial" data-uid="Tangosol.Net.Cache.ConditionalIndex.IsPartial">IsPartial</h4>
+  <div class="markdown level1 summary"><p>Determine if indexed information for any entry in the indexed
+ICache has been excluded from this index. This information is used
+by <a class="xref" href="Tangosol.Util.Filter.IIndexAwareFilter.html">IIndexAwareFilter</a>
+implementations to determine the most optimal way to apply the
+index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool IsPartial { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if any entry of the indexed ICache has been excluded
+from the index, <strong>false</strong> otherwise</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_IsPartial">SimpleCacheIndex.IsPartial</a></div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ConditionalIndex_DeleteInternal_Tangosol_Net_Cache_ICacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ConditionalIndex.DeleteInternal(Tangosol.Net.Cache.ICacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ConditionalIndex.cs/#L200">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ConditionalIndex_DeleteInternal_" data-uid="Tangosol.Net.Cache.ConditionalIndex.DeleteInternal*"></a>
+  <h4 id="Tangosol_Net_Cache_ConditionalIndex_DeleteInternal_Tangosol_Net_Cache_ICacheEntry_" data-uid="Tangosol.Net.Cache.ConditionalIndex.DeleteInternal(Tangosol.Net.Cache.ICacheEntry)">DeleteInternal(ICacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Update this index in response to a delete operation on a cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void DeleteInternal(ICacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The entry representing the object being inserted.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_DeleteInternal_Tangosol_Net_Cache_ICacheEntry_">SimpleCacheIndex.DeleteInternal(ICacheEntry)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ConditionalIndex_Equals_Tangosol_Net_Cache_SimpleCacheIndex_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ConditionalIndex.Equals(Tangosol.Net.Cache.SimpleCacheIndex)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ConditionalIndex.cs/#L281">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ConditionalIndex_Equals_" data-uid="Tangosol.Net.Cache.ConditionalIndex.Equals*"></a>
+  <h4 id="Tangosol_Net_Cache_ConditionalIndex_Equals_Tangosol_Net_Cache_SimpleCacheIndex_" data-uid="Tangosol.Net.Cache.ConditionalIndex.Equals(Tangosol.Net.Cache.SimpleCacheIndex)">Equals(SimpleCacheIndex)</h4>
+  <div class="markdown level1 summary"><p>Compares this index with another index for equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Equals(SimpleCacheIndex index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html">SimpleCacheIndex</a></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>index to compare this index with.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if the two indexes are equal; <code>false</code> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_Equals_Tangosol_Net_Cache_SimpleCacheIndex_">SimpleCacheIndex.Equals(SimpleCacheIndex)</a></div>
+  <h5 id="Tangosol_Net_Cache_ConditionalIndex_Equals_Tangosol_Net_Cache_SimpleCacheIndex__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method returns true if this index and the specified index have
+exactly the same contents.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ConditionalIndex_EvaluateEntry_Tangosol_Net_Cache_ICacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ConditionalIndex.EvaluateEntry(Tangosol.Net.Cache.ICacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ConditionalIndex.cs/#L233">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ConditionalIndex_EvaluateEntry_" data-uid="Tangosol.Net.Cache.ConditionalIndex.EvaluateEntry*"></a>
+  <h4 id="Tangosol_Net_Cache_ConditionalIndex_EvaluateEntry_Tangosol_Net_Cache_ICacheEntry_" data-uid="Tangosol.Net.Cache.ConditionalIndex.EvaluateEntry(Tangosol.Net.Cache.ICacheEntry)">EvaluateEntry(ICacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Evaluate the given entry using this index's filter. If the entry
+does not pass the filter then it should be excluded from this
+index, making this a partial index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual bool EvaluateEntry(ICacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The entry to evaluate.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> If the entry passes the filter, <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ConditionalIndex_Get_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ConditionalIndex.Get(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ConditionalIndex.cs/#L113">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ConditionalIndex_Get_" data-uid="Tangosol.Net.Cache.ConditionalIndex.Get*"></a>
+  <h4 id="Tangosol_Net_Cache_ConditionalIndex_Get_System_Object_" data-uid="Tangosol.Net.Cache.ConditionalIndex.Get(System.Object)">Get(Object)</h4>
+  <div class="markdown level1 summary"><p>Using the index information if possible, get the value associated
+with the specified key. This is expected to be more efficient than
+using the IValueExtractor against an object containing the value,
+because the index should already have the necessary information at
+hand.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override object Get(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key that specifies the object to extract the value from.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The value that would be extracted by this ICacheIndex's
+IValueExtractor from the object specified by the passed key;
+<a class="xref" href="Tangosol.Util.ObjectUtils.html#Tangosol_Util_ObjectUtils_NO_VALUE">NO_VALUE</a> if the index does not have the
+necessary information.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_Get_System_Object_">SimpleCacheIndex.Get(Object)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ConditionalIndex_GetForwardValue_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ConditionalIndex.GetForwardValue(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ConditionalIndex.cs/#L131">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ConditionalIndex_GetForwardValue_" data-uid="Tangosol.Net.Cache.ConditionalIndex.GetForwardValue*"></a>
+  <h4 id="Tangosol_Net_Cache_ConditionalIndex_GetForwardValue_System_Object_" data-uid="Tangosol.Net.Cache.ConditionalIndex.GetForwardValue(System.Object)">GetForwardValue(Object)</h4>
+  <div class="markdown level1 summary"><p>Get the forward index value associated with the specified key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override object GetForwardValue(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The value associated with the key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_GetForwardValue_System_Object_">SimpleCacheIndex.GetForwardValue(Object)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ConditionalIndex_InsertInternal_Tangosol_Net_Cache_ICacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ConditionalIndex.InsertInternal(Tangosol.Net.Cache.ICacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ConditionalIndex.cs/#L168">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ConditionalIndex_InsertInternal_" data-uid="Tangosol.Net.Cache.ConditionalIndex.InsertInternal*"></a>
+  <h4 id="Tangosol_Net_Cache_ConditionalIndex_InsertInternal_Tangosol_Net_Cache_ICacheEntry_" data-uid="Tangosol.Net.Cache.ConditionalIndex.InsertInternal(Tangosol.Net.Cache.ICacheEntry)">InsertInternal(ICacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Update this index in response to a insert operation on a cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void InsertInternal(ICacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The entry representing the object being inserted.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_InsertInternal_Tangosol_Net_Cache_ICacheEntry_">SimpleCacheIndex.InsertInternal(ICacheEntry)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ConditionalIndex_InstantiateForwardIndex.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ConditionalIndex.InstantiateForwardIndex%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ConditionalIndex.cs/#L157">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ConditionalIndex_InstantiateForwardIndex_" data-uid="Tangosol.Net.Cache.ConditionalIndex.InstantiateForwardIndex*"></a>
+  <h4 id="Tangosol_Net_Cache_ConditionalIndex_InstantiateForwardIndex" data-uid="Tangosol.Net.Cache.ConditionalIndex.InstantiateForwardIndex">InstantiateForwardIndex()</h4>
+  <div class="markdown level1 summary"><p>Instantiate the forward index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override IDictionary InstantiateForwardIndex()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>The forward index.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_InstantiateForwardIndex">SimpleCacheIndex.InstantiateForwardIndex()</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ConditionalIndex_RemoveForwardEntry_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ConditionalIndex.RemoveForwardEntry(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ConditionalIndex.cs/#L143">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ConditionalIndex_RemoveForwardEntry_" data-uid="Tangosol.Net.Cache.ConditionalIndex.RemoveForwardEntry*"></a>
+  <h4 id="Tangosol_Net_Cache_ConditionalIndex_RemoveForwardEntry_System_Object_" data-uid="Tangosol.Net.Cache.ConditionalIndex.RemoveForwardEntry(System.Object)">RemoveForwardEntry(Object)</h4>
+  <div class="markdown level1 summary"><p>Remove the forward index entry for the specified key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void RemoveForwardEntry(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key to remove the forward index entry for.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_RemoveForwardEntry_System_Object_">SimpleCacheIndex.RemoveForwardEntry(Object)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ConditionalIndex_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ConditionalIndex.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ConditionalIndex.cs/#L261">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ConditionalIndex_ToString_" data-uid="Tangosol.Net.Cache.ConditionalIndex.ToString*"></a>
+  <h4 id="Tangosol_Net_Cache_ConditionalIndex_ToString" data-uid="Tangosol.Net.Cache.ConditionalIndex.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Returns string representation of this instance.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>String representation of this instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_ToString">SimpleCacheIndex.ToString()</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ConditionalIndex_UpdateInternal_Tangosol_Net_Cache_ICacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ConditionalIndex.UpdateInternal(Tangosol.Net.Cache.ICacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ConditionalIndex.cs/#L182">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ConditionalIndex_UpdateInternal_" data-uid="Tangosol.Net.Cache.ConditionalIndex.UpdateInternal*"></a>
+  <h4 id="Tangosol_Net_Cache_ConditionalIndex_UpdateInternal_Tangosol_Net_Cache_ICacheEntry_" data-uid="Tangosol.Net.Cache.ConditionalIndex.UpdateInternal(Tangosol.Net.Cache.ICacheEntry)">UpdateInternal(ICacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Update this index in response to a update operation on a cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void UpdateInternal(ICacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The entry representing the object being updated.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html#Tangosol_Net_Cache_SimpleCacheIndex_UpdateInternal_Tangosol_Net_Cache_ICacheEntry_">SimpleCacheIndex.UpdateInternal(ICacheEntry)</a></div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICacheIndex.html">ICacheIndex</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ConditionalIndex.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ConditionalIndex%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ConditionalIndex.cs/#L23" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

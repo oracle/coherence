@@ -1,0 +1,2212 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class NearCache
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class NearCache
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Cache.NearCache">
+  
+  
+  <h1 id="Tangosol_Net_Cache_NearCache" data-uid="Tangosol.Net.Cache.NearCache" class="text-break">Class NearCache
+  </h1>
+  <div class="markdown level0 summary"><p>A &quot;near cache&quot; is a <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html">CompositeCache</a> whose front
+cache is a size-limited and/or auto-expiring local cache,
+and whose back cache is a distributed cache.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Net.Cache.CompositeCache.html">CompositeCache</a></div>
+    <div class="level2"><span class="xref">NearCache</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.Cache.ICacheStatistics.html">ICacheStatistics</a></div>
+    <div><a class="xref" href="Tangosol.Net.INamedCache.html">INamedCache</a></div>
+    <div><a class="xref" href="Tangosol.Net.Cache.IObservableCache.html">IObservableCache</a></div>
+    <div><a class="xref" href="Tangosol.Net.Cache.IConcurrentCache.html">IConcurrentCache</a></div>
+    <div><a class="xref" href="Tangosol.Net.Cache.IQueryCache.html">IQueryCache</a></div>
+    <div><a class="xref" href="Tangosol.Net.Cache.IInvocableCache.html">IInvocableCache</a></div>
+    <div><a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a></div>
+    <div><span class="xref">System.Collections.IDictionary</span></div>
+    <div><span class="xref">System.Collections.ICollection</span></div>
+    <div><span class="xref">System.Collections.IEnumerable</span></div>
+    <div><span class="xref">System.IDisposable</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_FrontCache">CompositeCache.FrontCache</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_InvalidationStrategy">CompositeCache.InvalidationStrategy</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_CacheControl">CompositeCache.CacheControl</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_IsCoherent">CompositeCache.IsCoherent</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_CacheStatistics">CompositeCache.CacheStatistics</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_InvalidationHits">CompositeCache.InvalidationHits</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_InvalidationMisses">CompositeCache.InvalidationMisses</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_TotalRegisterListener">CompositeCache.TotalRegisterListener</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_Clear">CompositeCache.Clear()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_Contains_System_Object_">CompositeCache.Contains(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_Add_System_Object_System_Object_">CompositeCache.Add(Object, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_System_Collections_IDictionary_GetEnumerator">CompositeCache.IDictionary.GetEnumerator()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_Remove_System_Object_">CompositeCache.Remove(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_Item_System_Object_">CompositeCache.Item[Object]</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_Keys">CompositeCache.Keys</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_Values">CompositeCache.Values</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_IsReadOnly">CompositeCache.IsReadOnly</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_IsFixedSize">CompositeCache.IsFixedSize</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_CopyTo_System_Array_System_Int32_">CompositeCache.CopyTo(Array, Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_Count">CompositeCache.Count</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_SyncRoot">CompositeCache.SyncRoot</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_IsSynchronized">CompositeCache.IsSynchronized</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_GetEnumerator">CompositeCache.GetEnumerator()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_GetAll_System_Collections_ICollection_">CompositeCache.GetAll(ICollection)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_Insert_System_Object_System_Object_">CompositeCache.Insert(Object, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_Insert_System_Object_System_Object_System_Int64_">CompositeCache.Insert(Object, Object, Int64)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_InsertAll_System_Collections_IDictionary_">CompositeCache.InsertAll(IDictionary)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_Entries">CompositeCache.Entries</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_Tangosol_Net_Cache_ICache_GetEnumerator">CompositeCache.ICache.GetEnumerator()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_Dispose">CompositeCache.Dispose()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_InvalidateFront_System_Object_">CompositeCache.InvalidateFront(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_Validate_Tangosol_Net_Cache_CacheEventArgs_">CompositeCache.Validate(CacheEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_TryLock_Tangosol_Util_Collections_HashSet_">CompositeCache.TryLock(HashSet)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_IsPriming_Tangosol_Net_Cache_CacheEventArgs_">CompositeCache.IsPriming(CacheEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_SetKeyHolder">CompositeCache.SetKeyHolder()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_RemoveKeyHolder">CompositeCache.RemoveKeyHolder()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_TotalGets">CompositeCache.TotalGets</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_TotalGetsMillis">CompositeCache.TotalGetsMillis</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_AverageGetMillis">CompositeCache.AverageGetMillis</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_TotalPuts">CompositeCache.TotalPuts</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_TotalPutsMillis">CompositeCache.TotalPutsMillis</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_AveragePutMillis">CompositeCache.AveragePutMillis</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_CacheHits">CompositeCache.CacheHits</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_CacheHitsMillis">CompositeCache.CacheHitsMillis</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_AverageHitMillis">CompositeCache.AverageHitMillis</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_CacheMisses">CompositeCache.CacheMisses</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_CacheMissesMillis">CompositeCache.CacheMissesMillis</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_AverageMissMillis">CompositeCache.AverageMissMillis</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_HitProbability">CompositeCache.HitProbability</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_CachePrunes">CompositeCache.CachePrunes</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_CachePrunesMillis">CompositeCache.CachePrunesMillis</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_AveragePruneMillis">CompositeCache.AveragePruneMillis</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_ResetHitStatistics">CompositeCache.ResetHitStatistics()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_Equals_System_Object_">CompositeCache.Equals(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_GetHashCode">CompositeCache.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_ToString">CompositeCache.ToString()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_RegisterListener">CompositeCache.RegisterListener()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_UnregisterListener">CompositeCache.UnregisterListener()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_RegisterListener_System_Object_">CompositeCache.RegisterListener(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_RegisterListeners_Tangosol_Util_Collections_HashSet_">CompositeCache.RegisterListeners(HashSet)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_UnregisterListener_System_Object_">CompositeCache.UnregisterListener(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_UnregisterListeners_System_Collections_ICollection_">CompositeCache.UnregisterListeners(ICollection)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_RegisterFrontListener">CompositeCache.RegisterFrontListener()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_UnregisterFrontListener">CompositeCache.UnregisterFrontListener()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_EnsureInvalidationStrategy">CompositeCache.EnsureInvalidationStrategy()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_ResetInvalidationStrategy">CompositeCache.ResetInvalidationStrategy()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_InstantiateBackCacheListener_Tangosol_Net_Cache_CompositeCacheStrategyType_">CompositeCache.InstantiateBackCacheListener(CompositeCacheStrategyType)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_RegisterDeactivationListener">CompositeCache.RegisterDeactivationListener()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_UnregisterDeactivationListener">CompositeCache.UnregisterDeactivationListener()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_ResetFrontMap">CompositeCache.ResetFrontMap()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_InstantiateFrontCacheListener">CompositeCache.InstantiateFrontCacheListener()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_m_strategyTarget">CompositeCache.m_strategyTarget</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_m_strategyCurrent">CompositeCache.m_strategyCurrent</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_s_tloKeys">CompositeCache.s_tloKeys</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Cache.html">Tangosol.Net.Cache</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Cache_NearCache_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class NearCache : CompositeCache, ICacheStatistics, INamedCache, IObservableCache, IConcurrentCache, IQueryCache, IInvocableCache, ICache, IDictionary, ICollection, IEnumerable, IDisposable</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Cache_NearCache_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>A <strong>CompositeCache</strong> is a cache that has a &quot;front&quot; cache and a
+&quot;back&quot; cache; the front cache is assumed to be low latency but
+incomplete, and the back cache is assumed to be complete but high
+latency.</p>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache__ctor_Tangosol_Net_Cache_ICache_Tangosol_Net_INamedCache_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.%23ctor(Tangosol.Net.Cache.ICache%2CTangosol.Net.INamedCache)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L67">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache__ctor_" data-uid="Tangosol.Net.Cache.NearCache.#ctor*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache__ctor_Tangosol_Net_Cache_ICache_Tangosol_Net_INamedCache_" data-uid="Tangosol.Net.Cache.NearCache.#ctor(Tangosol.Net.Cache.ICache,Tangosol.Net.INamedCache)">NearCache(ICache, INamedCache)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>NearCache</strong>, using a <em>back</em>
+<a class="xref" href="Tangosol.Net.INamedCache.html">INamedCache</a> as the complete (back) storage and
+<em>front</em> <a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a> as a near (front) storage using
+the <a class="xref" href="Tangosol.Net.Cache.CompositeCacheStrategyType.html">CompositeCacheStrategyType</a> invalidation
+strategy.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NearCache(ICache front, INamedCache back)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a></td>
+        <td><span class="parametername">front</span></td>
+        <td><p><strong>ICache</strong> to put in front of the back cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.INamedCache.html">INamedCache</a></td>
+        <td><span class="parametername">back</span></td>
+        <td><p><strong>INamedCache</strong> to put behind the front cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache__ctor_Tangosol_Net_Cache_ICache_Tangosol_Net_INamedCache_Tangosol_Net_Cache_CompositeCacheStrategyType_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.%23ctor(Tangosol.Net.Cache.ICache%2CTangosol.Net.INamedCache%2CTangosol.Net.Cache.CompositeCacheStrategyType)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L93">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache__ctor_" data-uid="Tangosol.Net.Cache.NearCache.#ctor*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache__ctor_Tangosol_Net_Cache_ICache_Tangosol_Net_INamedCache_Tangosol_Net_Cache_CompositeCacheStrategyType_" data-uid="Tangosol.Net.Cache.NearCache.#ctor(Tangosol.Net.Cache.ICache,Tangosol.Net.INamedCache,Tangosol.Net.Cache.CompositeCacheStrategyType)">NearCache(ICache, INamedCache, CompositeCacheStrategyType)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>NearCache</strong>, using a <em>back</em>
+<a class="xref" href="Tangosol.Net.INamedCache.html">INamedCache</a> as the complete (back) storage and
+<em>front</em> <a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a> as a near (front) storage using
+the <a class="xref" href="Tangosol.Net.Cache.CompositeCacheStrategyType.html">CompositeCacheStrategyType</a> invalidation
+strategy.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NearCache(ICache front, INamedCache back, CompositeCacheStrategyType strategy)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a></td>
+        <td><span class="parametername">front</span></td>
+        <td><p><strong>ICache</strong> to put in front of the back cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.INamedCache.html">INamedCache</a></td>
+        <td><span class="parametername">back</span></td>
+        <td><p><strong>INamedCache</strong> to put behind the front cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CompositeCacheStrategyType.html">CompositeCacheStrategyType</a></td>
+        <td><span class="parametername">strategy</span></td>
+        <td><p>Specifies the strategy used for the front cache
+invalidation; valid values are:
+<a class="xref" href="Tangosol.Net.Cache.CompositeCacheStrategyType.html#Tangosol_Net_Cache_CompositeCacheStrategyType_ListenNone">ListenNone</a>
+<a class="xref" href="Tangosol.Net.Cache.CompositeCacheStrategyType.html#Tangosol_Net_Cache_CompositeCacheStrategyType_ListenPresent">ListenPresent</a>
+<a class="xref" href="Tangosol.Net.Cache.CompositeCacheStrategyType.html#Tangosol_Net_Cache_CompositeCacheStrategyType_ListenAll">ListenAll</a>
+<a class="xref" href="Tangosol.Net.Cache.CompositeCacheStrategyType.html#Tangosol_Net_Cache_CompositeCacheStrategyType_ListenAuto">ListenAuto</a></p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_BackCache.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.BackCache%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L45">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_BackCache_" data-uid="Tangosol.Net.Cache.NearCache.BackCache*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_BackCache" data-uid="Tangosol.Net.Cache.NearCache.BackCache">BackCache</h4>
+  <div class="markdown level1 summary"><p>Obtain the <a class="xref" href="Tangosol.Net.INamedCache.html">INamedCache</a> object that sits behind this
+<strong>NearCache</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual INamedCache BackCache { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.INamedCache.html">INamedCache</a></td>
+        <td><p>The <strong>INamedCache</strong> object, which is the back cache of this
+<strong>NearCache</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If this <strong>INamedCache</strong> has been released.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_CacheName.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.CacheName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L111">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_CacheName_" data-uid="Tangosol.Net.Cache.NearCache.CacheName*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_CacheName" data-uid="Tangosol.Net.Cache.NearCache.CacheName">CacheName</h4>
+  <div class="markdown level1 summary"><p>Gets the cache name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual string CacheName { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The cache name.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_CacheService.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.CacheService%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L123">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_CacheService_" data-uid="Tangosol.Net.Cache.NearCache.CacheService*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_CacheService" data-uid="Tangosol.Net.Cache.NearCache.CacheService">CacheService</h4>
+  <div class="markdown level1 summary"><p>Gets the <a class="xref" href="Tangosol.Net.ICacheService.html">ICacheService</a> that this INamedCache is a
+part of.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICacheService CacheService { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.ICacheService.html">ICacheService</a></td>
+        <td><p>The cache service this INamedCache is a part of.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_IsActive.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.IsActive%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L134">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_IsActive_" data-uid="Tangosol.Net.Cache.NearCache.IsActive*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_IsActive" data-uid="Tangosol.Net.Cache.NearCache.IsActive">IsActive</h4>
+  <div class="markdown level1 summary"><p>Specifies whether or not the INamedCache is active.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsActive { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the INamedCache is active; <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_AddCacheListener_Tangosol_Net_Cache_ICacheListener_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.AddCacheListener(Tangosol.Net.Cache.ICacheListener)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L216">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_AddCacheListener_" data-uid="Tangosol.Net.Cache.NearCache.AddCacheListener*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_AddCacheListener_Tangosol_Net_Cache_ICacheListener_" data-uid="Tangosol.Net.Cache.NearCache.AddCacheListener(Tangosol.Net.Cache.ICacheListener)">AddCacheListener(ICacheListener)</h4>
+  <div class="markdown level1 summary"><p>Add a standard cache listener that will receive all events
+(inserts, updates, deletes) that occur against the cache, with
+the key, old-value and new-value included.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void AddCacheListener(ICacheListener listener)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> to add.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_AddCacheListener_Tangosol_Net_Cache_ICacheListener__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Expensive: Listening always occurs on the back cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_AddCacheListener_Tangosol_Net_Cache_ICacheListener_System_Object_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.AddCacheListener(Tangosol.Net.Cache.ICacheListener%2CSystem.Object%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L261">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_AddCacheListener_" data-uid="Tangosol.Net.Cache.NearCache.AddCacheListener*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_AddCacheListener_Tangosol_Net_Cache_ICacheListener_System_Object_System_Boolean_" data-uid="Tangosol.Net.Cache.NearCache.AddCacheListener(Tangosol.Net.Cache.ICacheListener,System.Object,System.Boolean)">AddCacheListener(ICacheListener, Object, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Add a cache listener for a specific key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void AddCacheListener(ICacheListener listener, object key, bool isLite)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> to add.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key that identifies the entry for which to raise events.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isLite</span></td>
+        <td><p><strong>true</strong> to indicate that the <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a>
+objects do not have to include the <strong>OldValue</strong> and
+<strong>NewValue</strong> property values in order to allow optimizations.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_AddCacheListener_Tangosol_Net_Cache_ICacheListener_System_Object_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The listeners will receive <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> objects,
+but if <code data-dev-comment-type="paramref" class="paramref">isLite</code> is passed as <strong>true</strong>, they
+<em>might</em> not contain the
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html#Tangosol_Net_Cache_CacheEventArgs_OldValue">OldValue</a> and
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html#Tangosol_Net_Cache_CacheEventArgs_NewValue">NewValue</a> properties.</p>
+<p>
+To unregister the ICacheListener, use the
+<a class="xref" href="Tangosol.Net.Cache.NearCache.html#Tangosol_Net_Cache_NearCache_RemoveCacheListener_Tangosol_Net_Cache_ICacheListener_System_Object_">RemoveCacheListener(ICacheListener, Object)</a>
+method.</p>
+<p>
+Expensive: Listening always occurs on the back cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_AddCacheListener_Tangosol_Net_Cache_ICacheListener_Tangosol_Util_IFilter_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.AddCacheListener(Tangosol.Net.Cache.ICacheListener%2CTangosol.Util.IFilter%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L312">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_AddCacheListener_" data-uid="Tangosol.Net.Cache.NearCache.AddCacheListener*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_AddCacheListener_Tangosol_Net_Cache_ICacheListener_Tangosol_Util_IFilter_System_Boolean_" data-uid="Tangosol.Net.Cache.NearCache.AddCacheListener(Tangosol.Net.Cache.ICacheListener,Tangosol.Util.IFilter,System.Boolean)">AddCacheListener(ICacheListener, IFilter, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Add a cache listener that receives events based on a filter
+evaluation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void AddCacheListener(ICacheListener listener, IFilter filter, bool isLite)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> to add.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>A filter that will be passed <strong>CacheEventArgs</strong> objects to
+select from; a <strong>CacheEventArgs</strong> will be delivered to the
+listener only if the filter evaluates to <strong>true</strong> for that
+<strong>CacheEventArgs</strong>; <code>null</code> is equivalent to a filter
+that alway returns <strong>true</strong>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isLite</span></td>
+        <td><p><strong>true</strong> to indicate that the <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a>
+objects do not have to include the <strong>OldValue</strong> and
+<strong>NewValue</strong> property values in order to allow optimizations.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_AddCacheListener_Tangosol_Net_Cache_ICacheListener_Tangosol_Util_IFilter_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The listeners will receive <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> objects,
+but if <code data-dev-comment-type="paramref" class="paramref">isLite</code> is passed as <strong>true</strong>, they
+<em>might</em> not contain the <strong>OldValue</strong> and <strong>NewValue</strong>
+properties.</p>
+<p>
+To unregister the <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a>, use the
+<a class="xref" href="Tangosol.Net.Cache.NearCache.html#Tangosol_Net_Cache_NearCache_RemoveCacheListener_Tangosol_Net_Cache_ICacheListener_Tangosol_Util_IFilter_">RemoveCacheListener(ICacheListener, IFilter)</a>
+method.</p>
+<p>
+Expensive: Listening always occurs on the back cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_AddIndex_Tangosol_Util_IValueExtractor_System_Boolean_System_Collections_IComparer_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.AddIndex(Tangosol.Util.IValueExtractor%2CSystem.Boolean%2CSystem.Collections.IComparer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L585">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_AddIndex_" data-uid="Tangosol.Net.Cache.NearCache.AddIndex*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_AddIndex_Tangosol_Util_IValueExtractor_System_Boolean_System_Collections_IComparer_" data-uid="Tangosol.Net.Cache.NearCache.AddIndex(Tangosol.Util.IValueExtractor,System.Boolean,System.Collections.IComparer)">AddIndex(IValueExtractor, Boolean, IComparer)</h4>
+  <div class="markdown level1 summary"><p>Add an index to this IQueryCache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void AddIndex(IValueExtractor extractor, bool isOrdered, IComparer comparer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><span class="parametername">extractor</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a> object that is used to extract
+an indexable object from a value stored in the indexed
+cache. Must not be <code>null</code>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isOrdered</span></td>
+        <td><p><strong>true</strong> if the contents of the indexed information should be
+ordered; <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td><span class="parametername">comparer</span></td>
+        <td><p>The <strong>IComparer</strong> object which imposes an ordering on entries
+in the indexed cache; or <code>null</code> if the entries' values
+natural ordering should be used.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_AddIndex_Tangosol_Util_IValueExtractor_System_Boolean_System_Collections_IComparer__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This allows to correlate values stored in this
+<em>indexed cache</em> (or attributes of those values) to the
+corresponding keys in the indexed cache and increase the
+performance of <strong>GetKeys</strong> and <strong>GetEntries</strong> methods.</p>
+<p>
+The operation always executes against the back cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_Aggregate_System_Collections_ICollection_Tangosol_Net_Cache_IEntryAggregator_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.Aggregate(System.Collections.ICollection%2CTangosol.Net.Cache.IEntryAggregator)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L715">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_Aggregate_" data-uid="Tangosol.Net.Cache.NearCache.Aggregate*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_Aggregate_System_Collections_ICollection_Tangosol_Net_Cache_IEntryAggregator_" data-uid="Tangosol.Net.Cache.NearCache.Aggregate(System.Collections.ICollection,Tangosol.Net.Cache.IEntryAggregator)">Aggregate(ICollection, IEntryAggregator)</h4>
+  <div class="markdown level1 summary"><p>Perform an aggregating operation against the entries specified by
+the passed keys.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Aggregate(ICollection keys, IEntryAggregator agent)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">keys</span></td>
+        <td><p>The collection of keys that specify the entries within this cache
+to aggregate across.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IEntryAggregator.html">IEntryAggregator</a></td>
+        <td><span class="parametername">agent</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.IEntryAggregator.html">IEntryAggregator</a> that is used to aggregate
+across the specified entries of this cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The result of the aggregation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_Aggregate_System_Collections_ICollection_Tangosol_Net_Cache_IEntryAggregator__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The operation always executes against the back cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_Aggregate_Tangosol_Util_IFilter_Tangosol_Net_Cache_IEntryAggregator_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.Aggregate(Tangosol.Util.IFilter%2CTangosol.Net.Cache.IEntryAggregator)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L738">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_Aggregate_" data-uid="Tangosol.Net.Cache.NearCache.Aggregate*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_Aggregate_Tangosol_Util_IFilter_Tangosol_Net_Cache_IEntryAggregator_" data-uid="Tangosol.Net.Cache.NearCache.Aggregate(Tangosol.Util.IFilter,Tangosol.Net.Cache.IEntryAggregator)">Aggregate(IFilter, IEntryAggregator)</h4>
+  <div class="markdown level1 summary"><p>Perform an aggregating operation against the collection of
+entries that are selected by the given <strong>IFilter</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Aggregate(IFilter filter, IEntryAggregator agent)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>an <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> that is used to select entries within
+this cache to aggregate across.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IEntryAggregator.html">IEntryAggregator</a></td>
+        <td><span class="parametername">agent</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.IEntryAggregator.html">IEntryAggregator</a> that is used to aggregate
+across the selected entries of this cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The result of the aggregation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_Aggregate_Tangosol_Util_IFilter_Tangosol_Net_Cache_IEntryAggregator__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The operation always executes against the back cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_Destroy.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.Destroy%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L177">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_Destroy_" data-uid="Tangosol.Net.Cache.NearCache.Destroy*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_Destroy" data-uid="Tangosol.Net.Cache.NearCache.Destroy">Destroy()</h4>
+  <div class="markdown level1 summary"><p>Release and destroy this instance of INamedCache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Destroy()</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Cache_NearCache_Destroy_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+<strong>Warning:</strong> This method is used to completely destroy the
+specified cache across the cluster. All references in the entire
+cluster to this cache will be invalidated, the cached data will
+be cleared, and all resources will be released.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_GetEntries_Tangosol_Util_IFilter_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.GetEntries(Tangosol.Util.IFilter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L525">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_GetEntries_" data-uid="Tangosol.Net.Cache.NearCache.GetEntries*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_GetEntries_Tangosol_Util_IFilter_" data-uid="Tangosol.Net.Cache.NearCache.GetEntries(Tangosol.Util.IFilter)">GetEntries(IFilter)</h4>
+  <div class="markdown level1 summary"><p>Return a collection of the entries contained in this cache
+that satisfy the criteria expressed by the filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICacheEntry[] GetEntries(IFilter filter)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> object representing the criteria that
+the entries of this cache should satisfy.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a>[]</td>
+        <td><p>A collection of entries that satisfy the specified criteria.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_GetEntries_Tangosol_Util_IFilter__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The operation always executes against the back cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_GetEntries_Tangosol_Util_IFilter_System_Collections_IComparer_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.GetEntries(Tangosol.Util.IFilter%2CSystem.Collections.IComparer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L555">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_GetEntries_" data-uid="Tangosol.Net.Cache.NearCache.GetEntries*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_GetEntries_Tangosol_Util_IFilter_System_Collections_IComparer_" data-uid="Tangosol.Net.Cache.NearCache.GetEntries(Tangosol.Util.IFilter,System.Collections.IComparer)">GetEntries(IFilter, IComparer)</h4>
+  <div class="markdown level1 summary"><p>Return a collection of the entries contained in this cache
+that satisfy the criteria expressed by the filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICacheEntry[] GetEntries(IFilter filter, IComparer comparer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> object representing the criteria that
+the entries of this cache should satisfy.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td><span class="parametername">comparer</span></td>
+        <td><p>The <strong>IComparable</strong> object which imposes an ordering on
+entries in the resulting collection; or <code>null</code> if the
+entries' values natural ordering should be used.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a>[]</td>
+        <td><p>A collection of entries that satisfy the specified criteria.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_GetEntries_Tangosol_Util_IFilter_System_Collections_IComparer__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+It is guaranteed that enumerator will traverse the array in such
+a way that the entry values come up in ascending order, sorted by
+the specified comparer or according to the
+<em>natural ordering</em>.</p>
+<p>
+The operation always executes against the back cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_GetKeys_Tangosol_Util_IFilter_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.GetKeys(Tangosol.Util.IFilter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L457">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_GetKeys_" data-uid="Tangosol.Net.Cache.NearCache.GetKeys*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_GetKeys_Tangosol_Util_IFilter_" data-uid="Tangosol.Net.Cache.NearCache.GetKeys(Tangosol.Util.IFilter)">GetKeys(IFilter)</h4>
+  <div class="markdown level1 summary"><p>Return a collection of the keys contained in this cache for
+entries that satisfy the criteria expressed by the filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object[] GetKeys(IFilter filter)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> object representing the criteria that
+the entries of this cache should satisfy.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td><p>A collection of keys for entries that satisfy the specified
+criteria.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_GetKeys_Tangosol_Util_IFilter__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The operation always executes against the back cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_GetValues_Tangosol_Util_IFilter_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.GetValues(Tangosol.Util.IFilter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L477">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_GetValues_" data-uid="Tangosol.Net.Cache.NearCache.GetValues*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_GetValues_Tangosol_Util_IFilter_" data-uid="Tangosol.Net.Cache.NearCache.GetValues(Tangosol.Util.IFilter)">GetValues(IFilter)</h4>
+  <div class="markdown level1 summary"><p>Return a collection of the values contained in this cache for
+entries that satisfy the criteria expressed by the filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object[] GetValues(IFilter filter)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> object representing the criteria that
+the entries of this cache should satisfy.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td><p>A collection of the values for entries that satisfy the specified
+criteria.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_GetValues_Tangosol_Util_IFilter__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The operation always executes against the back cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_GetValues_Tangosol_Util_IFilter_System_Collections_IComparer_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.GetValues(Tangosol.Util.IFilter%2CSystem.Collections.IComparer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L506">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_GetValues_" data-uid="Tangosol.Net.Cache.NearCache.GetValues*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_GetValues_Tangosol_Util_IFilter_System_Collections_IComparer_" data-uid="Tangosol.Net.Cache.NearCache.GetValues(Tangosol.Util.IFilter,System.Collections.IComparer)">GetValues(IFilter, IComparer)</h4>
+  <div class="markdown level1 summary"><p>Return a collection of the values contained in this cache for
+entries that satisfy the criteria expressed by the filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object[] GetValues(IFilter filter, IComparer comparer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> object representing the criteria that
+the entries of this cache should satisfy.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td><span class="parametername">comparer</span></td>
+        <td><p>The <strong>IComparable</strong> object which imposes an ordering on
+entries in the resulting collection; or <code>null</code> if the
+entries' values natural ordering should be used.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td><p>A collection of entries that satisfy the specified criteria.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_GetValues_Tangosol_Util_IFilter_System_Collections_IComparer__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>It is guaranteed that enumerator will traverse the array in such
+a way that the values come up in ascending order, sorted by
+the specified comparer or according to the
+<em>natural ordering</em>.</p>
+<p>
+The operation always executes against the back cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_Invoke_System_Object_Tangosol_Net_Cache_IEntryProcessor_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.Invoke(System.Object%2CTangosol.Net.Cache.IEntryProcessor)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L628">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_Invoke_" data-uid="Tangosol.Net.Cache.NearCache.Invoke*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_Invoke_System_Object_Tangosol_Net_Cache_IEntryProcessor_" data-uid="Tangosol.Net.Cache.NearCache.Invoke(System.Object,Tangosol.Net.Cache.IEntryProcessor)">Invoke(Object, IEntryProcessor)</h4>
+  <div class="markdown level1 summary"><p>Invoke the passed <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> against the entry
+specified by the passed key, returning the result of the
+invocation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Invoke(object key, IEntryProcessor agent)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key to process; it is not required to exist within the
+cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a></td>
+        <td><span class="parametername">agent</span></td>
+        <td><p>The <strong>IEntryProcessor</strong> to use to process the specified key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The result of the invocation as returned from the
+<strong>IEntryProcessor</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_Invoke_System_Object_Tangosol_Net_Cache_IEntryProcessor__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The operation always executes against the back cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_InvokeAll_System_Collections_ICollection_Tangosol_Net_Cache_IEntryProcessor_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.InvokeAll(System.Collections.ICollection%2CTangosol.Net.Cache.IEntryProcessor)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L652">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_InvokeAll_" data-uid="Tangosol.Net.Cache.NearCache.InvokeAll*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_InvokeAll_System_Collections_ICollection_Tangosol_Net_Cache_IEntryProcessor_" data-uid="Tangosol.Net.Cache.NearCache.InvokeAll(System.Collections.ICollection,Tangosol.Net.Cache.IEntryProcessor)">InvokeAll(ICollection, IEntryProcessor)</h4>
+  <div class="markdown level1 summary"><p>Invoke the passed <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> against the
+entries specified by the passed keys, returning the result of the
+invocation for each.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IDictionary InvokeAll(ICollection keys, IEntryProcessor agent)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">keys</span></td>
+        <td><p>The keys to process; these keys are not required to exist within
+the cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a></td>
+        <td><span class="parametername">agent</span></td>
+        <td><p>The <strong>IEntryProcessor</strong> to use to process the specified keys.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>A cache containing the results of invoking the
+<strong>IEntryProcessor</strong> against each of the specified keys.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_InvokeAll_System_Collections_ICollection_Tangosol_Net_Cache_IEntryProcessor__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The operation always executes against the back cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_InvokeAll_Tangosol_Util_IFilter_Tangosol_Net_Cache_IEntryProcessor_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.InvokeAll(Tangosol.Util.IFilter%2CTangosol.Net.Cache.IEntryProcessor)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L692">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_InvokeAll_" data-uid="Tangosol.Net.Cache.NearCache.InvokeAll*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_InvokeAll_Tangosol_Util_IFilter_Tangosol_Net_Cache_IEntryProcessor_" data-uid="Tangosol.Net.Cache.NearCache.InvokeAll(Tangosol.Util.IFilter,Tangosol.Net.Cache.IEntryProcessor)">InvokeAll(IFilter, IEntryProcessor)</h4>
+  <div class="markdown level1 summary"><p>Invoke the passed <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> against the set
+of entries that are selected by the given <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a>,
+returning the result of the invocation for each.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IDictionary InvokeAll(IFilter filter, IEntryProcessor agent)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>An <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> that results in the collection of keys to
+be processed.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a></td>
+        <td><span class="parametername">agent</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> to use to process the specified
+keys.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>A cache containing the results of invoking the
+<strong>IEntryProcessor</strong> against the keys that are selected by the
+given <strong>IFilter</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_InvokeAll_Tangosol_Util_IFilter_Tangosol_Net_Cache_IEntryProcessor__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+Unless specified otherwise, IInvocableCache implementations
+will perform this operation in two steps: (1) use the filter to
+retrieve a matching entry collection; (2) apply the agent to
+every filtered entry. This algorithm assumes that the agent&apos;s
+processing does not affect the result of the specified filter
+evaluation, since the filtering and processing could be
+performed in parallel on different threads.</p>
+<p>
+If this assumption does not hold, the processor logic has to be
+idempotent, or at least re-evaluate the filter. This could be
+easily accomplished by wrapping the processor with the
+<a class="xref" href="Tangosol.Util.Processor.ConditionalProcessor.html">ConditionalProcessor</a>.</p>
+<p>
+The operation always executes against the back cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_Lock_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.Lock(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L413">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_Lock_" data-uid="Tangosol.Net.Cache.NearCache.Lock*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_Lock_System_Object_" data-uid="Tangosol.Net.Cache.NearCache.Lock(System.Object)">Lock(Object)</h4>
+  <div class="markdown level1 summary"><p>Attempt to lock the specified item and return immediately.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool Lock(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key being locked.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the item was successfully locked; <strong>false</strong>
+otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_Lock_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method behaves exactly as if it simply performs the call
+<strong>Lock(key, 0)</strong>.</p>
+<p>
+Expensive: Locking always occurs on the back cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_Lock_System_Object_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.Lock(System.Object%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L379">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_Lock_" data-uid="Tangosol.Net.Cache.NearCache.Lock*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_Lock_System_Object_System_Int64_" data-uid="Tangosol.Net.Cache.NearCache.Lock(System.Object,System.Int64)">Lock(Object, Int64)</h4>
+  <div class="markdown level1 summary"><p>Attempt to lock the specified item within the specified period of
+time.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool Lock(object key, long waitTimeMillis)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key being locked.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">waitTimeMillis</span></td>
+        <td><p>The number of milliseconds to continue trying to obtain a lock;
+pass zero to return immediately; pass -1 to block the calling
+thread until the lock could be obtained.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the item was successfully locked within the
+specified time; <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_Lock_System_Object_System_Int64__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The item doesn&apos;t have to exist to be <em>locked</em>. While the
+item is locked there is known to be a <em>lock holder</em> which
+has an exclusive right to modify (calling put and remove methods)
+that item.</p>
+<p>
+Lock holder is an abstract concept that depends on the
+IConcurrentCache implementation. For example, holder could
+be a cluster member or a thread (or both).</p>
+<p>
+Locking strategy may vary for concrete implementations as well.
+Lock could have an expiration time (this lock is sometimes called
+a &quot;lease&quot;) or be held indefinitely (until the lock holder
+terminates).</p>
+<p>
+Some implementations may allow the entire cache to be locked. If
+the cache is locked in such a way, then only a lock holder is
+allowed to perform any of the &quot;put&quot; or &quot;remove&quot; operations.</p>
+<p>
+Pass the special constant
+<a class="xref" href="Tangosol.Net.Cache.LockScope.html#Tangosol_Net_Cache_LockScope_LOCK_ALL">LOCK_ALL</a> as the <em>key</em>
+parameter to indicate the cache lock.</p>
+<p>
+Expensive: Locking always occurs on the back cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_OnMemberJoined_System_Object_Tangosol_Net_MemberEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.OnMemberJoined(System.Object%2CTangosol.Net.MemberEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L766">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_OnMemberJoined_" data-uid="Tangosol.Net.Cache.NearCache.OnMemberJoined*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_OnMemberJoined_System_Object_Tangosol_Net_MemberEventArgs_" data-uid="Tangosol.Net.Cache.NearCache.OnMemberJoined(System.Object,Tangosol.Net.MemberEventArgs)">OnMemberJoined(Object, MemberEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Invoked when an <a class="xref" href="Tangosol.Net.IMember.html">IMember</a> has joined the service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void OnMemberJoined(object sender, MemberEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">sender</span></td>
+        <td><p><a class="xref" href="Tangosol.Net.IService.html">IService</a> that raised an event.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.MemberEventArgs.html">MemberEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>An event which indicates that membership has changed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_OnMemberJoined_System_Object_Tangosol_Net_MemberEventArgs__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The most critical situation arises when a number of threads are
+waiting for a local service restart, being blocked by a
+<strong>IService</strong> object synchronization monitor. Since the Joined
+event should be fired only once, it is called on a client thread
+<strong>while holding a synchronization monitor</strong>. An attempt to use
+other clustered service functionality during this local event
+notification may result in a deadlock.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_OnMemberLeaving_System_Object_Tangosol_Net_MemberEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.OnMemberLeaving(System.Object%2CTangosol.Net.MemberEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L780">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_OnMemberLeaving_" data-uid="Tangosol.Net.Cache.NearCache.OnMemberLeaving*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_OnMemberLeaving_System_Object_Tangosol_Net_MemberEventArgs_" data-uid="Tangosol.Net.Cache.NearCache.OnMemberLeaving(System.Object,Tangosol.Net.MemberEventArgs)">OnMemberLeaving(Object, MemberEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Invoked when an <a class="xref" href="Tangosol.Net.IMember.html">IMember</a> is leaving the service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void OnMemberLeaving(object sender, MemberEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">sender</span></td>
+        <td><p><a class="xref" href="Tangosol.Net.IService.html">IService</a> that raised an event.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.MemberEventArgs.html">MemberEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>An event which indicates that membership has changed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_OnMemberLeft_System_Object_Tangosol_Net_MemberEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.OnMemberLeft(System.Object%2CTangosol.Net.MemberEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L792">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_OnMemberLeft_" data-uid="Tangosol.Net.Cache.NearCache.OnMemberLeft*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_OnMemberLeft_System_Object_Tangosol_Net_MemberEventArgs_" data-uid="Tangosol.Net.Cache.NearCache.OnMemberLeft(System.Object,Tangosol.Net.MemberEventArgs)">OnMemberLeft(Object, MemberEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Invoked when an <a class="xref" href="Tangosol.Net.IMember.html">IMember</a> has left the service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void OnMemberLeft(object sender, MemberEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">sender</span></td>
+        <td><p><a class="xref" href="Tangosol.Net.IService.html">IService</a> that raised an event.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.MemberEventArgs.html">MemberEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>An event which indicates that membership has changed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_RegisterBackServiceMemberEventHandler.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.RegisterBackServiceMemberEventHandler%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L843">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_RegisterBackServiceMemberEventHandler_" data-uid="Tangosol.Net.Cache.NearCache.RegisterBackServiceMemberEventHandler*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_RegisterBackServiceMemberEventHandler" data-uid="Tangosol.Net.Cache.NearCache.RegisterBackServiceMemberEventHandler">RegisterBackServiceMemberEventHandler()</h4>
+  <div class="markdown level1 summary"><p>Register an event handler for member events on back caches's
+service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void RegisterBackServiceMemberEventHandler()</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Cache_NearCache_RegisterBackServiceMemberEventHandler_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The primary goal of that event handler is invalidation of the
+front cache in case of the service [automatic] restart.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_Release.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.Release%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L162">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_Release_" data-uid="Tangosol.Net.Cache.NearCache.Release*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_Release" data-uid="Tangosol.Net.Cache.NearCache.Release">Release()</h4>
+  <div class="markdown level1 summary"><p>Release local resources associated with this instance of
+INamedCache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Release()</code></pre>
+  </div>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Cache.CompositeCache.html#Tangosol_Net_Cache_CompositeCache_Release">CompositeCache.Release()</a></div>
+  <h5 id="Tangosol_Net_Cache_NearCache_Release_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+Releasing a cache makes it no longer usable, but does not affect
+the cache itself. In other words, all other references to the
+cache will still be valid, and the cache data is not affected by
+releasing the reference.
+Any attempt to use this reference afterword will result in an
+exception.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_Release_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.Release(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L810">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_Release_" data-uid="Tangosol.Net.Cache.NearCache.Release*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_Release_System_Boolean_" data-uid="Tangosol.Net.Cache.NearCache.Release(System.Boolean)">Release(Boolean)</h4>
+  <div class="markdown level1 summary"><p>Release this cache, optionally destroying it.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void Release(bool fDestroy)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">fDestroy</span></td>
+        <td><p>If true, destroy the cache as well.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_RemoveCacheListener_Tangosol_Net_Cache_ICacheListener_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.RemoveCacheListener(Tangosol.Net.Cache.ICacheListener)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L228">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_RemoveCacheListener_" data-uid="Tangosol.Net.Cache.NearCache.RemoveCacheListener*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_RemoveCacheListener_Tangosol_Net_Cache_ICacheListener_" data-uid="Tangosol.Net.Cache.NearCache.RemoveCacheListener(Tangosol.Net.Cache.ICacheListener)">RemoveCacheListener(ICacheListener)</h4>
+  <div class="markdown level1 summary"><p>Remove a standard cache listener that previously signed up for
+all events.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void RemoveCacheListener(ICacheListener listener)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> to remove.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_RemoveCacheListener_Tangosol_Net_Cache_ICacheListener_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.RemoveCacheListener(Tangosol.Net.Cache.ICacheListener%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L276">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_RemoveCacheListener_" data-uid="Tangosol.Net.Cache.NearCache.RemoveCacheListener*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_RemoveCacheListener_Tangosol_Net_Cache_ICacheListener_System_Object_" data-uid="Tangosol.Net.Cache.NearCache.RemoveCacheListener(Tangosol.Net.Cache.ICacheListener,System.Object)">RemoveCacheListener(ICacheListener, Object)</h4>
+  <div class="markdown level1 summary"><p>Remove a cache listener that previously signed up for events
+about a specific key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void RemoveCacheListener(ICacheListener listener, object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The listener to remove.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key that identifies the entry for which to raise events.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_RemoveCacheListener_Tangosol_Net_Cache_ICacheListener_Tangosol_Util_IFilter_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.RemoveCacheListener(Tangosol.Net.Cache.ICacheListener%2CTangosol.Util.IFilter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L328">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_RemoveCacheListener_" data-uid="Tangosol.Net.Cache.NearCache.RemoveCacheListener*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_RemoveCacheListener_Tangosol_Net_Cache_ICacheListener_Tangosol_Util_IFilter_" data-uid="Tangosol.Net.Cache.NearCache.RemoveCacheListener(Tangosol.Net.Cache.ICacheListener,Tangosol.Util.IFilter)">RemoveCacheListener(ICacheListener, IFilter)</h4>
+  <div class="markdown level1 summary"><p>Remove a cache listener that previously signed up for events
+based on a filter evaluation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void RemoveCacheListener(ICacheListener listener, IFilter filter)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> to remove.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>A filter used to evaluate events; <code>null</code> is equivalent to a
+filter that alway returns <strong>true</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_RemoveIndex_Tangosol_Util_IValueExtractor_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.RemoveIndex(Tangosol.Util.IValueExtractor)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L600">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_RemoveIndex_" data-uid="Tangosol.Net.Cache.NearCache.RemoveIndex*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_RemoveIndex_Tangosol_Util_IValueExtractor_" data-uid="Tangosol.Net.Cache.NearCache.RemoveIndex(Tangosol.Util.IValueExtractor)">RemoveIndex(IValueExtractor)</h4>
+  <div class="markdown level1 summary"><p>Remove an index from this IQueryCache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void RemoveIndex(IValueExtractor extractor)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><span class="parametername">extractor</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a> object that is used to extract
+an indexable object from a value stored in the cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_RemoveIndex_Tangosol_Util_IValueExtractor__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The operation always executes against the back cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_Truncate.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.Truncate%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L185">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_Truncate_" data-uid="Tangosol.Net.Cache.NearCache.Truncate*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_Truncate" data-uid="Tangosol.Net.Cache.NearCache.Truncate">Truncate()</h4>
+  <div class="markdown level1 summary"><p>Remove all mappings of this instance of INamedCache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Truncate()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_Unlock_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.Unlock(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L433">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_Unlock_" data-uid="Tangosol.Net.Cache.NearCache.Unlock*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_Unlock_System_Object_" data-uid="Tangosol.Net.Cache.NearCache.Unlock(System.Object)">Unlock(Object)</h4>
+  <div class="markdown level1 summary"><p>Unlock the specified item.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool Unlock(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key being unlocked.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the item was successfully unlocked; <strong>false</strong>
+otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_NearCache_Unlock_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The item doesn't have to exist to be <em>unlocked</em>.
+If the item is currently locked, only the <em>holder</em> of the
+lock could successfully unlock it.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_UnregisterBackServiceMemberEventHandler.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.UnregisterBackServiceMemberEventHandler%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L863">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_UnregisterBackServiceMemberEventHandler_" data-uid="Tangosol.Net.Cache.NearCache.UnregisterBackServiceMemberEventHandler*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_UnregisterBackServiceMemberEventHandler" data-uid="Tangosol.Net.Cache.NearCache.UnregisterBackServiceMemberEventHandler">UnregisterBackServiceMemberEventHandler()</h4>
+  <div class="markdown level1 summary"><p>Unregister back caches's service member event handler.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void UnregisterBackServiceMemberEventHandler()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache_View.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache.View%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L196">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_NearCache_View_" data-uid="Tangosol.Net.Cache.NearCache.View*"></a>
+  <h4 id="Tangosol_Net_Cache_NearCache_View" data-uid="Tangosol.Net.Cache.NearCache.View">View()</h4>
+  <div class="markdown level1 summary"><p>Construct a view of this INamedCache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ViewBuilder View()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.ViewBuilder.html">ViewBuilder</a></td>
+        <td><p>A local view for this INamedCache</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICacheStatistics.html">ICacheStatistics</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.INamedCache.html">INamedCache</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.IObservableCache.html">IObservableCache</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.IConcurrentCache.html">IConcurrentCache</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.IQueryCache.html">IQueryCache</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.IInvocableCache.html">IInvocableCache</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a>
+  </div>
+  <div>
+      <span class="xref">System.Collections.IDictionary</span>
+  </div>
+  <div>
+      <span class="xref">System.Collections.ICollection</span>
+  </div>
+  <div>
+      <span class="xref">System.Collections.IEnumerable</span>
+  </div>
+  <div>
+      <span class="xref">System.IDisposable</span>
+  </div>
+  <h3 id="extensionmethods">Extension Methods</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.InvocableCacheEx.html#Tangosol_Net_Cache_InvocableCacheEx_GetOrDefault_Tangosol_Net_Cache_IInvocableCache_System_Object_System_Object_">InvocableCacheEx.GetOrDefault(IInvocableCache, Object, Object)</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.InvocableCacheEx.html#Tangosol_Net_Cache_InvocableCacheEx_InsertIfAbsent_Tangosol_Net_Cache_IInvocableCache_System_Object_System_Object_">InvocableCacheEx.InsertIfAbsent(IInvocableCache, Object, Object)</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.InvocableCacheEx.html#Tangosol_Net_Cache_InvocableCacheEx_Remove_Tangosol_Net_Cache_IInvocableCache_System_Object_System_Object_">InvocableCacheEx.Remove(IInvocableCache, Object, Object)</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.InvocableCacheEx.html#Tangosol_Net_Cache_InvocableCacheEx_Replace_Tangosol_Net_Cache_IInvocableCache_System_Object_System_Object_System_Object_">InvocableCacheEx.Replace(IInvocableCache, Object, Object, Object)</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.InvocableCacheEx.html#Tangosol_Net_Cache_InvocableCacheEx_Replace_Tangosol_Net_Cache_IInvocableCache_System_Object_System_Object_">InvocableCacheEx.Replace(IInvocableCache, Object, Object)</a>
+  </div>
+  <h3 id="seealso">See Also</h3>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Cache.CompositeCache.html">CompositeCache</a></div>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_NearCache.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.NearCache%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/NearCache.cs/#L30" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,276 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IRequest
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IRequest
+   ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Messaging.IRequest">
+  
+  
+  <h1 id="Tangosol_Net_Messaging_IRequest" data-uid="Tangosol.Net.Messaging.IRequest" class="text-break">Interface IRequest
+  </h1>
+  <div class="markdown level0 summary"><p>IRequest is the root interface for all request messages sent by peer
+endpoints through an <a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a>.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IMessage.html#Tangosol_Net_Messaging_IMessage_TypeId">IMessage.TypeId</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IMessage.html#Tangosol_Net_Messaging_IMessage_Channel">IMessage.Channel</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IMessage.html#Tangosol_Net_Messaging_IMessage_ExecuteInOrder">IMessage.ExecuteInOrder</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IRunnable.html#Tangosol_Net_Messaging_IRunnable_Run">IRunnable.Run()</a>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Messaging.html">Tangosol.Net.Messaging</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Messaging_IRequest_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IRequest : IMessage, IRunnable</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Messaging_IRequest_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>IRequest object is created by an <a class="xref" href="Tangosol.Net.Messaging.IMessageFactory.html">IMessageFactory</a> and
+has an identifier that uniquely identifies the
+<a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a> instance.</p>
+</div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IRequest_Id.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IRequest.Id%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IRequest.cs/#L33">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IRequest_Id_" data-uid="Tangosol.Net.Messaging.IRequest.Id*"></a>
+  <h4 id="Tangosol_Net_Messaging_IRequest_Id" data-uid="Tangosol.Net.Messaging.IRequest.Id">Id</h4>
+  <div class="markdown level1 summary"><p>The unique identifier for this IRequest.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long Id { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>An identifier that uniquely identifies this IRequest object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IRequest_Status.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IRequest.Status%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IRequest.cs/#L50">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IRequest_Status_" data-uid="Tangosol.Net.Messaging.IRequest.Status*"></a>
+  <h4 id="Tangosol_Net_Messaging_IRequest_Status" data-uid="Tangosol.Net.Messaging.IRequest.Status">Status</h4>
+  <div class="markdown level1 summary"><p>The <a class="xref" href="Tangosol.Net.Messaging.IStatus.html">IStatus</a> for this IRequest that can be used to
+wait for and retrieve the <a class="xref" href="Tangosol.Net.Messaging.IResponse.html">IResponse</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IStatus Status { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IStatus.html">IStatus</a></td>
+        <td><p>The <strong>IStatus</strong> object or <code>null</code> if object hasn't been
+initialized.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the status has already been configured.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IRequest_EnsureResponse.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IRequest.EnsureResponse%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IRequest.cs/#L67">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IRequest_EnsureResponse_" data-uid="Tangosol.Net.Messaging.IRequest.EnsureResponse*"></a>
+  <h4 id="Tangosol_Net_Messaging_IRequest_EnsureResponse" data-uid="Tangosol.Net.Messaging.IRequest.EnsureResponse">EnsureResponse()</h4>
+  <div class="markdown level1 summary"><p>Return the <a class="xref" href="Tangosol.Net.Messaging.IResponse.html">IResponse</a> for this IRequest.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IResponse EnsureResponse()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IResponse.html">IResponse</a></td>
+        <td><p>The <strong>IResponse</strong>; must not be <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_IRequest_EnsureResponse_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If not already available, the <strong>IResponse</strong> must be created
+using the <a class="xref" href="Tangosol.Net.Messaging.IMessageFactory.html">IMessageFactory</a> associated with the
+<a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a> that this IRequest was sent through.</p>
+</div>
+  <h3 id="seealso">See Also</h3>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IMessageFactory.html">IMessageFactory</a></div>
+      <div><a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a></div>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IRequest.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IRequest%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IRequest.cs/#L25" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

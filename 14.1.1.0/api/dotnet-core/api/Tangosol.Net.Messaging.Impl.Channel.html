@@ -1,0 +1,2992 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class Channel
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class Channel
+   ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Messaging.Impl.Channel">
+  
+  
+  <h1 id="Tangosol_Net_Messaging_Impl_Channel" data-uid="Tangosol.Net.Messaging.Impl.Channel" class="text-break">Class Channel
+  </h1>
+  <div class="markdown level0 summary"><p><a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a> implementation.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Net.Impl.Extend.html">Extend</a></div>
+    <div class="level2"><span class="xref">Channel</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPofSerializer.html">IPofSerializer</a></div>
+    <div><a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a></div>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a></div>
+    <div><a class="xref" href="Tangosol.IO.ISerializer.html">ISerializer</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.Extend.html#Tangosol_Net_Impl_Extend_ToString">Extend.ToString()</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Messaging.Impl.html">Tangosol.Net.Messaging.Impl</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class Channel : Extend, IPofSerializer, IChannel, IPofContext, ISerializer</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>A Channel is a communication construct that allows one or more
+threads to send and receive <a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a> objects via a
+<a class="xref" href="Tangosol.Net.Messaging.IConnection.html">IConnection</a>.</p>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L306">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel__ctor_" data-uid="Tangosol.Net.Messaging.Impl.Channel.#ctor*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel__ctor" data-uid="Tangosol.Net.Messaging.Impl.Channel.#ctor">Channel()</h4>
+  <div class="markdown level1 summary"><p>Default constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Channel()</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Attributes.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Attributes%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L217">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Attributes_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Attributes*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Attributes" data-uid="Tangosol.Net.Messaging.Impl.Channel.Attributes">Attributes</h4>
+  <div class="markdown level1 summary"><p>Gets or sets the map used to store Channel attributes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IDictionary Attributes { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>A map with Channel attributes.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_CloseException.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.CloseException%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L287">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_CloseException_" data-uid="Tangosol.Net.Messaging.Impl.Channel.CloseException*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_CloseException" data-uid="Tangosol.Net.Messaging.Impl.Channel.CloseException">CloseException</h4>
+  <div class="markdown level1 summary"><p>The <strong>Exception</strong> to pass to the
+<a class="xref" href="Tangosol.Net.Messaging.Impl.Channel.html#Tangosol_Net_Messaging_Impl_Channel_Close_System_Boolean_System_Exception_">Close(Boolean, Exception)</a> method when the
+<strong>IChannel</strong> is closed upon exiting the <strong>Gate</strong>
+(see <a class="xref" href="Tangosol.Net.Messaging.Impl.Channel.html#Tangosol_Net_Messaging_Impl_Channel_CloseOnExit">CloseOnExit</a> property).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual Exception CloseException { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Exception</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_CloseNotify.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.CloseNotify%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L136">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_CloseNotify_" data-uid="Tangosol.Net.Messaging.Impl.Channel.CloseNotify*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_CloseNotify" data-uid="Tangosol.Net.Messaging.Impl.Channel.CloseNotify">CloseNotify</h4>
+  <div class="markdown level1 summary"><p>Peer notification flag used when the Channel is closed
+upon exiting the <strong>Gate</strong> (<a class="xref" href="Tangosol.Net.Messaging.Impl.Channel.html#Tangosol_Net_Messaging_Impl_Channel_CloseOnExit">CloseOnExit</a>).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool CloseNotify { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_CloseOnExit.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.CloseOnExit%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L117">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_CloseOnExit_" data-uid="Tangosol.Net.Messaging.Impl.Channel.CloseOnExit*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_CloseOnExit" data-uid="Tangosol.Net.Messaging.Impl.Channel.CloseOnExit">CloseOnExit</h4>
+  <div class="markdown level1 summary"><p>If <strong>true</strong>, the <strong>Thread</strong> that is currently executing
+within the Channel should close it immedately upon exiting the
+Channel's <strong>Gate</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool CloseOnExit { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Connection.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Connection%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L51">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Connection_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Connection*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Connection" data-uid="Tangosol.Net.Messaging.Impl.Channel.Connection">Connection</h4>
+  <div class="markdown level1 summary"><p>The <strong>IConnection</strong> that created this Channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IConnection Connection { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IConnection.html">IConnection</a></td>
+        <td><p>The <strong>IConnection</strong> that created this Channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_Connection_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IChannel.html#Tangosol_Net_Messaging_IChannel_Connection">Connection</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_ConnectionManager.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.ConnectionManager%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L66">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_ConnectionManager_" data-uid="Tangosol.Net.Messaging.Impl.Channel.ConnectionManager*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_ConnectionManager" data-uid="Tangosol.Net.Messaging.Impl.Channel.ConnectionManager">ConnectionManager</h4>
+  <div class="markdown level1 summary"><p>The <span class="xref">Tangosol.Util.Daemon.QueueProcessor.Service.Peer.Peer</span> that created
+this <strong>IChannel</strong> or <code>null</code> if the <strong>IChannel</strong> has
+been closed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual Peer ConnectionManager { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Tangosol.Util.Daemon.QueueProcessor.Service.Peer.Peer</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Gate.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Gate%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L275">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Gate_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Gate*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Gate" data-uid="Tangosol.Net.Messaging.Impl.Channel.Gate">Gate</h4>
+  <div class="markdown level1 summary"><p>A <a class="xref" href="Tangosol.Net.Messaging.Impl.Channel.html#Tangosol_Net_Messaging_Impl_Channel_Gate">Gate</a> used to prevent concurrent use of this
+Channel while it is being opened and closed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Gate Gate { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Gate.html">Gate</a></td>
+        <td><p>A <strong>Gate</strong> used to prevent concurrent use of this
+Channel while it is being opened and closed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Id.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Id%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L89">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Id_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Id*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Id" data-uid="Tangosol.Net.Messaging.Impl.Channel.Id">Id</h4>
+  <div class="markdown level1 summary"><p>The unique identifier for this Channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int Id { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>A unique integer identifier for this Channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_Id_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The returned identifier is only unique among Channel objects
+created from the same underlying <strong>IConnection</strong>. In other
+words, Channel objects created by different <strong>IConnection</strong>
+objects may have the same unique identifier, but Channel objects
+created by the same <strong>IConnection</strong> cannot.</p>
+</div>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_Id_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IChannel.html#Tangosol_Net_Messaging_IChannel_Id">Id</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_IsActiveThread.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.IsActiveThread%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L127">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_IsActiveThread_" data-uid="Tangosol.Net.Messaging.Impl.Channel.IsActiveThread*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_IsActiveThread" data-uid="Tangosol.Net.Messaging.Impl.Channel.IsActiveThread">IsActiveThread</h4>
+  <div class="markdown level1 summary"><p>Return <strong>true</strong> if the calling thread is currently executing
+within the Channel's Gate.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsActiveThread { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_IsOpen.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.IsOpen%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L106">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_IsOpen_" data-uid="Tangosol.Net.Messaging.Impl.Channel.IsOpen*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_IsOpen" data-uid="Tangosol.Net.Messaging.Impl.Channel.IsOpen">IsOpen</h4>
+  <div class="markdown level1 summary"><p>Return <strong>true</strong> if this Channel is open.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsOpen { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if this Channel is open.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_IsOpen_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IChannel.html#Tangosol_Net_Messaging_IChannel_IsOpen">IsOpen</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_MessageFactory.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.MessageFactory%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L161">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_MessageFactory_" data-uid="Tangosol.Net.Messaging.Impl.Channel.MessageFactory*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_MessageFactory" data-uid="Tangosol.Net.Messaging.Impl.Channel.MessageFactory">MessageFactory</h4>
+  <div class="markdown level1 summary"><p>The <a class="xref" href="Tangosol.Net.Messaging.IMessageFactory.html">IMessageFactory</a> used to create <strong>IMessage</strong>
+objects that may be sent through this Channel over the
+underlying <strong>IConnection</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IMessageFactory MessageFactory { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IMessageFactory.html">IMessageFactory</a></td>
+        <td><p>The <strong>IMessageFactory</strong> for this Channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_MessageFactory_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IChannel.html#Tangosol_Net_Messaging_IChannel_MessageFactory">MessageFactory</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Principal.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Principal%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L257">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Principal_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Principal*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Principal" data-uid="Tangosol.Net.Messaging.Impl.Channel.Principal">Principal</h4>
+  <div class="markdown level1 summary"><p>The optional <strong>IPrincipal</strong> object associated with this
+Channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IPrincipal Principal { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">IPrincipal</span></td>
+        <td><p>The <strong>IPrincipal</strong> associated with this Channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_Principal_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If an <strong>IPrincipal</strong> is associated with this Channel, any
+operation performed upon receipt of an <strong>IMessage</strong> sent
+through this Channel will be done on behalf of the
+<strong>IPrincipal</strong>.</p>
+</div>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_Principal_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IChannel.html#Tangosol_Net_Messaging_IChannel_Principal">Principal</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Receiver.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Receiver%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L201">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Receiver_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Receiver*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Receiver" data-uid="Tangosol.Net.Messaging.Impl.Channel.Receiver">Receiver</h4>
+  <div class="markdown level1 summary"><p>The optional <a class="xref" href="Tangosol.Net.Messaging.IReceiver.html">IReceiver</a> that processes unsolicited
+<strong>IMessage</strong> objects sent through this Channel over the
+underlying <strong>IConnection</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IReceiver Receiver { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IReceiver.html">IReceiver</a></td>
+        <td><p>The <strong>IReceiver</strong> for this Channel or <code>null</code> if a
+<strong>IReceiver</strong> has not been associated with this
+Channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_Receiver_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IChannel.html#Tangosol_Net_Messaging_IChannel_Receiver">Receiver</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_RequestId.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.RequestId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L146">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_RequestId_" data-uid="Tangosol.Net.Messaging.Impl.Channel.RequestId*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_RequestId" data-uid="Tangosol.Net.Messaging.Impl.Channel.RequestId">RequestId</h4>
+  <div class="markdown level1 summary"><p>A counter used to generate unique identifiers for <strong>Requests</strong>
+sent through this Channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual long RequestId { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_RequestStatusArray.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.RequestStatusArray%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L227">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_RequestStatusArray_" data-uid="Tangosol.Net.Messaging.Impl.Channel.RequestStatusArray*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_RequestStatusArray" data-uid="Tangosol.Net.Messaging.Impl.Channel.RequestStatusArray">RequestStatusArray</h4>
+  <div class="markdown level1 summary"><p>An <a class="xref" href="Tangosol.Util.ILongArray.html">ILongArray</a> with
+<a class="xref" href="Tangosol.Net.Messaging.Impl.Request.RequestStatus.html">Request.RequestStatus</a> objects, keyed by
+<strong>Request</strong> identifier.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected ILongArray RequestStatusArray { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.ILongArray.html">ILongArray</a></td>
+        <td><p>An <strong>ILongArray</strong> with <strong>RequestStatus</strong> objects.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_RequestTimeout.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.RequestTimeout%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L241">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_RequestTimeout_" data-uid="Tangosol.Net.Messaging.Impl.Channel.RequestTimeout*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_RequestTimeout" data-uid="Tangosol.Net.Messaging.Impl.Channel.RequestTimeout">RequestTimeout</h4>
+  <div class="markdown level1 summary"><p>The maximum number of milliseconds to wait for a
+<a class="xref" href="Tangosol.Net.Messaging.Impl.Response.html">Response</a> before a <strong>Request</strong> times out.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual long RequestTimeout { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The maximum number of milliseconds to wait for a
+<strong>Response</strong> before a <strong>Request</strong> times out.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_RequestTimeout_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>A timeout of 0 is interpreted as an infinite timeout.</p>
+</div>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_RequestTimeout_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IChannel.html#Tangosol_Net_Messaging_IChannel_Request_Tangosol_Net_Messaging_IRequest_System_Int64_">Request</a>(<a class="xref" href="Tangosol.Net.Messaging.IRequest.html">IRequest</a>, <span class="xref">System.Int64</span>)</div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Serializer.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Serializer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L180">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Serializer_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Serializer*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Serializer" data-uid="Tangosol.Net.Messaging.Impl.Channel.Serializer">Serializer</h4>
+  <div class="markdown level1 summary"><p>The <a class="xref" href="Tangosol.IO.ISerializer.html">ISerializer</a> used to serialize and deserialize
+payload objects carried by <strong>IMessage</strong> objects sent through
+this Channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ISerializer Serializer { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.ISerializer.html">ISerializer</a></td>
+        <td><p>The <strong>ISerializer</strong> for this Channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_Serializer_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IChannel.html#Tangosol_Net_Messaging_IChannel_Serializer">Serializer</a></div>
+  </div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_AssertOpen.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.AssertOpen%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L769">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_AssertOpen_" data-uid="Tangosol.Net.Messaging.Impl.Channel.AssertOpen*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_AssertOpen" data-uid="Tangosol.Net.Messaging.Impl.Channel.AssertOpen">AssertOpen()</h4>
+  <div class="markdown level1 summary"><p>Throws <strong>ConnectionException</strong> if the Channel is closed or
+closing.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void AssertOpen()</code></pre>
+  </div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.ConnectionException.html">ConnectionException</a></td>
+        <td><p>Throws <strong>ConnectionException</strong> if the Channel is closed or
+closing.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_CalculateRequestTimeout_Tangosol_Net_Messaging_IRequest_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.CalculateRequestTimeout(Tangosol.Net.Messaging.IRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L331">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_CalculateRequestTimeout_" data-uid="Tangosol.Net.Messaging.Impl.Channel.CalculateRequestTimeout*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_CalculateRequestTimeout_Tangosol_Net_Messaging_IRequest_" data-uid="Tangosol.Net.Messaging.Impl.Channel.CalculateRequestTimeout(Tangosol.Net.Messaging.IRequest)">CalculateRequestTimeout(IRequest)</h4>
+  <div class="markdown level1 summary"><p>Calculate the default timeout in milliseconds for the given
+<a class="xref" href="Tangosol.Net.Messaging.IRequest.html">IRequest</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual long CalculateRequestTimeout(IRequest request)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IRequest.html">IRequest</a></td>
+        <td><span class="parametername">request</span></td>
+        <td><p>The <strong>IRequest</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The default timeout for the given <strong>IRequest</strong> in
+milliseconds.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_CalculateRequestTimeout_Tangosol_Net_Messaging_IRequest__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.Impl.Channel.html#Tangosol_Net_Messaging_Impl_Channel_RegisterRequest_Tangosol_Net_Messaging_IRequest_">RegisterRequest(IRequest)</a></div>
+      <div><a class="xref" href="Tangosol.Net.Messaging.Impl.Channel.html#Tangosol_Net_Messaging_Impl_Channel_Request_Tangosol_Net_Messaging_IRequest_">Request(IRequest)</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Close.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Close%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L376">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Close_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Close*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Close" data-uid="Tangosol.Net.Messaging.Impl.Channel.Close">Close()</h4>
+  <div class="markdown level1 summary"><p>Close the Channel and reclaim all resources held by the
+Channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Close()</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_Close_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+When this method is invoked, it will not return until
+<strong>IMessage</strong> processing has been shut down in an orderly
+fashion. This means that the <a class="xref" href="Tangosol.Net.Messaging.IReceiver.html">IReceiver</a> object
+associated with this Channel (if any) have finished processing
+and that all pending requests are completed or canceled. If the
+<strong>IReceiver</strong> is processing an <strong>IMessage</strong> at the time when
+close is invoked, all the facilities of the Channel must remain
+available until it finishes.</p>
+<p>
+If the Channel is not open, calling this method has no effect.
+</p>
+</div>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_Close_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IChannel.html#Tangosol_Net_Messaging_IChannel_Close">Close</a>()</div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Close_System_Boolean_System_Exception_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Close(System.Boolean%2CSystem.Exception)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L391">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Close_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Close*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Close_System_Boolean_System_Exception_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Close(System.Boolean,System.Exception)">Close(Boolean, Exception)</h4>
+  <div class="markdown level1 summary"><p>Close the <strong>Channel</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Close(bool notify, Exception e)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">notify</span></td>
+        <td><p>If <strong>true</strong>, the peer should be notified when the
+Channel is closed.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Exception</span></td>
+        <td><span class="parametername">e</span></td>
+        <td><p>The optional reason why the Channel is being closed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_CloseInternal_System_Boolean_System_Exception_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.CloseInternal(System.Boolean%2CSystem.Exception%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L436">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_CloseInternal_" data-uid="Tangosol.Net.Messaging.Impl.Channel.CloseInternal*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_CloseInternal_System_Boolean_System_Exception_System_Int32_" data-uid="Tangosol.Net.Messaging.Impl.Channel.CloseInternal(System.Boolean,System.Exception,System.Int32)">CloseInternal(Boolean, Exception, Int32)</h4>
+  <div class="markdown level1 summary"><p>The <a class="xref" href="Tangosol.Net.Messaging.Impl.Channel.html#Tangosol_Net_Messaging_Impl_Channel_Close">Close()</a> implementation method. This method is
+called on the service thread.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool CloseInternal(bool notify, Exception e, int millis)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">notify</span></td>
+        <td><p>if <strong>true</strong>, notify the peer that the <strong>IChannel</strong> is being
+closed.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Exception</span></td>
+        <td><span class="parametername">e</span></td>
+        <td><p>The optional reason why the <strong>IChannel</strong> is being closed.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">millis</span></td>
+        <td><p>The number of milliseconds to wait for the <strong>IChannel</strong> to
+close; pass 0 to perform a non-blocking close or -1 to wait
+forever.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the invocation of this method closed the
+<strong>IChannel</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_CreateMessage_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.CreateMessage(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L596">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_CreateMessage_" data-uid="Tangosol.Net.Messaging.Impl.Channel.CreateMessage*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_CreateMessage_System_Int32_" data-uid="Tangosol.Net.Messaging.Impl.Channel.CreateMessage(System.Int32)">CreateMessage(Int32)</h4>
+  <div class="markdown level1 summary"><p>Create a new <strong>IMessage</strong> of the specified type using this
+Channel's <strong>MessageFactory</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IMessage CreateMessage(int type)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">type</span></td>
+        <td><p>The type identifier of the <strong>IMessage</strong> to create.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a></td>
+        <td><p>A new <strong>IMessage</strong> of the specified type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Deserialize_Tangosol_IO_DataReader_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Deserialize(Tangosol.IO.DataReader)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1704">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Deserialize_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Deserialize*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Deserialize_Tangosol_IO_DataReader_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Deserialize(Tangosol.IO.DataReader)">Deserialize(DataReader)</h4>
+  <div class="markdown level1 summary"><p>Deserialize an object from a stream by reading its state using
+the specified <a class="xref" href="Tangosol.IO.DataReader.html">DataReader</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Deserialize(DataReader reader)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.DataReader.html">DataReader</a></td>
+        <td><span class="parametername">reader</span></td>
+        <td><p>The <strong>DataReader</strong> with which to read the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The deserialized user type instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Deserialize_Tangosol_IO_Pof_IPofReader_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Deserialize(Tangosol.IO.Pof.IPofReader)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1423">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Deserialize_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Deserialize*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Deserialize_Tangosol_IO_Pof_IPofReader_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Deserialize(Tangosol.IO.Pof.IPofReader)">Deserialize(IPofReader)</h4>
+  <div class="markdown level1 summary"><p>Deserialize a user type instance from a POF stream by reading its
+state using the specified <a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Deserialize(IPofReader reader)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a></td>
+        <td><span class="parametername">reader</span></td>
+        <td><p>The <a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a> with which to read the object's
+state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The deserialized user type instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_Deserialize_Tangosol_IO_Pof_IPofReader__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>An implementation of <strong>IPofSerializer</strong> is required to follow
+the following steps in sequence for reading in an object of a
+user type:</p>
+<ol>
+<li>If the object is evolvable, the implementation must get the
+version by calling <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html#Tangosol_IO_Pof_IPofWriter_VersionId">VersionId</a>.</li>
+<li>The implementation may read any combination of the
+properties of the user type by using &quot;read&quot; methods of the
+<strong>IPofReader</strong>, but it must do so in the order of the property
+indexes.</li>
+<li>After all desired properties of the user type have been read,
+the implementation must terminate the reading of the user type by
+calling <a class="xref" href="Tangosol.IO.Pof.IPofReader.html#Tangosol_IO_Pof_IPofReader_ReadRemainder">ReadRemainder()</a>.</li>
+</ol>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_Deserialize_Tangosol_IO_Pof_IPofReader__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.IO.Pof.IPofSerializer.html#Tangosol_IO_Pof_IPofSerializer_Deserialize_Tangosol_IO_Pof_IPofReader_">Deserialize</a>(<a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a>)</div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Execute_Tangosol_Net_Messaging_IMessage_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Execute(Tangosol.Net.Messaging.IMessage)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L913">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Execute_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Execute*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Execute_Tangosol_Net_Messaging_IMessage_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Execute(Tangosol.Net.Messaging.IMessage)">Execute(IMessage)</h4>
+  <div class="markdown level1 summary"><p>Execute the given <strong>IMessage</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void Execute(IMessage message)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a></td>
+        <td><span class="parametername">message</span></td>
+        <td><p>The <strong>IMessage</strong> to execute.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_GateClose_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.GateClose(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L573">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_GateClose_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GateClose*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_GateClose_System_Int32_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GateClose(System.Int32)">GateClose(Int32)</h4>
+  <div class="markdown level1 summary"><p>Attempt to close the Channel <strong>Gate</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual bool GateClose(int millis)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">millis</span></td>
+        <td><p>The number of milliseconds to wait for the <strong>Gate</strong> to
+close; pass 0 to perform a non-blocking close or -1 to wait
+forever.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the Channel <strong>Gate</strong> was closed;
+<strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_GateEnter.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.GateEnter%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L785">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_GateEnter_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GateEnter*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_GateEnter" data-uid="Tangosol.Net.Messaging.Impl.Channel.GateEnter">GateEnter()</h4>
+  <div class="markdown level1 summary"><p>Enter the <strong>Connection</strong> and Channel <strong>Gate</strong>
+(in that order).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void GateEnter()</code></pre>
+  </div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.ConnectionException.html">ConnectionException</a></td>
+        <td><p>If the <strong>Connection</strong> or Channel is closing or closed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_GateExit.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.GateExit%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L832">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_GateExit_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GateExit*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_GateExit" data-uid="Tangosol.Net.Messaging.Impl.Channel.GateExit">GateExit()</h4>
+  <div class="markdown level1 summary"><p>Exit the Channel and <strong>Connection</strong> <strong>Gate</strong> (in that
+order).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void GateExit()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_GateOpen.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.GateOpen%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L581">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_GateOpen_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GateOpen*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_GateOpen" data-uid="Tangosol.Net.Messaging.Impl.Channel.GateOpen">GateOpen()</h4>
+  <div class="markdown level1 summary"><p>Open the <strong>IChannel</strong> <strong>Gate</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void GateOpen()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_GenerateRequestId.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.GenerateRequestId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L607">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_GenerateRequestId_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GenerateRequestId*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_GenerateRequestId" data-uid="Tangosol.Net.Messaging.Impl.Channel.GenerateRequestId">GenerateRequestId()</h4>
+  <div class="markdown level1 summary"><p>Generate and return a new unique request identifier.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual long GenerateRequestId()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The new unique request identifier.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_GetAttribute_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.GetAttribute(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L627">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_GetAttribute_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetAttribute*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_GetAttribute_System_String_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetAttribute(System.String)">GetAttribute(String)</h4>
+  <div class="markdown level1 summary"><p>Return the object bound with the specified name to this
+Channel, or <code>null</code> if no object is bound with that
+name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object GetAttribute(string name)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name with which the object was bound.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The object bound with the given name or <code>null</code> if no such
+binding exists.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_GetAttributes.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.GetAttributes%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L685">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_GetAttributes_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetAttributes*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_GetAttributes" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetAttributes">GetAttributes()</h4>
+  <div class="markdown level1 summary"><p>Return the map of Channel attributes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IDictionary GetAttributes()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>A map of attributes bound to this Channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_GetAttributes_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The keys of the map are the names with which the corresponding
+values have been bound to the Channel.</p>
+<p>
+The client should assume that the returned map is an immutable
+snapshot of the actual map of attribute objects maintained by
+this Channel.</p>
+</div>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_GetAttributes_seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IChannel.html#Tangosol_Net_Messaging_IChannel_GetAttributes">GetAttributes</a>()</div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_GetDescription.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.GetDescription%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1721">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_GetDescription_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetDescription*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_GetDescription" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetDescription">GetDescription()</h4>
+  <div class="markdown level1 summary"><p>Return a human-readable description of this Channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override string GetDescription()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A string representation of this Channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Impl.Extend.html#Tangosol_Net_Impl_Extend_GetDescription">Extend.GetDescription()</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_GetPofSerializer_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.GetPofSerializer(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1459">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_GetPofSerializer_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetPofSerializer*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_GetPofSerializer_System_Int32_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetPofSerializer(System.Int32)">GetPofSerializer(Int32)</h4>
+  <div class="markdown level1 summary"><p>Return an <a class="xref" href="Tangosol.IO.Pof.IPofSerializer.html">IPofSerializer</a> that can be used to
+serialize and deserialize an object of the specified user type to
+and from a POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IPofSerializer GetPofSerializer(int typeId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">typeId</span></td>
+        <td><p>The type identifier of the user type that can be serialized and
+deserialized using the returned <strong>IPofSerializer</strong>; must be
+non-negative.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofSerializer.html">IPofSerializer</a></td>
+        <td><p>An <strong>IPofSerializer</strong> for the specified user type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the specified user type is negative or unknown to this
+<strong>IPofContext</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_GetRequest_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.GetRequest(System.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1328">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_GetRequest_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetRequest*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_GetRequest_System_Int64_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetRequest(System.Int64)">GetRequest(Int64)</h4>
+  <div class="markdown level1 summary"><p>Return the outstanding <strong>IRequest</strong> with the given identifier
+or <code>null</code> if no such <strong>IRequest</strong> exists.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IRequest GetRequest(long id)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The unique identifer of the outstanding <strong>IRequest</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IRequest.html">IRequest</a></td>
+        <td><p>The outstanding <strong>IRequest</strong> with the given identifer or
+<code>null</code> if no such <strong>IRequest</strong> exists.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_GetRequest_System_Int64__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method can be used during <strong>IResponse</strong> execution to
+correlate the <strong>IResponse</strong> with the <strong>IRequest</strong> for which
+the <strong>IResponse</strong> was sent.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_GetType_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.GetType(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1598">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_GetType_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetType*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_GetType_System_Int32_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetType(System.Int32)">GetType(Int32)</h4>
+  <div class="markdown level1 summary"><p>Determine the type associated with the given user type
+identifier.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual Type GetType(int typeId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">typeId</span></td>
+        <td><p>The user type identifier; must be non-negative.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Type</span></td>
+        <td><p>The type associated with the specified user type identifier.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the specified user type is negative or unknown to this
+<strong>IPofContext</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_GetTypeName_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.GetTypeName(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1579">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_GetTypeName_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetTypeName*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_GetTypeName_System_Int32_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetTypeName(System.Int32)">GetTypeName(Int32)</h4>
+  <div class="markdown level1 summary"><p>Determine the name of the type associated with a user type
+identifier.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual string GetTypeName(int typeId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">typeId</span></td>
+        <td><p>The user type identifier; must be non-negative.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The name of the type associated with the specified user type
+identifier.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the specified user type is negative or unknown to this
+<strong>IPofContext</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_GetUserTypeIdentifier_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.GetUserTypeIdentifier(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1501">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_GetUserTypeIdentifier_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetUserTypeIdentifier*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_GetUserTypeIdentifier_System_Object_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetUserTypeIdentifier(System.Object)">GetUserTypeIdentifier(Object)</h4>
+  <div class="markdown level1 summary"><p>Determine the user type identifier associated with the given
+object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int GetUserTypeIdentifier(object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>An instance of a user type; must not be <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The type identifier of the user type associated with the given
+object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the user type associated with the given object is unknown to
+this <strong>IPofContext</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_GetUserTypeIdentifier_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.GetUserTypeIdentifier(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1553">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_GetUserTypeIdentifier_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetUserTypeIdentifier*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_GetUserTypeIdentifier_System_String_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetUserTypeIdentifier(System.String)">GetUserTypeIdentifier(String)</h4>
+  <div class="markdown level1 summary"><p>Determine the user type identifier associated with the given type
+name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int GetUserTypeIdentifier(string typeName)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">typeName</span></td>
+        <td><p>The name of a user type; must not be <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The type identifier of the user type associated with the given
+type name.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the user type associated with the given type name is unknown
+to this <strong>IPofContext</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_GetUserTypeIdentifier_System_Type_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.GetUserTypeIdentifier(System.Type)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1527">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_GetUserTypeIdentifier_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetUserTypeIdentifier*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_GetUserTypeIdentifier_System_Type_" data-uid="Tangosol.Net.Messaging.Impl.Channel.GetUserTypeIdentifier(System.Type)">GetUserTypeIdentifier(Type)</h4>
+  <div class="markdown level1 summary"><p>Determine the user type identifier associated with the given
+type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int GetUserTypeIdentifier(Type type)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Type</span></td>
+        <td><span class="parametername">type</span></td>
+        <td><p>A user type; must not be <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The type identifier of the user type associated with the given
+type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the user type associated with the given type is unknown to
+this <strong>IPofContext</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_IsUserType_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.IsUserType(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1618">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_IsUserType_" data-uid="Tangosol.Net.Messaging.Impl.Channel.IsUserType*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_IsUserType_System_Object_" data-uid="Tangosol.Net.Messaging.Impl.Channel.IsUserType(System.Object)">IsUserType(Object)</h4>
+  <div class="markdown level1 summary"><p>Determine if the given object is of a user type known to this
+<strong>IPofContext</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsUserType(object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>The object to test; must not be <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the specified object is of a valid user type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_IsUserType_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.IsUserType(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1661">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_IsUserType_" data-uid="Tangosol.Net.Messaging.Impl.Channel.IsUserType*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_IsUserType_System_String_" data-uid="Tangosol.Net.Messaging.Impl.Channel.IsUserType(System.String)">IsUserType(String)</h4>
+  <div class="markdown level1 summary"><p>Determine if the type with the given name is a user type known to
+this <strong>IPofContext</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsUserType(string typeName)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">typeName</span></td>
+        <td><p>The name of the type to test; must not be <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> iff the type with the specified name is a valid user
+type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_IsUserType_System_Type_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.IsUserType(System.Type)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1639">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_IsUserType_" data-uid="Tangosol.Net.Messaging.Impl.Channel.IsUserType*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_IsUserType_System_Type_" data-uid="Tangosol.Net.Messaging.Impl.Channel.IsUserType(System.Type)">IsUserType(Type)</h4>
+  <div class="markdown level1 summary"><p>Determine if the given type is a user type known to this
+<strong>IPofContext</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsUserType(Type type)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Type</span></td>
+        <td><span class="parametername">type</span></td>
+        <td><p>The type to test; must not be <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> iff the specified type is a valid user type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_OnRequestCompleted_Tangosol_Net_Messaging_IStatus_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.OnRequestCompleted(Tangosol.Net.Messaging.IStatus)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1117">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_OnRequestCompleted_" data-uid="Tangosol.Net.Messaging.Impl.Channel.OnRequestCompleted*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_OnRequestCompleted_Tangosol_Net_Messaging_IStatus_" data-uid="Tangosol.Net.Messaging.Impl.Channel.OnRequestCompleted(Tangosol.Net.Messaging.IStatus)">OnRequestCompleted(IStatus)</h4>
+  <div class="markdown level1 summary"><p>Called after a <strong>Request</strong> has completed either successfully
+or unsuccessfully.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void OnRequestCompleted(IStatus status)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IStatus.html">IStatus</a></td>
+        <td><span class="parametername">status</span></td>
+        <td><p>The <strong>IStatus</strong> representing the asynchronous <strong>Request</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Open.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Open%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L864">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Open_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Open*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Open" data-uid="Tangosol.Net.Messaging.Impl.Channel.Open">Open()</h4>
+  <div class="markdown level1 summary"><p>Opens the Channel and process.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Open()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_OpenInternal.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.OpenInternal%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L875">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_OpenInternal_" data-uid="Tangosol.Net.Messaging.Impl.Channel.OpenInternal*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_OpenInternal" data-uid="Tangosol.Net.Messaging.Impl.Channel.OpenInternal">OpenInternal()</h4>
+  <div class="markdown level1 summary"><p>The <a class="xref" href="Tangosol.Net.Messaging.Impl.Channel.html#Tangosol_Net_Messaging_Impl_Channel_Open">Open()</a> implementation method.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void OpenInternal()</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_OpenInternal_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method is called on the service thread.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Post_Tangosol_Net_Messaging_IMessage_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Post(Tangosol.Net.Messaging.IMessage)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L717">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Post_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Post*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Post_Tangosol_Net_Messaging_IMessage_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Post(Tangosol.Net.Messaging.IMessage)">Post(IMessage)</h4>
+  <div class="markdown level1 summary"><p>Asynchronous <strong>IMessage</strong> send implementation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void Post(IMessage message)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a></td>
+        <td><span class="parametername">message</span></td>
+        <td><p>The <strong>IMessage</strong> to send asynchronously.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Receive_Tangosol_Net_Messaging_IMessage_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Receive(Tangosol.Net.Messaging.IMessage)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L963">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Receive_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Receive*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Receive_Tangosol_Net_Messaging_IMessage_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Receive(Tangosol.Net.Messaging.IMessage)">Receive(IMessage)</h4>
+  <div class="markdown level1 summary"><p>Called when a <strong>IMessage</strong> is received via this
+Channel. This method is called on the service thread
+(&quot;Channel0&quot; Messages) or on a daemon thread.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Receive(IMessage message)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a></td>
+        <td><span class="parametername">message</span></td>
+        <td><p>Received <strong>IMessage</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_Receive_Tangosol_Net_Messaging_IMessage__seealso">See Also</h5>
+  <div class="seealso">
+      <div><span class="xref">Tangosol.Util.Daemon.QueueProcessor.Service.Peer.Peer.Send(Tangosol.Net.Messaging.IMessage)</span></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_RegisterRequest_Tangosol_Net_Messaging_IRequest_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.RegisterRequest(Tangosol.Net.Messaging.IRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1209">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_RegisterRequest_" data-uid="Tangosol.Net.Messaging.Impl.Channel.RegisterRequest*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_RegisterRequest_Tangosol_Net_Messaging_IRequest_" data-uid="Tangosol.Net.Messaging.Impl.Channel.RegisterRequest(Tangosol.Net.Messaging.IRequest)">RegisterRequest(IRequest)</h4>
+  <div class="markdown level1 summary"><p>Create a <strong>RequestStatus</strong> for the given <strong>IRequest</strong> and
+register the <strong>RequestStatus</strong> in the
+<a class="xref" href="Tangosol.Net.Messaging.Impl.Channel.html#Tangosol_Net_Messaging_Impl_Channel_RequestStatusArray">RequestStatusArray</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual IStatus RegisterRequest(IRequest request)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IRequest.html">IRequest</a></td>
+        <td><span class="parametername">request</span></td>
+        <td><p>The <strong>IRequest</strong> to register; must not be <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IStatus.html">IStatus</a></td>
+        <td><p>The new <strong>RequestStatus</strong> that represents the asynchronous
+<strong>Request</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the <strong>IRequest</strong> has already been registered.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_RemoveAttribute_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.RemoveAttribute(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L704">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_RemoveAttribute_" data-uid="Tangosol.Net.Messaging.Impl.Channel.RemoveAttribute*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_RemoveAttribute_System_String_" data-uid="Tangosol.Net.Messaging.Impl.Channel.RemoveAttribute(System.String)">RemoveAttribute(String)</h4>
+  <div class="markdown level1 summary"><p>Unbind the object that was bound with the specified name to this
+Channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object RemoveAttribute(string name)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name with which the object was bound.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The object that was unbound.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Request_Tangosol_Net_Messaging_IRequest_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Request(Tangosol.Net.Messaging.IRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1258">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Request_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Request*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Request_Tangosol_Net_Messaging_IRequest_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Request(Tangosol.Net.Messaging.IRequest)">Request(IRequest)</h4>
+  <div class="markdown level1 summary"><p>Synchronously send an <strong>IRequest</strong> to the peer endpoint through
+this Channel over the underlying <strong>IConnection</strong> and return
+the result of processing the <strong>IRequest</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Request(IRequest request)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IRequest.html">IRequest</a></td>
+        <td><span class="parametername">request</span></td>
+        <td><p>The <strong>IRequest</strong> to send.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The result sent by the peer.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_Request_Tangosol_Net_Messaging_IRequest__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IChannel.html#Tangosol_Net_Messaging_IChannel_Request_Tangosol_Net_Messaging_IRequest_">Request</a>(<a class="xref" href="Tangosol.Net.Messaging.IRequest.html">IRequest</a>)</div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Request_Tangosol_Net_Messaging_IRequest_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Request(Tangosol.Net.Messaging.IRequest%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1282">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Request_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Request*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Request_Tangosol_Net_Messaging_IRequest_System_Int64_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Request(Tangosol.Net.Messaging.IRequest,System.Int64)">Request(IRequest, Int64)</h4>
+  <div class="markdown level1 summary"><p>Synchronously send an <strong>IRequest</strong> to the peer endpoint through
+this Channel over the underlying <strong>IConnection</strong> and return
+the result of processing the <strong>IRequest</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Request(IRequest request, long millis)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IRequest.html">IRequest</a></td>
+        <td><span class="parametername">request</span></td>
+        <td><p>The <strong>IRequest</strong> to send.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">millis</span></td>
+        <td><p>The number of milliseconds to wait for the result; pass zero to
+block the calling thread indefinitely.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The result sent by the peer.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentNullException</span></td>
+        <td><p>If <strong>IRequest</strong> argument is <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_Request_Tangosol_Net_Messaging_IRequest_System_Int64__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IChannel.html#Tangosol_Net_Messaging_IChannel_Request_Tangosol_Net_Messaging_IRequest_System_Int64_">Request</a>(<a class="xref" href="Tangosol.Net.Messaging.IRequest.html">IRequest</a>, <span class="xref">System.Int64</span>)</div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Send_Tangosol_Net_Messaging_IMessage_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Send(Tangosol.Net.Messaging.IMessage)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1154">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Send_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Send*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Send_Tangosol_Net_Messaging_IMessage_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Send(Tangosol.Net.Messaging.IMessage)">Send(IMessage)</h4>
+  <div class="markdown level1 summary"><p>Asynchronously send an <strong>IMessage</strong> to the peer endpoint
+through this IChannel over the underlying <strong>IConnection</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Send(IMessage message)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a></td>
+        <td><span class="parametername">message</span></td>
+        <td><p>The <strong>IMessage</strong> to send.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentNullException</span></td>
+        <td><p>Thrown if <strong>IMessage</strong> passed is <code>null</code>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.ConnectionException.html">ConnectionException</a></td>
+        <td><p>Thrown if Channel is closed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_Send_Tangosol_Net_Messaging_IMessage__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IChannel.html#Tangosol_Net_Messaging_IChannel_Send_Tangosol_Net_Messaging_IMessage_">Send</a>(<a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a>)</div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Send_Tangosol_Net_Messaging_IRequest_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Send(Tangosol.Net.Messaging.IRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1181">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Send_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Send*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Send_Tangosol_Net_Messaging_IRequest_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Send(Tangosol.Net.Messaging.IRequest)">Send(IRequest)</h4>
+  <div class="markdown level1 summary"><p>Asynchronously send an <strong>IRequest</strong> to the peer endpoint
+through this Channel over the underlying <strong>IConnection</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IStatus Send(IRequest request)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IRequest.html">IRequest</a></td>
+        <td><span class="parametername">request</span></td>
+        <td><p>The <strong>IRequest</strong> to send.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IStatus.html">IStatus</a></td>
+        <td><p>An <a class="xref" href="Tangosol.Net.Messaging.IStatus.html">IStatus</a> object representing the asynchronous
+<strong>IRequest</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentNullException</span></td>
+        <td><p>Thrown if <strong>IRequest</strong> passed is <code>null</code>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.ConnectionException.html">ConnectionException</a></td>
+        <td><p>Thrown if Channel is closed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Serialize_Tangosol_IO_DataWriter_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Serialize(Tangosol.IO.DataWriter%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1685">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Serialize_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Serialize*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Serialize_Tangosol_IO_DataWriter_System_Object_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Serialize(Tangosol.IO.DataWriter,System.Object)">Serialize(DataWriter, Object)</h4>
+  <div class="markdown level1 summary"><p>Serialize an object to a stream by writing its state using the
+specified <a class="xref" href="Tangosol.IO.DataWriter.html">DataWriter</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Serialize(DataWriter writer, object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.DataWriter.html">DataWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The <strong>DataWriter</strong> with which to write the object's state.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>The object to serialize.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_Serialize_Tangosol_IO_Pof_IPofWriter_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.Serialize(Tangosol.IO.Pof.IPofWriter%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1374">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_Serialize_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Serialize*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_Serialize_Tangosol_IO_Pof_IPofWriter_System_Object_" data-uid="Tangosol.Net.Messaging.Impl.Channel.Serialize(Tangosol.IO.Pof.IPofWriter,System.Object)">Serialize(IPofWriter, Object)</h4>
+  <div class="markdown level1 summary"><p>Serialize a user type instance to a POF stream by writing its
+state using the specified <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Serialize(IPofWriter writer, object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a> with which to write the object's
+state.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>The object to serialize.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_Serialize_Tangosol_IO_Pof_IPofWriter_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>An implementation of <strong>IPofSerializer</strong> is required to follow
+the following steps in sequence for writing out an object of a
+user type:</p>
+<ol>
+<li>If the object is evolvable, the implementation must set the
+version by calling <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html#Tangosol_IO_Pof_IPofWriter_VersionId">VersionId</a>.</li>
+<li>The implementation may write any combination of the
+properties of the user type by using the &quot;write&quot; methods of the
+<strong>IPofWriter</strong>, but it must do so in the order of the property
+indexes.</li>
+<li>After all desired properties of the user type have been
+written, the implementation must terminate the writing of the
+user type by calling <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html#Tangosol_IO_Pof_IPofWriter_WriteRemainder_Tangosol_Util_Binary_">WriteRemainder(Binary)</a>.
+</li>
+</ol>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_Serialize_Tangosol_IO_Pof_IPofWriter_System_Object__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.IO.Pof.IPofSerializer.html#Tangosol_IO_Pof_IPofSerializer_Serialize_Tangosol_IO_Pof_IPofWriter_System_Object_">Serialize</a>(<a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a>, <span class="xref">System.Object</span>)</div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_SetAttribute_System_String_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.SetAttribute(System.String%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L657">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_SetAttribute_" data-uid="Tangosol.Net.Messaging.Impl.Channel.SetAttribute*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_SetAttribute_System_String_System_Object_" data-uid="Tangosol.Net.Messaging.Impl.Channel.SetAttribute(System.String,System.Object)">SetAttribute(String, Object)</h4>
+  <div class="markdown level1 summary"><p>Bind an object to the specified name in this Channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object SetAttribute(string name, object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name with which to bind the object</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The object to bind.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The object that the newly bound object replaced (if
+any).</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_Impl_Channel_SetAttribute_System_String_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+If an object is already bound to the specified name, it is
+replaced with the given object.</p>
+<p>
+Channel attributes are local to the binding peer&apos;s Channel. In
+other words, attributes bound to this IChannel object will not be
+bound to the peer&apos;s Channel object.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentNullException</span></td>
+        <td><p>If argument name passed is <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel_UnregisterRequest_Tangosol_Net_Messaging_IStatus_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel.UnregisterRequest(Tangosol.Net.Messaging.IStatus)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L1129">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_Channel_UnregisterRequest_" data-uid="Tangosol.Net.Messaging.Impl.Channel.UnregisterRequest*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_Channel_UnregisterRequest_Tangosol_Net_Messaging_IStatus_" data-uid="Tangosol.Net.Messaging.Impl.Channel.UnregisterRequest(Tangosol.Net.Messaging.IStatus)">UnregisterRequest(IStatus)</h4>
+  <div class="markdown level1 summary"><p>Unregister the given <strong>RequestStatus</strong> from the
+<a class="xref" href="Tangosol.Net.Messaging.Impl.Channel.html#Tangosol_Net_Messaging_Impl_Channel_RequestStatusArray">RequestStatusArray</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void UnregisterRequest(IStatus status)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IStatus.html">IStatus</a></td>
+        <td><span class="parametername">status</span></td>
+        <td><p>The <strong>RequestStatus</strong> to unregister; must not be <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPofSerializer.html">IPofSerializer</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.ISerializer.html">ISerializer</a>
+  </div>
+  <h3 id="seealso">See Also</h3>
+  <div class="seealso">
+      <div><span class="xref">Tangosol.Util.Daemon.QueueProcessor.Service.Peer.Peer</span></div>
+      <div><a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a></div>
+      <div><a class="xref" href="Tangosol.IO.Pof.IPofSerializer.html">IPofSerializer</a></div>
+      <div><a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a></div>
+      <div><a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a></div>
+      <div><a class="xref" href="Tangosol.Net.Messaging.IConnection.html">IConnection</a></div>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_Channel.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.Channel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/Channel.cs/#L40" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

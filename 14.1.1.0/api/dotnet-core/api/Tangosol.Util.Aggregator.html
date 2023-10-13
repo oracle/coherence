@@ -1,0 +1,252 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Namespace Tangosol.Util.Aggregator
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Namespace Tangosol.Util.Aggregator
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Aggregator">
+  
+  <h1 id="Tangosol_Util_Aggregator" data-uid="Tangosol.Util.Aggregator" class="text-break">Namespace Tangosol.Util.Aggregator
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+    <h3 id="classes">Classes
+  </h3>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.AbstractAggregator.html">AbstractAggregator</a></h4>
+      <section><p>Abstract base class implementation of <a class="xref" href="Tangosol.Net.Cache.IEntryAggregator.html">IEntryAggregator</a>
+that supports parallel aggregation.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.AbstractComparableAggregator.html">AbstractComparableAggregator</a></h4>
+      <section><p>Abstract aggregator that processes values extracted from a set of
+entries in a cache, with knowledge of how to compare those values.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.AbstractDecimalAggregator.html">AbstractDecimalAggregator</a></h4>
+      <section><p>Abstract aggregator that processes <span class="xref">System.IComparable</span> values
+extracted from a set of entries in a <strong>IDictionary</strong> and returns
+a result in a form of a <span class="xref">System.Decimal</span> value.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.AbstractDoubleAggregator.html">AbstractDoubleAggregator</a></h4>
+      <section><p>Abstract aggregator that processes numeric values extracted from a
+collection of entries in a cache.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.AbstractLongAggregator.html">AbstractLongAggregator</a></h4>
+      <section><p>Abstract aggregator that processes numeric values extracted from a
+collection of entries in a cache.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.ComparableMax.html">ComparableMax</a></h4>
+      <section><p>Calculates a maximum among values extracted from a set of entries
+in a cache.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.ComparableMin.html">ComparableMin</a></h4>
+      <section><p>Calculates a minimum among values extracted from a set of entries
+in a cache.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.CompositeAggregator.html">CompositeAggregator</a></h4>
+      <section><p>CompositeAggregator provides an ability to execute a collection of
+aggregators against the same subset of the entries in an
+<a class="xref" href="Tangosol.Net.Cache.IInvocableCache.html">IInvocableCache</a>, resulting in a list of
+corresponding aggregation results.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.CompositeAggregator.Parallel.html">CompositeAggregator.Parallel</a></h4>
+      <section><p>Parallel implementation of the CompositeAggregator.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.Count.html">Count</a></h4>
+      <section><p>Calculates a number of values in an entries collection.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.DecimalAverage.html">DecimalAverage</a></h4>
+      <section><p>Calculates an average for values of any numberic type extracted from
+a set of entries in a <strong>IDictionary</strong> in a form of a
+<span class="xref">System.Decimal</span> value.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.DecimalMax.html">DecimalMax</a></h4>
+      <section><p>Calculates a maximum of numeric values extracted from a set of
+entries in a <strong>IDictionary</strong> in a form of a <span class="xref">System.Decimal</span>
+value.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.DecimalMin.html">DecimalMin</a></h4>
+      <section><p>Calculates a minimum of numeric values extracted from a set of
+entries in a <strong>IDictionary</strong> in a form of a <span class="xref">System.Decimal</span>
+value.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.DecimalSum.html">DecimalSum</a></h4>
+      <section><p>Calculates a minimum of numeric values extracted from a set of
+entries in a <strong>IDictionary</strong> in a form of a <span class="xref">System.Decimal</span>
+value.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.DistinctValues.html">DistinctValues</a></h4>
+      <section><p>Return the <strong>ICollection</strong> of unique values extracted from a
+collection of entries in a cache.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.DoubleAverage.html">DoubleAverage</a></h4>
+      <section><p>Calculates an average for values of any numberic type extracted from
+a collection of entries in a cache.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.DoubleMax.html">DoubleMax</a></h4>
+      <section><p>Calculates a maximum of numeric values extracted from a collection of
+entries in a cache.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.DoubleMin.html">DoubleMin</a></h4>
+      <section><p>Calculates a minimum of numeric values extracted from a collection of
+entries in a cache.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.DoubleSum.html">DoubleSum</a></h4>
+      <section><p>Sums up numeric values extracted from a collection of entries in a
+cache.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.GroupAggregator.html">GroupAggregator</a></h4>
+      <section><p>The GroupAggregator provides an ability to split a subset of entries
+in an <a class="xref" href="Tangosol.Net.Cache.IInvocableCache.html">IInvocableCache</a> into a collection of
+non-intersecting subsets and then aggregate them separately and
+independently.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.GroupAggregator.Parallel.html">GroupAggregator.Parallel</a></h4>
+      <section><p>Parallel implementation of the GroupAggregator.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.LongMax.html">LongMax</a></h4>
+      <section><p>Calculates a maximum of numeric values extracted from a collection of
+entries in a cache.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.LongMin.html">LongMin</a></h4>
+      <section><p>Calculates a minimum of numeric values extracted from a collection of
+entries in a cache.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.LongSum.html">LongSum</a></h4>
+      <section><p>Sums up numeric values extracted from a collection of entries in a
+cache.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.PriorityAggregator.html">PriorityAggregator</a></h4>
+      <section><p>PriorityAggregator is used to explicitly control the scheduling
+priority and timeouts for execution of <a class="xref" href="Tangosol.Net.Cache.IEntryAggregator.html">IEntryAggregator</a>
+-based methods.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.QueryRecorder.html">QueryRecorder</a></h4>
+      <section><p>This parallel aggregator used to produce a {@link com.tangosol.util.QueryRecord}
+object that contains an estimated or actual cost of the query execution
+for a given filter.</p>
+<p>For example, the following code will return a QueryPlan, containing the
+estimated query cost and corresponding execution steps.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.ReducerAggregator.html">ReducerAggregator</a></h4>
+      <section><p>The ReducerAggregator will return a portion of value attributes based on the
+provided ValueExtractor, instead of returning the complete set of values.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.TopNAggregator.html">TopNAggregator</a></h4>
+      <section><p>TopNAggregator is a ParallelAwareAggregator that aggregates the
+top <em>N</em> extracted values into an array.  The extracted values
+must not be null, but do not need to be unique.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.TopNAggregator.ExtractingConverter.html">TopNAggregator.ExtractingConverter</a></h4>
+      <section><p>A value-extracting converter.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.TopNAggregator.PartialResult.html">TopNAggregator.PartialResult</a></h4>
+      <section><p>The sorted partial result.</p>
+</section>
+    <h3 id="enums">Enums
+  </h3>
+      <h4><a class="xref" href="Tangosol.Util.Aggregator.QueryRecorder.RecordType.html">QueryRecorder.RecordType</a></h4>
+      <section><p>RecordType enum specifies whether the QueryRecorder should be
+used to produce a QueryRecord object that contains an estimated
+or an actual cost of the query execution.</p>
+</section>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

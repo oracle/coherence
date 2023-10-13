@@ -1,0 +1,816 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class VersionedPutAll
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class VersionedPutAll
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Processor.VersionedPutAll">
+  
+  
+  <h1 id="Tangosol_Util_Processor_VersionedPutAll" data-uid="Tangosol.Util.Processor.VersionedPutAll" class="text-break">Class VersionedPutAll
+  </h1>
+  <div class="markdown level0 summary"><p><strong>VersionedPutAll</strong> is an <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> that
+assumes that entry values implement <a class="xref" href="Tangosol.Util.IVersionable.html">IVersionable</a>
+interface and sets an <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html#Tangosol_Net_Cache_IInvocableCacheEntry_Value">Value</a>
+proprty only for entries whose versions match to versions of the
+corresponding current values.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Util.Processor.AbstractProcessor.html">AbstractProcessor</a></div>
+    <div class="level2"><span class="xref">VersionedPutAll</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a></div>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.Processor.html">Tangosol.Util.Processor</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Processor_VersionedPutAll_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class VersionedPutAll : AbstractProcessor, IEntryProcessor, IPortableObject</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Processor_VersionedPutAll_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>In case of the match, the <strong>VersionedPutAll</strong> will
+increment the version indicator before each value is
+updated.</p>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_VersionedPutAll__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.VersionedPutAll.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/VersionedPutAll.cs/#L42">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Processor_VersionedPutAll__ctor_" data-uid="Tangosol.Util.Processor.VersionedPutAll.#ctor*"></a>
+  <h4 id="Tangosol_Util_Processor_VersionedPutAll__ctor" data-uid="Tangosol.Util.Processor.VersionedPutAll.#ctor">VersionedPutAll()</h4>
+  <div class="markdown level1 summary"><p>Default constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public VersionedPutAll()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_VersionedPutAll__ctor_System_Collections_IDictionary_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.VersionedPutAll.%23ctor(System.Collections.IDictionary)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/VersionedPutAll.cs/#L58">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Processor_VersionedPutAll__ctor_" data-uid="Tangosol.Util.Processor.VersionedPutAll.#ctor*"></a>
+  <h4 id="Tangosol_Util_Processor_VersionedPutAll__ctor_System_Collections_IDictionary_" data-uid="Tangosol.Util.Processor.VersionedPutAll.#ctor(System.Collections.IDictionary)">VersionedPutAll(IDictionary)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>VersionedPutAll</strong> processor that updates an
+entry with a new value if and only if the version of the new
+value matches to the version of the current entry's value (which
+must exist).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public VersionedPutAll(IDictionary map)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">map</span></td>
+        <td><p>A dictionary of values to update entries with.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Processor_VersionedPutAll__ctor_System_Collections_IDictionary__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The result of the <a class="xref" href="Tangosol.Util.Processor.VersionedPutAll.html#Tangosol_Util_Processor_VersionedPutAll_Process_Tangosol_Net_Cache_IInvocableCacheEntry_">Process(IInvocableCacheEntry)</a> invocation does not
+return any result.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_VersionedPutAll__ctor_System_Collections_IDictionary_System_Boolean_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.VersionedPutAll.%23ctor(System.Collections.IDictionary%2CSystem.Boolean%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/VersionedPutAll.cs/#L82">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Processor_VersionedPutAll__ctor_" data-uid="Tangosol.Util.Processor.VersionedPutAll.#ctor*"></a>
+  <h4 id="Tangosol_Util_Processor_VersionedPutAll__ctor_System_Collections_IDictionary_System_Boolean_System_Boolean_" data-uid="Tangosol.Util.Processor.VersionedPutAll.#ctor(System.Collections.IDictionary,System.Boolean,System.Boolean)">VersionedPutAll(IDictionary, Boolean, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>VersionedPutAll</strong> processor that updates an
+entry with a new value if and only if the version of the new
+value matches to the version of the current entry's value (which
+must exist).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public VersionedPutAll(IDictionary map, bool allowInsert, bool ret)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">map</span></td>
+        <td><p>A map of values to update entries with.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">allowInsert</span></td>
+        <td><p>Specifies whether or not an insert should be allowed (no
+currently existing value).</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">ret</span></td>
+        <td><p>Specifies whether or not the processor should return the current
+value in case it has not been updated.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Processor_VersionedPutAll__ctor_System_Collections_IDictionary_System_Boolean_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This processor optionally returns a map of entries that have not
+been updated (the versions did not match).</p>
+</div>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_VersionedPutAll_m_insert.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.VersionedPutAll.m_insert%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/VersionedPutAll.cs/#L310">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Processor_VersionedPutAll_m_insert" data-uid="Tangosol.Util.Processor.VersionedPutAll.m_insert">m_insert</h4>
+  <div class="markdown level1 summary"><p>Specifies whether or not an insert is allowed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected bool m_insert</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_VersionedPutAll_m_map.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.VersionedPutAll.m_map%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/VersionedPutAll.cs/#L305">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Processor_VersionedPutAll_m_map" data-uid="Tangosol.Util.Processor.VersionedPutAll.m_map">m_map</h4>
+  <div class="markdown level1 summary"><p>Specifies the dictionary of new values.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IDictionary m_map</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_VersionedPutAll_m_return.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.VersionedPutAll.m_return%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/VersionedPutAll.cs/#L315">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Processor_VersionedPutAll_m_return" data-uid="Tangosol.Util.Processor.VersionedPutAll.m_return">m_return</h4>
+  <div class="markdown level1 summary"><p>Specifies whether or not a return value is required.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected bool m_return</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_VersionedPutAll_NO_RESULT.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.VersionedPutAll.NO_RESULT%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/VersionedPutAll.cs/#L296">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Processor_VersionedPutAll_NO_RESULT" data-uid="Tangosol.Util.Processor.VersionedPutAll.NO_RESULT">NO_RESULT</h4>
+  <div class="markdown level1 summary"><p>Used internally to differentiate between &quot;no result&quot; and null result.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected readonly object NO_RESULT</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_VersionedPutAll_Equals_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.VersionedPutAll.Equals(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/VersionedPutAll.cs/#L157">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Processor_VersionedPutAll_Equals_" data-uid="Tangosol.Util.Processor.VersionedPutAll.Equals*"></a>
+  <h4 id="Tangosol_Util_Processor_VersionedPutAll_Equals_System_Object_" data-uid="Tangosol.Util.Processor.VersionedPutAll.Equals(System.Object)">Equals(Object)</h4>
+  <div class="markdown level1 summary"><p>Compare the <strong>VersionedPutAll</strong> with another object to
+determine equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Equals(object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>The object to compare with.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> iff this <strong>VersionedPutAll</strong> and the passed object
+are equivalent <strong>VersionedPutAll</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.Equals(System.Object)</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_VersionedPutAll_GetHashCode.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.VersionedPutAll.GetHashCode%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/VersionedPutAll.cs/#L177">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Processor_VersionedPutAll_GetHashCode_" data-uid="Tangosol.Util.Processor.VersionedPutAll.GetHashCode*"></a>
+  <h4 id="Tangosol_Util_Processor_VersionedPutAll_GetHashCode" data-uid="Tangosol.Util.Processor.VersionedPutAll.GetHashCode">GetHashCode()</h4>
+  <div class="markdown level1 summary"><p>Determine a hash value for the <strong>VersionedPutAll</strong> object
+according to the general <span class="xref">System.Object.GetHashCode()</span>
+contract.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetHashCode()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>An integer hash value for this <strong>VersionedPutAll</strong> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.GetHashCode()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_VersionedPutAll_Process_Tangosol_Net_Cache_IInvocableCacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.VersionedPutAll.Process(Tangosol.Net.Cache.IInvocableCacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/VersionedPutAll.cs/#L103">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Processor_VersionedPutAll_Process_" data-uid="Tangosol.Util.Processor.VersionedPutAll.Process*"></a>
+  <h4 id="Tangosol_Util_Processor_VersionedPutAll_Process_Tangosol_Net_Cache_IInvocableCacheEntry_" data-uid="Tangosol.Util.Processor.VersionedPutAll.Process(Tangosol.Net.Cache.IInvocableCacheEntry)">Process(IInvocableCacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Process an <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html">IInvocableCacheEntry</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override object Process(IInvocableCacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html">IInvocableCacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The <strong>IInvocableCacheEntry</strong> to process.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The result of the processing, if any.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Util.Processor.AbstractProcessor.html#Tangosol_Util_Processor_AbstractProcessor_Process_Tangosol_Net_Cache_IInvocableCacheEntry_">AbstractProcessor.Process(IInvocableCacheEntry)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_VersionedPutAll_ProcessAll_System_Collections_ICollection_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.VersionedPutAll.ProcessAll(System.Collections.ICollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/VersionedPutAll.cs/#L124">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Processor_VersionedPutAll_ProcessAll_" data-uid="Tangosol.Util.Processor.VersionedPutAll.ProcessAll*"></a>
+  <h4 id="Tangosol_Util_Processor_VersionedPutAll_ProcessAll_System_Collections_ICollection_" data-uid="Tangosol.Util.Processor.VersionedPutAll.ProcessAll(System.Collections.ICollection)">ProcessAll(ICollection)</h4>
+  <div class="markdown level1 summary"><p>Process a collection of <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html">IInvocableCacheEntry</a>
+objects.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override IDictionary ProcessAll(ICollection entries)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">entries</span></td>
+        <td><p>A read-only collection of <strong>IInvocableCacheEntry</strong>
+objects to process.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>A dictionary containing the results of the processing, up to one
+entry for each <strong>IInvocableCacheEntry</strong> that was
+processed, keyed by the keys of the dictionary that were
+processed, with a corresponding value being the result of the
+processing for each key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Util.Processor.AbstractProcessor.html#Tangosol_Util_Processor_AbstractProcessor_ProcessAll_System_Collections_ICollection_">AbstractProcessor.ProcessAll(ICollection)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_VersionedPutAll_processEntry_Tangosol_Net_Cache_IInvocableCacheEntry_System_Collections_IDictionary_System_Boolean_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.VersionedPutAll.processEntry(Tangosol.Net.Cache.IInvocableCacheEntry%2CSystem.Collections.IDictionary%2CSystem.Boolean%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/VersionedPutAll.cs/#L257">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Processor_VersionedPutAll_processEntry_" data-uid="Tangosol.Util.Processor.VersionedPutAll.processEntry*"></a>
+  <h4 id="Tangosol_Util_Processor_VersionedPutAll_processEntry_Tangosol_Net_Cache_IInvocableCacheEntry_System_Collections_IDictionary_System_Boolean_System_Boolean_" data-uid="Tangosol.Util.Processor.VersionedPutAll.processEntry(Tangosol.Net.Cache.IInvocableCacheEntry,System.Collections.IDictionary,System.Boolean,System.Boolean)">processEntry(IInvocableCacheEntry, IDictionary, Boolean, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Process the given entry.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected object processEntry(IInvocableCacheEntry entry, IDictionary mapAll, bool insert, bool ret)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html">IInvocableCacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The <strong>IInvocableCacheEntry</strong> to process.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">mapAll</span></td>
+        <td><p>The map of new values.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">insert</span></td>
+        <td><p>Specifies whether or not an insert is allowed.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">ret</span></td>
+        <td><p>Specifies whether or not a return value is required.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The result of the processing, if any.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_VersionedPutAll_ReadExternal_Tangosol_IO_Pof_IPofReader_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.VersionedPutAll.ReadExternal(Tangosol.IO.Pof.IPofReader)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/VersionedPutAll.cs/#L211">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Processor_VersionedPutAll_ReadExternal_" data-uid="Tangosol.Util.Processor.VersionedPutAll.ReadExternal*"></a>
+  <h4 id="Tangosol_Util_Processor_VersionedPutAll_ReadExternal_Tangosol_IO_Pof_IPofReader_" data-uid="Tangosol.Util.Processor.VersionedPutAll.ReadExternal(Tangosol.IO.Pof.IPofReader)">ReadExternal(IPofReader)</h4>
+  <div class="markdown level1 summary"><p>Restore the contents of a user type instance by reading its state
+using the specified <a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void ReadExternal(IPofReader reader)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a></td>
+        <td><span class="parametername">reader</span></td>
+        <td><p>The <strong>IPofReader</strong> from which to read the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_VersionedPutAll_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.VersionedPutAll.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/VersionedPutAll.cs/#L189">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Processor_VersionedPutAll_ToString_" data-uid="Tangosol.Util.Processor.VersionedPutAll.ToString*"></a>
+  <h4 id="Tangosol_Util_Processor_VersionedPutAll_ToString" data-uid="Tangosol.Util.Processor.VersionedPutAll.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Return a human-readable description for this
+<strong>VersionedPutAll</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A <strong>String</strong> description of the <strong>VersionedPutAll</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.ToString()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_VersionedPutAll_WriteExternal_Tangosol_IO_Pof_IPofWriter_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.VersionedPutAll.WriteExternal(Tangosol.IO.Pof.IPofWriter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/VersionedPutAll.cs/#L228">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Processor_VersionedPutAll_WriteExternal_" data-uid="Tangosol.Util.Processor.VersionedPutAll.WriteExternal*"></a>
+  <h4 id="Tangosol_Util_Processor_VersionedPutAll_WriteExternal_Tangosol_IO_Pof_IPofWriter_" data-uid="Tangosol.Util.Processor.VersionedPutAll.WriteExternal(Tangosol.IO.Pof.IPofWriter)">WriteExternal(IPofWriter)</h4>
+  <div class="markdown level1 summary"><p>Save the contents of a POF user type instance by writing its
+state using the specified <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void WriteExternal(IPofWriter writer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The <strong>IPofWriter</strong> to which to write the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a>
+  </div>
+  <h3 id="seealso">See Also</h3>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Util.Processor.VersionedPut.html">VersionedPut</a></div>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_VersionedPutAll.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.VersionedPutAll%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/VersionedPutAll.cs/#L35" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,522 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class ValueChangeEventFilter
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class ValueChangeEventFilter
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Filter.ValueChangeEventFilter">
+  
+  
+  <h1 id="Tangosol_Util_Filter_ValueChangeEventFilter" data-uid="Tangosol.Util.Filter.ValueChangeEventFilter" class="text-break">Class ValueChangeEventFilter
+  </h1>
+  <div class="markdown level0 summary"><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which evaluates the content of a
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> values based on the specified value
+extractor.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html">ExtractorFilter</a></div>
+    <div class="level2"><span class="xref">ValueChangeEventFilter</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Util.Filter.IEntryFilter.html">IEntryFilter</a></div>
+    <div><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></div>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html#Tangosol_Util_Filter_ExtractorFilter_ValueExtractor">ExtractorFilter.ValueExtractor</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html#Tangosol_Util_Filter_ExtractorFilter_EvaluateEntry_Tangosol_Net_Cache_ICacheEntry_">ExtractorFilter.EvaluateEntry(ICacheEntry)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html#Tangosol_Util_Filter_ExtractorFilter_Extract_System_Object_">ExtractorFilter.Extract(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html#Tangosol_Util_Filter_ExtractorFilter_ReadExternal_Tangosol_IO_Pof_IPofReader_">ExtractorFilter.ReadExternal(IPofReader)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html#Tangosol_Util_Filter_ExtractorFilter_WriteExternal_Tangosol_IO_Pof_IPofWriter_">ExtractorFilter.WriteExternal(IPofWriter)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html#Tangosol_Util_Filter_ExtractorFilter_EVAL_COST">ExtractorFilter.EVAL_COST</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html#Tangosol_Util_Filter_ExtractorFilter_m_extractor">ExtractorFilter.m_extractor</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.Filter.html">Tangosol.Util.Filter</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Filter_ValueChangeEventFilter_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class ValueChangeEventFilter : ExtractorFilter, IEntryFilter, IFilter, IPortableObject</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Filter_ValueChangeEventFilter_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>This filter evaluates to <strong>true</strong> only for update events that
+change the value of an extracted attribute.</p>
+<p>
+Example: a filter that evaluates to <strong>true</strong> if there is an update
+to an Employee object that changes a value of the LastName property.
+<pre><code>new ValueChangeEventFilter(&quot;LastName&quot;);</code></pre>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ValueChangeEventFilter__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ValueChangeEventFilter.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ValueChangeEventFilter.cs/#L39">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ValueChangeEventFilter__ctor_" data-uid="Tangosol.Util.Filter.ValueChangeEventFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_ValueChangeEventFilter__ctor" data-uid="Tangosol.Util.Filter.ValueChangeEventFilter.#ctor">ValueChangeEventFilter()</h4>
+  <div class="markdown level1 summary"><p>Default constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ValueChangeEventFilter()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ValueChangeEventFilter__ctor_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ValueChangeEventFilter.%23ctor(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ValueChangeEventFilter.cs/#L63">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ValueChangeEventFilter__ctor_" data-uid="Tangosol.Util.Filter.ValueChangeEventFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_ValueChangeEventFilter__ctor_System_String_" data-uid="Tangosol.Util.Filter.ValueChangeEventFilter.#ctor(System.String)">ValueChangeEventFilter(String)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>ValueChangeEventFilter</strong> that evaluates
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> values based on the specified
+member name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ValueChangeEventFilter(string member)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">member</span></td>
+        <td><p>The name of the member to invoke via reflection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ValueChangeEventFilter__ctor_Tangosol_Util_IValueExtractor_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ValueChangeEventFilter.%23ctor(Tangosol.Util.IValueExtractor)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ValueChangeEventFilter.cs/#L51">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ValueChangeEventFilter__ctor_" data-uid="Tangosol.Util.Filter.ValueChangeEventFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_ValueChangeEventFilter__ctor_Tangosol_Util_IValueExtractor_" data-uid="Tangosol.Util.Filter.ValueChangeEventFilter.#ctor(Tangosol.Util.IValueExtractor)">ValueChangeEventFilter(IValueExtractor)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>ValueChangeEventFilter</strong> that evaluates
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> values based on the specified
+extractor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ValueChangeEventFilter(IValueExtractor extractor)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><span class="parametername">extractor</span></td>
+        <td><p><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a> to extract <strong>CacheEvent</strong>
+values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ValueChangeEventFilter_Equals_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ValueChangeEventFilter.Equals(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ValueChangeEventFilter.cs/#L123">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ValueChangeEventFilter_Equals_" data-uid="Tangosol.Util.Filter.ValueChangeEventFilter.Equals*"></a>
+  <h4 id="Tangosol_Util_Filter_ValueChangeEventFilter_Equals_System_Object_" data-uid="Tangosol.Util.Filter.ValueChangeEventFilter.Equals(System.Object)">Equals(Object)</h4>
+  <div class="markdown level1 summary"><p>Compare the <strong>ValueChangeEventFilter</strong> with another object
+to determine equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Equals(object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>The <strong>ValueChangeEventFilter</strong> to compare to.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if this <strong>ValueChangeEventFilter</strong> and the passed
+object are equivalent filters.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.Equals(System.Object)</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ValueChangeEventFilter_Evaluate_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ValueChangeEventFilter.Evaluate(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ValueChangeEventFilter.cs/#L80">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ValueChangeEventFilter_Evaluate_" data-uid="Tangosol.Util.Filter.ValueChangeEventFilter.Evaluate*"></a>
+  <h4 id="Tangosol_Util_Filter_ValueChangeEventFilter_Evaluate_System_Object_" data-uid="Tangosol.Util.Filter.ValueChangeEventFilter.Evaluate(System.Object)">Evaluate(Object)</h4>
+  <div class="markdown level1 summary"><p>Apply the test to the object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Evaluate(object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>An object to which the test is applied.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the test passes, <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html#Tangosol_Util_Filter_ExtractorFilter_Evaluate_System_Object_">ExtractorFilter.Evaluate(Object)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ValueChangeEventFilter_EvaluateExtracted_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ValueChangeEventFilter.EvaluateExtracted(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ValueChangeEventFilter.cs/#L103">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ValueChangeEventFilter_EvaluateExtracted_" data-uid="Tangosol.Util.Filter.ValueChangeEventFilter.EvaluateExtracted*"></a>
+  <h4 id="Tangosol_Util_Filter_ValueChangeEventFilter_EvaluateExtracted_System_Object_" data-uid="Tangosol.Util.Filter.ValueChangeEventFilter.EvaluateExtracted(System.Object)">EvaluateExtracted(Object)</h4>
+  <div class="markdown level1 summary"><p>Evaluate the specified extracted value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override bool EvaluateExtracted(object extracted)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">extracted</span></td>
+        <td><p>An extracted value to evaluate.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the test passes, <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html#Tangosol_Util_Filter_ExtractorFilter_EvaluateExtracted_System_Object_">ExtractorFilter.EvaluateExtracted(Object)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ValueChangeEventFilter_GetHashCode.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ValueChangeEventFilter.GetHashCode%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ValueChangeEventFilter.cs/#L143">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ValueChangeEventFilter_GetHashCode_" data-uid="Tangosol.Util.Filter.ValueChangeEventFilter.GetHashCode*"></a>
+  <h4 id="Tangosol_Util_Filter_ValueChangeEventFilter_GetHashCode" data-uid="Tangosol.Util.Filter.ValueChangeEventFilter.GetHashCode">GetHashCode()</h4>
+  <div class="markdown level1 summary"><p>Determine a hash value for the <strong>ValueChangeEventFilter</strong>
+object according to the general <strong>object.GetHashCode()</strong>
+contract.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetHashCode()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>An integer hash value for this <strong>ValueChangeEventFilter</strong>
+object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.GetHashCode()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ValueChangeEventFilter_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ValueChangeEventFilter.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ValueChangeEventFilter.cs/#L155">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ValueChangeEventFilter_ToString_" data-uid="Tangosol.Util.Filter.ValueChangeEventFilter.ToString*"></a>
+  <h4 id="Tangosol_Util_Filter_ValueChangeEventFilter_ToString" data-uid="Tangosol.Util.Filter.ValueChangeEventFilter.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Return a human-readable description for this
+<strong>ValueChangeEventFilter</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A String description of the <strong>ValueChangeEventFilter</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.ToString()</span></div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Util.Filter.IEntryFilter.html">IEntryFilter</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a>
+  </div>
+  <h3 id="seealso">See Also</h3>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.html">CacheEventFilter</a></div>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ValueChangeEventFilter.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ValueChangeEventFilter%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ValueChangeEventFilter.cs/#L32" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

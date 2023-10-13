@@ -1,0 +1,784 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class PofExtractor
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class PofExtractor
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Extractor.PofExtractor">
+  
+  
+  <h1 id="Tangosol_Util_Extractor_PofExtractor" data-uid="Tangosol.Util.Extractor.PofExtractor" class="text-break">Class PofExtractor
+  </h1>
+  <div class="markdown level0 summary"><p>POF-based <a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a> implementation.
+PofExtractor takes advantage of POF's indexed state to extract part of
+an object without needing to deserialize the entire object.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html">AbstractExtractor</a></div>
+    <div class="level2"><span class="xref">PofExtractor</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></div>
+    <div><a class="xref" href="Tangosol.Util.Comparator.IQueryCacheComparer.html">IQueryCacheComparer</a></div>
+    <div><span class="xref">System.Collections.IComparer</span></div>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_Target">AbstractExtractor.Target</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_Extract_System_Object_">AbstractExtractor.Extract(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_Compare_System_Object_System_Object_">AbstractExtractor.Compare(Object, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_CompareEntries_Tangosol_Net_Cache_IQueryCacheEntry_Tangosol_Net_Cache_IQueryCacheEntry_">AbstractExtractor.CompareEntries(IQueryCacheEntry, IQueryCacheEntry)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_ExtractOriginalFromEntry_Tangosol_Net_Cache_CacheEntry_">AbstractExtractor.ExtractOriginalFromEntry(CacheEntry)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_VALUE">AbstractExtractor.VALUE</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_KEY">AbstractExtractor.KEY</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_m_target">AbstractExtractor.m_target</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.Extractor.html">Tangosol.Util.Extractor</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Extractor_PofExtractor_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class PofExtractor : AbstractExtractor, IValueExtractor, IQueryCacheComparer, IComparer, IPortableObject</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Extractor_PofExtractor_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>POF uses a compact form in the serialized value when possible. For
+example, some numeric values are represented as special POF intrinsic
+types in which the type implies the value. As a result, POF requires
+the receiver of a value to have implicit knowledge of the type.
+PofExtractor uses the type supplied in the constructor as the source
+of the type information. If the type is <code>null</code>, PofExtractor
+will infer the type from the serialized state.
+Example where extracted value is Double:</p>
+<pre><code>    IValueExtractor extractor = new PofExtractor(typeof(Double), 2);</code></pre>
+<p>Example where extracted value should be inferred:</p>
+<pre><code>    IValueExtractor extractor = new PofExtractor(null, 2);</code></pre>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_PofExtractor__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.PofExtractor.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/PofExtractor.cs/#L73">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_PofExtractor__ctor_" data-uid="Tangosol.Util.Extractor.PofExtractor.#ctor*"></a>
+  <h4 id="Tangosol_Util_Extractor_PofExtractor__ctor" data-uid="Tangosol.Util.Extractor.PofExtractor.#ctor">PofExtractor()</h4>
+  <div class="markdown level1 summary"><p>Default constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public PofExtractor()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_PofExtractor__ctor_System_Type_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.PofExtractor.%23ctor(System.Type%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/PofExtractor.cs/#L95">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_PofExtractor__ctor_" data-uid="Tangosol.Util.Extractor.PofExtractor.#ctor*"></a>
+  <h4 id="Tangosol_Util_Extractor_PofExtractor__ctor_System_Type_System_Int32_" data-uid="Tangosol.Util.Extractor.PofExtractor.#ctor(System.Type,System.Int32)">PofExtractor(Type, Int32)</h4>
+  <div class="markdown level1 summary"><p>Constructs a <strong>PofExtractor</strong> based on a property index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public PofExtractor(Type type, int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Type</span></td>
+        <td><span class="parametername">type</span></td>
+        <td><p>The required type of the extracted value or <code>null</code> if the
+type is to be inferred from the serialized state.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>Property index.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Extractor_PofExtractor__ctor_System_Type_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This constructor is equivalent to:</p>
+<pre><code>PofExtractor extractor = 
+    new PofExtractor(type, new SimplePofPath(index), VALUE);</code></pre>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_PofExtractor__ctor_System_Type_Tangosol_IO_Pof_Reflection_IPofNavigator_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.PofExtractor.%23ctor(System.Type%2CTangosol.IO.Pof.Reflection.IPofNavigator)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/PofExtractor.cs/#L109">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_PofExtractor__ctor_" data-uid="Tangosol.Util.Extractor.PofExtractor.#ctor*"></a>
+  <h4 id="Tangosol_Util_Extractor_PofExtractor__ctor_System_Type_Tangosol_IO_Pof_Reflection_IPofNavigator_" data-uid="Tangosol.Util.Extractor.PofExtractor.#ctor(System.Type,Tangosol.IO.Pof.Reflection.IPofNavigator)">PofExtractor(Type, IPofNavigator)</h4>
+  <div class="markdown level1 summary"><p>Constructs a <strong>PofExtractor</strong> based on a POF navigator.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public PofExtractor(Type type, IPofNavigator navigator)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Type</span></td>
+        <td><span class="parametername">type</span></td>
+        <td><p>The required type of the extracted value or <code>null</code> if the
+type is to be inferred from the serialized state.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.Reflection.IPofNavigator.html">IPofNavigator</a></td>
+        <td><span class="parametername">navigator</span></td>
+        <td><p>POF navigator.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_PofExtractor__ctor_System_Type_Tangosol_IO_Pof_Reflection_IPofNavigator_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.PofExtractor.%23ctor(System.Type%2CTangosol.IO.Pof.Reflection.IPofNavigator%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/PofExtractor.cs/#L128">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_PofExtractor__ctor_" data-uid="Tangosol.Util.Extractor.PofExtractor.#ctor*"></a>
+  <h4 id="Tangosol_Util_Extractor_PofExtractor__ctor_System_Type_Tangosol_IO_Pof_Reflection_IPofNavigator_System_Int32_" data-uid="Tangosol.Util.Extractor.PofExtractor.#ctor(System.Type,Tangosol.IO.Pof.Reflection.IPofNavigator,System.Int32)">PofExtractor(Type, IPofNavigator, Int32)</h4>
+  <div class="markdown level1 summary"><p>Constructs a <strong>PofExtractor</strong> based on a POF navigator
+and the entry extraction target.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public PofExtractor(Type type, IPofNavigator navigator, int target)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Type</span></td>
+        <td><span class="parametername">type</span></td>
+        <td><p>The required type of the extracted value or <code>null</code> if the
+type is to be inferred from the serialized state.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.Reflection.IPofNavigator.html">IPofNavigator</a></td>
+        <td><span class="parametername">navigator</span></td>
+        <td><p>POF navigator.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">target</span></td>
+        <td><p>One of the <a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_VALUE">VALUE</a>
+or <a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_KEY">KEY</a> values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_PofExtractor_Navigator.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.PofExtractor.Navigator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/PofExtractor.cs/#L50">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_PofExtractor_Navigator_" data-uid="Tangosol.Util.Extractor.PofExtractor.Navigator*"></a>
+  <h4 id="Tangosol_Util_Extractor_PofExtractor_Navigator" data-uid="Tangosol.Util.Extractor.PofExtractor.Navigator">Navigator</h4>
+  <div class="markdown level1 summary"><p>Obtain the IPofNavigator for this extractor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IPofNavigator Navigator { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.Reflection.IPofNavigator.html">IPofNavigator</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_PofExtractor_TypeExtracted.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.PofExtractor.TypeExtracted%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/PofExtractor.cs/#L61">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_PofExtractor_TypeExtracted_" data-uid="Tangosol.Util.Extractor.PofExtractor.TypeExtracted*"></a>
+  <h4 id="Tangosol_Util_Extractor_PofExtractor_TypeExtracted" data-uid="Tangosol.Util.Extractor.PofExtractor.TypeExtracted">TypeExtracted</h4>
+  <div class="markdown level1 summary"><p>Obtain the type of the extracted value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Type TypeExtracted { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Type</span></td>
+        <td><p>The expected type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_PofExtractor_Equals_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.PofExtractor.Equals(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/PofExtractor.cs/#L193">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_PofExtractor_Equals_" data-uid="Tangosol.Util.Extractor.PofExtractor.Equals*"></a>
+  <h4 id="Tangosol_Util_Extractor_PofExtractor_Equals_System_Object_" data-uid="Tangosol.Util.Extractor.PofExtractor.Equals(System.Object)">Equals(Object)</h4>
+  <div class="markdown level1 summary"><p>Compare the PofExtractor with another object to determine
+equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Equals(object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>Object to compare with</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> iff this PofExtractor and the passed object are
+equivalent</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.Equals(System.Object)</span></div>
+  <h5 id="Tangosol_Util_Extractor_PofExtractor_Equals_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Two PofExtractor objects are considered equal iff their paths
+are equal and they have the same target (key or value).</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_PofExtractor_ExtractFromEntry_Tangosol_Net_Cache_ICacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.PofExtractor.ExtractFromEntry(Tangosol.Net.Cache.ICacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/PofExtractor.cs/#L169">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_PofExtractor_ExtractFromEntry_" data-uid="Tangosol.Util.Extractor.PofExtractor.ExtractFromEntry*"></a>
+  <h4 id="Tangosol_Util_Extractor_PofExtractor_ExtractFromEntry_Tangosol_Net_Cache_ICacheEntry_" data-uid="Tangosol.Util.Extractor.PofExtractor.ExtractFromEntry(Tangosol.Net.Cache.ICacheEntry)">ExtractFromEntry(ICacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Extracts the value from the passed ICacheEntry object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override object ExtractFromEntry(ICacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>An Entry object to extract a value from</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The extracted value</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_ExtractFromEntry_Tangosol_Net_Cache_ICacheEntry_">AbstractExtractor.ExtractFromEntry(ICacheEntry)</a></div>
+  <h5 id="Tangosol_Util_Extractor_PofExtractor_ExtractFromEntry_Tangosol_Net_Cache_ICacheEntry__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method will always throw a <span class="xref">System.NotSupportedException</span>
+if called directly by the .NET client application, as its execution
+is only meaningful within the cluster.</p>
+<p>
+It is expected that this extractor will only be used against 
+POF-encoded binary entries within a remote partitioned cache.
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.NotSupportedException</span></td>
+        <td><p>Always, as it is expected that this extractor will only be
+executed within the cluster.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_PofExtractor_GetHashCode.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.PofExtractor.GetHashCode%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/PofExtractor.cs/#L214">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_PofExtractor_GetHashCode_" data-uid="Tangosol.Util.Extractor.PofExtractor.GetHashCode*"></a>
+  <h4 id="Tangosol_Util_Extractor_PofExtractor_GetHashCode" data-uid="Tangosol.Util.Extractor.PofExtractor.GetHashCode">GetHashCode()</h4>
+  <div class="markdown level1 summary"><p>Determine a hash value for the PofExtractor object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetHashCode()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>An integer hash value for this PofExtractor object</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.GetHashCode()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_PofExtractor_GetPofTypeId_Tangosol_IO_Pof_IPofContext_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.PofExtractor.GetPofTypeId(Tangosol.IO.Pof.IPofContext)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/PofExtractor.cs/#L301">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_PofExtractor_GetPofTypeId_" data-uid="Tangosol.Util.Extractor.PofExtractor.GetPofTypeId*"></a>
+  <h4 id="Tangosol_Util_Extractor_PofExtractor_GetPofTypeId_Tangosol_IO_Pof_IPofContext_" data-uid="Tangosol.Util.Extractor.PofExtractor.GetPofTypeId(Tangosol.IO.Pof.IPofContext)">GetPofTypeId(IPofContext)</h4>
+  <div class="markdown level1 summary"><p>Compute the expected pof type id based on the type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected int GetPofTypeId(IPofContext ctx)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a></td>
+        <td><span class="parametername">ctx</span></td>
+        <td><p>Pof context.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>Pof type id or <span class="xref">Tangosol.IO.Pof.PofConstants.T_UNKNOWN</span> if the type
+is <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_PofExtractor_ReadExternal_Tangosol_IO_Pof_IPofReader_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.PofExtractor.ReadExternal(Tangosol.IO.Pof.IPofReader)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/PofExtractor.cs/#L246">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_PofExtractor_ReadExternal_" data-uid="Tangosol.Util.Extractor.PofExtractor.ReadExternal*"></a>
+  <h4 id="Tangosol_Util_Extractor_PofExtractor_ReadExternal_Tangosol_IO_Pof_IPofReader_" data-uid="Tangosol.Util.Extractor.PofExtractor.ReadExternal(Tangosol.IO.Pof.IPofReader)">ReadExternal(IPofReader)</h4>
+  <div class="markdown level1 summary"><p>Restore the contents of a user type instance by reading its state
+using the specified <a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ReadExternal(IPofReader reader)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a></td>
+        <td><span class="parametername">reader</span></td>
+        <td><p>The <strong>IPofReader</strong> from which to read the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_PofExtractor_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.PofExtractor.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/PofExtractor.cs/#L225">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_PofExtractor_ToString_" data-uid="Tangosol.Util.Extractor.PofExtractor.ToString*"></a>
+  <h4 id="Tangosol_Util_Extractor_PofExtractor_ToString" data-uid="Tangosol.Util.Extractor.PofExtractor.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Return a human-readable description for this PofExtractor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>String description of the PofExtractor</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.ToString()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_PofExtractor_WriteExternal_Tangosol_IO_Pof_IPofWriter_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.PofExtractor.WriteExternal(Tangosol.IO.Pof.IPofWriter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/PofExtractor.cs/#L271">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_PofExtractor_WriteExternal_" data-uid="Tangosol.Util.Extractor.PofExtractor.WriteExternal*"></a>
+  <h4 id="Tangosol_Util_Extractor_PofExtractor_WriteExternal_Tangosol_IO_Pof_IPofWriter_" data-uid="Tangosol.Util.Extractor.PofExtractor.WriteExternal(Tangosol.IO.Pof.IPofWriter)">WriteExternal(IPofWriter)</h4>
+  <div class="markdown level1 summary"><p>Save the contents of a POF user type instance by writing its
+state using the specified <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteExternal(IPofWriter writer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The <strong>IPofWriter</strong> to which to write the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Util.Comparator.IQueryCacheComparer.html">IQueryCacheComparer</a>
+  </div>
+  <div>
+      <span class="xref">System.Collections.IComparer</span>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_PofExtractor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.PofExtractor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/PofExtractor.cs/#L42" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

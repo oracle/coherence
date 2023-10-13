@@ -1,0 +1,1622 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class SafeService
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class SafeService
+   ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Impl.SafeService">
+  
+  
+  <h1 id="Tangosol_Net_Impl_SafeService" data-uid="Tangosol.Net.Impl.SafeService" class="text-break">Class SafeService
+  </h1>
+  <div class="markdown level0 summary"><p>Base class for remote services safe-wrapping.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">SafeService</span></div>
+      <div class="level2"><a class="xref" href="Tangosol.Net.Impl.SafeCacheService.html">SafeCacheService</a></div>
+      <div class="level2"><a class="xref" href="Tangosol.Net.Impl.SafeInvocationService.html">SafeInvocationService</a></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.IService.html">IService</a></div>
+    <div><a class="xref" href="Tangosol.Util.IService.html">IService</a></div>
+    <div><a class="xref" href="Tangosol.Util.IControllable.html">IControllable</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Impl.html">Tangosol.Net.Impl</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Impl_SafeService_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class SafeService : IService, IService, IControllable</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Impl_SafeService_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>These &quot;Safe&quot; wrappers are responsible for ensuring that the wrapped
+component is always usable. For example, if the connection between
+the Coherence*Extend client and proxy service is ever severed, the
+messaging framework alerts the &quot;Remote&quot; service (via a
+ConnectionListener), and the &quot;Remote&quot; service transitions itself to
+a stopped state. During the next use of the &quot;Remote&quot; service (via the
+&quot;Safe&quot; wrapper), the &quot;Safe&quot; wrapper detects that the wrapped service
+has stopped and attempts to restart it.</p>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L183">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService__ctor_" data-uid="Tangosol.Net.Impl.SafeService.#ctor*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService__ctor" data-uid="Tangosol.Net.Impl.SafeService.#ctor">SafeService()</h4>
+  <div class="markdown level1 summary"><p>Default constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SafeService()</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_Config.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.Config%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L42">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_Config_" data-uid="Tangosol.Net.Impl.SafeService.Config*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_Config" data-uid="Tangosol.Net.Impl.SafeService.Config">Config</h4>
+  <div class="markdown level1 summary"><p>The configuration data.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IXmlElement Config { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a></td>
+        <td><p>The <a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a> holding configuration data.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_Info.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.Info%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L199">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_Info_" data-uid="Tangosol.Net.Impl.SafeService.Info*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_Info" data-uid="Tangosol.Net.Impl.SafeService.Info">Info</h4>
+  <div class="markdown level1 summary"><p>Gets the <a class="xref" href="Tangosol.Net.IServiceInfo.html">IServiceInfo</a> object for this
+<a class="xref" href="Tangosol.Net.IService.html">IService</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IServiceInfo Info { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.IServiceInfo.html">IServiceInfo</a></td>
+        <td><p>The <strong>IServiceInfo</strong> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_IsRunning.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.IsRunning%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L150">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_IsRunning_" data-uid="Tangosol.Net.Impl.SafeService.IsRunning*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_IsRunning" data-uid="Tangosol.Net.Impl.SafeService.IsRunning">IsRunning</h4>
+  <div class="markdown level1 summary"><p>Determine whether or not the controllable service is running.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsRunning { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the service is running; <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Impl_SafeService_IsRunning_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+Returns <strong>false</strong> before a service is started, while the
+service is starting, while a service is shutting down and after
+the service has stopped. It only returns <strong>true</strong> after
+completing its start processing and before beginning its shutdown
+processing.
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_OperationalContext.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.OperationalContext%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L54">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_OperationalContext_" data-uid="Tangosol.Net.Impl.SafeService.OperationalContext*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_OperationalContext" data-uid="Tangosol.Net.Impl.SafeService.OperationalContext">OperationalContext</h4>
+  <div class="markdown level1 summary"><p>The <a class="xref" href="Tangosol.Net.IOperationalContext.html">IOperationalContext</a> for this IService</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IOperationalContext OperationalContext { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.IOperationalContext.html">IOperationalContext</a></td>
+        <td><p>An <strong>IOperationalContext</strong> instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_Principal.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.Principal%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L170">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_Principal_" data-uid="Tangosol.Net.Impl.SafeService.Principal*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_Principal" data-uid="Tangosol.Net.Impl.SafeService.Principal">Principal</h4>
+  <div class="markdown level1 summary"><p>The optional <strong>IPrincipal</strong> object associated with this
+service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IPrincipal Principal { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">IPrincipal</span></td>
+        <td><p>The <strong>IPrincipal</strong> associated with this service.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Impl_SafeService_Principal_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If an <strong>IPrincipal</strong> is associated with this service,
+RestartService will be done on behalf of this <strong>IPrincipal</strong>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_RunningService.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.RunningService%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L83">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_RunningService_" data-uid="Tangosol.Net.Impl.SafeService.RunningService*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_RunningService" data-uid="Tangosol.Net.Impl.SafeService.RunningService">RunningService</h4>
+  <div class="markdown level1 summary"><p>Calculated property that returns the running wrapped
+<strong>IService</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IService RunningService { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IService.html">IService</a></td>
+        <td><p>The wrapped <strong>IService</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_SafeServiceState.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.SafeServiceState%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L94">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_SafeServiceState_" data-uid="Tangosol.Net.Impl.SafeService.SafeServiceState*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_SafeServiceState" data-uid="Tangosol.Net.Impl.SafeService.SafeServiceState">SafeServiceState</h4>
+  <div class="markdown level1 summary"><p>The state of the SafeService.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ServiceState SafeServiceState { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Impl.ServiceState.html">ServiceState</a></td>
+        <td><p>One of the <a class="xref" href="Tangosol.Net.Impl.ServiceState.html">ServiceState</a> enum values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_Serializer.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.Serializer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L240">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_Serializer_" data-uid="Tangosol.Net.Impl.SafeService.Serializer*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_Serializer" data-uid="Tangosol.Net.Impl.SafeService.Serializer">Serializer</h4>
+  <div class="markdown level1 summary"><p>The <a class="xref" href="Tangosol.IO.ISerializer.html">ISerializer</a> used to serialize and deserialize
+objects by this <strong>IService</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ISerializer Serializer { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.ISerializer.html">ISerializer</a></td>
+        <td><p>The <strong>ISerializer</strong> for this <strong>IService</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_Service.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.Service%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L106">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_Service_" data-uid="Tangosol.Net.Impl.SafeService.Service*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_Service" data-uid="Tangosol.Net.Impl.SafeService.Service">Service</h4>
+  <div class="markdown level1 summary"><p>The actual (wrapped) <a class="xref" href="Tangosol.Util.IService.html">IService</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IService Service { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IService.html">IService</a></td>
+        <td><p>Wrapped <strong>IService</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_ServiceName.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.ServiceName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L118">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_ServiceName_" data-uid="Tangosol.Net.Impl.SafeService.ServiceName*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_ServiceName" data-uid="Tangosol.Net.Impl.SafeService.ServiceName">ServiceName</h4>
+  <div class="markdown level1 summary"><p>Service name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual string ServiceName { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>Service name.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_ServiceType.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.ServiceType%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L130">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_ServiceType_" data-uid="Tangosol.Net.Impl.SafeService.ServiceType*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_ServiceType" data-uid="Tangosol.Net.Impl.SafeService.ServiceType">ServiceType</h4>
+  <div class="markdown level1 summary"><p>Service type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ServiceType ServiceType { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.ServiceType.html">ServiceType</a></td>
+        <td><p>Service type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_UserContext.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.UserContext%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L218">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_UserContext_" data-uid="Tangosol.Net.Impl.SafeService.UserContext*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_UserContext" data-uid="Tangosol.Net.Impl.SafeService.UserContext">UserContext</h4>
+  <div class="markdown level1 summary"><p>Gets or sets the user context object associated with this
+<a class="xref" href="Tangosol.Net.IService.html">IService</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object UserContext { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>User context object associated with this <strong>IService</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Impl_SafeService_UserContext_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The data type and semantics of this context object are entirely
+application specific and are opaque to the <strong>IService</strong>
+itself.
+</div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_Cleanup.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.Cleanup%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L915">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_Cleanup_" data-uid="Tangosol.Net.Impl.SafeService.Cleanup*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_Cleanup" data-uid="Tangosol.Net.Impl.SafeService.Cleanup">Cleanup()</h4>
+  <div class="markdown level1 summary"><p>Cleanup used resources.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void Cleanup()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_Configure_Tangosol_Run_Xml_IXmlElement_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.Configure(Tangosol.Run.Xml.IXmlElement)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L597">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_Configure_" data-uid="Tangosol.Net.Impl.SafeService.Configure*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_Configure_Tangosol_Run_Xml_IXmlElement_" data-uid="Tangosol.Net.Impl.SafeService.Configure(Tangosol.Run.Xml.IXmlElement)">Configure(IXmlElement)</h4>
+  <div class="markdown level1 summary"><p>Configure the controllable service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Configure(IXmlElement xml)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a></td>
+        <td><span class="parametername">xml</span></td>
+        <td><p>An <a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a> carrying configuration information
+specific to the IControllable object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Impl_SafeService_Configure_Tangosol_Run_Xml_IXmlElement__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+This method can only be called before the controllable service
+is started.
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>Thrown if the service is already running.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>Thrown if the configuration information is invalid.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_DispatchMemberEvent_Tangosol_Net_MemberEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.DispatchMemberEvent(Tangosol.Net.MemberEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L1120">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_DispatchMemberEvent_" data-uid="Tangosol.Net.Impl.SafeService.DispatchMemberEvent*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_DispatchMemberEvent_Tangosol_Net_MemberEventArgs_" data-uid="Tangosol.Net.Impl.SafeService.DispatchMemberEvent(Tangosol.Net.MemberEventArgs)">DispatchMemberEvent(MemberEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Dispatch a <a class="xref" href="Tangosol.Net.MemberEventArgs.html">MemberEventArgs</a> to the registered
+event handlers.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void DispatchMemberEvent(MemberEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.MemberEventArgs.html">MemberEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p><strong>MemberEventArgs</strong> to dispatch.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_DispatchServiceEvent_Tangosol_Util_ServiceEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.DispatchServiceEvent(Tangosol.Util.ServiceEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L1145">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_DispatchServiceEvent_" data-uid="Tangosol.Net.Impl.SafeService.DispatchServiceEvent*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_DispatchServiceEvent_Tangosol_Util_ServiceEventArgs_" data-uid="Tangosol.Net.Impl.SafeService.DispatchServiceEvent(Tangosol.Util.ServiceEventArgs)">DispatchServiceEvent(ServiceEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Dispatch a <a class="xref" href="Tangosol.Util.ServiceEventArgs.html">ServiceEventArgs</a> to the registered
+event handlers.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void DispatchServiceEvent(ServiceEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.ServiceEventArgs.html">ServiceEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p><strong>ServiceEventArgs</strong> to dispatch.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_DrainEvents.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.DrainEvents%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L899">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_DrainEvents_" data-uid="Tangosol.Net.Impl.SafeService.DrainEvents*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_DrainEvents" data-uid="Tangosol.Net.Impl.SafeService.DrainEvents">DrainEvents()</h4>
+  <div class="markdown level1 summary"><p>Block the calling thread until the wrapped <strong>IService</strong> event
+dispatcher queue is empty and all outstanding tasks have been
+executed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrainEvents()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_EnsureRunningService_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.EnsureRunningService(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L841">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_EnsureRunningService_" data-uid="Tangosol.Net.Impl.SafeService.EnsureRunningService*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_EnsureRunningService_System_Boolean_" data-uid="Tangosol.Net.Impl.SafeService.EnsureRunningService(System.Boolean)">EnsureRunningService(Boolean)</h4>
+  <div class="markdown level1 summary"><p>Return the wrapped <strong>IService</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IService EnsureRunningService(bool drain)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">drain</span></td>
+        <td><p>If true and the wrapped <strong>IService</strong> is restarted, the calling
+thread will be blocked until the wrapped <strong>IService</strong> event
+dispatcher queue is empty and all outstanding tasks have been
+executed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IService.html">IService</a></td>
+        <td><p>The running wrapped <strong>IService</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Impl_SafeService_EnsureRunningService_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method ensures that the returned <strong>IService</strong> is running
+before returning it. If the <strong>IService</strong> is not running and has
+not been explicitly stopped, the <strong>IService</strong> is restarted.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_OnMemberJoined_System_Object_Tangosol_Net_MemberEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.OnMemberJoined(System.Object%2CTangosol.Net.MemberEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L722">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_OnMemberJoined_" data-uid="Tangosol.Net.Impl.SafeService.OnMemberJoined*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_OnMemberJoined_System_Object_Tangosol_Net_MemberEventArgs_" data-uid="Tangosol.Net.Impl.SafeService.OnMemberJoined(System.Object,Tangosol.Net.MemberEventArgs)">OnMemberJoined(Object, MemberEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Invoked when an <a class="xref" href="Tangosol.Net.IMember.html">IMember</a> has joined the service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void OnMemberJoined(object sender, MemberEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">sender</span></td>
+        <td><p><a class="xref" href="Tangosol.Net.IService.html">IService</a> that raised an event.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.MemberEventArgs.html">MemberEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>An event which indicates that membership has changed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Impl_SafeService_OnMemberJoined_System_Object_Tangosol_Net_MemberEventArgs__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+Note: this event could be called during the service restart on
+the local node in which case the listener&apos;s code should not
+attempt to use any clustered cache or service functionality.</p>
+<p>
+The most critical situation arises when a number of threads are
+waiting for a local service restart, being blocked by a
+<strong>IService</strong> object synchronization monitor. Since the Joined
+event should be fired only once, it is called on a client thread
+<strong>while holding a synchronization monitor</strong>. An attempt to use
+other clustered service functionality during this local event
+notification may result in a deadlock.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_OnMemberLeaving_System_Object_Tangosol_Net_MemberEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.OnMemberLeaving(System.Object%2CTangosol.Net.MemberEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L736">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_OnMemberLeaving_" data-uid="Tangosol.Net.Impl.SafeService.OnMemberLeaving*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_OnMemberLeaving_System_Object_Tangosol_Net_MemberEventArgs_" data-uid="Tangosol.Net.Impl.SafeService.OnMemberLeaving(System.Object,Tangosol.Net.MemberEventArgs)">OnMemberLeaving(Object, MemberEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Invoked when an <a class="xref" href="Tangosol.Net.IMember.html">IMember</a> is leaving the service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void OnMemberLeaving(object sender, MemberEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">sender</span></td>
+        <td><p><a class="xref" href="Tangosol.Net.IService.html">IService</a> that raised an event.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.MemberEventArgs.html">MemberEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>An event which indicates that membership has changed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_OnMemberLeft_System_Object_Tangosol_Net_MemberEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.OnMemberLeft(System.Object%2CTangosol.Net.MemberEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L755">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_OnMemberLeft_" data-uid="Tangosol.Net.Impl.SafeService.OnMemberLeft*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_OnMemberLeft_System_Object_Tangosol_Net_MemberEventArgs_" data-uid="Tangosol.Net.Impl.SafeService.OnMemberLeft(System.Object,Tangosol.Net.MemberEventArgs)">OnMemberLeft(Object, MemberEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Invoked when an <a class="xref" href="Tangosol.Net.IMember.html">IMember</a> has left the service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void OnMemberLeft(object sender, MemberEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">sender</span></td>
+        <td><p><a class="xref" href="Tangosol.Net.IService.html">IService</a> that raised an event.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.MemberEventArgs.html">MemberEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>An event which indicates that membership has changed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Impl_SafeService_OnMemberLeft_System_Object_Tangosol_Net_MemberEventArgs__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Note: this event could be called during the service restart on
+the local node in which case the listener's code should not
+attempt to use any clustered cache or service functionality.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_OnServiceStarted_System_Object_Tangosol_Util_ServiceEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.OnServiceStarted(System.Object%2CTangosol.Util.ServiceEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L787">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_OnServiceStarted_" data-uid="Tangosol.Net.Impl.SafeService.OnServiceStarted*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_OnServiceStarted_System_Object_Tangosol_Util_ServiceEventArgs_" data-uid="Tangosol.Net.Impl.SafeService.OnServiceStarted(System.Object,Tangosol.Util.ServiceEventArgs)">OnServiceStarted(Object, ServiceEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Invoked when an <a class="xref" href="Tangosol.Net.IService.html">IService</a> is starting.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void OnServiceStarted(object sender, ServiceEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">sender</span></td>
+        <td><p><a class="xref" href="Tangosol.Net.IService.html">IService</a> that raised an event.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.ServiceEventArgs.html">ServiceEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>A <a class="xref" href="Tangosol.Util.ServiceEventType.html#Tangosol_Util_ServiceEventType_Started">Started</a> event.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_OnServiceStarting_System_Object_Tangosol_Util_ServiceEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.OnServiceStarting(System.Object%2CTangosol.Util.ServiceEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L773">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_OnServiceStarting_" data-uid="Tangosol.Net.Impl.SafeService.OnServiceStarting*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_OnServiceStarting_System_Object_Tangosol_Util_ServiceEventArgs_" data-uid="Tangosol.Net.Impl.SafeService.OnServiceStarting(System.Object,Tangosol.Util.ServiceEventArgs)">OnServiceStarting(Object, ServiceEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Invoked when an <a class="xref" href="Tangosol.Net.IService.html">IService</a> is starting.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void OnServiceStarting(object sender, ServiceEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">sender</span></td>
+        <td><p><a class="xref" href="Tangosol.Net.IService.html">IService</a> that raised an event.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.ServiceEventArgs.html">ServiceEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>A <a class="xref" href="Tangosol.Util.ServiceEventType.html#Tangosol_Util_ServiceEventType_Starting">Starting</a> event.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_OnServiceStopped_System_Object_Tangosol_Util_ServiceEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.OnServiceStopped(System.Object%2CTangosol.Util.ServiceEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L815">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_OnServiceStopped_" data-uid="Tangosol.Net.Impl.SafeService.OnServiceStopped*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_OnServiceStopped_System_Object_Tangosol_Util_ServiceEventArgs_" data-uid="Tangosol.Net.Impl.SafeService.OnServiceStopped(System.Object,Tangosol.Util.ServiceEventArgs)">OnServiceStopped(Object, ServiceEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Invoked when an <a class="xref" href="Tangosol.Net.IService.html">IService</a> is starting.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void OnServiceStopped(object sender, ServiceEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">sender</span></td>
+        <td><p><a class="xref" href="Tangosol.Net.IService.html">IService</a> that raised an event.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.ServiceEventArgs.html">ServiceEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>A <a class="xref" href="Tangosol.Util.ServiceEventType.html#Tangosol_Util_ServiceEventType_Stopped">Stopped</a> event.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_OnServiceStopping_System_Object_Tangosol_Util_ServiceEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.OnServiceStopping(System.Object%2CTangosol.Util.ServiceEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L801">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_OnServiceStopping_" data-uid="Tangosol.Net.Impl.SafeService.OnServiceStopping*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_OnServiceStopping_System_Object_Tangosol_Util_ServiceEventArgs_" data-uid="Tangosol.Net.Impl.SafeService.OnServiceStopping(System.Object,Tangosol.Util.ServiceEventArgs)">OnServiceStopping(Object, ServiceEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Invoked when an <a class="xref" href="Tangosol.Net.IService.html">IService</a> is starting.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void OnServiceStopping(object sender, ServiceEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">sender</span></td>
+        <td><p><a class="xref" href="Tangosol.Net.IService.html">IService</a> that raised an event.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.ServiceEventArgs.html">ServiceEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>A <a class="xref" href="Tangosol.Util.ServiceEventType.html#Tangosol_Util_ServiceEventType_Stopping">Stopping</a> event.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_RestartService.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.RestartService%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L935">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_RestartService_" data-uid="Tangosol.Net.Impl.SafeService.RestartService*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_RestartService" data-uid="Tangosol.Net.Impl.SafeService.RestartService">RestartService()</h4>
+  <div class="markdown level1 summary"><p>Restart <a class="xref" href="Tangosol.Net.IService.html">IService</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual IService RestartService()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IService.html">IService</a></td>
+        <td><p>Running <strong>IService</strong> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_Shutdown.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.Shutdown%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L653">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_Shutdown_" data-uid="Tangosol.Net.Impl.SafeService.Shutdown*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_Shutdown" data-uid="Tangosol.Net.Impl.SafeService.Shutdown">Shutdown()</h4>
+  <div class="markdown level1 summary"><p>Stop the controllable service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Shutdown()</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Impl_SafeService_Shutdown_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+This is a controlled shut-down, and is preferred to the
+<a class="xref" href="Tangosol.Util.IControllable.html#Tangosol_Util_IControllable_Stop">Stop()</a> method.
+<p>
+This method should only be called once per the life cycle
+of the controllable service. Calling this method for a service
+that has already stopped has no effect.
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_Start.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.Start%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L617">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_Start_" data-uid="Tangosol.Net.Impl.SafeService.Start*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_Start" data-uid="Tangosol.Net.Impl.SafeService.Start">Start()</h4>
+  <div class="markdown level1 summary"><p>Start the controllable service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Start()</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Impl_SafeService_Start_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+This method should only be called once per the life cycle
+of the IControllable service. This method has no affect if the
+service is already running.
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>Thrown if a service does not support being re-started, and the
+service was already started and subsequently stopped and then
+an attempt is made to start the service again; also thrown if
+the IControllable service has not been configured.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_StartService_Tangosol_Util_IService_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.StartService(Tangosol.Util.IService)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L981">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_StartService_" data-uid="Tangosol.Net.Impl.SafeService.StartService*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_StartService_Tangosol_Util_IService_" data-uid="Tangosol.Net.Impl.SafeService.StartService(Tangosol.Util.IService)">StartService(IService)</h4>
+  <div class="markdown level1 summary"><p>Start the <a class="xref" href="Tangosol.Net.IService.html">IService</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void StartService(IService service)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IService.html">IService</a></td>
+        <td><span class="parametername">service</span></td>
+        <td><p>The <strong>IService</strong> object to start.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_Stop.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.Stop%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L678">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_Stop_" data-uid="Tangosol.Net.Impl.SafeService.Stop*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_Stop" data-uid="Tangosol.Net.Impl.SafeService.Stop">Stop()</h4>
+  <div class="markdown level1 summary"><p>Hard-stop the controllable service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Stop()</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Impl_SafeService_Stop_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Use <a class="xref" href="Tangosol.Util.IControllable.html#Tangosol_Util_IControllable_Shutdown">Shutdown()</a> for normal service
+termination. Calling this method for a service that has already
+stopped has no effect.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L1215">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_ToString_" data-uid="Tangosol.Net.Impl.SafeService.ToString*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_ToString" data-uid="Tangosol.Net.Impl.SafeService.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Provide a human-readable representation of this SafeService.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A human-readable representation of this SafeService.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.ToString()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_TranslateEvent_Tangosol_Net_MemberEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.TranslateEvent(Tangosol.Net.MemberEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L1054">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_TranslateEvent_" data-uid="Tangosol.Net.Impl.SafeService.TranslateEvent*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_TranslateEvent_Tangosol_Net_MemberEventArgs_" data-uid="Tangosol.Net.Impl.SafeService.TranslateEvent(Tangosol.Net.MemberEventArgs)">TranslateEvent(MemberEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Translate the specified member event into another
+<a class="xref" href="Tangosol.Net.MemberEventArgs.html">MemberEventArgs</a> with a source set to this
+service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void TranslateEvent(MemberEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.MemberEventArgs.html">MemberEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>The <strong>MemberEventArgs</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_TranslateEvent_Tangosol_Util_ServiceEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.TranslateEvent(Tangosol.Util.ServiceEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L1088">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeService_TranslateEvent_" data-uid="Tangosol.Net.Impl.SafeService.TranslateEvent*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeService_TranslateEvent_Tangosol_Util_ServiceEventArgs_" data-uid="Tangosol.Net.Impl.SafeService.TranslateEvent(Tangosol.Util.ServiceEventArgs)">TranslateEvent(ServiceEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Translate the specified service event into another
+<a class="xref" href="Tangosol.Util.ServiceEventArgs.html">ServiceEventArgs</a> with a source set to this
+service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void TranslateEvent(ServiceEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.ServiceEventArgs.html">ServiceEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>The <strong>ServiceEventArgs</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="events">Events
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_MemberJoined.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.MemberJoined%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L265">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Impl_SafeService_MemberJoined" data-uid="Tangosol.Net.Impl.SafeService.MemberJoined">MemberJoined</h4>
+  <div class="markdown level1 summary"><p>Invoked when an <a class="xref" href="Tangosol.Net.IMember.html">IMember</a> has joined the service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual event MemberEventHandler MemberJoined</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.MemberEventHandler.html">MemberEventHandler</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Impl_SafeService_MemberJoined_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+Note: this event could be called during the service restart on
+the local node in which case the listener&apos;s code should not
+attempt to use any clustered cache or service functionality.</p>
+<p>
+The most critical situation arises when a number of threads are
+waiting for a local service restart, being blocked by a
+<strong>IService</strong> object synchronization monitor. Since the Joined
+event should be fired only once, it is called on a client thread
+<strong>while holding a synchronization monitor</strong>. An attempt to use
+other clustered service functionality during this local event
+notification may result in a deadlock.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_MemberLeaving.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.MemberLeaving%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L309">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Impl_SafeService_MemberLeaving" data-uid="Tangosol.Net.Impl.SafeService.MemberLeaving">MemberLeaving</h4>
+  <div class="markdown level1 summary"><p>Invoked when an <a class="xref" href="Tangosol.Net.IMember.html">IMember</a> is leaving the service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual event MemberEventHandler MemberLeaving</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.MemberEventHandler.html">MemberEventHandler</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_MemberLeft.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.MemberLeft%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L358">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Impl_SafeService_MemberLeft" data-uid="Tangosol.Net.Impl.SafeService.MemberLeft">MemberLeft</h4>
+  <div class="markdown level1 summary"><p>Invoked when an <a class="xref" href="Tangosol.Net.IMember.html">IMember</a> has left the service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual event MemberEventHandler MemberLeft</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.MemberEventHandler.html">MemberEventHandler</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Impl_SafeService_MemberLeft_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Note: this event could be called during the service restart on
+the local node in which case the listener's code should not
+attempt to use any clustered cache or service functionality.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_ServiceStarted.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.ServiceStarted%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L446">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Impl_SafeService_ServiceStarted" data-uid="Tangosol.Net.Impl.SafeService.ServiceStarted">ServiceStarted</h4>
+  <div class="markdown level1 summary"><p>Invoked when <a class="xref" href="Tangosol.Net.IService.html">IService</a> has started.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual event ServiceEventHandler ServiceStarted</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.ServiceEventHandler.html">ServiceEventHandler</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_ServiceStarting.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.ServiceStarting%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L402">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Impl_SafeService_ServiceStarting" data-uid="Tangosol.Net.Impl.SafeService.ServiceStarting">ServiceStarting</h4>
+  <div class="markdown level1 summary"><p>Invoked when <a class="xref" href="Tangosol.Net.IService.html">IService</a> is starting.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual event ServiceEventHandler ServiceStarting</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.ServiceEventHandler.html">ServiceEventHandler</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_ServiceStopped.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.ServiceStopped%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L534">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Impl_SafeService_ServiceStopped" data-uid="Tangosol.Net.Impl.SafeService.ServiceStopped">ServiceStopped</h4>
+  <div class="markdown level1 summary"><p>Invoked when <a class="xref" href="Tangosol.Net.IService.html">IService</a> has stopped.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual event ServiceEventHandler ServiceStopped</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.ServiceEventHandler.html">ServiceEventHandler</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService_ServiceStopping.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService.ServiceStopping%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L490">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Impl_SafeService_ServiceStopping" data-uid="Tangosol.Net.Impl.SafeService.ServiceStopping">ServiceStopping</h4>
+  <div class="markdown level1 summary"><p>Invoked when <a class="xref" href="Tangosol.Net.IService.html">IService</a> is stopping.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual event ServiceEventHandler ServiceStopping</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.ServiceEventHandler.html">ServiceEventHandler</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.IService.html">IService</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Util.IService.html">IService</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Util.IControllable.html">IControllable</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeService.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeService%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeService.cs/#L32" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

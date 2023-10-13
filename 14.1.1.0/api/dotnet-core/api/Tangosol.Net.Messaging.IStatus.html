@@ -1,0 +1,457 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IStatus
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IStatus
+   ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Messaging.IStatus">
+  
+  
+  <h1 id="Tangosol_Net_Messaging_IStatus" data-uid="Tangosol.Net.Messaging.IStatus" class="text-break">Interface IStatus
+  </h1>
+  <div class="markdown level0 summary"><p>An IStatus represents an asynchronous <a class="xref" href="Tangosol.Net.Messaging.IRequest.html">IRequest</a>
+sent to a peer.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Messaging.html">Tangosol.Net.Messaging</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Messaging_IStatus_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IStatus</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Messaging_IStatus_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+The status of the <strong>IRequest</strong> can be determined by checking the
+value of the <a class="xref" href="Tangosol.Net.Messaging.IStatus.html#Tangosol_Net_Messaging_IStatus_IsClosed">IsClosed</a> property. If it returns
+<strong>false</strong>, the request is still in progress. A return value of
+<strong>true</strong> indicates that the request has either completed
+successfully, completed unsuccessfully, or has been canceled.</p>
+<p>
+When the <strong>IRequest</strong> completes, the <a class="xref" href="Tangosol.Net.Messaging.IResponse.html">IResponse</a> sent
+by the peer can be retrieved from the <a class="xref" href="Tangosol.Net.Messaging.IStatus.html#Tangosol_Net_Messaging_IStatus_Response">Response</a>
+property. If this property value is <code>null</code>, the <strong>IRequest</strong>
+was explicitly canceled (<a class="xref" href="Tangosol.Net.Messaging.IStatus.html#Tangosol_Net_Messaging_IStatus_Cancel">Cancel()</a>).</p>
+<p>
+Rather than constantly polling the <strong>IRequest</strong> for the outcome of
+the <strong>IRequest</strong>, a thread can alternatively use the IStatus to
+<a class="xref" href="Tangosol.Net.Messaging.IStatus.html#Tangosol_Net_Messaging_IStatus_WaitForResponse_System_Int64_">WaitForResponse(Int64)</a> wait for the <strong>IRequest</strong> to
+complete.
+</div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IStatus_IsClosed.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IStatus.IsClosed%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IStatus.cs/#L50">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IStatus_IsClosed_" data-uid="Tangosol.Net.Messaging.IStatus.IsClosed*"></a>
+  <h4 id="Tangosol_Net_Messaging_IStatus_IsClosed" data-uid="Tangosol.Net.Messaging.IStatus.IsClosed">IsClosed</h4>
+  <div class="markdown level1 summary"><p>Determine if the <strong>IRequest</strong> represented by this IStatus has
+been completed successfully, completed unsuccessfully, or
+canceled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsClosed { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the <strong>IRequest</strong> has been completed
+successfully, completed unsuccessfully, or canceled; <strong>false</strong>
+if the <strong>IRequest</strong> is still pending.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IStatus_Request.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IStatus.Request%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IStatus.cs/#L81">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IStatus_Request_" data-uid="Tangosol.Net.Messaging.IStatus.Request*"></a>
+  <h4 id="Tangosol_Net_Messaging_IStatus_Request" data-uid="Tangosol.Net.Messaging.IStatus.Request">Request</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>IRequest</strong> represented by this IStatus.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IRequest Request { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IRequest.html">IRequest</a></td>
+        <td><p>The <strong>IRequest</strong> represented by this IStatus.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IStatus_Response.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IStatus.Response%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IStatus.cs/#L96">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IStatus_Response_" data-uid="Tangosol.Net.Messaging.IStatus.Response*"></a>
+  <h4 id="Tangosol_Net_Messaging_IStatus_Response" data-uid="Tangosol.Net.Messaging.IStatus.Response">Response</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>IResponse</strong> sent by the peer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IResponse Response { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IResponse.html">IResponse</a></td>
+        <td><p>The <strong>IResponse</strong> sent by the peer.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_IStatus_Response_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This property has a non-null value if <a class="xref" href="Tangosol.Net.Messaging.IStatus.html#Tangosol_Net_Messaging_IStatus_IsClosed">IsClosed</a> is
+<strong>true</strong>.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Exception</span></td>
+        <td><p>If the <strong>IRequest</strong> is cancelled.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IStatus_Cancel.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IStatus.Cancel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IStatus.cs/#L60">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IStatus_Cancel_" data-uid="Tangosol.Net.Messaging.IStatus.Cancel*"></a>
+  <h4 id="Tangosol_Net_Messaging_IStatus_Cancel" data-uid="Tangosol.Net.Messaging.IStatus.Cancel">Cancel()</h4>
+  <div class="markdown level1 summary"><p>Cancel the <strong>IRequest</strong> represented by this IStatus.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Cancel()</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Messaging_IStatus_Cancel_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The requestor can call this method when it is no longer
+interested in an <strong>IResponse</strong> or outcome of the
+<strong>IRequest</strong>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IStatus_Cancel_System_Exception_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IStatus.Cancel(System.Exception)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IStatus.cs/#L73">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IStatus_Cancel_" data-uid="Tangosol.Net.Messaging.IStatus.Cancel*"></a>
+  <h4 id="Tangosol_Net_Messaging_IStatus_Cancel_System_Exception_" data-uid="Tangosol.Net.Messaging.IStatus.Cancel(System.Exception)">Cancel(Exception)</h4>
+  <div class="markdown level1 summary"><p>Cancel the <strong>IRequest</strong> represented by this <strong>IStatus</strong> due
+to an error condition.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Cancel(Exception e)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Exception</span></td>
+        <td><span class="parametername">e</span></td>
+        <td><p>The reason that the <strong>IRequest</strong> is being cancelled.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_IStatus_Cancel_System_Exception__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>After this method is called, the <a class="xref" href="Tangosol.Net.Messaging.IStatus.html#Tangosol_Net_Messaging_IStatus_Response">Response</a> will
+throw this exception (wrapping it if necessary).</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IStatus_WaitForResponse.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IStatus.WaitForResponse%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IStatus.cs/#L110">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IStatus_WaitForResponse_" data-uid="Tangosol.Net.Messaging.IStatus.WaitForResponse*"></a>
+  <h4 id="Tangosol_Net_Messaging_IStatus_WaitForResponse" data-uid="Tangosol.Net.Messaging.IStatus.WaitForResponse">WaitForResponse()</h4>
+  <div class="markdown level1 summary"><p>Block the calling thread until the <strong>IRequest</strong> is completed
+successfully, completed unsuccessfully, canceled, or a timeout
+occurs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IResponse WaitForResponse()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IResponse.html">IResponse</a></td>
+        <td><p>The <strong>IResponse</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Exception</span></td>
+        <td><p>If the <strong>IRequest</strong> is cancelled, a timeout occurs, or the
+waiting thread is interrupted.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IStatus_WaitForResponse_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IStatus.WaitForResponse(System.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IStatus.cs/#L129">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IStatus_WaitForResponse_" data-uid="Tangosol.Net.Messaging.IStatus.WaitForResponse*"></a>
+  <h4 id="Tangosol_Net_Messaging_IStatus_WaitForResponse_System_Int64_" data-uid="Tangosol.Net.Messaging.IStatus.WaitForResponse(System.Int64)">WaitForResponse(Int64)</h4>
+  <div class="markdown level1 summary"><p>Block the calling thread until the <strong>IRequest</strong> is completed
+successfully, completed unsuccessfully, canceled, or a timeout
+occurs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IResponse WaitForResponse(long milisec)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">milisec</span></td>
+        <td><p>The number of milliseconds to wait for the result of the
+<strong>IRequest</strong>; pass zero to block the calling thread
+indefinitely.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IResponse.html">IResponse</a></td>
+        <td><p>The <strong>IResponse</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Exception</span></td>
+        <td><p>If the <strong>IRequest</strong> is cancelled, a timeout occurs, or the
+waiting thread is interrupted.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="seealso">See Also</h3>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IResponse.html">IResponse</a></div>
+      <div><a class="xref" href="Tangosol.Net.Messaging.IRequest.html">IRequest</a></div>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IStatus.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IStatus%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IStatus.cs/#L38" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

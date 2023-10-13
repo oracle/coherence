@@ -1,0 +1,924 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class SafeConfigurablePofContext
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class SafeConfigurablePofContext
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext">
+  
+  
+  <h1 id="Tangosol_IO_Pof_SafeConfigurablePofContext" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext" class="text-break">Class SafeConfigurablePofContext
+  </h1>
+  <div class="markdown level0 summary"><p>SafeConfigurablePofContext is an extension of ConfigurablePofContext
+that can serialize and deserialize any valid POF user type, even those
+that have not been explicitly configured, as well as any .NET
+serializable types.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html">ConfigurablePofContext</a></div>
+    <div class="level2"><span class="xref">SafeConfigurablePofContext</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a></div>
+    <div><a class="xref" href="Tangosol.IO.ISerializer.html">ISerializer</a></div>
+    <div><a class="xref" href="Tangosol.Run.Xml.IXmlConfigurable.html">IXmlConfigurable</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_DefaultPofConfigResource">ConfigurablePofContext.DefaultPofConfigResource</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_DefaultPofConfig">ConfigurablePofContext.DefaultPofConfig</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_IsInitialized">ConfigurablePofContext.IsInitialized</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_ConfigLocation">ConfigurablePofContext.ConfigLocation</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_IsInterfaceAllowed">ConfigurablePofContext.IsInterfaceAllowed</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_IsSubclassAllowed">ConfigurablePofContext.IsSubclassAllowed</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_IsReferenceEnabled">ConfigurablePofContext.IsReferenceEnabled</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_Config">ConfigurablePofContext.Config</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_Serialize_Tangosol_IO_DataWriter_System_Object_">ConfigurablePofContext.Serialize(DataWriter, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_Deserialize_Tangosol_IO_DataReader_">ConfigurablePofContext.Deserialize(DataReader)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_GetUserTypeIdentifier_System_Object_">ConfigurablePofContext.GetUserTypeIdentifier(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_GetTypeName_System_Int32_">ConfigurablePofContext.GetTypeName(Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_IsUserType_System_Object_">ConfigurablePofContext.IsUserType(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_LoadDefaultPofConfig">ConfigurablePofContext.LoadDefaultPofConfig()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_GetPofConfig">ConfigurablePofContext.GetPofConfig()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_GetUserTypeIdentifierInternal_System_Type_">ConfigurablePofContext.GetUserTypeIdentifierInternal(Type)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_GetInheritedUserTypeIdentifier_System_Type_">ConfigurablePofContext.GetInheritedUserTypeIdentifier(Type)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_GetUserTypeIdentifierInternal_System_String_">ConfigurablePofContext.GetUserTypeIdentifierInternal(String)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_CheckNotInitialized">ConfigurablePofContext.CheckNotInitialized()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_Initialize">ConfigurablePofContext.Initialize()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_CreatePofConfig">ConfigurablePofContext.CreatePofConfig()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_ResolveType_Tangosol_Run_Xml_IXmlElement_System_Int32_">ConfigurablePofContext.ResolveType(IXmlElement, Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_GetSerializer_Tangosol_Run_Xml_IXmlElement_System_Type_System_Int32_">ConfigurablePofContext.GetSerializer(IXmlElement, Type, Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_AppendDefaultSerializerToUserTypes_Tangosol_Run_Xml_IXmlElement_">ConfigurablePofContext.AppendDefaultSerializerToUserTypes(IXmlElement)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_ThrowException_System_String_System_Int32_System_String_System_Exception_System_String_">ConfigurablePofContext.ThrowException(String, Int32, String, Exception, String)</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.IO.Pof.html">Tangosol.IO.Pof</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_IO_Pof_SafeConfigurablePofContext_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class SafeConfigurablePofContext : ConfigurablePofContext, IPofContext, ISerializer, IXmlConfigurable</code></pre>
+  </div>
+  <h5 id="Tangosol_IO_Pof_SafeConfigurablePofContext_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p><code>Important note:</code> this class is meant to be used only during
+application design time and replaced with the ConfigurablePofContext
+for production deployments as it has the following limitations:</p>
+<ul><li></li><li></li><li></li></ul>
+<p>
+For user types that have been explicitly configured, this IPofContext 
+behaves identically to the ConfigurablePofContext.
+</p>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext__ctor.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L60">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_SafeConfigurablePofContext__ctor_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.#ctor*"></a>
+  <h4 id="Tangosol_IO_Pof_SafeConfigurablePofContext__ctor" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.#ctor">SafeConfigurablePofContext()</h4>
+  <div class="markdown level1 summary"><p>Default constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SafeConfigurablePofContext()</code></pre>
+  </div>
+  <h5 id="Tangosol_IO_Pof_SafeConfigurablePofContext__ctor_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Create a default <strong>ConfigurablePofContext</strong> that will load
+definitions from the default POF config file.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext__ctor_System_IO_Stream_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.%23ctor(System.IO.Stream)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L72">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_SafeConfigurablePofContext__ctor_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.#ctor*"></a>
+  <h4 id="Tangosol_IO_Pof_SafeConfigurablePofContext__ctor_System_IO_Stream_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.#ctor(System.IO.Stream)">SafeConfigurablePofContext(Stream)</h4>
+  <div class="markdown level1 summary"><p>Create a <strong>ConfigurablePofContext</strong> that will use the passed
+configuration information.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SafeConfigurablePofContext(Stream stream)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.Stream</span></td>
+        <td><span class="parametername">stream</span></td>
+        <td><p>An <strong>Stream</strong> containing information in the format of a
+configuration file used by <strong>ConfigurablePofContext</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext__ctor_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.%23ctor(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L85">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_SafeConfigurablePofContext__ctor_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.#ctor*"></a>
+  <h4 id="Tangosol_IO_Pof_SafeConfigurablePofContext__ctor_System_String_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.#ctor(System.String)">SafeConfigurablePofContext(String)</h4>
+  <div class="markdown level1 summary"><p>Create a <strong>ConfigurablePofContext</strong> that will load
+configuration information from the specified locator.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SafeConfigurablePofContext(string locator)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">locator</span></td>
+        <td><p>The locator that specifies the location of the
+<a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a> configuration file; the locator is
+either a valid path or a URL.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext__ctor_Tangosol_Run_Xml_IXmlElement_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.%23ctor(Tangosol.Run.Xml.IXmlElement)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L97">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_SafeConfigurablePofContext__ctor_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.#ctor*"></a>
+  <h4 id="Tangosol_IO_Pof_SafeConfigurablePofContext__ctor_Tangosol_Run_Xml_IXmlElement_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.#ctor(Tangosol.Run.Xml.IXmlElement)">SafeConfigurablePofContext(IXmlElement)</h4>
+  <div class="markdown level1 summary"><p>Create a <strong>ConfigurablePofContext</strong> that will use the passed
+configuration information.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SafeConfigurablePofContext(IXmlElement xml)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a></td>
+        <td><span class="parametername">xml</span></td>
+        <td><p>An <strong>IXmlElement</strong> containing information in the format of a
+configuration file used by <strong>ConfigurablePofContext</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext_TYPE_PORTABLE.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.TYPE_PORTABLE%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L754">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_Pof_SafeConfigurablePofContext_TYPE_PORTABLE" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.TYPE_PORTABLE">TYPE_PORTABLE</h4>
+  <div class="markdown level1 summary"><p>The type identifier for objects that implement the PortableObject
+interface.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int TYPE_PORTABLE = 2147483646</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext_TYPE_SERIALIZABLE.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.TYPE_SERIALIZABLE%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L759">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_Pof_SafeConfigurablePofContext_TYPE_SERIALIZABLE" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.TYPE_SERIALIZABLE">TYPE_SERIALIZABLE</h4>
+  <div class="markdown level1 summary"><p>The type identifier for .NET Serializable objects.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int TYPE_SERIALIZABLE = 2147483647</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext_EnsureInitialized.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.EnsureInitialized%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L325">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_SafeConfigurablePofContext_EnsureInitialized_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.EnsureInitialized*"></a>
+  <h4 id="Tangosol_IO_Pof_SafeConfigurablePofContext_EnsureInitialized" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.EnsureInitialized">EnsureInitialized()</h4>
+  <div class="markdown level1 summary"><p>Fully initialize the <strong>SafeConfigurablePofContext</strong> if it has
+not already been initialized.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void EnsureInitialized()</code></pre>
+  </div>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_EnsureInitialized">ConfigurablePofContext.EnsureInitialized()</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext_GetGenericTypeId_System_Type_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.GetGenericTypeId(System.Type)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L349">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_SafeConfigurablePofContext_GetGenericTypeId_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.GetGenericTypeId*"></a>
+  <h4 id="Tangosol_IO_Pof_SafeConfigurablePofContext_GetGenericTypeId_System_Type_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.GetGenericTypeId(System.Type)">GetGenericTypeId(Type)</h4>
+  <div class="markdown level1 summary"><p>For user types that are not registered in the POF configuration
+used by this PofContext, determine if the user type can be
+serialized using POF, otherwise determine if the user type can be
+serialized using standard .NET BinaryFormatter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual int GetGenericTypeId(Type type)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Type</span></td>
+        <td><span class="parametername">type</span></td>
+        <td><p>A user type that is not configured in this IPofContext.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>A special user type id that indicates that the user type is
+supported by &quot;generic&quot; POF serialization or traditional .NET
+serialization embedded in a POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext_GetPofSerializer_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.GetPofSerializer(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L122">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_SafeConfigurablePofContext_GetPofSerializer_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.GetPofSerializer*"></a>
+  <h4 id="Tangosol_IO_Pof_SafeConfigurablePofContext_GetPofSerializer_System_Int32_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.GetPofSerializer(System.Int32)">GetPofSerializer(Int32)</h4>
+  <div class="markdown level1 summary"><p>Return an <a class="xref" href="Tangosol.IO.Pof.IPofSerializer.html">IPofSerializer</a> that can be used to
+serialize and deserialize an object of the specified user type to
+and from a POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override IPofSerializer GetPofSerializer(int typeId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">typeId</span></td>
+        <td><p>The type identifier of the user type that can be serialized and
+deserialized using the returned <strong>IPofSerializer</strong>; must be
+non-negative.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofSerializer.html">IPofSerializer</a></td>
+        <td><p>An <strong>IPofSerializer</strong> for the specified user type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_GetPofSerializer_System_Int32_">ConfigurablePofContext.GetPofSerializer(Int32)</a></div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the specified user type is negative or unknown to this
+<strong>IPofContext</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext_GetType_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.GetType(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L153">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_SafeConfigurablePofContext_GetType_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.GetType*"></a>
+  <h4 id="Tangosol_IO_Pof_SafeConfigurablePofContext_GetType_System_Int32_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.GetType(System.Int32)">GetType(Int32)</h4>
+  <div class="markdown level1 summary"><p>Determine the type associated with the given user type
+identifier.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override Type GetType(int typeId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">typeId</span></td>
+        <td><p>The user type identifier; must be non-negative.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Type</span></td>
+        <td><p>The type associated with the specified user type identifier.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_GetType_System_Int32_">ConfigurablePofContext.GetType(Int32)</a></div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the specified user type is negative or unknown to this
+<strong>IPofContext</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext_GetUserTypeIdentifier_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.GetUserTypeIdentifier(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L228">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_SafeConfigurablePofContext_GetUserTypeIdentifier_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.GetUserTypeIdentifier*"></a>
+  <h4 id="Tangosol_IO_Pof_SafeConfigurablePofContext_GetUserTypeIdentifier_System_String_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.GetUserTypeIdentifier(System.String)">GetUserTypeIdentifier(String)</h4>
+  <div class="markdown level1 summary"><p>Determine the user type identifier associated with the given type
+name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetUserTypeIdentifier(string typeName)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">typeName</span></td>
+        <td><p>The assembly-qualified name of a user type; must not be <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The type identifier of the user type associated with the given
+type name.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_GetUserTypeIdentifier_System_String_">ConfigurablePofContext.GetUserTypeIdentifier(String)</a></div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the user type associated with the given type name is unknown
+to this <strong>IPofContext</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext_GetUserTypeIdentifier_System_Type_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.GetUserTypeIdentifier(System.Type)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L185">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_SafeConfigurablePofContext_GetUserTypeIdentifier_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.GetUserTypeIdentifier*"></a>
+  <h4 id="Tangosol_IO_Pof_SafeConfigurablePofContext_GetUserTypeIdentifier_System_Type_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.GetUserTypeIdentifier(System.Type)">GetUserTypeIdentifier(Type)</h4>
+  <div class="markdown level1 summary"><p>Determine the user type identifier associated with the given
+type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetUserTypeIdentifier(Type type)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Type</span></td>
+        <td><span class="parametername">type</span></td>
+        <td><p>A user type; must not be <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The type identifier of the user type associated with the given
+type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_GetUserTypeIdentifier_System_Type_">ConfigurablePofContext.GetUserTypeIdentifier(Type)</a></div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the user type associated with the given type is unknown to
+this <strong>IPofContext</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext_IsUserType_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.IsUserType(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L294">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_SafeConfigurablePofContext_IsUserType_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.IsUserType*"></a>
+  <h4 id="Tangosol_IO_Pof_SafeConfigurablePofContext_IsUserType_System_String_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.IsUserType(System.String)">IsUserType(String)</h4>
+  <div class="markdown level1 summary"><p>Determine if the type with the given name is a user type known to
+this <strong>IPofContext</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool IsUserType(string typeName)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">typeName</span></td>
+        <td><p>The assembly-qualified name of the type to test; must not be
+<code>null</code> or empty.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> iff the type with the specified name is a valid user
+type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_IsUserType_System_String_">ConfigurablePofContext.IsUserType(String)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext_IsUserType_System_Type_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext.IsUserType(System.Type)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L266">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_SafeConfigurablePofContext_IsUserType_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.IsUserType*"></a>
+  <h4 id="Tangosol_IO_Pof_SafeConfigurablePofContext_IsUserType_System_Type_" data-uid="Tangosol.IO.Pof.SafeConfigurablePofContext.IsUserType(System.Type)">IsUserType(Type)</h4>
+  <div class="markdown level1 summary"><p>Determine if the given type is a user type known to this
+<strong>IPofContext</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool IsUserType(Type type)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Type</span></td>
+        <td><span class="parametername">type</span></td>
+        <td><p>The type to test; must not be <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> iff the specified type is a valid user type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.IO.Pof.ConfigurablePofContext.html#Tangosol_IO_Pof_ConfigurablePofContext_IsUserType_System_Type_">ConfigurablePofContext.IsUserType(Type)</a></div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.ISerializer.html">ISerializer</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Run.Xml.IXmlConfigurable.html">IXmlConfigurable</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_SafeConfigurablePofContext.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.SafeConfigurablePofContext%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/SafeConfigurablePofContext.cs/#L49" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

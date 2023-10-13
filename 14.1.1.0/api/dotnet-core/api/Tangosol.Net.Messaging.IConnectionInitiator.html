@@ -1,0 +1,277 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IConnectionInitiator
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IConnectionInitiator
+   ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Messaging.IConnectionInitiator">
+  
+  
+  <h1 id="Tangosol_Net_Messaging_IConnectionInitiator" data-uid="Tangosol.Net.Messaging.IConnectionInitiator" class="text-break">Interface IConnectionInitiator
+  </h1>
+  <div class="markdown level0 summary"><p>An IConnectionInitiator represents an <a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html">IConnectionManager</a>
+running on a client, and as a client, it is responsible for
+initiating the connection process.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html#Tangosol_Net_Messaging_IConnectionManager_OperationalContext">IConnectionManager.OperationalContext</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html#Tangosol_Net_Messaging_IConnectionManager_Protocols">IConnectionManager.Protocols</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html#Tangosol_Net_Messaging_IConnectionManager_Receivers">IConnectionManager.Receivers</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html#Tangosol_Net_Messaging_IConnectionManager_Codec">IConnectionManager.Codec</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html#Tangosol_Net_Messaging_IConnectionManager_GetProtocol_System_String_">IConnectionManager.GetProtocol(String)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html#Tangosol_Net_Messaging_IConnectionManager_RegisterProtocol_Tangosol_Net_Messaging_IProtocol_">IConnectionManager.RegisterProtocol(IProtocol)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html#Tangosol_Net_Messaging_IConnectionManager_GetReceiver_System_String_">IConnectionManager.GetReceiver(String)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html#Tangosol_Net_Messaging_IConnectionManager_RegisterReceiver_Tangosol_Net_Messaging_IReceiver_">IConnectionManager.RegisterReceiver(IReceiver)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html#Tangosol_Net_Messaging_IConnectionManager_ConnectionOpened">IConnectionManager.ConnectionOpened</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html#Tangosol_Net_Messaging_IConnectionManager_ConnectionClosed">IConnectionManager.ConnectionClosed</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html#Tangosol_Net_Messaging_IConnectionManager_ConnectionError">IConnectionManager.ConnectionError</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.IService.html#Tangosol_Util_IService_ServiceStarting">IService.ServiceStarting</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.IService.html#Tangosol_Util_IService_ServiceStarted">IService.ServiceStarted</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.IService.html#Tangosol_Util_IService_ServiceStopping">IService.ServiceStopping</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.IService.html#Tangosol_Util_IService_ServiceStopped">IService.ServiceStopped</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.IControllable.html#Tangosol_Util_IControllable_Configure_Tangosol_Run_Xml_IXmlElement_">IControllable.Configure(IXmlElement)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.IControllable.html#Tangosol_Util_IControllable_Start">IControllable.Start()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.IControllable.html#Tangosol_Util_IControllable_IsRunning">IControllable.IsRunning</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.IControllable.html#Tangosol_Util_IControllable_Shutdown">IControllable.Shutdown()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.IControllable.html#Tangosol_Util_IControllable_Stop">IControllable.Stop()</a>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Messaging.html">Tangosol.Net.Messaging</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Messaging_IConnectionInitiator_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IConnectionInitiator : IConnectionManager, IService, IControllable</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Messaging_IConnectionInitiator_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+Before a connection can be established, the IConnectionInitiator must
+be started using the <a class="xref" href="Tangosol.Util.IControllable.html#Tangosol_Util_IControllable_Start">Start()</a> method.
+Calling this method allocates any necessary resources and transitions
+the IConnectionInitiator to the running state. Additionally, the
+server endpoint must have initialized and started a
+<a class="xref" href="Tangosol.Net.Messaging.IConnectionAcceptor.html">IConnectionAcceptor</a>. The IConnectionInitiator can then
+be used to establish a connection to the server&apos;s
+<strong>IConnectionAcceptor</strong>, which is represented by a single
+<a class="xref" href="Tangosol.Net.Messaging.IConnection.html">IConnection</a> object, obtained by calling
+<a class="xref" href="Tangosol.Net.Messaging.IConnectionInitiator.html#Tangosol_Net_Messaging_IConnectionInitiator_EnsureConnection">EnsureConnection()</a>. The IConnectionInitiator maintains
+a reference to the <strong>IConnection</strong> object until it is closed or
+the IConnectionInitiator is <a class="xref" href="Tangosol.Util.IControllable.html#Tangosol_Util_IControllable_Shutdown">Shutdown()</a> or
+<a class="xref" href="Tangosol.Util.IControllable.html#Tangosol_Util_IControllable_Stop">Stop()</a> terminated.</p>
+<p>
+All IConnectionInitiator implementations must be fully thread-safe.
+</p>
+</div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IConnectionInitiator_EnsureConnection.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IConnectionInitiator.EnsureConnection%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IConnectionInitiator.cs/#L64">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IConnectionInitiator_EnsureConnection_" data-uid="Tangosol.Net.Messaging.IConnectionInitiator.EnsureConnection*"></a>
+  <h4 id="Tangosol_Net_Messaging_IConnectionInitiator_EnsureConnection" data-uid="Tangosol.Net.Messaging.IConnectionInitiator.EnsureConnection">EnsureConnection()</h4>
+  <div class="markdown level1 summary"><p>Create a new or return the existing <strong>IConnection</strong> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IConnection EnsureConnection()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IConnection.html">IConnection</a></td>
+        <td><p>An <strong>IConnection</strong> object representing a client's connection to
+a server.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_IConnectionInitiator_EnsureConnection_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+An <strong>IConnection</strong> object has a one-way state transition from
+open to closed; this method will always return an open
+<strong>IConnection</strong> object. If the previously existing
+<strong>IConnection</strong> object has transitioned to a closed state,
+this method will return a new <strong>IConnectin</strong> object in the
+open state.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the IConnectionInitiator is not running.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="seealso">See Also</h3>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IConnection.html">IConnection</a></div>
+      <div><a class="xref" href="Tangosol.Net.Messaging.IConnectionAcceptor.html">IConnectionAcceptor</a></div>
+      <div><a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html">IConnectionManager</a></div>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IConnectionInitiator.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IConnectionInitiator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IConnectionInitiator.cs/#L43" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,753 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class TopNAggregator
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class TopNAggregator
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Aggregator.TopNAggregator">
+  
+  
+  <h1 id="Tangosol_Util_Aggregator_TopNAggregator" data-uid="Tangosol.Util.Aggregator.TopNAggregator" class="text-break">Class TopNAggregator
+  </h1>
+  <div class="markdown level0 summary"><p>TopNAggregator is a ParallelAwareAggregator that aggregates the
+top <em>N</em> extracted values into an array.  The extracted values
+must not be null, but do not need to be unique.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">TopNAggregator</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.Cache.IParallelAwareAggregator.html">IParallelAwareAggregator</a></div>
+    <div><a class="xref" href="Tangosol.Net.Cache.IEntryAggregator.html">IEntryAggregator</a></div>
+    <div><a class="xref" href="Tangosol.Net.Cache.IPartialResultAggregator.html">IPartialResultAggregator</a></div>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.Aggregator.html">Tangosol.Util.Aggregator</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Aggregator_TopNAggregator_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class TopNAggregator : IParallelAwareAggregator, IEntryAggregator, IPartialResultAggregator, IPortableObject</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_TopNAggregator__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.TopNAggregator.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/TopNAggregator.cs/#L68">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_TopNAggregator__ctor_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.#ctor*"></a>
+  <h4 id="Tangosol_Util_Aggregator_TopNAggregator__ctor" data-uid="Tangosol.Util.Aggregator.TopNAggregator.#ctor">TopNAggregator()</h4>
+  <div class="markdown level1 summary"><p>Default constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TopNAggregator()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_TopNAggregator__ctor_Tangosol_Util_IValueExtractor_System_Collections_IComparer_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.TopNAggregator.%23ctor(Tangosol.Util.IValueExtractor%2CSystem.Collections.IComparer%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/TopNAggregator.cs/#L84">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_TopNAggregator__ctor_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.#ctor*"></a>
+  <h4 id="Tangosol_Util_Aggregator_TopNAggregator__ctor_Tangosol_Util_IValueExtractor_System_Collections_IComparer_System_Int32_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.#ctor(Tangosol.Util.IValueExtractor,System.Collections.IComparer,System.Int32)">TopNAggregator(IValueExtractor, IComparer, Int32)</h4>
+  <div class="markdown level1 summary"><p>Construct a TopNAggregator that will aggregate the top extracted
+values, as determined by the specified comparator.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TopNAggregator(IValueExtractor extractor, IComparer comparer, int cResults)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><span class="parametername">extractor</span></td>
+        <td><p>The extractor.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td><span class="parametername">comparer</span></td>
+        <td><p>The comparer for extracted values.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">cResults</span></td>
+        <td><p>The maximum number of results to return.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_TopNAggregator_Comparer.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.TopNAggregator.Comparer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/TopNAggregator.cs/#L48">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_TopNAggregator_Comparer_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.Comparer*"></a>
+  <h4 id="Tangosol_Util_Aggregator_TopNAggregator_Comparer" data-uid="Tangosol.Util.Aggregator.TopNAggregator.Comparer">Comparer</h4>
+  <div class="markdown level1 summary"><p>The IComparer used by this aggregator.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IComparer Comparer { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_TopNAggregator_Extractor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.TopNAggregator.Extractor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/TopNAggregator.cs/#L32">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_TopNAggregator_Extractor_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.Extractor*"></a>
+  <h4 id="Tangosol_Util_Aggregator_TopNAggregator_Extractor" data-uid="Tangosol.Util.Aggregator.TopNAggregator.Extractor">Extractor</h4>
+  <div class="markdown level1 summary"><p>The ValueExtractor used by this aggregator.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IValueExtractor Extractor { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_TopNAggregator_IsParallel.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.TopNAggregator.IsParallel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/TopNAggregator.cs/#L40">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_TopNAggregator_IsParallel_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.IsParallel*"></a>
+  <h4 id="Tangosol_Util_Aggregator_TopNAggregator_IsParallel" data-uid="Tangosol.Util.Aggregator.TopNAggregator.IsParallel">IsParallel</h4>
+  <div class="markdown level1 summary"><p>True iff this aggregator is to be used in parallel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected bool IsParallel { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_TopNAggregator_ParallelAggregator.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.TopNAggregator.ParallelAggregator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/TopNAggregator.cs/#L103">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_TopNAggregator_ParallelAggregator_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.ParallelAggregator*"></a>
+  <h4 id="Tangosol_Util_Aggregator_TopNAggregator_ParallelAggregator" data-uid="Tangosol.Util.Aggregator.TopNAggregator.ParallelAggregator">ParallelAggregator</h4>
+  <div class="markdown level1 summary"><p>Get an aggregator that can take the place of this aggregator in
+situations in which the <a class="xref" href="Tangosol.Net.Cache.IInvocableCache.html">IInvocableCache</a> can
+aggregate in parallel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IEntryAggregator ParallelAggregator { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IEntryAggregator.html">IEntryAggregator</a></td>
+        <td><p>The aggregator that will be run in parallel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_TopNAggregator_Results.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.TopNAggregator.Results%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/TopNAggregator.cs/#L56">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_TopNAggregator_Results_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.Results*"></a>
+  <h4 id="Tangosol_Util_Aggregator_TopNAggregator_Results" data-uid="Tangosol.Util.Aggregator.TopNAggregator.Results">Results</h4>
+  <div class="markdown level1 summary"><p>The maximum number of results to include in the aggregation result.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected int Results { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_TopNAggregator_AddToResult_System_Collections_ICollection_Tangosol_Util_Aggregator_TopNAggregator_PartialResult_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.TopNAggregator.AddToResult(System.Collections.ICollection%2CTangosol.Util.Aggregator.TopNAggregator.PartialResult)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/TopNAggregator.cs/#L191">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_TopNAggregator_AddToResult_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.AddToResult*"></a>
+  <h4 id="Tangosol_Util_Aggregator_TopNAggregator_AddToResult_System_Collections_ICollection_Tangosol_Util_Aggregator_TopNAggregator_PartialResult_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.AddToResult(System.Collections.ICollection,Tangosol.Util.Aggregator.TopNAggregator.PartialResult)">AddToResult(ICollection, TopNAggregator.PartialResult)</h4>
+  <div class="markdown level1 summary"><p>Add the specified values to the result if they are within the top-N.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void AddToResult(ICollection values, TopNAggregator.PartialResult result)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">values</span></td>
+        <td><p>The collection of values to add.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Aggregator.TopNAggregator.PartialResult.html">TopNAggregator.PartialResult</a></td>
+        <td><span class="parametername">result</span></td>
+        <td><p>The result.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_TopNAggregator_Aggregate_System_Collections_ICollection_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.TopNAggregator.Aggregate(System.Collections.ICollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/TopNAggregator.cs/#L141">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_TopNAggregator_Aggregate_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.Aggregate*"></a>
+  <h4 id="Tangosol_Util_Aggregator_TopNAggregator_Aggregate_System_Collections_ICollection_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.Aggregate(System.Collections.ICollection)">Aggregate(ICollection)</h4>
+  <div class="markdown level1 summary"><p>Process a set of <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html">IInvocableCacheEntry</a> objects
+in order to produce an aggregated result.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Aggregate(ICollection entries)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">entries</span></td>
+        <td><p>A collection of read-only <strong>IInvocableCacheEntry</strong>
+objects to aggregate.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The aggregated result from processing the entries.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_TopNAggregator_AggregatePartialResults_System_Collections_ICollection_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.TopNAggregator.AggregatePartialResults(System.Collections.ICollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/TopNAggregator.cs/#L170">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_TopNAggregator_AggregatePartialResults_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.AggregatePartialResults*"></a>
+  <h4 id="Tangosol_Util_Aggregator_TopNAggregator_AggregatePartialResults_System_Collections_ICollection_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.AggregatePartialResults(System.Collections.ICollection)">AggregatePartialResults(ICollection)</h4>
+  <div class="markdown level1 summary"><p>Aggregate the results of the parallel aggregations, producing a
+partial result logically representing the partial aggregation. The
+returned partial result will be further {@link
+ParallelAwareAggregator#aggregateResults aggregated} to produce
+the final result.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object AggregatePartialResults(ICollection colPartialResults)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">colPartialResults</span></td>
+        <td><p>The partial results to agregate.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>An aggregattion of the collection of partial results.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_TopNAggregator_AggregateResults_System_Collections_ICollection_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.TopNAggregator.AggregateResults(System.Collections.ICollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/TopNAggregator.cs/#L121">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_TopNAggregator_AggregateResults_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.AggregateResults*"></a>
+  <h4 id="Tangosol_Util_Aggregator_TopNAggregator_AggregateResults_System_Collections_ICollection_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.AggregateResults(System.Collections.ICollection)">AggregateResults(ICollection)</h4>
+  <div class="markdown level1 summary"><p>Aggregate the results of the parallel aggregations.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object AggregateResults(ICollection results)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">results</span></td>
+        <td><p>Results to aggregate.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The aggregation of the parallel aggregation results.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_TopNAggregator_FinalizeResult_Tangosol_Util_Aggregator_TopNAggregator_PartialResult_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.TopNAggregator.FinalizeResult(Tangosol.Util.Aggregator.TopNAggregator.PartialResult)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/TopNAggregator.cs/#L235">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_TopNAggregator_FinalizeResult_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.FinalizeResult*"></a>
+  <h4 id="Tangosol_Util_Aggregator_TopNAggregator_FinalizeResult_Tangosol_Util_Aggregator_TopNAggregator_PartialResult_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.FinalizeResult(Tangosol.Util.Aggregator.TopNAggregator.PartialResult)">FinalizeResult(TopNAggregator.PartialResult)</h4>
+  <div class="markdown level1 summary"><p>Finalize the partial aggregation result.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected object[] FinalizeResult(TopNAggregator.PartialResult result)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Aggregator.TopNAggregator.PartialResult.html">TopNAggregator.PartialResult</a></td>
+        <td><span class="parametername">result</span></td>
+        <td><p>The final aggregation result.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td><p>The finalized partial aggregation result.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_TopNAggregator_ReadExternal_Tangosol_IO_Pof_IPofReader_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.TopNAggregator.ReadExternal(Tangosol.IO.Pof.IPofReader)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/TopNAggregator.cs/#L256">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_TopNAggregator_ReadExternal_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.ReadExternal*"></a>
+  <h4 id="Tangosol_Util_Aggregator_TopNAggregator_ReadExternal_Tangosol_IO_Pof_IPofReader_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.ReadExternal(Tangosol.IO.Pof.IPofReader)">ReadExternal(IPofReader)</h4>
+  <div class="markdown level1 summary"><p>Restore the contents of a user type instance by reading its state
+using the specified <a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void ReadExternal(IPofReader reader)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a></td>
+        <td><span class="parametername">reader</span></td>
+        <td><p>The <strong>IPofReader</strong> from which to read the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_TopNAggregator_WriteExternal_Tangosol_IO_Pof_IPofWriter_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.TopNAggregator.WriteExternal(Tangosol.IO.Pof.IPofWriter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/TopNAggregator.cs/#L274">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_TopNAggregator_WriteExternal_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.WriteExternal*"></a>
+  <h4 id="Tangosol_Util_Aggregator_TopNAggregator_WriteExternal_Tangosol_IO_Pof_IPofWriter_" data-uid="Tangosol.Util.Aggregator.TopNAggregator.WriteExternal(Tangosol.IO.Pof.IPofWriter)">WriteExternal(IPofWriter)</h4>
+  <div class="markdown level1 summary"><p>Save the contents of a POF user type instance by writing its
+state using the specified <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void WriteExternal(IPofWriter writer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The <strong>IPofWriter</strong> to which to write the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.IParallelAwareAggregator.html">IParallelAwareAggregator</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.IEntryAggregator.html">IEntryAggregator</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.IPartialResultAggregator.html">IPartialResultAggregator</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_TopNAggregator.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.TopNAggregator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/TopNAggregator.cs/#L24" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

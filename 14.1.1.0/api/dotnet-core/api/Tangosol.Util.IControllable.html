@@ -1,0 +1,321 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IControllable
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IControllable
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.IControllable">
+  
+  
+  <h1 id="Tangosol_Util_IControllable" data-uid="Tangosol.Util.IControllable" class="text-break">Interface IControllable
+  </h1>
+  <div class="markdown level0 summary"><p>IControllable interface represents an object quite oftenly referred
+to as a <em>service</em> that usually operates on its own thread and
+has a controllable life cycle.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.html">Tangosol.Util</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_IControllable_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IControllable</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_IControllable_IsRunning.md&amp;value=---%0Auid%3A%20Tangosol.Util.IControllable.IsRunning%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/IControllable.cs/#L73">View Source</a>
+  </span>
+  <a id="Tangosol_Util_IControllable_IsRunning_" data-uid="Tangosol.Util.IControllable.IsRunning*"></a>
+  <h4 id="Tangosol_Util_IControllable_IsRunning" data-uid="Tangosol.Util.IControllable.IsRunning">IsRunning</h4>
+  <div class="markdown level1 summary"><p>Determine whether or not the controllable service is running.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsRunning { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the service is running; <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_IControllable_IsRunning_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+Returns <strong>false</strong> before a service is started, while the
+service is starting, while a service is shutting down and after
+the service has stopped. It only returns <strong>true</strong> after
+completing its start processing and before beginning its shutdown
+processing.
+</div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_IControllable_Configure_Tangosol_Run_Xml_IXmlElement_.md&amp;value=---%0Auid%3A%20Tangosol.Util.IControllable.Configure(Tangosol.Run.Xml.IXmlElement)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/IControllable.cs/#L40">View Source</a>
+  </span>
+  <a id="Tangosol_Util_IControllable_Configure_" data-uid="Tangosol.Util.IControllable.Configure*"></a>
+  <h4 id="Tangosol_Util_IControllable_Configure_Tangosol_Run_Xml_IXmlElement_" data-uid="Tangosol.Util.IControllable.Configure(Tangosol.Run.Xml.IXmlElement)">Configure(IXmlElement)</h4>
+  <div class="markdown level1 summary"><p>Configure the controllable service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Configure(IXmlElement xml)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a></td>
+        <td><span class="parametername">xml</span></td>
+        <td><p>An <a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a> carrying configuration information
+specific to the IControllable object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_IControllable_Configure_Tangosol_Run_Xml_IXmlElement__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+This method can only be called before the controllable service
+is started.
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>Thrown if the service is already running.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>Thrown if the configuration information is invalid.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_IControllable_Shutdown.md&amp;value=---%0Auid%3A%20Tangosol.Util.IControllable.Shutdown%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/IControllable.cs/#L87">View Source</a>
+  </span>
+  <a id="Tangosol_Util_IControllable_Shutdown_" data-uid="Tangosol.Util.IControllable.Shutdown*"></a>
+  <h4 id="Tangosol_Util_IControllable_Shutdown" data-uid="Tangosol.Util.IControllable.Shutdown">Shutdown()</h4>
+  <div class="markdown level1 summary"><p>Stop the controllable service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Shutdown()</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_IControllable_Shutdown_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+This is a controlled shut-down, and is preferred to the
+<a class="xref" href="Tangosol.Util.IControllable.html#Tangosol_Util_IControllable_Stop">Stop()</a> method.
+<p>
+This method should only be called once per the life cycle
+of the controllable service. Calling this method for a service
+that has already stopped has no effect.
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_IControllable_Start.md&amp;value=---%0Auid%3A%20Tangosol.Util.IControllable.Start%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/IControllable.cs/#L57">View Source</a>
+  </span>
+  <a id="Tangosol_Util_IControllable_Start_" data-uid="Tangosol.Util.IControllable.Start*"></a>
+  <h4 id="Tangosol_Util_IControllable_Start" data-uid="Tangosol.Util.IControllable.Start">Start()</h4>
+  <div class="markdown level1 summary"><p>Start the controllable service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Start()</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_IControllable_Start_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+This method should only be called once per the life cycle
+of the IControllable service. This method has no affect if the
+service is already running.
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>Thrown if a service does not support being re-started, and the
+service was already started and subsequently stopped and then
+an attempt is made to start the service again; also thrown if
+the IControllable service has not been configured.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_IControllable_Stop.md&amp;value=---%0Auid%3A%20Tangosol.Util.IControllable.Stop%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/IControllable.cs/#L97">View Source</a>
+  </span>
+  <a id="Tangosol_Util_IControllable_Stop_" data-uid="Tangosol.Util.IControllable.Stop*"></a>
+  <h4 id="Tangosol_Util_IControllable_Stop" data-uid="Tangosol.Util.IControllable.Stop">Stop()</h4>
+  <div class="markdown level1 summary"><p>Hard-stop the controllable service.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Stop()</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_IControllable_Stop_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Use <a class="xref" href="Tangosol.Util.IControllable.html#Tangosol_Util_IControllable_Shutdown">Shutdown()</a> for normal service termination.
+Calling this method for a service that has already stopped has no
+effect.</p>
+</div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_IControllable.md&amp;value=---%0Auid%3A%20Tangosol.Util.IControllable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/IControllable.cs/#L20" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

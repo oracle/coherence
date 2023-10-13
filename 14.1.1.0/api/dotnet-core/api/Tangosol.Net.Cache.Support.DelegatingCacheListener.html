@@ -1,0 +1,472 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class DelegatingCacheListener
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class DelegatingCacheListener
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Cache.Support.DelegatingCacheListener">
+  
+  
+  <h1 id="Tangosol_Net_Cache_Support_DelegatingCacheListener" data-uid="Tangosol.Net.Cache.Support.DelegatingCacheListener" class="text-break">Class DelegatingCacheListener
+  </h1>
+  <div class="markdown level0 summary"><p>Basic .NET style <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> implementation.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">DelegatingCacheListener</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Cache.Support.html">Tangosol.Net.Cache.Support</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Cache_Support_DelegatingCacheListener_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class DelegatingCacheListener : ICacheListener</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Cache_Support_DelegatingCacheListener_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>This class allows users to register for cache events using
+.NET-style event/delegate mechanism. When it recieves cache
+event, it will raise the corresponding .NET event.</p>
+</div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_DelegatingCacheListener_OnDeleted_Tangosol_Net_Cache_CacheEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.DelegatingCacheListener.OnDeleted(Tangosol.Net.Cache.CacheEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/DelegatingCacheListener.cs/#L114">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_DelegatingCacheListener_OnDeleted_" data-uid="Tangosol.Net.Cache.Support.DelegatingCacheListener.OnDeleted*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_DelegatingCacheListener_OnDeleted_Tangosol_Net_Cache_CacheEventArgs_" data-uid="Tangosol.Net.Cache.Support.DelegatingCacheListener.OnDeleted(Tangosol.Net.Cache.CacheEventArgs)">OnDeleted(CacheEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Raises the EntryDeleted event.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void OnDeleted(CacheEventArgs args)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">args</span></td>
+        <td><p>Cache event arguments containing event data.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_DelegatingCacheListener_OnInserted_Tangosol_Net_Cache_CacheEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.DelegatingCacheListener.OnInserted(Tangosol.Net.Cache.CacheEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/DelegatingCacheListener.cs/#L92">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_DelegatingCacheListener_OnInserted_" data-uid="Tangosol.Net.Cache.Support.DelegatingCacheListener.OnInserted*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_DelegatingCacheListener_OnInserted_Tangosol_Net_Cache_CacheEventArgs_" data-uid="Tangosol.Net.Cache.Support.DelegatingCacheListener.OnInserted(Tangosol.Net.Cache.CacheEventArgs)">OnInserted(CacheEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Raises the EntryInserted event.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void OnInserted(CacheEventArgs args)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">args</span></td>
+        <td><p>Cache event arguments containing event data.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_DelegatingCacheListener_OnUpdated_Tangosol_Net_Cache_CacheEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.DelegatingCacheListener.OnUpdated(Tangosol.Net.Cache.CacheEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/DelegatingCacheListener.cs/#L103">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_DelegatingCacheListener_OnUpdated_" data-uid="Tangosol.Net.Cache.Support.DelegatingCacheListener.OnUpdated*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_DelegatingCacheListener_OnUpdated_Tangosol_Net_Cache_CacheEventArgs_" data-uid="Tangosol.Net.Cache.Support.DelegatingCacheListener.OnUpdated(Tangosol.Net.Cache.CacheEventArgs)">OnUpdated(CacheEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Raises the EntryUpdated event.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void OnUpdated(CacheEventArgs args)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">args</span></td>
+        <td><p>Cache event arguments containing event data.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="events">Events
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_DelegatingCacheListener_EntryDeleted.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.DelegatingCacheListener.EntryDeleted%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/DelegatingCacheListener.cs/#L48">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_Support_DelegatingCacheListener_EntryDeleted" data-uid="Tangosol.Net.Cache.Support.DelegatingCacheListener.EntryDeleted">EntryDeleted</h4>
+  <div class="markdown level1 summary"><p>Occurs when an entry is deleted from the cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual event CacheEventHandler EntryDeleted</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.Support.CacheEventHandler.html">CacheEventHandler</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_DelegatingCacheListener_EntryInserted.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.DelegatingCacheListener.EntryInserted%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/DelegatingCacheListener.cs/#L38">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_Support_DelegatingCacheListener_EntryInserted" data-uid="Tangosol.Net.Cache.Support.DelegatingCacheListener.EntryInserted">EntryInserted</h4>
+  <div class="markdown level1 summary"><p>Occurs when a new entry is added to the cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual event CacheEventHandler EntryInserted</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.Support.CacheEventHandler.html">CacheEventHandler</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_DelegatingCacheListener_EntryUpdated.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.DelegatingCacheListener.EntryUpdated%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/DelegatingCacheListener.cs/#L43">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_Support_DelegatingCacheListener_EntryUpdated" data-uid="Tangosol.Net.Cache.Support.DelegatingCacheListener.EntryUpdated">EntryUpdated</h4>
+  <div class="markdown level1 summary"><p>Occurs when a cache entry is updated.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual event CacheEventHandler EntryUpdated</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.Support.CacheEventHandler.html">CacheEventHandler</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="eii">Explicit Interface Implementations
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_DelegatingCacheListener_Tangosol_Net_Cache_ICacheListener_EntryDeleted_Tangosol_Net_Cache_CacheEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.DelegatingCacheListener.Tangosol%23Net%23Cache%23ICacheListener%23EntryDeleted(Tangosol.Net.Cache.CacheEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/DelegatingCacheListener.cs/#L81">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_DelegatingCacheListener_Tangosol_Net_Cache_ICacheListener_EntryDeleted_" data-uid="Tangosol.Net.Cache.Support.DelegatingCacheListener.Tangosol#Net#Cache#ICacheListener#EntryDeleted*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_DelegatingCacheListener_Tangosol_Net_Cache_ICacheListener_EntryDeleted_Tangosol_Net_Cache_CacheEventArgs_" data-uid="Tangosol.Net.Cache.Support.DelegatingCacheListener.Tangosol#Net#Cache#ICacheListener#EntryDeleted(Tangosol.Net.Cache.CacheEventArgs)">ICacheListener.EntryDeleted(CacheEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Invoked when a dictionary entry has been deleted.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ICacheListener.EntryDeleted(CacheEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> carrying the remove
+information.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_DelegatingCacheListener_Tangosol_Net_Cache_ICacheListener_EntryInserted_Tangosol_Net_Cache_CacheEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.DelegatingCacheListener.Tangosol%23Net%23Cache%23ICacheListener%23EntryInserted(Tangosol.Net.Cache.CacheEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/DelegatingCacheListener.cs/#L57">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_DelegatingCacheListener_Tangosol_Net_Cache_ICacheListener_EntryInserted_" data-uid="Tangosol.Net.Cache.Support.DelegatingCacheListener.Tangosol#Net#Cache#ICacheListener#EntryInserted*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_DelegatingCacheListener_Tangosol_Net_Cache_ICacheListener_EntryInserted_Tangosol_Net_Cache_CacheEventArgs_" data-uid="Tangosol.Net.Cache.Support.DelegatingCacheListener.Tangosol#Net#Cache#ICacheListener#EntryInserted(Tangosol.Net.Cache.CacheEventArgs)">ICacheListener.EntryInserted(CacheEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Invoked when a dictionary entry has been inserted.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ICacheListener.EntryInserted(CacheEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> carrying the insert
+information.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_DelegatingCacheListener_Tangosol_Net_Cache_ICacheListener_EntryUpdated_Tangosol_Net_Cache_CacheEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.DelegatingCacheListener.Tangosol%23Net%23Cache%23ICacheListener%23EntryUpdated(Tangosol.Net.Cache.CacheEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/DelegatingCacheListener.cs/#L69">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_DelegatingCacheListener_Tangosol_Net_Cache_ICacheListener_EntryUpdated_" data-uid="Tangosol.Net.Cache.Support.DelegatingCacheListener.Tangosol#Net#Cache#ICacheListener#EntryUpdated*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_DelegatingCacheListener_Tangosol_Net_Cache_ICacheListener_EntryUpdated_Tangosol_Net_Cache_CacheEventArgs_" data-uid="Tangosol.Net.Cache.Support.DelegatingCacheListener.Tangosol#Net#Cache#ICacheListener#EntryUpdated(Tangosol.Net.Cache.CacheEventArgs)">ICacheListener.EntryUpdated(CacheEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Invoked when a dictionary entry has been updated.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ICacheListener.EntryUpdated(CacheEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> carrying the update
+information.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_DelegatingCacheListener.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.DelegatingCacheListener%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/DelegatingCacheListener.cs/#L33" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

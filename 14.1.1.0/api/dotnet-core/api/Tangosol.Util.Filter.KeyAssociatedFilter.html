@@ -1,0 +1,649 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class KeyAssociatedFilter
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class KeyAssociatedFilter
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter">
+  
+  
+  <h1 id="Tangosol_Util_Filter_KeyAssociatedFilter" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter" class="text-break">Class KeyAssociatedFilter
+  </h1>
+  <div class="markdown level0 summary"><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which limits the scope of another filter
+according to the key association information.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">KeyAssociatedFilter</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></div>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.Filter.html">Tangosol.Util.Filter</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Filter_KeyAssociatedFilter_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class KeyAssociatedFilter : IFilter, IPortableObject</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Filter_KeyAssociatedFilter_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+This filter is intended to be used to optimize queries for
+partitioned caches that utilize any of the key association
+algorithms (by implementing either <strong>KeyAssociator</strong> or
+<strong>KeyAssociation</strong>) to ensure placement of all associated
+entries in the same distributed cache partition (and therefore
+in the same storage-enabled cluster node). Using the
+<strong>KeyAssociatedFilter</strong> will instruct the distributed cache
+to apply the wrapped filter only to the entries stored at the
+cache service node that owns the specified host key.
+<p>
+<strong>Note 1:</strong> This filter must be the outermost filter and cannot
+be used as a part of any composite filter
+(<a class="xref" href="Tangosol.Util.Filter.AndFilter.html">AndFilter</a>, <a class="xref" href="Tangosol.Util.Filter.OrFilter.html">OrFilter</a>, etc.)
+<p>
+<strong>Note 2:</strong> This filter is intended to be processed only on the
+client side of the partitioned cache service.
+<p>
+For example, consider two classes called <em>Parent</em> and
+<em>Child</em> that are stored in separate caches using
+<em>ParentKey</em> and <em>ChildKey</em> objects respectively.
+The Parent and Child classes have a <em>Id</em> property that returns
+a Long value that uniquely identifies the object. Similarly, the
+ParentKey and ChildKey classes have a <em>Id</em> property that
+uniquely identifies the corresponding cached object. Futhermore, the
+Child and ChildKey classes include a <em>ParentId</em> property that
+returns the Long identifier of the Parent object.
+<p>
+There are two ways to ensure that Child objects are collocated with
+their Parent objects (in the same storage-enabled cluster node).
+<ol><li>
+Make the ChildKey class implement <strong>KeyAssociation</strong> as follows:
+<pre><code>public Object AssociatedKey
+{
+    get { return ParentId; }
+}</code></pre>
+and the ParentKey class implement <strong>KeyAssociation</strong> as follows:
+<pre><code>public Object AssociatedKey
+{
+    get { return Id; }
+}</code></pre>
+</li><li>
+Implement a custom <strong>KeyAssociator</strong> as follows:
+<pre><code>public object GetAssociatedKey(object key)
+{
+    if (key is ChildKey)
+    {
+        return ((ChildKey) key).ParentId;
+    }
+    else if (key is ParentKey)
+    {
+        return ((ParentKey) key).Id;
+    }
+    else
+    {
+    return null;
+    }
+}</code></pre>
+</li></ol>
+The first approach requires a trivial change to the ChildKey and
+ParentKey classes, whereas the second requires a new class and a
+configuration change, but no changes to existing classes.
+<p>
+Now, to retrieve all the Child objects of a given Parent using an
+optimized query you would do the following:
+<pre><code>ParentKey parentKey = new ParentKey(...);
+Long      parentId  = parentKey.Id;
+<p>// this Filter will be applied to all Child objects in order to fetch
+// those for which ParentId returns the specified Parent identifier
+IFilter filterEq = new EqualsFilter(&quot;ParentId&quot;, parentId);</p>
+<p>// this Filter will direct the query to the cluster node that
+// currently owns the Parent object with the given identifier
+IFilter filterAsc = new KeyAssociatedFilter(filterEq, parentId);</p>
+<p>// run the optimized query to get the ChildKey objects
+ICollection colChildKeys = cacheChildren.Keys(filterAsc);</p>
+<p>// get all the Child objects at once
+ICollection colChildren = cacheChildren.GetAll(colChildKeys);</code></pre>
+To remove the Child objects you would then do the following:</p>
+<pre><code>cacheChildren.Keys.RemoveAll(colChildKeys);</code></pre>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_KeyAssociatedFilter__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.KeyAssociatedFilter.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/KeyAssociatedFilter.cs/#L155">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_KeyAssociatedFilter__ctor_" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_KeyAssociatedFilter__ctor" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.#ctor">KeyAssociatedFilter()</h4>
+  <div class="markdown level1 summary"><p>Default constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public KeyAssociatedFilter()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_KeyAssociatedFilter__ctor_Tangosol_Util_IFilter_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.KeyAssociatedFilter.%23ctor(Tangosol.Util.IFilter%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/KeyAssociatedFilter.cs/#L168">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_KeyAssociatedFilter__ctor_" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_KeyAssociatedFilter__ctor_Tangosol_Util_IFilter_System_Object_" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.#ctor(Tangosol.Util.IFilter,System.Object)">KeyAssociatedFilter(IFilter, Object)</h4>
+  <div class="markdown level1 summary"><p>Construct a key associated filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public KeyAssociatedFilter(IFilter filter, object hostKey)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The underlying (wrapped) filter.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">hostKey</span></td>
+        <td><p>The host key that serves as an associated key for all keys that
+the wrapped filter will be applied to.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_KeyAssociatedFilter_Filter.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.KeyAssociatedFilter.Filter%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/KeyAssociatedFilter.cs/#L143">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_KeyAssociatedFilter_Filter_" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.Filter*"></a>
+  <h4 id="Tangosol_Util_Filter_KeyAssociatedFilter_Filter" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.Filter">Filter</h4>
+  <div class="markdown level1 summary"><p>Obtain the wrapped <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IFilter Filter { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><p>The wrapped filter object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_KeyAssociatedFilter_HostKey.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.KeyAssociatedFilter.HostKey%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/KeyAssociatedFilter.cs/#L132">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_KeyAssociatedFilter_HostKey_" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.HostKey*"></a>
+  <h4 id="Tangosol_Util_Filter_KeyAssociatedFilter_HostKey" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.HostKey">HostKey</h4>
+  <div class="markdown level1 summary"><p>Obtain the host key that serves as an associated key for all keys
+that the wrapped filter will be applied to.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object HostKey { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The host key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_KeyAssociatedFilter_Equals_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.KeyAssociatedFilter.Equals(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/KeyAssociatedFilter.cs/#L257">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_KeyAssociatedFilter_Equals_" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.Equals*"></a>
+  <h4 id="Tangosol_Util_Filter_KeyAssociatedFilter_Equals_System_Object_" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.Equals(System.Object)">Equals(Object)</h4>
+  <div class="markdown level1 summary"><p>Compare the <strong>KeyAssociatedFilter</strong> with another object to
+determine equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Equals(object obj)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">obj</span></td>
+        <td><p>The <strong>KeyAssociatedFilter</strong> to compare to.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if this <strong>KeyAssociatedFilter</strong> and the passed
+object are equivalent <strong>KeyAssociatedFilter</strong> objects.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.Equals(System.Object)</span></div>
+  <h5 id="Tangosol_Util_Filter_KeyAssociatedFilter_Equals_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Two <strong>KeyAssociatedFilter</strong> objects are considered equal if
+the wrapped filters and host keys are equal.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_KeyAssociatedFilter_Evaluate_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.KeyAssociatedFilter.Evaluate(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/KeyAssociatedFilter.cs/#L197">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_KeyAssociatedFilter_Evaluate_" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.Evaluate*"></a>
+  <h4 id="Tangosol_Util_Filter_KeyAssociatedFilter_Evaluate_System_Object_" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.Evaluate(System.Object)">Evaluate(Object)</h4>
+  <div class="markdown level1 summary"><p>Apply the test to the object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool Evaluate(object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>An object to which the test is applied.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the test passes, <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_KeyAssociatedFilter_GetHashCode.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.KeyAssociatedFilter.GetHashCode%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/KeyAssociatedFilter.cs/#L275">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_KeyAssociatedFilter_GetHashCode_" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.GetHashCode*"></a>
+  <h4 id="Tangosol_Util_Filter_KeyAssociatedFilter_GetHashCode" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.GetHashCode">GetHashCode()</h4>
+  <div class="markdown level1 summary"><p>Determine a hash value for the <strong>KeyAssociatedFilter</strong> object
+according to the general <strong>object.GetHashCode()</strong> contract.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetHashCode()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>An integer hash value for this <strong>KeyAssociatedFilter</strong> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.GetHashCode()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_KeyAssociatedFilter_ReadExternal_Tangosol_IO_Pof_IPofReader_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.KeyAssociatedFilter.ReadExternal(Tangosol.IO.Pof.IPofReader)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/KeyAssociatedFilter.cs/#L216">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_KeyAssociatedFilter_ReadExternal_" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.ReadExternal*"></a>
+  <h4 id="Tangosol_Util_Filter_KeyAssociatedFilter_ReadExternal_Tangosol_IO_Pof_IPofReader_" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.ReadExternal(Tangosol.IO.Pof.IPofReader)">ReadExternal(IPofReader)</h4>
+  <div class="markdown level1 summary"><p>Restore the contents of a user type instance by reading its state
+using the specified <a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void ReadExternal(IPofReader reader)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a></td>
+        <td><span class="parametername">reader</span></td>
+        <td><p>The <strong>IPofReader</strong> from which to read the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_KeyAssociatedFilter_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.KeyAssociatedFilter.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/KeyAssociatedFilter.cs/#L287">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_KeyAssociatedFilter_ToString_" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.ToString*"></a>
+  <h4 id="Tangosol_Util_Filter_KeyAssociatedFilter_ToString" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Return a human-readable description for this
+<strong>KeyAssociatedFilter</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A string description of the <strong>KeyAssociatedFilter</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.ToString()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_KeyAssociatedFilter_WriteExternal_Tangosol_IO_Pof_IPofWriter_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.KeyAssociatedFilter.WriteExternal(Tangosol.IO.Pof.IPofWriter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/KeyAssociatedFilter.cs/#L232">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_KeyAssociatedFilter_WriteExternal_" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.WriteExternal*"></a>
+  <h4 id="Tangosol_Util_Filter_KeyAssociatedFilter_WriteExternal_Tangosol_IO_Pof_IPofWriter_" data-uid="Tangosol.Util.Filter.KeyAssociatedFilter.WriteExternal(Tangosol.IO.Pof.IPofWriter)">WriteExternal(IPofWriter)</h4>
+  <div class="markdown level1 summary"><p>Save the contents of a POF user type instance by writing its
+state using the specified <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void WriteExternal(IPofWriter writer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The <strong>IPofWriter</strong> to which to write the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_KeyAssociatedFilter.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.KeyAssociatedFilter%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/KeyAssociatedFilter.cs/#L121" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

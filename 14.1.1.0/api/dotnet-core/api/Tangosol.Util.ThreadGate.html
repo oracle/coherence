@@ -1,0 +1,1179 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class ThreadGate
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class ThreadGate
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.ThreadGate">
+  
+  
+  <h1 id="Tangosol_Util_ThreadGate" data-uid="Tangosol.Util.ThreadGate" class="text-break">Class ThreadGate
+  </h1>
+  <div class="markdown level0 summary"><p>Use this class in cases that large numbers of threads can operate
+concurrently with an additional requirement that all threads be
+blocked for certain operations.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">ThreadGate</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Util.Gate.html">Gate</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.html">Tangosol.Util</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_ThreadGate_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[Obsolete(&quot;Use GateFactory.NewGate to obtain a Gate.&quot;)]
+public class ThreadGate : Gate</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_ThreadGate_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>The algorithm is based on a gate concept, allowing threads in
+<a class="xref" href="Tangosol.Util.ThreadGate.html#Tangosol_Util_ThreadGate_Enter_System_Int64_">Enter(Int64)</a> and out <a class="xref" href="Tangosol.Util.ThreadGate.html#Tangosol_Util_ThreadGate_Exit">Exit()</a>, but occasionally
+shutting the gate <a class="xref" href="Tangosol.Util.ThreadGate.html#Tangosol_Util_ThreadGate_Close_System_Int64_">Close(Int64)</a> such that other threads cannot
+enter and exit. However, since threads may &quot;be inside&quot;, the gate
+cannot fully close until they leave <a class="xref" href="Tangosol.Util.ThreadGate.html#Tangosol_Util_ThreadGate_Exit">Exit()</a>. Once all
+threads are out, the gate is closed, and can be re-opened
+<a class="xref" href="Tangosol.Util.ThreadGate.html#Tangosol_Util_ThreadGate_Open">Open()</a> or permanently closed <a class="xref" href="Tangosol.Util.ThreadGate.html#Tangosol_Util_ThreadGate_Destroy">Destroy()</a>.</p>
+<p>
+Each call to <strong>Enter</strong> requires a corresponding call to
+<strong>Exit</strong>. For example, the following would ensure proper clean-up
+using a ThreadGate:</p>
+<p>
+<pre>
+gate.Enter();
+try
+{
+    ...
+}
+finally
+{
+    gate.Exit();
+}
+</pre></p>
+<p>
+Similarly, each call to <strong>Close</strong> should be matched with a call to
+<strong>Open</strong>, unless the gate is being destroyed:</p>
+<p>
+<pre>
+gate.Close();
+try
+{
+    ...
+}
+finally
+{
+    gate.Open();
+}
+</pre></p>
+<p>
+or:</p>
+<p>
+<pre>
+gate.Close();
+gate.Destroy();
+</pre></p>
+<p>
+The Enter/Exit calls can be nested; the same thread can invoke Enter
+multiple times as long as Exit is invoked a corresponding number of
+times. The Close/Open calls work in the same manner. Lastly, the
+thread that closes the gate may continue to Enter/Exit the gate even
+when it is closed since that thread has exclusive control of the
+gate.</p>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L215">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate__ctor_" data-uid="Tangosol.Util.ThreadGate.#ctor*"></a>
+  <h4 id="Tangosol_Util_ThreadGate__ctor" data-uid="Tangosol.Util.ThreadGate.#ctor">ThreadGate()</h4>
+  <div class="markdown level1 summary"><p>Allocates unnamed data slots on threads to store local thread
+counter values and returns new instance of ThreadGate.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ThreadGate()</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_ActiveCount.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.ActiveCount%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L86">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_ActiveCount_" data-uid="Tangosol.Util.ThreadGate.ActiveCount*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_ActiveCount" data-uid="Tangosol.Util.ThreadGate.ActiveCount">ActiveCount</h4>
+  <div class="markdown level1 summary"><p>The number of unmatched completed Enter calls.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int ActiveCount { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The number of unmatched completed Enter calls.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_CloseCount.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.CloseCount%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L174">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_CloseCount_" data-uid="Tangosol.Util.ThreadGate.CloseCount*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_CloseCount" data-uid="Tangosol.Util.ThreadGate.CloseCount">CloseCount</h4>
+  <div class="markdown level1 summary"><p>The number of unmatched completed Close/BarEntry calls.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int CloseCount { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The number of unmatched completed Close/BarEntry calls.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_ClosingThread.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.ClosingThread%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L190">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_ClosingThread_" data-uid="Tangosol.Util.ThreadGate.ClosingThread*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_ClosingThread" data-uid="Tangosol.Util.ThreadGate.ClosingThread">ClosingThread</h4>
+  <div class="markdown level1 summary"><p>The thread that is closing the gates.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual Thread ClosingThread { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Thread</span></td>
+        <td><p>The thread that is closing the gates.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_ThreadGate_ClosingThread_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>When setting the value, the caller must be synchronized on the
+ThreadGate.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_IsActiveThread.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.IsActiveThread%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L102">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_IsActiveThread_" data-uid="Tangosol.Util.ThreadGate.IsActiveThread*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_IsActiveThread" data-uid="Tangosol.Util.ThreadGate.IsActiveThread">IsActiveThread</h4>
+  <div class="markdown level1 summary"><p>Determine if the current thread has entered and not exited the
+thread gate.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsActiveThread { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the current thread has entered and not exited the
+thread gate.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_ThreadGate_IsActiveThread_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This is useful for detecting re-entrancy.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_IsClosedByCurrentThread.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.IsClosedByCurrentThread%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L144">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_IsClosedByCurrentThread_" data-uid="Tangosol.Util.ThreadGate.IsClosedByCurrentThread*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_IsClosedByCurrentThread" data-uid="Tangosol.Util.ThreadGate.IsClosedByCurrentThread">IsClosedByCurrentThread</h4>
+  <div class="markdown level1 summary"><p>Determines if the current thread have Closed the gate but not yet
+Opened the Gate.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsClosedByCurrentThread { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_IsClosingThread.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.IsClosingThread%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L118">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_IsClosingThread_" data-uid="Tangosol.Util.ThreadGate.IsClosingThread*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_IsClosingThread" data-uid="Tangosol.Util.ThreadGate.IsClosingThread">IsClosingThread</h4>
+  <div class="markdown level1 summary"><p>Determine if the current thread has closed and not opened the
+the thread gate.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsClosingThread { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the current thread has closed and not opened the
+thread gate.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_ThreadGate_IsClosingThread_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This is useful for detecting re-entrancy.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_IsEnteredByCurrentThread.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.IsEnteredByCurrentThread%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L135">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_IsEnteredByCurrentThread_" data-uid="Tangosol.Util.ThreadGate.IsEnteredByCurrentThread*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_IsEnteredByCurrentThread" data-uid="Tangosol.Util.ThreadGate.IsEnteredByCurrentThread">IsEnteredByCurrentThread</h4>
+  <div class="markdown level1 summary"><p>Determine if the current thread has entered and not exited the
+thread gate.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsEnteredByCurrentThread { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the current thread has entered and not exited the
+thread gate.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_ThreadGate_IsEnteredByCurrentThread_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This is useful for detecting re-entrancy.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_Status.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.Status%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L202">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_Status_" data-uid="Tangosol.Util.ThreadGate.Status*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_Status" data-uid="Tangosol.Util.ThreadGate.Status">Status</h4>
+  <div class="markdown level1 summary"><p>The current thread gate status.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ThreadGateState Status { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.ThreadGateState.html">ThreadGateState</a></td>
+        <td><p>One of the <a class="xref" href="Tangosol.Util.ThreadGateState.html">ThreadGateState</a> values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_Version.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.Version%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L162">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_Version_" data-uid="Tangosol.Util.ThreadGate.Version*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_Version" data-uid="Tangosol.Util.ThreadGate.Version">Version</h4>
+  <div class="markdown level1 summary"><p>The total number of times the gate has been fully opened.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual long Version { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The total number of times the gate has been fully opened.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_ThreadGate_Version_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>When setting the value, the caller must have the gate closed.</p>
+</div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_BarEntry_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.BarEntry(System.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L309">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_BarEntry_" data-uid="Tangosol.Util.ThreadGate.BarEntry*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_BarEntry_System_Int64_" data-uid="Tangosol.Util.ThreadGate.BarEntry(System.Int64)">BarEntry(Int64)</h4>
+  <div class="markdown level1 summary"><p>Bar entry of the thread gate by other threads, but do not wait
+for the gate to close.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool BarEntry(long millis)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">millis</span></td>
+        <td><p>Maximum number of milliseconds to wait; pass -1 for forever or 0
+for no wait.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> iff entry into the thread gate was successfully
+barred by the calling thread.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_ThreadGate_BarEntry_System_Int64__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>When all other threads have exited, the status of the thread gate
+will be closeable by the thread which barred entry. Each
+sucessful invocation of this method must ultimately have a
+corresponding invocation of the Open method (assuming the thread
+gate is not destroyed) even if the calling thread does not
+subsequently close the gate.</p>
+<pre>
+gate.BarEntry(-1);
+try
+{
+    // processing that does not require the gate to be closed
+    // ...
+}
+finally
+{
+    gate.Close(-1);
+    try
+    {
+        // processing that does require the gate to be closed
+        // ...
+    }
+    finally
+    {
+        gate.Open(); // matches gate.Close()
+    }
+    gate.Open(); // matches gate.BarEntry()
+}
+</pre>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_Close_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.Close(System.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L367">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_Close_" data-uid="Tangosol.Util.ThreadGate.Close*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_Close_System_Int64_" data-uid="Tangosol.Util.ThreadGate.Close(System.Int64)">Close(Int64)</h4>
+  <div class="markdown level1 summary"><p>Close the thread gate.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool Close(long millis)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">millis</span></td>
+        <td><p>Maximum number of milliseconds to wait; pass -1 for forever or 0
+for no wait.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> iff entry into the thread gate was successfully
+barred by the calling thread and no other threads remain in the
+gate.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_ThreadGate_Close_System_Int64__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>A thread uses this method to obtain exclusive access to the
+resource represented by the thread gate. Each invocation of this
+method must ultimately have a corresponding invocation of the
+Open method.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_DecrementThreadLocalCount_LocalDataStoreSlot_.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.DecrementThreadLocalCount(LocalDataStoreSlot)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L769">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_DecrementThreadLocalCount_" data-uid="Tangosol.Util.ThreadGate.DecrementThreadLocalCount*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_DecrementThreadLocalCount_LocalDataStoreSlot_" data-uid="Tangosol.Util.ThreadGate.DecrementThreadLocalCount(LocalDataStoreSlot)">DecrementThreadLocalCount(LocalDataStoreSlot)</h4>
+  <div class="markdown level1 summary"><p>Decrement the long value of the <strong>LocalDataStoreSlot</strong> for the
+current thread by one.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual long DecrementThreadLocalCount(LocalDataStoreSlot slot)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">LocalDataStoreSlot</span></td>
+        <td><span class="parametername">slot</span></td>
+        <td><p><strong>LocalDataStoreSlot</strong> object which provides managed thread
+local storage with dynamic data slots that are unique to a thread
+and application-domain combination.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The new long value for the current thread or -1 if previous value
+was <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_ThreadGate_DecrementThreadLocalCount_LocalDataStoreSlot__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If the value in the <strong>LocalDataStoreSlot</strong> is <code>null</code>, -1
+is returned.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_Destroy.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.Destroy%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L476">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_Destroy_" data-uid="Tangosol.Util.ThreadGate.Destroy*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_Destroy" data-uid="Tangosol.Util.ThreadGate.Destroy">Destroy()</h4>
+  <div class="markdown level1 summary"><p>Destroy the thread gate.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Destroy()</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_ThreadGate_Destroy_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method can only be invoked if the gate is already closed.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_DoWait_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.DoWait(System.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L792">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_DoWait_" data-uid="Tangosol.Util.ThreadGate.DoWait*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_DoWait_System_Int64_" data-uid="Tangosol.Util.ThreadGate.DoWait(System.Int64)">DoWait(Int64)</h4>
+  <div class="markdown level1 summary"><p>Wait up to the specified number of milliseconds for notification.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual long DoWait(long millis)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">millis</span></td>
+        <td><p>Number of milliseconds to wait for.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The remaining wait time in milliseconds.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_ThreadGate_DoWait_System_Int64__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Caller must be synchronized.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_Enter_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.Enter(System.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L522">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_Enter_" data-uid="Tangosol.Util.ThreadGate.Enter*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_Enter_System_Int64_" data-uid="Tangosol.Util.ThreadGate.Enter(System.Int64)">Enter(Int64)</h4>
+  <div class="markdown level1 summary"><p>Enter the thread gate.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool Enter(long millis)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">millis</span></td>
+        <td><p>Maximum number of milliseconds to wait; pass -1 for forever or 0
+for no wait.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> iff the calling thread successfully entered the gate.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_ThreadGate_Enter_System_Int64__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>A thread uses this method to obtain non-exclusive access to the
+resource represented by the thread gate. Each invocation of this
+method must ultimately have a corresponding invocation of the
+Exit method.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_Exit.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.Exit%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L619">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_Exit_" data-uid="Tangosol.Util.ThreadGate.Exit*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_Exit" data-uid="Tangosol.Util.ThreadGate.Exit">Exit()</h4>
+  <div class="markdown level1 summary"><p>Exit the gate.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Exit()</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_ThreadGate_Exit_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>A thread must invoke this method corresponding to each invocation
+of the Enter method.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_GetThreadLocalCount_LocalDataStoreSlot_.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.GetThreadLocalCount(LocalDataStoreSlot)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L696">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_GetThreadLocalCount_" data-uid="Tangosol.Util.ThreadGate.GetThreadLocalCount*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_GetThreadLocalCount_LocalDataStoreSlot_" data-uid="Tangosol.Util.ThreadGate.GetThreadLocalCount(LocalDataStoreSlot)">GetThreadLocalCount(LocalDataStoreSlot)</h4>
+  <div class="markdown level1 summary"><p>Obtain the long value stored in the <strong>LocalDataStoreSlot</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual long GetThreadLocalCount(LocalDataStoreSlot slot)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">LocalDataStoreSlot</span></td>
+        <td><span class="parametername">slot</span></td>
+        <td><p><strong>LocalDataStoreSlot</strong> object which provides managed thread
+local storage with dynamic data slots that are unique to a thread
+and application-domain combination.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>Long value stored in the <strong>LocalDataStoreSlot</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_IncrementThreadLocalCount_LocalDataStoreSlot_.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.IncrementThreadLocalCount(LocalDataStoreSlot)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L745">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_IncrementThreadLocalCount_" data-uid="Tangosol.Util.ThreadGate.IncrementThreadLocalCount*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_IncrementThreadLocalCount_LocalDataStoreSlot_" data-uid="Tangosol.Util.ThreadGate.IncrementThreadLocalCount(LocalDataStoreSlot)">IncrementThreadLocalCount(LocalDataStoreSlot)</h4>
+  <div class="markdown level1 summary"><p>Increment the long value from the <strong>LocalDataStoreSlot</strong> for
+the current thread by one.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual long IncrementThreadLocalCount(LocalDataStoreSlot slot)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">LocalDataStoreSlot</span></td>
+        <td><span class="parametername">slot</span></td>
+        <td><p><strong>LocalDataStoreSlot</strong> object which provides managed thread
+local storage with dynamic data slots that are unique to a thread
+and application-domain combination.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The new long value for the current thread or 1 if previous value
+was <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_ThreadGate_IncrementThreadLocalCount_LocalDataStoreSlot__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If the value in the <strong>LocalDataStoreSlot</strong> is <code>null</code>, 1
+is returned.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_Open.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.Open%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L651">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_Open_" data-uid="Tangosol.Util.ThreadGate.Open*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_Open" data-uid="Tangosol.Util.ThreadGate.Open">Open()</h4>
+  <div class="markdown level1 summary"><p>After entry into the ThreadGate is restricted by a call to
+BarEntry() or Close(), it can be re-opened by calling this
+method.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Open()</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_ThreadGate_Open_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Only the thread that called BarEntry() or Close() can call
+Open().</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the gate is not closed or closing or if Open() is not called
+by the thread that called BarEntry() or Close().</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_SetThreadLocalCount_LocalDataStoreSlot_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.SetThreadLocalCount(LocalDataStoreSlot%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L723">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_SetThreadLocalCount_" data-uid="Tangosol.Util.ThreadGate.SetThreadLocalCount*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_SetThreadLocalCount_LocalDataStoreSlot_System_Int64_" data-uid="Tangosol.Util.ThreadGate.SetThreadLocalCount(LocalDataStoreSlot,System.Int64)">SetThreadLocalCount(LocalDataStoreSlot, Int64)</h4>
+  <div class="markdown level1 summary"><p>Set the long value to be stored in the <strong>LocalDataStoreSlot</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void SetThreadLocalCount(LocalDataStoreSlot slot, long value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">LocalDataStoreSlot</span></td>
+        <td><span class="parametername">slot</span></td>
+        <td><p><strong>LocalDataStoreSlot</strong> object which provides managed thread
+local storage with dynamic data slots that are unique to a thread
+and application-domain combination.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Long value to be stored in the <strong>LocalDataStoreSlot</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L231">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_ToString_" data-uid="Tangosol.Util.ThreadGate.ToString*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_ToString" data-uid="Tangosol.Util.ThreadGate.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Provide a human-readable representation of this ThreadGate.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A human-readable representation of this ThreadGate.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.ToString()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate_UpdateStatus_Tangosol_Util_ThreadGateState_.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate.UpdateStatus(Tangosol.Util.ThreadGateState)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L832">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ThreadGate_UpdateStatus_" data-uid="Tangosol.Util.ThreadGate.UpdateStatus*"></a>
+  <h4 id="Tangosol_Util_ThreadGate_UpdateStatus_Tangosol_Util_ThreadGateState_" data-uid="Tangosol.Util.ThreadGate.UpdateStatus(Tangosol.Util.ThreadGateState)">UpdateStatus(ThreadGateState)</h4>
+  <div class="markdown level1 summary"><p>Update the current thread gate status, without changing the
+active count.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual ThreadGateState UpdateStatus(ThreadGateState status)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.ThreadGateState.html">ThreadGateState</a></td>
+        <td><span class="parametername">status</span></td>
+        <td><p>The new status.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.ThreadGateState.html">ThreadGateState</a></td>
+        <td><p>The old status.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_ThreadGate_UpdateStatus_Tangosol_Util_ThreadGateState__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The caller must hold synchronization on the ThreadGate.</p>
+</div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Util.Gate.html">Gate</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ThreadGate.md&amp;value=---%0Auid%3A%20Tangosol.Util.ThreadGate%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ThreadGate.cs/#L75" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

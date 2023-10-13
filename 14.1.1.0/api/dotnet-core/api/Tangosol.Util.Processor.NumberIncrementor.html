@@ -1,0 +1,506 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class NumberIncrementor
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class NumberIncrementor
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Processor.NumberIncrementor">
+  
+  
+  <h1 id="Tangosol_Util_Processor_NumberIncrementor" data-uid="Tangosol.Util.Processor.NumberIncrementor" class="text-break">Class NumberIncrementor
+  </h1>
+  <div class="markdown level0 summary"><p>The <strong>NumberIncrementor</strong> entry processor is used to increment a
+property value of a Byte, Int16, Int32, Int64, Single, Double and
+Decimal type.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Util.Processor.AbstractProcessor.html">AbstractProcessor</a></div>
+    <div class="level2"><a class="xref" href="Tangosol.Util.Processor.PropertyProcessor.html">PropertyProcessor</a></div>
+    <div class="level3"><span class="xref">NumberIncrementor</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a></div>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Util.Processor.PropertyProcessor.html#Tangosol_Util_Processor_PropertyProcessor_Get_Tangosol_Net_Cache_IInvocableCacheEntry_">PropertyProcessor.Get(IInvocableCacheEntry)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Processor.PropertyProcessor.html#Tangosol_Util_Processor_PropertyProcessor_Set_Tangosol_Net_Cache_IInvocableCacheEntry_System_Object_">PropertyProcessor.Set(IInvocableCacheEntry, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Processor.PropertyProcessor.html#Tangosol_Util_Processor_PropertyProcessor_Equals_System_Object_">PropertyProcessor.Equals(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Processor.PropertyProcessor.html#Tangosol_Util_Processor_PropertyProcessor_GetHashCode">PropertyProcessor.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Processor.PropertyProcessor.html#Tangosol_Util_Processor_PropertyProcessor_ToString">PropertyProcessor.ToString()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Processor.PropertyProcessor.html#Tangosol_Util_Processor_PropertyProcessor_m_manipulator">PropertyProcessor.m_manipulator</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Processor.AbstractProcessor.html#Tangosol_Util_Processor_AbstractProcessor_ProcessAll_System_Collections_ICollection_">AbstractProcessor.ProcessAll(ICollection)</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.Processor.html">Tangosol.Util.Processor</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Processor_NumberIncrementor_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class NumberIncrementor : PropertyProcessor, IEntryProcessor, IPortableObject</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_NumberIncrementor__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.NumberIncrementor.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/NumberIncrementor.cs/#L31">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Processor_NumberIncrementor__ctor_" data-uid="Tangosol.Util.Processor.NumberIncrementor.#ctor*"></a>
+  <h4 id="Tangosol_Util_Processor_NumberIncrementor__ctor" data-uid="Tangosol.Util.Processor.NumberIncrementor.#ctor">NumberIncrementor()</h4>
+  <div class="markdown level1 summary"><p>Default constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NumberIncrementor()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_NumberIncrementor__ctor_System_String_System_Object_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.NumberIncrementor.%23ctor(System.String%2CSystem.Object%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/NumberIncrementor.cs/#L54">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Processor_NumberIncrementor__ctor_" data-uid="Tangosol.Util.Processor.NumberIncrementor.#ctor*"></a>
+  <h4 id="Tangosol_Util_Processor_NumberIncrementor__ctor_System_String_System_Object_System_Boolean_" data-uid="Tangosol.Util.Processor.NumberIncrementor.#ctor(System.String,System.Object,System.Boolean)">NumberIncrementor(String, Object, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Construct an <strong>NumberIncrementor</strong> processor that will
+increment a property value by a specified amount, returning
+either the old or the new value as specified.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NumberIncrementor(string name, object numInc, bool postIncrement)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The property name.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">numInc</span></td>
+        <td><p>The object representing the magnitude and sign of the increment.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">postIncrement</span></td>
+        <td><p>Pass <strong>true</strong> to return the value as it was before it was
+incremented, or pass <strong>false</strong> to return the value as it is
+after it is incremented.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Processor_NumberIncrementor__ctor_System_String_System_Object_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The .NET type of the <code data-dev-comment-type="paramref" class="paramref">numInc</code> parameter will
+dictate the .NET type of the original and the new value.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_NumberIncrementor__ctor_Tangosol_Util_Processor_PropertyManipulator_System_Object_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.NumberIncrementor.%23ctor(Tangosol.Util.Processor.PropertyManipulator%2CSystem.Object%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/NumberIncrementor.cs/#L89">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Processor_NumberIncrementor__ctor_" data-uid="Tangosol.Util.Processor.NumberIncrementor.#ctor*"></a>
+  <h4 id="Tangosol_Util_Processor_NumberIncrementor__ctor_Tangosol_Util_Processor_PropertyManipulator_System_Object_System_Boolean_" data-uid="Tangosol.Util.Processor.NumberIncrementor.#ctor(Tangosol.Util.Processor.PropertyManipulator,System.Object,System.Boolean)">NumberIncrementor(PropertyManipulator, Object, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Construct an <strong>NumberIncrementor</strong> processor that will
+increment a property value by a specified amount, returning
+either the old or the new value as specified.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NumberIncrementor(PropertyManipulator manipulator, object numInc, bool postIncrement)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Processor.PropertyManipulator.html">PropertyManipulator</a></td>
+        <td><span class="parametername">manipulator</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.Processor.PropertyManipulator.html">PropertyManipulator</a>; could be <code>null</code>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">numInc</span></td>
+        <td><p>The object representing the magnitude and sign of the increment.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">postIncrement</span></td>
+        <td><p>Pass <strong>true</strong> to return the value as it was before it was
+incremented, or pass <strong>false</strong> to return the value as it is
+after it is incremented.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Processor_NumberIncrementor__ctor_Tangosol_Util_Processor_PropertyManipulator_System_Object_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The .NET type of the numInc parameter will dictate the .NET type
+of the original and the new value.</p>
+</div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_NumberIncrementor_Description.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.NumberIncrementor.Description%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/NumberIncrementor.cs/#L191">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Processor_NumberIncrementor_Description_" data-uid="Tangosol.Util.Processor.NumberIncrementor.Description*"></a>
+  <h4 id="Tangosol_Util_Processor_NumberIncrementor_Description" data-uid="Tangosol.Util.Processor.NumberIncrementor.Description">Description</h4>
+  <div class="markdown level1 summary"><p>Returns this <strong>PropertyProcessor</strong>'s description.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override string Description { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>This <strong>PropertyProcessor</strong>'s description.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Util.Processor.PropertyProcessor.html#Tangosol_Util_Processor_PropertyProcessor_Description">PropertyProcessor.Description</a></div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_NumberIncrementor_Process_Tangosol_Net_Cache_IInvocableCacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.NumberIncrementor.Process(Tangosol.Net.Cache.IInvocableCacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/NumberIncrementor.cs/#L116">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Processor_NumberIncrementor_Process_" data-uid="Tangosol.Util.Processor.NumberIncrementor.Process*"></a>
+  <h4 id="Tangosol_Util_Processor_NumberIncrementor_Process_Tangosol_Net_Cache_IInvocableCacheEntry_" data-uid="Tangosol.Util.Processor.NumberIncrementor.Process(Tangosol.Net.Cache.IInvocableCacheEntry)">Process(IInvocableCacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Process an <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html">IInvocableCacheEntry</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override object Process(IInvocableCacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html">IInvocableCacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The <strong>IInvocableCacheEntry</strong> to process.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The result of the processing, if any.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Util.Processor.AbstractProcessor.html#Tangosol_Util_Processor_AbstractProcessor_Process_Tangosol_Net_Cache_IInvocableCacheEntry_">AbstractProcessor.Process(IInvocableCacheEntry)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_NumberIncrementor_ReadExternal_Tangosol_IO_Pof_IPofReader_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.NumberIncrementor.ReadExternal(Tangosol.IO.Pof.IPofReader)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/NumberIncrementor.cs/#L213">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Processor_NumberIncrementor_ReadExternal_" data-uid="Tangosol.Util.Processor.NumberIncrementor.ReadExternal*"></a>
+  <h4 id="Tangosol_Util_Processor_NumberIncrementor_ReadExternal_Tangosol_IO_Pof_IPofReader_" data-uid="Tangosol.Util.Processor.NumberIncrementor.ReadExternal(Tangosol.IO.Pof.IPofReader)">ReadExternal(IPofReader)</h4>
+  <div class="markdown level1 summary"><p>Restore the contents of a user type instance by reading its state
+using the specified <a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void ReadExternal(IPofReader reader)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a></td>
+        <td><span class="parametername">reader</span></td>
+        <td><p>The <strong>IPofReader</strong> from which to read the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Util.Processor.PropertyProcessor.html#Tangosol_Util_Processor_PropertyProcessor_ReadExternal_Tangosol_IO_Pof_IPofReader_">PropertyProcessor.ReadExternal(IPofReader)</a></div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_NumberIncrementor_WriteExternal_Tangosol_IO_Pof_IPofWriter_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.NumberIncrementor.WriteExternal(Tangosol.IO.Pof.IPofWriter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/NumberIncrementor.cs/#L230">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Processor_NumberIncrementor_WriteExternal_" data-uid="Tangosol.Util.Processor.NumberIncrementor.WriteExternal*"></a>
+  <h4 id="Tangosol_Util_Processor_NumberIncrementor_WriteExternal_Tangosol_IO_Pof_IPofWriter_" data-uid="Tangosol.Util.Processor.NumberIncrementor.WriteExternal(Tangosol.IO.Pof.IPofWriter)">WriteExternal(IPofWriter)</h4>
+  <div class="markdown level1 summary"><p>Save the contents of a POF user type instance by writing its
+state using the specified <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void WriteExternal(IPofWriter writer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The <strong>IPofWriter</strong> to which to write the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Util.Processor.PropertyProcessor.html#Tangosol_Util_Processor_PropertyProcessor_WriteExternal_Tangosol_IO_Pof_IPofWriter_">PropertyProcessor.WriteExternal(IPofWriter)</a></div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Processor_NumberIncrementor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Processor.NumberIncrementor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Processor/NumberIncrementor.cs/#L24" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

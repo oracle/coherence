@@ -1,0 +1,814 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class CacheEvent
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class CacheEvent
+   ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent">
+  
+  
+  <h1 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent" class="text-break">Class CacheEvent
+  </h1>
+  <div class="markdown level0 summary"><p><a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html">Message</a> that encapsulates the information in a
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a>.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Net.Impl.Extend.html">Extend</a></div>
+    <div class="level2"><a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html">Message</a></div>
+    <div class="level3"><span class="xref">CacheEvent</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a></div>
+    <div><a class="xref" href="Tangosol.Net.Messaging.IRunnable.html">IRunnable</a></div>
+    <div><a class="xref" href="Tangosol.IO.Pof.IEvolvablePortableObject.html">IEvolvablePortableObject</a></div>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a></div>
+    <div><a class="xref" href="Tangosol.IO.IEvolvable.html">IEvolvable</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html#Tangosol_Net_Messaging_Impl_Message_Channel">Message.Channel</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html#Tangosol_Net_Messaging_Impl_Message_DataVersion">Message.DataVersion</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html#Tangosol_Net_Messaging_Impl_Message_FutureData">Message.FutureData</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html#Tangosol_Net_Messaging_Impl_Message_ImplVersion">Message.ImplVersion</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.Extend.html#Tangosol_Net_Impl_Extend_ToString">Extend.ToString()</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Messaging.Impl.NamedCache.html">Tangosol.Net.Messaging.Impl.NamedCache</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class CacheEvent : Message, IMessage, IRunnable, IEvolvablePortableObject, IPortableObject, IEvolvable</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>This message is sent by an <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a>
+registered on the remote <a class="xref" href="Tangosol.Net.INamedCache.html">INamedCache</a> by the peer
+NamedCacheProxy.</p>
+</div>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_TYPE_ID.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.TYPE_ID%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/CacheEvent.cs/#L415">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_TYPE_ID" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.TYPE_ID">TYPE_ID</h4>
+  <div class="markdown level1 summary"><p>The type identifier for this Message class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int TYPE_ID = 13</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_EventType.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.EventType%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/CacheEvent.cs/#L79">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_EventType_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.EventType*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_EventType" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.EventType">EventType</h4>
+  <div class="markdown level1 summary"><p>The cache event type, one of <a class="xref" href="Tangosol.Net.Cache.CacheEventType.html">CacheEventType</a> values.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual CacheEventType EventType { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventType.html">CacheEventType</a></td>
+        <td><p><strong>CacheEventType</strong> of the event.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_ExecuteInOrder.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.ExecuteInOrder%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/CacheEvent.cs/#L204">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_ExecuteInOrder_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.ExecuteInOrder*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_ExecuteInOrder" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.ExecuteInOrder">ExecuteInOrder</h4>
+  <div class="markdown level1 summary"><p>Determine if this IMessage should be executed in the same order
+as it was received relative to other messages sent through the
+same <strong>IChannel</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool ExecuteInOrder { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the IMessage should be executed in the same order
+as it was received relative to other messages.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html#Tangosol_Net_Messaging_Impl_Message_ExecuteInOrder">Message.ExecuteInOrder</a></div>
+  <h5 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_ExecuteInOrder_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+Consider two messages: M1 and M2. Say M1 is received before M2
+but executed on a different execute thread (for example, when the
+<a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html">IConnectionManager</a> is configured with an execute
+thread pool of size greater than 1). In this case, there is no
+way to guarantee that M1 will finish executing before M2.
+However, if M1 returns <strong>true</strong> from this method, the
+<strong>IConnectionManager</strong> will execute M1 on its service thread,
+thus guaranteeing that M1 will execute before M2.</p>
+<p>
+In-order execution should be considered as a very advanced
+feature and implementations that return <strong>true</strong> from this
+method must exercise extreme caution during execution, since any
+delay or unhandled exceptions will cause a delay or complete
+shutdown of the underlying <strong>IConnectionManager</strong>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_FilterId.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.FilterId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/CacheEvent.cs/#L53">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_FilterId_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.FilterId*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_FilterId" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.FilterId">FilterId</h4>
+  <div class="markdown level1 summary"><p>If positive, identifies the <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> that caused the
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> to be raised.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual long FilterId { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The identifier of the <strong>IFilter</strong> that caused the event.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_FilterIds.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.FilterIds%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/CacheEvent.cs/#L67">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_FilterIds_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.FilterIds*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_FilterIds" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.FilterIds">FilterIds</h4>
+  <div class="markdown level1 summary"><p>If positive, identifies the array of <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> that caused the
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> to be raised.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual long[] FilterIds { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span>[]</td>
+        <td><p>The array of identifiers of the <strong>IFilter</strong> that caused the event.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_IsPriming.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.IsPriming%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/CacheEvent.cs/#L148">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_IsPriming_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.IsPriming*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_IsPriming" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.IsPriming">IsPriming</h4>
+  <div class="markdown level1 summary"><p><strong>true</strong> if this is a priming event.
+<strong>false</strong> if this is a priming event.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsPriming { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if is is a priming event.
+<strong>false</strong> if it is priming event.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_IsSynthetic.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.IsSynthetic%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/CacheEvent.cs/#L105">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_IsSynthetic_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.IsSynthetic*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_IsSynthetic" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.IsSynthetic">IsSynthetic</h4>
+  <div class="markdown level1 summary"><p><strong>true</strong> if the <strong>CacheEvent</strong> was caused by the cache
+internal processing such as eviction or loading.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsSynthetic { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the <strong>CacheEvent</strong> was caused by the cache
+internal processing such as eviction or loading.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_IsTruncate.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.IsTruncate%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/CacheEvent.cs/#L133">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_IsTruncate_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.IsTruncate*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_IsTruncate" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.IsTruncate">IsTruncate</h4>
+  <div class="markdown level1 summary"><p><strong>true</strong> if this is a cache truncate request.
+<strong>false</strong> if this is a cache clear request.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsTruncate { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if is is a truncate request.
+<strong>false</strong> if it is clear request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_Key.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.Key%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/CacheEvent.cs/#L91">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_Key_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.Key*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_Key" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.Key">Key</h4>
+  <div class="markdown level1 summary"><p>The key associated with the <strong>CacheEvent</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Key { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The key associated with the <strong>CacheEvent</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_TransformState.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.TransformState%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/CacheEvent.cs/#L118">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_TransformState_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.TransformState*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_TransformState" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.TransformState">TransformState</h4>
+  <div class="markdown level1 summary"><p>Getter for property TransformState.
+The TransformationState value of the event.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual CacheEventArgs.TransformationState TransformState { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.TransformationState.html">CacheEventArgs.TransformationState</a></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.TransformationState.html">CacheEventArgs.TransformationState</a> value of the event.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_TypeId.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.TypeId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/CacheEvent.cs/#L41">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_TypeId_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.TypeId*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_TypeId" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.TypeId">TypeId</h4>
+  <div class="markdown level1 summary"><p>Return the identifier for <strong>Message</strong> object's class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int TypeId { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>An identifier that uniquely identifies <strong>Message</strong> object's
+class.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html#Tangosol_Net_Messaging_Impl_Message_TypeId">Message.TypeId</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_ValueNew.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.ValueNew%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/CacheEvent.cs/#L160">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_ValueNew_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.ValueNew*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_ValueNew" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.ValueNew">ValueNew</h4>
+  <div class="markdown level1 summary"><p>The new value (for insert and update events).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object ValueNew { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The new value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_ValueOld.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.ValueOld%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/CacheEvent.cs/#L172">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_ValueOld_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.ValueOld*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_ValueOld" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.ValueOld">ValueOld</h4>
+  <div class="markdown level1 summary"><p>The old value (for update and delete events).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object ValueOld { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The old value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_GetDescription.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.GetDescription%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/CacheEvent.cs/#L346">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_GetDescription_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.GetDescription*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_GetDescription" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.GetDescription">GetDescription()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override string GetDescription()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html#Tangosol_Net_Messaging_Impl_Message_GetDescription">Message.GetDescription()</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_ReadExternal_Tangosol_IO_Pof_IPofReader_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.ReadExternal(Tangosol.IO.Pof.IPofReader)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/CacheEvent.cs/#L223">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_ReadExternal_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.ReadExternal*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_ReadExternal_Tangosol_IO_Pof_IPofReader_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.ReadExternal(Tangosol.IO.Pof.IPofReader)">ReadExternal(IPofReader)</h4>
+  <div class="markdown level1 summary"><p>Restore the contents of a user type instance by reading its state
+using the specified <a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void ReadExternal(IPofReader reader)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a></td>
+        <td><span class="parametername">reader</span></td>
+        <td><p>The <strong>IPofReader</strong> from which to read the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html#Tangosol_Net_Messaging_Impl_Message_ReadExternal_Tangosol_IO_Pof_IPofReader_">Message.ReadExternal(IPofReader)</a></div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_Run.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.Run%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/CacheEvent.cs/#L316">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_Run_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.Run*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_Run" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.Run">Run()</h4>
+  <div class="markdown level1 summary"><p>Execute the action specific to the Message implementation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Run()</code></pre>
+  </div>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html#Tangosol_Net_Messaging_Impl_Message_Run">Message.Run()</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_WriteExternal_Tangosol_IO_Pof_IPofWriter_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.WriteExternal(Tangosol.IO.Pof.IPofWriter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/CacheEvent.cs/#L271">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_WriteExternal_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.WriteExternal*"></a>
+  <h4 id="Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent_WriteExternal_Tangosol_IO_Pof_IPofWriter_" data-uid="Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent.WriteExternal(Tangosol.IO.Pof.IPofWriter)">WriteExternal(IPofWriter)</h4>
+  <div class="markdown level1 summary"><p>Save the contents of a POF user type instance by writing its
+state using the specified <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void WriteExternal(IPofWriter writer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The <strong>IPofWriter</strong> to which to write the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html#Tangosol_Net_Messaging_Impl_Message_WriteExternal_Tangosol_IO_Pof_IPofWriter_">Message.WriteExternal(IPofWriter)</a></div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Messaging.IRunnable.html">IRunnable</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IEvolvablePortableObject.html">IEvolvablePortableObject</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.IEvolvable.html">IEvolvable</a>
+  </div>
+  <h3 id="seealso">See Also</h3>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.Impl.Message.html">Message</a></div>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_Impl_NamedCache_CacheEvent.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.Impl.NamedCache.CacheEvent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/Impl/NamedCache/CacheEvent.cs/#L30" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,82 @@
+﻿<html><head><meta http-equiv="X-UA-Compatible" content="IE=edge" /><link rel="shortcut icon" href="../icons/favicon.ico" /><link rel="stylesheet" type="text/css" href="../styles/branding.css" /><link rel="stylesheet" type="text/css" href="../styles/branding-en-US.css" /><script type="text/javascript" src="../scripts/branding.js"> </script><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>IPriorityTask Interface</title><meta name="Language" content="en-us" /><meta name="System.Keywords" content="IPriorityTask interface" /><meta name="System.Keywords" content="Tangosol.Net.IPriorityTask interface" /><meta name="Microsoft.Help.F1" content="Tangosol.Net.IPriorityTask" /><meta name="Microsoft.Help.Id" content="T:Tangosol.Net.IPriorityTask" /><meta name="Description" content="The IPriorityTask interface allows to control the ordering in which a service schedules tasks for execution using a thread pool and limit their execution times to a specified duration." /><meta name="Microsoft.Help.ContentType" content="Reference" /><meta name="BrandingAware" content="true" /><meta name="container" content="Tangosol.Net" /><meta name="file" content="2d5fe7b2-731c-a4d7-9425-76f1cbfa6884" /><meta name="guid" content="2d5fe7b2-731c-a4d7-9425-76f1cbfa6884" /><link rel="stylesheet" type="text/css" href="../styles/branding-Website.css" /><script type="text/javascript" src="../scripts/jquery-3.3.1.min.js"></script><script type="text/javascript" src="../scripts/branding-Website.js"></script><script type="text/javascript" src="../scripts/clipboard.min.js"></script></head><body onload="OnLoad('cs')"><input type="hidden" id="userDataCache" class="userDataStyle" /><div class="pageHeader" id="PageHeader">.NET API Reference for Oracle® Coherence Community Edition<form id="SearchForm" method="get" action="#" onsubmit="javascript:TransferToSearchPage(); return false;"><input id="SearchTextBox" type="text" maxlength="200" /><button id="SearchButton" type="submit"></button></form></div><div class="pageBody"><div class="leftNav" id="leftNav"><div id="tocNav"><div class="toclevel0" data-toclevel="0"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/58468dd7-1adf-17f4-f89b-6b17370b94ef.htm" title=".NET API Reference for Oracle® Coherence Community Edition" tocid="roottoc">.NET API Reference for Oracle® Coherence Community Edition</a></div><div class="toclevel0" data-toclevel="0"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/58468dd7-1adf-17f4-f89b-6b17370b94ef.htm" title=".NET API Reference for Oracle® Coherence Community Edition" tocid="58468dd7-1adf-17f4-f89b-6b17370b94ef">.NET API Reference for Oracle® Coherence Community Edition</a></div><div class="toclevel0" data-toclevel="0"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/4f95f125-567f-afae-b109-1a1b93342657.htm" title="Tangosol.Net" tocid="4f95f125-567f-afae-b109-1a1b93342657">Tangosol.Net</a></div><div class="toclevel1 current" data-toclevel="1" data-childrenloaded="true"><a class="tocExpanded" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/2d5fe7b2-731c-a4d7-9425-76f1cbfa6884.htm" title="IPriorityTask Interface" tocid="2d5fe7b2-731c-a4d7-9425-76f1cbfa6884">IPriorityTask Interface</a></div><div class="toclevel2" data-toclevel="2"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/6805f6ff-a6a0-550c-44f0-2d78e668cae7.htm" title="IPriorityTask Properties" tocid="6805f6ff-a6a0-550c-44f0-2d78e668cae7">IPriorityTask Properties</a></div><div class="toclevel2" data-toclevel="2"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/96c2aec2-6224-a3fa-2c44-7a96d830f207.htm" title="IPriorityTask Methods" tocid="96c2aec2-6224-a3fa-2c44-7a96d830f207">IPriorityTask Methods</a></div></div><div id="tocResizableEW" onmousedown="OnMouseDown(event);"></div><div id="TocResize" class="tocResize"><img id="ResizeImageIncrease" src="../icons/TocOpen.gif" onclick="OnIncreaseToc()" alt="Click or drag to resize" title="Click or drag to resize" /><img id="ResizeImageReset" src="../icons/TocClose.gif" style="display:none" onclick="OnResetToc()" alt="Click or drag to resize" title="Click or drag to resize" /></div></div><div class="topicContent" id="TopicContent"><table class="titleTable"><tr><td class="titleColumn"><h1>IPriorityTask Interface</h1></td></tr></table><span class="introStyle">.NET API Reference for Oracle® Coherence Community Edition <br /> (14.1.1.0)<br />E55634-01<br /></span> <div class="summary">
+            The IPriorityTask interface allows to control the ordering in which a
+            service schedules tasks for execution using a thread pool and limit
+            their execution times to a specified duration.
+            </div><p> </p>
+    <strong>Namespace:</strong> 
+   <a href="4f95f125-567f-afae-b109-1a1b93342657.htm">Tangosol.Net</a><br />
+    <strong>Assembly:</strong>
+   Coherence (in Coherence.dll) Version: 14.1.1.1 (14.1.1.1)<div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID1RB')" onkeypress="SectionExpandCollapse_CheckKey('ID1RB', event)" tabindex="0"><img id="ID1RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Syntax</span></div><div id="ID1RBSection" class="collapsibleSection"><div class="codeSnippetContainer"><div class="codeSnippetContainerTabs"><div id="ID0EACA_tab1" class="codeSnippetContainerTabSingle">C#</div></div><div class="codeSnippetContainerCodeContainer"><div class="codeSnippetToolBar"><div class="codeSnippetToolBarText"><a id="ID0EACA_copyCode" href="#" class="copyCodeSnippet" onclick="javascript:CopyToClipboard('ID0EACA');return false;" title="Copy">Copy</a></div></div><div id="ID0EACA_code_Div1" class="codeSnippetContainerCode" style="display: block"><pre xml:space="preserve"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="identifier">IPriorityTask</span></pre></div></div></div><script type="text/javascript">AddLanguageTabSet("ID0EACA");</script></div><p>The <span class="selflink">IPriorityTask</span> type exposes the following members.</p><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID2RB')" onkeypress="SectionExpandCollapse_CheckKey('ID2RB', event)" tabindex="0"><img id="ID2RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Properties</span></div><div id="ID2RBSection" class="collapsibleSection"><table class="members" id="propertyList"><tr><th class="iconColumn">
+								 
+							</th><th>Name</th><th>Description</th></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="8d453a9b-223d-0ba4-af2f-6a498849274f.htm">ExecutionTimeoutMillis</a></td><td><div class="summary">
+            The maximum amount of time this task is allowed to run before the
+            corresponding service will attempt to stop it.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="adaabca5-1e31-d904-9992-0832243b9f6a.htm">RequestTimeoutMillis</a></td><td><div class="summary">
+            The maximum amount of time a calling thread is willing to wait
+            for a result of the request execution.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="171daf65-1088-68ac-3d55-212e28f65843.htm">SchedulingPriority</a></td><td><div class="summary">
+            This task's scheduling priority.
+            </div></td></tr></table><a href="#PageHeader">Top</a></div><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID3RB')" onkeypress="SectionExpandCollapse_CheckKey('ID3RB', event)" tabindex="0"><img id="ID3RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Methods</span></div><div id="ID3RBSection" class="collapsibleSection"><table class="members" id="methodList"><tr><th class="iconColumn">
+								 
+							</th><th>Name</th><th>Description</th></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="374e892e-2975-945e-bb58-de0c4b191a28.htm">RunCanceled</a></td><td><div class="summary">
+            This method will be called if and only if all attempts to
+            interrupt this task were unsuccesful in stopping the execution or
+            if the execution was canceled <b>before</b> it had a chance to
+            run at all.
+            </div></td></tr></table><a href="#PageHeader">Top</a></div><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID4RB')" onkeypress="SectionExpandCollapse_CheckKey('ID4RB', event)" tabindex="0"><img id="ID4RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Remarks</span></div><div id="ID4RBSection" class="collapsibleSection"><p>
+            Instances of IPriorityTask typically also implement either
+            <a href="c92361fc-a9b9-1ab2-0937-fd46a5f3ffdb.htm">IInvocable</a> or <span class="nolink">IRunnable</span> interface.</p><p>
+            Depending on the value of <a href="171daf65-1088-68ac-3d55-212e28f65843.htm">SchedulingPriority</a> property,
+            the scheduling order will be one of the following:
+            <ul><li><strong><a href="a8bfcb2b-5110-9b10-2848-d015c1c23a46.htm">Standard</a></strong> - 
+            a task will be scheduled for execution in a natural (based on the
+            request arrival time) order;
+            </li><li><strong><a href="a8bfcb2b-5110-9b10-2848-d015c1c23a46.htm">First</a></strong> - 
+            a task will be scheduled in front of any equal or lower scheduling
+            priority tasks and executed as soon as any of worker threads become
+            available;
+            </li><li><strong><a href="a8bfcb2b-5110-9b10-2848-d015c1c23a46.htm">Immediate</a></strong> - 
+            a task will be immediately executed by any idle worker thread; if all
+            of them are active, a new thread will be created to execute this
+            task.
+            </li></ul></p><p>
+            A best effort will be made to limit the task execution time according
+            to the value of the <a href="8d453a9b-223d-0ba4-af2f-6a498849274f.htm">ExecutionTimeoutMillis</a> property.
+            However,it should be noted that:
+            <ul><li>
+            for tasks with the scheduling priority of
+            <a href="a8bfcb2b-5110-9b10-2848-d015c1c23a46.htm">Immediate</a>, factors that could
+            make the execution time longer than the timeout value are long GC
+            pauses and high network latency;
+            </li><li>
+            if the service has a task backlog (when there are more tasks
+            scheduled for execution than the number of available worker threads),
+            the request execution time (measured from the client's perspective)
+            for tasks with the scheduling priorities of
+            <a href="a8bfcb2b-5110-9b10-2848-d015c1c23a46.htm">Standard</a> or
+            <a href="a8bfcb2b-5110-9b10-2848-d015c1c23a46.htm">First</a> could be longer and
+            include the time those tasks were kept in a queue before invocation;
+            </li><li>
+            the corresponding service is free to cancel the task execution before
+            the task is started and call the <a href="374e892e-2975-945e-bb58-de0c4b191a28.htm">RunCanceled(Boolean)</a> method if
+            it's known that the client is no longer interested in the results
+            of the task execution.
+            </li></ul></p><p>
+            In addition to allowing control of the task execution (as scheduled
+            and measured on the server side), the IPriorityTask interface could
+            also be used to control the request time from the calling thread
+            perspective (measured on the client). A best effort will be made to
+            limit the request time (the time period that the calling thread is
+            blocked waiting for a response from the corresponding service) to the
+            value of the <a href="adaabca5-1e31-d904-9992-0832243b9f6a.htm">RequestTimeoutMillis</a> property.</p><p>
+            It should be noted that the request timeout value (RT) could be
+            grater than, equal to or less than the task execution timeout value
+            (ET). The value of RT which is less than ET indicates that even
+            though the task execution is allowed to take longer period of time,
+            the client thread will not wait for a result of the execution and
+            will be able to handle a timeout exception if it arises. Since the
+            time spent by the task waiting in the service backlog queue does not
+            count toward the task execution time, a value of RT that is equal or
+            slightly greater than ET still leaves a possibility that the client
+            thread will throw a TimeoutException before the task completes its
+            execution normally on a server.</p></div><div class="collapsibleAreaRegion" id="seeAlsoSection"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID5RB')" onkeypress="SectionExpandCollapse_CheckKey('ID5RB', event)" tabindex="0"><img id="ID5RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />See Also</span></div><div id="ID5RBSection" class="collapsibleSection"><h4 class="subHeading">Reference</h4><div class="seeAlsoStyle"><a href="4f95f125-567f-afae-b109-1a1b93342657.htm">Tangosol.Net Namespace</a></div></div></div></div><div id="pageFooter" class="pageFooter">Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved. </div></body></html>

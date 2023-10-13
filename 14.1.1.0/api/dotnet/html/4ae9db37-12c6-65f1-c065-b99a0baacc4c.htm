@@ -1,0 +1,332 @@
+﻿<html><head><meta http-equiv="X-UA-Compatible" content="IE=edge" /><link rel="shortcut icon" href="../icons/favicon.ico" /><link rel="stylesheet" type="text/css" href="../styles/branding.css" /><link rel="stylesheet" type="text/css" href="../styles/branding-en-US.css" /><script type="text/javascript" src="../scripts/branding.js"> </script><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>NearCache Class</title><meta name="Language" content="en-us" /><meta name="System.Keywords" content="NearCache class" /><meta name="System.Keywords" content="Tangosol.Net.Cache.NearCache class" /><meta name="Microsoft.Help.F1" content="Tangosol.Net.Cache.NearCache" /><meta name="Microsoft.Help.Id" content="T:Tangosol.Net.Cache.NearCache" /><meta name="Description" content="A &quot;near cache&quot; is a whose front cache is a size-limited and/or auto-expiring local cache, and whose back cache is a distributed cache." /><meta name="Microsoft.Help.ContentType" content="Reference" /><meta name="BrandingAware" content="true" /><meta name="container" content="Tangosol.Net.Cache" /><meta name="file" content="4ae9db37-12c6-65f1-c065-b99a0baacc4c" /><meta name="guid" content="4ae9db37-12c6-65f1-c065-b99a0baacc4c" /><link rel="stylesheet" type="text/css" href="../styles/branding-Website.css" /><script type="text/javascript" src="../scripts/jquery-3.3.1.min.js"></script><script type="text/javascript" src="../scripts/branding-Website.js"></script><script type="text/javascript" src="../scripts/clipboard.min.js"></script></head><body onload="OnLoad('cs')"><input type="hidden" id="userDataCache" class="userDataStyle" /><div class="pageHeader" id="PageHeader">.NET API Reference for Oracle® Coherence Community Edition<form id="SearchForm" method="get" action="#" onsubmit="javascript:TransferToSearchPage(); return false;"><input id="SearchTextBox" type="text" maxlength="200" /><button id="SearchButton" type="submit"></button></form></div><div class="pageBody"><div class="leftNav" id="leftNav"><div id="tocNav"><div class="toclevel0" data-toclevel="0"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/58468dd7-1adf-17f4-f89b-6b17370b94ef.htm" title=".NET API Reference for Oracle® Coherence Community Edition" tocid="roottoc">.NET API Reference for Oracle® Coherence Community Edition</a></div><div class="toclevel0" data-toclevel="0"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/58468dd7-1adf-17f4-f89b-6b17370b94ef.htm" title=".NET API Reference for Oracle® Coherence Community Edition" tocid="58468dd7-1adf-17f4-f89b-6b17370b94ef">.NET API Reference for Oracle® Coherence Community Edition</a></div><div class="toclevel0" data-toclevel="0"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/311ee8be-1168-e7d9-7c94-3c4e8fab9d51.htm" title="Tangosol.Net.Cache" tocid="311ee8be-1168-e7d9-7c94-3c4e8fab9d51">Tangosol.Net.Cache</a></div><div class="toclevel1 current" data-toclevel="1" data-childrenloaded="true"><a class="tocExpanded" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/4ae9db37-12c6-65f1-c065-b99a0baacc4c.htm" title="NearCache Class" tocid="4ae9db37-12c6-65f1-c065-b99a0baacc4c">NearCache Class</a></div><div class="toclevel2" data-toclevel="2"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/a84d67a8-730a-7328-c572-7b9b5939dcc3.htm" title="NearCache Constructor " tocid="a84d67a8-730a-7328-c572-7b9b5939dcc3">NearCache Constructor </a></div><div class="toclevel2" data-toclevel="2"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/18422f5d-f2da-4a71-f71c-b3d1e32572d9.htm" title="NearCache Properties" tocid="18422f5d-f2da-4a71-f71c-b3d1e32572d9">NearCache Properties</a></div><div class="toclevel2" data-toclevel="2"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/615dd3e0-67da-81d6-69c9-19d4826d9d5f.htm" title="NearCache Methods" tocid="615dd3e0-67da-81d6-69c9-19d4826d9d5f">NearCache Methods</a></div><div class="toclevel2" data-toclevel="2"><a data-tochassubtree="false" href="../html/cc83c2c2-9b76-a036-a83e-3bacb91c8932.htm" title="NearCache Fields" tocid="cc83c2c2-9b76-a036-a83e-3bacb91c8932">NearCache Fields</a></div></div><div id="tocResizableEW" onmousedown="OnMouseDown(event);"></div><div id="TocResize" class="tocResize"><img id="ResizeImageIncrease" src="../icons/TocOpen.gif" onclick="OnIncreaseToc()" alt="Click or drag to resize" title="Click or drag to resize" /><img id="ResizeImageReset" src="../icons/TocClose.gif" style="display:none" onclick="OnResetToc()" alt="Click or drag to resize" title="Click or drag to resize" /></div></div><div class="topicContent" id="TopicContent"><table class="titleTable"><tr><td class="titleColumn"><h1>NearCache Class</h1></td></tr></table><span class="introStyle">.NET API Reference for Oracle® Coherence Community Edition <br /> (14.1.1.0)<br />E55634-01<br /></span> <div class="summary">
+            A "near cache" is a <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a> whose front
+            cache is a size-limited and/or auto-expiring local cache,
+            and whose back cache is a distributed cache.
+            </div><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID0RB')" onkeypress="SectionExpandCollapse_CheckKey('ID0RB', event)" tabindex="0"><img id="ID0RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Inheritance Hierarchy</span></div><div id="ID0RBSection" class="collapsibleSection"><a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">System<span id="LSTE1423366_0"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTE1423366_0?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>Object</a><br />  <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">Tangosol.Net.Cache<span id="LSTE1423366_1"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTE1423366_1?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>CompositeCache</a><br />    <span class="selflink">Tangosol.Net.Cache<span id="LSTE1423366_2"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTE1423366_2?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>NearCache</span><br /></div><p> </p>
+    <strong>Namespace:</strong> 
+   <a href="311ee8be-1168-e7d9-7c94-3c4e8fab9d51.htm">Tangosol.Net.Cache</a><br />
+    <strong>Assembly:</strong>
+   Coherence (in Coherence.dll) Version: 14.1.1.1 (14.1.1.1)<div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID2RB')" onkeypress="SectionExpandCollapse_CheckKey('ID2RB', event)" tabindex="0"><img id="ID2RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Syntax</span></div><div id="ID2RBSection" class="collapsibleSection"><div class="codeSnippetContainer"><div class="codeSnippetContainerTabs"><div id="ID1EACA_tab1" class="codeSnippetContainerTabSingle">C#</div></div><div class="codeSnippetContainerCodeContainer"><div class="codeSnippetToolBar"><div class="codeSnippetToolBarText"><a id="ID1EACA_copyCode" href="#" class="copyCodeSnippet" onclick="javascript:CopyToClipboard('ID1EACA');return false;" title="Copy">Copy</a></div></div><div id="ID1EACA_code_Div1" class="codeSnippetContainerCode" style="display: block"><pre xml:space="preserve"><span class="keyword">public</span> <span class="keyword">class</span> <span class="identifier">NearCache</span> : <span class="identifier">CompositeCache</span>, <span class="identifier">INamedCache</span>, 
+	<span class="identifier">IObservableCache</span>, <span class="identifier">IConcurrentCache</span>, <span class="identifier">IQueryCache</span>, <span class="identifier">IInvocableCache</span>, <span class="identifier">ICache</span>, 
+	<span class="identifier">IDictionary</span>, <span class="identifier">ICollection</span>, <span class="identifier">IEnumerable</span>, <span class="identifier">IDisposable</span></pre></div></div></div><script type="text/javascript">AddLanguageTabSet("ID1EACA");</script></div><p>The <span class="selflink">NearCache</span> type exposes the following members.</p><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID3RB')" onkeypress="SectionExpandCollapse_CheckKey('ID3RB', event)" tabindex="0"><img id="ID3RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Constructors</span></div><div id="ID3RBSection" class="collapsibleSection"><table class="members" id="constructorList"><tr><th class="iconColumn">
+								 
+							</th><th>Name</th><th>Description</th></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="c59ba58f-0d75-8b11-1e2b-56b2095d9c46.htm">NearCache(ICache, INamedCache)</a></td><td><div class="summary">
+            Construct a <b>NearCache</b>, using a <i>back</i><a href="5713a092-d073-7910-dde4-fdae07b44536.htm">INamedCache</a> as the complete (back) storage and
+            <i>front</i><a href="bc000b89-5529-8624-3a7f-b75a019cf37e.htm">ICache</a> as a near (front) storage using
+            the <a href="7aeac90c-5594-20f3-6b61-fb472cddd1f6.htm">CompositeCacheStrategyType</a> invalidation
+            strategy.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="7346a502-c805-9202-db20-808ec18ea0b9.htm">NearCache(ICache, INamedCache, CompositeCacheStrategyType)</a></td><td><div class="summary">
+            Construct a <b>NearCache</b>, using a <i>back</i><a href="5713a092-d073-7910-dde4-fdae07b44536.htm">INamedCache</a> as the complete (back) storage and
+            <i>front</i><a href="bc000b89-5529-8624-3a7f-b75a019cf37e.htm">ICache</a> as a near (front) storage using
+            the <a href="7aeac90c-5594-20f3-6b61-fb472cddd1f6.htm">CompositeCacheStrategyType</a> invalidation
+            strategy.
+            </div></td></tr></table><a href="#PageHeader">Top</a></div><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID4RB')" onkeypress="SectionExpandCollapse_CheckKey('ID4RB', event)" tabindex="0"><img id="ID4RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Properties</span></div><div id="ID4RBSection" class="collapsibleSection"><table class="members" id="propertyList"><tr><th class="iconColumn">
+								 
+							</th><th>Name</th><th>Description</th></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="1ffd484d-3d06-9146-9ace-0bd799cae916.htm">AverageGetMillis</a></td><td><div class="summary">
+            Determine the average number of milliseconds per "get"
+            invocation since the cache statistics were last reset.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="b59455e7-3b62-be6b-7217-b37d5e0e1b93.htm">AverageHitMillis</a></td><td><div class="summary">
+            Determine the average number of milliseconds per "get"
+            invocation that is a hit.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="8b953b92-95d4-f4b8-55c4-2069a3543942.htm">AverageMissMillis</a></td><td><div class="summary">
+            Determine the average number of milliseconds per "get" invocation
+            that is a miss.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="1f3a1d54-e53b-3e7e-68a2-1b3d47be7ee3.htm">AveragePruneMillis</a></td><td><div class="summary">
+            Determine the average number of milliseconds per cache pruning.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="c8aacd03-9f9f-8d24-5ac1-77571251aa17.htm">AveragePutMillis</a></td><td><div class="summary">
+            Determine the average number of milliseconds per "put"
+            invocation since the cache statistics were last reset.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="ed0fb5c5-fce7-2734-d96a-f26cafe3e5a1.htm">BackCache</a></td><td><div class="summary">
+            Obtain the <a href="5713a092-d073-7910-dde4-fdae07b44536.htm">INamedCache</a> object that sits behind this
+            <b>NearCache</b>.
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="7e614332-b8b7-dc6b-a5da-610bdfda3c20.htm">CacheControl</a></td><td><div class="summary">
+            Obtain the <a href="787d314b-b768-87e8-db6a-0c86a385a597.htm">IConcurrentCache</a> that should be used to
+            synchronize the front cache modification access.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="d12fbffa-859d-ea25-e01d-fdd4077e051b.htm">CacheHits</a></td><td><div class="summary">
+            Determine the rough number of cache hits since the cache
+            statistics were last reset.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="c1dbfb49-6053-c9f4-3b36-4dbc504633b1.htm">CacheHitsMillis</a></td><td><div class="summary">
+            Determine the total number of milliseconds (since that last
+            statistics reset) for the "get" operations for which an entry
+            existed in this cache.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="011e20e5-2768-56e0-5bb2-cbf3ee1bbe93.htm">CacheMisses</a></td><td><div class="summary">
+            Determine the rough number of cache misses since the cache
+            statistics were last reset.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="4c837bff-d2d4-7523-2457-c834a5bc7577.htm">CacheMissesMillis</a></td><td><div class="summary">
+            Determine the total number of milliseconds (since that last
+            statistics reset) for the "get" operations for which no entry
+            existed in this map.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="f13cf4d4-510b-74ec-8d5d-97ca2f69701c.htm">CacheName</a></td><td><div class="summary">
+            Gets the cache name.
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="02e47bd4-d36b-994e-7bb3-6e2583e9cef1.htm">CachePrunes</a></td><td><div class="summary">
+            Determine the rough number of cache pruning cycles since the
+            cache statistics were last reset.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="cd35a12a-fba3-bc29-6d84-cffad4668cd1.htm">CachePrunesMillis</a></td><td><div class="summary">
+            Determine the total number of milliseconds (since that last
+            statistics reset) spent on cache pruning.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="a233feb9-6e6e-631c-0a9f-c215bb332d4c.htm">CacheService</a></td><td><div class="summary">
+            Gets the <a href="e6c03185-6ffe-0dc4-a6c3-6067b174bf5a.htm">ICacheService</a> that this INamedCache is a
+            part of.
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="9486e793-991f-4876-93f8-43d6ecfe0407.htm">CacheStatistics</a></td><td><div class="summary">
+            Obtain the <a href="9486e793-991f-4876-93f8-43d6ecfe0407.htm">CacheStatistics</a> for this cache.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="a05c4d19-9ed2-c4fe-8b4e-a950e9004d5f.htm">Count</a></td><td><div class="summary">
+            Gets the number of elements contained in the
+            <a href="f0a88d45-b3c4-b2da-82c1-149fc2612dcd.htm">BackCache</a>.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="af4bfad9-4cb6-5d9c-8d3e-488b972f4727.htm">Entries</a></td><td><div class="summary">
+            Gets a collection of <a href="1ec0cd96-8f5e-34a7-4358-596e6cedc2af.htm">ICacheEntry</a> instances
+            within the cache.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="97860cb6-3993-948a-3af0-cd0269f55595.htm">FrontCache</a></td><td><div class="summary">
+            Obtain the front cache reference.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="a9b85a99-aa2d-eda1-9e03-3aaab2071f78.htm">HitProbability</a></td><td><div class="summary">
+            Determine the rough probability (0 &lt;= p &lt;= 1) that the next
+            invocation will be a hit, based on the statistics collected since
+            the last reset of the cache statistics.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="1b562280-e345-f8d7-0d74-08dfe0d48eb5.htm">InvalidationHits</a></td><td><div class="summary">
+            Determine the rough number of front cache invalidation hits
+            since the cache statistics were last reset.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="862fe9aa-95f7-b38d-57b3-9d5c208e640b.htm">InvalidationMisses</a></td><td><div class="summary">
+            Determine the rough number of front cache invalidation
+            misses since the cache statistics were last reset.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="72690319-9b3f-cfdc-37e8-32aba7b9f2e7.htm">InvalidationStrategy</a></td><td><div class="summary">
+            Obtain the invalidation strategy used by this
+            <b>CompositeCache</b>.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="04410c06-23cd-1d86-20cf-aa1fea28871f.htm">IsActive</a></td><td><div class="summary">
+            Specifies whether or not the INamedCache is active.
+            </div></td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protproperty.gif" alt="Protected property" title="Protected property" /></td><td><a href="46cd653d-31a2-1c5a-2c27-89b931631f8c.htm">IsCoherent</a></td><td><div class="summary">
+            Determine if changes to the back cache affect the front cache so
+            that data in the front cache stays in sync.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="35dcfa82-deae-7397-f3b8-b40c329ff1bd.htm">IsFixedSize</a></td><td><div class="summary">
+            Gets a value indicating whether the <a href="f0a88d45-b3c4-b2da-82c1-149fc2612dcd.htm">BackCache</a>
+            object has a fixed size.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="710006e3-6fdd-6efa-cff4-675cf5b648f8.htm">IsReadOnly</a></td><td><div class="summary">
+            Gets a value indicating whether the <a href="f0a88d45-b3c4-b2da-82c1-149fc2612dcd.htm">BackCache</a>
+            object is read-only.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="e7637c6c-42df-f65e-a8ea-5933eeb2f14e.htm">IsSynchronized</a></td><td><div class="summary">
+            Gets a value indicating whether access to the back cache is
+            synchronized (thread safe).
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="bc0f50c6-f960-b841-9141-7d4e71c97797.htm">Item</a></td><td><div class="summary">
+            Gets or sets the element with the specified key.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="5ba289ce-f6db-7462-be0b-56446dfb4198.htm">Keys</a></td><td><div class="summary">
+            Obtain an <b>ICollection</b> of the keys contained in this cache.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="ce6398cc-cdb3-d095-b17c-a9986a4088bc.htm">SyncRoot</a></td><td><div class="summary">
+            Gets an object that can be used to synchronize access to the back
+            cache.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="1f1afd5f-c9f9-7585-4c97-100a222de435.htm">TotalGets</a></td><td><div class="summary">
+            Determine the total number of "get" operations since the cache
+            statistics were last reset.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="f2ce35fc-3457-14ea-a26d-7b5bb87c1a3c.htm">TotalGetsMillis</a></td><td><div class="summary">
+            Determine the total number of milliseconds spent on "get"
+            operations since the cache statistics were last reset.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="29c6d9d0-711d-0d4f-561a-8997eab5e5b9.htm">TotalPuts</a></td><td><div class="summary">
+            Determine the total number of "put" operations since the cache
+            statistics were last reset.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="8a45c13b-c232-a4b7-8304-0e98b14e2ac0.htm">TotalPutsMillis</a></td><td><div class="summary">
+            Determine the total number of milliseconds spent on "put"
+            operations since the cache statistics were last reset.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="33c0a9c6-6522-5971-2121-beff4d9dff6d.htm">TotalRegisterListener</a></td><td><div class="summary">
+            Determine the total number of
+            <a href="afedb13f-f451-75a3-c0a5-a3ffb8cc29fb.htm">RegisterListener(Object)</a> operations since the cache
+            statistics were last reset.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="ea72bbc1-fa52-a8bd-0311-fa5ed28ec3d6.htm">Values</a></td><td><div class="summary">
+            Obtain an <b>ICollection</b> of the values contained in this
+            cache.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr></table><a href="#PageHeader">Top</a></div><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID5RB')" onkeypress="SectionExpandCollapse_CheckKey('ID5RB', event)" tabindex="0"><img id="ID5RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Methods</span></div><div id="ID5RBSection" class="collapsibleSection"><table class="members" id="methodList"><tr><th class="iconColumn">
+								 
+							</th><th>Name</th><th>Description</th></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="7980b083-dddb-f2bd-436f-9d284bbc507e.htm">Add</a></td><td><div class="summary">
+            Associates the specified value with the specified key in this
+            cache.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="bce05608-0f5d-76d4-f670-14f47b5658af.htm">AddCacheListener(ICacheListener)</a></td><td><div class="summary">
+            Add a standard cache listener that will receive all events
+            (inserts, updates, deletes) that occur against the cache, with
+            the key, old-value and new-value included.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="37f75b13-ef27-038b-566d-e6376b9b36d8.htm">AddCacheListener(ICacheListener, Object, Boolean)</a></td><td><div class="summary">
+            Add a cache listener for a specific key.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="c0ca6e0e-e331-ef7b-8a54-ea092323a9cd.htm">AddCacheListener(ICacheListener, IFilter, Boolean)</a></td><td><div class="summary">
+            Add a cache listener that receives events based on a filter
+            evaluation.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="28c9608f-cae0-2ce8-d091-2b8ab557c38a.htm">AddIndex</a></td><td><div class="summary">
+            Add an index to this IQueryCache.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="da86d4fb-f98f-36db-035e-d9c35100394c.htm">Aggregate(ICollection, IEntryAggregator)</a></td><td><div class="summary">
+            Perform an aggregating operation against the entries specified by
+            the passed keys.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="38293694-ebda-89a2-1d9d-f9865da017c9.htm">Aggregate(IFilter, IEntryAggregator)</a></td><td><div class="summary">
+            Perform an aggregating operation against the collection of
+            entries that are selected by the given <b>IFilter</b>.
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="17e11704-0910-03c0-8f58-f44aa8db4a99.htm">Clear</a></td><td><div class="summary">
+            Clears both the front and back caches.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="b7441669-d75c-3c73-6fb3-4f47884f000b.htm">Contains</a></td><td><div class="summary">
+            Check whether or not this cache contains a mapping for the
+            specified key.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="4eea632c-5fc4-268d-dbc2-ed96e732aff9.htm">CopyTo</a></td><td><div class="summary">
+            Copies the elements of the <a href="f0a88d45-b3c4-b2da-82c1-149fc2612dcd.htm">BackCache</a> to an
+            <b>Array</b>, starting at a particular <b>Array</b> index.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="53a24ce3-8426-c82e-bce6-fe24a4288180.htm">Destroy</a></td><td><div class="summary">
+            Release and destroy this instance of INamedCache.
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="55ba0690-dbdc-32fc-f204-b775d4305158.htm">Dispose</a></td><td><div class="summary">
+            Calls <a href="72320e33-f4af-d7fa-04d0-067ca4b0b950.htm">Release<span id="LSTE1423366_3"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTE1423366_3?cs=()|vb=|cpp=()|nu=()|fs=()");</script></a> to release the resources associated with this cache.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="2b7a071c-3ddd-8e60-631f-6a0e0e55dc48.htm">EnsureInvalidationStrategy</a></td><td><div class="summary">
+            Ensure that a strategy has been choosen and that any appropriate
+            global listeners have been registered.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="3d5874e2-4696-3801-5739-0060c65a540b.htm">Equals</a></td><td><div class="summary">
+            Compares the specified object with this dictionary for equality.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="https://docs.microsoft.com/dotnet/api/system.object.finalize#System_Object_Finalize" target="_blank">Finalize</a></td><td><div class="summary">Allows an object to try to free resources and perform other cleanup operations before it is reclaimed by garbage collection.</div> (Inherited from <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="d0911ef6-bb07-57da-bc1c-3f6da3dad31c.htm">GetAll</a></td><td><div class="summary">
+            Get the values for all the specified keys, if they are in the
+            cache.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="0c2bbd53-24d4-2943-54d4-92d2902682c6.htm">GetEntries(IFilter)</a></td><td><div class="summary">
+            Return a collection of the entries contained in this cache
+            that satisfy the criteria expressed by the filter.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="35cc7e87-f111-fdaf-d4f1-514e628d7299.htm">GetEntries(IFilter, IComparer)</a></td><td><div class="summary">
+            Return a collection of the entries contained in this cache
+            that satisfy the criteria expressed by the filter.
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="c82fe1ed-5a61-fb01-869a-8626c0342249.htm">GetEnumerator</a></td><td><div class="summary">
+            Returns an enumerator that iterates through a cache.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="40fe4eae-3aeb-ac84-9be3-5dbc30b72ac5.htm">GetHashCode</a></td><td><div class="summary">
+            Return the hash code value for this dictionary.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="3edf2fd4-f768-14fd-3af8-20cbc0b31539.htm">GetKeys</a></td><td><div class="summary">
+            Return a collection of the keys contained in this cache for
+            entries that satisfy the criteria expressed by the filter.
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="https://docs.microsoft.com/dotnet/api/system.object.gettype#System_Object_GetType" target="_blank">GetType</a></td><td><div class="summary">Gets the <a href="https://docs.microsoft.com/dotnet/api/system.type" target="_blank">Type</a> of the current instance.</div> (Inherited from <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="70b8ad4f-580d-92bb-776e-98f2684ac4e7.htm">GetValues(IFilter)</a></td><td><div class="summary">
+            Return a collection of the values contained in this cache for
+            entries that satisfy the criteria expressed by the filter.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="02aa6f75-710f-1c34-f6a5-6f51eb0ffc80.htm">GetValues(IFilter, IComparer)</a></td><td><div class="summary">
+            Return a collection of the values contained in this cache for
+            entries that satisfy the criteria expressed by the filter.
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="0931000a-d563-e106-0a77-79d995de2e82.htm">Insert(Object, Object)</a></td><td><div class="summary">
+            Associates the specified value with the specified key in this
+            cache.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="b3f01257-0b6f-ac3b-a7eb-5334874478b1.htm">Insert(Object, Object, Int64)</a></td><td><div class="summary">
+            Associates the specified value with the specified key in this
+            cache.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="b6e4f7ca-eb04-1620-337f-527362c9c384.htm">InsertAll</a></td><td><div class="summary">
+            Copies all of the mappings from the specified dictionary to this
+            cache (optional operation).
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="8ff32e8f-0543-4953-5d31-ccd9b820a78d.htm">InstantiateBackCacheListener</a></td><td><div class="summary">
+            Factory pattern: instantiate back cache listener.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="8088e445-9719-255e-cdfe-812c9a3327de.htm">InstantiateFrontCacheListener</a></td><td><div class="summary">
+            Factory pattern: instantiate front cache listener.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="e7fdbdf4-4621-4b46-8cbb-69f09940c8a2.htm">InvalidateFront</a></td><td><div class="summary">
+            Invalidate the key from the front.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="9d40e0aa-195a-0e14-9329-870a69dcbae8.htm">Invoke</a></td><td><div class="summary">
+            Invoke the passed <a href="2f07d00f-d469-829c-3596-4c123c9fe762.htm">IEntryProcessor</a> against the entry
+            specified by the passed key, returning the result of the
+            invocation.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="a391fddc-72c0-733f-5f8a-e7ea59c959de.htm">InvokeAll(ICollection, IEntryProcessor)</a></td><td><div class="summary">
+            Invoke the passed <a href="2f07d00f-d469-829c-3596-4c123c9fe762.htm">IEntryProcessor</a> against the
+            entries specified by the passed keys, returning the result of the
+            invocation for each.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="e1cfffcf-73b4-f15c-85e0-204262cfd5e0.htm">InvokeAll(IFilter, IEntryProcessor)</a></td><td><div class="summary">
+            Invoke the passed <a href="2f07d00f-d469-829c-3596-4c123c9fe762.htm">IEntryProcessor</a> against the set
+            of entries that are selected by the given <a href="6b008ba1-0021-f5af-7c32-b8b811a814a0.htm">IFilter</a>,
+            returning the result of the invocation for each.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="9a72b309-8037-bce2-a895-a15e70d2d1c0.htm">Lock(Object)</a></td><td><div class="summary">
+            Attempt to lock the specified item and return immediately.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="f9372d88-e0fc-de7d-7ca8-3185b273d43b.htm">Lock(Object, Int64)</a></td><td><div class="summary">
+            Attempt to lock the specified item within the specified period of
+            time.
+            </div></td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="https://docs.microsoft.com/dotnet/api/system.object.memberwiseclone#System_Object_MemberwiseClone" target="_blank">MemberwiseClone</a></td><td><div class="summary">Creates a shallow copy of the current <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.</div> (Inherited from <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="d2a7ad3f-580b-5e0a-7668-5daa48dfbc70.htm">OnMemberJoined</a></td><td><div class="summary">
+            Invoked when an <a href="2592818f-a095-f75a-33fe-36c8fdbbe241.htm">IMember</a> has joined the service.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="44b50744-0d17-7ef3-0050-739335084afd.htm">OnMemberLeaving</a></td><td><div class="summary">
+            Invoked when an <a href="2592818f-a095-f75a-33fe-36c8fdbbe241.htm">IMember</a> is leaving the service.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="1ce8a2a5-fb4a-44cc-9196-4fc7f62878ec.htm">OnMemberLeft</a></td><td><div class="summary">
+            Invoked when an <a href="2592818f-a095-f75a-33fe-36c8fdbbe241.htm">IMember</a> has left the service.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="be8f10a5-47e0-42ee-664c-bd4a6f6186ba.htm">RegisterBackServiceMemberEventHandler</a></td><td><div class="summary">
+            Register an event handler for member events on back caches's
+            service.
+            </div></td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="01b9a9b3-0850-910d-f852-89ccca083f09.htm">RegisterDeactivationListener</a></td><td><div class="summary">
+            Instantiate and register a DeactivationListener with the back cache.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="0c82baf7-f9e4-fa18-4086-edcaf9058e3b.htm">RegisterFrontListener</a></td><td><div class="summary">
+            Register the global front cache listener.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="72f4777b-269d-fc30-5c0a-b0fac71c7a92.htm">RegisterListener<span id="LSTE1423366_4"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTE1423366_4?cs=()|vb=|cpp=()|nu=()|fs=()");</script></a></td><td><div class="summary">
+            Register the global back cache listener.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="afedb13f-f451-75a3-c0a5-a3ffb8cc29fb.htm">RegisterListener(Object)</a></td><td><div class="summary">
+            Register the back cache listener for the specified key.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="d97ef823-fc7f-51e5-15bd-767b95fb497e.htm">RegisterListeners</a></td><td><div class="summary">
+            Register the back map listeners for the specified set of keys.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="ab634f62-2215-acff-9b01-7656c8303af2.htm">Release<span id="LSTE1423366_5"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTE1423366_5?cs=()|vb=|cpp=()|nu=()|fs=()");</script></a></td><td><div class="summary">
+            Release local resources associated with this instance of
+            INamedCache.
+            </div> (Overrides <a href="72320e33-f4af-d7fa-04d0-067ca4b0b950.htm">CompositeCache<span id="LSTE1423366_6"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTE1423366_6?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>Release<span id="LSTE1423366_7"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTE1423366_7?cs=()|vb=|cpp=()|nu=()|fs=()");</script></a>.)</td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="35a7f298-ddce-fd1f-d309-fe2d23cce582.htm">Release(Boolean)</a></td><td><div class="summary">
+            Release this cache, optionally destroying it.
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="811766d3-2e17-2e08-4fba-c1dd097a70c7.htm">Remove</a></td><td><div class="summary">
+            Remove the mapping for this key from this cache if present.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="08dc6087-b359-d37c-1667-2a6c321c23e6.htm">RemoveCacheListener(ICacheListener)</a></td><td><div class="summary">
+            Remove a standard cache listener that previously signed up for
+            all events.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="c23b9061-668a-8a01-c3c2-7c61fa4f7479.htm">RemoveCacheListener(ICacheListener, Object)</a></td><td><div class="summary">
+            Remove a cache listener that previously signed up for events
+            about a specific key.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="c2e716d8-196a-ad7a-2ba4-93c92b001adb.htm">RemoveCacheListener(ICacheListener, IFilter)</a></td><td><div class="summary">
+            Remove a cache listener that previously signed up for events
+            based on a filter evaluation.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="1a2de08f-8d23-d87a-9926-341814b2d7bd.htm">RemoveIndex</a></td><td><div class="summary">
+            Remove an index from this IQueryCache.
+            </div></td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="e98dac98-469d-e015-6a13-1b075378059d.htm">RemoveKeyHolder</a></td><td><div class="summary">
+            Remove the key holder from the ThreadLocal object.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="e7b41ea4-e818-4176-2fb1-4831834d5974.htm">ResetFrontMap</a></td><td><div class="summary">
+            Reset the front map.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="26af438d-226d-8d78-4ae0-3d52ac6be54d.htm">ResetHitStatistics</a></td><td><div class="summary">
+            Reset the cache statistics.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="86429757-f41b-e053-8e9a-ff0fd6889387.htm">ResetInvalidationStrategy</a></td><td><div class="summary">
+            Reset the "current invalidation strategy" flag.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="1914956e-b97d-be86-98d5-437434653cab.htm">SetKeyHolder</a></td><td><div class="summary">
+            Set up a thread local Set to hold all the keys that might be evicted
+            from the front cache.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="fbc2fb14-bcd4-de7a-8d73-4785d703409d.htm">ToString</a></td><td><div class="summary">
+            For debugging purposes, format the contents of the
+            <b>CompositeCache</b> in a human readable format.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="379e9a08-8f25-2062-5e76-6273ab5cce96.htm">Truncate</a></td><td><div class="summary">
+            Remove all mappings of this instance of INamedCache.
+            </div></td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="25bf1eab-38cd-dae6-4099-57220061be8e.htm">TryLock</a></td><td><div class="summary">
+            Lock the keys in the given set without blocking.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="7ebc797e-be9b-f2b4-ebb7-78daced49728.htm">Unlock</a></td><td><div class="summary">
+            Unlock the specified item.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="74c53b5c-1f03-7c98-fb66-ba5977739ced.htm">UnregisterBackServiceMemberEventHandler</a></td><td><div class="summary">
+            Unregister back caches's service member event handler.
+            </div></td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="689b7541-e4e5-773b-bfb7-02879dbadabc.htm">UnregisterDeactivationListener</a></td><td><div class="summary">
+            Unregister back cache deactivation listener.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="275ae30a-4283-e9c3-9ef1-6b1a043c9f99.htm">UnregisterFrontListener</a></td><td><div class="summary">
+            Unregister the global front cache listener.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="67384378-c905-c3ba-23ce-80d607676963.htm">UnregisterListener<span id="LSTE1423366_8"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTE1423366_8?cs=()|vb=|cpp=()|nu=()|fs=()");</script></a></td><td><div class="summary">
+            Unregister the global back cache listener.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="dee22d8b-3a6b-bd5b-35d1-cfec455face1.htm">UnregisterListener(Object)</a></td><td><div class="summary">
+            Unregister the back cache listener for the specified key.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="ae41c207-24cb-2e78-2762-9814f2e17af5.htm">UnregisterListeners</a></td><td><div class="summary">
+            Unregister the back cache listener for the specified keys.
+            <p> 
+            Note: all the keys in the passed-in set must be locked and will be unlocked.
+            </p></div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="a94d3008-2363-689f-ce5c-e7e5eee429f4.htm">Validate</a></td><td><div class="summary">
+            Validate the front cache entry for the specified back cache
+            event.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="dd1ed289-2316-ea4f-c44e-8240f98ce619.htm">View</a></td><td><div class="summary">
+            Construct a view of this INamedCache.
+            </div></td></tr></table><a href="#PageHeader">Top</a></div><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID6RB')" onkeypress="SectionExpandCollapse_CheckKey('ID6RB', event)" tabindex="0"><img id="ID6RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Fields</span></div><div id="ID6RBSection" class="collapsibleSection"><table class="members" id="fieldList"><tr><th class="iconColumn">
+								 
+							</th><th>Name</th><th>Description</th></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protfield.gif" alt="Protected field" title="Protected field" /></td><td><a href="a8fc9cdc-17bb-6ab2-2625-41ac44cb3708.htm">m_strategyCurrent</a></td><td><div class="summary">
+            The current invalidation strategy, which at times could be
+            different from the target strategy.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protfield.gif" alt="Protected field" title="Protected field" /></td><td><a href="d0df2085-98fb-febd-68ac-8d29b78609ec.htm">m_strategyTarget</a></td><td><div class="summary">
+            The invalidation strategy that this cache is to use.
+            </div> (Inherited from <a href="135070e6-2aca-60e6-536a-612f763ee558.htm">CompositeCache</a>.)</td></tr></table><a href="#PageHeader">Top</a></div><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID7RB')" onkeypress="SectionExpandCollapse_CheckKey('ID7RB', event)" tabindex="0"><img id="ID7RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Extension Methods</span></div><div id="ID7RBSection" class="collapsibleSection"><table class="members" id="extensionMethodList"><tr><th class="iconColumn">
+								 
+							</th><th>Name</th><th>Description</th></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubextension.gif" alt="Public Extension Method" title="Public Extension Method" /></td><td><a href="6f57038a-b6d5-b885-4766-340877932b0d.htm">GetOrDefault</a></td><td><div class="summary">
+            Returns the value to which the specified key is mapped, or
+            the defaultValue if this cache contains no mapping for the key.
+            </div> (Defined by <a href="7b95f78a-d80c-dc1a-6b61-5bf939091d9d.htm">InvocableCacheEx</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubextension.gif" alt="Public Extension Method" title="Public Extension Method" /></td><td><a href="054fc7a8-da20-40bc-fb94-27d19f4a0b51.htm">InsertIfAbsent</a></td><td><div class="summary">
+            If the specified key is not already associated with a value 
+            (or is mapped to null) associates it with the given value and
+            returns null, else returns the current value.
+            </div> (Defined by <a href="7b95f78a-d80c-dc1a-6b61-5bf939091d9d.htm">InvocableCacheEx</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubextension.gif" alt="Public Extension Method" title="Public Extension Method" /></td><td><a href="32427099-96a2-1b1e-6c4c-0091992a6c68.htm">Remove</a></td><td><div class="summary">
+            Removes the entry for the specified key only if it is currently
+            mapped to the specified value.
+            </div> (Defined by <a href="7b95f78a-d80c-dc1a-6b61-5bf939091d9d.htm">InvocableCacheEx</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubextension.gif" alt="Public Extension Method" title="Public Extension Method" /></td><td><a href="fed9a89e-cde8-3908-aa20-2c8867dba785.htm">Replace(Object, Object)</a></td><td>Overloaded.  <div class="summary">
+            Replaces the entry for the specified key only if it is
+            currently mapped to some value.
+            </div> (Defined by <a href="7b95f78a-d80c-dc1a-6b61-5bf939091d9d.htm">InvocableCacheEx</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubextension.gif" alt="Public Extension Method" title="Public Extension Method" /></td><td><a href="44a1141e-6ab4-2f05-8314-eed3b16bc4b3.htm">Replace(Object, Object, Object)</a></td><td>Overloaded.  <div class="summary">
+            Replaces the entry for the specified key only if currently
+            mapped to the specified value.
+            </div> (Defined by <a href="7b95f78a-d80c-dc1a-6b61-5bf939091d9d.htm">InvocableCacheEx</a>.)</td></tr></table><a href="#PageHeader">Top</a></div><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID8RB')" onkeypress="SectionExpandCollapse_CheckKey('ID8RB', event)" tabindex="0"><img id="ID8RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Remarks</span></div><div id="ID8RBSection" class="collapsibleSection">
+            A <b>CompositeCache</b> is a cache that has a "front" cache and a
+            "back" cache; the front cache is assumed to be low latency but
+            incomplete, and the back cache is assumed to be complete but high
+            latency.
+            </div><div class="collapsibleAreaRegion" id="seeAlsoSection"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID9RB')" onkeypress="SectionExpandCollapse_CheckKey('ID9RB', event)" tabindex="0"><img id="ID9RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />See Also</span></div><div id="ID9RBSection" class="collapsibleSection"><h4 class="subHeading">Reference</h4><div class="seeAlsoStyle"><a href="311ee8be-1168-e7d9-7c94-3c4e8fab9d51.htm">Tangosol.Net.Cache Namespace</a></div><div class="seeAlsoStyle"><a href="135070e6-2aca-60e6-536a-612f763ee558.htm">Tangosol.Net.Cache<span id="LSTE1423366_9"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTE1423366_9?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>CompositeCache</a></div></div></div></div><div id="pageFooter" class="pageFooter">Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved. </div></body></html>

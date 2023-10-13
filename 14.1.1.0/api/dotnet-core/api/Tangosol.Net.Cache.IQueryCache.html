@@ -1,0 +1,572 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IQueryCache
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IQueryCache
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Cache.IQueryCache">
+  
+  
+  <h1 id="Tangosol_Net_Cache_IQueryCache" data-uid="Tangosol.Net.Cache.IQueryCache" class="text-break">Interface IQueryCache
+  </h1>
+  <div class="markdown level0 summary"><p><a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a> with additional query features.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICache.html#Tangosol_Net_Cache_ICache_GetAll_System_Collections_ICollection_">ICache.GetAll(ICollection)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICache.html#Tangosol_Net_Cache_ICache_Insert_System_Object_System_Object_">ICache.Insert(Object, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICache.html#Tangosol_Net_Cache_ICache_Insert_System_Object_System_Object_System_Int64_">ICache.Insert(Object, Object, Int64)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICache.html#Tangosol_Net_Cache_ICache_InsertAll_System_Collections_IDictionary_">ICache.InsertAll(IDictionary)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICache.html#Tangosol_Net_Cache_ICache_Entries">ICache.Entries</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICache.html#Tangosol_Net_Cache_ICache_GetEnumerator">ICache.GetEnumerator()</a>
+    </div>
+    <div>
+      <span class="xref">System.Collections.IDictionary.Add(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.IDictionary.Clear()</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.IDictionary.Contains(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.IDictionary.Remove(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.IDictionary.IsFixedSize</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.IDictionary.IsReadOnly</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.IDictionary.Item[System.Object]</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.IDictionary.Keys</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.IDictionary.Values</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.ICollection.CopyTo(System.Array, System.Int32)</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.ICollection.Count</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.ICollection.IsSynchronized</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.ICollection.SyncRoot</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Cache.html">Tangosol.Net.Cache</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Cache_IQueryCache_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IQueryCache : ICache, IDictionary, ICollection, IEnumerable</code></pre>
+  </div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IQueryCache_AddIndex_Tangosol_Util_IValueExtractor_System_Boolean_System_Collections_IComparer_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IQueryCache.AddIndex(Tangosol.Util.IValueExtractor%2CSystem.Boolean%2CSystem.Collections.IComparer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IQueryCache.cs/#L133">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_IQueryCache_AddIndex_" data-uid="Tangosol.Net.Cache.IQueryCache.AddIndex*"></a>
+  <h4 id="Tangosol_Net_Cache_IQueryCache_AddIndex_Tangosol_Util_IValueExtractor_System_Boolean_System_Collections_IComparer_" data-uid="Tangosol.Net.Cache.IQueryCache.AddIndex(Tangosol.Util.IValueExtractor,System.Boolean,System.Collections.IComparer)">AddIndex(IValueExtractor, Boolean, IComparer)</h4>
+  <div class="markdown level1 summary"><p>Add an index to this IQueryCache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void AddIndex(IValueExtractor extractor, bool isOrdered, IComparer comparer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><span class="parametername">extractor</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a> object that is used to extract
+an indexable object from a value stored in the indexed
+cache. Must not be <code>null</code>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isOrdered</span></td>
+        <td><p><strong>true</strong> if the contents of the indexed information should be
+ordered; <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td><span class="parametername">comparer</span></td>
+        <td><p>The <strong>IComparer</strong> object which imposes an ordering on entries
+in the indexed cache; or <code>null</code> if the entries' values
+natural ordering should be used.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_IQueryCache_AddIndex_Tangosol_Util_IValueExtractor_System_Boolean_System_Collections_IComparer__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This allows to correlate values stored in this
+<em>indexed cache</em> (or attributes of those values) to the
+corresponding keys in the indexed dictionary and increase the
+performance of <strong>GetKeys</strong> and <strong>GetEntries</strong> methods.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IQueryCache_GetEntries_Tangosol_Util_IFilter_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IQueryCache.GetEntries(Tangosol.Util.IFilter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IQueryCache.cs/#L83">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_IQueryCache_GetEntries_" data-uid="Tangosol.Net.Cache.IQueryCache.GetEntries*"></a>
+  <h4 id="Tangosol_Net_Cache_IQueryCache_GetEntries_Tangosol_Util_IFilter_" data-uid="Tangosol.Net.Cache.IQueryCache.GetEntries(Tangosol.Util.IFilter)">GetEntries(IFilter)</h4>
+  <div class="markdown level1 summary"><p>Return a collection of the entries contained in this cache
+that satisfy the criteria expressed by the filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ICacheEntry[] GetEntries(IFilter filter)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> object representing the criteria that
+the entries of this cache should satisfy.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a>[]</td>
+        <td><p>A collection of entries that satisfy the specified criteria.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IQueryCache_GetEntries_Tangosol_Util_IFilter_System_Collections_IComparer_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IQueryCache.GetEntries(Tangosol.Util.IFilter%2CSystem.Collections.IComparer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IQueryCache.cs/#L108">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_IQueryCache_GetEntries_" data-uid="Tangosol.Net.Cache.IQueryCache.GetEntries*"></a>
+  <h4 id="Tangosol_Net_Cache_IQueryCache_GetEntries_Tangosol_Util_IFilter_System_Collections_IComparer_" data-uid="Tangosol.Net.Cache.IQueryCache.GetEntries(Tangosol.Util.IFilter,System.Collections.IComparer)">GetEntries(IFilter, IComparer)</h4>
+  <div class="markdown level1 summary"><p>Return a collection of the entries contained in this cache
+that satisfy the criteria expressed by the filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ICacheEntry[] GetEntries(IFilter filter, IComparer comparer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> object representing the criteria that
+the entries of this cache should satisfy.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td><span class="parametername">comparer</span></td>
+        <td><p>The <strong>IComparable</strong> object which imposes an ordering on
+entries in the resulting collection; or <code>null</code> if the
+entries' values natural ordering should be used.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a>[]</td>
+        <td><p>A collection of entries that satisfy the specified criteria.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_IQueryCache_GetEntries_Tangosol_Util_IFilter_System_Collections_IComparer__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+It is guaranteed that enumerator will traverse the array in such
+a way that the entry values come up in ascending order, sorted by
+the specified comparer or according to the
+<em>natural ordering</em>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IQueryCache_GetKeys_Tangosol_Util_IFilter_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IQueryCache.GetKeys(Tangosol.Util.IFilter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IQueryCache.cs/#L32">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_IQueryCache_GetKeys_" data-uid="Tangosol.Net.Cache.IQueryCache.GetKeys*"></a>
+  <h4 id="Tangosol_Net_Cache_IQueryCache_GetKeys_Tangosol_Util_IFilter_" data-uid="Tangosol.Net.Cache.IQueryCache.GetKeys(Tangosol.Util.IFilter)">GetKeys(IFilter)</h4>
+  <div class="markdown level1 summary"><p>Return a collection of the keys contained in this cache for
+entries that satisfy the criteria expressed by the filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">object[] GetKeys(IFilter filter)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> object representing the criteria that
+the entries of this cache should satisfy.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td><p>A collection of keys for entries that satisfy the specified
+criteria.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IQueryCache_GetValues_Tangosol_Util_IFilter_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IQueryCache.GetValues(Tangosol.Util.IFilter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IQueryCache.cs/#L46">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_IQueryCache_GetValues_" data-uid="Tangosol.Net.Cache.IQueryCache.GetValues*"></a>
+  <h4 id="Tangosol_Net_Cache_IQueryCache_GetValues_Tangosol_Util_IFilter_" data-uid="Tangosol.Net.Cache.IQueryCache.GetValues(Tangosol.Util.IFilter)">GetValues(IFilter)</h4>
+  <div class="markdown level1 summary"><p>Return a collection of the values contained in this cache for
+entries that satisfy the criteria expressed by the filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">object[] GetValues(IFilter filter)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> object representing the criteria that
+the entries of this cache should satisfy.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td><p>A collection of the values for entries that satisfy the specified
+criteria.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IQueryCache_GetValues_Tangosol_Util_IFilter_System_Collections_IComparer_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IQueryCache.GetValues(Tangosol.Util.IFilter%2CSystem.Collections.IComparer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IQueryCache.cs/#L70">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_IQueryCache_GetValues_" data-uid="Tangosol.Net.Cache.IQueryCache.GetValues*"></a>
+  <h4 id="Tangosol_Net_Cache_IQueryCache_GetValues_Tangosol_Util_IFilter_System_Collections_IComparer_" data-uid="Tangosol.Net.Cache.IQueryCache.GetValues(Tangosol.Util.IFilter,System.Collections.IComparer)">GetValues(IFilter, IComparer)</h4>
+  <div class="markdown level1 summary"><p>Return a collection of the values contained in this cache for
+entries that satisfy the criteria expressed by the filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">object[] GetValues(IFilter filter, IComparer comparer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> object representing the criteria that
+the entries of this cache should satisfy.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td><span class="parametername">comparer</span></td>
+        <td><p>The <strong>IComparable</strong> object which imposes an ordering on
+entries in the resulting collection; or <code>null</code> if the
+entries' values natural ordering should be used.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span>[]</td>
+        <td><p>A collection of entries that satisfy the specified criteria.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_IQueryCache_GetValues_Tangosol_Util_IFilter_System_Collections_IComparer__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>It is guaranteed that enumerator will traverse the array in such
+a way that the values come up in ascending order, sorted by
+the specified comparer or according to the
+<em>natural ordering</em>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IQueryCache_RemoveIndex_Tangosol_Util_IValueExtractor_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IQueryCache.RemoveIndex(Tangosol.Util.IValueExtractor)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IQueryCache.cs/#L142">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_IQueryCache_RemoveIndex_" data-uid="Tangosol.Net.Cache.IQueryCache.RemoveIndex*"></a>
+  <h4 id="Tangosol_Net_Cache_IQueryCache_RemoveIndex_Tangosol_Util_IValueExtractor_" data-uid="Tangosol.Net.Cache.IQueryCache.RemoveIndex(Tangosol.Util.IValueExtractor)">RemoveIndex(IValueExtractor)</h4>
+  <div class="markdown level1 summary"><p>Remove an index from this IQueryCache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void RemoveIndex(IValueExtractor extractor)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><span class="parametername">extractor</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a> object that is used to extract
+an indexable object from a value stored in the cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IQueryCache.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IQueryCache%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IQueryCache.cs/#L18" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

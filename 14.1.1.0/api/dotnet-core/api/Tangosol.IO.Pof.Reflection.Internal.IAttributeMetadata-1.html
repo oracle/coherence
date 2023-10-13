@@ -1,0 +1,378 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IAttributeMetadata&lt;T&gt;
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IAttributeMetadata&lt;T&gt;
+   ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata`1">
+  
+  
+  <h1 id="Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1" data-uid="Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata`1" class="text-break">Interface IAttributeMetadata&lt;T&gt;
+  </h1>
+  <div class="markdown level0 summary"><p>IAttributeMetadata represents all appropriate information relating to
+an attribute within a type. This contract has similar forms in all
+supported languages providing a language agnostic mechanism to
+describe elements within a structure and an invocation mechanism for
+setting or retrieving the value for an attribute.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.html">Tangosol.IO.Pof.Reflection.Internal</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IAttributeMetadata&lt;T&gt;
+
+    where T : class, new()</code></pre>
+  </div>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">T</span></td>
+        <td><p>The container type of which this attribute is a
+member.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_Codec.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata%601.Codec%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/Internal/ITypeMetadata.cs/#L163">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_Codec_" data-uid="Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata`1.Codec*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_Codec" data-uid="Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata`1.Codec">Codec</h4>
+  <div class="markdown level1 summary"><p>The codec ass;igned to this attribute which will perform type safe
+(de)serialization.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ICodec Codec { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.Reflection.ICodec.html">ICodec</a></td>
+        <td><p>The <a class="xref" href="Tangosol.IO.Pof.Reflection.ICodec.html">ICodec</a> used to (de)serialize this attribute.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_Index.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata%601.Index%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/Internal/ITypeMetadata.cs/#L154">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_Index_" data-uid="Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata`1.Index*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_Index" data-uid="Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata`1.Index">Index</h4>
+  <div class="markdown level1 summary"><p>The index used to order the attributes when iterated by the
+containing <a class="xref" href="Tangosol.IO.Pof.Reflection.Internal.ITypeMetadata-1.html">ITypeMetadata&lt;T&gt;</a> class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int Index { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>Index to identify this attribute's position in a sequence.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_Name.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata%601.Name%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/Internal/ITypeMetadata.cs/#L134">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_Name_" data-uid="Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata`1.Name*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_Name" data-uid="Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata`1.Name">Name</h4>
+  <div class="markdown level1 summary"><p>Name of the attribute this metadata describes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string Name { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>Attribute name.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_VersionId.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata%601.VersionId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/Internal/ITypeMetadata.cs/#L145">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_VersionId_" data-uid="Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata`1.VersionId*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_VersionId" data-uid="Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata`1.VersionId">VersionId</h4>
+  <div class="markdown level1 summary"><p>The versionId assigned to this attributes metadata
+instance. This versionId is not required however is used as an
+indicator to determine the version this attribute was introduced
+in.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int VersionId { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>Integer representing the version of this attribute metadata.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_Get__0_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata%601.Get(%600)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/Internal/ITypeMetadata.cs/#L175">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_Get_" data-uid="Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata`1.Get*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_Get__0_" data-uid="Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata`1.Get(`0)">Get(T)</h4>
+  <div class="markdown level1 summary"><p>Returns the value of the attribute contained within the given
+object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">object Get(T container)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">container</span></td>
+        <td><p>The containing object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The attribute value stored on the object passed in.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_Set__0_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata%601.Set(%600%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/Internal/ITypeMetadata.cs/#L186">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_Set_" data-uid="Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata`1.Set*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1_Set__0_System_Object_" data-uid="Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata`1.Set(`0,System.Object)">Set(T, Object)</h4>
+  <div class="markdown level1 summary"><p>Sets the <code>value</code> of this attribute within the given object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Set(T container, object attribute)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">container</span></td>
+        <td><p>The containing object.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">attribute</span></td>
+        <td><p>The value to set this attribute to.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_Internal_IAttributeMetadata_1.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.Internal.IAttributeMetadata%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/Internal/ITypeMetadata.cs/#L126" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,699 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class ConverterCollections.ConverterDictionaryEnumerator
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class ConverterCollections.ConverterDictionaryEnumerator
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator">
+  
+  
+  <h1 id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator" class="text-break">Class ConverterCollections.ConverterDictionaryEnumerator
+  </h1>
+  <div class="markdown level0 summary"><p>A Converter DictionaryEnumerator views an underlying
+<span class="xref">System.Collections.IDictionaryEnumerator</span> through key and value
+<a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a>s.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">ConverterCollections.ConverterDictionaryEnumerator</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><span class="xref">System.Collections.IDictionaryEnumerator</span></div>
+    <div><span class="xref">System.Collections.IEnumerator</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.html">Tangosol.Util</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class ConverterDictionaryEnumerator : IDictionaryEnumerator, IEnumerator</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator__ctor_System_Collections_IDictionaryEnumerator_Tangosol_Util_IConverter_Tangosol_Util_IConverter_.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.%23ctor(System.Collections.IDictionaryEnumerator%2CTangosol.Util.IConverter%2CTangosol.Util.IConverter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L891">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator__ctor_" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.#ctor*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator__ctor_System_Collections_IDictionaryEnumerator_Tangosol_Util_IConverter_Tangosol_Util_IConverter_" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.#ctor(System.Collections.IDictionaryEnumerator,Tangosol.Util.IConverter,Tangosol.Util.IConverter)">ConverterDictionaryEnumerator(IDictionaryEnumerator, IConverter, IConverter)</h4>
+  <div class="markdown level1 summary"><p>Constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ConverterDictionaryEnumerator(IDictionaryEnumerator enumerator, IConverter convKey, IConverter convValue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionaryEnumerator</span></td>
+        <td><span class="parametername">enumerator</span></td>
+        <td><p>The underlying <span class="xref">System.Collections.IDictionaryEnumerator</span>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td><span class="parametername">convKey</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a> used to convert keys.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td><span class="parametername">convValue</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a> used to convert values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_m_convKey.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.m_convKey%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L1012">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_m_convKey" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.m_convKey">m_convKey</h4>
+  <div class="markdown level1 summary"><p>The IConverter used to convert keys.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IConverter m_convKey</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_m_convValue.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.m_convValue%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L1017">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_m_convValue" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.m_convValue">m_convValue</h4>
+  <div class="markdown level1 summary"><p>The IConverter used to convert values.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IConverter m_convValue</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_m_enum.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.m_enum%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L1007">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_m_enum" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.m_enum">m_enum</h4>
+  <div class="markdown level1 summary"><p>The underlying IDictionaryEnumerator.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IDictionaryEnumerator m_enum</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionaryEnumerator</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_ConverterKeyUp.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.ConverterKeyUp%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L855">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_ConverterKeyUp_" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.ConverterKeyUp*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_ConverterKeyUp" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.ConverterKeyUp">ConverterKeyUp</h4>
+  <div class="markdown level1 summary"><p>The <a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a> used to convert keys of the
+<span class="xref">System.Collections.DictionaryEntry</span> objects which underlying
+enumerator iterates.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IConverter ConverterKeyUp { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td><p>The <strong>IConverter</strong> used to convert keys of the
+<strong>DictionaryEntry</strong> objects which underlying enumerator
+iterates.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_ConverterValueUp.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.ConverterValueUp%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L870">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_ConverterValueUp_" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.ConverterValueUp*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_ConverterValueUp" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.ConverterValueUp">ConverterValueUp</h4>
+  <div class="markdown level1 summary"><p>The <a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a> used to convert values of the
+<span class="xref">System.Collections.DictionaryEntry</span> objects which underlying
+enumerator iterates.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IConverter ConverterValueUp { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td><p>The <strong>IConverter</strong> used to convert values of the
+<strong>DictionaryEntry</strong> objects which underlying enumerator
+iterates.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_Current.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.Current%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L991">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_Current_" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.Current*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_Current" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.Current">Current</h4>
+  <div class="markdown level1 summary"><p>Gets the current element in the collection.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Current { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The current element in the collection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>The enumerator is positioned before the first element of the
+collection or after the last element.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_Entry.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.Entry%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L943">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_Entry_" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.Entry*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_Entry" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.Entry">Entry</h4>
+  <div class="markdown level1 summary"><p>Gets both the key and the value of the current dictionary entry.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual DictionaryEntry Entry { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.DictionaryEntry</span></td>
+        <td><p>A <span class="xref">System.Collections.DictionaryEntry</span> containing both the key and
+the value of the current dictionary entry.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>The enumerator is positioned before the first entry of the
+dictionary or after the last entry.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_Enumerator.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.Enumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L840">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_Enumerator_" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.Enumerator*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_Enumerator" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.Enumerator">Enumerator</h4>
+  <div class="markdown level1 summary"><p>The underlying <span class="xref">System.Collections.IDictionaryEnumerator</span>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IDictionaryEnumerator Enumerator { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionaryEnumerator</span></td>
+        <td><p>The underlying <strong>IDictionaryEnumerator</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_Key.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.Key%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L912">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_Key_" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.Key*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_Key" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.Key">Key</h4>
+  <div class="markdown level1 summary"><p>Gets the key of the current dictionary entry.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Key { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The key of the current element of the enumeration.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>The enumerator is positioned before the first entry of the
+dictionary or after the last entry.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_Value.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.Value%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L927">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_Value_" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.Value*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_Value" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.Value">Value</h4>
+  <div class="markdown level1 summary"><p>Gets the value of the current dictionary entry.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Value { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The value of the current element of the enumeration.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>The enumerator is positioned before the first entry of the
+dictionary or after the last entry.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_MoveNext.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.MoveNext%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L964">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_MoveNext_" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.MoveNext*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_MoveNext" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.MoveNext">MoveNext()</h4>
+  <div class="markdown level1 summary"><p>Advances the enumerator to the next element of the
+collection.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool MoveNext()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the enumerator was successfully advanced to
+the next element; <strong>false</strong> if the enumerator has passed
+the end of the collection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>The collection was modified after the enumerator was created.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_Reset.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.Reset%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L976">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_Reset_" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.Reset*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator_Reset" data-uid="Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.Reset">Reset()</h4>
+  <div class="markdown level1 summary"><p>Sets the enumerator to its initial position, which is before
+the first element in the collection.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Reset()</code></pre>
+  </div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>The collection was modified after the enumerator was created.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <span class="xref">System.Collections.IDictionaryEnumerator</span>
+  </div>
+  <div>
+      <span class="xref">System.Collections.IEnumerator</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterDictionaryEnumerator.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L830" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

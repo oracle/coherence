@@ -1,0 +1,881 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class CacheEventFilter
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class CacheEventFilter
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Filter.CacheEventFilter">
+  
+  
+  <h1 id="Tangosol_Util_Filter_CacheEventFilter" data-uid="Tangosol.Util.Filter.CacheEventFilter" class="text-break">Class CacheEventFilter
+  </h1>
+  <div class="markdown level0 summary"><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which evaluates the content of a
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> object according to the specified
+criteria.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">CacheEventFilter</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></div>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.Filter.html">Tangosol.Util.Filter</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Filter_CacheEventFilter_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class CacheEventFilter : IFilter, IPortableObject</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Filter_CacheEventFilter_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>This filter is intended to be used by various
+<a class="xref" href="Tangosol.Net.Cache.IObservableCache.html">IObservableCache</a> listeners that are interested in
+particular subsets of <strong>CacheEvent</strong> notifications emitted by
+the cache.</p>
+<p>
+Usage examples:
+<ul><li>
+a filter that evaluates to <strong>true</strong> if an Employee object is
+inserted into a cache with a value of IsMarried property set to
+<strong>true</strong>.
+<pre><code>new CacheEventFilter(CacheEventMask.Inserted,
+new EqualsFilter(&quot;IsMarried&quot;, true));</code></pre>
+</li><li>
+a filter that evaluates to <strong>true</strong> if any object is removed from
+a cache.
+<pre><code>new CacheEventFilter(CacheEventMask.Deleted);</code></pre>
+</li><li>
+a filter that evaluates to <strong>true</strong> if there is an update to an
+Employee object where either an old or new value of LastName property
+equals to &quot;Smith&quot;.
+<pre><code>new CacheEventFilter(CacheEventMask.Updated,
+new EqualsFilter(&quot;LastName&quot;, &quot;Smith&quot;));</code></pre>
+</li><li>
+a filter that is used to keep a cached keys collection result based
+on some cache filter up-to-date.
+<pre><code>ICollection keys = new ArrayList();
+IFilter filterEvt = new CacheEventFilter(filterCache);
+ICacheListener listener = new TestListener();
+cache.AddCacheListener(listener, filterEvt, true);
+keys.AddAll(cache.GetKeys(filterCache));</code></pre>
+</li></ul>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_CacheEventFilter__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.CacheEventFilter.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/CacheEventFilter.cs/#L118">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_CacheEventFilter__ctor_" data-uid="Tangosol.Util.Filter.CacheEventFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_CacheEventFilter__ctor" data-uid="Tangosol.Util.Filter.CacheEventFilter.#ctor">CacheEventFilter()</h4>
+  <div class="markdown level1 summary"><p>Default constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public CacheEventFilter()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_CacheEventFilter__ctor_Tangosol_Util_Filter_CacheEventFilter_CacheEventMask_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.CacheEventFilter.%23ctor(Tangosol.Util.Filter.CacheEventFilter.CacheEventMask)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/CacheEventFilter.cs/#L141">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_CacheEventFilter__ctor_" data-uid="Tangosol.Util.Filter.CacheEventFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_CacheEventFilter__ctor_Tangosol_Util_Filter_CacheEventFilter_CacheEventMask_" data-uid="Tangosol.Util.Filter.CacheEventFilter.#ctor(Tangosol.Util.Filter.CacheEventFilter.CacheEventMask)">CacheEventFilter(CacheEventFilter.CacheEventMask)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>CacheEventFilter</strong> that evaluates
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> objects based on the specified
+combination of event types.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public CacheEventFilter(CacheEventFilter.CacheEventMask mask)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.html">CacheEventFilter.CacheEventMask</a></td>
+        <td><span class="parametername">mask</span></td>
+        <td><p>Any combination of <a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.html#Tangosol_Util_Filter_CacheEventFilter_CacheEventMask_Inserted">Inserted</a>,
+<a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.html#Tangosol_Util_Filter_CacheEventFilter_CacheEventMask_Updated">Updated</a> and
+<a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.html#Tangosol_Util_Filter_CacheEventFilter_CacheEventMask_Deleted">Deleted</a>,
+<a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.html#Tangosol_Util_Filter_CacheEventFilter_CacheEventMask_UpdatedEntered">UpdatedEntered</a>,
+<a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.html#Tangosol_Util_Filter_CacheEventFilter_CacheEventMask_UpdatedWithin">UpdatedWithin</a>,
+<a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.html#Tangosol_Util_Filter_CacheEventFilter_CacheEventMask_UpdatedLeft">UpdatedLeft</a>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Filter_CacheEventFilter__ctor_Tangosol_Util_Filter_CacheEventFilter_CacheEventMask__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Using this constructor is equivalent to:</p>
+<pre><code>new CacheEventFilter(mask, null, CacheEventSyntheticMask.All);</code></pre>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_CacheEventFilter__ctor_Tangosol_Util_Filter_CacheEventFilter_CacheEventMask_Tangosol_Util_Filter_CacheEventFilter_CacheEventSyntheticMask_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.CacheEventFilter.%23ctor(Tangosol.Util.Filter.CacheEventFilter.CacheEventMask%2CTangosol.Util.Filter.CacheEventFilter.CacheEventSyntheticMask)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/CacheEventFilter.cs/#L194">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_CacheEventFilter__ctor_" data-uid="Tangosol.Util.Filter.CacheEventFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_CacheEventFilter__ctor_Tangosol_Util_Filter_CacheEventFilter_CacheEventMask_Tangosol_Util_Filter_CacheEventFilter_CacheEventSyntheticMask_" data-uid="Tangosol.Util.Filter.CacheEventFilter.#ctor(Tangosol.Util.Filter.CacheEventFilter.CacheEventMask,Tangosol.Util.Filter.CacheEventFilter.CacheEventSyntheticMask)">CacheEventFilter(CacheEventFilter.CacheEventMask, CacheEventFilter.CacheEventSyntheticMask)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>CacheEventFilter</strong> that evaluates
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> objects based on the specified
+combination of event types.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public CacheEventFilter(CacheEventFilter.CacheEventMask mask, CacheEventFilter.CacheEventSyntheticMask maskSynth)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.html">CacheEventFilter.CacheEventMask</a></td>
+        <td><span class="parametername">mask</span></td>
+        <td><p>Combination of any of the <a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.html">CacheEventFilter.CacheEventMask</a>
+values.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventSyntheticMask.html">CacheEventFilter.CacheEventSyntheticMask</a></td>
+        <td><span class="parametername">maskSynth</span></td>
+        <td><p>Combination of any of the <a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventSyntheticMask.html">CacheEventFilter.CacheEventSyntheticMask</a></p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_CacheEventFilter__ctor_Tangosol_Util_Filter_CacheEventFilter_CacheEventMask_Tangosol_Util_IFilter_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.CacheEventFilter.%23ctor(Tangosol.Util.Filter.CacheEventFilter.CacheEventMask%2CTangosol.Util.IFilter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/CacheEventFilter.cs/#L178">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_CacheEventFilter__ctor_" data-uid="Tangosol.Util.Filter.CacheEventFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_CacheEventFilter__ctor_Tangosol_Util_Filter_CacheEventFilter_CacheEventMask_Tangosol_Util_IFilter_" data-uid="Tangosol.Util.Filter.CacheEventFilter.#ctor(Tangosol.Util.Filter.CacheEventFilter.CacheEventMask,Tangosol.Util.IFilter)">CacheEventFilter(CacheEventFilter.CacheEventMask, IFilter)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>CacheEventFilter</strong> that evaluates
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> objects based on the specified
+combination of event types.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public CacheEventFilter(CacheEventFilter.CacheEventMask mask, IFilter filter)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.html">CacheEventFilter.CacheEventMask</a></td>
+        <td><span class="parametername">mask</span></td>
+        <td><p>Combination of any of the <a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.html">CacheEventFilter.CacheEventMask</a>
+values.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>Optional filter used for evaluating event values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_CacheEventFilter__ctor_Tangosol_Util_Filter_CacheEventFilter_CacheEventMask_Tangosol_Util_IFilter_Tangosol_Util_Filter_CacheEventFilter_CacheEventSyntheticMask_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.CacheEventFilter.%23ctor(Tangosol.Util.Filter.CacheEventFilter.CacheEventMask%2CTangosol.Util.IFilter%2CTangosol.Util.Filter.CacheEventFilter.CacheEventSyntheticMask)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/CacheEventFilter.cs/#L213">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_CacheEventFilter__ctor_" data-uid="Tangosol.Util.Filter.CacheEventFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_CacheEventFilter__ctor_Tangosol_Util_Filter_CacheEventFilter_CacheEventMask_Tangosol_Util_IFilter_Tangosol_Util_Filter_CacheEventFilter_CacheEventSyntheticMask_" data-uid="Tangosol.Util.Filter.CacheEventFilter.#ctor(Tangosol.Util.Filter.CacheEventFilter.CacheEventMask,Tangosol.Util.IFilter,Tangosol.Util.Filter.CacheEventFilter.CacheEventSyntheticMask)">CacheEventFilter(CacheEventFilter.CacheEventMask, IFilter, CacheEventFilter.CacheEventSyntheticMask)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>CacheEventFilter</strong> that evaluates
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> objects based on the specified
+combination of event types.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public CacheEventFilter(CacheEventFilter.CacheEventMask mask, IFilter filter, CacheEventFilter.CacheEventSyntheticMask maskSynth)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.html">CacheEventFilter.CacheEventMask</a></td>
+        <td><span class="parametername">mask</span></td>
+        <td><p>Combination of any of the <a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.html">CacheEventFilter.CacheEventMask</a>
+values.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>Optional filter used for evaluating event values.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventSyntheticMask.html">CacheEventFilter.CacheEventSyntheticMask</a></td>
+        <td><span class="parametername">maskSynth</span></td>
+        <td><p>Combination of any of the <a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventSyntheticMask.html">CacheEventFilter.CacheEventSyntheticMask</a></p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_CacheEventFilter__ctor_Tangosol_Util_IFilter_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.CacheEventFilter.%23ctor(Tangosol.Util.IFilter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/CacheEventFilter.cs/#L163">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_CacheEventFilter__ctor_" data-uid="Tangosol.Util.Filter.CacheEventFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_CacheEventFilter__ctor_Tangosol_Util_IFilter_" data-uid="Tangosol.Util.Filter.CacheEventFilter.#ctor(Tangosol.Util.IFilter)">CacheEventFilter(IFilter)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>CacheEventFilter</strong> that evaluates
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> objects that would affect the
+results of a keys collection filter issued by a previous call to
+<span class="xref">System.Collections.IDictionary.Keys</span>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public CacheEventFilter(IFilter filter)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The filter passed previously to a Keys query property.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Filter_CacheEventFilter__ctor_Tangosol_Util_IFilter__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>It is possible to easily implement <em>continuous query</em>
+functionality.</p>
+<p>
+Using this constructor is equivalent to:
+<pre><code>new CacheEventFilter(CacheEventMask.Keys, filter, CacheEventSyntheticMask.All);</code></pre>
+</div>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_CacheEventFilter_m_filter.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.CacheEventFilter.m_filter%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/CacheEventFilter.cs/#L641">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Filter_CacheEventFilter_m_filter" data-uid="Tangosol.Util.Filter.CacheEventFilter.m_filter">m_filter</h4>
+  <div class="markdown level1 summary"><p>The event value(s) filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IFilter m_filter</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_CacheEventFilter_m_mask.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.CacheEventFilter.m_mask%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/CacheEventFilter.cs/#L631">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Filter_CacheEventFilter_m_mask" data-uid="Tangosol.Util.Filter.CacheEventFilter.m_mask">m_mask</h4>
+  <div class="markdown level1 summary"><p>The event mask.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected CacheEventFilter.CacheEventMask m_mask</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.html">CacheEventFilter.CacheEventMask</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_CacheEventFilter_m_maskSynth.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.CacheEventFilter.m_maskSynth%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/CacheEventFilter.cs/#L636">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Filter_CacheEventFilter_m_maskSynth" data-uid="Tangosol.Util.Filter.CacheEventFilter.m_maskSynth">m_maskSynth</h4>
+  <div class="markdown level1 summary"><p>The synthetic mask.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected CacheEventFilter.CacheEventSyntheticMask m_maskSynth</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventSyntheticMask.html">CacheEventFilter.CacheEventSyntheticMask</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_CacheEventFilter_EventMask.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.CacheEventFilter.EventMask%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/CacheEventFilter.cs/#L94">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_CacheEventFilter_EventMask_" data-uid="Tangosol.Util.Filter.CacheEventFilter.EventMask*"></a>
+  <h4 id="Tangosol_Util_Filter_CacheEventFilter_EventMask" data-uid="Tangosol.Util.Filter.CacheEventFilter.EventMask">EventMask</h4>
+  <div class="markdown level1 summary"><p>Obtain the event mask.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual CacheEventFilter.CacheEventMask EventMask { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.html">CacheEventFilter.CacheEventMask</a></td>
+        <td><p>The event mask.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Filter_CacheEventFilter_EventMask_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The mask value is concatenation of any of the
+<a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.html">CacheEventFilter.CacheEventMask</a> values.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_CacheEventFilter_Filter.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.CacheEventFilter.Filter%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/CacheEventFilter.cs/#L106">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_CacheEventFilter_Filter_" data-uid="Tangosol.Util.Filter.CacheEventFilter.Filter*"></a>
+  <h4 id="Tangosol_Util_Filter_CacheEventFilter_Filter" data-uid="Tangosol.Util.Filter.CacheEventFilter.Filter">Filter</h4>
+  <div class="markdown level1 summary"><p>Obtain the <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> object used to evaluate the
+event value(s).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IFilter Filter { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><p>The filter used to evaluate the event value(s).</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_CacheEventFilter_Equals_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.CacheEventFilter.Equals(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/CacheEventFilter.cs/#L348">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_CacheEventFilter_Equals_" data-uid="Tangosol.Util.Filter.CacheEventFilter.Equals*"></a>
+  <h4 id="Tangosol_Util_Filter_CacheEventFilter_Equals_System_Object_" data-uid="Tangosol.Util.Filter.CacheEventFilter.Equals(System.Object)">Equals(Object)</h4>
+  <div class="markdown level1 summary"><p>Compare the <strong>CacheEventFilter</strong> with another object to
+determine equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Equals(object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>The <strong>CacheEventFilter</strong> to compare to.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if this <strong>CacheEventFilter</strong> and the passed object
+are equivalent <strong>CacheEventFilter</strong> objects.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.Equals(System.Object)</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_CacheEventFilter_Evaluate_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.CacheEventFilter.Evaluate(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/CacheEventFilter.cs/#L251">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_CacheEventFilter_Evaluate_" data-uid="Tangosol.Util.Filter.CacheEventFilter.Evaluate*"></a>
+  <h4 id="Tangosol_Util_Filter_CacheEventFilter_Evaluate_System_Object_" data-uid="Tangosol.Util.Filter.CacheEventFilter.Evaluate(System.Object)">Evaluate(Object)</h4>
+  <div class="markdown level1 summary"><p>Apply the test to the object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool Evaluate(object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>An object to which the test is applied.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the test passes, <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_CacheEventFilter_GetHashCode.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.CacheEventFilter.GetHashCode%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/CacheEventFilter.cs/#L366">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_CacheEventFilter_GetHashCode_" data-uid="Tangosol.Util.Filter.CacheEventFilter.GetHashCode*"></a>
+  <h4 id="Tangosol_Util_Filter_CacheEventFilter_GetHashCode" data-uid="Tangosol.Util.Filter.CacheEventFilter.GetHashCode">GetHashCode()</h4>
+  <div class="markdown level1 summary"><p>Determine a hash value for the <strong>CacheEventFilter</strong> object
+according to the general <strong>object.GetHashCode()</strong> contract.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetHashCode()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>An integer hash value for this <strong>CacheEventFilter</strong> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.GetHashCode()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_CacheEventFilter_ReadExternal_Tangosol_IO_Pof_IPofReader_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.CacheEventFilter.ReadExternal(Tangosol.IO.Pof.IPofReader)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/CacheEventFilter.cs/#L463">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_CacheEventFilter_ReadExternal_" data-uid="Tangosol.Util.Filter.CacheEventFilter.ReadExternal*"></a>
+  <h4 id="Tangosol_Util_Filter_CacheEventFilter_ReadExternal_Tangosol_IO_Pof_IPofReader_" data-uid="Tangosol.Util.Filter.CacheEventFilter.ReadExternal(Tangosol.IO.Pof.IPofReader)">ReadExternal(IPofReader)</h4>
+  <div class="markdown level1 summary"><p>Restore the contents of a user type instance by reading its state
+using the specified <a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void ReadExternal(IPofReader reader)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a></td>
+        <td><span class="parametername">reader</span></td>
+        <td><p>The <strong>IPofReader</strong> from which to read the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_CacheEventFilter_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.CacheEventFilter.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/CacheEventFilter.cs/#L384">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_CacheEventFilter_ToString_" data-uid="Tangosol.Util.Filter.CacheEventFilter.ToString*"></a>
+  <h4 id="Tangosol_Util_Filter_CacheEventFilter_ToString" data-uid="Tangosol.Util.Filter.CacheEventFilter.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Return a human-readable description for this
+<strong>CacheEventFilter</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A string description of the <strong>CacheEventFilter</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.ToString()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_CacheEventFilter_WriteExternal_Tangosol_IO_Pof_IPofWriter_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.CacheEventFilter.WriteExternal(Tangosol.IO.Pof.IPofWriter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/CacheEventFilter.cs/#L482">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_CacheEventFilter_WriteExternal_" data-uid="Tangosol.Util.Filter.CacheEventFilter.WriteExternal*"></a>
+  <h4 id="Tangosol_Util_Filter_CacheEventFilter_WriteExternal_Tangosol_IO_Pof_IPofWriter_" data-uid="Tangosol.Util.Filter.CacheEventFilter.WriteExternal(Tangosol.IO.Pof.IPofWriter)">WriteExternal(IPofWriter)</h4>
+  <div class="markdown level1 summary"><p>Save the contents of a POF user type instance by writing its
+state using the specified <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void WriteExternal(IPofWriter writer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The <strong>IPofWriter</strong> to which to write the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a>
+  </div>
+  <h3 id="seealso">See Also</h3>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Util.Filter.ValueChangeEventFilter.html">ValueChangeEventFilter</a></div>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_CacheEventFilter.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.CacheEventFilter%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/CacheEventFilter.cs/#L80" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

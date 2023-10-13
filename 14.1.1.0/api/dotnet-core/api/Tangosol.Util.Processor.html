@@ -1,0 +1,201 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Namespace Tangosol.Util.Processor
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Namespace Tangosol.Util.Processor
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Processor">
+  
+  <h1 id="Tangosol_Util_Processor" data-uid="Tangosol.Util.Processor" class="text-break">Namespace Tangosol.Util.Processor
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+    <h3 id="classes">Classes
+  </h3>
+      <h4><a class="xref" href="Tangosol.Util.Processor.AbstractClusterProcessor.html">AbstractClusterProcessor</a></h4>
+      <section><p>Base class for entry processors that may only be executed
+within the cluster.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Processor.AbstractProcessor.html">AbstractProcessor</a></h4>
+      <section><p>An <strong>AbstractProcessor</strong> is a partial
+<a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> implementation that provides the
+default implementation of the
+<a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html#Tangosol_Net_Cache_IEntryProcessor_ProcessAll_System_Collections_ICollection_">ProcessAll(ICollection)</a> method.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Processor.CompositeProcessor.html">CompositeProcessor</a></h4>
+      <section><p>The <strong>CompositeProcessor</strong> represents a collection of entry
+processors that are invoked sequentially against the same entry.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Processor.ConditionalProcessor.html">ConditionalProcessor</a></h4>
+      <section><p>Conditional entry processor represents a processor that is invoked
+conditionally based on the result of an entry evaluation.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Processor.ConditionalPut.html">ConditionalPut</a></h4>
+      <section><p><strong>ConditionalPut</strong> is an <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> that
+sets <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html#Tangosol_Net_Cache_IInvocableCacheEntry_Value">Value</a>if the specified
+condition is satisfied.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Processor.ConditionalPutAll.html">ConditionalPutAll</a></h4>
+      <section><p><strong>ConditionalPutAll</strong> is an <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> that
+sets <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html#Tangosol_Net_Cache_IInvocableCacheEntry_Value">Value</a> for multiple
+entries that satisfy the specified condition.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Processor.ConditionalRemove.html">ConditionalRemove</a></h4>
+      <section><p><strong>ConditionalRemove</strong> is an <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> that
+performs an <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html#Tangosol_Net_Cache_IInvocableCacheEntry_Remove_System_Boolean_">Remove(Boolean)</a>
+operation if the specified condition is satisfied.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Processor.ExtractorProcessor.html">ExtractorProcessor</a></h4>
+      <section><p><strong>ExtractorProcessor</strong> is an <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a>
+implementations that extracts a value from an object cached in an
+<a class="xref" href="Tangosol.Net.Cache.IInvocableCache.html">IInvocableCache</a>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Processor.NumberIncrementor.html">NumberIncrementor</a></h4>
+      <section><p>The <strong>NumberIncrementor</strong> entry processor is used to increment a
+property value of a Byte, Int16, Int32, Int64, Single, Double and
+Decimal type.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Processor.NumberMultiplier.html">NumberMultiplier</a></h4>
+      <section><p>The <strong>NumberMultiplier</strong> entry processor is used to multiply a
+property value of a Byte, Int16, Int32, Int64, Single, Double,
+BigInteger and BigDecimal type.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Processor.PreloadRequest.html">PreloadRequest</a></h4>
+      <section><p><strong>PreloadRequest</strong> is a simple <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> that
+gets an <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html#Tangosol_Net_Cache_IInvocableCacheEntry_Value">Value</a> property.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Processor.PriorityProcessor.html">PriorityProcessor</a></h4>
+      <section><p>PriorityProcessor is used to explicitly control the scheduling
+priority and timeouts for execution of <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a>
+-based methods.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Processor.PropertyManipulator.html">PropertyManipulator</a></h4>
+      <section><p>PropertyManipulator is a reflection based
+<a class="xref" href="Tangosol.Util.IValueManipulator.html">IValueManipulator</a> implementation.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Processor.PropertyProcessor.html">PropertyProcessor</a></h4>
+      <section><p><strong>PropertyProcessor</strong> is a base class for
+<a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> implementations that depend on a
+<a class="xref" href="Tangosol.Util.Processor.PropertyManipulator.html">PropertyManipulator</a>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Processor.UpdaterProcessor.html">UpdaterProcessor</a></h4>
+      <section><p><strong>UpdaterProcessor</strong> is an <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a>
+implementations that updates an attribute of an object cached in an
+<a class="xref" href="Tangosol.Net.Cache.IInvocableCache.html">IInvocableCache</a>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Processor.VersionedPut.html">VersionedPut</a></h4>
+      <section><p><strong>VersionedPut</strong> is an <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> that assumes
+that entry values implement <a class="xref" href="Tangosol.Util.IVersionable.html">IVersionable</a> interface and
+sets an <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html#Tangosol_Net_Cache_IInvocableCacheEntry_Value">Value</a> property
+if and only if the version of the specified value matches to the
+version of the current value.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Processor.VersionedPutAll.html">VersionedPutAll</a></h4>
+      <section><p><strong>VersionedPutAll</strong> is an <a class="xref" href="Tangosol.Net.Cache.IEntryProcessor.html">IEntryProcessor</a> that
+assumes that entry values implement <a class="xref" href="Tangosol.Util.IVersionable.html">IVersionable</a>
+interface and sets an <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html#Tangosol_Net_Cache_IInvocableCacheEntry_Value">Value</a>
+proprty only for entries whose versions match to versions of the
+corresponding current values.</p>
+</section>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

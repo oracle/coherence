@@ -1,0 +1,5907 @@
+{
+  "homepages": [],
+  "source_base_path": "/Users/aseovic/Projects/Oracle/coherence-dotnet-extend-client/doc",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "Conceptual",
+      "source_relative_path": "_site/assets/nuget-readme.md",
+      "output": {
+        ".html": {
+          "relative_path": "_site/assets/nuget-readme.html",
+          "hash": "pvCLz9okS8XKZUB6lTi0qw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Config.CoherenceConfig.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Config.CoherenceConfig.html",
+          "hash": "clt0eIvbFYNgQs7PVAaMLA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Config.CoherenceConfigHandler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Config.CoherenceConfigHandler.html",
+          "hash": "NbwEgAQNde9bra4ZJlkh4w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Config.XmlConfigSchemasRepository.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Config.XmlConfigSchemasRepository.html",
+          "hash": "tTNtRP7rTP5dpNtSWY6Bmg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Config.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Config.html",
+          "hash": "b4YOtJOQMMei9FYqzzclUw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.AbstractEvolvable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.AbstractEvolvable.html",
+          "hash": "jcticEsZWj5MHzo26psNKw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.BinaryDeltaCompressor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.BinaryDeltaCompressor.html",
+          "hash": "NrBr+NGS+jTmcQZFKPLiMA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.BinarySerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.BinarySerializer.html",
+          "hash": "M5/JNF4uAESOuJlMvAtDEw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.ConfigurableSerializerFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.ConfigurableSerializerFactory.html",
+          "hash": "I7e/By6cg9GSI/c3Y8v1sQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.DataReader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.DataReader.html",
+          "hash": "JGDyhHSp18ZfANvXSotJyg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.DataWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.DataWriter.html",
+          "hash": "SBAImjrHRWB4PgWz9c/n5A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.IDeltaCompressor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.IDeltaCompressor.html",
+          "hash": "F4hRFGmA8U25+6PktCXt/w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.IEvolvable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.IEvolvable.html",
+          "hash": "kg0GASo4agQQq/h9byl2LA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.ISerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.ISerializer.html",
+          "hash": "HOwKhfb4tyY5BOkapsKeRw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.ISerializerFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.ISerializerFactory.html",
+          "hash": "vpj9sFaZX1F8KS7zrx7lnA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.IWrapperStreamFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.IWrapperStreamFactory.html",
+          "hash": "NHGawyEORHNIX5Y+HxQ9Ww=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.IndentingWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.IndentingWriter.html",
+          "hash": "A8SPWMZt3Rf5cT37HJErkw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.OptimizedBinarySerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.OptimizedBinarySerializer.html",
+          "hash": "0f1nyASp5YahmZLfrPWSTA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Annotation.Portable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Annotation.Portable.html",
+          "hash": "v+bkdq3P1TVMuMHscAj4ZA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Annotation.PortableProperty.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Annotation.PortableProperty.html",
+          "hash": "A0rTWt4BX8JAmg+oEV9QBQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Annotation.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Annotation.html",
+          "hash": "0dt7Y+THEm7/B95IXCSoYQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.BinaryPofSerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.BinaryPofSerializer.html",
+          "hash": "WmwcV+PJW06RufZV8X1l5A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.ConfigurablePofContext.PofConfig.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.ConfigurablePofContext.PofConfig.html",
+          "hash": "gyQYjGLRYr2Rl8ITL3mxOA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.ConfigurablePofContext.PofConfigParameterResolver.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.ConfigurablePofContext.PofConfigParameterResolver.html",
+          "hash": "95MOUnCpGT0mWfGyLRyhhw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.ConfigurablePofContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.ConfigurablePofContext.html",
+          "hash": "b8CWh07UqXIVweDejO7Hgg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.EnumPofSerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.EnumPofSerializer.html",
+          "hash": "zaJj1jaxs0T0Y5at6MnRqg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.EvolvableHolder.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.EvolvableHolder.html",
+          "hash": "1vc5ljYm+WKa6ANNT0Luew=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.ExceptionPofSerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.ExceptionPofSerializer.html",
+          "hash": "DFoS4p9eRr1lboSFUAdR2A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.IEvolvableObject.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.IEvolvableObject.html",
+          "hash": "aYj+Usu4x8B/U/Fjtg/TSw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.IEvolvablePortableObject.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.IEvolvablePortableObject.html",
+          "hash": "ztVRrhz0WP0lGEdE4SyqRw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.IPofContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.IPofContext.html",
+          "hash": "y+ZNZ+nDsFhy3aOlxGdE2A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.IPofHandler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.IPofHandler.html",
+          "hash": "x4BvTMBY8IVyYcXxIgmlAw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.IPofReader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.IPofReader.html",
+          "hash": "rNrAKKOJxDdU2A50lSo9Vg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.IPofSerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.IPofSerializer.html",
+          "hash": "CwD7+1234ZkxULVhUB/+Nw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.IPofWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.IPofWriter.html",
+          "hash": "Uyqb7Am/SmrK4Fm+6vkcSQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.IPortableObject.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.IPortableObject.html",
+          "hash": "67oLhHALhm5sjQWupgLNrA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.IdentityPofSerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.IdentityPofSerializer.html",
+          "hash": "rxqmCjZJsX93vSuGdSBF7g=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.PofAnnotationSerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.PofAnnotationSerializer.html",
+          "hash": "o7LtR2OuVZjf/w5uffqd+Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.PofHelper.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.PofHelper.html",
+          "hash": "N8lZ+s5dIb2RWwhhj/t2Uw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.PofStreamReader.IdentityHolder.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.PofStreamReader.IdentityHolder.html",
+          "hash": "dl4pJfYwFZ4XP+Ow43h4Cg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.PofStreamReader.UserTypeReader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.PofStreamReader.UserTypeReader.html",
+          "hash": "OyvxCEzBHuh2MDlGT+GI2A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.PofStreamReader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.PofStreamReader.html",
+          "hash": "S+t9p0tn3ClEEkQUN9yuCw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.PofStreamWriter.ReferenceLibrary.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.PofStreamWriter.ReferenceLibrary.html",
+          "hash": "ren7P5jEYsYVUuWe+W+yKw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.PofStreamWriter.UserTypeWriter.html",
+          "hash": "H0JCbus01CubO1ZNzrp7PQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.PofStreamWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.PofStreamWriter.html",
+          "hash": "Jxwf9RrehFi65FI5uKd2+Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.PortableException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.PortableException.html",
+          "hash": "a0CIVv5uEFT2/5hcllrhbw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.PortableObjectSerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.PortableObjectSerializer.html",
+          "hash": "AutaPgpQqdVM2bbA1YTuRw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.PortableTypeSerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.PortableTypeSerializer.html",
+          "hash": "sfLECiR0TwAzrXTDUz3Lgw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.PrincipalPofSerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.PrincipalPofSerializer.html",
+          "hash": "0aROk8exaRZFSwVUwAL81Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.RawDateTime.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.RawDateTime.html",
+          "hash": "qI/dhZ7SknoT+KSnu3j+HQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.RawInt128.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.RawInt128.html",
+          "hash": "Ag0QjJpdm4FXOvQpWKfzEQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.RawTime.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.RawTime.html",
+          "hash": "s0e29gTZ4ObSQaIZpy5q9Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.RawYearMonthInterval.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.RawYearMonthInterval.html",
+          "hash": "fdrufWWkKG4BpqPwNJ265A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.AbstractPofPath.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.AbstractPofPath.html",
+          "hash": "mXRYmvo7wKhqT2k5746Cjg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.AbstractPofValue.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.AbstractPofValue.html",
+          "hash": "m1CD5YfPa6Y2+7jubXJLYA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.Codecs.AbstractCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.Codecs.AbstractCodec.html",
+          "hash": "+Ov4vpUqLUoeBid/nmopAA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.Codecs.DefaultCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.Codecs.DefaultCodec.html",
+          "hash": "rx8BkYmyVSZy+mZTRmLMkg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.Codecs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.Codecs.html",
+          "hash": "FOKbZLMFt7QdkXM507jbaw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.ComplexPofValue.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.ComplexPofValue.html",
+          "hash": "RnL4k+6ZPC7lpYWx8JLzIg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.ICodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.ICodec.html",
+          "hash": "0R1jo2DmbRNwb5fqQIM+Kg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.IPofNavigator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.IPofNavigator.html",
+          "hash": "wcembY0lAycdHGIaRlxpuA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.IPofValue.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.IPofValue.html",
+          "hash": "ryfv/7ZLN+mqz9YN6tcKBg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.PofArray.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.PofArray.html",
+          "hash": "CtKfDOHoHIzIYxi8ZVKRsA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.PofCollection.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.PofCollection.html",
+          "hash": "7OnUVbym8uWeisCcMiwpPQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.PofNavigationException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.PofNavigationException.html",
+          "hash": "qyr78V9faUzIMH7trSZALA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.PofReflectionHelper.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.PofReflectionHelper.html",
+          "hash": "CT5NEzmSqvT5aT4uf9FjgA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.PofSparseArray.NilPofValue.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.PofSparseArray.NilPofValue.html",
+          "hash": "hO9FgsM0Vu2W/s/GT3CaJQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.PofSparseArray.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.PofSparseArray.html",
+          "hash": "TKGRNGcWgC1lqbJi70MYRQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.PofUniformArray.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.PofUniformArray.html",
+          "hash": "TyG6AnGRgr2P6cUeik43bw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.PofUniformCollection.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.PofUniformCollection.html",
+          "hash": "g2CR8jhQwiUxLTRMU+sXSw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.PofUniformSparseArray.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.PofUniformSparseArray.html",
+          "hash": "dUZqJh8lPxTDmvR2jms1yA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.PofUserType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.PofUserType.html",
+          "hash": "/lSvbmkmYFZxxRiMsZsbFw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.PofValueParser.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.PofValueParser.html",
+          "hash": "AXAUQUcfJIE3VAd4xGeHAg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.SimplePofPath.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.SimplePofPath.html",
+          "hash": "TIW7LAClXlOz1LQ8CnWjhA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.SimplePofValue.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.SimplePofValue.html",
+          "hash": "lmUy2Ev5xvxB67Ml6dVfBA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Reflection.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Reflection.html",
+          "hash": "V4dCdqr0zug7bIYi+NiLKg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.SafeConfigurablePofContext.DotNetPofSerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.SafeConfigurablePofContext.DotNetPofSerializer.html",
+          "hash": "QObubWQXaxsrWPoaQVajfg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.SafeConfigurablePofContext.SafePofSerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.SafeConfigurablePofContext.SafePofSerializer.html",
+          "hash": "0scUY2hrcllGnI92wZ0MOA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.SafeConfigurablePofContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.SafeConfigurablePofContext.html",
+          "hash": "7DNI1F/Pjkfalzar3yQayA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Schema.Annotation.PortableType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Schema.Annotation.PortableType.html",
+          "hash": "R8uAa1a5kbqCuCFmzBvg6g=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.Schema.Annotation.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.Schema.Annotation.html",
+          "hash": "9TofrVLtv80ZcoZEHncd6Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.SimplePofContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.SimplePofContext.html",
+          "hash": "OOezsKU/WkCsBu+2qeofIg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.WritingPofHandler.Complex.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.WritingPofHandler.Complex.html",
+          "hash": "JFyimVgJmeC7NbRX6vCDSQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.WritingPofHandler.ComplexMap.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.WritingPofHandler.ComplexMap.html",
+          "hash": "YS4ez9hbFI5pkDECv/7WRQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.WritingPofHandler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.WritingPofHandler.html",
+          "hash": "VxZRhbOwLo+nXa50iQhcuA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.XmlPofSerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.XmlPofSerializer.html",
+          "hash": "7oQ2PIi7aHXQbeKk+/QsXA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Pof.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Pof.html",
+          "hash": "YSE8FpBa192cMHWCRH/v0g=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Resources.AbstractResource.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Resources.AbstractResource.html",
+          "hash": "EiDSXWsfmWH6WZVdH6DrLQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Resources.EmbeddedResource.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Resources.EmbeddedResource.html",
+          "hash": "7/PeknRzX90WEznEZL9kuw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Resources.FileResource.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Resources.FileResource.html",
+          "hash": "+DcPxQ17alVnErNuWUQwNA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Resources.IResource.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Resources.IResource.html",
+          "hash": "liL6a4wxn8yri/XECmkoNw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Resources.ResourceLoader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Resources.ResourceLoader.html",
+          "hash": "h2hXsUAmQy/9BIOUiMwi8w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Resources.ResourceRegistry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Resources.ResourceRegistry.html",
+          "hash": "E3tgJ3sIU2FWdOP9B5jbiQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Resources.UrlResource.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Resources.UrlResource.html",
+          "hash": "rQ2AKoQLxd8S6yWwsTphPw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.Resources.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.Resources.html",
+          "hash": "zGlPROEbCf/lBpKlz1X3kQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.SimpleEvolvable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.SimpleEvolvable.html",
+          "hash": "u7JAxMeq5HN03RGKtZsy9w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.IO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.IO.html",
+          "hash": "XL0ytp0pJHp1Yff2sg9sGQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.AbstractInvocable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.AbstractInvocable.html",
+          "hash": "T0VBiTOdslQ5ItM0XbexHQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.AbstractPriorityTask.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.AbstractPriorityTask.html",
+          "hash": "0YtVR8jsoFw9O3o3Md8P+A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.AbstractBundler.Bundle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.AbstractBundler.Bundle.html",
+          "hash": "Q9JwqSEq71V74oXXxYNoRQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.AbstractBundler.Statistics.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.AbstractBundler.Statistics.html",
+          "hash": "b8ptICfpFSIAckAHaS6R5A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.AbstractBundler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.AbstractBundler.html",
+          "hash": "4DLzW7KjEO1wqcJjyxb05A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.AbstractCacheLoader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.AbstractCacheLoader.html",
+          "hash": "quKUlrPcqJXsEWBuTuYLmg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.AbstractCacheStore.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.AbstractCacheStore.html",
+          "hash": "DBd8GVl1ps8YY10fkI+T+w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.AbstractEntryBundler.Bundle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.AbstractEntryBundler.Bundle.html",
+          "hash": "lGUi2OZLp8U50A6xN7xVdw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.AbstractEntryBundler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.AbstractEntryBundler.html",
+          "hash": "CnqUdw0A8ik69p4U+0u0lw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.AbstractEvictionPolicy.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.AbstractEvictionPolicy.html",
+          "hash": "xmPeHZbdewWKe4/cqIGrRQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.AbstractKeyBundler.Bundle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.AbstractKeyBundler.Bundle.html",
+          "hash": "4BEDCQXoKjQ2AizRiYh2pQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.AbstractKeyBundler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.AbstractKeyBundler.html",
+          "hash": "GSwDQM6GXoZIyCMGA1+KWg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.CacheEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.CacheEntry.html",
+          "hash": "eMI7EogioOvVK9PQ/2w0HQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.CacheEventArgs.TransformationState.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.CacheEventArgs.TransformationState.html",
+          "hash": "7zpokRVzAdLDDpX9Cg6mnQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.CacheEventArgs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.CacheEventArgs.html",
+          "hash": "ey/HdY1y2OnqfPzod9fiSg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.CacheEventType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.CacheEventType.html",
+          "hash": "YcduRh5NvWJ/C64swP1aeQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.CacheExpiration.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.CacheExpiration.html",
+          "hash": "40Gu+1Yt+jxVExSvYrFG4Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.CompositeCache.DeactivationListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.CompositeCache.DeactivationListener.html",
+          "hash": "N10MwjirAr4KqTuJ193QmA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.CompositeCache.FrontCacheListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.CompositeCache.FrontCacheListener.html",
+          "hash": "bLu8RBt/p14K/UOF/GX5hA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.CompositeCache.PrimingListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.CompositeCache.PrimingListener.html",
+          "hash": "kO1Vzg8Ruoc7dgG9BkMNuQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.CompositeCache.SimpleListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.CompositeCache.SimpleListener.html",
+          "hash": "H2HdGW+YJB1ZZlnSryf8jw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.CompositeCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.CompositeCache.html",
+          "hash": "PC+YXeT4OQIjUTDsFq1aAw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.CompositeCacheStrategyType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.CompositeCacheStrategyType.html",
+          "hash": "GMNa9fHL97AuCSmyCG2Y5A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.ConditionalIndex.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.ConditionalIndex.html",
+          "hash": "PKRCob5p7dkRbAITnyW+vQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.ContinuousQueryCache.CacheState.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.ContinuousQueryCache.CacheState.html",
+          "hash": "Ob2csrLr8cXO5C4p0Bl89g=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.ContinuousQueryCache.DeactivationListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.ContinuousQueryCache.DeactivationListener.html",
+          "hash": "rFjghTMjhUpd5qrBey6TcA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.ContinuousQueryCache.EventDispatcher.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.ContinuousQueryCache.EventDispatcher.html",
+          "hash": "RB2D2GZwUXnV9US8ndg5Wg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.ContinuousQueryCache.EventRouter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.ContinuousQueryCache.EventRouter.html",
+          "hash": "BzcJnLMGsL4Lc6Y5rTfkSA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.ContinuousQueryCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.ContinuousQueryCache.html",
+          "hash": "oF0607ccz44vQFffD7DiZg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.FilterEventArgs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.FilterEventArgs.html",
+          "hash": "64qN4pXaFGf9q/rADU2baQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.ICache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.ICache.html",
+          "hash": "FBEWkTNnNCaMfBLUezXVjA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.ICacheEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.ICacheEntry.html",
+          "hash": "3XHealWuRQMI1aThtyKJTA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.ICacheEnumerator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.ICacheEnumerator.html",
+          "hash": "TM3PuBzUUzHaRMw7zf/PoA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.ICacheEventTransformer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.ICacheEventTransformer.html",
+          "hash": "OmOi+1KO8VTwb66i8fMN4w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.ICacheIndex.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.ICacheIndex.html",
+          "hash": "qTg0wkpBnfymURFjLXX+Dg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.ICacheListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.ICacheListener.html",
+          "hash": "RK9cNG47mf4cwaKL7e+lQw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.ICacheLoader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.ICacheLoader.html",
+          "hash": "1ZgDGqc+vU2wEWadjTUftQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.ICacheStatistics.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.ICacheStatistics.html",
+          "hash": "HADydT082HS/E3DYwFKK2A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.ICacheStore.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.ICacheStore.html",
+          "hash": "R5uBBWcmX/Gh8rNw5XKq6A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.ICacheTrigger.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.ICacheTrigger.html",
+          "hash": "Tpq/kyY4U/4+1Oc097oAXQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.ICacheTriggerEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.ICacheTriggerEntry.html",
+          "hash": "/nlpDynSitfiMDlJQqQmAA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.IConcurrentCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.IConcurrentCache.html",
+          "hash": "yQS7zfO7ns/mYKqwmCpKYQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.IConfigurableCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.IConfigurableCache.html",
+          "hash": "oKcYsREom7ygdOi0rkp4UQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.IConfigurableCacheEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.IConfigurableCacheEntry.html",
+          "hash": "/o2T0L88Jj03t53gYPQfOQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.IEntryAggregator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.IEntryAggregator.html",
+          "hash": "6IT8b0KYIXBSNQEROy2CBQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.IEntryProcessor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.IEntryProcessor.html",
+          "hash": "rkou3PAujgK/y44/OeVU6w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.IEvictionPolicy.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.IEvictionPolicy.html",
+          "hash": "FSMzf+xx4WpqDPOvXLp4pg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.IInvocableCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.IInvocableCache.html",
+          "hash": "bd1V85tUV4aJNKdCVD/WYQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.IInvocableCacheEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.IInvocableCacheEntry.html",
+          "hash": "9EcGRWWhhLpnZOm4eWRSsg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.IIterableCacheLoader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.IIterableCacheLoader.html",
+          "hash": "spZ5KRiyQjDPpBIu4i9prA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.IKeyAssociation.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.IKeyAssociation.html",
+          "hash": "YNy8GSw79CwNWbekm8Pgyw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.IObservableCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.IObservableCache.html",
+          "hash": "Z6sddgpgJ5V2qw69B29WIw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.IParallelAwareAggregator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.IParallelAwareAggregator.html",
+          "hash": "NC8AUYyelSsMyaIZm1pJeQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.IPartialResultAggregator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.IPartialResultAggregator.html",
+          "hash": "zxOC8lNkvwhzJVOAT71qgw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.IQueryCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.IQueryCache.html",
+          "hash": "5pP7QnU/WBh7VPdfOBFipA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.IQueryCacheEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.IQueryCacheEntry.html",
+          "hash": "Wkxy/kqrkHDb+Km6HozAiw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.IUnitCalculator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.IUnitCalculator.html",
+          "hash": "TaCi2DSFbu7a5BF5AiYfzw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.InvocableCacheEx.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.InvocableCacheEx.html",
+          "hash": "mmYLmf3roIjKdFjgcoxZcg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.LocalCache.CacheLock.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.LocalCache.CacheLock.html",
+          "hash": "vs9muQ0EtlxmbVlKILL77g=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.LocalCache.DefaultKeyMask.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.LocalCache.DefaultKeyMask.html",
+          "hash": "593E0RUtOF2Hu5rWN71jBA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.LocalCache.Entry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.LocalCache.Entry.html",
+          "hash": "fG/aIbO64yIpsMW5B8IQRQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.LocalCache.EnumeratorMode.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.LocalCache.EnumeratorMode.html",
+          "hash": "QK2qR1AlMlp8cykOCV10AA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.LocalCache.EvictionPolicyType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.LocalCache.EvictionPolicyType.html",
+          "hash": "1v+OnBtAl7KINlFjGtNfig=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.LocalCache.InternalListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.LocalCache.InternalListener.html",
+          "hash": "ahiFfyMA/ajIjhAA4V1NHw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.LocalCache.KeyMask.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.LocalCache.KeyMask.html",
+          "hash": "YojgMBplEGExFm6DUqYzSQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.LocalCache.LoadAllKeyMask.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.LocalCache.LoadAllKeyMask.html",
+          "hash": "55i9Trs1XuL5cT7SmlRb1Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.LocalCache.LoadKeyMask.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.LocalCache.LoadKeyMask.html",
+          "hash": "JIQDU+1Qbqls8/On8gU+pA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.LocalCache.UnitCalculatorType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.LocalCache.UnitCalculatorType.html",
+          "hash": "xNV/YcJ9O7l9GS5os8qKxQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.LocalCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.LocalCache.html",
+          "hash": "K5iZOd2V+1qvoW4IrTS8iQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.LockScope.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.LockScope.html",
+          "hash": "VYt76LZelx/O9ij7sLN3Ow=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.NearCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.NearCache.html",
+          "hash": "/kkWL1/mTH36ZLAgiE7/ug=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.SimpleCacheIndex.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.SimpleCacheIndex.html",
+          "hash": "NopqvZ5FfnQ6VVQsZiBHKA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.SimpleCacheStatistics.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.SimpleCacheStatistics.html",
+          "hash": "FvMFn76GjqKMq2SsAZeiKg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.Support.AbstractCacheListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.Support.AbstractCacheListener.html",
+          "hash": "RjKgVWAoUidxuldo2CkD+g=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.Support.AbstractKeyBasedCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html",
+          "hash": "4rAofy0U7cr5ieK+6VV/JA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.html",
+          "hash": "NHsxlDlXBYjSmbtytAU5Bg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.Support.CacheEventHandler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.Support.CacheEventHandler.html",
+          "hash": "xM703/XDbPvL4Yf4fQPzkQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.Support.CacheListenerSupport.IPrimingListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.Support.CacheListenerSupport.IPrimingListener.html",
+          "hash": "M5L8+E78bScj/9x8bGHXBw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.Support.CacheListenerSupport.ISynchronousListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.Support.CacheListenerSupport.ISynchronousListener.html",
+          "hash": "Z0jMclX7X51KPjBweS/BAA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.Support.CacheListenerSupport.OptimizationPlan.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.Support.CacheListenerSupport.OptimizationPlan.html",
+          "hash": "rLDdfMrBmQI6CiAog1FarA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.Support.CacheListenerSupport.WrapperPrimingListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.Support.CacheListenerSupport.WrapperPrimingListener.html",
+          "hash": "mXhAH3I3JYG7yhfYlwh0eg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.Support.CacheListenerSupport.WrapperSynchronousListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.Support.CacheListenerSupport.WrapperSynchronousListener.html",
+          "hash": "BNuLVl5S5MHwwsRDchDb6w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.Support.CacheListenerSupport.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.Support.CacheListenerSupport.html",
+          "hash": "cYph6bZYltWXWF88wM5ySA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.Support.DelegatingCacheListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.Support.DelegatingCacheListener.html",
+          "hash": "3fkjExCMp94Osd72iokPKQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.Support.DisposableCacheListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.Support.DisposableCacheListener.html",
+          "hash": "z8VauO78Ug7u2lUUN22ApA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.Support.IndexAdapter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.Support.IndexAdapter.html",
+          "hash": "18Ahp1/QCmsxPiWzXtN3bQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.Support.InvocableCacheHelper.EntryToKeyConverter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.Support.InvocableCacheHelper.EntryToKeyConverter.html",
+          "hash": "WpO9rm48K9N7ckI7Gp7DpA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.Support.InvocableCacheHelper.QueryType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.Support.InvocableCacheHelper.QueryType.html",
+          "hash": "B55lkielTUGmSgt847ve0A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.Support.InvocableCacheHelper.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.Support.InvocableCacheHelper.html",
+          "hash": "VkmxRNqTZOe517ViFOvGOg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.Support.MultiplexingCacheListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.Support.MultiplexingCacheListener.html",
+          "hash": "dX2RgY1QApFiP5dvRJFKWw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.Support.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.Support.html",
+          "hash": "xCDiHbMXA4WMCYHt/cYSRw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.WrapperNamedCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.WrapperNamedCache.html",
+          "hash": "p3ecfZL56lnLiqPXbE3WxA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Cache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Cache.html",
+          "hash": "lND6K5leebcOpJhNRhhZLg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.CacheFactory.LogLevel.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.CacheFactory.LogLevel.html",
+          "hash": "zF2LOmdNlMk7XXxBm5J9gQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.CacheFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.CacheFactory.html",
+          "hash": "7aSSTtcR/cvXf9ysNUHIIw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.CompressionFilter.GZipInputStream.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.CompressionFilter.GZipInputStream.html",
+          "hash": "2E8y1xVq3/BLWmEYAYgiGg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.CompressionFilter.GZipOutputStream.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.CompressionFilter.GZipOutputStream.html",
+          "hash": "cAusyKqNJRdG1nGLKcnpxw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.CompressionFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.CompressionFilter.html",
+          "hash": "mUDazXeb/sdh1ofw9c09cg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.ConfigurableAddressProvider.AddressHolder.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.ConfigurableAddressProvider.AddressHolder.html",
+          "hash": "hDi0bpik6pclnyI33/M9RQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.ConfigurableAddressProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.ConfigurableAddressProvider.html",
+          "hash": "X2/MB5mWq3TXl/WMiz/VMA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.ConfigurableAddressProviderFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.ConfigurableAddressProviderFactory.html",
+          "hash": "afL8DDWgbIi0mEsp0uEdUw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.DefaultConfigurableCacheFactory.CacheInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.DefaultConfigurableCacheFactory.CacheInfo.html",
+          "hash": "zWPo3vohT84Zl6Ku/gXuew=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.DefaultConfigurableCacheFactory.ClassSchemeParameterResolver.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.DefaultConfigurableCacheFactory.ClassSchemeParameterResolver.html",
+          "hash": "AoqACaz1AwhcEO3KzwRUDw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.DefaultConfigurableCacheFactory.SchemeType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.DefaultConfigurableCacheFactory.SchemeType.html",
+          "hash": "RPGWNLsp1mTDAre4OgrE/w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.DefaultConfigurableCacheFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.DefaultConfigurableCacheFactory.html",
+          "hash": "VScVIlVmdP3x3JapfRu0Ag=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.DefaultOperationalContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.DefaultOperationalContext.html",
+          "hash": "Y9KNAVfdAD165Eq3E8M9sQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.IAddressProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.IAddressProvider.html",
+          "hash": "ETkUix+QoNMosuryrr7MUw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.IAddressProviderFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.IAddressProviderFactory.html",
+          "hash": "/lYZk5duu1+DZCbA/SYb8w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.ICacheService.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.ICacheService.html",
+          "hash": "FufgpFF+q73dX0IQbjInLg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.IConfigurableCacheFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.IConfigurableCacheFactory.html",
+          "hash": "t6OjBeI8zyEgKiHGRlli2g=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.IInvocable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.IInvocable.html",
+          "hash": "evGVc9+Qi9KhkvilGHa1AQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.IInvocationService.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.IInvocationService.html",
+          "hash": "zzP0bT2JTahb6uB0l0y23A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.IMember.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.IMember.html",
+          "hash": "CjZ8G6L3OfUwkh9BGRDcPw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.INameService.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.INameService.html",
+          "hash": "t1V7kBzC2fKNEmOEyyCnaQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.INamedCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.INamedCache.html",
+          "hash": "yeud1TOhCjDPqQICRiehiA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.IOperationalContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.IOperationalContext.html",
+          "hash": "GCzEGF6YmYZ0nOztJi2nbw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.IPriorityTask.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.IPriorityTask.html",
+          "hash": "4kB1tATyniBraa43d0gatA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.IService.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.IService.html",
+          "hash": "qFTobG3JUv7gqQ2cjlQM3g=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.IServiceInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.IServiceInfo.html",
+          "hash": "Va84q/F7jx6nsIZPvKbSjg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.IStreamProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.IStreamProvider.html",
+          "hash": "r/34sLUw368myVYlHfho9g=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.LocalMember.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.LocalMember.html",
+          "hash": "eEsReOn3m7Xq0Bln0lyEsg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.MemberEventArgs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.MemberEventArgs.html",
+          "hash": "EM+1dokb1IfyZKSzhMH3cg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.MemberEventHandler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.MemberEventHandler.html",
+          "hash": "n559Kk+6VVU2JN1WE9bcDg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.MemberEventType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.MemberEventType.html",
+          "hash": "dBXWrV+J4KNDlFlWAQ3emA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Partition.PartitionSet.Format.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Partition.PartitionSet.Format.html",
+          "hash": "9ejXK22nhTZ+Sh1ZWKsucQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Partition.PartitionSet.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Partition.PartitionSet.html",
+          "hash": "aFGXDRJIdvqeLwGbL8vCrw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Partition.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Partition.html",
+          "hash": "+lkPyhLYhFmQgb7PbMy4kQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.PriorityTaskScheduling.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.PriorityTaskScheduling.html",
+          "hash": "j4OUt0vx1WAnovW7uewDVw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.PriorityTaskTimeout.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.PriorityTaskTimeout.html",
+          "hash": "a/WHc3wzaWhIhXQdtCk3Dg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.RequestIncompleteException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.RequestIncompleteException.html",
+          "hash": "Fr7mdbDqmsrIUBEiw8cSLw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.RequestTimeoutException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.RequestTimeoutException.html",
+          "hash": "8LF647TGvIy0waJ4nX0ndQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Security.IIdentityAsserter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Security.IIdentityAsserter.html",
+          "hash": "YxpMKpJA7I4Ls52VMr8vFA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Security.IIdentityTransformer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Security.IIdentityTransformer.html",
+          "hash": "X4ZXS/0ObLkBg8aTkFIuxQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Security.Impl.DefaultIdentityAsserter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Security.Impl.DefaultIdentityAsserter.html",
+          "hash": "xyUKfWYdedMZned3lku6Fw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Security.Impl.DefaultIdentityTransformer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Security.Impl.DefaultIdentityTransformer.html",
+          "hash": "xwUIcDzMdcyz0uWjpNPEcQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Security.Impl.SimplePrincipal.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Security.Impl.SimplePrincipal.html",
+          "hash": "L80BffrgMPoXqvAOXbS7tQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Security.Impl.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Security.Impl.html",
+          "hash": "0BWAZwF4iLczTM0Jl2AQvQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.Security.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.Security.html",
+          "hash": "amJY8TKpZc8siHl5WqAYqg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.ServiceType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.ServiceType.html",
+          "hash": "xSoH0IBxLyCGbNBjy+hqjQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.SingleAddressProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.SingleAddressProvider.html",
+          "hash": "RM1bdfkj7GULXEnkhIeeNg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.SslStreamProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.SslStreamProvider.html",
+          "hash": "Y9DRpn0q3CRm0l3CQLtO4w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.StreamProviderFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.StreamProviderFactory.html",
+          "hash": "HiZihhThErGUfvxIRzZ73g=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.SystemStreamProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.SystemStreamProvider.html",
+          "hash": "ygPvJJMp5NCb1YhqFp1MSA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.ViewBuilder.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.ViewBuilder.html",
+          "hash": "DyXGMqbWsB+agY4ajf4Dag=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Net.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Net.html",
+          "hash": "v+316uxTVLbuqgtc3Ra56Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Run.Xml.IXmlConfigurable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Run.Xml.IXmlConfigurable.html",
+          "hash": "WY9kyYjrvoMoD0q3uCpFuw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Run.Xml.IXmlDocument.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Run.Xml.IXmlDocument.html",
+          "hash": "VgntXjxceqp8IWkCRWFSew=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Run.Xml.IXmlDocumentExtension.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Run.Xml.IXmlDocumentExtension.html",
+          "hash": "zXDdDEms2/yxAS4V4tHQvw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Run.Xml.IXmlElement.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Run.Xml.IXmlElement.html",
+          "hash": "PB4FC8cxUALLVTCB2XpwVg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Run.Xml.IXmlValue.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Run.Xml.IXmlValue.html",
+          "hash": "Xc2xfXels5JsFy5sjsnSpw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Run.Xml.SimpleDocument.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Run.Xml.SimpleDocument.html",
+          "hash": "Q30gjh7wY/xaLBIZlh711w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Run.Xml.SimpleElement.SimpleElementAttributes.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Run.Xml.SimpleElement.SimpleElementAttributes.html",
+          "hash": "S8rLkV24dbMg0yZIjjg8ow=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Run.Xml.SimpleElement.SimpleElementEnumerator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Run.Xml.SimpleElement.SimpleElementEnumerator.html",
+          "hash": "E/nvIQAesI4MTfcXbEzMNw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Run.Xml.SimpleElement.SimpleElementList.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Run.Xml.SimpleElement.SimpleElementList.html",
+          "hash": "cJVRN1vzN0aKOyQANEKRCA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Run.Xml.SimpleElement.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Run.Xml.SimpleElement.html",
+          "hash": "vQnPbPBvToNfyp/y1xUBBA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Run.Xml.SimpleParser.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Run.Xml.SimpleParser.html",
+          "hash": "lPq301eyyoR6gRyUXAbxFw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Run.Xml.SimpleValue.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Run.Xml.SimpleValue.html",
+          "hash": "scVVXZhnIpaz8PQmFAvotA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Run.Xml.XmlHelper.IParameterResolver.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Run.Xml.XmlHelper.IParameterResolver.html",
+          "hash": "U5RqXxikxh5n+JhBdPUI+A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Run.Xml.XmlHelper.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Run.Xml.XmlHelper.html",
+          "hash": "MmcANMPZp3ORoqeT3ccCMw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Run.Xml.XmlValueType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Run.Xml.XmlValueType.html",
+          "hash": "GV58MRdACLXUYyjk3XEVLw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Run.Xml.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Run.Xml.html",
+          "hash": "J/dcg1QzhZvYAYDp5CGksQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.AbstractAggregator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.AbstractAggregator.html",
+          "hash": "ivLLUiT6m6Qg3oSmk/TQrQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.AbstractComparableAggregator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.AbstractComparableAggregator.html",
+          "hash": "6OHJHSB/Q2yHhLfsFIfXCw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.AbstractDecimalAggregator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.AbstractDecimalAggregator.html",
+          "hash": "S3CZt3/GMPbicGNNkf14+w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.AbstractDoubleAggregator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.AbstractDoubleAggregator.html",
+          "hash": "gAI6+fc2wB0rnbRShyHj3g=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.AbstractLongAggregator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.AbstractLongAggregator.html",
+          "hash": "m1U+I9UiKClPrs+UAD7mhg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.ComparableMax.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.ComparableMax.html",
+          "hash": "lLRIh6le73TS3mTBEShgEA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.ComparableMin.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.ComparableMin.html",
+          "hash": "ESIFL7sRyeldgP6SKqITlg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.CompositeAggregator.Parallel.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.CompositeAggregator.Parallel.html",
+          "hash": "BX+vSHVbO+xJ+PqbP0/5jQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.CompositeAggregator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.CompositeAggregator.html",
+          "hash": "3vRztGs7nLx2I13y6mfnnw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.Count.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.Count.html",
+          "hash": "dQUUboFm5nIf5ivCEmsmAQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.DecimalAverage.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.DecimalAverage.html",
+          "hash": "7lQGm8Mm2aVVLThrE/duow=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.DecimalMax.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.DecimalMax.html",
+          "hash": "ByyTVADxQYZruioT0J53mA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.DecimalMin.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.DecimalMin.html",
+          "hash": "7RoAbtWaRFG23a3c6wFrJw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.DecimalSum.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.DecimalSum.html",
+          "hash": "ov9eWwBynq6rVQLUmwiqZQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.DistinctValues.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.DistinctValues.html",
+          "hash": "JlboUuE9bPII6Ik6PEZIEg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.DoubleAverage.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.DoubleAverage.html",
+          "hash": "o8T+N3O6GmamABaHmCcpVg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.DoubleMax.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.DoubleMax.html",
+          "hash": "Bt8iKD+RAJzN97StOPDaOw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.DoubleMin.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.DoubleMin.html",
+          "hash": "on4wHEULavo9rcbexVQGrg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.DoubleSum.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.DoubleSum.html",
+          "hash": "7+eBn4dlHBBDO6N9mwE2mA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.GroupAggregator.Parallel.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.GroupAggregator.Parallel.html",
+          "hash": "qljdyrWsn9Gqdb0SmFvMoQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.GroupAggregator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.GroupAggregator.html",
+          "hash": "k5nVQisjopGHBQZ1LZ/u1w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.LongMax.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.LongMax.html",
+          "hash": "DhbJEAQqtI9vK18FxEtpGw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.LongMin.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.LongMin.html",
+          "hash": "Z0nsthsCHjOs8ZY3tdCpSg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.LongSum.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.LongSum.html",
+          "hash": "YUcPeYomirvF7j3/lEU5+Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.PriorityAggregator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.PriorityAggregator.html",
+          "hash": "jxkqaHlGXAiFlsG4+iZG0Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.QueryRecorder.RecordType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.QueryRecorder.RecordType.html",
+          "hash": "JPS9RWGJt3x8Pw8US2FaQg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.QueryRecorder.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.QueryRecorder.html",
+          "hash": "TvWwS/VuepAlxD1syiR9Ng=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.ReducerAggregator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.ReducerAggregator.html",
+          "hash": "wZFFWqVlBftjC/qwPUvdWg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.TopNAggregator.ExtractingConverter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.TopNAggregator.ExtractingConverter.html",
+          "hash": "RsaR6J0MZx5+wdZ8TPbZig=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.TopNAggregator.PartialResult.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.TopNAggregator.PartialResult.html",
+          "hash": "mi3LuNJvZ22aYuRGvL+vfQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.TopNAggregator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.TopNAggregator.html",
+          "hash": "suSUvRmW94jmOeZoQRQ01Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Aggregator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Aggregator.html",
+          "hash": "pMlhjvzmNZFa11iseVM24A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.AtomicCounter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.AtomicCounter.html",
+          "hash": "gZgcwZaVCSJt4gldpWpl2Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Binary.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Binary.html",
+          "hash": "p3np9BXcl0vZHzWbz732nw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.BinaryMemoryStream.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.BinaryMemoryStream.html",
+          "hash": "A6ovb6IBiDs31+JMrzdNOw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.CacheTriggerListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.CacheTriggerListener.html",
+          "hash": "Z2pnfYo0pbhpS7uhOxg6vQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.CollectionUtils.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.CollectionUtils.html",
+          "hash": "wffsCR3Sfojqk+LGEDIk4w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Collections.DictionarySet.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Collections.DictionarySet.html",
+          "hash": "TkybUYW0UHUKPuK3w+gspA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Collections.HashDictionary.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Collections.HashDictionary.html",
+          "hash": "eat29QY4NptE5A4ml67zyg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Collections.HashSet.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Collections.HashSet.html",
+          "hash": "CYAK3nW3TGRIm0GCdUCr5A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Collections.SafeHashSet.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Collections.SafeHashSet.html",
+          "hash": "pR6i39BBg6B9dXkCFXM5kA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Collections.SortedDictionary.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Collections.SortedDictionary.html",
+          "hash": "OaouO1PSa3c9k70QwlVDHg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Collections.SortedHashSet.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Collections.SortedHashSet.html",
+          "hash": "9TxVOvtrhn8VDyEcVLnk7w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Collections.SynchronizedDictionary.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Collections.SynchronizedDictionary.html",
+          "hash": "AdbHzlZAXHtEaFMbmRSZDw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Collections.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Collections.html",
+          "hash": "X3IKVJgE7eDDIWvpQtIrvg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Comparator.ChainedComparer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Comparator.ChainedComparer.html",
+          "hash": "m5fi7UY0vu8ZQ97Myv8sEQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Comparator.ComparisonStyle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Comparator.ComparisonStyle.html",
+          "hash": "x+HCN11Y3iAxM0Z8J02qOw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Comparator.EntryComparer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Comparator.EntryComparer.html",
+          "hash": "LXpoz/dFc3WG+BsM4ghGeA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Comparator.IEntryAwareComparer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Comparator.IEntryAwareComparer.html",
+          "hash": "XZwu8Mklh5309st6lma+hw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Comparator.IQueryCacheComparer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Comparator.IQueryCacheComparer.html",
+          "hash": "fEnQuOnQoXtWw2xfrh3zNw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Comparator.InverseComparer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Comparator.InverseComparer.html",
+          "hash": "B2ETxVzzBDnXLn83A+/OLA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Comparator.SafeComparer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Comparator.SafeComparer.html",
+          "hash": "tfbNprjdFNURgE7ofGd6jg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Comparator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Comparator.html",
+          "hash": "XhGigngn9s/WtM8GMCm7Yg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.CompositeKey.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.CompositeKey.html",
+          "hash": "L8mkwQhTBxhA4uPKlmDB9Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConfigurationUtils.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConfigurationUtils.html",
+          "hash": "PQaNkt7qf/OXbQuqBbk62g=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterCollections.AbstractConverterCacheEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterCollections.AbstractConverterCacheEntry.html",
+          "hash": "sFMWgYAx0Eq3NxjPz7zwiQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterCollections.ConverterCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterCollections.ConverterCache.html",
+          "hash": "GADOpxZSHajufUTeIBaY/g=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterCollections.ConverterCacheEntries.ConverterEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterCollections.ConverterCacheEntries.ConverterEntry.html",
+          "hash": "nffbLp+EvZOyJFLOEfB7TA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterCollections.ConverterCacheEntries.ConverterEnumerator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterCollections.ConverterCacheEntries.ConverterEnumerator.html",
+          "hash": "0mz+V1xIw+9OtVa9gPZcJA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterCollections.ConverterCacheEntries.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterCollections.ConverterCacheEntries.html",
+          "hash": "Z7xQD9sKqgQatRW5VPnijA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterCollections.ConverterCacheEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterCollections.ConverterCacheEntry.html",
+          "hash": "RGidTsbmqWV3hPktfG+3MA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterCollections.ConverterCacheEnumerator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterCollections.ConverterCacheEnumerator.html",
+          "hash": "oosbnLrFYXcfKZV+DR0iDg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterCollections.ConverterCacheEventArgs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterCollections.ConverterCacheEventArgs.html",
+          "hash": "SpfX54XN6KViTmlbUMXDFg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterCollections.ConverterCacheListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterCollections.ConverterCacheListener.html",
+          "hash": "Bf3EiczbY5TKwjWD07NOaA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterCollections.ConverterCollection.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterCollections.ConverterCollection.html",
+          "hash": "ldPXCBqnHV2Z84O1RBoZgA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterCollections.ConverterConcurrentCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterCollections.ConverterConcurrentCache.html",
+          "hash": "ZdoV680h4ezKX9KVO7nk7Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterCollections.ConverterDictionary.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterCollections.ConverterDictionary.html",
+          "hash": "mAiFSSelpNZADZnlwjM96w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterCollections.ConverterDictionaryEnumerator.html",
+          "hash": "rMPhHqeo3JzcmEVS5VsmZA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterCollections.ConverterInvocableCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterCollections.ConverterInvocableCache.html",
+          "hash": "SIYbLmlix28oWABw9obcqQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterCollections.ConverterNamedCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterCollections.ConverterNamedCache.html",
+          "hash": "XEB7Hbs7Dff/4eELvcA5GA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterCollections.ConverterObservableCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterCollections.ConverterObservableCache.html",
+          "hash": "SQt6Fk8MLJh7GLZSAL4Wlw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterCollections.ConverterQueryCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterCollections.ConverterQueryCache.html",
+          "hash": "s2/ftWPJDf+d8L71tHpDiQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterCollections.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterCollections.html",
+          "hash": "LIkoo1xu4v4GbA/q6hqa4Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ConverterEnumerator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ConverterEnumerator.html",
+          "hash": "J3Bs2kikpgMv23egdVqpjQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.DateTimeUtils.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.DateTimeUtils.html",
+          "hash": "fXYeOZJF25me1a6K6KSoWw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Extractor.AbstractCompositeExtractor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Extractor.AbstractCompositeExtractor.html",
+          "hash": "DX+MHeFp2W+kLfevjvWcdw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Extractor.AbstractExtractor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Extractor.AbstractExtractor.html",
+          "hash": "g4bBCDo0dDJ/4bjjtShdxw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Extractor.ChainedExtractor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Extractor.ChainedExtractor.html",
+          "hash": "EXuSygiCZcOV6hsSX2SQSQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Extractor.ComparisonValueExtractor.StreamFormat.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Extractor.ComparisonValueExtractor.StreamFormat.html",
+          "hash": "0OzbEAj+AW7bsP+mlt9r+g=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Extractor.ComparisonValueExtractor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Extractor.ComparisonValueExtractor.html",
+          "hash": "F3a8vvv/DWNk+sNP7i+0Ig=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Extractor.CompositeUpdater.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Extractor.CompositeUpdater.html",
+          "hash": "Q7z3W/eGvMFtE5ue4ZlITg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Extractor.ConditionalExtractor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Extractor.ConditionalExtractor.html",
+          "hash": "7emEb1ZkPP+PUrJO96Bedw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Extractor.EntryExtractor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Extractor.EntryExtractor.html",
+          "hash": "3mEReitbapLP34TiVaIbJg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Extractor.IIndexAwareExtractor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Extractor.IIndexAwareExtractor.html",
+          "hash": "9gP+CEQ+pl1qcgSg3BbHew=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Extractor.IdentityExtractor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Extractor.IdentityExtractor.html",
+          "hash": "FWef7cKB6i7HD4zXsfcxlw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Extractor.KeyExtractor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Extractor.KeyExtractor.html",
+          "hash": "BkJtANgr3G4cDMIiOr96ww=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Extractor.MultiExtractor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Extractor.MultiExtractor.html",
+          "hash": "V+z/eCda3ZObuIttMWzPKg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Extractor.PofExtractor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Extractor.PofExtractor.html",
+          "hash": "oc/XMouhtazDbDmPHojOcA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Extractor.PofUpdater.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Extractor.PofUpdater.html",
+          "hash": "gO+Gjj6fhKy0986BqHqOVQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Extractor.ReflectionExtractor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Extractor.ReflectionExtractor.html",
+          "hash": "hSboc5En6aXOLSRKWdzgNg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Extractor.ReflectionUpdater.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Extractor.ReflectionUpdater.html",
+          "hash": "CAa/jg1P4NH63jN7Pn+y5Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Extractor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Extractor.html",
+          "hash": "yGRGUUnAPxEWDcU/wufrKQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.AllFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.AllFilter.html",
+          "hash": "+0XuFMkDukXnW3AqgFpMQA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.AlwaysFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.AlwaysFilter.html",
+          "hash": "4BL2A7/snkPsQe+F4ZWnmQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.AndFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.AndFilter.html",
+          "hash": "6W7tZZniycf4nS+ujPd5Pg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.AnyFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.AnyFilter.html",
+          "hash": "n8IKXiTeTUVuAYOzzdoMgA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.ArrayFilter.WeightedFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.ArrayFilter.WeightedFilter.html",
+          "hash": "P9TVYR4v3hKVR+dRqmvxlw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.ArrayFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.ArrayFilter.html",
+          "hash": "HUZyGIDhkTeH95r/z0OkYQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.BetweenFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.BetweenFilter.html",
+          "hash": "Mzyolkep3nSEkgRg/Z+Vkg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.html",
+          "hash": "aRJvv9SCkBSkWJ7f2VVvtg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.CacheEventFilter.CacheEventSyntheticMask.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.CacheEventFilter.CacheEventSyntheticMask.html",
+          "hash": "SVy6y0tBBRgR5Iuz5aY3jA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.CacheEventFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.CacheEventFilter.html",
+          "hash": "7lFpq92gk91HaDnBXZ4cTQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.CacheEventTransformerFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.CacheEventTransformerFilter.html",
+          "hash": "N4qWb+3rTJFV3E6lVDO1lw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.ComparisonFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.ComparisonFilter.html",
+          "hash": "8NmuC+lw1Xn71Qxf0G27Og=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.ContainsAllFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.ContainsAllFilter.html",
+          "hash": "q4jNbC7GzjUVC16zkR5ocQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.ContainsAnyFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.ContainsAnyFilter.html",
+          "hash": "TiKvMElNGsXdN/6aF9vTAQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.ContainsFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.ContainsFilter.html",
+          "hash": "O9B60di82wHuZfUVgGntBw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.EqualsFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.EqualsFilter.html",
+          "hash": "wz93rE3h3ww4oH4IM1AZAw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.ExtractorFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.ExtractorFilter.html",
+          "hash": "Ac3n/1S4s+4G6gjYkpUDfg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.FilterTrigger.ActionCode.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.FilterTrigger.ActionCode.html",
+          "hash": "EXUviHupEJ6MV3sdCRAV2w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.FilterTrigger.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.FilterTrigger.html",
+          "hash": "7ePll0MdDvRaO33EDTsJpg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.GreaterEqualsFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.GreaterEqualsFilter.html",
+          "hash": "e0J+R1DnLnXFk2J7HSpRAQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.GreaterFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.GreaterFilter.html",
+          "hash": "Vio6wi+iYRq0ehbMYM4Srw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.IEntryFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.IEntryFilter.html",
+          "hash": "44iEF4XM+wI95y/ZqXhBzg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.IIndexAwareFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.IIndexAwareFilter.html",
+          "hash": "y0Ah6XH3BNMcjKgTXjtpwQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.InFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.InFilter.html",
+          "hash": "4AYsBjn3IPxZmA2EFY9Cow=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.InKeySetFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.InKeySetFilter.html",
+          "hash": "jJdh2A1bnfQN1/DVO6FasQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.IsNotNullFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.IsNotNullFilter.html",
+          "hash": "rzbX4+LhGasRZACRzYmIoA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.IsNullFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.IsNullFilter.html",
+          "hash": "QzM71ye7mjAGRYImQmT/OQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.KeyAssociatedFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.KeyAssociatedFilter.html",
+          "hash": "Vt5tJGMyzea5zZzCJ3acfw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.KeyFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.KeyFilter.html",
+          "hash": "Aun1TQnUGIN19jy5WMiiKA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.LessEqualsFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.LessEqualsFilter.html",
+          "hash": "x7pgnxxt+zDmpeMxg/X5iA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.LessFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.LessFilter.html",
+          "hash": "7JF2jl+c4amnXKYy45i90w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.LikeFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.LikeFilter.html",
+          "hash": "0YRUopwiv3pi67VUbeTrAg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.LimitFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.LimitFilter.html",
+          "hash": "7yUNGIa1IUnFlN9sL6g5jg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.NeverFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.NeverFilter.html",
+          "hash": "8W1kDa4KOQAN23tNrNV4Hw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.NotEqualsFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.NotEqualsFilter.html",
+          "hash": "P1PzEzsDygcXDKdkSZR4Wg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.NotFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.NotFilter.html",
+          "hash": "0WuynvQQpCUwOLC7LW707g=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.OrFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.OrFilter.html",
+          "hash": "LaFQDDjmRqqCpaC4pPcNNg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.PresentFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.PresentFilter.html",
+          "hash": "V8QhSvP/QFfiRs5Pn/PbsQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.PriorityFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.PriorityFilter.html",
+          "hash": "EMmYFkJGit9IJt72e4E46Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.ValueChangeEventFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.ValueChangeEventFilter.html",
+          "hash": "ygHwJ5iRphyEkonVKpqnBA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.XorFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.XorFilter.html",
+          "hash": "aWRv8esDrQnSi+i9OtRuuA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Filter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Filter.html",
+          "hash": "uthBWG5hbAsn0qpbKNze9g=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.FilterEnumerator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.FilterEnumerator.html",
+          "hash": "2pH5fFLkfJbLTq6z2hVyfw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Gate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Gate.html",
+          "hash": "KeYElwCY7uiY94X/TLtutg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.HashHelper.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.HashHelper.html",
+          "hash": "2G2gF+VgbicnZks+8IFbhA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.IControllable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.IControllable.html",
+          "hash": "bfYph+pIHVGOPIqQT8E/5w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.IConverter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.IConverter.html",
+          "hash": "c2+uagFftQmyKn/Hpk5Acw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.IEventListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.IEventListener.html",
+          "hash": "pIq3jWXloReRo1rpX3FAEA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.IFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.IFilter.html",
+          "hash": "t9V5D+iZOT2wM/RkOii0ww=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.IIndexLookupRecord.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.IIndexLookupRecord.html",
+          "hash": "xxUmgFkkmVfihjeLg2jNFg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ILongArray.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ILongArray.html",
+          "hash": "V80ujrBTcxstdhBK7mNzUw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ILongArrayEnumerator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ILongArrayEnumerator.html",
+          "hash": "llej9sG2N+kT8k+SSoD7tg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.IPartialResult.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.IPartialResult.html",
+          "hash": "QxHU/TwyHBqbIprerVbyPA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.IQueryRecord.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.IQueryRecord.html",
+          "hash": "5RctceLOCsqskVDQ98+vnQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.IService.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.IService.html",
+          "hash": "Ioikh6kFA2pJik5caXBcrA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.IStep.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.IStep.html",
+          "hash": "i2j+5uVQEaZmCN7o6bQrNg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ISynchronousListener.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ISynchronousListener.html",
+          "hash": "2/YfSEohgu5Y3HZh2d3VPg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.IValueExtractor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.IValueExtractor.html",
+          "hash": "gkcC16asVKCkC4TlUWx7ag=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.IValueManipulator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.IValueManipulator.html",
+          "hash": "HV7EydQ2qk0BwGJmE9Lj1g=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.IValueUpdater.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.IValueUpdater.html",
+          "hash": "JQzJ+rar83LC/ozyz9kJSw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.IVersionable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.IVersionable.html",
+          "hash": "x6XIgXD5gNENT8DL3dNwjQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ImmutableArrayList.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ImmutableArrayList.html",
+          "hash": "qTfEWp789KyY4872XGjxXg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ImmutableMultiList.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ImmutableMultiList.html",
+          "hash": "n2kooo8G3PfiTC7w0t70Cw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.InterlockedCounter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.InterlockedCounter.html",
+          "hash": "Ee2q/lOJTGcO9gWOWncWxw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.LicenseException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.LicenseException.html",
+          "hash": "FrwxlPsoMRWK5JK4tvHdqg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Listeners.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Listeners.html",
+          "hash": "D3huHf1fwGMbtUuQ21HWLg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.LiteDictionary.LiteDictionaryType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.LiteDictionary.LiteDictionaryType.html",
+          "hash": "LK/5OhezE+VCya7YI4TyYw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.LiteDictionary.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.LiteDictionary.html",
+          "hash": "+juJLjxR/lE+OgGzxGcKew=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.LongSortedList.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.LongSortedList.html",
+          "hash": "2D6E8/SKRgoctqlMm+yvQw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.MacroParameterResolver.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.MacroParameterResolver.html",
+          "hash": "UuFhIyhVZYYGbMDtS8qoYg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.NetworkUtils.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.NetworkUtils.html",
+          "hash": "P/gAHMs9lJy3FK88GIQWPQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.NullFilter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.NullFilter.html",
+          "hash": "O7QxQ+UCX6Zq4EtpMRmZZQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.NullImplementation.NullCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.NullImplementation.NullCache.html",
+          "hash": "psEq7I9TUj6oGZM2WfP6sQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.NullImplementation.NullCollection.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.NullImplementation.NullCollection.html",
+          "hash": "K101gW3Nh+F7NdiqQFDcGQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.NullImplementation.NullConverter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.NullImplementation.NullConverter.html",
+          "hash": "jOCAIdo+W04juqYA0zXiJQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.NullImplementation.NullDictionary.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.NullImplementation.NullDictionary.html",
+          "hash": "HGa8kGss831iJAbSQqfwpA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.NullImplementation.NullEnumerator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.NullImplementation.NullEnumerator.html",
+          "hash": "4/vf2zWU6U7oIpEPhaRjgA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.NullImplementation.NullObservableCache.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.NullImplementation.NullObservableCache.html",
+          "hash": "jQ8Y/jqLtsdy52XP0ms1ug=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.NullImplementation.NullPofContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.NullImplementation.NullPofContext.html",
+          "hash": "2ZBwsfjZ8nAmDuB7Q/xR3Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.NullImplementation.NullValueExtractor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.NullImplementation.NullValueExtractor.html",
+          "hash": "zkw8n8C6Wz8GMdRRmKRT2Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.NullImplementation.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.NullImplementation.html",
+          "hash": "koIV+JDewsIHYRZvqVTslg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.NumberUtils.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.NumberUtils.html",
+          "hash": "koq6qpVpCgda1ZIgNtZeIQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ObjectUtils.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ObjectUtils.html",
+          "hash": "Umf7o/i6Yiu6gnbwFF4WVA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Optional.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Optional.html",
+          "hash": "3XYSPjsqT0zbzegrp5GMKA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.PagedEnumerator.IAdvancer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.PagedEnumerator.IAdvancer.html",
+          "hash": "M2Uee307uk5JuM9N/bjVQQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.PagedEnumerator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.PagedEnumerator.html",
+          "hash": "J0Jjwz62v8KwjZxPgY2RQA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Port32.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Port32.html",
+          "hash": "suuCHtlwC2bmJLDVOnzVCQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Processor.AbstractClusterProcessor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Processor.AbstractClusterProcessor.html",
+          "hash": "I9jBJJYvtBHZaJxcF2Lc9A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Processor.AbstractProcessor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Processor.AbstractProcessor.html",
+          "hash": "olvqs5NidnItJGfLDAUdZg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Processor.CompositeProcessor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Processor.CompositeProcessor.html",
+          "hash": "4KZ2dL3IGAq0dL4BYeCeig=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Processor.ConditionalProcessor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Processor.ConditionalProcessor.html",
+          "hash": "F/24g1RbgpM783K6NNJacQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Processor.ConditionalPut.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Processor.ConditionalPut.html",
+          "hash": "5ENFYNex5L/mELfL6pbYlA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Processor.ConditionalPutAll.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Processor.ConditionalPutAll.html",
+          "hash": "8lnuVT4c5N3EKwOOeOiUrQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Processor.ConditionalRemove.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Processor.ConditionalRemove.html",
+          "hash": "IYJWEDkeoapzcwiGaVxzMA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Processor.ExtractorProcessor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Processor.ExtractorProcessor.html",
+          "hash": "EWMHaSdj8PHQayYmeLcoQw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Processor.NumberIncrementor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Processor.NumberIncrementor.html",
+          "hash": "BLpy44JzeHZjWIxPbkatSw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Processor.NumberMultiplier.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Processor.NumberMultiplier.html",
+          "hash": "dh12dF+s+sB9jVEchYKWBw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Processor.PreloadRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Processor.PreloadRequest.html",
+          "hash": "rlsonUZC4G6m9hVWm9/nxg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Processor.PriorityProcessor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Processor.PriorityProcessor.html",
+          "hash": "8uV8jKC/iD0Wnlvx+xp13Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Processor.PropertyManipulator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Processor.PropertyManipulator.html",
+          "hash": "245IWZs5W3Bsne7YY8uEmw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Processor.PropertyProcessor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Processor.PropertyProcessor.html",
+          "hash": "R4IGQk/Ev8A1B8P/7klcqg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Processor.UpdaterProcessor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Processor.UpdaterProcessor.html",
+          "hash": "Lh8PPlgOzdDCukUxywwZyQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Processor.VersionedPut.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Processor.VersionedPut.html",
+          "hash": "LGXlSYto029WCfmWk/Ubbw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Processor.VersionedPutAll.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Processor.VersionedPutAll.html",
+          "hash": "O6CYoeDBENwHUnb5FwPAGw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Processor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Processor.html",
+          "hash": "q1QDPHkn0H/CoNRfmU94aQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.SafeClock.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.SafeClock.html",
+          "hash": "RpXWTyfGCmtqes/taEH9JQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.SerializationHelper.Stats.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.SerializationHelper.Stats.html",
+          "hash": "DsY1m0rbF+cfSBwh+CR4Ww=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.SerializationHelper.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.SerializationHelper.html",
+          "hash": "xyXVtczEz5Zz39/TUuk2cg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ServiceEventArgs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ServiceEventArgs.html",
+          "hash": "MY9Bv3d6Ah9y7MPvAU//6A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ServiceEventHandler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ServiceEventHandler.html",
+          "hash": "Ls/TBNOKiFiFBAddEAt5nw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ServiceEventType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ServiceEventType.html",
+          "hash": "vYAP7eJXa3c4ACWZLRosaA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ShieldedStream.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ShieldedStream.html",
+          "hash": "MiJDrXf28BuECbmBHj4kbg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.SimpleEnumerator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.SimpleEnumerator.html",
+          "hash": "zQbNEIQbIVwy4bt2Uj2Ekw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.SimpleQueryRecord.PartialResult.IndexLookupRecord.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.SimpleQueryRecord.PartialResult.IndexLookupRecord.html",
+          "hash": "yYA79fA8p2V5HwlkXps59A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.SimpleQueryRecord.PartialResult.Step.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.SimpleQueryRecord.PartialResult.Step.html",
+          "hash": "ckWfX36PYXEMxcHvrkcUCw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.SimpleQueryRecord.PartialResult.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.SimpleQueryRecord.PartialResult.html",
+          "hash": "KY6sii7bVeLMpSbPf+DpcQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.SimpleQueryRecord.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.SimpleQueryRecord.html",
+          "hash": "7MlmKmQS+2n872GLkUrnpA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.SimpleQueryRecordReporter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.SimpleQueryRecordReporter.html",
+          "hash": "i1gEBkTPPcr+KrkjlOpG8Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.StringUtils.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.StringUtils.html",
+          "hash": "kp3LbKW5CGodHv2GOxKDHg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.SynchronizedCounter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.SynchronizedCounter.html",
+          "hash": "3oKs36YU+WZzJ6nSvt1leA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ThreadGate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ThreadGate.html",
+          "hash": "41SjEIz+9ZQEbGNMKdRXMA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ThreadGateSlim.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ThreadGateSlim.html",
+          "hash": "UUxI09VM3OjCoyhGRO8n5w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.ThreadGateState.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.ThreadGateState.html",
+          "hash": "DqdlA9S+OZyaBZccJ5MOFw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Transformer.ExtractorEventTransformer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Transformer.ExtractorEventTransformer.html",
+          "hash": "YiE901ixo11V/4KloCi4nw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Transformer.SemiLiteEventTransformer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Transformer.SemiLiteEventTransformer.html",
+          "hash": "5BjwtMCe2pjULJbKWH1Kzg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.Transformer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.Transformer.html",
+          "hash": "FFOm/ODQvXgZWtOiukR8Gg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.TypeResolver.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.TypeResolver.html",
+          "hash": "BXF/5D5xHs1cpO2k9J1BxQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.UUID.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.UUID.html",
+          "hash": "DVOJE0xY+mX+1l/o+f2Rdg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.UriUtils.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.UriUtils.html",
+          "hash": "xtM6LTOEwr+MD2qYRNfImw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.WellKnownSubPorts.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.WellKnownSubPorts.html",
+          "hash": "xkgC6uz+njRg2EGaLrQ5Ig=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Tangosol.Util.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Tangosol.Util.html",
+          "hash": "tbNy/ofVJ+qaxrvjDgF7LQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "api/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "api/index.html",
+          "hash": "sSeWwgrYVUdjX16XXYjbJg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/toc.html",
+          "hash": "J5gQSczh9gYbBiPMDgcSIw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/intro.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/intro.html",
+          "hash": "V5fH8cmmAq+/9AjRHb3O5Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/logo.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/logo.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "log_codes": [
+        "InvalidFileLink"
+      ],
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html",
+          "hash": "cKA1S0NzQxMI2YeU8o3HkA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "toc.html",
+          "hash": "bW1a1uMh8vMR2ffROAiacQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    }
+  ],
+  "incremental_info": [
+    {
+      "status": {
+        "can_incremental": true,
+        "incrementalPhase": "build",
+        "total_file_count": 0,
+        "skipped_file_count": 0
+      },
+      "processors": {
+        "ConceptualDocumentProcessor": {
+          "can_incremental": true,
+          "incrementalPhase": "build",
+          "total_file_count": 4,
+          "skipped_file_count": 2
+        },
+        "ManagedReferenceDocumentProcessor": {
+          "can_incremental": true,
+          "incrementalPhase": "build",
+          "total_file_count": 480,
+          "skipped_file_count": 478
+        },
+        "ResourceDocumentProcessor": {
+          "can_incremental": false,
+          "details": "Processor ResourceDocumentProcessor cannot support incremental build because the processor doesn't implement ISupportIncrementalDocumentProcessor interface.",
+          "incrementalPhase": "build",
+          "total_file_count": 0,
+          "skipped_file_count": 0
+        },
+        "TocDocumentProcessor": {
+          "can_incremental": false,
+          "details": "Processor TocDocumentProcessor cannot support incremental build because the processor doesn't implement ISupportIncrementalDocumentProcessor interface.",
+          "incrementalPhase": "build",
+          "total_file_count": 0,
+          "skipped_file_count": 0
+        }
+      }
+    },
+    {
+      "status": {
+        "can_incremental": true,
+        "details": "Can support incremental post processing.",
+        "incrementalPhase": "postProcessing",
+        "total_file_count": 0,
+        "skipped_file_count": 0
+      },
+      "processors": {}
+    }
+  ],
+  "version_info": {},
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}

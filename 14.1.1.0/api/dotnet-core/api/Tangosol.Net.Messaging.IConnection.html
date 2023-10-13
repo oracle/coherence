@@ -1,0 +1,762 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IConnection
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IConnection
+   ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Messaging.IConnection">
+  
+  
+  <h1 id="Tangosol_Net_Messaging_IConnection" data-uid="Tangosol.Net.Messaging.IConnection" class="text-break">Interface IConnection
+  </h1>
+  <div class="markdown level0 summary"><p>An IConnection represents a bi-directional communication channel for
+exchanging <a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a> objects between two endpoints.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Messaging.html">Tangosol.Net.Messaging</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Messaging_IConnection_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IConnection</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Messaging_IConnection_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+An IConnection is created by an <a class="xref" href="Tangosol.Net.Messaging.IConnectionInitiator.html">IConnectionInitiator</a>
+running on a client. Before an IConnection can be established, the
+server must initialize and start an <a class="xref" href="Tangosol.Net.Messaging.IConnectionAcceptor.html">IConnectionAcceptor</a>.
+Creating the IConnection results in a handshake between the client
+and the server (including <a class="xref" href="Tangosol.Net.Messaging.IProtocol.html">IProtocol</a> negotiation); if
+the handshake is successful, the IConnection will be transitioned to
+the open state.</p>
+<p>
+An IConnection itself is not used to send and receive <strong>IMessage</strong>
+objects. Rather, one or more <a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a> objects may be
+created from the IConnection and used to exchange <strong>IMessage</strong>
+objects of a known <strong>IProtocol</strong> with a peer. An <strong>IChannel</strong>
+may be <a class="xref" href="Tangosol.Net.Messaging.IConnection.html#Tangosol_Net_Messaging_IConnection_OpenChannel_Tangosol_Net_Messaging_IProtocol_System_String_Tangosol_Net_Messaging_IReceiver_IPrincipal_">OpenChannel(IProtocol, String, IReceiver, IPrincipal)</a> opened to a named
+<a class="xref" href="Tangosol.Net.Messaging.IReceiver.html">IReceiver</a> registered by the peer.
+Alternatively, an &quot;anonymous&quot; <strong>IChannel</strong> (a back-Channel) may be
+<a class="xref" href="Tangosol.Net.Messaging.IConnection.html#Tangosol_Net_Messaging_IConnection_CreateChannel_Tangosol_Net_Messaging_IProtocol_Tangosol_Net_Messaging_IReceiver_">CreateChannel(IProtocol, IReceiver)</a> created by one peer and returned to the
+other, where it must be <a class="xref" href="Tangosol.Net.Messaging.IConnection.html#Tangosol_Net_Messaging_IConnection_AcceptChannel_System_Uri_Tangosol_Net_Messaging_IReceiver_IPrincipal_">AcceptChannel(Uri, IReceiver, IPrincipal)</a> accepted
+before it can be used.</p>
+<p>
+Once finished with the IConnection, an application should release all
+resources held by the IConnection by calling the
+<a class="xref" href="Tangosol.Net.Messaging.IConnection.html#Tangosol_Net_Messaging_IConnection_Close">Close()</a> method. Closing an IConnection also closes all
+<strong>IChannel</strong> objects created by the IConnection and renders the
+IConnection unusable. Attempting to use a closed IConnection or any
+<strong>IChannel</strong> created by a closed IConnection may result in an
+exception.</p>
+<p>
+All IConnection implementations must be fully thread-safe.</p>
+</div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IConnection_ConnectionManager.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IConnection.ConnectionManager%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IConnection.cs/#L68">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IConnection_ConnectionManager_" data-uid="Tangosol.Net.Messaging.IConnection.ConnectionManager*"></a>
+  <h4 id="Tangosol_Net_Messaging_IConnection_ConnectionManager" data-uid="Tangosol.Net.Messaging.IConnection.ConnectionManager">ConnectionManager</h4>
+  <div class="markdown level1 summary"><p>The <a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html">IConnectionManager</a> that created or accepted
+this IConnection.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IConnectionManager ConnectionManager { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html">IConnectionManager</a></td>
+        <td><p>The <strong>IConnectionManager</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IConnection_Id.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IConnection.Id%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IConnection.cs/#L77">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IConnection_Id_" data-uid="Tangosol.Net.Messaging.IConnection.Id*"></a>
+  <h4 id="Tangosol_Net_Messaging_IConnection_Id" data-uid="Tangosol.Net.Messaging.IConnection.Id">Id</h4>
+  <div class="markdown level1 summary"><p>The unique identifier of this IConnection.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">UUID Id { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.UUID.html">UUID</a></td>
+        <td><p>The unique identifier of this IConnection or <code>null</code> if the
+IConnection has not been accepted.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IConnection_IsOpen.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IConnection.IsOpen%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IConnection.cs/#L98">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IConnection_IsOpen_" data-uid="Tangosol.Net.Messaging.IConnection.IsOpen*"></a>
+  <h4 id="Tangosol_Net_Messaging_IConnection_IsOpen" data-uid="Tangosol.Net.Messaging.IConnection.IsOpen">IsOpen</h4>
+  <div class="markdown level1 summary"><p>Return <strong>true</strong> if this IConnection is open.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsOpen { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if this IConnection is open.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_IConnection_IsOpen_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>An IConnection can only be used to exchange data when it is open.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IConnection_PeerId.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IConnection.PeerId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IConnection.cs/#L87">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IConnection_PeerId_" data-uid="Tangosol.Net.Messaging.IConnection.PeerId*"></a>
+  <h4 id="Tangosol_Net_Messaging_IConnection_PeerId" data-uid="Tangosol.Net.Messaging.IConnection.PeerId">PeerId</h4>
+  <div class="markdown level1 summary"><p>The unique identifier of the peer to which this IConnection
+object is connected.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">UUID PeerId { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.UUID.html">UUID</a></td>
+        <td><p>The unique identifier of the peer or <code>null</code> if the
+IConnection has not been accepted.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IConnection_AcceptChannel_System_Uri_Tangosol_Net_Messaging_IReceiver_IPrincipal_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IConnection.AcceptChannel(System.Uri%2CTangosol.Net.Messaging.IReceiver%2CIPrincipal)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IConnection.cs/#L255">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IConnection_AcceptChannel_" data-uid="Tangosol.Net.Messaging.IConnection.AcceptChannel*"></a>
+  <h4 id="Tangosol_Net_Messaging_IConnection_AcceptChannel_System_Uri_Tangosol_Net_Messaging_IReceiver_IPrincipal_" data-uid="Tangosol.Net.Messaging.IConnection.AcceptChannel(System.Uri,Tangosol.Net.Messaging.IReceiver,IPrincipal)">AcceptChannel(Uri, IReceiver, IPrincipal)</h4>
+  <div class="markdown level1 summary"><p>Accept a newly created back-Channel that was spawned by the peer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IChannel AcceptChannel(Uri uri, IReceiver receiver, IPrincipal principal)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Uri</span></td>
+        <td><span class="parametername">uri</span></td>
+        <td><p>The <strong>Uri</strong> of an <strong>IChannel</strong> that was spawned by the peer.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IReceiver.html">IReceiver</a></td>
+        <td><span class="parametername">receiver</span></td>
+        <td><p>An optional <strong>IReceiver</strong> to associate with the new
+<strong>IChannel</strong> that will process any unsolicited <strong>IMessage</strong>
+objects sent back through the <strong>IChannel</strong> by the peer.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">IPrincipal</span></td>
+        <td><span class="parametername">principal</span></td>
+        <td><p>An optional <strong>IPrincipal</strong> to associate with the new
+<strong>IChannel</strong>; if specified, any operation performed upon
+receipt of an <strong>IMessage</strong> sent using the accepted
+<strong>IChannel</strong> will be done on behalf of the specified
+<strong>IPrincipal</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a></td>
+        <td><p>The newly accepted <strong>IChannel</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_IConnection_AcceptChannel_System_Uri_Tangosol_Net_Messaging_IReceiver_IPrincipal__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Before a spawned <strong>IChannel</strong> can be used to send and receive
+<strong>IMessage</strong> objects, its <strong>Uri</strong> must be accepted by the
+peer.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the specified <strong>IReceiver</strong> does not use the same
+<strong>IProtocol</strong> as the spawned <strong>IChannel</strong> (as described by
+its <strong>Uri</strong>).</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the IConnection is not open.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_IConnection_AcceptChannel_System_Uri_Tangosol_Net_Messaging_IReceiver_IPrincipal__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IConnection.html#Tangosol_Net_Messaging_IConnection_CreateChannel_Tangosol_Net_Messaging_IProtocol_Tangosol_Net_Messaging_IReceiver_">CreateChannel(IProtocol, IReceiver)</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IConnection_Close.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IConnection.Close%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IConnection.cs/#L112">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IConnection_Close_" data-uid="Tangosol.Net.Messaging.IConnection.Close*"></a>
+  <h4 id="Tangosol_Net_Messaging_IConnection_Close" data-uid="Tangosol.Net.Messaging.IConnection.Close">Close()</h4>
+  <div class="markdown level1 summary"><p>Close the IConnection.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Close()</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Messaging_IConnection_Close_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+Closing an IConnection also reclaims all resources held by the
+IConnection, so there is no need to close <strong>IChannel</strong> objects
+of a closed IConnection.</p>
+<p>
+If the IConnection is already closed, calling this method has no
+effect.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IConnection_CreateChannel_Tangosol_Net_Messaging_IProtocol_Tangosol_Net_Messaging_IReceiver_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IConnection.CreateChannel(Tangosol.Net.Messaging.IProtocol%2CTangosol.Net.Messaging.IReceiver)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IConnection.cs/#L218">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IConnection_CreateChannel_" data-uid="Tangosol.Net.Messaging.IConnection.CreateChannel*"></a>
+  <h4 id="Tangosol_Net_Messaging_IConnection_CreateChannel_Tangosol_Net_Messaging_IProtocol_Tangosol_Net_Messaging_IReceiver_" data-uid="Tangosol.Net.Messaging.IConnection.CreateChannel(Tangosol.Net.Messaging.IProtocol,Tangosol.Net.Messaging.IReceiver)">CreateChannel(IProtocol, IReceiver)</h4>
+  <div class="markdown level1 summary"><p>Create a back-Channel to expose another service to the peer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Uri CreateChannel(IProtocol protocol, IReceiver receiver)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IProtocol.html">IProtocol</a></td>
+        <td><span class="parametername">protocol</span></td>
+        <td><p>The <strong>IProtocol</strong> that will be used to communicate through the
+new <strong>IChannel</strong>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IReceiver.html">IReceiver</a></td>
+        <td><span class="parametername">receiver</span></td>
+        <td><p>An optional <strong>IReceiver</strong> to associate with the new
+<strong>IChannel</strong> that will process any unsolicited <strong>IMessage</strong>
+objects sent back through the <strong>IChannel</strong> by the peer.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Uri</span></td>
+        <td><p>A <strong>Uri</strong> that represents the new <strong>IChannel</strong> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_IConnection_CreateChannel_Tangosol_Net_Messaging_IProtocol_Tangosol_Net_Messaging_IReceiver__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+This method is particularly useful for building a Response
+Message to send back a new <strong>IChannel</strong> that can be used by
+the peer. In practice, this means that when a call to a stub is
+made, it can easily return a new stub that has its own
+<strong>IChannel</strong>; for example, a stub representing one service can
+return a stub representing a different service.</p>
+<p>
+The new <strong>IChannel</strong> cannot be used until the returned
+<strong>Uri</strong> is
+<a class="xref" href="Tangosol.Net.Messaging.IConnection.html#Tangosol_Net_Messaging_IConnection_AcceptChannel_System_Uri_Tangosol_Net_Messaging_IReceiver_IPrincipal_">AcceptChannel(Uri, IReceiver, IPrincipal)</a> accepted by the peer.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the specified <strong>IProtocol</strong> has not been registered with
+the underlying <strong>IConnectionManager</strong>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the specified <strong>IReceiver</strong> does not use the specified
+<strong>IProtocol</strong>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the IConnection is not open.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_IConnection_CreateChannel_Tangosol_Net_Messaging_IProtocol_Tangosol_Net_Messaging_IReceiver__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IConnection.html#Tangosol_Net_Messaging_IConnection_AcceptChannel_System_Uri_Tangosol_Net_Messaging_IReceiver_IPrincipal_">AcceptChannel(Uri, IReceiver, IPrincipal)</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IConnection_GetChannel_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IConnection.GetChannel(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IConnection.cs/#L271">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IConnection_GetChannel_" data-uid="Tangosol.Net.Messaging.IConnection.GetChannel*"></a>
+  <h4 id="Tangosol_Net_Messaging_IConnection_GetChannel_System_Int32_" data-uid="Tangosol.Net.Messaging.IConnection.GetChannel(System.Int32)">GetChannel(Int32)</h4>
+  <div class="markdown level1 summary"><p>Return the open <strong>IChannel</strong> object with the given identifier.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IChannel GetChannel(int id)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The unique <strong>IChannel</strong> identifier.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a></td>
+        <td><p>The open <strong>IChannel</strong> object with the specified identifer or
+<code>null</code> if no such open <strong>IChannel</strong> exists.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_IConnection_GetChannel_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If an <strong>IChannel</strong> object with the specified identifier does
+not exist or has been closed, <code>null</code> is returned.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IConnection_GetChannels.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IConnection.GetChannels%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IConnection.cs/#L285">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IConnection_GetChannels_" data-uid="Tangosol.Net.Messaging.IConnection.GetChannels*"></a>
+  <h4 id="Tangosol_Net_Messaging_IConnection_GetChannels" data-uid="Tangosol.Net.Messaging.IConnection.GetChannels">GetChannels()</h4>
+  <div class="markdown level1 summary"><p>Return the collection of open <strong>IChannel</strong> objects through
+this IConnection.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ICollection GetChannels()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><p>The collection of open <strong>IChannel</strong> objects.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_IConnection_GetChannels_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The client should assume that the returned collection is an
+immutable snapshot of the actual collection of open
+<strong>IChannel</strong> objects maintained by this IConnection.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IConnection_OpenChannel_Tangosol_Net_Messaging_IProtocol_System_String_Tangosol_Net_Messaging_IReceiver_IPrincipal_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IConnection.OpenChannel(Tangosol.Net.Messaging.IProtocol%2CSystem.String%2CTangosol.Net.Messaging.IReceiver%2CIPrincipal)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IConnection.cs/#L176">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Messaging_IConnection_OpenChannel_" data-uid="Tangosol.Net.Messaging.IConnection.OpenChannel*"></a>
+  <h4 id="Tangosol_Net_Messaging_IConnection_OpenChannel_Tangosol_Net_Messaging_IProtocol_System_String_Tangosol_Net_Messaging_IReceiver_IPrincipal_" data-uid="Tangosol.Net.Messaging.IConnection.OpenChannel(Tangosol.Net.Messaging.IProtocol,System.String,Tangosol.Net.Messaging.IReceiver,IPrincipal)">OpenChannel(IProtocol, String, IReceiver, IPrincipal)</h4>
+  <div class="markdown level1 summary"><p>Create an <strong>IChannel</strong> using a specific <strong>IProtocol</strong>
+through this IConnection to a named <strong>IReceiver</strong> on the other
+end of the IConnection, optionally providing an <strong>IPrincipal</strong>
+to indicate the identity that will be utilizing the
+<strong>IChannel</strong>, and optionally providing an <strong>IReceiver</strong> that
+will process unsolicited <strong>IMessage</strong> objects on this end of
+the <strong>IChannel</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IChannel OpenChannel(IProtocol protocol, string name, IReceiver receiver, IPrincipal principal)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IProtocol.html">IProtocol</a></td>
+        <td><span class="parametername">protocol</span></td>
+        <td><p>The <strong>IProtocol</strong> that will be used to communicate through the
+<strong>IChannel</strong>; the <strong>IProtocol</strong> is used to verify that the
+<strong>IReceiver</strong> on the peer with the specified name is capable
+of communicating using that <strong>IProtocol</strong>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name that the <strong>IReceiver</strong> was registered with, on the
+other end of this IConnection; an <strong>IReceiver</strong> with the
+specified name must have been registered with the peer's
+<strong>IConnectionManager</strong> prior to calling this method (see
+<a class="xref" href="Tangosol.Net.Messaging.IConnectionManager.html#Tangosol_Net_Messaging_IConnectionManager_RegisterReceiver_Tangosol_Net_Messaging_IReceiver_">RegisterReceiver(IReceiver)</a>).</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IReceiver.html">IReceiver</a></td>
+        <td><span class="parametername">receiver</span></td>
+        <td><p>An optional <strong>IReceiver</strong> to associate with this
+<strong>IChannel</strong> that will process any unsolicited <strong>IMessage</strong>
+objects sent back through the <strong>IChannel</strong> by the peer.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">IPrincipal</span></td>
+        <td><span class="parametername">principal</span></td>
+        <td><p>An optional <strong>IPrincipal</strong> to associate with this
+<strong>IChannel</strong>; if specified, any operation performed upon
+receipt of an <strong>IMessage</strong> sent using the returned
+<strong>IChannel</strong> will be done on behalf of the specified
+<strong>IPrincipal</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a></td>
+        <td><p>A new <strong>IChannel</strong> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Messaging_IConnection_OpenChannel_Tangosol_Net_Messaging_IProtocol_System_String_Tangosol_Net_Messaging_IReceiver_IPrincipal__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Conceptually, this is how an <strong>IChannel</strong> is established to an
+existing named &quot;service&quot; (e.g. an <strong>IReceiver</strong>) on the peer;
+note that either peer can register named services and either peer
+can use this method to find a named service on its peer.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the specified <strong>IProtocol</strong> has not been registered with
+the underlying <strong>IConnectionManager</strong>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If an <strong>IReceiver</strong> with the given name has not been registered
+with the peer's <strong>IConnectionManager</strong>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the specified <strong>IReceiver</strong> does not use the same
+<strong>IProtocol</strong> as the one registered on the peer.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the specified <strong>IReceiver</strong> does not use the specified
+<strong>IProtocol</strong>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the IConnection is not open.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="seealso">See Also</h3>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Net.Messaging.IChannel.html">IChannel</a></div>
+      <div><a class="xref" href="Tangosol.Net.Messaging.IReceiver.html">IReceiver</a></div>
+      <div><a class="xref" href="Tangosol.Net.Messaging.IConnectionAcceptor.html">IConnectionAcceptor</a></div>
+      <div><a class="xref" href="Tangosol.Net.Messaging.IConnectionInitiator.html">IConnectionInitiator</a></div>
+      <div><a class="xref" href="Tangosol.Net.Messaging.IMessage.html">IMessage</a></div>
+      <div><a class="xref" href="Tangosol.Net.Messaging.IProtocol.html">IProtocol</a></div>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Messaging_IConnection.md&amp;value=---%0Auid%3A%20Tangosol.Net.Messaging.IConnection%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Messaging/IConnection.cs/#L59" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>
