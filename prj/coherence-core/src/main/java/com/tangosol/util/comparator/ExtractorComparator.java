@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,6 +16,8 @@ import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
+import com.tangosol.util.InvocableMapHelper;
+import com.tangosol.util.QueryMap;
 import com.tangosol.util.ValueExtractor;
 
 import java.io.DataInput;
@@ -25,6 +27,7 @@ import java.io.IOException;
 import java.util.Comparator;
 
 import jakarta.json.bind.annotation.JsonbProperty;
+import java.util.Map;
 
 import static com.tangosol.util.Base.azzert;
 
@@ -33,8 +36,9 @@ import static com.tangosol.util.Base.azzert;
  *
  * @author as  2010.09.09
  */
+@SuppressWarnings("rawtypes")
 public class ExtractorComparator<T>
-        implements Comparator<T>, ExternalizableLite, PortableObject
+        implements QueryMapComparator<T>, ExternalizableLite, PortableObject
     {
     // ---- constructors ----------------------------------------------------
 
@@ -72,24 +76,22 @@ public class ExtractorComparator<T>
     @Override
     public int compare(T o1, T o2)
         {
-        Comparable a1 = o1 instanceof InvocableMap.Entry
-                        ? ((InvocableMap.Entry<?, ?>) o1).extract(m_extractor)
+        Comparable a1 = o1 instanceof Map.Entry
+                        ? InvocableMapHelper.extractFromEntry(m_extractor, (Map.Entry) o1)
                         : m_extractor.extract(o1);
-        Comparable a2 = o2 instanceof InvocableMap.Entry
-                        ? ((InvocableMap.Entry<?, ?>) o2).extract(m_extractor)
+        Comparable a2 = o2 instanceof Map.Entry
+                        ? InvocableMapHelper.extractFromEntry(m_extractor, (Map.Entry) o2)
                         : m_extractor.extract(o2);
 
-        if (a1 == null)
-            {
-            return a2 == null ? 0 : -1;
-            }
+        return SafeComparator.compareSafe(null, a1, a2);
+        }
 
-        if (a2 == null)
-            {
-            return +1;
-            }
+    public int compareEntries(QueryMap.Entry entry1, QueryMap.Entry entry2)
+        {
+        Comparable c1 = InvocableMapHelper.extractFromEntry(m_extractor, entry1);
+        Comparable c2 = InvocableMapHelper.extractFromEntry(m_extractor, entry2);
 
-        return a1.compareTo(a2);
+        return SafeComparator.compareSafe(null, c1, c2);
         }
 
     // ---- ExternalizableLite implementation -------------------------------
