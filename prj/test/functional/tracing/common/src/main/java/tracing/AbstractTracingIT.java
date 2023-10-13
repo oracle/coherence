@@ -10,6 +10,7 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.common.internal.util.HeapDump;
 import com.tangosol.internal.tracing.TracingHelper;
 
 import com.tangosol.net.CacheFactory;
@@ -20,6 +21,8 @@ import com.tangosol.util.Base;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 import com.oracle.coherence.testing.AbstractTestInfrastructure;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 
@@ -128,6 +131,34 @@ public class AbstractTracingIT
         if (m_origProperties != null)
             {
             System.setProperties(m_origProperties);
+            }
+        }
+
+    /**
+     * Initiates a heap dump on the target {@link CoherenceClusterMember}.
+     *
+     * @param member  the {@link CoherenceClusterMember}
+     */
+    public static void heapdump(CoherenceClusterMember member)
+        {
+        if (member != null && member.getLocalMemberId() > 0)
+            {
+            String sDir = System.getProperty("test.project.dir");
+
+            if (sDir == null || sDir.isEmpty())
+                {
+                try
+                    {
+                    sDir = new java.io.File(".").getCanonicalPath();
+                    }
+                catch (IOException ignored)
+                    {
+                    }
+                }
+
+            final String sPath = sDir;
+            member.submit(()-> CacheFactory.log("Dumping heap for analysis here : \n" +
+                                                HeapDump.dumpHeap(sPath + File.separatorChar + "target", true)));
             }
         }
 

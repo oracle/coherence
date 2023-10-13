@@ -255,9 +255,17 @@ public abstract class AbstractJmxConfigurationIT
      */
     protected void checkTracingStatusOnMember(CoherenceClusterMember member, boolean fExpectedStatus)
         {
-        Eventually.assertDeferred(() -> member.invoke(
+        try
+            {
+            Eventually.assertDeferred(() -> member.invoke(
                 (RemoteCallable<Boolean>) TracingHelper::isEnabled),
                                   is(fExpectedStatus));
+            }
+        catch (AssertionError e)
+            {
+            heapdump(member);
+            throw e;
+            }
         }
 
     /**
@@ -269,7 +277,15 @@ public abstract class AbstractJmxConfigurationIT
      */
     protected void checkTracingJMXAttribute(MBeanServer server, CoherenceClusterMember member, float fExpectedValue)
         {
-        Eventually.assertDeferred(() -> getTracingConfigurationForMember(server, member), is(fExpectedValue));
+        try
+            {
+            Eventually.assertDeferred(() -> getTracingConfigurationForMember(server, member), is(fExpectedValue));
+            }
+        catch (AssertionError e)
+            {
+            heapdump(member);
+            throw e;
+            }
         }
 
     /**
