@@ -462,7 +462,7 @@ public class ViewMap
                 com.tangosol.util.InvocableMap.ParallelAwareAggregator aggregator = (com.tangosol.util.InvocableMap.ParallelAwareAggregator) agent;
 
                 return resultParallel(aggregator,
-                                      aggregatePart(filter, aggregator.getParallelAggregator(), partitions, taskHolder, false));
+                                      aggregatePart(filter, aggregator.getParallelAggregator(), partitions, taskHolder));
                 }
 
             return agent.aggregate(com.tangosol.util.InvocableMapHelper.makeEntrySet(entrySet(filter)));
@@ -611,7 +611,7 @@ public class ViewMap
         return null;
         }
 
-    protected java.util.List aggregatePart(com.tangosol.util.Filter filter, com.tangosol.util.InvocableMap.EntryAggregator aggregator, com.tangosol.net.partition.PartitionSet partitions, com.tangosol.net.PriorityTask taskHolder, boolean fByPartition)
+    protected java.util.List aggregatePart(com.tangosol.util.Filter filter, com.tangosol.util.InvocableMap.EntryAggregator aggregator, com.tangosol.net.partition.PartitionSet partitions, com.tangosol.net.PriorityTask taskHolder)
         {
         // import com.tangosol.util.Binary;
         // import java.util.List;
@@ -626,8 +626,8 @@ public class ViewMap
                           : (Binary) getValueToBinaryConverter().convert(aggregator);
 
         return partitions == null
-               ? (List) mapBinary.aggregate(filter, binAgent, taskHolder, fByPartition)
-               : (List) mapBinary.aggregate(filter, binAgent, partitions, taskHolder, fByPartition);
+               ? (List) mapBinary.aggregate(filter, binAgent, taskHolder)
+               : (List) mapBinary.aggregate(filter, binAgent, partitions, taskHolder);
         }
 
     protected java.util.List aggregatePart(java.util.Collection colKeys, com.tangosol.util.InvocableMap.EntryAggregator aggregator, com.tangosol.net.PriorityTask taskHolder)
@@ -680,58 +680,33 @@ public class ViewMap
                 & (com.tangosol.util.InvocableMap.StreamingAggregator.PARALLEL | com.tangosol.util.InvocableMap.StreamingAggregator.SERIAL | com.tangosol.util.InvocableMap.StreamingAggregator.BY_MEMBER | com.tangosol.util.InvocableMap.StreamingAggregator.BY_PARTITION))
             {
             case (com.tangosol.util.InvocableMap.StreamingAggregator.SERIAL):
-            case (com.tangosol.util.InvocableMap.StreamingAggregator.SERIAL | com.tangosol.util.InvocableMap.StreamingAggregator.BY_MEMBER):
-            {
-            Map mapByOwner = getService().splitByOwner(partitions, 0, null);
-
-            aggregator = aggregator.supply();
-
-            for (Iterator iter = mapByOwner.values().iterator(); iter.hasNext();)
                 {
-                PartitionSet partMember = (PartitionSet) iter.next();
+                Map mapByOwner = getService().splitByOwner(partitions, 0, null);
 
-                if (!streamingCombine(aggregator,
-                                      aggregatePart(filter, aggregator, partMember, taskHolder, false)))
+                aggregator = aggregator.supply();
+
+                for (Iterator iter = mapByOwner.values().iterator(); iter.hasNext();)
                     {
-                    break;
+                    PartitionSet partMember = (PartitionSet) iter.next();
+
+                    if (!streamingCombine(aggregator,
+                                          aggregatePart(filter, aggregator, partMember, taskHolder)))
+                        {
+                        break;
+                        }
                     }
                 }
-            }
-            break;
-
-            case (com.tangosol.util.InvocableMap.StreamingAggregator.SERIAL | com.tangosol.util.InvocableMap.StreamingAggregator.BY_PARTITION):
-            {
-            PartitionSet partSingle = new PartitionSet(partitions.getPartitionCount());
-
-            aggregator = aggregator.supply();
-
-            while (!partitions.isEmpty())
-                {
-                int nPart = partitions.rnd();
-
-                partitions.remove(nPart);
-                partSingle.add(nPart);
-
-                if (!streamingCombine(aggregator,
-                                      aggregatePart(filter, aggregator, partSingle, taskHolder, true)))
-                    {
-                    break;
-                    }
-                partSingle.remove(nPart);
-                }
-            }
             break;
 
             case (com.tangosol.util.InvocableMap.StreamingAggregator.PARALLEL):
             default:
-            {
-            List listBinParts = aggregatePart(filter, aggregator, partitions, taskHolder,
-                                              (aggregator.characteristics() & com.tangosol.util.InvocableMap.StreamingAggregator.BY_PARTITION) == com.tangosol.util.InvocableMap.StreamingAggregator.BY_PARTITION);
+                {
+                List listBinParts = aggregatePart(filter, aggregator, partitions, taskHolder);
 
-            aggregator = aggregator.supply();
+                aggregator = aggregator.supply();
 
-            streamingCombine(aggregator, listBinParts);
-            }
+                streamingCombine(aggregator, listBinParts);
+                }
             }
 
         return resultStreaming(aggregator);
@@ -1490,7 +1465,7 @@ public class ViewMap
             if (asyncProc == null)
                 {
                 return ConverterCollections.getMap(
-                        mapBinary.invokeAll(filter, binAgent, partitions, taskHolder, false),
+                        mapBinary.invokeAll(filter, binAgent, partitions, taskHolder),
                         convUp, convKeyDown, convUp, getValueToBinaryConverter());
                 }
             else
