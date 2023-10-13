@@ -5460,8 +5460,8 @@ public class PartitionedCache
                     // query on the filter to find and lock matching entries
                     QueryResult result = storage.query(msgRequest.getFilter(), Storage.QUERY_INVOKE, partMask);
         
-                    aoStatus = result.aoResult;
-                    cEntries = result.cResults;
+                    aoStatus = result.getResults();
+                    cEntries = result.getCount();
         
                     // invoke the entry processor on the matching entries
                     storage.invokeAll(ctxInvoke, aoStatus, 0, cEntries, agent);
@@ -5721,8 +5721,8 @@ public class PartitionedCache
         
             QueryResult result = storage.query(null, Storage.QUERY_KEYS, partMask);
         
-            msgResponse.setResult(result.aoResult);
-            msgResponse.setSize(result.cResults);
+            msgResponse.setResult(result.getResults());
+            msgResponse.setSize(result.getCount());
             msgResponse.setRejectPartitions(partReject);
             }
         catch (Throwable e)
@@ -7089,8 +7089,8 @@ public class PartitionedCache
                     fKeySet ? Storage.QUERY_KEYS : Storage.QUERY_ENTRIES, partMask);
         
             msgResponse.setKeysOnly(fKeySet);
-            msgResponse.setResult(result.aoResult);
-            msgResponse.setSize(result.cResults);
+            msgResponse.setResult(result.getResults());
+            msgResponse.setSize(result.getCount());
             msgResponse.setRejectPartitions(partReject);
         
             if (filter instanceof LimitFilter)

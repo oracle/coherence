@@ -451,7 +451,7 @@ public class BinaryMap
             }
         }
 
-    public Object aggregate(com.tangosol.util.Filter filter, com.tangosol.util.Binary binAgent, com.tangosol.net.partition.PartitionSet partitions, com.tangosol.net.PriorityTask task, boolean fByPartition)
+    public Object aggregate(com.tangosol.util.Filter filter, com.tangosol.util.Binary binAgent, com.tangosol.net.partition.PartitionSet partitions, com.tangosol.net.PriorityTask task)
         {
         // import Component.Net.RequestContext as com.tangosol.coherence.component.net.RequestContext;
         // import com.tangosol.net.RequestTimeoutException;
@@ -469,9 +469,7 @@ public class BinaryMap
             msg.setAggregatorBinary(binAgent);
             msg.copyPriorityAttributes(task);
 
-            return mergePartialResponse(fByPartition
-                                        ? sendPartitionedRequestByPartition(msg, partitions, false)
-                                        : sendPartitionedRequestByMember(msg, partitions, false));
+            return mergePartialResponse(sendPartitionedRequest(msg, partitions, false));
             }
         catch (RequestTimeoutException e)
             {
@@ -483,9 +481,9 @@ public class BinaryMap
             }
         }
 
-    public Object aggregate(com.tangosol.util.Filter filter, com.tangosol.util.Binary binAgent, com.tangosol.net.PriorityTask task, boolean fByPartition)
+    public Object aggregate(com.tangosol.util.Filter filter, com.tangosol.util.Binary binAgent, com.tangosol.net.PriorityTask task)
         {
-        return aggregate(filter, binAgent, makePartitionSet(), task, fByPartition);
+        return aggregate(filter, binAgent, makePartitionSet(), task);
         }
 
     // From interface: com.tangosol.net.NamedCache
@@ -574,12 +572,8 @@ public class BinaryMap
 
         context.setPartitionSet(partitions);
 
-        boolean fByPartition = asyncAggr != null && (asyncAggr.getAggregator().characteristics() & StreamingAggregator.PARALLEL)
-                                                    == StreamingAggregator.PARALLEL;
-
-        boolean fSubmitted = fByPartition
-                             ? coordinator.submitPartialRequestByPartition(msg, partitions, /*fRepeat*/false)
-                             : coordinator.submitPartialRequest(msg, partitions, /*fRepeat*/false);
+        boolean fSubmitted = coordinator.submitPartialRequest(msg, partitions, /*fRepeat*/false);
+        
         if (fSubmitted)
             {
             if (!NonBlocking.isNonBlockingCaller())
@@ -732,7 +726,7 @@ public class BinaryMap
             msg.setCacheId(getCacheId());
 
             mergePartialResponse(
-                    sendPartitionedRequestByMember(msg, makePartitionSet(), false));
+                    sendPartitionedRequest(msg, makePartitionSet(), false));
             }
         catch (RequestTimeoutException e)
             {
@@ -845,7 +839,7 @@ public class BinaryMap
                 {
                 // we don't care about the responses, just that the request completes
                 mergePartialResponse(
-                        sendPartitionedRequestByMember(msg, makePartitionSet(), true));
+                        sendPartitionedRequest(msg, makePartitionSet(), true));
                 }
             catch (RequestPolicyException e)
                 {
@@ -1009,7 +1003,7 @@ public class BinaryMap
         List listResponse;
         try
             {
-            listResponse = sendPartitionedRequestByMember(msg, makePartitionSet(), false);
+            listResponse = sendPartitionedRequest(msg, makePartitionSet(), false);
             }
         catch (RequestTimeoutException e)
             {
@@ -2026,7 +2020,7 @@ public class BinaryMap
     /**
      * Note: the passed-in PartitionSet will be changed.
      */
-    public java.util.Map invokeAll(com.tangosol.util.Filter filter, com.tangosol.util.Binary binAgent, com.tangosol.net.partition.PartitionSet partitions, com.tangosol.net.PriorityTask task, boolean fByPartition)
+    public java.util.Map invokeAll(com.tangosol.util.Filter filter, com.tangosol.util.Binary binAgent, com.tangosol.net.partition.PartitionSet partitions, com.tangosol.net.PriorityTask task)
         {
         // import Component.Net.RequestContext as com.tangosol.coherence.component.net.RequestContext;
         // import com.tangosol.net.RequestTimeoutException;
@@ -2045,9 +2039,7 @@ public class BinaryMap
 
             try
                 {
-                return mergePartialMapResponse(fByPartition
-                                               ? sendPartitionedRequestByPartition(msg, partitions, false)
-                                               : sendPartitionedRequestByMember(msg, partitions, false));
+                return mergePartialMapResponse(sendPartitionedRequest(msg, partitions, false));
                 }
             catch (RequestTimeoutException e)
                 {
@@ -3479,7 +3471,7 @@ public class BinaryMap
                 msg.copyPriorityAttributes((PriorityTask) filter);
                 }
 
-            return sendPartitionedRequestByMember(msg, partitions, false);
+            return sendPartitionedRequest(msg, partitions, false);
             }
         finally
             {
@@ -4200,7 +4192,7 @@ public class BinaryMap
      *
      * Note: the passed-in PartitionSet will be changed.
      */
-    protected java.util.List sendPartitionedRequestByMember(com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.PartialRequest msgRequest, com.tangosol.net.partition.PartitionSet partitions, boolean fInternal)
+    protected java.util.List sendPartitionedRequest(com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.PartialRequest msgRequest, com.tangosol.net.partition.PartitionSet partitions, boolean fInternal)
         {
         // import Component.Net.Member as com.tangosol.coherence.component.net.Member;
         // import Component.Net.MemberSet.SingleMemberSet;
@@ -4301,169 +4293,6 @@ public class BinaryMap
                         msgRequest.setPartitions(partitions);
 
                         aMsg[iMsg] = msgRequest;
-                        }
-
-                    // post msg to ourself last to avoid processing said message (accelerated
-                    // path) prior to serializing messages to remote members; any
-                    // references to the same object across messages could be mutated
-                    // if message processing is accelerated (COH-18092)
-                    if (iMsgThis != -1)
-                        {
-                        com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.PartialRequest msgSwap = aMsg[cMsgs - 1];
-
-                        aMsg[cMsgs - 1] = aMsg[iMsgThis];
-                        aMsg[iMsgThis]  = msgSwap;
-                        }
-
-                    try
-                        {
-                        // Note: checkTimeoutRemaining will throw if the request timeout has passed
-                        service.poll(aMsg, msgRequest.checkTimeoutRemaining());
-                        }
-                    catch (RequestTimeoutException e)
-                        {
-                        e.setPartialResult(listParts);
-                        throw e;
-                        }
-                    }
-
-                if (partitions.isEmpty())
-                    {
-                    break;
-                    }
-
-                if (!fInternal)
-                    {
-                    reportRepeat(msgRequest.get_Name(), 0, 0, partitions);
-                    }
-
-                com.tangosol.coherence.component.net.RequestContext context = msgRequest.getRequestContext();
-                if (context != null)
-                    {
-                    context.setOldestPendingSUID(service.getOldestPendingRequestSUID());
-                    }
-                }
-
-            return listParts;
-            }
-        finally
-            {
-            clearStatus(status);
-            }
-        }
-
-    /**
-     * Send the specified partitioned request to all the storage enabled
-     * service members that own any of the specified partitions.
-     *
-     * @param msgRequest    the partitioned request to send
-     * @param partitions         the set of partitions to send the request
-     * to
-     * @param fInternal           true iff the request is "internal"; false
-     * if the request is a direct result of a client call to the
-     *                                          NamedCache API
-     *
-     * Note: the passed-in PartitionSet will be changed.
-     */
-    protected java.util.List sendPartitionedRequestByPartition(com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.PartialRequest msgRequest, com.tangosol.net.partition.PartitionSet partitions, boolean fInternal)
-        {
-        // import Component.Net.Member as com.tangosol.coherence.component.net.Member;
-        // import Component.Net.MemberSet.SingleMemberSet;
-        // import Component.Net.Message.RequestMessage.DistributedCacheRequest.PartialRequest as com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.PartialRequest;
-        // import Component.Net.RequestContext as com.tangosol.coherence.component.net.RequestContext;
-        // import com.tangosol.net.partition.PartitionSet;
-        // import com.tangosol.net.RequestTimeoutException;
-        // import com.tangosol.util.LiteMap;
-        // import java.util.HashMap;
-        // import java.util.HashSet;
-        // import java.util.Iterator;
-        // import java.util.LinkedList;
-        // import java.util.List;
-        // import java.util.Map;
-        // import java.util.Map$Entry as java.util.Map.Entry;
-        // import java.util.Set;
-
-        List listParts = new LinkedList();
-        if (partitions.isEmpty())
-            {
-            return listParts;
-            }
-
-        BinaryMap.PartialRequestStatus status = null;
-        try
-            {
-            PartitionedCache service = getService();
-            boolean fClone  = false;
-
-            while (true)
-                {
-                status = ensureRequestTarget(partitions, status, msgRequest);
-                if (status.isTargetMissing())
-                    {
-                    return listParts;
-                    }
-
-                if (partitions.cardinality() == 1)
-                    {
-                    if (fClone)
-                        {
-                        msgRequest = (com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.PartialRequest) msgRequest.cloneMessage();
-                        }
-                    else
-                        {
-                        // allow the very first message to use the original message instance
-                        fClone = true;
-                        }
-
-                    com.tangosol.coherence.component.net.Member       member     = (com.tangosol.coherence.component.net.Member)       service.getPartitionOwner(partitions.next(0));
-                    PartitionSet partMember = new PartitionSet(partitions);
-
-                    msgRequest.setToMemberSet(SingleMemberSet.instantiate(member));
-                    msgRequest.setRequestMask(partMember);
-                    msgRequest.setPartitions(partitions);
-
-                    Object oResult = service.poll(msgRequest);
-                    if (oResult != null)
-                        {
-                        listParts.add(oResult);
-                        }
-                    }
-                else
-                    {
-                    // prepare and send a poll to each partition
-                    int       cMsgs      = partitions.cardinality();
-                    com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.PartialRequest[] aMsg       = new com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.PartialRequest[cMsgs];
-                    com.tangosol.coherence.component.net.Member    memberThis = service.getThisMember();
-                    int       iMsgThis   = -1;
-
-                    for (int iMsg = 0, nPart = partitions.next(0); iMsg < cMsgs; iMsg++)
-                        {
-                        com.tangosol.coherence.component.net.Member       member     = (com.tangosol.coherence.component.net.Member)       service.getPartitionOwner(nPart);
-                        PartitionSet partMember = new PartitionSet(partitions.getPartitionCount());
-                        partMember.add(nPart);
-
-                        if (member == memberThis)
-                            {
-                            iMsgThis = iMsg;
-                            }
-
-                        if (fClone)
-                            {
-                            msgRequest = (com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.PartialRequest) msgRequest.cloneMessage();
-                            }
-                        else
-                            {
-                            // allow the very first message to use the original message instance
-                            fClone = true;
-                            }
-
-                        msgRequest.setToMemberSet(SingleMemberSet.instantiate(member));
-                        msgRequest.setRequestMask(partMember);
-                        msgRequest.setPartResults(listParts);
-                        msgRequest.setPartitions(partitions);
-
-                        aMsg[iMsg] = msgRequest;
-                        nPart = partitions.next(nPart + 1);
                         }
 
                     // post msg to ourself last to avoid processing said message (accelerated
@@ -4692,7 +4521,7 @@ public class BinaryMap
         List listResponse;
         try
             {
-            listResponse = sendPartitionedRequestByMember(msg, makePartitionSet(), false);
+            listResponse = sendPartitionedRequest(msg, makePartitionSet(), false);
             }
         catch (RequestTimeoutException e)
             {
@@ -4748,7 +4577,7 @@ public class BinaryMap
             msg.setTruncate(true);
 
             mergePartialResponse(
-                    sendPartitionedRequestByMember(msg, makePartitionSet(), false));
+                    sendPartitionedRequest(msg, makePartitionSet(), false));
             }
         catch (RequestTimeoutException e)
             {

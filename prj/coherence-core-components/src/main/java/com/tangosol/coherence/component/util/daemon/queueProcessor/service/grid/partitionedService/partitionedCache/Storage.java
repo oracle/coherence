@@ -1210,14 +1210,14 @@ public class Storage
                 partMask.remove(nProbePart);
 
                 QueryResult result = query(filter, QUERY_AGGREGATE, partQuery);
-                Object[]    aEntry = result.aoResult;
+                Object[]    aEntry = result.getResults();
 
                 // since keys are always stored on-heap and seldom deserialized during
                 // aggregation there is no need to account for them, we just accumulate
                 // the size of the values
                 cbPart = 1;
 
-                int cEntries = result.cResults;
+                int cEntries = result.getCount();
                 for (int i = 0; i < cEntries; i++)
                     {
                     Binary binValue = ((BinaryEntry) aEntry[i]).getBinaryValue();
@@ -1260,7 +1260,7 @@ public class Storage
                     QueryResult result = query(filter, QUERY_AGGREGATE, partQuery);
 
                     Object oResult = agent.aggregate(
-                            new ImmutableArrayList(result.aoResult, 0, result.cResults).getSet());
+                            new ImmutableArrayList(result.getResults(), 0, result.getCount()).getSet());
 
                     listResult.add(fPartial ? oResult : converter.convert(oResult));
 
@@ -1357,13 +1357,8 @@ public class Storage
         // import com.tangosol.util.filter.IndexAwareFilter;
         // import java.util.ConcurrentModificationException;
 
-        QueryResult result = new QueryResult();
-
-        // common case optimization
-        if (AlwaysFilter.INSTANCE.equals(filter))
-            {
-            filter = null;
-            }
+        Object[]  aoResult        = null;
+        Filter<?> filterRemaining = filter;
 
         if (filter instanceof IndexAwareFilter)
             {
@@ -1376,10 +1371,10 @@ public class Storage
 
                 // now that we typically query by partition, optimize for a situation
                 // when there are no entries in the partition
-                result.filterRemaining = setKeys.isEmpty()
+                filterRemaining = setKeys.isEmpty()
                                          ? null
                                          : filterIx.applyIndex(getIndexMap(partMask), setKeys);
-                result.aoResult        = setKeys.toArray();
+                aoResult        = setKeys.toArray();
                 }
             catch (ConcurrentModificationException e)
                 {
@@ -1392,8 +1387,8 @@ public class Storage
                 UnsafeSubSet setKeys = new UnsafeSubSet(
                         instantiateLazyKeySet(partMask, true), getManagerContext(), partMask);
 
-                result.filterRemaining = filterIx.applyIndex(getIndexMap(partMask), setKeys);
-                result.aoResult        = setKeys.toArray();
+                filterRemaining = filterIx.applyIndex(getIndexMap(partMask), setKeys);
+                aoResult        = setKeys.toArray();
                 }
             catch (Throwable e)
                 {
@@ -1401,12 +1396,8 @@ public class Storage
                 rethrow(e);
                 }
             }
-        else
-            {
-            result.filterRemaining = filter;
-            }
 
-        return result;
+        return new QueryResult(partMask, aoResult, aoResult == null ? 0 : aoResult.length, filterRemaining);
         }
 
     /**
@@ -2423,15 +2414,15 @@ public class Storage
 
         long lVersion = getVersion().getCommittedVersion();
 
-        QueryResult result = applyIndex(filter, partMask);
+        QueryResult result = query(filter, QUERY_AGGREGATE, partMask);
 
-        Object[] aoKeys = result.aoResult;
+        Object[] aoKeys = result.getResults();
 
         if (aoKeys == null)
             {
             Scanner scanner = (Scanner) _newChild("Scanner");
 
-            scanner.setFilter(result.filterRemaining);
+            scanner.setFilter(result.getFilterRemaining());
             scanner.setPartitions(partMask);
             scanner.setReuseAllowed((nCharacteristics & com.tangosol.util.InvocableMap.StreamingAggregator.RETAINS_ENTRIES) == 0);
 
@@ -2443,7 +2434,7 @@ public class Storage
 
             advancer.setIterator(new SimpleEnumerator(aoKeys));
             advancer.setSize(aoKeys.length);
-            advancer.setFilter(result.filterRemaining);
+            advancer.setFilter(result.getFilterRemaining());
             advancer.setFilterOriginal(filter);
             advancer.setVersion(lVersion);
             advancer.setPresentOnly(true); // filter-based aggregation uses only "present" entries
@@ -7946,28 +7937,13 @@ public class Storage
                 invokeAll(aTasks);
 
                 QueryResult[] aPartResults = new QueryResult[aTasks.length];
-                int cResults = 0;
                 for (int i = 0; i < aTasks.length; i++)
                     {
                     QueryResult result = aTasks[i].join();
                     aPartResults[i] = result;
-                    cResults += result.cResults;
                     }
 
-                // collect partition-level results into a single result array
-                Object[] aoResult = new Object[cResults];
-                int of = 0;
-                for (QueryResult resultPart : aPartResults)
-                    {
-                    int cPartResults = resultPart.cResults;
-                    if (cPartResults > 0)
-                        {
-                        System.arraycopy(resultPart.aoResult, 0, aoResult, of, cPartResults);
-                        of += cPartResults;
-                        }
-                    }
-
-                return new QueryResult(aoResult, cResults, null);
+                return new QueryResult(aPartResults);
                 }
             }
 
@@ -7994,6 +7970,12 @@ public class Storage
             span.setMetadata("filter", filter.toString());
             }
 
+        // common case optimization
+        if (AlwaysFilter.INSTANCE.equals(filter))
+            {
+            filter = null;
+            }
+
         long   ldtStart    = Base.getSafeTimeMillis();
         long   lIdxVersion = nQueryType == QUERY_KEYS ? -1 : getVersion().getCommittedVersion();
         int    cTotal      = calculateSize(partMask, false); // total number of entries (before filtering); used for stats
@@ -8010,8 +7992,7 @@ public class Storage
 
             if (nQueryType == QUERY_INVOKE)
                 {
-                Object[] aoResult = result.aoResult;
-                int      cResults = result.cResults;
+                Object[] aoResult = result.getResults();
 
                 // we only have the keys from all partitions so far
                 // need to sort them, lock them, and reevaluate the filter before
@@ -8023,7 +8004,7 @@ public class Storage
                 Map mapPrime = getBackingInternalCache();
                 PartitionedCache.InvocationContext ctxInvoke = getService().getInvocationContext();
 
-                cResults = 0;
+                int cResults = 0;
 
                 // replace all valid keys with corresponding entry statuses
                 for (int i = 0, c = aoResult.length; i < c; i++)
@@ -8046,12 +8027,12 @@ public class Storage
                     }
 
                 cResults = checkIndexConsistency(filter, aoResult, cResults, nQueryType, partMask, lIdxVersion);
-                result   = new QueryResult(aoResult, cResults, null);
+                result   = new QueryResult(partMask, aoResult, cResults);
                 }
             }
 
-        updateQueryStatistics(filter, /*fOptimized*/ result.filterRemaining == null,
-                              ldtStart, cTotal, result.aoResult.length, result.cResults, nQueryType, partMask);
+        updateQueryStatistics(filter, /*fOptimized*/ result.getFilterRemaining() == null,
+                              ldtStart, cTotal, result.getResults().length, result.getCount(), nQueryType, partMask);
 
         return result;
         }
@@ -8071,14 +8052,15 @@ public class Storage
 
         QueryResult result = applyIndex(filter, partMask);
 
-        Object[] aoResult = result.aoResult; // starts as keys; could be reused for entries/statuses
+        Object[] aoResult = result.getResults(); // starts as keys; could be reused for entries/statuses
 
         if (aoResult == null)
             {
-            aoResult = result.aoResult = collectKeys(partMask);
+            aoResult = collectKeys(partMask);
+            result.setResults(aoResult);
             }
 
-        filter = result.filterRemaining;
+        filter = result.getFilterRemaining();
 
         if (filterOrig instanceof LimitFilter)
             {
@@ -8108,12 +8090,11 @@ public class Storage
             aoResult = nQueryType == QUERY_KEYS || filterLimit.getComparator() == null
                        ? filterLimit.extractPage(aoResult)
                        : extractBinaryEntries(aoResult, filterLimit);
-            result.aoResult = aoResult;
-            result.cResults = aoResult.length;
+            result.setResults(aoResult);
             }
         else
             {
-            result.cResults = cResults;
+            result.setResults(aoResult, cResults);
             }
 
         return result;
@@ -8123,7 +8104,7 @@ public class Storage
      * An index query returned some keys, which is suspect to have values
      * that where during the population phase of the query. These values
      * need to be reevaluated to verify that they are still valid.
-     *
+     * <p>
      * When a consistent snapshot has been established any potential
      * sub-filter that isn't using indexes will evaluate the remaining
      * values.

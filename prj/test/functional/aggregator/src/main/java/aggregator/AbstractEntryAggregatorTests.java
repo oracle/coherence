@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -195,16 +195,19 @@ public abstract class AbstractEntryAggregatorTests
         assertEquals(nSize, 5);
 
         // now with the index
-
         cache.addIndex(IdentityExtractor.INSTANCE(), true, null);
+        try
+            {
+            nSize = cache.aggregate(new LessEqualsFilter(IdentityExtractor.INSTANCE, 5), new Count<>());
+            assertEquals(nSize, 5);
 
-        nSize = cache.aggregate(new LessEqualsFilter(IdentityExtractor.INSTANCE, 5), new Count<>());
-        assertEquals(nSize, 5);
-
-        nSize = cache.aggregate(AlwaysFilter.INSTANCE, new Count<>());
-        assertEquals(nSize, cache.size());
-
-        removeIndexFrom(cache, IdentityExtractor.INSTANCE());
+            nSize = cache.aggregate(AlwaysFilter.INSTANCE, new Count<>());
+            assertEquals(nSize, cache.size());
+            }
+        finally
+            {
+            removeIndexFrom(cache, IdentityExtractor.INSTANCE());
+            }
         }
 
     /**
@@ -955,10 +958,16 @@ public abstract class AbstractEntryAggregatorTests
         assertTrue("Result=" + listResult.get(1), equals(listResult.get(1), asLast[asLast.length - 1]) );
 
         cache.addIndex(extrFirst, true, null);
-        listResult = (List) cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertTrue("Result=" + listResult.get(0), equals(listResult.get(0), asFirst[0]));
-        assertTrue("Result=" + listResult.get(1), equals(listResult.get(1), asLast[asLast.length - 1]) );
-        removeIndexFrom(cache, extrFirst);
+        try
+            {
+            listResult = (List) cache.aggregate(AlwaysFilter.INSTANCE, agent);
+            assertTrue("Result=" + listResult.get(0), equals(listResult.get(0), asFirst[0]));
+            assertTrue("Result=" + listResult.get(1), equals(listResult.get(1), asLast[asLast.length - 1]) );
+            }
+        finally
+            {
+            removeIndexFrom(cache, extrFirst);
+            }
 
         agent = CompositeAggregator.createInstance(
             new InvocableMap.StreamingAggregator[]
@@ -1014,10 +1023,16 @@ public abstract class AbstractEntryAggregatorTests
         assertTrue("Result=" + listResult.get(1), equals(listResult.get(1), setLast) );
 
         cache.addIndex(extrFirst, true, null);
-        listResult = (List) cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertTrue("Result=" + listResult.get(0), equals(listResult.get(0), setFirst));
-        assertTrue("Result=" + listResult.get(1), equals(listResult.get(1), setLast) );
-        removeIndexFrom(cache, extrFirst);
+        try
+            {
+            listResult = (List) cache.aggregate(AlwaysFilter.INSTANCE, agent);
+            assertTrue("Result=" + listResult.get(0), equals(listResult.get(0), setFirst));
+            assertTrue("Result=" + listResult.get(1), equals(listResult.get(1), setLast) );
+            }
+        finally
+            {
+            removeIndexFrom(cache, extrFirst);
+            }
 
         cache.clear();
         Eventually.assertThat(cache.size(), is(0));
@@ -1127,21 +1142,31 @@ public abstract class AbstractEntryAggregatorTests
 
         Trade.fillRandom(cache, 1000);
 
-        Map mapResult, mapTest;
-
-        for (int i = 0, c = aAgent.length; i < c; i++)
+        Eventually.assertDeferred(() -> cache.getCacheService().isRunning(), is(true));
+        if (getCacheServerCount() > 1)
             {
-            mapResult = (Map) cache.aggregate(NullImplementation.getSet(), aAgent[i]);
-            assertTrue("Result=" + mapResult, mapResult.isEmpty());
+            waitForBalanced(cache.getCacheService());
             }
+
+        Eventually.assertDeferred(() -> cache.size(), is(1000));
 
         NamedCache cacheTest = new WrapperNamedCache(new LocalCache(), "test");
         cacheTest.putAll(cache);
+        Eventually.assertDeferred(() -> cacheTest.size(), is(1000));
 
         for (int i = 0, c = aAgent.length; i < c; i++)
             {
-            mapResult = (Map) cache.aggregate((Filter) null, aAgent[i]);
-            mapTest   = (Map) cacheTest.aggregate((Filter) null, aAgent[i]);
+            GroupAggregator groupAggregator = aAgent[i];
+            Eventually.assertDeferred(() -> ((Map) cache.aggregate(NullImplementation.getSet(), groupAggregator)).isEmpty(),
+                    is(true));
+            }
+
+        Map mapResult, mapTest;
+
+        for (int i = 0; i < aAgent.length; i++)
+            {
+            mapResult = (Map) cache.aggregate(aAgent[i]);
+            mapTest   = (Map) cacheTest.aggregate(aAgent[i]);
 
             // NOTE: GroupAggregator w/ Filter requires data affinity to return
             //       correct data, so the correctness check is relaxed
@@ -1150,30 +1175,36 @@ public abstract class AbstractEntryAggregatorTests
             if (!fOK)
                 {
                 fail("cache " + cache.getCacheName() + "; agent " + aAgent[i] +
-                    "; servers " + getCacheServerCount() +
+                    "; servers=" + getCacheServerCount() +
                     "; result=" + mapResult + ", test=" + mapTest);
                 }
             }
 
         cache.addIndex(new ReflectionExtractor("getSymbol"), false, null);
         cache.addIndex(new ReflectionExtractor("isOddLot"), false, null);
-        for (int i = 0, c = aAgent.length; i < c; i++)
+        try
             {
-            mapResult = (Map) cache.aggregate((Filter) null, aAgent[i]);
-            mapTest   = (Map) cacheTest.aggregate((Filter) null, aAgent[i]);
-
-            // NOTE: GroupAggregator w/ Filter requires data affinity to return
-            //       correct data, so the correctness check is relaxed
-            boolean fOK = (i == 4 && getCacheServerCount() > 1) ?
-                mapResult.keySet().containsAll(mapTest.keySet()) : mapResult.equals(mapTest);
-            if (!fOK)
+            for (int i = 0, c = aAgent.length; i < c; i++)
                 {
-                fail("cache " + cache.getCacheName() + "; agent " + aAgent[i] +
-                    "; result= " + mapResult + ", test=" + mapTest);
+                mapResult = (Map) cache.aggregate((Filter) null, aAgent[i]);
+                mapTest   = (Map) cacheTest.aggregate((Filter) null, aAgent[i]);
+
+                // NOTE: GroupAggregator w/ Filter requires data affinity to return
+                //       correct data, so the correctness check is relaxed
+                boolean fOK = (i == 4 && getCacheServerCount() > 1) ?
+                    mapResult.keySet().containsAll(mapTest.keySet()) : mapResult.equals(mapTest);
+                if (!fOK)
+                    {
+                    fail("cache " + cache.getCacheName() + "; agent " + aAgent[i] +
+                        "; result= " + mapResult + ", test=" + mapTest);
+                    }
                 }
             }
-        removeIndexFrom(cache, new ReflectionExtractor("getSymbol"));
-        removeIndexFrom(cache, new ReflectionExtractor("isOddLot"));
+        finally
+            {
+            removeIndexFrom(cache, new ReflectionExtractor("getSymbol"));
+            removeIndexFrom(cache, new ReflectionExtractor("isOddLot"));
+            }
 
         // select average(Price) group-by Symbol
         aAgent[0] = GroupAggregator.createInstance("getSymbol",
