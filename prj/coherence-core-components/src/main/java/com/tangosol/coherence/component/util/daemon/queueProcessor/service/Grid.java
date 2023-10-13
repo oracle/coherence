@@ -2618,7 +2618,7 @@ public abstract class Grid
      * @param member    the {@link com.tangosol.coherence.component.net.Member} member to check
      * @param nVersion  the encoded version to compare
      */
-    protected boolean isVersionCompatible(com.tangosol.coherence.component.net.Member member, int nVersion)
+    public boolean isVersionCompatible(com.tangosol.coherence.component.net.Member member, int nVersion)
         {
         return getClusterMemberSet().getServiceVersionInt(member.getId()) >= nVersion;
         }
@@ -2702,7 +2702,22 @@ public abstract class Grid
         return isVersionCompatible(setMembers,
             com.tangosol.coherence.component.net.memberSet.actualMemberSet.serviceMemberSet.MasterMemberSet.encodeVersion(nMajor, nMinor, nMicro, nPatchSet, nPatch));
         }
-    
+
+    public boolean isPatchCompatible(Member member, int nEncodedVersion)
+        {
+        return getClusterMemberSet().isPatchCompatible(member.getId(), nEncodedVersion);
+        }
+
+    public boolean isPatchCompatible(MemberSet setMembers, int nEncodedVersion)
+        {
+        MasterMemberSet setMaster = getClusterMemberSet();
+        if (setMembers.isEmpty())
+            {
+            return true;
+            }
+        return setMaster.isPatchCompatible(nEncodedVersion);
+        }
+
     /**
      * Check whether the specified member is welcomed by the local member.
      */

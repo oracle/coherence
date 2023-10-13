@@ -16,6 +16,7 @@ import com.tangosol.coherence.component.net.Member;
 import com.tangosol.coherence.component.net.MemberSet;
 import com.tangosol.coherence.component.net.packet.messagePacket.Directed;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ClusterService;
+import com.tangosol.internal.util.VersionHelper;
 import com.tangosol.license.LicensedObject;
 import com.tangosol.util.Base;
 
@@ -487,7 +488,7 @@ public class MasterMemberSet
             }
         return ClusterService.REJECT_SIZE; // cluster is to large
         }
-    
+
     // Declared at the super level
     public synchronized boolean remove(Object o)
         {

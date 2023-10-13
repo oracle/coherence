@@ -569,6 +569,31 @@ public abstract class ExternalizableHelper
         }
 
     /**
+     * Determine whether the sender of the content (the given DataInput)
+     * runs a version that supersedes (greater or equal to) the specified
+     * version.
+     *
+     * @param in               the DataInput to interrogate
+     * @param nEncodedVersion  the encoded version
+     *
+     * @return true iff the sender's version is greater or equal to the
+     *         specified one
+     *
+     * @throws IllegalArgumentException if the DataInput is not a {@link
+     *         WrapperBufferInput.VersionAwareBufferInput VersionAwareBufferInput}
+     */
+    public static boolean isVersionCompatible(DataInput in, int nEncodedVersion)
+        {
+        if (!(in instanceof WrapperBufferInput.VersionAwareBufferInput))
+            {
+            throw new IllegalArgumentException("Unexpected DataInput");
+            }
+
+        return ((WrapperBufferInput.VersionAwareBufferInput) in)
+                .isVersionCompatible(nEncodedVersion);
+        }
+
+    /**
      * Determine whether all the recipients of the content (the given DataOutput)
      * run versions that supersede (greater or equal to) the specified
      * version.
@@ -622,6 +647,77 @@ public abstract class ExternalizableHelper
 
         return ((WrapperBufferOutput.VersionAwareBufferOutput) out)
                 .isVersionCompatible(nYear, nMonth, nPatch);
+        }
+
+    /**
+     * Determine whether all the recipients of the content (the given DataOutput)
+     * run versions that supersede (greater or equal to) the specified
+     * version.
+     *
+     * @param out              the DataOutput to interrogate
+     * @param nEncodedVersion  the encoded version
+     *
+     * @return true iff the sender's version is greater or equal to the
+     *         specified one
+     *
+     * @throws IllegalArgumentException if the DataOutput is not a {@link
+     *         WrapperBufferOutput.VersionAwareBufferOutput VersionAwareBufferOutput}
+     */
+    public static boolean isVersionCompatible(DataOutput out, int nEncodedVersion)
+        {
+        if (!(out instanceof WrapperBufferOutput.VersionAwareBufferOutput))
+            {
+            throw new IllegalArgumentException("Unexpected DataOutput");
+            }
+
+        return ((WrapperBufferOutput.VersionAwareBufferOutput) out)
+                .isVersionCompatible(nEncodedVersion);
+        }
+
+    /**
+     * Determine whether all the sender of the content (the given DataInput)
+     * run versions that are the same version with the same or greater patch level.
+     *
+     * @param in              the DataInput to interrogate
+     * @param nEncodedVersion  the encoded version to check
+     *
+     * @return true iff the sender's version is the same with a greater or equal patch
+     *
+     * @throws IllegalArgumentException if the DataOutput is not a {@link
+     *         WrapperBufferOutput.VersionAwareBufferOutput VersionAwareBufferOutput}
+     */
+    public static boolean isPatchCompatible(DataInput in, int nEncodedVersion)
+        {
+        if (!(in instanceof WrapperBufferInput.VersionAwareBufferInput))
+            {
+            throw new IllegalArgumentException("Unexpected DataInput");
+            }
+
+        return ((WrapperBufferInput.VersionAwareBufferInput) in)
+                .isPatchCompatible(nEncodedVersion);
+        }
+
+    /**
+     * Determine whether all the recipients of the content (the given DataOutput)
+     * run versions that are the same version with the same or greater patch level.
+     *
+     * @param out              the DataOutput to interrogate
+     * @param nEncodedVersion  the encoded version to check
+     *
+     * @return true iff the recipient's version is the same with a greater or equal patch
+     *
+     * @throws IllegalArgumentException if the DataOutput is not a {@link
+     *         WrapperBufferOutput.VersionAwareBufferOutput VersionAwareBufferOutput}
+     */
+    public static boolean isPatchCompatible(DataOutput out, int nEncodedVersion)
+        {
+        if (!(out instanceof WrapperBufferOutput.VersionAwareBufferOutput))
+            {
+            throw new IllegalArgumentException("Unexpected DataOutput");
+            }
+
+        return ((WrapperBufferOutput.VersionAwareBufferOutput) out)
+                .isPatchCompatible(nEncodedVersion);
         }
 
 

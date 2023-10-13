@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net;
 
@@ -38,6 +38,16 @@ public interface MessageComponent
     public boolean isSenderCompatible(int nMajor, int nMinor, int nMicro, int nPatchSet, int nPatch);
 
     /**
+     * Determine whether the sender of the content of this BufferInput
+     * runs a version that supersedes (greater or equal to) the specified
+     * version.
+     *
+     * @return true iff the sender's version is greater or equal to the
+     *         specified one
+     */
+    public boolean isSenderCompatible(int nEncodedVersion);
+
+    /**
      * Determine whether all the recipients of the content of this BufferOutput
      * run versions that supersede (greater or equal to) the specified
      * version.
@@ -56,4 +66,34 @@ public interface MessageComponent
      *         to the specified one
      */
     public boolean isRecipientCompatible(int nMajor, int nMinor, int nMicro, int nPatchSet, int nPatch);
+
+    /**
+     * Determine whether all the recipients of the content of this BufferOutput
+     * run versions that supersede (greater or equal to) the specified
+     * version.
+     *
+     * @return true iff all the recipients' versions are greater or equal
+     *         to the specified one
+     */
+    public boolean isRecipientCompatible(int nEncodedVersion);
+
+    /**
+     * Determine whether all the sender of the content of this message
+     * run versions that are the same as the encode version with the same or a
+     * higher patch level.
+     *
+     * @return true iff all the recipients' versions are the same version with
+     *         the same or a higher patch level to the specified one
+     */
+    public boolean isSenderPatchCompatible(int nEncodedVersion);
+
+    /**
+     * Determine whether all the recipients of the content of this message
+     * run versions that are the same as the encode version with the same or a
+     * higher patch level.
+     *
+     * @return true iff all the recipients' versions are the same version with
+     *         the same or a higher patch level to the specified one
+     */
+    public boolean isRecipientPatchCompatible(int nEncodedVersion);
     }
