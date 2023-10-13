@@ -3479,9 +3479,7 @@ public class BinaryMap
                 msg.copyPriorityAttributes((PriorityTask) filter);
                 }
 
-            return fKeysOnly || filter instanceof LimitFilter
-                   ? sendPartitionedRequestByMember(msg, partitions, false)
-                   : sendPartitionedRequestByPartition(msg, partitions, false);
+            return sendPartitionedRequestByMember(msg, partitions, false);
             }
         finally
             {
