@@ -9,6 +9,7 @@ package graal;
 
 import com.tangosol.util.Extractors;
 import com.tangosol.util.Filters;
+import com.tangosol.util.Processors;
 import com.tangosol.util.ValueExtractor;
 
 import com.tangosol.util.extractor.ReflectionExtractor;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -66,30 +68,24 @@ public class ScriptExtractorTests
 
         assertNotNull(extractor);
 
-        Set<Map.Entry<String, LorCharacter>> entries = getNamedCache()
-                .entrySet(Filters.equal(extractor, "Bilbo"));
+        String sName = getNamedCache().invoke("Bilbo", Processors.extract(extractor));
 
-        assertTrue(entries.size() == 1);
-        assertTrue(entries.iterator().next().getValue().getName().equals("Bilbo"));
-        assertTrue(entries.iterator().next().getValue().getAge() == 111);
+        assertEquals("Name should be Bilbo", "Bilbo", sName);
         }
 
     /**
      * A simple test for the {@link ReflectionExtractor}.
      */
     @Test
-    public void testAgeMoreThan100Extractor()
+    public void testAgeExtractor()
         {
         ValueExtractor<LorCharacter, Integer> extractor =
                 Extractors.script("js", "AgeExtractor");
 
         assertNotNull(extractor);
 
-        Set<Map.Entry<String, LorCharacter>> entries = getNamedCache()
-                .entrySet(Filters.greaterEqual(extractor, 100));
+        int nAge = getNamedCache().invoke("Bilbo", Processors.extract(extractor));
 
-        assertTrue(entries.size() == 2);
-        Set<String> names = entries.stream().map(e -> e.getKey()).collect(Collectors.toSet());
-        assertEqualKeySet(names, Arrays.asList("Bilbo", "Galadriel").stream().collect(Collectors.toSet()));
+        assertEquals("Age should be 111", 111, nAge);
         }
     }

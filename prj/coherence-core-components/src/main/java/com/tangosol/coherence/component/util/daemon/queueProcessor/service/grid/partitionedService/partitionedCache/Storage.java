@@ -92,6 +92,7 @@ import com.tangosol.util.filter.IndexAwareFilter;
 import com.tangosol.util.filter.LimitFilter;
 import com.tangosol.util.filter.NeverFilter;
 import com.tangosol.util.filter.QueryRecorderFilter;
+import com.tangosol.util.filter.ScriptFilter;
 import com.tangosol.util.filter.WrapperQueryRecorderFilter;
 import java.io.File;
 import java.security.AccessController;
@@ -112,6 +113,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.RecursiveTask;
 import javax.security.auth.Subject;
 
 
@@ -3614,6 +3617,14 @@ public class Storage
         // import com.tangosol.util.extractor.IdentityExtractor;
 
         return (MapIndex) getIndexMap().get(IdentityExtractor.INSTANCE);
+        }
+
+    public com.tangosol.util.MapIndex getDeserializationAccelerator(int nPart)
+        {
+        // import com.tangosol.util.MapIndex;
+        // import com.tangosol.util.extractor.IdentityExtractor;
+
+        return getIndexMap(nPart).get(IdentityExtractor.INSTANCE);
         }
 
     // Accessor for the property "EntryStatusMap"
@@ -7879,12 +7890,173 @@ public class Storage
         }
 
     /**
+     * ForkJoinTask that splits the query request targeting multiple partitions into
+     * multiple tasks (one per partition) that can be executed in parallel.
+     */
+    public static class PartitionedQueryTask
+            extends RecursiveTask<QueryResult>
+        {
+        /**
+         * Construct {@link PartitionedQueryTask}.
+         *
+         * @param storage      the Storage instance to query
+         * @param filter       the Filter to evaluate
+         * @param nQueryType   the query type; one of QUERY_* constants
+         * @param parts        the set of partitions to query
+         * @param lIdxVersion  the index version
+         */
+        public PartitionedQueryTask(Storage storage, Filter filter, int nQueryType, PartitionSet parts, long lIdxVersion)
+            {
+            f_storage     = storage;
+            f_filter      = filter;
+            f_nQueryType  = nQueryType;
+            f_parts = parts;
+            f_lIdxVersion = lIdxVersion;
+            }
+
+        @Override
+        protected QueryResult compute()
+            {
+            if (f_parts.cardinality() == 1)
+                {
+                return f_storage.query(f_filter, f_nQueryType == QUERY_INVOKE ? QUERY_KEYS : f_nQueryType, f_parts, f_lIdxVersion);
+                }
+            else
+                {
+                PartitionSet partMask = f_parts;
+
+                PartitionedQueryTask[] aTasks = new PartitionedQueryTask[partMask.cardinality()];
+                int nPos = 0;
+                for (int nPart : partMask)
+                    {
+                    PartitionSet part = new PartitionSet(partMask.getPartitionCount(), nPart);
+
+                    // query each partition to find the matching entries
+                    //
+                    // for QUERY_INVOKE, let's get the candidate keys first without the need
+                    // for InvocationContext (so we can do it in parallel), and then we'll
+                    // post-process them on this thread, using current InvocationContext
+                    aTasks[nPos++] = new PartitionedQueryTask(f_storage,
+                                                              f_filter,
+                                                              f_nQueryType == QUERY_INVOKE ? QUERY_KEYS : f_nQueryType,
+                                                              part,
+                                                              f_lIdxVersion);
+                    }
+
+                invokeAll(aTasks);
+
+                QueryResult[] aPartResults = new QueryResult[aTasks.length];
+                int cResults = 0;
+                for (int i = 0; i < aTasks.length; i++)
+                    {
+                    QueryResult result = aTasks[i].join();
+                    aPartResults[i] = result;
+                    cResults += result.cResults;
+                    }
+
+                // collect partition-level results into a single result array
+                Object[] aoResult = new Object[cResults];
+                int of = 0;
+                for (QueryResult resultPart : aPartResults)
+                    {
+                    int cPartResults = resultPart.cResults;
+                    if (cPartResults > 0)
+                        {
+                        System.arraycopy(resultPart.aoResult, 0, aoResult, of, cPartResults);
+                        of += cPartResults;
+                        }
+                    }
+
+                return new QueryResult(aoResult, cResults, null);
+                }
+            }
+
+        // ---- data members ------------------------------------------------
+
+        private final Storage f_storage;
+        private final Filter f_filter;
+        private final int f_nQueryType;
+        private final PartitionSet f_parts;
+        private final long f_lIdxVersion;
+        }
+
+    /**
      * Called on the service or a daemon pool thread.
      *
-     * @param nType  one of the QUERY_* values
-     * @param partMask  partitionSet that all keys should belong to
+     * @param nQueryType  one of the QUERY_* values
+     * @param partMask    partitionSet that all keys should belong to
      */
     public com.tangosol.internal.util.QueryResult query(com.tangosol.util.Filter filter, int nQueryType, com.tangosol.net.partition.PartitionSet partMask)
+        {
+        Span span = TracingHelper.getActiveSpan();
+        if (!TracingHelper.isNoop(span) && filter != null)
+            {
+            span.setMetadata("filter", filter.toString());
+            }
+
+        long   ldtStart    = Base.getSafeTimeMillis();
+        long   lIdxVersion = nQueryType == QUERY_KEYS ? -1 : getVersion().getCommittedVersion();
+        int    cTotal      = calculateSize(partMask, false); // total number of entries (before filtering); used for stats
+
+        QueryResult result;
+
+        if (partMask.cardinality() == 1 || filter instanceof LimitFilter || filter instanceof ScriptFilter)
+            {
+            result = query(filter, nQueryType, partMask, lIdxVersion);
+            }
+        else
+            {
+            result = ForkJoinPool.commonPool().invoke(new PartitionedQueryTask(this, filter, nQueryType, partMask, lIdxVersion));
+
+            if (nQueryType == QUERY_INVOKE)
+                {
+                Object[] aoResult = result.aoResult;
+                int      cResults = result.cResults;
+
+                // we only have the keys from all partitions so far
+                // need to sort them, lock them, and reevaluate the filter before
+                // replacing them with EntryStatus instances and returning to the caller
+
+                // sort the keys prior to locking to avoid deadlock
+                Arrays.sort(aoResult, SafeComparator.INSTANCE);
+
+                Map mapPrime = getBackingInternalCache();
+                PartitionedCache.InvocationContext ctxInvoke = getService().getInvocationContext();
+
+                cResults = 0;
+
+                // replace all valid keys with corresponding entry statuses
+                for (int i = 0, c = aoResult.length; i < c; i++)
+                    {
+                    Binary binKey = (Binary) aoResult[i];
+                    Binary binValue = null;
+                    EntryStatus status = ctxInvoke.lockEntry(this, binKey, false);
+
+                    BinaryEntry entry = status.getBinaryEntry();
+                    entry.setBinaryValue((Binary) mapPrime.get(binKey));
+                    if (filter == null || InvocableMapHelper.evaluateEntry(filter, entry))
+                        {
+                        aoResult[cResults++] = status;
+                        }
+
+                    if ((i & 0x3FF) == 0x3FF)
+                        {
+                        getService().checkInterrupt();
+                        }
+                    }
+
+                cResults = checkIndexConsistency(filter, aoResult, cResults, nQueryType, partMask, lIdxVersion);
+                result   = new QueryResult(aoResult, cResults, null);
+                }
+            }
+
+        updateQueryStatistics(filter, /*fOptimized*/ result.filterRemaining == null,
+                              ldtStart, cTotal, result.aoResult.length, result.cResults, nQueryType, partMask);
+
+        return result;
+        }
+
+    public com.tangosol.internal.util.QueryResult query(com.tangosol.util.Filter filter, int nQueryType, com.tangosol.net.partition.PartitionSet partMask, long lIdxVersion)
         {
         // import com.tangosol.internal.util.QueryResult;
         // import com.tangosol.internal.tracing.Span;
@@ -7895,41 +8067,21 @@ public class Storage
         // import com.tangosol.util.filter.LimitFilter;
         // import java.util.Arrays;
 
-        Span span = TracingHelper.getActiveSpan();
-        if (!TracingHelper.isNoop(span) && filter != null)
-            {
-            span.setMetadata("filter", filter.toString());
-            }
-
-        Filter filterOrig  = filter;
-        long   ldtStart    = Base.getSafeTimeMillis();
-        long   lIdxVersion = -1;
-
-        if (nQueryType != QUERY_KEYS)
-            {
-            lIdxVersion = getVersion().getCommittedVersion();
-            }
+        Filter filterOrig = filter;
 
         QueryResult result = applyIndex(filter, partMask);
 
         Object[] aoResult = result.aoResult; // starts as keys; could be reused for entries/statuses
-        int      cTotal;                     // total number of entries (before filtering); used for stats
 
         if (aoResult == null)
             {
             aoResult = result.aoResult = collectKeys(partMask);
-            cTotal   = aoResult.length;
-            }
-        else
-            {
-            cTotal = calculateSize(partMask, false);
             }
 
         filter = result.filterRemaining;
 
-        if (nQueryType == QUERY_INVOKE || filterOrig instanceof LimitFilter)
+        if (filterOrig instanceof LimitFilter)
             {
-            // sort the keys prior to locking to avoid deadlock
             // LimitFilter: sort always to prevent discrepancies on partitioned index
             Arrays.sort(aoResult, SafeComparator.INSTANCE);
             }
@@ -7963,9 +8115,6 @@ public class Storage
             {
             result.cResults = cResults;
             }
-
-        updateQueryStatistics(filterOrig, /*fOptimized*/ filter == null,
-                              ldtStart, cTotal, aoResult.length, cResults, nQueryType, partMask);
 
         return result;
         }
@@ -10608,9 +10757,9 @@ public class Storage
             Iterator       iterator = getIterator();
             Filter         filter   = getFilter();
             long           lVersion = getVersion();
-            Storage       storage  = getStorage();
+            Storage        storage  = getStorage();
             StorageVersion version  = storage.getVersion();
-            BinaryEntry   entry    = getEntryTemp();
+            BinaryEntry    entry    = getEntryTemp();
 
             // In the same way as in  createQueryResult(), we will skip the entry
             // initialization if the backing map is not evicting.
@@ -10658,9 +10807,10 @@ public class Storage
                         entry.reset(binKey, binValue); // read-only is preserved
                         }
 
-                    int nPart = -1;
-                    if (!isCheckVersion() || version.getCommittedVersion() <= lVersion ||
-                        !version.isPartitionModified(lVersion, nPart = storage.getService().getKeyPartition(binKey)))
+                    int nPart = entry.getKeyPartition();
+                    if (!isCheckVersion()
+                        || version.getCommittedVersion() <= lVersion
+                        || !version.isPartitionModified(lVersion, nPart))
                         {
                         entry.setVersionTrint(Trint.makeTrint14(lVersion));
 
@@ -10677,7 +10827,7 @@ public class Storage
                         }
                     else
                         {
-                        if (storage.getDeserializationAccelerator() != null)
+                        if (storage.getDeserializationAccelerator(nPart) != null)
                             {
                             // the cost of direct re-evaluation should be low,
                             // but the forward index content could be stale
@@ -12941,7 +13091,7 @@ public class Storage
                 }
 
             Storage storage  = getStorage();
-            MapIndex indexFwd = storage.getDeserializationAccelerator();
+            MapIndex indexFwd = storage.getDeserializationAccelerator(getKeyPartition());
 
             // if the value is updated or removed "in place", we should not use the forward index
             Object oValue = indexFwd == null || (nState & (VALUE_FORCE_EXTRACT | VALUE_UPDATED | VALUE_REMOVED)) != 0 ?
