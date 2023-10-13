@@ -2397,7 +2397,7 @@ public class PagedTopic
             try
                 {
                 // we don't care about the responses, just that the request completes
-                mergePartialResponse(sendPartitionedRequestByMember(msg, makePartitionSet(), true));
+                mergePartialResponse(sendPartitionedRequest(msg, makePartitionSet(), true));
                 }
             catch (RequestPolicyException e)
                 {
@@ -2424,7 +2424,7 @@ public class PagedTopic
                 try
                     {
                     // we don't care about the responses, just that the request completes
-                    mergePartialResponse(sendPartitionedRequestByMember(msg, makePartitionSet(), true));
+                    mergePartialResponse(sendPartitionedRequest(msg, makePartitionSet(), true));
                     }
                 catch (RequestPolicyException e)
                     {
