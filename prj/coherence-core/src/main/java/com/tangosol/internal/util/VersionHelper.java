@@ -347,10 +347,11 @@ public class VersionHelper
     public static final int VERSION_23_09 = encodeVersion(23, 9, 0);
 
     /**
-     * The encoded 14.1.1.2206.0 and 6 versions.
+     * The encoded 14.1.1.2206 versions.
      */
     public static final int VERSION_14_1_1_2206 = encodeVersion(14, 1, 1, 2206, 0);
     public static final int VERSION_14_1_1_2206_6 = encodeVersion(14, 1, 1, 2206, 6);
+    public static final int VERSION_14_1_1_2206_7 = encodeVersion(14, 1, 1, 2206, 7);
 
     /**
      * The encoded 14.1.2.0.0 version.

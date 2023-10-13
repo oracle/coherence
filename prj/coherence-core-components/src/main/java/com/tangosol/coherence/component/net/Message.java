@@ -850,7 +850,19 @@ public class Message
         {
         return getService().isVersionCompatible(getToMemberSet(), nMajor, nMinor, nMicro, nPatchSet, nPatch);
         }
-    
+
+    @Override
+    public boolean isRecipientCompatible(int nEncodedVersion)
+        {
+        return getService().isVersionCompatible(getToMemberSet(), nEncodedVersion);
+        }
+
+    @Override
+    public boolean isRecipientPatchCompatible(int nEncodedVersion)
+        {
+        return getService().isPatchCompatible(getToMemberSet(), nEncodedVersion);
+        }
+
     // From interface: com.tangosol.internal.net.MessageComponent
     public boolean isSenderCompatible(int nYear, int nMonth, int nPatch)
         {
@@ -863,6 +875,18 @@ public class Message
         return getService().isVersionCompatible(getFromMember(), nMajor, nMinor, nMicro, nPatchSet, nPatch);
         }
     
+    @Override
+    public boolean isSenderCompatible(int nEncodedVersion)
+        {
+        return getService().isVersionCompatible(getFromMember(), nEncodedVersion);
+        }
+
+    @Override
+    public boolean isSenderPatchCompatible(int nEncodedVersion)
+        {
+        return getService().isPatchCompatible(getFromMember(), nEncodedVersion);
+        }
+
     /**
      * Ensure that the delivery notification is posted if necessary.
      */

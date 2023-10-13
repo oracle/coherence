@@ -836,6 +836,37 @@ public class ServiceMemberSet
         return predicate.test(m_nVersionMin);
         }
 
+    /**
+     * Determine whether the specified member has a version that is the same as
+     * the encode version with the same or a higher patch level.
+     *
+     * @param nMember          the member id to test
+     * @param nEncodedVersion  the encoded required version
+     *
+     * @return true iff specified member's version is the same version with
+     *         the same or a higher patch level to the encoded version
+     */
+    public boolean isPatchCompatible(int nMember, int nEncodedVersion)
+        {
+        int nVersion = getServiceVersionInt(nMember);
+        return VersionHelper.isPatchCompatible(nEncodedVersion, nVersion);
+        }
+
+    /**
+     * Determine whether the all members have a version that is the same as
+     * the encode version with the same or a higher patch level.
+     *
+     * @param nEncodedVersion  the encoded required version
+     *
+     * @return true iff specified member's version is the same version with
+     *         the same or a higher patch level to the encoded version
+     */
+    public boolean isPatchCompatible(int nEncodedVersion)
+        {
+        return VersionHelper.isPatchCompatible(nEncodedVersion, m_nVersionMin);
+        }
+
+
     // Accessor for the property "ServiceVersion"
     /**
      * Getter for property ServiceVersion.<p>
