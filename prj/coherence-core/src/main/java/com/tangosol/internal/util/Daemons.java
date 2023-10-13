@@ -9,6 +9,8 @@ package com.tangosol.internal.util;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.OperationalContext;
 import com.tangosol.util.Base;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
 
 /**
  * Factory and utility methods for the {@link DaemonPool} classes and
@@ -52,6 +54,41 @@ public abstract class Daemons
         return ((OperationalContext) CacheFactory.getCluster()).getCommonDaemonPool();
         }
 
+    /**
+     * Returns a shared, Coherence-managed {@link ForkJoinPool} instance.
+     *
+     * @return a shared, Coherence-managed {@link ForkJoinPool} instance
+     */
+    public static ForkJoinPool forkJoinPool()
+        {
+        if (s_forkJoinPool == null)
+            {
+            s_forkJoinPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors(), ForkJoinPoolWorker::new, null, false);
+            }
+
+        return s_forkJoinPool;
+        }
+
+    // ----- inner class: ForkJoinPoolWorker --------------------------------
+
+    /**
+     * Custom {@link ForkJoinWorkerThread} implementation.
+     */
+    static class ForkJoinPoolWorker extends ForkJoinWorkerThread
+        {
+        /**
+         * Construct a ForkJoinPoolWorker operating in the given pool.
+         *
+         * @param pool  the pool this thread works in
+         *
+         * @throws NullPointerException if pool is null
+         */
+        ForkJoinPoolWorker(ForkJoinPool pool)
+            {
+            super(pool);
+            }
+        }
+
     // ----- constants ------------------------------------------------------
 
     /**
@@ -64,6 +101,8 @@ public abstract class Daemons
      * The DaemonPool class.
      */
     private static final Class DAEMON_POOL_CLASS;
+
+    private static ForkJoinPool s_forkJoinPool;
 
     static
         {
