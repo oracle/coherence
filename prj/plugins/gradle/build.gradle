@@ -12,9 +12,8 @@ plugins {
 }
 
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(javaVersion)
-    }
+    targetCompatibility = 17
+    sourceCompatibility = 17
 }
 
 repositories {
