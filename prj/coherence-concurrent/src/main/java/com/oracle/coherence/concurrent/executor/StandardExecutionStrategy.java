@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
 
@@ -20,13 +20,19 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadLocalRandom;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+import java.util.function.Function;
+
+import java.util.stream.Collectors;
 
 /**
  * An {@link ExecutionStrategy} that creates {@link ExecutionPlan}s for executing a
@@ -76,26 +82,24 @@ public class StandardExecutionStrategy
             Map<String, ? extends TaskExecutorService.ExecutorInfo> mapExecutorInfo,
             EnumSet<EvaluationRationale> rationales)
         {
-        // we'll be randomly choosing execution services
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-
-        // establish a map of candidate executors based on ExecutorInfo
-        HashMap<String, TaskExecutorService.ExecutorInfo> mapCandidates = new HashMap<>();
-
-        for (TaskExecutorService.ExecutorInfo info : mapExecutorInfo.values())
-            {
-            // candidates must satisfy the predicate
-            if (m_predicate.test(info))
-                {
-                mapCandidates.put(info.getId(), info);
-                }
-            }
+        // build a map, ordered by executor join time, of executors matching
+        // the defined predicate
+        Predicate<? super TaskExecutorService.ExecutorInfo> predicate     = m_predicate;
+        Map<String, TaskExecutorService.ExecutorInfo>       mapCandidates =
+                mapExecutorInfo.values()
+                        .stream()
+                        .filter(predicate)
+                        .sorted((info1, info2) -> (int) (info1.getJoinTime() - info2.getJoinTime()))
+                        .collect(Collectors.toMap(TaskExecutorService.ExecutorInfo::getId,
+                                                  Function.identity(),
+                                                  (x, y) -> y,
+                                                  LinkedHashMap::new));
 
         // remember the number of candidates
         int cCandidateCount = mapCandidates.size();
 
         ExecutorTrace.log(() -> String.format("Executor candidates [%s]; current desired count [%s]",
-                                              mapCandidates, m_cDesiredExecutors));
+                                              mapCandidates.keySet(), m_cDesiredExecutors));
 
         // the new plan will be based on the current plan
         MutableExecutionPlan newPlan = new MutableExecutionPlan(currentPlan);
@@ -177,33 +181,29 @@ public class StandardExecutionStrategy
         ExecutorTrace.log(() -> String.format("Additional executor required count [%s]", cExtraFinal));
 
         // determine how many remaining candidates there are to choose from
-        int cRemaining = mapCandidates.size();
+        int      cRemaining    = mapCandidates.size();
+        String[] asExecutorIds = mapCandidates.keySet().toArray(new String[cRemaining]);
 
-        ExecutorTrace.log(() -> String.format("Remaining executor candidates [%s]", mapCandidates));
+        ExecutorTrace.log(() -> String.format("Remaining executor candidates [%s]", Arrays.toString(asExecutorIds)));
 
-        // randomly choose the required number from the candidates from those remaining
+        // round-robin assign the required number of tasks to the remaining executors
         while (cRemaining > 0 && cExtra > 0)
             {
-            for (Iterator<String> iterator = mapCandidates.keySet().iterator();
-                 iterator.hasNext() && cRemaining > 0 && cExtra > 0; )
+            for (int i = 0, len = asExecutorIds.length; i < len && cRemaining > 0 && cExtra > 0; i++)
                 {
-                String sExecutorId = iterator.next();
-
-                if (cRemaining == cExtra || random.nextBoolean())
+                String sExecutorId = asExecutorIds[COUNTER.incrementAndGet() % len];
+                if (cPendingRecoveries > 0)
                     {
-                    if (cPendingRecoveries > 0)
-                        {
-                        newPlan.recover(sExecutorId);
-                        cPendingRecoveries--;
-                        }
-                    else
-                        {
-                        newPlan.assign(sExecutorId);
-                        }
-
-                    cExtra--;
-                    cRemaining--;
+                    newPlan.recover(sExecutorId);
+                    cPendingRecoveries--;
                     }
+                else
+                    {
+                    newPlan.assign(sExecutorId);
+                    }
+
+                cExtra--;
+                cRemaining--;
                 }
             }
 
@@ -275,4 +275,11 @@ public class StandardExecutionStrategy
      * concurrently or sequentially?  The default is concurrently.
      */
     protected boolean m_fPerformConcurrently;
+
+    /**
+     * Counter used for round-robin assignment of tasks to executors.
+     *
+     * @since 22.06.7
+     */
+    protected static final AtomicInteger COUNTER = new AtomicInteger();
     }

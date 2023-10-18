@@ -19,7 +19,6 @@ import com.oracle.coherence.concurrent.executor.options.Debugging;
 import com.oracle.coherence.concurrent.executor.processors.LocalOnlyProcessor;
 
 import com.oracle.coherence.concurrent.executor.util.Caches;
-import com.oracle.coherence.concurrent.executor.util.FilteringIterable;
 import com.oracle.coherence.concurrent.executor.util.OptionsByType;
 
 import com.tangosol.internal.tracing.Span;
@@ -38,6 +37,7 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
+import com.tangosol.util.Filters;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMap.Entry;
 
@@ -58,7 +58,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -950,34 +949,27 @@ public class ClusteredTaskManager<T, A, R>
 
         try
             {
-            // create Map of the available executors (info), that are candidates for executing a task
-
             // obtain the cache containing ExecutionInfo
-            NamedCache executorInfoCache = Caches.executors(service);
+            NamedCache<String, ExecutorInfo> executorInfoCache = Caches.executors(service);
 
-            HashMap<String, ExecutorInfo> executorInfoMap = new HashMap<>();
-
-            Iterable<ExecutorInfo> iterable = new FilteringIterable<>(executorInfoCache.values(),
-                    (Predicate<ExecutorInfo>) executorInfo ->
-                            executorInfo.getState() == ExecutorInfo.State.JOINING ||
-                                executorInfo.getState() == ExecutorInfo.State.RUNNING);
-
-            for (ExecutorInfo info : iterable)
-                {
-                executorInfoMap.put(info.getId(), info);
-                }
+            // filter-in only running executors
+            Map<String, ExecutorInfo> executors =
+                    executorInfoCache.invokeAll(RUNNING_EXECUTOR_FILTER, Entry::getValue);
 
             // determine the new assignments based on the current assignments and execution service information
             ExecutionPlan executionPlan =
-                    m_executionStrategy.analyze(m_executionPlan, executorInfoMap, rationales);
+                    m_executionStrategy.analyze(m_executionPlan, executors, rationales);
 
             // has the execution plan changed?
             fExecutionPlanUpdated = (executionPlan == null && m_executionPlan != null) ||
                                     (executionPlan != null && m_executionPlan == null) ||
                                     (executionPlan != null && !executionPlan.equals(m_executionPlan));
 
-            ExecutorTrace.log(() -> String.format("Current execution plan [%s]",    m_executionPlan));
-            ExecutorTrace.log(() -> String.format("Updated(?) execution plan [%s]", executionPlan));
+            if (ExecutorTrace.isEnabled())
+                {
+                ExecutorTrace.log(String.format("Current execution plan [%s]",    m_executionPlan));
+                ExecutorTrace.log(String.format("Updated(?) execution plan [%s]", executionPlan));
+                }
 
             if (fExecutionPlanUpdated)
                 {
@@ -2069,6 +2061,17 @@ public class ClusteredTaskManager<T, A, R>
          */
         TERMINATING
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * {@link Filter} for obtaining only JOINING and RUNNING executors.
+     *
+     * @since 22.06.7
+     */
+    protected static final Filter<ExecutorInfo> RUNNING_EXECUTOR_FILTER =
+            Filters.equal(ExecutorInfo::getState, ExecutorInfo.State.JOINING)
+                    .or(Filters.equal(ExecutorInfo::getState, ExecutorInfo.State.RUNNING));
 
     // ----- data members ---------------------------------------------------
 
