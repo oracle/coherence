@@ -12,7 +12,7 @@
 // both they serve a purpose, and the docs will look wrong if it is removed.
 == Gradle POF Plugin
 
-:coherence-gradle-plugin-version: 23.03.1
+:coherence-gradle-plugin-version: 23.09.1
 :coherence-version: {version-coherence}
 :com-github-vlsi-jandex-version: 1.86
 :org-kordamp-gradle-jandex-version: 0.13.2
@@ -50,65 +50,42 @@ dependencies {
 }
 ----
 
-[IMPORTANT]
-====
-Due to the incomplete `Java 21` support in `Gradle 8.3` as of the release of Coherence `{coherence-version}`, we do not publish
-a `23.09` version of the plugin, yet. Instead, please use the `23.03.1` version of the plugin. A new plugin version with full `Java 21`
-support should be available with a future patch of Coherence `23.09` or later. However, the plugin can be used with `Java 21` projects.
-====
+Without any further configuration, the plugin will add a task named `coherencePof` to your project and you will see the
+task listed under the task group `Coherence` when you execute:
 
-Without any further configuration, the plugin will add a task named `coherencePof` to your project. The `coherencePof`
-task will be executed at the end of the `compileJava` task. At the same time, `coherencePof` also depends on the `compileJava` task.
+[source,bash]
+----
+gradle tasks
+----
 
-Therefore, calling:
+The `coherencePof` task will use the output of the `compileJava` task as input. As such the `coherencePof` task will
+depend on the `compileJava` task.
+
+Executing:
 
 [source,bash]
 ----
 gradle compileJava
 ----
 
-will execute the `coherencePof` task. And similarly:
+will NOT execute the `coherencePof` task but on the other hand executing:
 
 [source,bash]
 ----
 gradle coherencePof
 ----
 
-will execute the `compileJava` task first. By *default*, the `coherencePof` task will take the *build output directory* as
-input for classes to be instrumented excluding any test classes.
+will execute the `compileJava` task first. By *default*, the `coherencePof` task will take the *build output* as
+input for classes to be instrumented excluding any test classes. The POF Gradle Plugin supports
+https://docs.gradle.org/current/userguide/incremental_build.html[incremental builds]. This means that only if Java classes
+have changed, the `coherencePof` task will execute (and only for the changed classes).
+
+The `coherencePof` task will also become a dependency to all tasks that depend on the `compileJava`. Thefore, executing
+the `build` or `jar` task will invoke the `coherencePof` task in case of class changes.
 
 By just adding the plugin using the configuration above, the Coherence Gradle Plugin will discover and instrument all
 project classes annotated with the `@PortableType` annotation, excluding test classes. If you do need to instrument test
 classes, you can add the `coherencePof` closure and provide additional configuration properties.
-
-==== Java 21 Support
-
-As of Coherence `{coherence-version}`, `Gradle 8.3` does not have full `Java 21` support, yet.
-That support is coming with `Gradle 8.4` which is currently available as a release candidate `8.4-rc-1`.
-
-Nonetheless, `Java 21` can be used with Gradle and the Coherence Gradle plugin. In case you encounter build problems, you
-have the following 2 options. Make sure that your Gradle Wrapper's `gradle-wrapper.properties` uses version `8.4-rc-1` of
-Gradle:
-
-.gradle-wrapper.properties
-[source,properties]
-----
-...
-distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-rc-1-bin.zip
-...
-----
-
-You can also set up a Gradle toolchain for `Java 21`:
-
-.build.gradle
-[source,groovy]
-----
-java {
-    sourceCompatibility = '21'
-    targetCompatibility = '21'
-    toolchain { languageVersion = JavaLanguageVersion.of(21) }
-}
-----
 
 ==== Custom Configuration
 
