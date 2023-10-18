@@ -4,7 +4,7 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
- 
+
 plugins {
     id 'java'
     id '%s'
@@ -16,4 +16,8 @@ repositories {
 }
 dependencies {
     implementation '%s:coherence:%s'
+}
+
+coherencePof {
+    usePofSchemaXml = true
 }

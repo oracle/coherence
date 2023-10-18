@@ -1,5 +1,7 @@
-:coherence-gradle-plugin-version: 23.09-SNAPSHOT
-:com-github-vlsi-jandexm-version: 1.86
+:coherence-version: 23.09-SNAPSHOT
+:coherence-gradle-plugin-version: {coherence-version}
+:com-github-vlsi-jandex-version: 1.86
+
 :org-kordamp-gradle-jandex-version: 0.13.2
 
 = POF Gradle Plugin
@@ -30,25 +32,38 @@ plugins {
 }
 ----
 
-Without any further configuration, the plugin will add a task named `coherencePof` to your project. The `coherencePof`
-task will be executed at the end of the `compileJava` task. At the same time, `coherencePof` also depends on the `compileJava` task.
+Without any further configuration, the plugin will add a task named `coherencePof` to your project and you will see the
+task listed under the task group `Coherence` when you execute:
 
-Therefore, calling:
+[source,bash]
+----
+gradle tasks
+----
+
+The `coherencePof` task will use the output of the `compileJava` task as input. As such the `coherencePof` task will
+depend on the `compileJava` task.
+
+Executing:
 
 [source,bash]
 ----
 gradle compileJava
 ----
 
-will execute the `coherencePof` task. And similarly:
+will NOT execute the `coherencePof` task but on the other hand executing:
 
 [source,bash]
 ----
 gradle coherencePof
 ----
 
-will execute the `compileJava` task first. By *default*, the `coherencePof` task will take the *build output directory* as
-input for classes to be instrumented excluding any test classes.
+will execute the `compileJava` task first. By *default*, the `coherencePof` task will take the *build output* as
+input for classes to be instrumented excluding any test classes. The POF Gradle Plugin supports
+https://docs.gradle.org/current/userguide/incremental_build.html[incremental builds]. This means that only if Java classes
+have changed, the `coherencePof` task will execute (and only for the changed classes).
+
+The `coherencePof` task will also become a dependency to all tasks that depend on the `compileJava`. Thefore, executing
+the `build` or `jar` task will invoke the `coherencePof` task in case of class changes.
 
 By just adding the plugin using the configuration above, the Coherence Gradle Plugin will discover and instrument all
 project classes annotated with the `@PortableType` annotation, excluding test classes. If you do need to instrument test
@@ -83,16 +98,6 @@ If not specified, this property _defaults_ to `false`.
 Set the boolean `instrumentTestClasses` property to `true` in order to instrument test classes.
 If not specified, this property _defaults_ to `false`.
 
-==== Set a Custom TestClassesDirectory
-
-Provide a path to a custom test classes directory using property `testClassesDirectory`. If not set, it will default
-to the default test output directory.
-
-==== Set a Custom MainClassesDirectory
-
-Provide a path to a custom classes directory using property `mainClassesDirectory`. If not set, it will default
-to the default output directory.
-
 === What about classes without the @PortableType annotation?
 
 In some cases, it may be necessary to expand the type system with the types that are not annotated with the
@@ -116,6 +121,19 @@ if you assume that the `Color` class from the earlier code examples:
 
 </schema>
 ----
+
+In order to use a `schema.xml` file, you need to set `usePofSchemaXml` to `true`. Also, you can customze the location of
+the `schema.xml` by setting `pofSchemaXmlPath` to a value other than `META-INF/schema.xml`. For example:
+
+.Build.gradle
+[source,groovy]
+----
+coherencePof {
+  usePofSchemaXml = true
+  pofSchemaXmlPath = 'META-INF/my-schema.xml'
+}
+----
+
 
 == Jandex Index
 
@@ -226,12 +244,12 @@ gradle clean build -x coherencePof
 
 During development, it is extremely useful to rapidly test the plugin code against separate example projects. For this,
 we can use Gradle's https://docs.gradle.org/current/userguide/composite_builds.html[composite build] feature. Therefore,
-the Coherence POF Gradle Plugin module itself provides a separate `sample` module. From within
-the sample directory you can execute:
+the Coherence POF Gradle Plugin module itself can be easily integrated into a separate `sample` project for rapid testing
+of code changes. From within the sample directory you can execute:
 
 [source,bash]
 ----
-gradle clean compileJava --include-build ../plugin
+gradle clean compileJava --include-build path/to/plugin
 ----
 
 This will not only build the sample but will also build the plugin and developers can make plugin code changes and see
@@ -246,7 +264,7 @@ gradle publishToMavenLocal
 
 For projects to pick up the local changes ensure the following configuration:
 
-.Build.gradle
+.build.gradle
 [source,groovy,subs="normal"]
 ----
 plugins {
@@ -254,9 +272,20 @@ plugins {
   id 'com.oracle.coherence.ce' version '{coherence-gradle-plugin-version}'
   id 'com.github.vlsi.jandex' version '{com-github-vlsi-jandex-version}'
 }
+
+dependencies {
+  ...
+  implementation 'com.oracle.coherence:coherence:{coherence-version}'
+}
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+}
+
 ----
 
-.Settings.gradle
+.settings.gradle
 [source,groovy,subs="normal"]
 ----
 pluginManagement {
@@ -281,9 +310,9 @@ to add the proxy settings to the `gradle.properties` file:
 
 [source,properties]
 ----
-systemProp.http.proxyHost=www-proxy-hqdc.us.oracle.com
+systemProp.http.proxyHost=your-proxy-host.com
 systemProp.http.proxyPort=80
-systemProp.https.proxyHost=www-proxy-hqdc.us.oracle.com
+systemProp.https.proxyHost=your-proxy-host.com
 systemProp.https.proxyPort=80
 systemProp.https.nonProxyHosts=localhost|127.0.0.1
 ----
@@ -296,7 +325,7 @@ in `tools/maven/settings.xml`.
 [source,xml]
 ----
   <properties>
-    <gradle.https.proxyHost>www-proxy-hqdc.us.oracle.com</gradle.https.proxyHost>
+    <gradle.https.proxyHost>your-proxy-host.com</gradle.https.proxyHost>
     <gradle.https.proxyPort>80</gradle.https.proxyPort>
   </properties>
 ----

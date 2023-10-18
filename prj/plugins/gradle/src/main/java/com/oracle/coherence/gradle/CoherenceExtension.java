@@ -6,7 +6,6 @@
  */
 package com.oracle.coherence.gradle;
 
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
 
 /**
@@ -17,7 +16,16 @@ import org.gradle.api.provider.Property;
  */
 public abstract class CoherenceExtension
     {
-    //----- CoherenceExtension methods --------------------------------------
+    //----- constructors ----------------------------------------------------
+
+    /**
+     * Default constructor for the CoherenceExtension.
+     */
+    public CoherenceExtension()
+        {
+        }
+
+        //----- CoherenceExtension methods --------------------------------------
 
     /**
      * Returns a Gradle container object wrapping a Boolean property. If set to {@code true} we instruct the underlying
@@ -29,7 +37,7 @@ public abstract class CoherenceExtension
     public abstract Property<Boolean> getDebug();
 
     /**
-     * Shall test classes be instrumented by the the underlying PortableTypeGenerator? Set the property to {@code true},
+     * Shall test classes be instrumented by the underlying PortableTypeGenerator? Set the property to {@code true},
      * in order to instrument test classes. If not specified, this property ultimately defaults to {@code false}.
      *
      * @return Gradle container object wrapping a Boolean property
@@ -37,16 +45,18 @@ public abstract class CoherenceExtension
     public abstract Property<Boolean> getInstrumentTestClasses();
 
     /**
-     * Provide a DirectoryProperty to a custom test classes directory. If not set, it will default
-     * to Gradle's default test output directory.
-     * @return the DirectoryProperty specifying the test classes directory
+     * Shall an existing POF XML Schema file be used for instrumentation? If not specified, this property
+     * defaults to {@code false}.
+     *
+     * @return Gradle container object wrapping a Boolean property
      */
-    abstract DirectoryProperty getTestClassesDirectory();
+    public abstract Property<Boolean> getUsePofSchemaXml();
 
     /**
-     * Provide a DirectoryProperty to a custom classes directory. If not set, it will default
-     * to Gradle's default output directory.
-     * @return the DirectoryProperty specifying the main classes directory
+     * If {@link CoherenceExtension#getUsePofSchemaXml} is true, then use the path specified by this property to determine
+     * the XML file containing Portable Type definitions.
+     * @return the relative path to the POF XML definition file, defaults to {@code META-INF/schema.xml}
      */
-    abstract DirectoryProperty getMainClassesDirectory();
+    public abstract Property<String> getPofSchemaXmlPath();
+
     }
