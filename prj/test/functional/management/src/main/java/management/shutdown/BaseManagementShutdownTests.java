@@ -315,7 +315,12 @@ public abstract class BaseManagementShutdownTests {
             List<Map> services = (List<Map>) mapServicesResponse.get("items");
             assertThat(services, notNullValue());
             services.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
-            return services.size();
+            // Occasionally, the metrics service may be on the other server.
+            String serviceNames = services.stream().map(p -> (String) p.get("name"))
+                    .collect(Collectors.joining(","));
+            Base.log("The following " + services.size() + " services exist: " + serviceNames);
+            Base.log("The following " + SERVICES_LIST.length + " services expected: " + String.join(",", SERVICES_LIST));
+            return serviceNames.contains(MetricsHttpHelper.getServiceName()) ? services.size() : services.size() + 1;
         }, is(EXPECTED_SERVICE_COUNT), within(5, TimeUnit.MINUTES));
     }
 
