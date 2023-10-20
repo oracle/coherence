@@ -695,9 +695,9 @@ public class RemoteModel
     // From interface: com.tangosol.net.PriorityTask
     public long getRequestTimeoutMillis()
         {
-        return getInvokeOp() == OP_INVOKE
-                ? getConnector().getRequestTimeout()
-                : getConnector().getRefreshRequestTimeoutMillis();
+        return getInvokeOp() == OP_GET
+                ? getConnector().getRefreshRequestTimeoutMillis()
+                : getConnector().getRequestTimeout();   // OP_INVOKE, OP_SET
         }
     
     // From interface: com.tangosol.net.Invocable
