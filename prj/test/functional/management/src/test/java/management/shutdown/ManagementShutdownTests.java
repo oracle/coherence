@@ -343,7 +343,8 @@ public class ManagementShutdownTests extends AbstractFunctionalTest
 
             CacheFactory.log("The following " + SERVICES_LIST.length + " services expected: " + String.join(",", SERVICES_LIST));
 
-            return services.size();
+            // Occasionally, the metrics service may be on the other server.
+            return serviceNames.contains(MetricsHttpHelper.getServiceName()) ? services.size() : services.size() + 1;
             }, is(EXPECTED_SERVICE_COUNT), within(5, TimeUnit.MINUTES));
         }
         protected LinkedHashMap readEntity(WebTarget target, Response response)
