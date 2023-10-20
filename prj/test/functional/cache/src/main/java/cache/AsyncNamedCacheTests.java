@@ -74,7 +74,8 @@ public class AsyncNamedCacheTests
         {
         return Arrays.asList(
             new Object[] {"Distributed Cache", "dist-test"},
-            new Object[] {"Near Cache", "near-test"}
+            new Object[] {"Near Cache", "near-test"},
+            new Object[] {"View Cache", "view-dist-test"}
             );
         }
 

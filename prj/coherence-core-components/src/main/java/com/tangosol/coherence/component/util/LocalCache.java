@@ -13,6 +13,7 @@ package com.tangosol.coherence.component.util;
 import com.tangosol.application.ContainerHelper;
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
+import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.cache.CacheMap;
@@ -1228,7 +1229,17 @@ public class LocalCache
             
             return agent.aggregate(com.tangosol.util.InvocableMapHelper.makeEntrySet(getActualMap(), collKeys, true));
             }
-        
+
+        /**
+         * LocalCache does not support AsyncNamedCache
+         */
+        // From interface: com.tangosol.net.NamedCache
+        @Override
+        public AsyncNamedCache async(AsyncNamedCache.Option... options)
+            {
+            throw new UnsupportedOperationException();
+            }
+
         // From interface: com.tangosol.net.NamedCache
         public void destroy()
             {

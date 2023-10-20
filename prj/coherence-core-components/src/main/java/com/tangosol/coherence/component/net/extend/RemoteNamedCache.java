@@ -15,6 +15,7 @@ import com.tangosol.application.ContainerHelper;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.pof.ConfigurablePofContext;
+import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.CacheMap;
 import com.tangosol.net.cache.KeyAssociation;
@@ -327,6 +328,16 @@ public class RemoteNamedCache
     public Object aggregate(java.util.Collection collKeys, com.tangosol.util.InvocableMap.EntryAggregator agent)
         {
         return getConverterCache().aggregate(collKeys, agent);
+        }
+
+    /**
+     * Coherence*Extend does not support AsyncNamedCache
+     */
+    // From interface: com.tangosol.net.NamedCache
+    @Override
+    public AsyncNamedCache async(AsyncNamedCache.Option... options)
+        {
+        throw new UnsupportedOperationException();
         }
     
     // From interface: com.tangosol.net.NamedCache
