@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>caffeine*</cache-name>
+      <scheme-name>caffeine-example</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>local*</cache-name>
+      <scheme-name>local-example</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>remote*</cache-name>
+      <scheme-name>example-remote</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>view-extend*</cache-name>
+      <scheme-name>example-view-extend</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>near-extend*</cache-name>
+      <scheme-name>example-near-extend</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <caffeine-scheme>
+      <scheme-name>caffeine-example</scheme-name>
+    </caffeine-scheme>
+
+    <local-scheme>
+      <scheme-name>local-example</scheme-name>
+    </local-scheme>
+
+    <proxy-scheme>
+      <scheme-name>simple-remote</scheme-name>
+      <service-name>TcpProxyService</service-name>
+      <autostart>true</autostart>
+    </proxy-scheme>
+
+    <distributed-scheme>
+      <scheme-name>example-remote</scheme-name>
+      <service-name>RemoteDistributedCache</service-name>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>example-view-extend</scheme-name>
+      <service-name>ViewExtendDistributedCache</service-name>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>example-near-extend</scheme-name>
+      <service-name>NearExtendDistributedCache</service-name>
+      <backing-map-scheme>
+        <local-scheme></local-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+  </caching-schemes>
+</cache-config>
