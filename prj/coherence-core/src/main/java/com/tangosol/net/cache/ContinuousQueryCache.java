@@ -16,6 +16,8 @@ import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;
 
+import com.tangosol.net.AsyncNamedCache;
+import com.tangosol.net.AsyncNamedMap;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.FlowControl;
@@ -1261,6 +1263,20 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
     public CacheService getCacheService()
         {
         return getCache().getCacheService();
+        }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     *  This method returns an AsyncNamedCache instantiated from the back NamedMap. Transformers and filters
+     *  defined on this CQC are not applied to the returned AsyncNamedCache.
+     */
+    @Override
+    public AsyncNamedCache<K, V_FRONT> async(AsyncNamedMap.Option... options)
+        {
+        CacheService service = getCacheService();
+
+        return service.ensureCache(getCacheName(), service.getContextClassLoader()).async(options);
         }
 
     @Override
