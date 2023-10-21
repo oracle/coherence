@@ -14,6 +14,8 @@ import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.
 
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.util.Binary;
+import com.tangosol.util.MapIndex;
+import com.tangosol.util.ValueExtractor;
 import java.util.Map;
 
 /**
@@ -497,7 +499,13 @@ public abstract class WrapperContext
             {
             return getStorage().getIndexMap(partitions);
             }
-        
+
+        // From interface: com.tangosol.net.BackingMapContext
+        public Map<ValueExtractor, MapIndex> getIndexMap(int nPartition)
+            {
+            return getStorage().getIndexMap(nPartition);
+            }
+
         // From interface: com.tangosol.net.BackingMapContext
         public com.tangosol.net.BackingMapManagerContext getManagerContext()
             {
