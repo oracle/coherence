@@ -3852,13 +3852,12 @@ public class PartitionedCache
                 }
             else if (agent instanceof com.tangosol.util.InvocableMap.StreamingAggregator)
                 {
-                Object oResult = storage.aggregateByStreaming(filter, (com.tangosol.util.InvocableMap.StreamingAggregator) agent, partMask);
-        
+                Object oResult = storage.aggregateByStreaming(filter, (com.tangosol.util.InvocableMap.StreamingAggregator) agent, partMask, msgRequest.checkTimeoutRemaining());
                 msgResponse.setResult(getBackingMapContext().getValueToInternalConverter().convert(oResult));
                 }
             else
                 {
-                storage.aggregateByProbe(filter, agent, partMask, msgResponse);
+                storage.aggregateByProbe(filter, agent, partMask, msgRequest, msgResponse);
                 }
         
             msgResponse.setRejectPartitions(partReject);
@@ -5454,11 +5453,8 @@ public class PartitionedCache
                 com.tangosol.util.InvocableMap.EntryProcessor agent = msgRequest.deserializeProcessor();
                 try
                     {
-                    // TODO: if the number of hits is big, this could be done more efficiently
-                    // by splitting the keys among partitions
-        
-                    // query on the filter to find and lock matching entries
-                    QueryResult result = storage.query(msgRequest.getFilter(), Storage.QUERY_INVOKE, partMask);
+                    // query to find and lock the matching entries
+                    QueryResult result = storage.query(msgRequest.getFilter(), Storage.QUERY_INVOKE, partMask, msgRequest.checkTimeoutRemaining());
         
                     aoStatus = result.getResults();
                     cEntries = result.getCount();
@@ -5719,7 +5715,7 @@ public class PartitionedCache
             storage.checkAccess(msgRequest.getRequestContext(),
                 Storage.BinaryEntry.ACCESS_READ_ANY, com.tangosol.net.security.StorageAccessAuthorizer.REASON_KEYSET);
         
-            QueryResult result = storage.query(null, Storage.QUERY_KEYS, partMask);
+            QueryResult result = storage.query(null, Storage.QUERY_KEYS, partMask, msgRequest.checkTimeoutRemaining());
         
             msgResponse.setResult(result.getResults());
             msgResponse.setSize(result.getCount());
@@ -7086,7 +7082,7 @@ public class PartitionedCache
                 fKeySet ? com.tangosol.net.security.StorageAccessAuthorizer.REASON_KEYSET : com.tangosol.net.security.StorageAccessAuthorizer.REASON_ENTRYSET);
         
             QueryResult result = storage.query(filter,
-                    fKeySet ? Storage.QUERY_KEYS : Storage.QUERY_ENTRIES, partMask);
+                    fKeySet ? Storage.QUERY_KEYS : Storage.QUERY_ENTRIES, partMask, msgRequest.checkTimeoutRemaining());
         
             msgResponse.setKeysOnly(fKeySet);
             msgResponse.setResult(result.getResults());
