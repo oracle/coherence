@@ -15,6 +15,7 @@ import com.tangosol.coherence.component.net.memberSet.SingleMemberSet;
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.coherence.config.Config;
+import com.tangosol.coherence.transaction.internal.XidManager;
 import com.tangosol.internal.tracing.Span;
 import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.internal.util.BMEventFabric;
@@ -33,6 +34,7 @@ import com.tangosol.io.nio.MappedBufferManager;
 import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.GuardSupport;
 import com.tangosol.net.Member;
+import com.tangosol.net.RequestTimeoutException;
 import com.tangosol.net.cache.BinaryMemoryCalculator;
 import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.CacheMap;
@@ -65,6 +67,7 @@ import com.tangosol.util.Filter;
 import com.tangosol.util.FilterEnumerator;
 import com.tangosol.util.ImmutableArrayList;
 import com.tangosol.util.ImmutableMultiList;
+import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMapHelper;
 import com.tangosol.util.LiteSet;
 import com.tangosol.util.LongArray;
@@ -83,6 +86,7 @@ import com.tangosol.util.Streamer;
 import com.tangosol.util.SubSet;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.WrapperObservableMap;
+import com.tangosol.util.aggregator.ScriptAggregator;
 import com.tangosol.util.comparator.EntryComparator;
 import com.tangosol.util.comparator.SafeComparator;
 import com.tangosol.util.extractor.IdentityExtractor;
@@ -114,8 +118,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Future;
 import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.security.auth.Subject;
 
 
@@ -1166,7 +1172,8 @@ public class Storage
             }
         }
 
-    public void aggregateByProbe(com.tangosol.util.Filter filter, com.tangosol.util.InvocableMap.EntryAggregator agent, com.tangosol.net.partition.PartitionSet partMask, PartitionedCache.PartialValueResponse msgResponse)
+    public void aggregateByProbe(com.tangosol.util.Filter filter, com.tangosol.util.InvocableMap.EntryAggregator agent, com.tangosol.net.partition.PartitionSet partMask,
+                                 PartitionedCache.AggregateFilterRequest msgRequest, PartitionedCache.PartialValueResponse msgResponse)
         {
         // import com.tangosol.internal.tracing.TracingHelper;
         // import com.tangosol.internal.util.QueryResult;
@@ -1210,7 +1217,7 @@ public class Storage
                 // not reprocessed
                 partMask.remove(nProbePart);
 
-                QueryResult result = query(filter, QUERY_AGGREGATE, partQuery);
+                QueryResult result = query(filter, QUERY_AGGREGATE, partQuery, msgRequest.checkTimeoutRemaining());
                 Object[]    aEntry = result.getResults();
 
                 // since keys are always stored on-heap and seldom deserialized during
@@ -1258,7 +1265,7 @@ public class Storage
 
                 try
                     {
-                    QueryResult result = query(filter, QUERY_AGGREGATE, partQuery);
+                    QueryResult result = query(filter, QUERY_AGGREGATE, partQuery, msgRequest.checkTimeoutRemaining());
 
                     Object oResult = agent.aggregate(
                             new ImmutableArrayList(result.getResults(), 0, result.getCount()).getSet());
@@ -1312,7 +1319,7 @@ public class Storage
             }
         }
 
-    public Object aggregateByStreaming(com.tangosol.util.Filter filter, com.tangosol.util.InvocableMap.StreamingAggregator agent, com.tangosol.net.partition.PartitionSet partMask)
+    public Object aggregateByStreaming(com.tangosol.util.Filter filter, com.tangosol.util.InvocableMap.StreamingAggregator agent, com.tangosol.net.partition.PartitionSet partMask, long cTimeoutMillis)
         {
         // import com.tangosol.internal.tracing.Span;
         // import com.tangosol.internal.tracing.TracingHelper;
@@ -1327,9 +1334,45 @@ public class Storage
                 }
             }
 
-        agent.accumulate(createStreamer(filter, partMask, agent.characteristics()));
+        Object result = null;
+        if (partMask.cardinality() == 1 || agent instanceof ScriptAggregator || agent instanceof XidManager.LockedXids)
+            {
+            // GraalVM doesn't support access to script context from multiple threads,
+            // so we have to fall back to single-threaded execution
 
-        return agent.getPartialResult();
+            agent.accumulate(createStreamer(filter, partMask, agent.characteristics()));
+            result = agent.getPartialResult();
+            }
+        else
+            {
+            // otherwise, let's run aggregator in parallel across individual
+            // partitions using ForkJoinPool
+
+            Future<Object> future = Daemons.forkJoinPool().submit(new PartitionedAggregateTask<Object>(this, filter, agent, partMask));
+            try
+                {
+                result = cTimeoutMillis == 0L
+                         ? future.get()
+                         : future.get(cTimeoutMillis, TimeUnit.MILLISECONDS);
+                }
+            catch (TimeoutException e)
+                {
+                future.cancel(true);
+                throw new RequestTimeoutException("Aggregation request has timed out");
+                }
+            catch (InterruptedException e)
+                {
+                future.cancel(true);
+                Thread.currentThread().interrupt();
+                throw new RequestTimeoutException("Aggregation request has been interrupted");
+                }
+            catch (Exception e)
+                {
+                throw new RuntimeException(e);
+                }
+            }
+
+        return result;
         }
 
     public Object aggregateByStreaming(java.util.Set setKeys, com.tangosol.util.InvocableMap.StreamingAggregator agent)
@@ -2413,17 +2456,11 @@ public class Storage
         // import com.tangosol.util.InvocableMap$StreamingAggregator as com.tangosol.util.InvocableMap.StreamingAggregator;
         // import com.tangosol.util.SimpleEnumerator;
 
-        long lVersion = getVersion().getCommittedVersion();
-
-        QueryResult result = query(filter, QUERY_AGGREGATE, partMask);
-
-        Object[] aoKeys = result.getResults();
-
-        if (aoKeys == null)
+        if (!isIndexed())
             {
             Scanner scanner = (Scanner) _newChild("Scanner");
 
-            scanner.setFilter(result.getFilterRemaining());
+            scanner.setFilter(filter);
             scanner.setPartitions(partMask);
             scanner.setReuseAllowed((nCharacteristics & com.tangosol.util.InvocableMap.StreamingAggregator.RETAINS_ENTRIES) == 0);
 
@@ -2431,10 +2468,14 @@ public class Storage
             }
         else
             {
+            long lVersion = getVersion().getCommittedVersion();
+
+            QueryResult result = query(filter, QUERY_AGGREGATE, partMask, 0L);
+
             Advancer advancer = (Advancer) _newChild("Advancer");
 
-            advancer.setIterator(new SimpleEnumerator(aoKeys));
-            advancer.setSize(aoKeys.length);
+            advancer.setIterator(new SimpleEnumerator(result.getResults()));
+            advancer.setSize(result.getCount());
             advancer.setFilter(result.getFilterRemaining());
             advancer.setFilterOriginal(filter);
             advancer.setVersion(lVersion);
@@ -3734,10 +3775,16 @@ public class Storage
             }
         else if (partitions.cardinality() == 1)
             {
-            return getPartitionIndexMap(partitions.next(0));
+            return getPartitionIndexMap(partitions.first());
             }
 
         return null;
+        }
+
+    // From interface: com.tangosol.net.BackingMapContext
+    public Map<ValueExtractor, MapIndex> getIndexMap(int nPartition)
+        {
+        return getPartitionIndexMap(nPartition);
         }
 
     // Accessor for the property "KeyListenerMap"
@@ -7882,6 +7929,70 @@ public class Storage
         }
 
     /**
+     * ForkJoinTask that splits the aggregate request targeting multiple partitions into
+     * multiple tasks (one per partition) that can be executed in parallel.
+     */
+    public static class PartitionedAggregateTask<P>
+            extends RecursiveTask<P>
+        {
+        /**
+         * Construct {@link PartitionedAggregateTask}.
+         *
+         * @param storage      the Storage instance to query
+         * @param filter       the Filter to evaluate
+         * @param agent        the agent to use for aggregation
+         * @param parts        the set of partitions to query
+         */
+        public PartitionedAggregateTask(Storage storage, Filter filter, InvocableMap.StreamingAggregator<?, ?, P, ?> agent, PartitionSet parts)
+            {
+            f_storage = storage;
+            f_filter  = filter;
+            f_agent   = agent;
+            f_parts   = parts;
+            }
+
+        @Override
+        protected P compute()
+            {
+            if (f_parts.cardinality() == 1)
+                {
+                f_agent.accumulate(f_storage.createStreamer(f_filter, f_parts, f_agent.characteristics()));
+                return f_agent.getPartialResult();
+                }
+            else
+                {
+                PartitionSet partMask = f_parts;
+
+                PartitionedAggregateTask<P>[] aTasks = new PartitionedAggregateTask[partMask.cardinality()];
+                int nPos = 0;
+                for (int nPart : partMask)
+                    {
+                    PartitionSet part = new PartitionSet(partMask.getPartitionCount(), nPart);
+
+                    // create PartitionedAggregateTask for each partition
+                    aTasks[nPos++] = new PartitionedAggregateTask(f_storage, f_filter, f_agent.supply(), part);
+                    }
+
+                invokeAll(aTasks);
+
+                for (int i = 0; i < aTasks.length; i++)
+                    {
+                    f_agent.combine(aTasks[i].join());
+                    }
+
+                return f_agent.getPartialResult();
+                }
+            }
+
+        // ---- data members ------------------------------------------------
+
+        private final Storage f_storage;
+        private final Filter f_filter;
+        private final InvocableMap.StreamingAggregator<?, ?, P, ?> f_agent;
+        private final PartitionSet f_parts;
+        }
+
+    /**
      * ForkJoinTask that splits the query request targeting multiple partitions into
      * multiple tasks (one per partition) that can be executed in parallel.
      */
@@ -7911,7 +8022,7 @@ public class Storage
             {
             if (f_parts.cardinality() == 1)
                 {
-                return f_storage.query(f_filter, f_nQueryType == QUERY_INVOKE ? QUERY_KEYS : f_nQueryType, f_parts, f_lIdxVersion);
+                return f_storage.queryInternal(f_filter, f_nQueryType == QUERY_INVOKE ? QUERY_KEYS : f_nQueryType, f_parts, f_lIdxVersion);
                 }
             else
                 {
@@ -7963,7 +8074,7 @@ public class Storage
      * @param nQueryType  one of the QUERY_* values
      * @param partMask    partitionSet that all keys should belong to
      */
-    public com.tangosol.internal.util.QueryResult query(com.tangosol.util.Filter filter, int nQueryType, com.tangosol.net.partition.PartitionSet partMask)
+    public com.tangosol.internal.util.QueryResult query(com.tangosol.util.Filter filter, int nQueryType, com.tangosol.net.partition.PartitionSet partMask, long cTimeoutMillis)
         {
         Span span = TracingHelper.getActiveSpan();
         if (!TracingHelper.isNoop(span) && filter != null)
@@ -7985,11 +8096,32 @@ public class Storage
 
         if (partMask.cardinality() == 1 || filter instanceof LimitFilter || filter instanceof ScriptFilter)
             {
-            result = query(filter, nQueryType, partMask, lIdxVersion);
+            result = queryInternal(filter, nQueryType, partMask, lIdxVersion);
             }
         else
             {
-            result = Daemons.forkJoinPool().invoke(new PartitionedQueryTask(this, filter, nQueryType, partMask, lIdxVersion));
+            Future<QueryResult> future = Daemons.forkJoinPool().submit(new PartitionedQueryTask(this, filter, nQueryType, partMask, lIdxVersion));
+            try
+                {
+                result = cTimeoutMillis == 0L
+                         ? future.get()
+                         : future.get(cTimeoutMillis, TimeUnit.MILLISECONDS);
+                }
+            catch (TimeoutException e)
+                {
+                future.cancel(true);
+                throw new RequestTimeoutException("Query request has timed out");
+                }
+            catch (InterruptedException e)
+                {
+                future.cancel(true);
+                Thread.currentThread().interrupt();
+                throw new RequestTimeoutException("Query request has been interrupted");
+                }
+            catch (Exception e)
+                {
+                throw new RuntimeException(e);
+                }
 
             if (nQueryType == QUERY_INVOKE)
                 {
@@ -8038,7 +8170,7 @@ public class Storage
         return result;
         }
 
-    public com.tangosol.internal.util.QueryResult query(com.tangosol.util.Filter filter, int nQueryType, com.tangosol.net.partition.PartitionSet partMask, long lIdxVersion)
+    protected com.tangosol.internal.util.QueryResult queryInternal(com.tangosol.util.Filter filter, int nQueryType, com.tangosol.net.partition.PartitionSet partMask, long lIdxVersion)
         {
         // import com.tangosol.internal.util.QueryResult;
         // import com.tangosol.internal.tracing.Span;
@@ -8165,9 +8297,12 @@ public class Storage
 
             try
                 {
-                filter = filterOrig instanceof IndexAwareFilter
-                         ? ((IndexAwareFilter) filterOrig).applyIndex(getIndexMap(partMask.first()), setKeys)
-                         : filterOrig;
+                for (int nPart : partMask)
+                    {
+                    filter = filterOrig instanceof IndexAwareFilter
+                             ? ((IndexAwareFilter) filterOrig).applyIndex(getIndexMap(nPart), setKeys)
+                             : filterOrig;
+                    }
                 }
             catch (ConcurrentModificationException e)
                 {
