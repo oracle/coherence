@@ -15,7 +15,6 @@ import com.tangosol.coherence.component.net.memberSet.SingleMemberSet;
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.coherence.config.Config;
-import com.tangosol.coherence.transaction.internal.XidManager;
 import com.tangosol.internal.tracing.Span;
 import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.internal.util.BMEventFabric;
@@ -1335,7 +1334,7 @@ public class Storage
             }
 
         Object result = null;
-        if (partMask.cardinality() == 1 || agent instanceof ScriptAggregator || agent instanceof XidManager.LockedXids)
+        if (partMask.cardinality() == 1 || agent instanceof ScriptAggregator)
             {
             // GraalVM doesn't support access to script context from multiple threads,
             // so we have to fall back to single-threaded execution
