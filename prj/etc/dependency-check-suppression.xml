@@ -611,6 +611,7 @@
     <cpe>cpe:2.3:a:protobuf:protobuf</cpe>
     <cve>CVE-2023-4785</cve>
     <cve>CVE-2023-33953</cve>
+    <cve>CVE-2023-44487</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[
@@ -620,6 +621,7 @@
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
     <cve>CVE-2023-4785</cve>
     <cve>CVE-2023-33953</cve>
+    <cve>CVE-2023-44487</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[
@@ -629,6 +631,7 @@
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
     <cve>CVE-2023-4785</cve>
     <cve>CVE-2023-33953</cve>
+    <cve>CVE-2023-44487</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[
@@ -638,6 +641,7 @@
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
     <cve>CVE-2023-4785</cve>
     <cve>CVE-2023-33953</cve>
+    <cve>CVE-2023-44487</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[
@@ -648,6 +652,7 @@
     <cpe>cpe:2.3:a:protobuf:protobuf</cpe>
     <cve>CVE-2023-4785</cve>
     <cve>CVE-2023-33953</cve>
+    <cve>CVE-2023-44487</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[
@@ -657,6 +662,7 @@
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
     <cve>CVE-2023-4785</cve>
     <cve>CVE-2023-33953</cve>
+    <cve>CVE-2023-44487</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[
@@ -666,6 +672,7 @@
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
     <cve>CVE-2023-4785</cve>
     <cve>CVE-2023-33953</cve>
+    <cve>CVE-2023-44487</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[
@@ -675,6 +682,7 @@
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
     <cve>CVE-2023-4785</cve>
     <cve>CVE-2023-33953</cve>
+    <cve>CVE-2023-44487</cve>
   </suppress>
 
   <!-- suppress netty-handler CVE-2023-4586 4.1.87, 4.1.94, 4.1.97 -->
@@ -732,6 +740,7 @@
     <cve>CVE-2023-33953</cve>
     <cve>CVE-2023-4785</cve>
     <cve>CVE-2023-32732</cve>
+    <cve>CVE-2023-44487</cve>
   </suppress>
 
 </suppressions>
