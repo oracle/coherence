@@ -9,9 +9,13 @@ package com.oracle.bedrock.runtime.coherence;
 
 import com.oracle.bedrock.Option;
 import com.oracle.bedrock.OptionsByType;
+import com.oracle.bedrock.deferred.DeferredHelper;
+import com.oracle.bedrock.deferred.DeferredPredicate;
+import com.oracle.bedrock.deferred.PermanentlyUnavailableException;
 import com.oracle.bedrock.options.Decoration;
 import com.oracle.bedrock.options.Decorations;
 import com.oracle.bedrock.runtime.AbstractAssembly;
+import com.oracle.bedrock.runtime.Assembly;
 import com.oracle.bedrock.runtime.coherence.callables.GetAutoStartServiceNames;
 import com.oracle.bedrock.runtime.coherence.callables.GetServiceStatus;
 import com.oracle.bedrock.runtime.coherence.callables.IsCoherenceRunning;
@@ -19,15 +23,20 @@ import com.oracle.bedrock.runtime.coherence.callables.IsReady;
 import com.oracle.bedrock.runtime.coherence.callables.IsSafe;
 import com.oracle.bedrock.runtime.coherence.callables.IsServiceStorageEnabled;
 import com.oracle.bedrock.runtime.concurrent.options.Caching;
+import com.oracle.bedrock.runtime.concurrent.runnable.ThreadDump;
+import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.util.Trilean;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
 import com.tangosol.util.UID;
+import com.tangosol.util.function.Remote;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.ensure;
@@ -200,6 +209,47 @@ public class CoherenceCluster
         onChanged(optionsByType);
         }
 
+    @Override
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected void onChanged(OptionsByType options) {
+    try
+        {
+        StabilityPredicate<Assembly<?>> stabilityPredicate = options.getOrDefault(StabilityPredicate.class, null);
+        if (stabilityPredicate != null)
+            {
+            DeferredPredicate<?> deferredPredicate = new DeferredPredicate(this, stabilityPredicate.get());
+            DeferredHelper.ensure(DeferredHelper.eventually(deferredPredicate), com.oracle.bedrock.predicate.Predicates.is(true), options.asArray());
+            }
+        }
+    catch (PermanentlyUnavailableException e)
+        {
+        CoherenceClusterMember[] aMember = this.applications.toArray(CoherenceClusterMember[]::new);
+        CompletableFuture[]      aFuture = new CompletableFuture[aMember.length];
+
+        for (int i = 0; i < aMember.length; i++)
+            {
+            try
+                {
+                aFuture[i] = aMember[i].submit(ThreadDump.toStdErr());
+                }
+            catch (Exception ignored)
+                {
+                // ignored
+                }
+            }
+
+        try
+            {
+            CompletableFuture.allOf(aFuture).get(2, TimeUnit.MINUTES);
+            }
+        catch (Exception ex)
+            {
+            System.err.println("Caught exception waiting for thread dumps to complete " + ex.getMessage());
+            }
+        throw e;
+        }
+    }
+
 
     /**
      * Useful {@link Predicate}s for a {@link CoherenceCluster}.
@@ -214,8 +264,79 @@ public class CoherenceCluster
          */
         static Predicate<CoherenceCluster> autoStartServicesSafe()
             {
-            return (cluster) -> {
+            return IsAutoStartServicesSafePredicate.INSTANCE;
+            }
 
+        /**
+         * A {@link Predicate} to determine if {@link CoherenceCluster}
+         *  is running.
+         *
+         * @return a {@link Predicate}
+         */
+        static Predicate<CoherenceCluster> isCoherenceRunning()
+            {
+            return new IsCoherenceRunningPredicate(Set.of(Coherence.DEFAULT_NAME));
+            }
+
+        /**
+         * A {@link Predicate} to determine if all health checks in the
+         * {@link CoherenceCluster} are ready.
+         *
+         * @return a {@link Predicate}
+         */
+        static Predicate<CoherenceCluster> isReady()
+            {
+            return IsReadyPredicate.INSTANCE;
+            }
+
+        /**
+         * A {@link Predicate} to determine if all health checks in the
+         * {@link CoherenceCluster} are ready.
+         *
+         * @param sHealthCheck  the name of an additional health check to verify
+         *
+         * @return a {@link Predicate}
+         */
+        static Predicate<CoherenceCluster> isReady(String sHealthCheck)
+            {
+            return isCoherenceRunning(Set.of(Coherence.DEFAULT_NAME));
+            }
+
+        /**
+         * A {@link Predicate} to determine if {@link CoherenceCluster}
+         *  is running.
+         *
+         * @param asName  the names of the Coherence instances to verify
+         *
+         * @return a {@link Predicate}
+         */
+        static Predicate<CoherenceCluster> isCoherenceRunning(String... asName)
+            {
+            return isCoherenceRunning(Set.of(asName));
+            }
+
+        /**
+         * A {@link Predicate} to determine if {@link CoherenceCluster}
+         *  is running.
+         *
+         * @param setName  the names of the Coherence instances to verify
+         *
+         * @return a {@link Predicate}
+         */
+        static Predicate<CoherenceCluster> isCoherenceRunning(Set<String> setName)
+            {
+            return new IsCoherenceRunningPredicate(setName);
+            }
+        }
+
+    // ----- IsAutoStartServicesSafePredicate -------------------------------
+
+    static class IsAutoStartServicesSafePredicate
+            implements Remote.Predicate<CoherenceCluster>
+        {
+        @Override
+        public boolean test(CoherenceCluster cluster)
+            {
             // determine the number of each auto start service is defined by the cluster
             HashMap<String, Integer> serviceCountMap = new HashMap<>();
 
@@ -276,98 +397,79 @@ public class CoherenceCluster
                 }
 
             return true;
-            };
+            }
+
+        @Override
+        public String toString()
+            {
+            return "IsReadyPredicate";
+            }
+
+        // ----- data members -----------------------------------------------
+
+        static final IsAutoStartServicesSafePredicate INSTANCE = new IsAutoStartServicesSafePredicate();
         }
 
-        /**
-         * A {@link Predicate} to determine if all health checks in the
-         * {@link CoherenceCluster} are ready.
-         *
-         * @return a {@link Predicate}
-         */
-        static Predicate<CoherenceCluster> isReady()
+    // ----- IsReadyPredicate -----------------------------------------------
+
+    static class IsReadyPredicate
+            implements Remote.Predicate<CoherenceCluster>
+        {
+        @Override
+        public boolean test(CoherenceCluster cluster)
             {
-            return (cluster) ->
+            for (CoherenceClusterMember member : cluster)
                 {
-                for (CoherenceClusterMember member : cluster)
+                if (!member.invoke(IsReady.INSTANCE))
                     {
-                    if (!member.invoke(IsReady.INSTANCE))
-                        {
-                        return false;
-                        }
+                    return false;
                     }
-                return true;
-                };
+                }
+            return true;
             }
 
-        /**
-         * A {@link Predicate} to determine if all health checks in the
-         * {@link CoherenceCluster} are ready.
-         *
-         * @param sHealthCheck  the name of an additional health check to verify
-         *
-         * @return a {@link Predicate}
-         */
-        static Predicate<CoherenceCluster> isReady(String sHealthCheck)
+        @Override
+        public String toString()
             {
-            return (cluster) ->
+            return "IsReadyPredicate";
+            }
+
+        // ----- data members -----------------------------------------------
+
+        static final IsReadyPredicate INSTANCE = new IsReadyPredicate();
+        }
+
+    // ----- IsCoherenceRunningPredicate ------------------------------------
+
+    static class IsCoherenceRunningPredicate
+            implements Remote.Predicate<CoherenceCluster>
+        {
+        public IsCoherenceRunningPredicate(Set<String> setNames)
+            {
+            f_setNames = setNames;
+            }
+
+        @Override
+        public boolean test(CoherenceCluster cluster)
+            {
+            for (CoherenceClusterMember member : cluster)
                 {
-                for (CoherenceClusterMember member : cluster)
+                if (!member.invoke(new IsCoherenceRunning(f_setNames)))
                     {
-                    if (!member.invoke(new IsReady(sHealthCheck)))
-                        {
-                        return false;
-                        }
+                    return false;
                     }
-                return true;
-                };
+                }
+            return true;
             }
 
-        /**
-         * A {@link Predicate} to determine if {@link CoherenceCluster}
-         *  is running.
-         *
-         * @return a {@link Predicate}
-         */
-        static Predicate<CoherenceCluster> isCoherenceRunning()
+        @Override
+        public String toString()
             {
-            return isCoherenceRunning(Set.of(Coherence.DEFAULT_NAME));
+            return "IsCoherenceRunningPredicate(coherence=" + f_setNames + ")";
             }
 
-        /**
-         * A {@link Predicate} to determine if {@link CoherenceCluster}
-         *  is running.
-         *
-         * @param asName  the names of the Coherence instances to verify
-         *
-         * @return a {@link Predicate}
-         */
-        static Predicate<CoherenceCluster> isCoherenceRunning(String... asName)
-            {
-            return isCoherenceRunning(Set.of(asName));
-            }
+        // ----- data members -----------------------------------------------
 
-        /**
-         * A {@link Predicate} to determine if {@link CoherenceCluster}
-         *  is running.
-         *
-         * @param setName  the names of the Coherence instances to verify
-         *
-         * @return a {@link Predicate}
-         */
-        static Predicate<CoherenceCluster> isCoherenceRunning(Set<String> setName)
-            {
-            return (cluster) ->
-                {
-                for (CoherenceClusterMember member : cluster)
-                    {
-                    if (!member.invoke(new IsCoherenceRunning(setName)))
-                        {
-                        return false;
-                        }
-                    }
-                return true;
-                };
-            }
+        private final Set<String> f_setNames;
         }
     }
