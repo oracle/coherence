@@ -223,6 +223,7 @@ class path, or module path, of the JVM.
       <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
       <partition-count system-property="coherence.distributed.partitions">257</partition-count>
       <autostart system-property="coherence.topic.enabled">true</autostart>
+      <channel-count system-property="coherence.topic.channel.count"/>
       <high-units>{topic-high-units-bytes 0B}</high-units>
       <reconnect-wait system-property="coherence.topic.reconnect.wait"/>
       <reconnect-timeout system-property="coherence.topic.reconnect.timeout"/>
