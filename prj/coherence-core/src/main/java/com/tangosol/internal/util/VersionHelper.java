@@ -342,12 +342,13 @@ public class VersionHelper
     // ----- constants ------------------------------------------------------
 
     /**
-     * The encoded CE 23.09.0 version.
+     * The encoded CE 23.09.0 and 1 versions.
      */
     public static final int VERSION_23_09 = encodeVersion(23, 9, 0);
+    public static final int VERSION_23_09_1 = encodeVersion(23, 9, 1);
 
     /**
-     * The encoded 14.1.1.2206 versions.
+     * The encoded 14.1.1.2206.0, 6 and 7 versions.
      */
     public static final int VERSION_14_1_1_2206 = encodeVersion(14, 1, 1, 2206, 0);
     public static final int VERSION_14_1_1_2206_6 = encodeVersion(14, 1, 1, 2206, 6);
@@ -359,20 +360,20 @@ public class VersionHelper
     public static final int VERSION_14_1_2_0 = encodeVersion(14, 1, 2, 0, 0);
 
     /**
-     * The encoded 14.1.1.0.0 and 15 versions.
+     * The encoded 14.1.1.0.0 and 16 versions.
      */
     public static final int VERSION_14_1_1_0 = encodeVersion(14, 1, 1, 0, 0);
-    public static final int VERSION_14_1_1_0_15 = encodeVersion(14, 1, 1, 0, 15);
+    public static final int VERSION_14_1_1_0_16 = encodeVersion(14, 1, 1, 0, 16);
 
     /**
-     * The encoded 12.2.1.4.0 and 19 versions.
+     * The encoded 12.2.1.4.0 and 20 versions.
      */
     public static final int VERSION_12_2_1_4 = encodeVersion(12, 2, 1, 4, 0);
-    public static final int VERSION_12_2_1_4_19 = encodeVersion(12, 2, 1, 4, 19);
+    public static final int VERSION_12_2_1_4_20 = encodeVersion(12, 2, 1, 4, 20);
 
     /**
-     * The encoded 12.2.1.6.0 and 5 versions.
+     * The encoded 12.2.1.6.0 and 6 versions.
      */
     public static final int VERSION_12_2_1_6 = encodeVersion(12, 2, 1, 6, 0);
-    public static final int VERSION_12_2_1_6_5 = encodeVersion(12, 2, 1, 6, 5);
+    public static final int VERSION_12_2_1_6_6 = encodeVersion(12, 2, 1, 6, 6);
     }
