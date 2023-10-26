@@ -408,6 +408,18 @@ public class StorageManagerMBean
                 "rest.collector=sum,metrics.value=_default",
                 });
             }
+
+        // property ClearCount
+            {
+            mapInfo.put("ClearCount", new Object[]
+                {
+                "The number of clear() operations since the last time statistics were reset.",
+                "getClearCount",
+                null,
+                "J",
+                "rest.collector=sum,metrics.value=_default",
+                });
+            }
         
         // property TriggerInfo
             {
@@ -598,7 +610,19 @@ public class StorageManagerMBean
         {
         return 0;
         }
-    
+
+    // Accessor for the property "ClearCount"
+    /**
+     * Getter for property ClearCount.<p>
+     * The number of clear() operations since the last time statistics were reset.
+     *
+     * @descriptor rest.collector=set,metrics.value=_default
+     */
+    public long getClearCount()
+        {
+        return 0L;
+        }
+
     // Accessor for the property "ListenerKeyCount"
     /**
      * Getter for property ListenerKeyCount.<p>

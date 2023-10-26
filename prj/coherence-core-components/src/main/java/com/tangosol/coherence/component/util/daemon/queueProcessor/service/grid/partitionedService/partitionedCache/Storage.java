@@ -685,6 +685,14 @@ public class Storage
     private transient java.util.concurrent.atomic.AtomicLong __m_StatsRemoves;
 
     /**
+     * Property StatsClears
+     *
+     * A counter for the number of clear operations on the backing map.
+     * This counter gets incremented during clear operations.
+     */
+    private transient java.util.concurrent.atomic.AtomicLong __m_StatsClears;
+
+    /**
      * Property TempBinaryEntry
      *
      * A singleton temporary BinaryEntry that is used (solely) by the
@@ -799,6 +807,7 @@ public class Storage
             setStatsOptimizedQueryTotalMillis(new java.util.concurrent.atomic.AtomicLong());
             setStatsQueryContentionCount(new java.util.concurrent.atomic.AtomicLong());
             setStatsRemoves(new java.util.concurrent.atomic.AtomicLong());
+            setStatsClears(new java.util.concurrent.atomic.AtomicLong());
             setValid(false);
             setVersion(new com.tangosol.net.internal.StorageVersion());
             }
@@ -1812,6 +1821,7 @@ public class Storage
                 }
             }
         ctxInvoke.postInvoke();
+        getStatsClears().incrementAndGet();
         }
 
     /**
@@ -4494,6 +4504,17 @@ public class Storage
     public java.util.concurrent.atomic.AtomicLong getStatsRemoves()
         {
         return __m_StatsRemoves;
+        }
+
+    // Accessor for the property "StatsClears"
+    /**
+     * Getter for property StatsClears.<p>
+     * A counter for the number of clear operations on the backing map.
+     * This counter gets incremented during clear operations.
+     */
+    public java.util.concurrent.atomic.AtomicLong getStatsClears()
+        {
+        return __m_StatsClears;
         }
 
     // Accessor for the property "TempBinaryEntry"
@@ -9003,6 +9024,7 @@ public class Storage
         getStatsOptimizedQueryTotalMillis().set(0L);
         getStatsOptimizedQueryCount().set(0);
         getStatsQueryContentionCount().set(0L);
+        getStatsClears().set(0L);
 
         getStatsIndexingTotalMillis().set(0L);
 
@@ -9785,6 +9807,17 @@ public class Storage
     protected void setStatsRemoves(java.util.concurrent.atomic.AtomicLong counter)
         {
         __m_StatsRemoves = counter;
+        }
+
+    // Accessor for the property "StatsClears"
+    /**
+     * Setter for property StatsClears.<p>
+     * A counter for the number of clear operations on the backing map.
+     * This counter gets incremented during clear operations.
+     */
+    protected void setStatsClears(java.util.concurrent.atomic.AtomicLong counter)
+        {
+        __m_StatsClears = counter;
         }
 
     // Accessor for the property "TempBinaryEntry"
