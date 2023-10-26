@@ -46,6 +46,7 @@ import com.tangosol.util.NullImplementation;
 import com.tangosol.util.PagedIterator;
 import com.tangosol.util.SimpleEnumerator;
 import com.tangosol.util.filter.LimitFilter;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -59,6 +60,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 
+import static com.tangosol.internal.util.VersionHelper.VERSION_12_2_1_4_20;
+import static com.tangosol.internal.util.VersionHelper.VERSION_12_2_1_6_6;
+import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_1_0_16;
+import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_1_2206_7;
+import static com.tangosol.internal.util.VersionHelper.VERSION_23_09_1;
+import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_2_0;
+import static com.tangosol.internal.util.VersionHelper.isPatchCompatible;
+import static com.tangosol.internal.util.VersionHelper.isVersionCompatible;
 
 /**
  * The internal view of the distributed cache.
@@ -2323,6 +2332,23 @@ public class BinaryMap
         return size() == 0;
         }
 
+    /**
+     * Determine whether the specified version is compatible with partitioned
+     * query changes.
+     *
+     * @return {@code true} if the specified version is compatible with partitioned
+     *          query changes
+     */
+    protected static boolean isPartitionedQueryCompatible(int nVersion)
+        {
+        return isVersionCompatible(VERSION_14_1_2_0, nVersion)
+               || isPatchCompatible(VERSION_23_09_1, nVersion)
+               || isPatchCompatible(VERSION_14_1_1_2206_7, nVersion)
+               || isPatchCompatible(VERSION_14_1_1_0_16, nVersion)
+               || isPatchCompatible(VERSION_12_2_1_4_20, nVersion)
+               || isPatchCompatible(VERSION_12_2_1_6_6, nVersion);
+        }
+
     // From interface: com.tangosol.net.NamedCache
     public java.util.Set keySet()
         {
@@ -3459,8 +3485,9 @@ public class BinaryMap
 
         try
             {
-            PartitionedCache.QueryRequest msg =
-                    (PartitionedCache.QueryRequest) service.instantiateMessage("QueryRequest");
+            PartitionedCache.QueryRequest msg = service.isVersionCompatible(BinaryMap::isPartitionedQueryCompatible)
+                                                ? (PartitionedCache.QueryRequest) service.instantiateMessage("PartitionedQueryRequest")
+                                                : (PartitionedCache.QueryRequest) service.instantiateMessage("QueryRequest");
             msg.setRequestContext(context);
             msg.setCacheId(getCacheId());
             msg.setFilter(filter);
@@ -4247,14 +4274,12 @@ public class BinaryMap
                     PartitionSet partMember = (PartitionSet) mapByOwner.get(member);
 
                     msgRequest.setToMemberSet(SingleMemberSet.instantiate(member));
+                    msgRequest.setPartResults(listParts);
                     msgRequest.setRequestMask(partMember);
+                    msgRequest.setRepliesMask(new PartitionSet(partMember));
                     msgRequest.setPartitions(partitions);
 
-                    Object oResult = service.poll(msgRequest);
-                    if (oResult != null)
-                        {
-                        listParts.add(oResult);
-                        }
+                    service.poll(msgRequest);
                     }
                 else
                     {
@@ -4290,6 +4315,7 @@ public class BinaryMap
                         msgRequest.setToMemberSet(SingleMemberSet.instantiate(member));
                         msgRequest.setRequestMask(partMember);
                         msgRequest.setPartResults(listParts);
+                        msgRequest.setRepliesMask(new PartitionSet(partMember));
                         msgRequest.setPartitions(partitions);
 
                         aMsg[iMsg] = msgRequest;

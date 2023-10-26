@@ -9,6 +9,7 @@
 
 package com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService;
 
+import com.oracle.coherence.common.util.MemorySize;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.Storage;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.ViewMap;
@@ -206,6 +207,8 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
  * 84    UpdateIndexRequest
  * 85    KeyListenerAllRequest
  * 86    BackupListenerAllRequest
+ * 87    PartitionedQueryRequest
+ * 88    PartitionedQueryResponse
  */
 @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
 public class PartitionedCache
@@ -447,7 +450,19 @@ public class PartitionedCache
      * coherence.distributed.scheduledbackupsthreshold, see onInit
      */
     private int __m_ScheduledBackupsThreshold;
-    
+
+    /**
+     * Property MaxPartialResponseSize
+     *
+     * Specifies the size in bytes after which a query-type response message
+     * will be broken up into chunks for it to be "streamed".
+     * This is to prevent reaching the 2GB message size limit.
+     *
+     * Undocumented: configured via
+     * coherence.distributed.max.response.size, see onInit
+     */
+    private MemorySize __m_MaxPartialResponseSize;
+
     /**
      * Property ScopedCacheStore
      *
@@ -651,7 +666,9 @@ public class PartitionedCache
         __mapChildren.put("PutAllRequest", PartitionedCache.PutAllRequest.get_CLASS());
         __mapChildren.put("PutRequest", PartitionedCache.PutRequest.get_CLASS());
         __mapChildren.put("QueryRequest", PartitionedCache.QueryRequest.get_CLASS());
+        __mapChildren.put("PartitionedQueryRequest", PartitionedCache.PartitionedQueryRequest.get_CLASS());
         __mapChildren.put("QueryResponse", PartitionedCache.QueryResponse.get_CLASS());
+        __mapChildren.put("PartitionedQueryResponse", PartitionedCache.PartitionedQueryResponse.get_CLASS());
         __mapChildren.put("RemoveAllRequest", PartitionedCache.RemoveAllRequest.get_CLASS());
         __mapChildren.put("RemoveRequest", PartitionedCache.RemoveRequest.get_CLASS());
         __mapChildren.put("Response", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.Response.get_CLASS());
@@ -3091,7 +3108,22 @@ public class PartitionedCache
         {
         return __m_ScheduledBackupsThreshold;
         }
-    
+
+    /**
+     * Getter for property MaxPartialResponseSize.
+     *
+     * Specifies the size in bytes after which a query-type response message
+     * will be broken up into chunks for it to be "streamed".
+     * This is to prevent reaching the 2GB message size limit.
+     *
+     * Undocumented: configured via
+     * coherence.distributed.max.response.size, see onInit
+     */
+    public MemorySize getMaxPartialResponseSize()
+        {
+        return __m_MaxPartialResponseSize;
+        }
+
     // Accessor for the property "ScopedCacheStore"
     /**
      * Getter for property ScopedCacheStore.<p>
@@ -4985,6 +5017,7 @@ public class PartitionedCache
         setResourceCoordinator((PartitionedCache.ResourceCoordinator) _findChild("ResourceCoordinator"));
         setTaskSplitThreshold(Integer.parseInt(Config.getProperty("coherence.distributed.tasksplitthreshold", "1")));
         setScheduledBackupsThreshold(Integer.parseInt(Config.getProperty("coherence.distributed.scheduledbackupsthreshold", "60")));
+        setMaxPartialResponseSize(Config.getMemorySize("coherence.distributed.max.response.size", "1m"));
         }
     
     // Declared at the super level
@@ -7056,64 +7089,99 @@ public class PartitionedCache
         // import com.tangosol.net.security.StorageAccessAuthorizer as com.tangosol.net.security.StorageAccessAuthorizer;
         // import com.tangosol.util.Filter;
         // import com.tangosol.util.filter.LimitFilter;
-        
-        PartitionedCache.QueryResponse msgResponse = (PartitionedCache.QueryResponse) instantiateMessage("QueryResponse");
+
+        // older clients will send regular QueryRequest
+        boolean fPartitioned = msgRequest instanceof PartitionedQueryRequest;
+
+        PartitionedCache.QueryResponse msgResponse = fPartitioned
+                                                     ? (PartitionedCache.QueryResponse) instantiateMessage("PartitionedQueryResponse")
+                                                     : (PartitionedCache.QueryResponse) instantiateMessage("QueryResponse");
         msgResponse.respondTo(msgRequest);
-        
+
         Storage storage = validateRequestForStorage(msgRequest, msgResponse, true);
         if (storage == null)
             {
             return;
             }
-        
+
         PartitionSet partMask = msgRequest.getRequestMaskSafe();
         Filter       filter   = msgRequest.getFilter();
         boolean      fKeySet  = msgRequest.isKeysOnly();
-        
+        boolean      fFirst   = true;
+
         flushOOBEvents();
-        
+
         PartitionSet       partReject = pinOwnedPartitions(partMask);
         PartitionedCache.InvocationContext ctxInvoke  = ensureInvocationContext(partMask);
         ctxInvoke.markReadOnlyRequest();
-        
+
         try
             {
             storage.checkAccess(msgRequest.getRequestContext(), Storage.BinaryEntry.ACCESS_READ_ANY,
                 fKeySet ? com.tangosol.net.security.StorageAccessAuthorizer.REASON_KEYSET : com.tangosol.net.security.StorageAccessAuthorizer.REASON_ENTRYSET);
-        
+
             QueryResult result = storage.query(filter,
                     fKeySet ? Storage.QUERY_KEYS : Storage.QUERY_ENTRIES, partMask, msgRequest.checkTimeoutRemaining());
-        
-            msgResponse.setKeysOnly(fKeySet);
-            msgResponse.setResult(result.getResults());
-            msgResponse.setSize(result.getCount());
-            msgResponse.setRejectPartitions(partReject);
-        
-            if (filter instanceof LimitFilter)
+
+            QueryResult[] aoQueryResult;
+            if (partMask.cardinality() == 1 || !fPartitioned || filter instanceof LimitFilter)
                 {
-                Object oCookie = ((LimitFilter) filter).getCookie();
-                if (oCookie instanceof Integer)
+                aoQueryResult = new QueryResult[] { result };
+                }
+            else
+                {
+                aoQueryResult = result.split(getMaxPartialResponseSize());
+                }
+
+            for (QueryResult queryResult : aoQueryResult)
+                {
+                if (fFirst)
                     {
-                    msgResponse.setAvailable(((Integer) oCookie).intValue());
+                    // first message allocation was for validation
+                    fFirst = false;
                     }
+                else
+                    {
+                    // clone msgResponse
+                    msgResponse = (PartitionedCache.QueryResponse) msgResponse.cloneMessage();
+                    msgResponse.respondTo(msgRequest);
+                    }
+
+                msgResponse.setKeysOnly(fKeySet);
+                msgResponse.setResult(queryResult.getResults());
+                msgResponse.setSize(queryResult.getCount());
+                msgResponse.setRejectPartitions(partReject);
+                msgResponse.setResponsePartitions(queryResult.getPartitionSet());
+
+                if (filter instanceof LimitFilter)
+                    {
+                    Object oCookie = ((LimitFilter) filter).getCookie();
+                    if (oCookie instanceof Integer)
+                        {
+                        msgResponse.setAvailable(((Integer) oCookie).intValue());
+                        }
+                    }
+
+                post(msgResponse);
                 }
             }
         catch (Throwable e)
             {
             msgResponse.setException(tagException(e));
+            post(msgResponse);
             }
-        
+
         // COH-22088: if the thread was interrupted due to the guardian we must reset
         //            (heartbeat and clear the interrupt bit) to avoid an exception when
         //            invoking an interruptible method
         GuardSupport.reset();
-        
-        processChanges(msgResponse);
-        
+
+        processChanges();
+
         releaseInvocationContext(ctxInvoke);
-        
+
         msgRequest.setProcessedPartitions(partMask);
-        
+
         unpinPartitions(partMask);
         }
     
@@ -11175,7 +11243,22 @@ public class PartitionedCache
         {
         __m_ScheduledBackupsThreshold = nThreshold;
         }
-    
+
+    /**
+     * Setter for property MaxPartialResponseSize
+     *
+     * Specifies the size in bytes after which a query-type response message
+     * will be broken up into chunks for it to be "streamed".
+     * This is to prevent reaching the 2GB message size limit.
+     *
+     * Undocumented: configured via
+     * coherence.distributed.max.response.size, see onInit
+     */
+    public void setMaxPartialResponseSize(MemorySize size)
+        {
+        __m_MaxPartialResponseSize = size;
+        }
+
     // Accessor for the property "ScopedCacheStore"
     /**
      * Setter for property ScopedCacheStore.<p>
@@ -34190,6 +34273,298 @@ public class PartitionedCache
             }
         }
 
+    // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache$PartitionedQueryRequest
+
+    /**
+     * @see $BinaryMap#keySet(Filter)
+     * @see $BinaryMap#entrySet(Filter)
+     */
+    @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
+    public static class PartitionedQueryRequest
+            extends    QueryRequest
+        {
+        // ---- Fields declarations ----
+
+        private static com.tangosol.util.ListMap __mapChildren;
+
+        // Static initializer
+        static
+            {
+            __initStatic();
+            }
+
+        // Default static initializer
+        private static void __initStatic()
+            {
+            // register child classes
+            __mapChildren = new com.tangosol.util.ListMap();
+            __mapChildren.put("Poll", PartitionedCache.PartitionedQueryRequest.Poll.get_CLASS());
+            }
+
+        // Default constructor
+        public PartitionedQueryRequest()
+            {
+            this(null, null, true);
+            }
+
+        // Initializing constructor
+        public PartitionedQueryRequest(String sName, com.tangosol.coherence.Component compParent, boolean fInit)
+            {
+            super(sName, compParent, false);
+
+            if (fInit)
+                {
+                __init();
+                }
+            }
+
+        // Main initializer
+        public void __init()
+            {
+            // private initialization
+            __initPrivate();
+
+            // state initialization: public and protected properties
+            try
+                {
+                setMessageType(87);
+                }
+            catch (java.lang.Exception e)
+                {
+                // re-throw as a runtime exception
+                throw new com.tangosol.util.WrapperException(e);
+                }
+
+            // containment initialization: children
+
+            // signal the end of the initialization
+            set_Constructed(true);
+            }
+
+        // Private initializer
+        protected void __initPrivate()
+            {
+            super.__initPrivate();
+            }
+
+        //++ getter for static property _Instance
+        /**
+         * Getter for property _Instance.<p>
+         * Auto generated
+         */
+        public static com.tangosol.coherence.Component get_Instance()
+            {
+            return new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.PartitionedQueryRequest();
+            }
+
+        //++ getter for static property _CLASS
+        /**
+         * Getter for property _CLASS.<p>
+         * Property with auto-generated accessor that returns the Class object
+         * for a given component.
+         */
+        public static Class get_CLASS()
+            {
+            Class clz;
+            try
+                {
+                clz = Class.forName("com.tangosol.coherence/component/util/daemon/queueProcessor/service/grid/partitionedService/PartitionedCache$PartitionedQueryRequest".replace('/', '.'));
+                }
+            catch (ClassNotFoundException e)
+                {
+                throw new NoClassDefFoundError(e.getMessage());
+                }
+            return clz;
+            }
+
+        //++ getter for autogen property _Module
+        /**
+         * This is an auto-generated method that returns the global [design
+         * time] parent component.
+         *
+         * Note: the class generator will ignore any custom implementation for
+         * this behavior.
+         */
+        private com.tangosol.coherence.Component get_Module()
+            {
+            return this.get_Parent();
+            }
+
+        //++ getter for autogen property _ChildClasses
+        /**
+         * This is an auto-generated method that returns the map of design time
+         * [static] children.
+         *
+         * Note: the class generator will ignore any custom implementation for
+         * this behavior.
+         */
+        protected java.util.Map get_ChildClasses()
+            {
+            return __mapChildren;
+            }
+
+        // Declared at the super level
+        /**
+         * Instantiate a copy of this message. This is quite different from the
+         * standard "clone" since only the "transmittable" portion of the
+         * message (and none of the internal) state should be cloned.
+         */
+        public com.tangosol.coherence.component.net.Message cloneMessage()
+            {
+            PartitionedCache.PartitionedQueryRequest msg = (PartitionedCache.PartitionedQueryRequest) super.cloneMessage();
+
+            return msg;
+            }
+
+        // Declared at the super level
+        public void read(com.tangosol.io.ReadBuffer.BufferInput input)
+                throws java.io.IOException
+            {
+            super.read(input);
+
+            readTracing(input);
+            }
+
+        // Declared at the super level
+        public void run()
+            {
+            ((PartitionedCache) getService()).onQueryRequest(this);
+            }
+
+        // Declared at the super level
+        /**
+         * Setter for property RequestTimeout.<p>
+         * Transient property optionally used on the client to indicate the
+         * (safe local) time after which this logical request should be
+         * considered timed out.
+         *
+         * Note that a single logical request message may result in multiple
+         * physical request messages being sent to mulitple members; this
+         * RequestTimeout value will be cloned to all resulting RequestMessage
+         * instances.
+         *
+         * This value is lazily calculated by #getRequestTimeout or
+         * #calculateTimeoutRemaining.
+         */
+        public void setRequestTimeout(long ldtTimeout)
+            {
+            super.setRequestTimeout(ldtTimeout);
+            }
+
+        // Declared at the super level
+        public void write(com.tangosol.io.WriteBuffer.BufferOutput output)
+                throws java.io.IOException
+            {
+            super.write(output);
+
+            writeTracing(output);
+            }
+
+        // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache$QueryRequest$Poll
+
+        /**
+         * The Poll contains information regarding a request sent to one or
+         * more Cluster Members that require responses. A Service may poll
+         * other Members that are running the same Service, and the Poll is
+         * used to wait for and assemble the responses from each of those
+         * Members. A client thread may also use the Poll to block on a
+         * response or set of responses, thus waiting for the completion of the
+         * Poll. In its simplest form, which is a Poll that is sent to one
+         * Member of the Cluster, the Poll actually represents the
+         * request/response model.
+         */
+        @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
+        public static class Poll
+                extends    com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.PartialRequest.Poll
+            {
+            // ---- Fields declarations ----
+
+            // Default constructor
+            public Poll()
+                {
+                this(null, null, true);
+                }
+
+            // Initializing constructor
+            public Poll(String sName, com.tangosol.coherence.Component compParent, boolean fInit)
+                {
+                super(sName, compParent, false);
+
+                if (fInit)
+                    {
+                    __init();
+                    }
+                }
+
+            // Main initializer
+            public void __init()
+                {
+                // private initialization
+                __initPrivate();
+
+
+                // signal the end of the initialization
+                set_Constructed(true);
+                }
+
+            // Private initializer
+            protected void __initPrivate()
+                {
+
+                super.__initPrivate();
+                }
+
+            // Getter for virtual constant Preprocessable
+            public boolean isPreprocessable()
+                {
+                return true;
+                }
+
+            //++ getter for static property _Instance
+            /**
+             * Getter for property _Instance.<p>
+             * Auto generated
+             */
+            public static com.tangosol.coherence.Component get_Instance()
+                {
+                return new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.QueryRequest.Poll();
+                }
+
+            //++ getter for static property _CLASS
+            /**
+             * Getter for property _CLASS.<p>
+             * Property with auto-generated accessor that returns the Class
+             * object for a given component.
+             */
+            public static Class get_CLASS()
+                {
+                Class clz;
+                try
+                    {
+                    clz = Class.forName("com.tangosol.coherence/component/util/daemon/queueProcessor/service/grid/partitionedService/PartitionedCache$PartitionedQueryRequest$Poll".replace('/', '.'));
+                    }
+                catch (ClassNotFoundException e)
+                    {
+                    throw new NoClassDefFoundError(e.getMessage());
+                    }
+                return clz;
+                }
+
+            //++ getter for autogen property _Module
+            /**
+             * This is an auto-generated method that returns the global [design
+             * time] parent component.
+             *
+             * Note: the class generator will ignore any custom implementation
+             * for this behavior.
+             */
+            private com.tangosol.coherence.Component get_Module()
+                {
+                return this.get_Parent().get_Parent();
+                }
+            }
+        }
+
     // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache$QueryResponse
     
     /**
@@ -34593,6 +34968,139 @@ public class PartitionedCache
                         }
                     }
                 ExternalizableHelper.writeInt(output, getAvailable());
+                }
+            }
+        }
+
+    /**
+     * Response to DistributedCacheRequest messages (e.g QueryRequest,
+     * InvokeFilterRequest) that returns an array of partial results (keys or
+     * entries) along with a set of partitions that have been rejected.
+     * This versions enables streaming of large responses.
+     */
+    @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
+    public static class PartitionedQueryResponse
+            extends    QueryResponse
+        {
+        // ---- Fields declarations ----
+
+        // Default constructor
+        public PartitionedQueryResponse()
+            {
+            this(null, null, true);
+            }
+
+        // Initializing constructor
+        public PartitionedQueryResponse(String sName, com.tangosol.coherence.Component compParent, boolean fInit)
+            {
+            super(sName, compParent, false);
+
+            if (fInit)
+                {
+                __init();
+                }
+            }
+
+        // Main initializer
+        public void __init()
+            {
+            // private initialization
+            __initPrivate();
+
+            // state initialization: public and protected properties
+            try
+                {
+                setMessageType(88);
+                }
+            catch (java.lang.Exception e)
+                {
+                // re-throw as a runtime exception
+                throw new com.tangosol.util.WrapperException(e);
+                }
+
+            // signal the end of the initialization
+            set_Constructed(true);
+            }
+
+        // Private initializer
+        protected void __initPrivate()
+            {
+
+            super.__initPrivate();
+            }
+
+        //++ getter for static property _Instance
+        /**
+         * Getter for property _Instance.<p>
+         * Auto generated
+         */
+        public static com.tangosol.coherence.Component get_Instance()
+            {
+            return new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.PartitionedQueryResponse();
+            }
+
+        //++ getter for static property _CLASS
+        /**
+         * Getter for property _CLASS.<p>
+         * Property with auto-generated accessor that returns the Class object
+         * for a given component.
+         */
+        public static Class get_CLASS()
+            {
+            Class clz;
+            try
+                {
+                clz = Class.forName("com.tangosol.coherence/component/util/daemon/queueProcessor/service/grid/partitionedService/PartitionedCache$PartitionedQueryResponse".replace('/', '.'));
+                }
+            catch (ClassNotFoundException e)
+                {
+                throw new NoClassDefFoundError(e.getMessage());
+                }
+            return clz;
+            }
+
+        //++ getter for autogen property _Module
+        /**
+         * This is an auto-generated method that returns the global [design
+         * time] parent component.
+         *
+         * Note: the class generator will ignore any custom implementation for
+         * this behavior.
+         */
+        private com.tangosol.coherence.Component get_Module()
+            {
+            return this.get_Parent();
+            }
+
+        // Declared at the super level
+        public void read(com.tangosol.io.ReadBuffer.BufferInput input)
+                throws java.io.IOException
+            {
+            super.read(input);
+
+            if (input.readBoolean())
+                {
+                PartitionSet partsResponse = new PartitionSet();
+                partsResponse.readExternal(input);
+                setResponsePartitions(partsResponse);
+                }
+            }
+
+        // Declared at the super level
+        public void write(com.tangosol.io.WriteBuffer.BufferOutput output)
+                throws java.io.IOException
+            {
+            super.write(output);
+
+            PartitionSet partsResponse = getResponsePartitions();
+            if (partsResponse == null)
+                {
+                output.writeBoolean(false);
+                }
+            else
+                {
+                output.writeBoolean(true);
+                partsResponse.writeExternal(output);
                 }
             }
         }

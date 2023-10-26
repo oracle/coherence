@@ -348,7 +348,9 @@ public class PagedTopic
         __mapChildren.put("PutAllRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.PutAllRequest.get_CLASS());
         __mapChildren.put("PutRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.PutRequest.get_CLASS());
         __mapChildren.put("QueryRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.QueryRequest.get_CLASS());
+        __mapChildren.put("PartitionedQueryRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.PartitionedQueryRequest.get_CLASS());
         __mapChildren.put("QueryResponse", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.QueryResponse.get_CLASS());
+        __mapChildren.put("PartitionedQueryResponse", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.PartitionedQueryResponse.get_CLASS());
         __mapChildren.put("RemoveAllRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.RemoveAllRequest.get_CLASS());
         __mapChildren.put("RemoveRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.RemoveRequest.get_CLASS());
         __mapChildren.put("Response", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.Response.get_CLASS());
