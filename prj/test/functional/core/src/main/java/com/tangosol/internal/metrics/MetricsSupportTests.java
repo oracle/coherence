@@ -608,6 +608,7 @@ public class MetricsSupportTests
                                     "Coherence.StorageManager.OptimizedQueryCount",
                                     "Coherence.StorageManager.OptimizedQueryTotalMillis",
                                     "Coherence.StorageManager.QueryContentionCount",
+                                    "Coherence.StorageManager.ClearCount",
                                     "Coherence.StorageManager.RemoveCount");
         }
 
