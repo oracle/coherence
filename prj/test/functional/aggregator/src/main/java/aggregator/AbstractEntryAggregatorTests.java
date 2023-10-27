@@ -18,6 +18,7 @@ import com.tangosol.net.cache.LocalCache;
 import com.tangosol.net.cache.WrapperNamedCache;
 
 import com.tangosol.util.Filter;
+import com.tangosol.util.Filters;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.NullImplementation;
 import com.tangosol.util.ValueExtractor;
@@ -234,7 +235,7 @@ public abstract class AbstractEntryAggregatorTests
         setExpected.add(1);
 
         setResult = cache.aggregate(Collections.singletonList("1"), agent);
-        assertEquals(setResult, setExpected);
+        assertEquals(setExpected, setResult);
 
         setExpected.clear();
         for (int i = 1; i <= 10; ++i)
@@ -243,10 +244,19 @@ public abstract class AbstractEntryAggregatorTests
             }
 
         setResult = cache.aggregate((Filter) null, agent);
-        assertEquals(setResult, setExpected);
+        assertEquals(setExpected, setResult);
 
         setResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertEquals(setResult, setExpected);
+        assertEquals(setExpected, setResult);
+
+        setExpected.clear();
+        for (int i = 5; i <= 10; ++i)
+            {
+            setExpected.add(i);
+            }
+
+        setResult = cache.aggregate(Filters.greaterEqual(IdentityExtractor.INSTANCE(), 5), agent);
+        assertEquals(setExpected, setResult);
 
         for (int i = 1; i <= 10; ++i)
             {
@@ -257,13 +267,13 @@ public abstract class AbstractEntryAggregatorTests
         setExpected.add(0);
 
         setResult = cache.aggregate(Collections.singletonList("1"), agent);
-        assertEquals(setResult, setExpected);
+        assertEquals(setExpected, setResult);
 
         setResult = cache.aggregate((Filter) null, agent);
-        assertEquals(setResult, setExpected);
+        assertEquals(setExpected, setResult);
 
         setResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertEquals(setResult, setExpected);
+        assertEquals(setExpected, setResult);
 
         cache.clear();
         Eventually.assertThat(cache.size(), is(0));

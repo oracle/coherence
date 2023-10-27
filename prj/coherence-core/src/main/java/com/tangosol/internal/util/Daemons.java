@@ -6,6 +6,7 @@
  */
 package com.tangosol.internal.util;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.OperationalContext;
 import com.tangosol.util.Base;
@@ -56,17 +57,30 @@ public abstract class Daemons
 
     /**
      * Returns a shared, Coherence-managed {@link ForkJoinPool} instance.
+     * <p>
+     * Parallelism (the number of FJP worker threads) defaults to the number
+     * of available processors, but can be configured using {@code coherence.forkjoinpool.parallelism}
+     * config property.
+     * <p>
+     * The Coherence FJP will be disabled if the processor count is 1, or if the
+     * {@code coherence.forkjoinpool.parallelism} config property is explicitly set to zero.
      *
-     * @return a shared, Coherence-managed {@link ForkJoinPool} instance
+     * @return a shared, Coherence-managed {@link ForkJoinPool} instance, or {@code null}
+     *         if the Coherence FJP is disabled
      */
     public static ForkJoinPool forkJoinPool()
         {
-        if (s_forkJoinPool == null)
-            {
-            s_forkJoinPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors(), ForkJoinPoolWorker::new, null, false);
-            }
+        return FORK_JOIN_POOL;
+        }
 
-        return s_forkJoinPool;
+    /**
+     * Return {@code true} if Coherence FJP is enabled.
+     *
+     * @return {@code true} if Coherence FJP is enabled, {@code false} otherwise
+     */
+    public static boolean isForkJoinPoolEnabled()
+        {
+        return FORK_JOIN_POOL != null;
         }
 
     // ----- inner class: ForkJoinPoolWorker --------------------------------
@@ -98,17 +112,25 @@ public abstract class Daemons
             "com.tangosol.coherence.component.util.DaemonPool";
 
     /**
+     * Coherence ForkJoinPool parallelism.
+     */
+    private static final int FORK_JOIN_POOL_PARALLELISM =
+            Config.getInteger("coherence.forkjoinpool.parallelism", Runtime.getRuntime().availableProcessors());
+    /**
      * The DaemonPool class.
      */
     private static final Class DAEMON_POOL_CLASS;
 
-    private static ForkJoinPool s_forkJoinPool;
+    private static final ForkJoinPool FORK_JOIN_POOL;
 
     static
         {
         try
             {
             DAEMON_POOL_CLASS = Class.forName(DAEMON_POOL);
+            FORK_JOIN_POOL    = FORK_JOIN_POOL_PARALLELISM > 1
+                                ? new ForkJoinPool(FORK_JOIN_POOL_PARALLELISM, ForkJoinPoolWorker::new, null, false)
+                                : null;
             }
         catch (Throwable e)
             {
