@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
 
@@ -13,6 +13,7 @@ import com.oracle.coherence.common.base.Timeout;
 
 import com.oracle.coherence.common.util.Duration;
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.net.FlowControl;
 
 import com.tangosol.util.aggregator.AbstractAsynchronousAggregator;
@@ -217,15 +218,21 @@ public abstract class AsynchronousAgent<T>
                 {
                 if (future == null)
                     {
-                    m_supplier = supplier;
+                    // getCompletableFuture hasn't been called yet
+                    m_supplier   = supplier;
+                    m_fCompleted = true;
+                    f_notifier.signal();
                     }
                 else
                     {
-                    future.complete(supplier.get());
+                    future.completeAsync(supplier, Daemons.commonPool())
+                            .whenComplete((r, e) ->
+                                {
+                                m_fCompleted = true;
+                                f_notifier.signal();
+                                });
                     }
 
-                m_fCompleted = true;
-                f_notifier.signal();
                 return true;
                 }
             }
@@ -347,7 +354,8 @@ public abstract class AsynchronousAgent<T>
                 {
                 assert m_supplier != null;
 
-                future.complete(m_supplier.get());
+                future.completeAsync(m_supplier, Daemons.commonPool())
+                        .whenComplete((r, e) -> f_notifier.signal());
                 }
             }
 

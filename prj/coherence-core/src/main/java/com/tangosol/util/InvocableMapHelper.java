@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -132,7 +132,7 @@ public abstract class InvocableMapHelper
         for (BiConsumer<? super R, ? super Throwable> continuation : continuations)
             {
             // must occur before calling invoke, this is the entire point of this method
-            future = future.whenComplete(continuation::accept);
+            future = future.whenComplete(continuation);
             }
 
         cache.invoke(key, procAsync);
