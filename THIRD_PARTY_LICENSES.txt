@@ -8656,3 +8656,45 @@ errorprone, v2.11.0, Apache 2.0
  */
 
 ++++++++++++++
+
+
+==================================
+Open Telemetry
+
+io.opentelemetry:opentelemetry-api:jar
+io.opentelemetry:opentelemetry-context:jar
+io.opentelemetry:opentelemetry-sdk:jar
+io.opentelemetry:opentelemetry-sdk-common:jar
+io.opentelemetry:opentelemetry-semconv:jar
+io.opentelemetry:opentelemetry-sdk-trace:jar
+io.opentelemetry:opentelemetry-sdk-metrics:jar
+io.opentelemetry:opentelemetry-extension-incubator:jar
+io.opentelemetry:opentelemetry-sdk-logs:jar
+io.opentelemetry:opentelemetry-api-events:jar
+==================================
+
+Open Telemetry
+Copyright The OpenTelemetry Authors
+Apache License, Version 2.0
+
+
+==================================
+OpenTelemetry Instrumentation
+
+io.opentelemetry.instrumentation:opentelemetry-grpc-1.6:jar
+==================================
+
+OpenTelemetry Instrumentation
+Copyright The OpenTelemetry Authors
+Apache License, Version 2.0
+
+
+==================================
+Java Bindings for the OpenTelemetry Protocol (OTLP)
+
+io.opentelemetry.proto:opentelemetry-proto:jar
+==================================
+
+Java Bindings for the OpenTelemetry Protocol (OTLP)
+Copyright The OpenTelemetry Authors
+Apache License, Version 2.0
