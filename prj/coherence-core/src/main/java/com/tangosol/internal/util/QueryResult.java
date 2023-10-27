@@ -64,6 +64,7 @@ public class QueryResult
         m_aoResult        = aoResult;
         m_cResults        = cResults;
         m_filterRemaining = filterRemaining;
+        m_fOptimized      = filterRemaining == null;
         }
 
     /**
@@ -73,8 +74,9 @@ public class QueryResult
      */
     public QueryResult(QueryResult[] aPartResults)
         {
-        PartitionSet parts = null;
-        int cResults = 0;
+        PartitionSet parts      = null;
+        int          cResults   = 0;
+        boolean      fOptimized = true;
         for (QueryResult result : aPartResults)
             {
             cResults += result.getCount();
@@ -86,11 +88,14 @@ public class QueryResult
                 {
                 parts.add(result.getPartitionSet());
                 }
+            fOptimized = fOptimized && result.m_fOptimized;
             }
 
-        m_partitionSet = parts;
-        m_aPartResult  = aPartResults;
-        m_cResults     = cResults;
+        m_partitionSet    = parts;
+        m_aPartResult     = aPartResults;
+        m_cResults        = cResults;
+        m_fOptimized      = fOptimized;
+        m_filterRemaining = null;
         }
 
     // ---- accessors -------------------------------------------------------
@@ -166,13 +171,40 @@ public class QueryResult
         }
 
     /**
-     * Set the filter that still needs to be evaluated.
+     * Return {@code true} if this query result was fully resolved using indexes.
      *
-     * @param filterRemaining  the filter that still needs to be evaluated
+     * @return {@code true} if this query result was fully resolved using indexes
      */
-    public void setFilterRemaining(Filter<?> filterRemaining)
+    public boolean isOptimized()
         {
-        m_filterRemaining = filterRemaining;
+        return m_fOptimized;
+        }
+
+    /**
+     * Return the count of results that were individually evaluated.
+     *
+     * @return the count of results that were individually evaluated
+     */
+    public int getScannedCount()
+        {
+        int cScanned = 0;
+        if (m_aPartResult != null)
+            {
+            for (QueryResult r : m_aPartResult)
+                {
+                Object[] aoResult = r.m_aoResult;
+                if (aoResult != null)
+                    {
+                    cScanned += aoResult.length;
+                    }
+                }
+            }
+        else if (m_aoResult != null)
+            {
+            cScanned = m_aoResult.length;
+            }
+
+        return cScanned;
         }
 
     /**
@@ -201,9 +233,9 @@ public class QueryResult
                     Binary binKey = (Binary) o;
                     cbSize += binKey.length();
                     }
-                else // EntryStatus
+                else
                     {
-
+                    // ignore EntryStatus instances; not relevant for size calculation
                     }
                 }
 
@@ -344,5 +376,10 @@ public class QueryResult
     /**
      * The filter that still needs to be evaluated.
      */
-    private Filter<?> m_filterRemaining;
+    private final Filter<?> m_filterRemaining;
+
+    /**
+     * True if this query result was fully resolved using indexes.
+     */
+    private final boolean m_fOptimized;
     }

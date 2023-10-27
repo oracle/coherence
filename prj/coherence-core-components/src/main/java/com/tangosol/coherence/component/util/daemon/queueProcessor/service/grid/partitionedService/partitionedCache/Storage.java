@@ -81,6 +81,7 @@ import com.tangosol.util.SafeHashSet;
 import com.tangosol.util.SegmentedHashMap;
 import com.tangosol.util.SimpleEnumerator;
 import com.tangosol.util.SimpleMapIndex;
+import com.tangosol.util.SparseArray;
 import com.tangosol.util.Streamer;
 import com.tangosol.util.SubSet;
 import com.tangosol.util.ValueExtractor;
@@ -1327,7 +1328,7 @@ public class Storage
             }
         }
 
-    public Object aggregateByStreaming(com.tangosol.util.Filter filter, com.tangosol.util.InvocableMap.StreamingAggregator agent, com.tangosol.net.partition.PartitionSet partMask, long cTimeoutMillis)
+    public Object aggregateByStreaming(com.tangosol.util.Filter filter, InvocableMap.StreamingAggregator agent, com.tangosol.net.partition.PartitionSet partMask, long cTimeoutMillis)
         {
         // import com.tangosol.internal.tracing.Span;
         // import com.tangosol.internal.tracing.TracingHelper;
@@ -1343,18 +1344,9 @@ public class Storage
             }
 
         Object result = null;
-        if (partMask.cardinality() == 1 || agent instanceof ScriptAggregator)
+        if (agent.isByPartition() && agent.isParallel() && Daemons.isForkJoinPoolEnabled())
             {
-            // GraalVM doesn't support access to script context from multiple threads,
-            // so we have to fall back to single-threaded execution
-
-            agent.accumulate(createStreamer(filter, partMask, agent.characteristics()));
-            result = agent.getPartialResult();
-            }
-        else
-            {
-            // otherwise, let's run aggregator in parallel across individual
-            // partitions using ForkJoinPool
+            // let's run aggregator in parallel across individual partitions using ForkJoinPool
 
             Future<Object> future = Daemons.forkJoinPool().submit(new PartitionedAggregateTask<Object>(this, filter, agent, partMask));
             try
@@ -1379,6 +1371,14 @@ public class Storage
                 throw new RuntimeException(e);
                 }
             }
+        else
+            {
+            // run aggregator on the current worker thread; the query to create a Streamer
+            // may still be run in parallel, if FJP is enabled
+
+            agent.accumulate(createStreamer(filter, agent, partMask));
+            result = agent.getPartialResult();
+            }
 
         return result;
         }
@@ -1393,7 +1393,7 @@ public class Storage
                     .setMetadata("agent.class", agent.getClass().getName());
             }
 
-        agent.accumulate(createStreamer(setKeys, agent.characteristics()));
+        agent.accumulate(createStreamer(setKeys, agent));
 
         return agent.getPartialResult();
         }
@@ -2452,13 +2452,9 @@ public class Storage
         }
 
     /**
-     * Create a streamer of $BinaryEntry objects for a given filter and
-     * partition set.
-     *
-     * @param nCharacteristics  a bit set returned by
-     * StreamingAggregator.characteristics()
+     * Create a streamer of $BinaryEntry objects for a given filter and partition set.
      */
-    protected com.tangosol.util.Streamer createStreamer(com.tangosol.util.Filter filter, com.tangosol.net.partition.PartitionSet partMask, int nCharacteristics)
+    protected com.tangosol.util.Streamer createStreamer(com.tangosol.util.Filter filter, InvocableMap.StreamingAggregator agent, com.tangosol.net.partition.PartitionSet partMask)
         {
         // import com.tangosol.internal.util.QueryResult;
         // import com.tangosol.util.InvocableMap$StreamingAggregator as com.tangosol.util.InvocableMap.StreamingAggregator;
@@ -2470,7 +2466,7 @@ public class Storage
 
             scanner.setFilter(filter);
             scanner.setPartitions(partMask);
-            scanner.setReuseAllowed((nCharacteristics & com.tangosol.util.InvocableMap.StreamingAggregator.RETAINS_ENTRIES) == 0);
+            scanner.setReuseAllowed(!agent.isRetainsEntries());
 
             return scanner;
             }
@@ -2488,20 +2484,16 @@ public class Storage
             advancer.setFilterOriginal(filter);
             advancer.setVersion(lVersion);
             advancer.setPresentOnly(true); // filter-based aggregation uses only "present" entries
-            advancer.setReuseAllowed((nCharacteristics & com.tangosol.util.InvocableMap.StreamingAggregator.RETAINS_ENTRIES) == 0);
-            advancer.setCheckVersion((nCharacteristics & com.tangosol.util.InvocableMap.StreamingAggregator.ALLOW_INCONSISTENCIES) == 0
-                                     && getQueryRetries() > 0);
+            advancer.setReuseAllowed(!agent.isRetainsEntries());
+            advancer.setCheckVersion(!agent.isAllowInconsistencies() && getQueryRetries() > 0);
             return advancer;
             }
         }
 
     /**
      * Create a streamer of $BinaryEntry objects for a given key set.
-     *
-     * @param nCharacteristics  a bit set returned by
-     * StreamingAggregator.characteristics()
      */
-    protected com.tangosol.util.Streamer createStreamer(java.util.Set setKeys, int nCharacteristics)
+    protected com.tangosol.util.Streamer createStreamer(java.util.Set setKeys, InvocableMap.StreamingAggregator agent)
         {
         // import com.tangosol.util.InvocableMap$StreamingAggregator as com.tangosol.util.InvocableMap.StreamingAggregator;
 
@@ -2509,15 +2501,15 @@ public class Storage
 
         advancer.setIterator(setKeys.iterator());
         advancer.setVersion(Long.MAX_VALUE);
-        advancer.setReuseAllowed((nCharacteristics & com.tangosol.util.InvocableMap.StreamingAggregator.RETAINS_ENTRIES) == 0);
+        advancer.setReuseAllowed(!agent.isRetainsEntries());
 
-        boolean fPresentOnly = (nCharacteristics & com.tangosol.util.InvocableMap.StreamingAggregator.PRESENT_ONLY) != 0;
+        boolean fPresentOnly = agent.isPresentOnly();
         advancer.setPresentOnly(fPresentOnly);
 
         if (fPresentOnly)
             {
             // the key set may contain non-present entries;
-            // use the negatove value as an indication that
+            // use the negative value as an indication that
             // the size could be way off
             advancer.setSize(-setKeys.size());
 
@@ -7975,7 +7967,7 @@ public class Storage
             {
             if (f_parts.cardinality() == 1)
                 {
-                f_agent.accumulate(f_storage.createStreamer(f_filter, f_parts, f_agent.characteristics()));
+                f_agent.accumulate(f_storage.createStreamer(f_filter, f_agent, f_parts));
                 return f_agent.getPartialResult();
                 }
             else
@@ -8113,9 +8105,27 @@ public class Storage
 
         QueryResult result;
 
-        if (partMask.cardinality() == 1 || filter instanceof LimitFilter || filter instanceof ScriptFilter)
+        if (partMask.cardinality() == 1 || filter instanceof LimitFilter)
             {
-            result = queryInternal(filter, nQueryType, partMask, lIdxVersion);
+            // the request is for a single partition or a LimitFilter; run it directly
+
+            result = queryInternal(filter, nQueryType == QUERY_INVOKE ? QUERY_KEYS : nQueryType, partMask, lIdxVersion);
+            }
+        else if (!Daemons.isForkJoinPoolEnabled() || filter instanceof ScriptFilter)
+            {
+            // We have to use single-threaded execution if:
+            //
+            // 1. Coherence FJP is disabled
+            // 2. We are evaluating ScriptFilter using GraalVM integration, as GraalVM doesn't support access to script context from multiple threads
+
+            QueryResult[] aResult = new QueryResult[partMask.cardinality()];
+            int           nPos    = 0;
+            for (int nPart : partMask)
+                {
+                aResult[nPos++] = queryInternal(filter, nQueryType == QUERY_INVOKE ? QUERY_KEYS : nQueryType, new PartitionSet(partMask.getPartitionCount(), nPart), lIdxVersion);
+                }
+
+            result = new QueryResult(aResult);
             }
         else
             {
@@ -8141,50 +8151,25 @@ public class Storage
                 {
                 throw new RuntimeException(e);
                 }
-
-            if (nQueryType == QUERY_INVOKE)
-                {
-                Object[] aoResult = result.getResults();
-
-                // we only have the keys from all partitions so far
-                // need to sort them, lock them, and reevaluate the filter before
-                // replacing them with EntryStatus instances and returning to the caller
-
-                // sort the keys prior to locking to avoid deadlock
-                Arrays.sort(aoResult, SafeComparator.INSTANCE);
-
-                Map mapPrime = getBackingInternalCache();
-                PartitionedCache.InvocationContext ctxInvoke = getService().getInvocationContext();
-
-                int cResults = 0;
-
-                // replace all valid keys with corresponding entry statuses
-                for (int i = 0, c = aoResult.length; i < c; i++)
-                    {
-                    Binary binKey = (Binary) aoResult[i];
-                    Binary binValue = null;
-                    EntryStatus status = ctxInvoke.lockEntry(this, binKey, false);
-
-                    BinaryEntry entry = status.getBinaryEntry();
-                    entry.setBinaryValue((Binary) mapPrime.get(binKey));
-                    if (filter == null || InvocableMapHelper.evaluateEntry(filter, entry))
-                        {
-                        aoResult[cResults++] = status;
-                        }
-
-                    if ((i & 0x3FF) == 0x3FF)
-                        {
-                        getService().checkInterrupt();
-                        }
-                    }
-
-                cResults = checkIndexConsistency(filter, aoResult, cResults, nQueryType, partMask, lIdxVersion);
-                result   = new QueryResult(partMask, aoResult, cResults);
-                }
             }
 
-        updateQueryStatistics(filter, /*fOptimized*/ result.getFilterRemaining() == null,
-                              ldtStart, cTotal, result.getResults().length, result.getCount(), nQueryType, partMask);
+        if (nQueryType == QUERY_INVOKE)
+            {
+            Object[] aoResult = result.getResults();
+
+            // we only have the keys from all the partitions so far;
+            // need to sort them, lock them, and reevaluate the filter before
+            // replacing them with EntryStatus instances and returning to the caller
+
+            // sort the keys prior to locking to avoid deadlock
+            Arrays.sort(aoResult, SafeComparator.INSTANCE);
+
+            int cResults = createQueryResult(filter, aoResult, nQueryType, partMask, lIdxVersion);
+            result = new QueryResult(partMask, aoResult, cResults);
+            }
+
+        updateQueryStatistics(filter, result.isOptimized(), ldtStart, cTotal,
+                              result.getScannedCount(), result.getCount(), nQueryType, partMask);
 
         return result;
         }
@@ -10424,15 +10409,14 @@ public class Storage
     /**
      * Update the query statistics.
      *
-     * @param filterOrig the filter passed to the #query
-     * @param fOptimized true indicates that the all filters matched an
-     * index
-     * @param ldtStart the time when the query started executing
-     * @param cTotal the total number of entries evaluated
-     * @param cScanned the number of entries evaluated individually
-     * @param nQueryType one of the QUERY_* values
-     * @param cResults the number of returned entries matching the query
-     * @param partMask partitionSet that all keys should belong to
+     * @param filterOrig  the filter passed to the #query
+     * @param fOptimized  true indicates that the all filters matched an index
+     * @param ldtStart    the time when the query started executing
+     * @param cTotal      the total number of entries evaluated
+     * @param cScanned    the number of entries evaluated individually
+     * @param cResults    the number of returned entries matching the query
+     * @param nQueryType  one of the QUERY_* values
+     * @param partMask    partitionSet that all keys should belong to
      */
     protected void updateQueryStatistics(com.tangosol.util.Filter filterOrig, boolean fOptimized, long ldtStart, int cTotal, int cScanned, int cResults, int nQueryType, com.tangosol.net.partition.PartitionSet partMask)
         {
