@@ -892,6 +892,8 @@ grant codeBase "file:${oracle.coherence.lib}/../../test/functional/tracing/opent
 grant codeBase "file:${oracle.coherence.lib}/../../test/functional/tracing/opentelemetry/grpc/target/-" {
   permission java.util.PropertyPermission "*", "read, write";
   permission java.lang.RuntimePermission "getenv.*";
+  permission java.lang.RuntimePermission "modifyThread";
+  permission java.lang.RuntimePermission "modifyThreadGroup";
   permission java.io.FilePermission "<<ALL FILES>>", "read";
   permission java.net.SocketPermission "*", "connect,resolve,accept,listen";
   permission java.lang.RuntimePermission "shutdownHooks";
