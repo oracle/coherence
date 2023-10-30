@@ -2323,7 +2323,6 @@ public class Storage
                 getService().checkInterrupt();
                 }
             }
-
         return checkIndexConsistency(filterOrig, aoResult, cResults, nQueryType, partMask, lIdxVersion);
         }
 

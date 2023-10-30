@@ -251,13 +251,15 @@ public class QueryResult
      *
      * @param maxSize  the maximum size of each individual result
      *
-     * @return an array of one or more partial results with a specified maximum size
+     * @return an array of one or more partial results with a specified maximum size, or
+     *         the result object itself if splitting cannot be done (no results or
+     *         they were not collated from partial results)
      */
     public QueryResult[] split(MemorySize maxSize)
         {
-        if (m_aPartResult == null)
+        if (m_aPartResult == null || m_aPartResult.length == 0)
             {
-            throw new IllegalStateException("Only composite query results created from partial results can be split");
+            return new QueryResult[] { this };
             }
 
         List<QueryResult> lstResults = new ArrayList<>();

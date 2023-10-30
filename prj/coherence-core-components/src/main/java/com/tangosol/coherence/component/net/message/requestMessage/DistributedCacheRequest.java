@@ -10,6 +10,7 @@
 
 package com.tangosol.coherence.component.net.message.requestMessage;
 
+import com.tangosol.coherence.component.net.message.responseMessage.DistributedPartialResponse;
 import com.tangosol.coherence.component.net.requestContext.AsyncContext;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
@@ -114,7 +115,16 @@ public class DistributedCacheRequest
      */
     private int __m_SchedulingPriority;
     private static com.tangosol.util.ListMap __mapChildren;
-    
+
+    /**
+     * Property RepliesMask
+     *
+     * Keep track of replies against request mask while keeping the latter safe.
+     *
+     * This property is not serialized, it is only used locally.
+     */
+    private transient PartitionSet __m_RepliesMask;
+
     // Static initializer
     static
         {
@@ -437,7 +447,19 @@ public class DistributedCacheRequest
         {
         return __m_SchedulingPriority;
         }
-    
+
+    /**
+     * Getter for RepliesMask
+     *
+     * Keep track of replies against request mask while keeping the latter safe.
+     *
+     * @return the replies mask PartitionSet
+     */
+    public PartitionSet getRepliesMask()
+        {
+        return __m_RepliesMask;
+        }
+
     // Declared at the super level
     protected com.tangosol.coherence.component.net.Poll instantiatePoll()
         {
@@ -683,7 +705,19 @@ public class DistributedCacheRequest
         {
         __m_SchedulingPriority = nPriority;
         }
-    
+
+    /**
+     * Setter for RepliesMask
+     *
+     * Keep track of replies against request mask while keeping the latter safe.
+     *
+     * @param set  PartitionSet initially set to request mask
+     */
+    public void setRepliesMask(PartitionSet set)
+        {
+        __m_RepliesMask = set;
+        }
+
     // Declared at the super level
     public void write(com.tangosol.io.WriteBuffer.BufferOutput output)
             throws java.io.IOException
@@ -950,8 +984,15 @@ public class DistributedCacheRequest
                     listParts.add(msg);
                     }
                 }
-            
-            super.onResponse(msg);
+
+            // don't call (and close the poll) unless all partial responses have been received
+            if (!(msgRequest instanceof PartitionedCache.PartitionedQueryRequest) ||
+                msgRequest.getRepliesMask() == null ||
+                msgRequest.getRepliesMask().isEmpty() ||
+                ((DistributedPartialResponse) msg).getException() != null)
+                {
+                super.onResponse(msg);
+                }
             }
         
         // Declared at the super level

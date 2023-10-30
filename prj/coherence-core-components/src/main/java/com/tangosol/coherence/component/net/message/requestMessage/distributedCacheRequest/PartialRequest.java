@@ -10,6 +10,7 @@
 
 package com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest;
 
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.net.partition.PartitionSet;
 
 /**
@@ -391,34 +392,57 @@ public class PartialRequest
             
             if (msg instanceof com.tangosol.coherence.component.net.message.responseMessage.DistributedPartialResponse)
                 {
-                PartialRequest         msgRequest  = (PartialRequest) get_Module();
+                PartialRequest msgRequest = (PartialRequest) get_Module();
                 com.tangosol.coherence.component.net.message.responseMessage.DistributedPartialResponse msgResponse = (com.tangosol.coherence.component.net.message.responseMessage.DistributedPartialResponse) msg;
-            
-                PartitionSet partAll     = msgRequest.getPartitions();
-                PartitionSet partRequest = msgRequest.getRequestMask();
-                PartitionSet partReject  = msgResponse.getRejectPartitions();
-            
+
+                PartitionSet partAll      = msgRequest.getPartitions();
+                PartitionSet partRequest  = msgRequest.getRequestMask();
+                PartitionSet partReject   = msgResponse.getRejectPartitions();
+                PartitionSet partResponse = msgResponse.getResponsePartitions();
+                PartitionSet partReplies  = msgRequest.getRepliesMask();
+
                 _assert(partRequest != partAll);
-            
+
                 if (partReject != null)
                     {
                     // some partitions were rejected; adjust the request mask
                     partRequest.remove(partReject);
+
+                    if (partReplies != null)
+                        {
+                        synchronized (partReplies)
+                            {
+                            partReplies.remove(partReject);
+                            }
+                        }
                     setRequestRejected(partRequest.isEmpty());
                     }
-            
+
+                if (partResponse == null)
+                    {
+                    partResponse = new PartitionSet(partRequest);
+                    }
+
+                if (partReplies != null && partResponse != null)
+                    {
+                    synchronized (partReplies)
+                        {
+                        partReplies.remove(partResponse);
+                        }
+                    }
+
                 synchronized (partAll)
                     {
-                    boolean fUnique = partAll.remove(partRequest);
+                    boolean fUnique = partAll.remove(partResponse);
                     if (!fUnique)
                         {
                         // soft assertion
                         _trace("Intersecting partial response for " + msgRequest.get_Name() +
-                               "; partitions=" + partRequest, 1);
+                               "; partitions=" + partResponse, 1);
                         }
                     }
+
                 }
-            
             super.onResponse(msg);
             }
         
