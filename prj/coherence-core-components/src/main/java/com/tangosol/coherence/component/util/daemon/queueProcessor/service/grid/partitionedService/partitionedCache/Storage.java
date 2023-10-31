@@ -1661,7 +1661,7 @@ public class Storage
                     }
                 }
 
-            if (mapEval.size() > 0)
+            if (!mapEval.isEmpty())
                 {
                 // re-evaluate all the suspect keys again
                 reevaluateQueryResults(filter, mapEval, nQueryType, partMask);
@@ -2269,19 +2269,9 @@ public class Storage
         // import com.tangosol.util.filter.IndexAwareFilter;
         // import java.util.Map;
 
-        boolean fInit = true;
-
-        switch (nQueryType)
+        if (nQueryType == QUERY_KEYS)
             {
-            case QUERY_KEYS:
-                return aoResult.length;
-
-            case QUERY_AGGREGATE:
-                // for aggregations, we can skip it if the backing map is not evicting
-                // This optimization is important for ObjectLocalBackingMap to avoid
-                // unnecessary object->Binary->object conversion
-                fInit = isPotentiallyEvicting();
-                break;
+            return aoResult.length;
             }
 
         Map     mapPrime = getBackingInternalCache();
@@ -2294,28 +2284,28 @@ public class Storage
         // Note: for QUERY_INVOKE the keys are sorted to avoid a deadldock
         for (int i = 0, c = aoResult.length; i < c; i++)
             {
-            Binary       binKey   = (Binary) aoResult[i];
-            Binary       binValue = null;
-            EntryStatus status   = fInvoke ? ctxInvoke.lockEntry(this, binKey, false) : null;
+            Binary binKey   = (Binary) aoResult[i];
+            Binary binValue = (Binary) mapPrime.get(binKey);
 
-            if (fInit)
+            if (binValue != null) // must've expired if it's null
                 {
-                binValue = (Binary) mapPrime.get(binKey);
-                if (binValue == null) // must've expired
+                EntryStatus status = fInvoke
+                                     ? ctxInvoke.lockEntry(this, binKey, false)
+                                     : null;
+
+                BinaryEntry entry  = fInvoke
+                                     ? status.getBinaryEntry().setBinaryValue(binValue)
+                                     : instantiateBinaryEntry(binKey, binValue, true);
+
+                // Check (after locking the key or creating a read-only copy) that the
+                // BinaryEntry still matches the filter.
+                //
+                // The value might have changed after the initial filtering, so we need to
+                // re-read and re-evaluate after we have locked it or copied it (COH-1209, COH-3647)
+                if (filterOrig == null || InvocableMapHelper.evaluateEntry(filterOrig, entry))
                     {
-                    continue;
+                    aoResult[cResults++] = fInvoke ? status : entry;
                     }
-                }
-
-            if (fInvoke)
-                {
-                status.getBinaryEntry().setBinaryValue(binValue);
-                aoResult[cResults++] = status;
-                }
-            else
-                {
-                BinaryEntry entry = instantiateBinaryEntry(binKey, binValue, true);
-                aoResult[cResults++] = entry;
                 }
 
             if ((i & 0x3FF) == 0x3FF)
@@ -2355,7 +2345,10 @@ public class Storage
         // import com.tangosol.net.partition.PartitionSet;
         // import java.util.Map;
 
-        Map mapPrime = getBackingInternalCache();
+        Map     mapPrime = getBackingInternalCache();
+        boolean fKeys    = nQueryType == QUERY_KEYS;
+        boolean fInvoke  = nQueryType == QUERY_INVOKE;
+        boolean fSame    = filter == filterOrig;
 
         // in case of an enclosing LimitFilter we should limit a number
         // of iterations to a minimum (assuming no sorting is required)
@@ -2374,60 +2367,68 @@ public class Storage
                                       ? ((Integer) oAnchorTop).intValue()
                                       :  filterLimit.getPage() * cPageSize);
                 }
+
+            filterOrig = filterLimit.getFilter();
             }
 
-        PartitionedCache.InvocationContext ctxInvoke = nQueryType == QUERY_INVOKE ?
-                                                       getService().getInvocationContext() : null;
+        PartitionedCache.InvocationContext ctxInvoke = fInvoke ? getService().getInvocationContext() : null;
+        BinaryEntry tmpEntry = instantiateBinaryEntry(null, null, true);
+        int         cResults = 0;
 
         // Note: for QUERY_INVOKE the keys are sorted to avoid a deadlock
-        BinaryEntry entry    = null;
-        int          cResults = 0;
         for (int i = 0, c = aoResult.length; i < c && cResults < cLimit; i++)
             {
             Binary binKey   = (Binary) aoResult[i];
             Binary binValue = (Binary) mapPrime.get(binKey);
 
-            if (binValue == null) // expired
+            if (binValue != null) // must've expired; we can simply skip it
                 {
-                continue;
-                }
-
-            if (entry == null)
-                {
-                entry = instantiateBinaryEntry(binKey, binValue, true);
-                }
-            else
-                {
-                entry.reset(binKey, binValue);
-                }
-
-            // unlike the logic in "reevaluateQueryResults", this evaluation is allowed
-            // to use indexes (e.g. DeserializationAccelerator), so we still need to call
-            // "checkIndexConsistency" afterwards
-
-            if (InvocableMapHelper.evaluateEntry(filter, entry))
-                {
-                switch (nQueryType)
+                // we should only lock and re-evaluate entry if it matches the remaining filter,
+                // in order to prevent contention caused by locking all entries outside of index before filter
+                // evaluation, as described in COH-5727 (and verified by ContentionTests.testContention)
+                if (InvocableMapHelper.evaluateEntry(filter, tmpEntry.reset(binKey, binValue)))
                     {
-                    case QUERY_KEYS:
-                        aoResult[cResults] = binKey;
-                        // re-use the entry
-                        break;
+                    if (fKeys)
+                        {
+                        // If we are only querying for keys, index consistency isn't an issue, so we are all set
+                        aoResult[cResults++] = binKey;
+                        }
+                    else
+                        {
+                        // Otherwise, we need to lock the entry for invoke, or create a shallow copy in other cases
+                        EntryStatus status = fInvoke
+                                             ? ctxInvoke.lockEntry(this, binKey, false)
+                                             : null;
 
-                    case QUERY_INVOKE:
-                        entry.ensureWriteable();
-                        entry.markStale(); // locked after it was read
-                        aoResult[cResults] = ctxInvoke.lockEntry(this, entry, false);
-                        entry = null;
-                        break;
+                        BinaryEntry entry = fInvoke
+                                            ? status.getBinaryEntry().setBinaryValue(binValue)
+                                            : instantiateBinaryEntry(binKey, binValue, true);
 
-                    default:
-                        aoResult[cResults] = entry;
-                        entry = null;
-                        break;
+                        // Note that because we already evaluated tmpEntry, we likely have, and can reuse,
+                        // deserialized key and value, in order to avoid double deserialization
+                        if (tmpEntry.isKeyConverted())
+                            {
+                            entry.setConvertedKey(tmpEntry.getConvertedKey())
+                                    .setState(entry.getState() | BinaryEntry.KEY_CONVERTED);
+                            }
+                        if (tmpEntry.isValueConverted())
+                            {
+                            entry.setConvertedValue(tmpEntry.getConvertedValue())
+                                    .setState(entry.getState() | BinaryEntry.VALUE_CONVERTED);
+                            }
+
+                        // The value might have changed after the partial index was applied, so we need to
+                        // re-evaluate the entry after we have locked it or copied it to make sure
+                        // that it still matches the full, original filter (COH-1209, COH-3647).
+                        //
+                        // However, if the remaining and the original filter are the same, that means that
+                        // no indexes were applied, so we don't have to re-evaluate.
+                        if (fSame || InvocableMapHelper.evaluateEntry(filterOrig, entry))
+                            {
+                            aoResult[cResults++] = fInvoke ? status : entry;
+                            }
+                        }
                     }
-
-                cResults++;
                 }
 
             if ((i & 0x3FF) == 0x3FF)
@@ -2436,9 +2437,9 @@ public class Storage
                 }
             }
 
-        return nQueryType == QUERY_KEYS ? cResults :
-               checkIndexConsistency(filterOrig, aoResult, cResults,
-                                     nQueryType, partMask, lIdxVersion);
+        return nQueryType == QUERY_KEYS
+               ? cResults
+               : checkIndexConsistency(filterOrig, aoResult, cResults, nQueryType, partMask, lIdxVersion);
         }
 
     /**
@@ -12623,7 +12624,7 @@ public class Storage
                 return true;
                 }
 
-            Storage       storage  = getStorage();
+            Storage        storage  = getStorage();
             StorageVersion version  = storage.getVersion();
             long           lCurrent = version.getSubmittedVersion();
             long           lVersion = Trint.translateTrint14(nTrint, lCurrent);
@@ -13193,8 +13194,9 @@ public class Storage
             MapIndex indexFwd = storage.getDeserializationAccelerator(getKeyPartition());
 
             // if the value is updated or removed "in place", we should not use the forward index
-            Object oValue = indexFwd == null || (nState & (VALUE_FORCE_EXTRACT | VALUE_UPDATED | VALUE_REMOVED)) != 0 ?
-                            MapIndex.NO_VALUE : indexFwd.get(getBinaryKey());
+            Object oValue = indexFwd == null || (nState & (VALUE_FORCE_EXTRACT | VALUE_UPDATED | VALUE_REMOVED)) != 0
+                            ? MapIndex.NO_VALUE
+                            : indexFwd.get(getBinaryKey());
             if (oValue == MapIndex.NO_VALUE)
                 {
                 oValue = storage.getConverterUp().convert(getBinaryValue());
@@ -13206,7 +13208,7 @@ public class Storage
 
             setConvertedValue(oValue);
             setState(getState() | VALUE_CONVERTED); // can't use "nState"; getBinaryValue() could have changed it
-
+            
             return oValue;
             }
 
@@ -13400,9 +13402,9 @@ public class Storage
          *
          * @see isValueStale()
          */
-        public void markStale()
+        public BinaryEntry markStale()
             {
-            setState(getState() | VALUE_STALE);
+            return setState(getState() | VALUE_STALE);
             }
 
         // From interface: com.tangosol.util.BinaryEntry
@@ -13422,15 +13424,15 @@ public class Storage
         /**
          * Reset this entry with a new BinaryKey.
          */
-        public void reset(com.tangosol.util.Binary binKey)
+        public BinaryEntry reset(com.tangosol.util.Binary binKey)
             {
-            reset(binKey, null);
+            return reset(binKey, null);
             }
 
         /**
          * Reset this entry with a new Binary key and value.
          */
-        public void reset(com.tangosol.util.Binary binKey, com.tangosol.util.Binary binValue)
+        public BinaryEntry reset(com.tangosol.util.Binary binKey, com.tangosol.util.Binary binValue)
             {
             _assert(binKey != null);
 
@@ -13441,6 +13443,7 @@ public class Storage
             set_Feed(null); // OriginalValue
             set_Sink(null); // OriginalBinaryValue
             setExpiryValue(-2L);
+            return this;
             }
 
         // Accessor for the property "BinaryKey"
@@ -13448,9 +13451,10 @@ public class Storage
          * Setter for property BinaryKey.<p>
          * Binary key.
          */
-        public void setBinaryKey(com.tangosol.util.Binary binKey)
+        public BinaryEntry setBinaryKey(com.tangosol.util.Binary binKey)
             {
             __m_BinaryKey = binKey;
+            return this;
             }
 
         // Accessor for the property "BinaryValue"
@@ -13458,12 +13462,13 @@ public class Storage
          * Setter for property BinaryValue.<p>
          * Binary value.
          */
-        public void setBinaryValue(com.tangosol.util.Binary binValue)
+        public BinaryEntry setBinaryValue(com.tangosol.util.Binary binValue)
             {
             __m_BinaryValue = (binValue);
 
             // the authorizer should be able to see the newly set value
             checkAccess(ACCESS_WRITE);
+            return this;
             }
 
         // Accessor for the property "ConvertedKey"
@@ -13471,9 +13476,10 @@ public class Storage
          * Setter for property ConvertedKey.<p>
          * Converted key.
          */
-        protected void setConvertedKey(Object oKey)
+        protected BinaryEntry setConvertedKey(Object oKey)
             {
             __m_ConvertedKey = oKey;
+            return this;
             }
 
         // Accessor for the property "ConvertedValue"
@@ -13481,9 +13487,10 @@ public class Storage
          * Setter for property ConvertedValue.<p>
          * Converted value.
          */
-        protected void setConvertedValue(Object oValue)
+        protected BinaryEntry setConvertedValue(Object oValue)
             {
             __m_ConvertedValue = oValue;
+            return this;
             }
 
         // Accessor for the property "ExpiryValue"
@@ -13491,9 +13498,10 @@ public class Storage
          * Setter for property ExpiryValue.<p>
          * Expiry value.
          */
-        public void setExpiryValue(long lValue)
+        public BinaryEntry setExpiryValue(long lValue)
             {
             __m_ExpiryValue = lValue;
+            return this;
             }
 
         /**
@@ -13501,16 +13509,11 @@ public class Storage
          * entries for this entry may be out of sync so indexes should not
          * be used to shortcut extractors.
          */
-        public void setForceExtract(boolean fForce)
+        public BinaryEntry setForceExtract(boolean fForce)
             {
-            if (fForce)
-                {
-                setState(getState() | VALUE_FORCE_EXTRACT);
-                }
-            else
-                {
-                setState(getState() & ~VALUE_FORCE_EXTRACT);
-                }
+            return fForce
+                   ? setState(getState() | VALUE_FORCE_EXTRACT)
+                   : setState(getState() & ~VALUE_FORCE_EXTRACT);
             }
 
         // Accessor for the property "State"
@@ -13528,9 +13531,10 @@ public class Storage
          *
          * @functional
          */
-        protected void setState(int nState)
+        protected BinaryEntry setState(int nState)
             {
             set_StateAux((get_StateAux() & ~STATE_MASK) | (nState & STATE_MASK));
+            return this;
             }
 
         /**
@@ -13540,16 +13544,11 @@ public class Storage
          * @param fSynthetic  whether the mutations to this entry should be
          * considered as synthetic
          */
-        public void setSynthetic(boolean fSynthetic)
+        public BinaryEntry setSynthetic(boolean fSynthetic)
             {
-            if (fSynthetic)
-                {
-                setState(getState() | VALUE_SYNTHETIC);
-                }
-            else
-                {
-                setState(getState() & ~VALUE_SYNTHETIC);
-                }
+            return fSynthetic
+                   ? setState(getState() | VALUE_SYNTHETIC)
+                   : setState(getState() & ~VALUE_SYNTHETIC);
             }
 
         // From interface: com.tangosol.util.BinaryEntry
