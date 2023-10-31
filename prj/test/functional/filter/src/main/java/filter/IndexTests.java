@@ -7,7 +7,6 @@
 
 package filter;
 
-
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.Base;
@@ -49,6 +48,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,12 +56,12 @@ import org.junit.runners.Parameterized;
 
 import static org.junit.Assert.*;
 
-
 /**
  * Index-related tests
  *
  * @author coh 2011.03.07
  */
+@SuppressWarnings({"unchecked", "rawtypes"})
 @RunWith(Parameterized.class)
 public class IndexTests
         extends AbstractFunctionalTest
@@ -85,7 +85,7 @@ public class IndexTests
         {
         m_sCacheName = sCacheName;
         }
-    private String m_sCacheName;
+    private final String m_sCacheName;
 
     /**
      * Return the name of the cache.
@@ -110,11 +110,16 @@ public class IndexTests
         System.setProperty("coherence.distributed.threads", "4");
 
         s_cIterations = Integer.getInteger("test.iterations", 1);
-        s_cThreads = Integer.getInteger("test.threads", 1);
+        s_cThreads = Integer.getInteger("test.threads", 4);
 
         AbstractFunctionalTest._startup();
         }
 
+    @Before
+    public void _reset()
+        {
+        getNamedCache().removeIndex(IdentityExtractor.INSTANCE);
+        }
 
     // ----- test methods ---------------------------------------------------
 
@@ -158,12 +163,9 @@ public class IndexTests
         {
         final NamedCache cache = getNamedCache();
 
-        // sorted or non sorted doesn't make any difference - test
-        // still fails
         cache.addIndex(IdentityExtractor.INSTANCE, true, null);
 
-        // sleep 30ms between each update
-        UpdateThread[] updateThreads = startUpdateThreads(cache, 30);
+        UpdateThread[] updateThreads = startUpdateThreads(cache, 0);
 
         for (int i = 0; i < s_cIterations; i++)
             {
@@ -174,30 +176,58 @@ public class IndexTests
         }
 
     @Test
+    public void testConcurrentProcessorsNoIndex()
+        {
+        final NamedCache cache = getNamedCache();
+
+        UpdateThread[] updateThreads = startUpdateThreads(cache, 0);
+
+        for (int i = 0; i < s_cIterations; i++)
+            {
+            testProcessor(cache, new GreaterEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
+            }
+
+        stopUpdateThreads(updateThreads);
+        }
+
+    @Test
+    public void testConcurrentProcessorsPartialIndex()
+        {
+        final NamedCache cache = getNamedCache();
+
+        cache.addIndex(IdentityExtractor.INSTANCE, true, null);
+
+        // Insert/Update
+        UpdateThread[] updateThreads = startUpdateThreads(cache, 0);
+
+        for (int i = 0; i < s_cIterations; i++)
+            {
+            testProcessor(cache, new AndFilter(
+                    new GreaterEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE),
+                    new GreaterEqualsFilter("hashCode", QUERY_VALUE)));
+            }
+
+        stopUpdateThreads(updateThreads);
+        }
+
+    @Test
     public void testConcurrentUpdates()
         {
         final NamedCache cache = getNamedCache();
 
-        try
+        cache.addIndex(IdentityExtractor.INSTANCE, true, null);
+
+        // Insert/Update
+        UpdateThread[] updateThreads = startUpdateThreads(cache, 0);
+
+        for (int i = 0; i < s_cIterations; i++)
             {
-            cache.addIndex(IdentityExtractor.INSTANCE, true, null);
-
-            // Insert/Update
-            UpdateThread[] updateThreads = startUpdateThreads(cache, 30);
-
-            for (int i = 0; i < s_cIterations; i++)
-                {
-                testFilter(cache, new GreaterEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
-                testFilter(cache, new EqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
-                testFilter(cache, new LessEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
-                }
-
-            stopUpdateThreads(updateThreads);
+            testFilter(cache, new GreaterEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
+            testFilter(cache, new EqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
+            testFilter(cache, new LessEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
             }
-        finally
-            {
-            cache.removeIndex(IdentityExtractor.INSTANCE);
-            }
+
+        stopUpdateThreads(updateThreads);
         }
 
     @Test
@@ -205,18 +235,33 @@ public class IndexTests
         {
         final NamedCache cache = getNamedCache();
 
-        // sorted or non sorted doesn't make any difference - test
-        // still fails
         cache.addIndex(IdentityExtractor.INSTANCE, true, null);
 
         // Insert/Update
-        UpdateThread[] updateThreads = startUpdateThreads(cache, 30);
+        UpdateThread[] updateThreads = startUpdateThreads(cache, 0);
 
         for (int i = 0; i < s_cIterations; i++)
             {
             testFilter(cache, new AndFilter(
                     new GreaterEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE),
                     new GreaterEqualsFilter("hashCode", QUERY_VALUE)));
+            }
+
+        stopUpdateThreads(updateThreads);
+        }
+
+    @Test
+    public void testConcurrentUpdatesNoIndex()
+        {
+        final NamedCache cache = getNamedCache();
+
+        UpdateThread[] updateThreads = startUpdateThreads(cache, 0);
+
+        for (int i = 0; i < s_cIterations; i++)
+            {
+            testFilter(cache, new GreaterEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
+            testFilter(cache, new EqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
+            testFilter(cache, new LessEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
             }
 
         stopUpdateThreads(updateThreads);

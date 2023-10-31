@@ -366,6 +366,13 @@ public class StorageManagerMBeanTests
         @Override
         public boolean evaluateEntry(Map.Entry entry)
             {
+            try
+                {
+                Thread.sleep(2);
+                }
+            catch (InterruptedException ignore)
+                {
+                }
             return true;
             }
 
