@@ -13,12 +13,17 @@ package com.tangosol.coherence.component.net.management.model.localModel;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.Storage;
 
+import com.tangosol.internal.util.VersionHelper;
+
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.events.internal.StorageDispatcher;
+
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.MapIndex;
+
 import java.lang.ref.WeakReference;
+
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
@@ -624,7 +629,20 @@ public class StorageManagerModel
         Storage storage = get_Storage();
         return storage == null ? -1L : storage.getStatsRemoves().get();
         }
-    
+
+    // Accessor for the property "ClearCount"
+    /**
+     * Getter for property ClearCount.<p>
+     * The number of `clear` operations since the last time statistics were reset.
+     */
+    public long getClearCount()
+        {
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
+
+        Storage storage = get_Storage();
+        return storage == null ? -1L : storage.getStatsClears().get();
+        }
+
     // Accessor for the property "TriggerInfo"
     /**
      * Getter for property TriggerInfo.<p>
@@ -709,6 +727,14 @@ public class StorageManagerModel
         if (ExternalizableHelper.isVersionCompatible(in, 21, 6, 0))
             {
             mapSnapshot.put("IndexingTotalMillis", Base.makeLong(ExternalizableHelper.readLong(in)));
+            }
+
+        // added in 14.1.2.0.0 / 26.06.7 / 23.09.1
+        if (ExternalizableHelper.isVersionCompatible(in, VersionHelper.VERSION_14_1_2_0)
+            || ExternalizableHelper.isPatchCompatible(in, VersionHelper.VERSION_14_1_1_2206_7)
+            || ExternalizableHelper.isPatchCompatible(in, VersionHelper.VERSION_23_09_1))
+            {
+            mapSnapshot.put("ClearCount", ExternalizableHelper.readLong(in));
             }
         }
     
@@ -845,6 +871,14 @@ public class StorageManagerModel
         if (ExternalizableHelper.isVersionCompatible(out, 21, 6, 0))
             {
             ExternalizableHelper.writeLong(out, getIndexingTotalMillis());
+            }
+
+        // added in 14.1.2.0.0 / 22.06.7 / 23.09.1
+        if (ExternalizableHelper.isVersionCompatible(out, VersionHelper.VERSION_14_1_2_0)
+            || ExternalizableHelper.isPatchCompatible(out, VersionHelper.VERSION_14_1_1_2206_7)
+            || ExternalizableHelper.isPatchCompatible(out, VersionHelper.VERSION_23_09_1))
+            {
+            ExternalizableHelper.writeLong(out, getClearCount());
             }
         }
     }

@@ -173,6 +173,8 @@ public class StorageManagerMBeanTests
         server.invoke(name, "clearCache", null, null);
         Eventually.assertDeferred(cache::size, is(0));
         Eventually.assertDeferred(atomicDelete::get, is(100));
+        Long ClearCount = (Long) server.getAttribute(name, "ClearCount");
+        assertEquals("expected ClearCount to be 1", Long.valueOf(1), ClearCount);
         }
 
     /**
