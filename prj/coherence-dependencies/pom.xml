@@ -140,7 +140,7 @@
      <maven.clean.plugin.version>3.2.0</maven.clean.plugin.version>
      <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
      <maven.dependency.plugin.version>3.3.0</maven.dependency.plugin.version>
-     <maven.dependency-check.plugin.version>8.4.0</maven.dependency-check.plugin.version>
+     <maven.dependency-check.plugin.version>8.4.2</maven.dependency-check.plugin.version>
      <maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
      <maven.directory.plugin.version>0.1</maven.directory.plugin.version>
      <maven.docker.plugin.version>0.15.7</maven.docker.plugin.version>
@@ -199,7 +199,7 @@
     <graal.version>19.3.1</graal.version>
     <!-- the tag of the Graal image at ghcr.io/graalvm/graalvm-ce -->
     <graal.image.tag>ol8-java17-22.1.0</graal.image.tag>
-    <grpc.version>1.56.0</grpc.version>
+    <grpc.version>1.57.1</grpc.version>
     <!--
     NOTE: changing this version may mean updating other dependencies to match versions that Helidon uses:
     eclipse.mp.config.version
@@ -208,7 +208,7 @@
     grpc.version ???
     This is not always possible if we need to bump versions for CVE's
     -->
-    <helidon.version>3.2.2</helidon.version>
+    <helidon.version>3.2.3</helidon.version>
     <helidon.sitegen.version>2.1.2</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
     <groovy.version>4.0.11</groovy.version>
@@ -239,7 +239,7 @@
     <jaxb-impl.version>4.0.3</jaxb-impl.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
-    <jersey.version>3.0.9</jersey.version>
+    <jersey.version>3.0.11</jersey.version>
     <jettison.version>1.5.4</jettison.version>
     <jline.version>3.23.0</jline.version>
     <log4j2.version>2.18.0</log4j2.version>
@@ -249,7 +249,7 @@
     <mvel.version>2.4.12.Final</mvel.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
-    <netty.version>4.1.97.Final</netty.version>
+    <netty.version>4.1.100.Final</netty.version>
     <opentracing.grpc.version>0.2.3</opentracing.grpc.version>
     <opentracing.version>0.33.0</opentracing.version>
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
