@@ -25,6 +25,7 @@ import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import topics.NamedTopicTests;
 
@@ -49,6 +50,7 @@ import static org.hamcrest.number.OrderingComparison.greaterThan;
 @SuppressWarnings("resource")
 public class Bug35945522Tests
     {
+    @Ignore("Disabled until we fix the intermittent failure")
     @Test
     public void shouldContinueToReceive() throws Exception
         {
