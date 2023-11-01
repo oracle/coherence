@@ -240,31 +240,6 @@
      <cve>CVE-2018-1000840</cve>
   </suppress>
 
-  <!-- Netty - transitive dependency from Helidon via the GraphQL Tutorial.
-  To remove this both grpc-java and Helidon need to be at least Netty 4.1.60.Final -->
-  <suppress>
-     <notes><![CDATA[
-     Netty - transitive dependency from Helidon.
-     To remove this Helidon needs to be at least Netty 4.1.60.Final
-     ]]></notes>
-     <packageUrl regex="true">^pkg:maven/io\.netty/netty\-.*$</packageUrl>
-     <cpe>cpe:/a:netty:netty</cpe>
-  </suppress>
-  <suppress>
-     <notes><![CDATA[
-     file name: netty-buffer-4.1.58.Final.jar
-     ]]></notes>
-     <packageUrl regex="true">^pkg:maven/io\.netty/netty\-.*$</packageUrl>
-     <cve>CVE-2021-21290</cve>
-  </suppress>
-  <suppress>
-     <notes><![CDATA[
-     file name: netty-buffer-4.1.58.Final.jar
-     ]]></notes>
-     <packageUrl regex="true">^pkg:maven/io\.netty/netty\-.*$</packageUrl>
-     <cve>CVE-2021-21295</cve>
-  </suppress>
-
   <!-- Commons IO pulled in by Maven Plugin API - not shipped by us and no later version available -->
   <suppress>
      <notes><![CDATA[
@@ -414,129 +389,6 @@
     <cve>CVE-2021-21409</cve>
   </suppress>
 
-  <!-- Excluding these Helidon related CVEs -->
-  <suppress>
-    <notes><![CDATA[
-     file name: graphql-java-15.0.jar
-     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.graphql\-java/graphql\-java@.*$</packageUrl>
-    <cpe>cpe:2.3:a:graphql-java:graphql-java</cpe>
-    <cpe>cpe:2.3:a:graphql-java_project:graphql-java</cpe>
-    <cve>CVE-2022-37734</cve>
-    <cve>CVE-2023-28867</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-     file name: netty-codec-4.1.77.Final.jar
-     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.netty/netty\-codec@.*$</packageUrl>
-    <cve>CVE-2022-41915</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-     file name: snakeyaml-1.30.jar
-     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.yaml/snakeyaml@.*$</packageUrl>
-    <cpe>cpe:2.3:a:snakeyaml_project:snakeyaml</cpe>
-    <cve>CVE-2022-1471</cve>
-    <cve>CVE-2022-25857</cve>
-    <cve>CVE-2022-38749</cve>
-    <cve>CVE-2022-38751</cve>
-    <cve>CVE-2022-38752</cve>
-    <cve>CVE-2022-41854</cve>
-    <cve>CVE-2022-38750</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-     file name: snakeyaml-1.32.jar
-     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.yaml/snakeyaml@.*$</packageUrl>
-    <cpe>cpe:2.3:a:snakeyaml_project:snakeyaml</cpe>
-    <cve>CVE-2022-1471</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: grpc-core-1.49.2.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-core@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cpe>cpe:2.3:a:grpc:grpc-core</cpe>
-    <cve>CVE-2023-32732</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: grpc-api-1.49.2.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-api@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cpe>cpe:2.3:a:grpc:grpc-api</cpe>
-    <cve>CVE-2023-32732</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: grpc-stub-1.49.2.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-stub@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cve>CVE-2023-32732</cve>
-  </suppress>
-  <suppress>
-  <notes><![CDATA[
-    file name: grpc-protobuf-1.49.2.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-protobuf@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cpe>cpe:2.3:a:protobuf:protobuf</cpe>
-    <cve>CVE-2023-32732</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: grpc-protobuf-lite-1.49.2.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-protobuf\-lite@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cpe>cpe:2.3:a:protobuf:protobuf</cpe>
-    <cve>CVE-2023-32732</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: grpc-netty-1.49.2.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-netty@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cve>CVE-2023-32732</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: grpc-services-1.49.2.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-services@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cve>CVE-2023-32732</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: grpc-context-1.49.2.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-context@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cve>CVE-2023-32732</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: netty-handler-4.1.77.Final.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.netty/netty\-handler@.*$</packageUrl>
-    <cve>CVE-2023-34462</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: netty-handler-4.1.86.Final.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.netty/netty\-handler@.*$</packageUrl>
-    <cve>CVE-2023-34462</cve>
-  </suppress>
-
   <!-- This appears to be a false positive flagged against hk2-utils due to a dependency on something
       call "fredsmith utils".  Unable to find anything of value regarding this library. -->
   <suppress>
@@ -578,18 +430,6 @@
     <cve>CVE-2023-3635</cve>
   </suppress>
 
-  <!-- The following still comes up after upgrade to
-  Helidon 2.6.2 (BUG 35431662). Hence its excluded-->
-  <suppress>
-    <notes><![CDATA[
-    file name: guava-31.1-jre.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.google\.guava/guava@.*$</packageUrl>
-    <cpe>cpe:2.3:a:google:guava</cpe>
-    <cve>CVE-2020-8908</cve>
-    <cve>CVE-2023-2976</cve>
-  </suppress>
-
   <!-- suppression for graal-sdk-19.3.1.jar CVE scan error -->
   <suppress>
     <notes><![CDATA[
@@ -600,111 +440,29 @@
     <cve>CVE-2023-22049</cve>
   </suppress>
 
-  <!-- suppression for grpc-protobuf-1.56.0.jar and grpc-stub-1.56.0.jar - CVE-2023-33953 -->
-
+  <!-- suppress netty-transport-4.1.93.Final.jar CVE-2023-44487, CVE-2023-4586,
+   CVE-2023-34462 coming from grpc 1.57.1 included in Helidon 2.6.4 -->
   <suppress>
     <notes><![CDATA[
-    file name: grpc-protobuf-1.56.0.jar
+    file name: netty-transport-4.1.93.Final.jar
+    file name: netty-transport-native-unix-common-4.1.93.Final.jar
     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-protobuf@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cpe>cpe:2.3:a:protobuf:protobuf</cpe>
-    <cve>CVE-2023-4785</cve>
-    <cve>CVE-2023-33953</cve>
+    <packageUrl regex="true">^pkg:maven/io\.netty/netty-.*@.*$</packageUrl>
+    <cpe>cpe:2.3:a:netty:netty</cpe>
     <cve>CVE-2023-44487</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: grpc-stub-1.56.0.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-stub@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cve>CVE-2023-4785</cve>
-    <cve>CVE-2023-33953</cve>
-    <cve>CVE-2023-44487</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: grpc-netty-1.56.0.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-netty@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cve>CVE-2023-4785</cve>
-    <cve>CVE-2023-33953</cve>
-    <cve>CVE-2023-44487</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: grpc-core-1.56.0.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-core@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cve>CVE-2023-4785</cve>
-    <cve>CVE-2023-33953</cve>
-    <cve>CVE-2023-44487</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: grpc-protobuf-lite-1.56.0.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-protobuf\-lite@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cpe>cpe:2.3:a:protobuf:protobuf</cpe>
-    <cve>CVE-2023-4785</cve>
-    <cve>CVE-2023-33953</cve>
-    <cve>CVE-2023-44487</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: grpc-api-1.56.0.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-api@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cve>CVE-2023-4785</cve>
-    <cve>CVE-2023-33953</cve>
-    <cve>CVE-2023-44487</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: grpc-context-1.56.0.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-context@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cve>CVE-2023-4785</cve>
-    <cve>CVE-2023-33953</cve>
-    <cve>CVE-2023-44487</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: grpc-services-1.56.0.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-services@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cve>CVE-2023-4785</cve>
-    <cve>CVE-2023-33953</cve>
-    <cve>CVE-2023-44487</cve>
+    <cve>CVE-2023-4586</cve>
+    <cve>CVE-2023-34462</cve>
   </suppress>
 
-  <!-- suppress netty-handler CVE-2023-4586 4.1.87, 4.1.94, 4.1.97 -->
+
+  <!-- suppress netty-* CVE-2023-4586 in 4.1.100 -->
   <suppress>
     <notes><![CDATA[
-    file name: netty-handler-4.1.87.Final.jar
+    file name: netty-codec-memcache-4.1.100.Final.jar
+    file name: netty-codec-mqtt-4.1.100.Final.jar
+    file name: netty-transport-4.1.100.Final.jar
     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.netty/netty\-handler@.*$</packageUrl>
-    <cve>CVE-2023-4586</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: netty-handler-4.1.94.Final.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.netty/netty\-handler@.*$</packageUrl>
-    <cve>CVE-2023-4586</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: netty-handler-4.1.97.Final.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.netty/netty\-handler@.*$</packageUrl>
+    <packageUrl regex="true">^pkg:maven/io\.netty/netty-.*@.*$</packageUrl>
     <cve>CVE-2023-4586</cve>
   </suppress>
 
