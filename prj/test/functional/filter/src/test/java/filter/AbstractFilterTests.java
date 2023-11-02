@@ -21,9 +21,6 @@ import com.tangosol.net.partition.PartitionSet;
 import com.tangosol.net.cache.NearCache;
 import com.tangosol.net.cache.WrapperNamedCache;
 
-import com.tangosol.util.BinaryEntry;
-import com.tangosol.util.InvocableMapHelper;
-import com.tangosol.util.SubSet;
 import com.tangosol.util.comparator.ChainedComparator;
 import com.tangosol.util.comparator.SafeComparator;
 
@@ -50,7 +47,6 @@ import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.filter.GreaterEqualsFilter;
 import com.tangosol.util.filter.GreaterFilter;
 import com.tangosol.util.filter.InFilter;
-import com.tangosol.util.filter.IndexAwareFilter;
 import com.tangosol.util.filter.IsNotNullFilter;
 import com.tangosol.util.filter.IsNullFilter;
 import com.tangosol.util.filter.KeyAssociatedFilter;
@@ -90,7 +86,6 @@ import static org.junit.Assert.fail;
 *
 * @author gg  2006.01.23
 */
-@SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class AbstractFilterTests
         extends AbstractFunctionalTest
     {
@@ -314,9 +309,6 @@ public abstract class AbstractFilterTests
                 }
             }
 
-        // COH-14657 ensure that parallel index creations on every partition are done
-        cacheTest.keySet(AlwaysFilter.INSTANCE);
-
         for (int i = 0, c = 2* afilter.length; i < c; i++)
             {
             Filter filter = afilter[i >> 1];
@@ -378,7 +370,6 @@ public abstract class AbstractFilterTests
 
         // 4a) run equivalent queries
         //    (a && b) || (a && c) == a && (b || c)
-        int cFailures = 0;
         for (int i = 0; i < 64; i++)
             {
             Filter filterA = afilter[RND.nextInt(afilter.length)];
@@ -392,104 +383,18 @@ public abstract class AbstractFilterTests
             Filter filter2 = new AndFilter(
                 filterA, new OrFilter(filterB, filterC));
 
-            Set set1 = cacheTest.keySet(filter1);
-            Set set2 = cacheTest.keySet(filter2);
             try
                 {
-                assertEqualKeySet(set1, set2);
+                assertEqualKeySet(cacheTest.keySet(filter1), cacheTest.keySet(filter2));
                 assertEqualEntrySet(cacheTest.entrySet(filter1), cacheTest.entrySet(filter2));
                 assertEqualEntrySet(cacheTest.entrySet(filter1, null), cacheTest.entrySet(filter2, null));
                 }
-            catch (Throwable e)
+            catch (RuntimeException e)
                 {
-                System.out.printf("\n>> Failed during iteration %d while running test 4a using the following filters: "
-                                + "\n   a) %s"
-                                + "\n   b) %s"
-                                + "\n   c) %s",
-                                i, filterA, filterB, filterC);
-                System.out.printf("\n>> with result sizes: "
-                                + "\n   (a && b) || (a && c): %d"
-                                + "\n          a && (b || c): %d",
-                                set1.size(), set2.size());
-                Set setDiff = new HashSet();
-                if (set1.size() > set2.size())
-                    {
-                    setDiff.addAll(set1);
-                    setDiff.removeAll(set2);
-                    }
-                else
-                    {
-                    setDiff.addAll(set2);
-                    setDiff.removeAll(set1);
-                    }
-
-                for (Object oKey : setDiff)
-                    {
-                    Object oValue = cacheTest.get(oKey);
-                    boolean a = InvocableMapHelper.evaluateEntry(filterA, oKey, oValue);
-                    boolean b = InvocableMapHelper.evaluateEntry(filterB, oKey, oValue);
-                    boolean c = InvocableMapHelper.evaluateEntry(filterC, oKey, oValue);
-                    System.out.printf("\n\nEntry for key \n%s\n\nwith value\n\n%s\n\nevaluated to: "
-                                      + "\n   a) %s"
-                                      + "\n   b) %s"
-                                      + "\n   c) %s\n",
-                                      oKey, oValue, a, b, c);
-
-                    cacheTest.invoke(oKey, entry ->
-                        {
-                        BinaryEntry binEntry = (BinaryEntry) entry;
-
-                        System.out.printf("\nOr, using actual filters: "
-                                          + "\n   (a && b) || (a && c): %s = %s"
-                                          + "\n          a && (b || c): %s = %s\n\n",
-                                          (a && b) || (a && c), InvocableMapHelper.evaluateEntry(filter1, binEntry),
-                                          a && (b || c),        InvocableMapHelper.evaluateEntry(filter2, binEntry));
-
-                        int    nPart    = binEntry.getBackingMapContext().getManagerContext().getKeyPartition(binEntry.getBinaryKey());
-                        Map    mapIndex = binEntry.getBackingMapContext().getIndexMap();
-
-                        SubSet setKeys  = new SubSet(binEntry.getBackingMap().keySet());
-                        Filter filterA2 = ((IndexAwareFilter) filterA).applyIndex(mapIndex, setKeys);
-                        System.out.printf("\n\nFilter A: "
-                                          + "\n     retained keys: %d"
-                                          + "\n  filter remaining: %s",
-                                          setKeys.size(), filterA2);
-
-                        setKeys  = new SubSet(binEntry.getBackingMap().keySet());
-                        Filter filterB2 = ((IndexAwareFilter) filterB).applyIndex(mapIndex, setKeys);
-                        System.out.printf("\n\nFilter B: "
-                                          + "\n     retained keys: %d"
-                                          + "\n  filter remaining: %s",
-                                          setKeys.size(), filterB2);
-
-                        setKeys  = new SubSet(binEntry.getBackingMap().keySet());
-                        Filter filterC2 = ((IndexAwareFilter) filterC).applyIndex(mapIndex, setKeys);
-                        System.out.printf("\n\nFilter C: "
-                                          + "\n     retained keys: %d"
-                                          + "\n  filter remaining: %s",
-                                          setKeys.size(), filterC2);
-
-                        Set setKeysOne  = new SubSet(binEntry.getBackingMap().keySet());
-                        Filter filter12 = ((IndexAwareFilter) filter1).applyIndex(mapIndex, setKeysOne);
-                        System.out.printf("\n\nFilter 1: "
-                                          + "\n     retained keys: %d"
-                                          + "\n  filter remaining: %s",
-                                          setKeysOne.size(), filter12);
-
-                        Set setKeysTwo  = new SubSet(binEntry.getBackingMap().keySet());
-                        Filter filter22 = ((IndexAwareFilter) filter2).applyIndex(mapIndex, setKeysTwo);
-                        System.out.printf("\n\nFilter 2: "
-                                          + "\n     retained keys: %d"
-                                          + "\n  filter remaining: %s",
-                                          setKeysTwo.size(), filter22);
-
-                        return null;
-                        });
-                    }
-                cFailures++;
+                throw ensureRuntimeException(e,
+                    "Filter1 " + filter1 + "; Filter2 " + filter2);
                 }
             }
-        assertEquals("4a) run equivalent queries failed", 0, cFailures);
 
         // 4b) run equivalent queries
         //    (a || b) && (a || c) == a || (b && c)
@@ -512,7 +417,7 @@ public abstract class AbstractFilterTests
                 assertEqualEntrySet(cacheTest.entrySet(filter1), cacheTest.entrySet(filter2));
                 assertEqualEntrySet(cacheTest.entrySet(filter1, null), cacheTest.entrySet(filter2, null));
                 }
-            catch (Throwable e)
+            catch (RuntimeException e)
                 {
                 throw ensureRuntimeException(e,
                     "Filter1 " + filter1 + "; Filter2 " + filter2);

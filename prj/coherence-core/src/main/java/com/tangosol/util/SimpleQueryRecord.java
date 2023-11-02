@@ -7,7 +7,6 @@
 
 package com.tangosol.util;
 
-import com.tangosol.internal.util.PartitionedIndexMap;
 import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.io.pof.PofReader;
@@ -28,6 +27,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -103,27 +103,23 @@ public class SimpleQueryRecord
     protected void mergeResults(Collection colResults)
         {
         List<SimpleQueryRecord.PartialResult> listResults = m_listResults;
-        for (Object oResult : colResults)
+        for (Iterator iter = colResults.iterator(); iter.hasNext();)
             {
-            QueryRecord.PartialResult resultThat = (QueryRecord.PartialResult) oResult;
-
-            if (!resultThat.getSteps().isEmpty())
+            QueryRecord.PartialResult resultThat = (QueryRecord.PartialResult) iter.next();
+            for (SimpleQueryRecord.PartialResult resultThis : listResults)
                 {
-                for (PartialResult resultThis : listResults)
+                if (resultThis.isMatching(resultThat))
                     {
-                    if (resultThis.isMatching(resultThat))
-                        {
-                        resultThis.merge(resultThat);
-                        resultThat = null;
-                        break;
-                        }
+                    resultThis.merge(resultThat);
+                    resultThat = null;
+                    break;
                     }
+                }
 
-                if (resultThat != null)
-                    {
-                    // no matching partial result found; create a new one
-                    listResults.add(new PartialResult(resultThat));
-                    }
+            if (resultThat != null)
+                {
+                // no matching partial result found; create a new one
+                listResults.add(new SimpleQueryRecord.PartialResult(resultThat));
                 }
             }
         }
@@ -933,17 +929,7 @@ public class SimpleQueryRecord
                             sIndex = "Simple: ";
                             }
 
-                        m_cBytes          = index.getUnits();
-                        m_cDistinctValues = index.getIndexContents().size();
-                        m_sIndexDef       = sIndex;
-
-                        sIndex = buildIndexDescription();
-                        }
-                    else if (index instanceof PartitionedIndexMap.PartitionedIndex)
-                        {
-                        sIndex = "Partitioned: ";
-
-                        m_cBytes          = index.getUnits();
+                        m_cBytes          = ((SimpleMapIndex) index).getUnits();
                         m_cDistinctValues = index.getIndexContents().size();
                         m_sIndexDef       = sIndex;
 

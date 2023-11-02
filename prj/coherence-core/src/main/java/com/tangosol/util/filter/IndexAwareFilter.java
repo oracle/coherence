@@ -48,12 +48,14 @@ public interface IndexAwareFilter<K, V>
     *                    related ValueExtractor; read-only
     * @param setKeys     the set of keys that will be filtered; read-only
     *
+    * @param <RK> the raw key type
+    *
     * @return an effectiveness estimate of how well this filter can use the
     *         specified indexes to filter the specified keys
     */
-    public int calculateEffectiveness(
-        Map<? extends ValueExtractor<? extends V, ?>, ? extends MapIndex<? extends K, ? extends V, ?>> mapIndexes,
-        Set<? extends K> setKeys);
+    public <RK> int calculateEffectiveness(
+        Map<? extends ValueExtractor<? extends V, Object>, ? extends MapIndex<? extends RK, ? extends V, Object>> mapIndexes,
+        Set<? extends RK> setKeys);
 
     /**
     * Filter remaining keys using a Map of available indexes.
@@ -71,11 +73,13 @@ public interface IndexAwareFilter<K, V>
     *                    related ValueExtractor; read-only
     * @param setKeys     the mutable set of keys that remain to be filtered
     *
+    * @param <RK> the raw key type
+    *
     * @return a {@link Filter} object (which may be an {@link EntryFilter})
     *         that can be used to process the remaining keys, or null if no
     *         additional filter processing is necessary
     */
-    public Filter<?> applyIndex(
-        Map<? extends ValueExtractor<? extends V, ?>, ? extends MapIndex<? extends K, ? extends V, ?>> mapIndexes,
-        Set<? extends K> setKeys);
+    public <RK> Filter<V> applyIndex(
+        Map<? extends ValueExtractor<? extends V, Object>, ? extends MapIndex<? extends RK, ? extends V, Object>> mapIndexes,
+        Set<? extends RK> setKeys);
     }

@@ -7,6 +7,7 @@
 
 package com.tangosol.util;
 
+
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.CacheFactory;
 
@@ -30,6 +31,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+
 /**
 * SimpleMapIndex is a MapIndex implementation used to correlate property values
 * extracted from resource map entries with corresponding keys using what is
@@ -38,7 +40,6 @@ import java.util.Set;
 * @author tb 2009.03.19
 * @since Coherence 3.5
 */
-@SuppressWarnings({"rawtypes", "unchecked"})
 public class SimpleMapIndex
         extends    Base
         implements MapIndex
@@ -224,7 +225,7 @@ public class SimpleMapIndex
     * Retrieve the size of this index in units (as defined by the
     * {@link #getCalculator() UnitCalculator}).
     *
-    * @return the main, non-partitioned index size
+    * @return the index size
     */
     public long getUnits()
         {
@@ -1074,7 +1075,7 @@ public class SimpleMapIndex
         return ClassHelper.getSimpleName(getClass())
                 + ": Extractor=" + getValueExtractor()
                 + ", Ordered=" + isOrdered()
-                + ", Footprint=" + Base.toMemorySizeString(getUnits(), false)
+                + ", Footprint="+ Base.toMemorySizeString(getUnits(), false)
                 + ", Content="
                 + (fVerbose ? getIndexContents().keySet() : getIndexContents().size());
         }
@@ -1181,7 +1182,7 @@ public class SimpleMapIndex
         */
         protected CalculatorState getCalculatorState(Class clz)
             {
-            if (MAP_FIXED_SIZES.containsKey(clz) || clz.isEnum())
+            if (MAP_FIXED_SIZES.containsKey(clz))
                 {
                 return CalculatorState.FIXED;
                 }

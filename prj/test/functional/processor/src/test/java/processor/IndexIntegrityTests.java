@@ -724,7 +724,7 @@ public class IndexIntegrityTests
                                         }
                                     };
                                 mapIndex.put(this, index);
-                                return index;
+                                return null;
                                 }
 
                             public MapIndex destroyIndex(Map mapIndex)
@@ -758,7 +758,6 @@ public class IndexIntegrityTests
     /**
     * EntryProcessor to validate the user and partitioned indices.
     */
-    @SuppressWarnings("rawtypes")
     public static class IndexVerifierProcessor
             extends AbstractProcessor
         {
@@ -774,7 +773,7 @@ public class IndexIntegrityTests
             Map                      mapBM    = binEntry.getBackingMap();
             Converter                convUp   = ctx.getValueFromInternalConverter();
             Converter                convDown = ctx.getValueToInternalConverter();
-            MapIndex                 index    = findIndex(ctx, m_sCacheName);
+            SimpleMapIndex           index    = findIndex(ctx, m_sCacheName);
             Map                      keyIndex = findKeyIndex(ctx, m_sCacheName);
             StringBuilder            sb       = new StringBuilder();
 
@@ -989,11 +988,11 @@ public class IndexIntegrityTests
     // ----- test helpers -------------------------------------------------
 
     /**
-    * Return the MapIndex on the specified cache.
+    * Return the SimpleMapIndex on the specified cache.
     *
-    * @return the MapIndex on the specified cache
+    * @return the SimpleMapIndex on the specified cache
     */
-    public static MapIndex findIndex(
+    public static SimpleMapIndex findIndex(
             BackingMapManagerContext context, String sCacheName)
         {
         try
@@ -1013,7 +1012,7 @@ public class IndexIntegrityTests
             Map    mapIndex = (Map) ClassHelper.invoke(
                 oStorage, "getIndexMap", ClassHelper.VOID);
 
-            return (MapIndex) mapIndex.values().iterator().next();
+            return (SimpleMapIndex) mapIndex.values().iterator().next();
             }
         catch (Exception e)
             {

@@ -4,12 +4,15 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
+
 package com.tangosol.util;
+
 
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+
 
 /**
 * MapIndex is used to correlate values stored in an <i>indexed Map</i> (or
@@ -128,11 +131,6 @@ public interface MapIndex<K, V, E>
     * @since Coherence 3.5
     */
     public void delete(Map.Entry<? extends K, ? extends V> entry);
-
-    default long getUnits()
-        {
-        return 0;
-        }
 
     /**
     * Constant used to indicate that the index does not contain requested

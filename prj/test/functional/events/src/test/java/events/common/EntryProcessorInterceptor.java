@@ -33,8 +33,7 @@ public class EntryProcessorInterceptor
         if (event.getType() == EntryProcessorEvent.Type.EXECUTED)
             {
             System.out.println("event " + event.getType() + " called: " + String.format("Entries=%d, processor=%s", event.getEntrySet().size(), event.getProcessor().toString()));
-            int cEvents = event.getEntrySet().size();
-            getResultsCache().compute("entryset-size", (k, v) -> v == null ? cEvents : v + cEvents);
+            getResultsCache().put("entryset-size", event.getEntrySet().size());
             }
         }
 

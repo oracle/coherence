@@ -6,13 +6,9 @@
  */
 package com.tangosol.util;
 
-import java.util.AbstractCollection;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-
-import java.util.function.IntFunction;
 
 /**
  * An unmodifiable Collection that provides access to many collections in the
@@ -22,7 +18,7 @@ import java.util.function.IntFunction;
  * @since Coherence 12.1.2
  */
 public class ChainedCollection<E>
-        extends AbstractCollection<E>
+        implements Collection<E>
     {
     // ----- constructors ---------------------------------------------------
 
@@ -38,42 +34,14 @@ public class ChainedCollection<E>
         }
 
     /**
-     * Construct a ChainedCollection from the existing ChainedCollection and
-     * an additional Collection object.
-     *
-     * @param original  the original ChainedCollection
-     * @param col       a Collection object to append
-     */
-    public ChainedCollection(ChainedCollection<E> original, Collection<E> col)
-        {
-        f_aCol = Arrays.copyOf(original.f_aCol, original.f_aCol.length + 1);
-        f_aCol[original.f_aCol.length] = col;
-        }
-
-    /**
-     * Construct a ChainedCollection from the existing ChainedCollection and
-     * an array of Collection objects.
-     *
-     * @param original  the original ChainedSet
-     * @param aCol      an array of Collection objects
-     */
-    @SafeVarargs
-    public ChainedCollection(ChainedCollection<E> original, Collection<E>... aCol)
-        {
-        f_aCol = Arrays.copyOf(original.f_aCol, original.f_aCol.length + aCol.length);
-        System.arraycopy(aCol, 0, f_aCol, original.f_aCol.length, aCol.length);
-        }
-
-    /**
      * Construct a ChainedCollection with the provided array of Collection
      * objects.
      *
-     * @param aCol  an array of Collection objects
+     * @param acol  an array of Collection objects
      */
-    @SafeVarargs
-    public ChainedCollection(Collection<E>... aCol)
+    public ChainedCollection(Collection<E>...acol)
         {
-        f_aCol = aCol;
+        f_acol = acol;
         }
 
     // ----- Collection interface -------------------------------------------
@@ -82,7 +50,7 @@ public class ChainedCollection<E>
     public int size()
         {
         int cSize = 0;
-        for (Collection<E> col : f_aCol)
+        for (Collection<E> col : f_acol)
             {
             cSize += col.size();
             }
@@ -92,7 +60,7 @@ public class ChainedCollection<E>
     @Override
     public boolean isEmpty()
         {
-        for (Collection<E> col : f_aCol)
+        for (Collection<E> col : f_acol)
             {
             if (!col.isEmpty())
                 {
@@ -105,7 +73,7 @@ public class ChainedCollection<E>
     @Override
     public boolean contains(Object o)
         {
-        for (Collection<E> col : f_aCol)
+        for (Collection<E> col : f_acol)
             {
             if (col.contains(o))
                 {
@@ -118,7 +86,7 @@ public class ChainedCollection<E>
     @Override
     public boolean containsAll(Collection<?> col)
         {
-        for (Object o : col)
+        for (Object o : f_acol)
             {
             if (!contains(o))
                 {
@@ -138,11 +106,11 @@ public class ChainedCollection<E>
                 {
                 Iterator<E> iter = m_iter;
                 int         iCol = m_iCol;
-                int         cCol = f_aCol.length;
+                int         cCol = f_acol.length;
 
                 while ((iter == null || !iter.hasNext()) && ++iCol < cCol)
                     {
-                    iter   = m_iter = f_aCol[iCol].iterator();
+                    iter   = m_iter = f_acol[iCol].iterator();
                     m_iCol = iCol;
                     }
 
@@ -194,9 +162,9 @@ public class ChainedCollection<E>
             a = (T[]) new Object[cSize];
             }
 
-        for (int i = 0, of = 0, cArray = f_aCol.length; i < cArray; ++i)
+        for (int i = 0, of = 0, cArray = f_acol.length; i < cArray; ++i)
             {
-            Object[] aoCol = f_aCol[i].toArray();
+            Object[] aoCol = f_acol[i].toArray();
             System.arraycopy(aoCol, 0, a, of, aoCol.length);
             of += aoCol.length;
             }
@@ -247,5 +215,5 @@ public class ChainedCollection<E>
     /**
      * An array of Collections to enumerate.
      */
-    protected final Collection<E>[] f_aCol;
+    protected final Collection<E>[] f_acol;
     }

@@ -27,7 +27,6 @@ import java.util.HashSet;
 *
 * @author cp/gg 2002.10.27
 */
-@SuppressWarnings({"rawtypes", "unchecked"})
 public class NotEqualsFilter<T, E>
         extends    ComparisonFilter<T, E, E>
         implements IndexAwareFilter<Object, T>
@@ -104,9 +103,10 @@ public class NotEqualsFilter<T, E>
             if (index.isPartial())
                 {
                 Set setNE = new HashSet();
-                for (Object o : mapContents.entrySet())
+                for (Iterator iter = mapContents.entrySet().iterator();
+                     iter.hasNext();)
                     {
-                    Map.Entry entry = (Map.Entry) o;
+                    Map.Entry entry = (Map.Entry) iter.next();
                     if (!entry.getKey().equals(oValue))
                         {
                         setNE.addAll(ensureSafeSet((Set) entry.getValue()));

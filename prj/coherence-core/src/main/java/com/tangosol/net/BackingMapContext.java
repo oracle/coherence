@@ -7,7 +7,6 @@
 
 package com.tangosol.net;
 
-import com.tangosol.net.partition.PartitionSet;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.MapIndex;
 import com.tangosol.util.ObservableMap;
@@ -17,6 +16,7 @@ import com.tangosol.util.WrapperObservableMap;
 import com.tangosol.util.extractor.IndexAwareExtractor;
 
 import java.util.Map;
+
 
 /**
 * The BackingMapContext provides an execution context to server side agents such
@@ -29,7 +29,6 @@ import java.util.Map;
 * @since Coherence 3.7
 * @author coh 2010.12.04
 */
-@SuppressWarnings("rawtypes")
 public interface BackingMapContext
     {
     /**
@@ -40,7 +39,7 @@ public interface BackingMapContext
      *
      * @return  the enclosing {@link BackingMapManagerContext}
      */
-    BackingMapManagerContext getManagerContext();
+    public BackingMapManagerContext getManagerContext();
 
     /**
      * Return the name of the {@link NamedCache cache} that this BackingMapContext
@@ -48,7 +47,7 @@ public interface BackingMapContext
      *
      * @return  the corresponding cache name
      */
-    String getCacheName();
+    public String getCacheName();
 
     /**
      * Return the backing map that this BackingMapContext is associated with.
@@ -61,46 +60,16 @@ public interface BackingMapContext
      *
      * @deprecated As of Coherence 12.1.3, replaced with {@link #getBackingMapEntry}
      */
-    ObservableMap getBackingMap();
+    public ObservableMap getBackingMap();
 
     /**
-     * Return a map of indexes defined for all partitions of the
-     * {@link NamedCache cache} that this BackingMapContext is associated with.
+     * Return a map of indexes defined for the {@link NamedCache cache} that
+     * this BackingMapContext is associated with. The returned map must be
+     * treated in the read-only manner.
      *
-     * The returned map must be treated in the read-only manner.
-     *
-     * @return  the map of indexes defined for all partitions of the cache
+     * @return  the map of indexes defined on the cache
      */
-    Map<ValueExtractor, MapIndex> getIndexMap();
-
-    /**
-     * Return a map of indexes defined for the specified partitions of the
-     * {@link NamedCache cache} that this BackingMapContext is associated with.
-     *
-     * The returned map must be treated in the read-only manner.
-     *
-     * @param partitions  the partitions to get the index map for
-     *
-     * @return the map of indexes defined for the specified partitions of the cache
-     */
-    Map<ValueExtractor, MapIndex> getIndexMap(PartitionSet partitions);
-
-    /**
-     * Return a map of indexes defined for the specified partition of the
-     * {@link NamedCache cache} that this BackingMapContext is associated with.
-     *
-     * The returned map must be treated in the read-only manner.
-     *
-     * @param nPartition  the partition to get the index map for
-     *
-     * @return the map of indexes defined for the specified partition of the cache
-     */
-    default Map<ValueExtractor, MapIndex> getIndexMap(int nPartition)
-        {
-        PartitionSet partitions = new PartitionSet(((PartitionedService) getManagerContext().getCacheService()).getPartitionCount());
-        partitions.add(nPartition);
-        return getIndexMap(partitions);
-        }
+    public Map<ValueExtractor, MapIndex> getIndexMap();
 
     /**
      * Return an InvocableMap.Entry for the specified key (in its internal
@@ -141,7 +110,7 @@ public interface BackingMapContext
      * @throws IllegalArgumentException  if attempting to access an entry that
      *         does not belong to partition(s) associated with the caller's context
      */
-    InvocableMap.Entry getBackingMapEntry(Object oKey);
+    public InvocableMap.Entry getBackingMapEntry(Object oKey);
 
     /**
      * Return a read-only InvocableMap.Entry for the specified key (in its internal
@@ -162,5 +131,5 @@ public interface BackingMapContext
      *
      * @throws IllegalStateException if called from an inactive invocation context
      */
-    InvocableMap.Entry getReadOnlyEntry(Object oKey);
+    public InvocableMap.Entry getReadOnlyEntry(Object oKey);
     }

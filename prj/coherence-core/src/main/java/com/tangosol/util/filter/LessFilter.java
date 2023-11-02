@@ -32,7 +32,6 @@ import java.util.SortedMap;
 *
 * @author cp/gg 2002.10.29
 */
-@SuppressWarnings({"unchecked", "rawtypes"})
 public class LessFilter<T, E extends Comparable<? super E>>
         extends    ComparisonFilter<T, E, E>
         implements IndexAwareFilter<Object, T>
@@ -121,22 +120,25 @@ public class LessFilter<T, E extends Comparable<? super E>>
             SortedMap mapGE       = mapContents.tailMap(oValue);
             boolean   fHeadHeavy  = mapLT.size() > mapContents.size() / 2;
 
-            setKeys.removeAll(ensureSafeSet(setNULL));
-
             if (fHeadHeavy && !index.isPartial())
                 {
-                for (Object o : mapGE.values())
+                for (Iterator iterGE = mapGE.values().iterator(); iterGE.hasNext();)
                     {
-                    setKeys.removeAll(ensureSafeSet((Set) o));
+                    setKeys.removeAll(ensureSafeSet((Set) iterGE.next()));
                     }
+
+                setKeys.removeAll(ensureSafeSet(setNULL));
                 }
             else
                 {
                 Set setLT = new HashSet();
-                for (Object o : mapLT.values())
+                for (Iterator iterLT = mapLT.values().iterator(); iterLT.hasNext();)
                     {
-                    Set set = (Set) o;
-                    setLT.addAll(ensureSafeSet(set));
+                    Set set = (Set) iterLT.next();
+                    if (set != setNULL)
+                        {
+                        setLT.addAll(ensureSafeSet(set));
+                        }
                     }
                 setKeys.retainAll(setLT);
                 }
@@ -148,9 +150,10 @@ public class LessFilter<T, E extends Comparable<? super E>>
             if (index.isPartial())
                 {
                 Set setLT = new HashSet();
-                for (Object o : mapContents.entrySet())
+                for (Iterator iter = mapContents.entrySet().iterator();
+                     iter.hasNext();)
                     {
-                    Map.Entry  entry = (Map.Entry) o;
+                    Map.Entry  entry = (Map.Entry) iter.next();
                     Comparable oTest = (Comparable) entry.getKey();
                     if (oTest != null && oTest.compareTo(oValue) < 0)
                         {
@@ -161,9 +164,10 @@ public class LessFilter<T, E extends Comparable<? super E>>
                 }
             else
                 {
-                for (Object o : mapContents.entrySet())
+                for (Iterator iter = mapContents.entrySet().iterator();
+                     iter.hasNext();)
                     {
-                    Map.Entry  entry = (Map.Entry) o;
+                    Map.Entry  entry = (Map.Entry) iter.next();
                     Comparable oTest = (Comparable) entry.getKey();
                     if (oTest == null || oTest.compareTo(oValue) >= 0)
                         {

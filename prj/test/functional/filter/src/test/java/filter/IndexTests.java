@@ -106,8 +106,8 @@ public class IndexTests
     public static void _startup()
         {
         // this test requires local storage to be enabled
-        System.setProperty("coherence.distributed.localstorage", "true");
-        System.setProperty("coherence.distributed.threads", "4");
+        System.setProperty("tangosol.coherence.distributed.localstorage", "true");
+        System.setProperty("tangosol.coherence.distributed.threads", "4");
 
         s_cIterations = Integer.getInteger("test.iterations", 1);
         s_cThreads = Integer.getInteger("test.threads", 1);
@@ -178,26 +178,21 @@ public class IndexTests
         {
         final NamedCache cache = getNamedCache();
 
-        try
+        // sorted or non sorted doesn't make any difference - test
+        // still fails
+        cache.addIndex(IdentityExtractor.INSTANCE, true, null);
+
+        // Insert/Update
+        UpdateThread[] updateThreads = startUpdateThreads(cache, 0);
+
+        for (int i = 0; i < s_cIterations; i++)
             {
-            cache.addIndex(IdentityExtractor.INSTANCE, true, null);
-
-            // Insert/Update
-            UpdateThread[] updateThreads = startUpdateThreads(cache, 30);
-
-            for (int i = 0; i < s_cIterations; i++)
-                {
-                testFilter(cache, new GreaterEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
-                testFilter(cache, new EqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
-                testFilter(cache, new LessEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
-                }
-
-            stopUpdateThreads(updateThreads);
+            testFilter(cache, new GreaterEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
+            testFilter(cache, new EqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
+            testFilter(cache, new LessEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
             }
-        finally
-            {
-            cache.removeIndex(IdentityExtractor.INSTANCE);
-            }
+
+        stopUpdateThreads(updateThreads);
         }
 
     @Test
@@ -210,7 +205,7 @@ public class IndexTests
         cache.addIndex(IdentityExtractor.INSTANCE, true, null);
 
         // Insert/Update
-        UpdateThread[] updateThreads = startUpdateThreads(cache, 30);
+        UpdateThread[] updateThreads = startUpdateThreads(cache, 0);
 
         for (int i = 0; i < s_cIterations; i++)
             {
@@ -575,7 +570,8 @@ public class IndexTests
      */
     private  void testCollectionsCondIndex(NamedCache cache, boolean fFwdIdx)
         {
-        ValueExtractor extractorCond = new ConditionalExtractor(new AlwaysFilter(), new EveryOtherTimeExtractor(), fFwdIdx);
+        ValueExtractor extractorCond = new ConditionalExtractor(new AlwaysFilter(),
+                new EveryOtherTimeExtractor(), fFwdIdx);
 
         // test update with intersecting old and new values and non-deterministic extractor
         cache.addIndex(extractorCond, fFwdIdx, null);
@@ -753,8 +749,8 @@ public class IndexTests
 
         public Object process(Entry entry)
             {
-            assertTrue("Value " + entry.getValue() + " is not greater or equal to " + queryValue,
-                       ((Integer) entry.getValue()) >= queryValue);
+            assertTrue("Value is not greater or equal ("
+                        + entry.getValue() + ")", ((Integer) entry.getValue()) >= queryValue);
 
             // Set back the value to something predictable: (key)
             Object newValue = entry.getKey();
@@ -846,7 +842,7 @@ public class IndexTests
                 {
                 return null;
                 }
-            return Integer.parseInt(((String) oTarget));
+            return new Integer(((String) oTarget));
             }
 
         public String toString()

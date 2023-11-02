@@ -1193,8 +1193,7 @@ public abstract class AbstractRestTests
         System.out.println(entity);
         boolean orig   = entity.equals(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><collection><entry><key>3</key><value><Persona><addresses/><age>37</age><name>Vaso</name></Persona></value></entry><entry><key>2</key><value><Persona><addresses/><age>37</age><name>Aleks</name></Persona></value></entry></collection>");
-        boolean swap   = entity.equals("<?xml version=\"1.0\" encoding=\"UTF-8\" ?><collection><entry><key>2</key><value><Persona><addresses/><age>37</age><name>Aleks</name></Persona></value></entry><entry><key>3</key><value><Persona><addresses/><age>37</age><name>Vaso</name></Persona></value></entry></collection>");
-
+        boolean swap   = entity.equals("<?xml version=\"1.0\" encoding=\"UTF-8\" ?><collection><entry><key>2</key><value><Persona><addresses/><age>37</age><name>Aleks</name></Persona></value></entry><entry><key>3</key><value><Persona><addresses/><age>37</age><name>Vaso</name></Persona></value></entry></collection>\n");
         assertTrue(orig || swap);
 
         webTarget = getWebTarget("dist-test-named-query", "/age-37-query/entries;p=age,name");
@@ -1206,7 +1205,7 @@ public abstract class AbstractRestTests
         entity = response.readEntity(String.class);
         orig = entity.equals(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><collection><entry><key>3</key><value><Persona><age>37</age><name>Vaso</name></Persona></value></entry><entry><key>2</key><value><Persona><age>37</age><name>Aleks</name></Persona></value></entry></collection>");
-        swap = entity.equals("<?xml version=\"1.0\" encoding=\"UTF-8\" ?><collection><entry><key>2</key><value><Persona><age>37</age><name>Aleks</name></Persona></value></entry><entry><key>3</key><value><Persona><age>37</age><name>Vaso</name></Persona></value></entry></collection>");
+        swap = entity.equals("<?xml version=\"1.0\" encoding=\"UTF-8\" ?><collection><entry><key>2</key><value><Persona><age>37</age><name>Aleks</name></Persona></value></entry><entry><key>3</key><value><Persona><age>37</age><name>Vaso</name></Persona></value></entry></collection>\n");
         assertTrue(orig || swap);
         }
 

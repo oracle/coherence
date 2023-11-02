@@ -4,14 +4,15 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
+
 package com.tangosol.util;
+
 
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.BackingMapManagerContext;
-import com.tangosol.net.NamedCache;
-import java.util.Map;
+
 
 /**
 * Map.Entry that internally stores both key and value in a Binary format and
@@ -21,7 +22,6 @@ import java.util.Map;
 *
 * @since Coherence 3.5
 */
-@SuppressWarnings({"rawtypes", "unchecked"})
 public interface BinaryEntry<K, V>
         extends InvocableMap.Entry<K, V>
     {
@@ -30,7 +30,7 @@ public interface BinaryEntry<K, V>
     *
     * @return a raw binary key for this entry
     */
-    Binary getBinaryKey();
+    public Binary getBinaryKey();
 
     /**
     * Return a raw binary value for this entry.
@@ -38,7 +38,7 @@ public interface BinaryEntry<K, V>
     * @return a raw binary value for this entry; null if the value does not
     *         exist
     */
-    Binary getBinaryValue();
+    public Binary getBinaryValue();
 
     /**
     * Return a {@link Serializer} that is used to serialize/deserialize this
@@ -47,7 +47,7 @@ public interface BinaryEntry<K, V>
     * @return a {@link Serializer} that is used to serialize/deserialize this
     *         entry
     */
-    Serializer getSerializer();
+    public Serializer getSerializer();
 
     /**
     * Return the context this entry operates within.
@@ -57,7 +57,7 @@ public interface BinaryEntry<K, V>
     * call.
     * @return the BackingMapManagerContext for this entry
     */
-    BackingMapManagerContext getContext();
+    public BackingMapManagerContext getContext();
 
     /**
     * Update the binary value for this entry.
@@ -73,7 +73,7 @@ public interface BinaryEntry<K, V>
     *
     * @param binValue  new binary value to be stored in this entry or null
     */
-    void updateBinaryValue(Binary binValue);
+    public void updateBinaryValue(Binary binValue);
 
     /**
     * Update the binary value for this entry.
@@ -99,7 +99,7 @@ public interface BinaryEntry<K, V>
     *
     * @since Coherence 12.1.2
     */
-    void updateBinaryValue(Binary binValue, boolean fSynthetic);
+    public void updateBinaryValue(Binary binValue, boolean fSynthetic);
 
     /**
     * Return an original value for this entry.
@@ -108,7 +108,7 @@ public interface BinaryEntry<K, V>
     *
     * @since Coherence 3.6
     */
-    V getOriginalValue();
+    public V getOriginalValue();
 
     /**
     * Return a raw original binary value for this entry.
@@ -118,7 +118,7 @@ public interface BinaryEntry<K, V>
     *
     * @since Coherence 3.6
     */
-    Binary getOriginalBinaryValue();
+    public Binary getOriginalBinaryValue();
 
     /**
     * Obtain a reference to the backing map that this Entry corresponds to.
@@ -138,7 +138,7 @@ public interface BinaryEntry<K, V>
     *             {@link BackingMapContext#getBackingMapEntry}
     *             {@link BackingMapContext#getBackingMapEntry}
     */
-    ObservableMap<K, V> getBackingMap();
+    public ObservableMap<K, V> getBackingMap();
 
     /**
     * Obtain a reference to the {@link BackingMapContext backing map context}
@@ -149,7 +149,7 @@ public interface BinaryEntry<K, V>
     *
     * @since Coherence 3.7
     */
-    BackingMapContext getBackingMapContext();
+    public BackingMapContext getBackingMapContext();
 
     /**
     * Update the entry with the specified expiry delay.
@@ -166,7 +166,7 @@ public interface BinaryEntry<K, V>
     *
     * @since Coherence 3.7
     */
-    void expire(long cMillis);
+    public void expire(long cMillis);
 
     /**
     * Return the number of milliseconds remaining before the specified entry
@@ -190,7 +190,7 @@ public interface BinaryEntry<K, V>
     *
     * @since Coherence 12.1.3
     */
-    long getExpiry();
+    public long getExpiry();
 
     /**
     * Check whether this BinaryEntry allows data modification operations.
@@ -199,7 +199,7 @@ public interface BinaryEntry<K, V>
     *
     * @since Coherence 3.7
     */
-    boolean isReadOnly();
+    public boolean isReadOnly();
 
     /**
     * Check whether this BinaryEntry is loaded by a "read-through" operation.
@@ -208,7 +208,7 @@ public interface BinaryEntry<K, V>
     *
     * @since Coherence 12.2.1
     */
-     default boolean isValueLoaded()
+     default public boolean isValueLoaded()
          {
          return getBinaryValue() == getOriginalBinaryValue();
          }
@@ -220,7 +220,7 @@ public interface BinaryEntry<K, V>
     *
     * @since Coherence 12.2.1.1
     */
-    default boolean isValueChanged()
+    default public boolean isValueChanged()
         {
         return isValueUpdated() || isValueRemoved();
         }
@@ -232,7 +232,7 @@ public interface BinaryEntry<K, V>
     *
     * @since Coherence 12.2.1.1
     */
-    default boolean isValueUpdated()
+    default public boolean isValueUpdated()
         {
         return getBinaryValue() != getOriginalBinaryValue();
         }
@@ -244,36 +244,11 @@ public interface BinaryEntry<K, V>
     *
     * @since Coherence 12.2.1.1
     */
-    default boolean isValueRemoved()
+    default public boolean isValueRemoved()
         {
         return getBinaryValue() == null && getOriginalBinaryValue() != null;
         }
 
-    /**
-     * Return the key partition for this BinaryEntry.
-     *
-     * @return the key partition for this BinaryEntry
-     */
-    default int getKeyPartition()
-        {
-        return getContext().getKeyPartition(getBinaryKey());
-        }
-
-    /**
-     * Return a map of indexes defined for the partition of the
-     * {@link NamedCache cache} that this BinaryEntry belongs to.
-     *
-     * The returned map must be treated in the read-only manner.
-     *
-     * @return the map of indexes defined for the cache partition that this
-     *         BinaryEntry belongs to
-     *
-     * @since 23.03
-     */
-    default Map<ValueExtractor, MapIndex> getIndexMap()
-        {
-        return getBackingMapContext().getIndexMap(getKeyPartition());
-        }
 
     // ----- InvocableMap.Entry interface -----------------------------------
 
@@ -286,7 +261,7 @@ public interface BinaryEntry<K, V>
     * {@link com.tangosol.net.cache.CacheStore CacheStore} or
     * {@link com.tangosol.net.cache.BinaryEntryStore BinaryEntryStore}.
     */
-    void setValue(V value, boolean fSynthetic);
+    public void setValue(V value, boolean fSynthetic);
 
     /**
     * {@inheritDoc}
@@ -297,5 +272,5 @@ public interface BinaryEntry<K, V>
     * {@link com.tangosol.net.cache.CacheStore CacheStore} or
     * {@link com.tangosol.net.cache.BinaryEntryStore BinaryEntryStore}.
     */
-    void remove(boolean fSynthetic);
+    public void remove(boolean fSynthetic);
     }

@@ -6,6 +6,7 @@
  */
 package jmx;
 
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.management.MBeanHelper;
@@ -17,7 +18,6 @@ import com.tangosol.util.MapListener;
 import com.tangosol.util.filter.AndFilter;
 import com.tangosol.util.filter.BetweenFilter;
 import com.tangosol.util.filter.EqualsFilter;
-import com.tangosol.util.filter.IndexAwareFilter;
 import com.tangosol.util.filter.OrFilter;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -25,9 +25,15 @@ import common.AbstractFunctionalTest;
 
 import data.persistence.Person;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+
 import java.io.Serializable;
 
-import java.util.Map;
 import java.util.Set;
 
 import java.util.concurrent.TimeUnit;
@@ -115,16 +121,16 @@ public class StorageManagerMBeanTests
 
         for (int i = 0; i < 100; i++ )
             {
-            cache.put(i, i + 1);
-            cache.get(i);
+            cache.put(new Integer(i), new Integer(i+1));
+            cache.get(new Integer(i));
             }
 
         ObjectName name = getQueryName(cache);
         Integer keyListenerCount = (Integer) server.getAttribute(name, "ListenerKeyCount");
-        assertEquals("expected ListenerKeyCount to be 100", Integer.valueOf(100), keyListenerCount);
+        assertEquals("expected ListenerKeyCount to be 100", new Integer(100), keyListenerCount);
         for (int i = 0; i < 100; i++ )
             {
-            cache.remove(i);
+            cache.remove(new Integer(i));
             }
 
         Integer afterRemoveKeyListenerCount =  (Integer) server.getAttribute(name, "ListenerKeyCount");
@@ -268,7 +274,7 @@ public class StorageManagerMBeanTests
 
             // --- load data and the filter  --------------------
 
-            for (int i = 1; i <= 2_000; i++)
+            for (int i = 1; i <= 2000; i++)
                 {
                 cache.put("p" + i, new Person(i, "p" + i));
                 }
@@ -283,10 +289,9 @@ public class StorageManagerMBeanTests
             Filter filterB = new OrFilter(filter3, filter4);
             Filter filter  = new OrFilter(filterA, filterB);
 
-            Set    entries = cache.entrySet(new SleepFilter(35L).and(filter));
+            Set    entries = cache.entrySet(filter);
 
             CacheFactory.log("Cache size after applying filter is " + entries.size());
-            assertEquals(102, entries.size());
 
             // --- check the size of attribute description --------------------
 
@@ -295,10 +300,8 @@ public class StorageManagerMBeanTests
 
             for (ObjectName name : setObjectNames)
                 {
-                long   lMaxQueryDuration     = (long)   server.getAttribute(name, "MaxQueryDurationMillis");
                 String sAttributeDescription = (String) server.getAttribute(name, "MaxQueryDescription");
 
-                CacheFactory.log("MaxQueryDurationMillis: " + lMaxQueryDuration);
                 CacheFactory.log("MaxQueryDescription: " + sAttributeDescription);
                 CacheFactory.log("For Attribute " + sAttribute + ", expected size is < " + cSize + " and actual is "
                                  + sAttributeDescription.length());
@@ -337,55 +340,5 @@ public class StorageManagerMBeanTests
             {
             throw Base.ensureRuntimeException(e);
             }
-        }
-
-    /**
-     * A simple Filter implementation that will introduce pause into query execution,
-     * in order to hit MaxQueryThresholdMillis (30ms by default).
-     */
-    public static class SleepFilter implements IndexAwareFilter, Serializable
-        {
-        public SleepFilter()
-            {
-            this(0);
-            }
-
-        public SleepFilter(long cMillis)
-            {
-            f_cMillis = cMillis;
-            }
-
-        @Override
-        public boolean evaluate(Object o)
-            {
-            return true;
-            }
-
-        @Override
-        public boolean evaluateEntry(Map.Entry entry)
-            {
-            return true;
-            }
-
-        @Override
-        public int calculateEffectiveness(Map mapIndexes, Set setKeys)
-            {
-            return 1;
-            }
-
-        @Override
-        public Filter applyIndex(Map mapIndexes, Set setKeys)
-            {
-            try
-                {
-                Thread.sleep(f_cMillis);
-                }
-            catch (InterruptedException ignore)
-                {
-                }
-            return null;
-            }
-
-        private final long f_cMillis;
         }
     }
