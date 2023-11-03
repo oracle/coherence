@@ -100,7 +100,7 @@ fi
 # Ensure there is a builder image set
 if [ "${BUILDER_IMAGE}" == "" ]
 then
-  BUILDER_IMAGE="container-registry.oracle.com/os/oraclelinux:8"
+  BUILDER_IMAGE="ghcr.io/oracle/oraclelinux:8"
 fi
 
 # we must use docker format to use health checks

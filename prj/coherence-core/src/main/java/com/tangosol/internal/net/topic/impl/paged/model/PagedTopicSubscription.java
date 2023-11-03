@@ -361,6 +361,27 @@ public class PagedTopicSubscription
         }
 
     /**
+     * Return the {@link SubscriberId} for the subscriber that
+     * owns the specified channel.
+     *
+     * @param nChannel  the channel to obtain the owner
+     *
+     * @return the {@link SubscriberId} for the subscriber that
+     *         owns the specified channel or {@code null} if there
+     *         is no owner or the channel does not exist
+     */
+    public SubscriberId getOwningSubscriber(int nChannel)
+        {
+        long[] aChannelAllocation = m_aChannelAllocation;
+        if (aChannelAllocation.length > nChannel)
+            {
+            long lId = aChannelAllocation[nChannel];
+            return m_mapSubscriber.get(lId);
+            }
+        return null;
+        }
+
+    /**
      * Returns the channel allocations for this subscription.
      * <p/>
      * The returned array is indexed by channel id and each element

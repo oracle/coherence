@@ -46,6 +46,10 @@ modules: ## Build Coherence modules
 docker: ## Build the Coherence image (does not rebuild Coherence jars)
 	mvn clean install -Pmodules,-coherence,docker -pl coherence-docker/ -nsu $(ARGS)
 
+.PHONY: docker-no-graal
+docker-no-graal: ## Build the Coherence image (does not rebuild Coherence jars)
+	mvn clean install -Pmodules,-coherence,docker -pl coherence-docker/ -nsu -Dgraal.image.skip=true $(ARGS)
+
 .PHONY: docker-test
 docker-test: ## Build the Coherence image (does not rebuild Coherence image)
 	mvn verify -Pmodules,-coherence,docker-test -pl coherence-docker/ -nsu $(ARGS)
