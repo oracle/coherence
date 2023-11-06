@@ -10,6 +10,7 @@ package com.tangosol.util;
 
 import com.tangosol.net.BackingMapContext;
 
+import com.tangosol.net.CacheFactory;
 import java.util.Comparator;
 import java.util.Map;
 
@@ -148,6 +149,14 @@ public class ConditionalIndex
 
         m_fPartial = true;
         return false;
+        }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void update(Map.Entry entry)
+        {
+        updateInternal(entry);
         }
 
     /**
