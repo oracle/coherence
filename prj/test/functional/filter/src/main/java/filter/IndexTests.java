@@ -182,6 +182,8 @@ public class IndexTests
         {
         final NamedCache<Long, String> cache = getNamedCache();
 
+        cache.clear();
+        
         ValueExtractor<Long, Integer> extractor = new LastDigit().fromKey();
         Filter<String> condition = new NotEqualsFilter<>(ValueExtractor.identity(), "");
 
