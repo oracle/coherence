@@ -1379,16 +1379,22 @@ public class PagedTopicPartition
             return PollProcessor.Result.unknownSubscriber();
             }
 
+        PagedTopicSubscription pagedTopicSubscription = getPagedTopicSubscription(entrySubscription);
+
         // check whether the channel count has changed
-        Subscription subscriptionZero = peekSubscriptionZero(entrySubscription);
-        if (cChannel != subscriptionZero.getLatestChannelCount())
+        int cChannelActual = getChannelCount();
+        if (cChannel != cChannelActual)
             {
             // the channel count has changed to force the subscriber to reconnect, which will refresh allocations
             return PollProcessor.Result.unknownSubscriber();
             }
 
+        // Get the subscription
+        // If it exists, the PagedTopicSubscription is a more consistent holder of channel allocations and subscriptions.
         Subscription subscription = entrySubscription.getValue();
-        SubscriberId owner        = subscription.getOwningSubscriber();
+        SubscriberId owner        = pagedTopicSubscription != null
+                                        ? pagedTopicSubscription.getOwningSubscriber(nChannel)
+                                        : subscription.getOwningSubscriber();
 
         if (!Objects.equals(owner, subscriberId))
             {
@@ -2398,23 +2404,11 @@ public class PagedTopicPartition
         return mgr.getStatistics(f_sName);
         }
 
-    /**
-     * Return the read-only {@link Subscription} for channel zero.
-     *
-     *  @param entry  the current subscription {@link BinaryEntry}
-     *
-     * @return the read-only {@link Subscription} for channel zero
-     */
-    protected Subscription peekSubscriptionZero(BinaryEntry<Subscription.Key, Subscription> entry)
+    protected PagedTopicSubscription getPagedTopicSubscription(BinaryEntry<Subscription.Key, Subscription> entry)
         {
-        Subscription.Key key = entry.getKey();
-        if (key.getChannelId() == 0)
-            {
-            return entry.getValue();
-            }
-        Binary binKeyZero = toBinaryKey(new Subscription.Key(getPartition(), 0, key.getGroupId()));
-        BinaryEntry<Subscription.Key, Subscription> entryZero = peekBackingMapEntry(PagedTopicCaches.Names.SUBSCRIPTIONS, binKeyZero);
-        return entryZero.getValue();
+        SubscriberGroupId groupId = entry.getKey().getGroupId();
+        long              lId     = f_service.getSubscriptionId(f_sName, groupId);
+        return f_service.getSubscription(lId);
         }
 
     /**

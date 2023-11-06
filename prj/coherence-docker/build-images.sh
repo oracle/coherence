@@ -97,6 +97,12 @@ then
   PORT_HEALTH=6676
 fi
 
+# Ensure there is a builder image set
+if [ "${BUILDER_IMAGE}" == "" ]
+then
+  BUILDER_IMAGE="ghcr.io/oracle/oraclelinux:8"
+fi
+
 # we must use docker format to use health checks
 export BUILDAH_FORMAT=docker
 

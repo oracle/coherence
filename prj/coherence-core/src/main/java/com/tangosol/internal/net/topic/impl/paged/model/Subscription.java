@@ -236,10 +236,9 @@ public class Subscription
         }
 
     /**
-     * Returns {@code true} if a given subscriber is allocated to this owns the channel,
-     * or zero if no subscriber owns the channel.
+     * Returns the {@link SubscriberId} that owns this {@link Subscription}.
      *
-     * @return the identifier of the subscriber that owns the channel
+     * @return the {@link SubscriberId} that owns this {@link Subscription}
      */
     public SubscriberId getOwningSubscriber()
         {
@@ -559,8 +558,10 @@ public class Subscription
      * Update this subscription.
      *
      * @param subscription  the {@link PagedTopicSubscription} to update the state from
+     *
+     * @return this updated {@link Subscription}
      */
-    public void update(PagedTopicSubscription subscription)
+    public Subscription update(PagedTopicSubscription subscription)
         {
         if (subscription != null)
             {
@@ -587,6 +588,7 @@ public class Subscription
                 f_lock.unlock();
                 }
             }
+        return this;
         }
 
     /**
@@ -1102,5 +1104,5 @@ public class Subscription
     /**
      * A lock to control access to internal state.
      */
-    private final Lock f_lock = new ReentrantLock();
+    private final transient Lock f_lock = new ReentrantLock();
     }

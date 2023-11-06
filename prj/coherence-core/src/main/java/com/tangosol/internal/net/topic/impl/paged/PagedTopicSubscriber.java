@@ -97,7 +97,6 @@ import java.time.Instant;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EventListener;
@@ -1545,7 +1544,7 @@ public class PagedTopicSubscriber<V>
                 .filter(c -> !isOwner(c))
                 .collect(Collectors.toList());
 
-        if (listUnallocated.size() > 0)
+        if (!listUnallocated.isEmpty())
             {
             throw new IllegalStateException("Subscriber is not allocated channels " + listUnallocated);
             }
@@ -1654,7 +1653,7 @@ public class PagedTopicSubscriber<V>
                     .boxed()
                     .collect(Collectors.toList());
 
-            if (listUnallocated.size() != 0)
+            if (!listUnallocated.isEmpty())
                 {
                 throw new IllegalArgumentException("One or more channels are not allocated to this subscriber " + listUnallocated);
                 }
@@ -4663,7 +4662,7 @@ public class PagedTopicSubscriber<V>
     /**
      * Optional queue of prefetched values which can be used to fulfil future receive requests.
      */
-    protected ConcurrentLinkedDeque<CommittableElement> m_queueValuesPrefetched = new ConcurrentLinkedDeque<>();
+    private final ConcurrentLinkedDeque<CommittableElement> m_queueValuesPrefetched = new ConcurrentLinkedDeque<>();
 
     /**
      * Queue of pending receive awaiting values.
