@@ -447,21 +447,6 @@
     <cve>CVE-2023-22049</cve>
   </suppress>
 
-  <!-- suppress netty-transport-4.1.93.Final.jar CVE-2023-44487, CVE-2023-4586,
-   CVE-2023-34462 coming from grpc 1.57.1 included in Helidon 2.6.4 -->
-  <suppress>
-    <notes><![CDATA[
-    file name: netty-transport-4.1.93.Final.jar
-    file name: netty-transport-native-unix-common-4.1.93.Final.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.netty/netty-.*@.*$</packageUrl>
-    <cpe>cpe:2.3:a:netty:netty</cpe>
-    <cve>CVE-2023-44487</cve>
-    <cve>CVE-2023-4586</cve>
-    <cve>CVE-2023-34462</cve>
-  </suppress>
-
-
   <!-- suppress netty-* CVE-2023-4586 in 4.1.100 -->
   <suppress>
     <notes><![CDATA[
