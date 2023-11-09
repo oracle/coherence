@@ -81,12 +81,10 @@ import com.tangosol.util.SafeHashSet;
 import com.tangosol.util.SegmentedHashMap;
 import com.tangosol.util.SimpleEnumerator;
 import com.tangosol.util.SimpleMapIndex;
-import com.tangosol.util.SparseArray;
 import com.tangosol.util.Streamer;
 import com.tangosol.util.SubSet;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.WrapperObservableMap;
-import com.tangosol.util.aggregator.ScriptAggregator;
 import com.tangosol.util.comparator.EntryComparator;
 import com.tangosol.util.comparator.SafeComparator;
 import com.tangosol.util.extractor.IdentityExtractor;
@@ -1343,6 +1341,12 @@ public class Storage
                 }
             }
 
+        // common case optimization
+        if (AlwaysFilter.INSTANCE.equals(filter))
+            {
+            filter = null;
+            }
+
         Object result = null;
         if (agent.isByPartition() && agent.isParallel() && Daemons.isForkJoinPoolEnabled())
             {
@@ -2461,7 +2465,7 @@ public class Storage
         // import com.tangosol.util.InvocableMap$StreamingAggregator as com.tangosol.util.InvocableMap.StreamingAggregator;
         // import com.tangosol.util.SimpleEnumerator;
 
-        if (!isIndexed())
+        if (filter == null || !isIndexed())
             {
             Scanner scanner = (Scanner) _newChild("Scanner");
 
