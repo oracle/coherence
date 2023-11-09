@@ -54,6 +54,25 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>javadoc</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>javadoc</goal>
+            </goals>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </execution>
+        </executions>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-clean-plugin</artifactId>
           <configuration>
             <filesets>
@@ -242,15 +261,6 @@
       </activation>
       <properties>
         <gradle.skip.test>false</gradle.skip.test>
-      </properties>
-    </profile>
-    <profile>
-      <id>skipMavenJavaDoc</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <properties>
-        <maven.javadoc.skip>true</maven.javadoc.skip>
       </properties>
     </profile>
     <profile>
