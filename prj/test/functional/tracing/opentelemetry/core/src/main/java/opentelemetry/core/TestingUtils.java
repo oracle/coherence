@@ -140,7 +140,7 @@ public class TestingUtils
             {
             return listSpans.stream()
                     .filter(span -> predicate.test(span.getName()))
-                    .toList();
+                    .collect(Collectors.toList());
             }
         else
             {
@@ -148,7 +148,7 @@ public class TestingUtils
             return listSpans.stream()
                     .filter(span -> predicate.test(span.getName()))
                     .filter(span -> getMetadata(span).get("member").getIntValue() == nMember)
-                    .toList();
+                    .collect(Collectors.toList());
             }
         }
 
