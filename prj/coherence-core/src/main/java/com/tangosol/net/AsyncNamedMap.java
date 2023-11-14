@@ -8,6 +8,7 @@ package com.tangosol.net;
 
 import com.oracle.coherence.common.util.Options;
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.internal.util.processor.CacheProcessors;
 
 import com.tangosol.net.cache.CacheMap;
@@ -32,6 +33,7 @@ import java.util.TreeSet;
 
 import java.util.concurrent.CompletableFuture;
 
+import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntSupplier;
@@ -1253,6 +1255,77 @@ public interface AsyncNamedMap<K, V>
          * A function that should be used to determine order id.
          */
         protected final IntSupplier m_supplierOrderId;
+        }
+
+    // ---- option: Executor ------------------------------------------------
+
+    /**
+     * An {@link Option} to use to specify the {@link Executor} to use to
+     * complete the {@link CompletableFuture} returned from async methods.
+     */
+    class Complete
+            implements Option
+        {
+        /**
+         * Create a {@link Complete} option.
+         *
+         * @param executor  the {@link Executor} to use to complete the
+         *                  {@link CompletableFuture} returned from async
+         *                  methods
+         */
+        protected Complete(Executor executor)
+            {
+            f_executor = executor == null ? Daemons.commonPool() : executor;
+            }
+
+        /**
+         * Return the {@link Executor} to use to complete the {@link CompletableFuture}
+         * returned from async methods.
+         *
+         * @return  the {@link Executor} to use to complete the {@link CompletableFuture}
+         *          returned from async methods
+         */
+        public Executor getExecutor()
+            {
+            return f_executor;
+            }
+
+        // ----- helper methods ---------------------------------------------
+
+        /**
+         * Return a {@link Complete} option that completes futures on the
+         * Coherence common thread pool.
+         *
+         * @return a {@link Complete} option that completes futures on the
+         *         Coherence common thread pool
+         */
+        @Options.Default
+        public static Complete usingCommonPool()
+            {
+            return new Complete(Daemons.commonPool());
+            }
+
+        /**
+         * Return a {@link Complete} option that completes futures using
+         * the specified {@link Executor}.
+         *
+         * @param executor  the {@link Executor} to use
+         *
+         * @return a {@link Complete} option that completes futures using
+         *         the specified {@link Executor}
+         */
+        public static Complete using(Executor executor)
+            {
+            return new Complete(executor);
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The {@link Executor} to use to complete the {@link CompletableFuture}
+         * returned from async methods.
+         */
+        private final Executor f_executor;
         }
 
     // ----- constants ------------------------------------------------------

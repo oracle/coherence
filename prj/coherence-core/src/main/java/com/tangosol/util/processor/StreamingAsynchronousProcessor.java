@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.processor;
 
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.InvocableMap.EntryProcessor;
@@ -14,6 +15,7 @@ import com.tangosol.util.InvocableMap.EntryProcessor;
 import java.util.Map;
 import java.util.Objects;
 
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 
@@ -67,7 +69,27 @@ public class StreamingAsynchronousProcessor<K, V, R>
                                           Consumer<? super Map.Entry<? extends K, ? extends R>> onPartial)
 
         {
-        this(processor, Thread.currentThread().hashCode(), onPartial);
+        this(processor, Thread.currentThread().hashCode(), onPartial, null);
+        }
+
+    /**
+     * Construct a StreamingAsynchronousProcessor for a given processor and one or more callbacks.
+     * <p>
+     * <b>Important Note:</b> All provided callbacks must be non-blocking.
+     * For example, any use of {@link NamedCache} API is completely disallowed.
+     *
+     * @param processor     the underlying {@link EntryProcessor}
+     * @param onPartial     a user-defined callback that will be called for each
+     *                      partial result
+     * @param executor      an optional {@link Executor} to complete the future on,
+     *                      if not provided the {@link Daemons#commonPool()} is used
+     */
+    public StreamingAsynchronousProcessor(EntryProcessor<K, V, R> processor,
+                                          Consumer<? super Map.Entry<? extends K, ? extends R>> onPartial,
+                                          Executor executor)
+
+        {
+        this(processor, Thread.currentThread().hashCode(), onPartial, executor);
         }
 
     /**
@@ -84,7 +106,27 @@ public class StreamingAsynchronousProcessor<K, V, R>
     public StreamingAsynchronousProcessor(EntryProcessor<K, V, R> processor, int iUnitOrderId,
                                           Consumer<? super Map.Entry<? extends K, ? extends R>> onPartial)
         {
-        super(processor, iUnitOrderId);
+        this(processor, iUnitOrderId, onPartial, null);
+        }
+
+    /**
+     * Construct a StreamingAsynchronousProcessor for a given processor and one or more callbacks.
+     * <p>
+     * <b>Important Note:</b> All provided callbacks must be non-blocking.
+     * For example, any use of {@link NamedCache} API is completely disallowed.
+     *
+     * @param processor     the underlying {@link EntryProcessor}
+     * @param iUnitOrderId  the unit-of-order id for this processor
+     * @param onPartial     a user-defined callback that will be called for each
+     *                      partial result
+     * @param executor      an optional {@link Executor} to complete the future on,
+     *                      if not provided the {@link Daemons#commonPool()} is used
+     */
+    public StreamingAsynchronousProcessor(EntryProcessor<K, V, R> processor, int iUnitOrderId,
+                                          Consumer<? super Map.Entry<? extends K, ? extends R>> onPartial,
+                                          Executor executor)
+        {
+        super(processor, iUnitOrderId, executor);
 
         Objects.requireNonNull(onPartial);
         f_onPartial = onPartial;

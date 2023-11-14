@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.util.aggregator.AsynchronousAggregator;
 import com.tangosol.util.aggregator.BigDecimalAverage;
 import com.tangosol.util.aggregator.BigDecimalMax;
@@ -36,6 +37,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 /**
  * Simple Aggregator DSL.
@@ -48,7 +50,7 @@ import java.util.Map;
  *
  * @author lh, hr  2018.06.12
  */
-@SuppressWarnings({"unchecked", "rawtypes", "Convert2MethodRef"})
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class Aggregators
     {
     /**
@@ -70,13 +72,46 @@ public class Aggregators
     /**
      * Return an AsynchronousAggregator for a given streaming aggregator.
      *
+     * @param aggregator  the underlying streaming aggregator
+     * @param executor    an optional {@link Executor} to complete the future on,
+     *                    if not provided the {@link Daemons#commonPool()} is used
+     *
+     * @param <K> the type of the Map entry keys
+     * @param <V> the type of the Map entry values
+     * @param <P> the type of the intermediate result during the parallel stage
+     * @param <R> the type of the value returned by the StreamingAggregator
+     */
+    public static <K, V, P, R> AsynchronousAggregator<K, V, P, R>
+        asynchronous(InvocableMap.StreamingAggregator<K, V, P, R> aggregator, Executor executor)
+        {
+        return new AsynchronousAggregator(aggregator, executor);
+        }
+
+    /**
+     * Return an AsynchronousAggregator for a given streaming aggregator.
+     *
      * @param aggregator    the underlying streaming aggregator
      * @param iUnitOrderId  the unit-of-order id for this aggregator
      */
     public static <K, V, P, R>  InvocableMap.EntryAggregator<K, V, R>
-        asynchronous(InvocableMap.StreamingAggregator<K, V, P, R> aggregator, int iUnitOrderId)
+    asynchronous(InvocableMap.StreamingAggregator<K, V, P, R> aggregator, int iUnitOrderId)
         {
         return new AsynchronousAggregator(aggregator, iUnitOrderId);
+        }
+
+    /**
+     * Return an AsynchronousAggregator for a given streaming aggregator.
+     *
+     * @param aggregator    the underlying streaming aggregator
+     * @param iUnitOrderId  the unit-of-order id for this aggregator
+     * @param executor      an optional {@link Executor} to complete the future on,
+     *                      if not provided the {@link Daemons#commonPool()} is used
+     */
+    public static <K, V, P, R>  InvocableMap.EntryAggregator<K, V, R>
+        asynchronous(InvocableMap.StreamingAggregator<K, V, P, R> aggregator,
+                     int iUnitOrderId, Executor executor)
+        {
+        return new AsynchronousAggregator(aggregator, iUnitOrderId, executor);
         }
 
     /**

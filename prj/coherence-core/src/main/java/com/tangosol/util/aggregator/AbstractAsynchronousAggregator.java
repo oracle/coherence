@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 package com.tangosol.util.aggregator;
 
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.util.AsynchronousAgent;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMap.EntryAggregator;
@@ -15,6 +16,7 @@ import com.tangosol.util.InvocableMap.StreamingAggregator;
 import com.tangosol.util.processor.AsynchronousProcessor;
 
 import java.util.Set;
+import java.util.concurrent.Executor;
 
 import jakarta.json.bind.annotation.JsonbProperty;
 
@@ -40,11 +42,13 @@ public abstract class AbstractAsynchronousAggregator<K, V, P, R>
      *
      * @param aggregator    the underlying streaming aggregator
      * @param iUnitOrderId  the unit-of-order id for this aggregator
+     * @param executor      an optional {@link Executor} to complete the future on,
+     *                      if not provided the {@link Daemons#commonPool()} is used
      */
     protected AbstractAsynchronousAggregator(StreamingAggregator<K,V,P,R> aggregator,
-                                          int iUnitOrderId)
+                                          int iUnitOrderId, Executor executor)
         {
-        super(iUnitOrderId);
+        super(iUnitOrderId, executor);
 
         m_aggregator = aggregator.supply();
         }

@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.processor;
 
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.EntrySetMap;
@@ -18,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 
 /**
@@ -61,7 +63,19 @@ public class AsynchronousProcessor<K, V, R>
      */
     public AsynchronousProcessor(EntryProcessor<K, V, R> processor)
         {
-        this(processor, Thread.currentThread().hashCode());
+        this(processor, Thread.currentThread().hashCode(), null);
+        }
+
+    /**
+     * Construct an AsynchronousProcessor for a given processor.
+     *
+     * @param processor  the underlying {@link EntryProcessor}
+     * @param executor   an optional {@link Executor} to complete the future on,
+     *                   if not provided the {@link Daemons#commonPool()} is used
+     */
+    public AsynchronousProcessor(EntryProcessor<K, V, R> processor, Executor executor)
+        {
+        this(processor, Thread.currentThread().hashCode(), executor);
         }
 
     /**
@@ -72,7 +86,20 @@ public class AsynchronousProcessor<K, V, R>
      */
     public AsynchronousProcessor(EntryProcessor<K, V, R> processor, int iUnitOrderId)
         {
-        super(processor, iUnitOrderId);
+        this(processor, iUnitOrderId, null);
+        }
+
+    /**
+     * Construct an AsynchronousProcessor for a given processor.
+     *
+     * @param processor     the underlying {@link EntryProcessor}
+     * @param iUnitOrderId  the unit-of-order id for this processor
+     * @param executor      an optional {@link Executor} to complete the future on,
+     *                      if not provided the {@link Daemons#commonPool()} is used
+     */
+    public AsynchronousProcessor(EntryProcessor<K, V, R> processor, int iUnitOrderId, Executor executor)
+        {
+        super(processor, iUnitOrderId, executor);
         }
 
     // ----- AbstractAsynchronousProcessor API -------------------------------
