@@ -10,6 +10,7 @@ package com.tangosol.util;
 
 import com.oracle.coherence.common.base.NonBlocking;
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.internal.util.invoke.Lambdas;
 
 import com.tangosol.io.Serializer;
@@ -20,7 +21,6 @@ import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.LocalCache;
 
-import com.tangosol.util.InvocableMap.EntryProcessor;
 import com.tangosol.util.comparator.EntryComparator;
 import com.tangosol.util.comparator.SafeComparator;
 
@@ -52,6 +52,7 @@ import java.util.Set;
 
 import java.util.concurrent.CompletableFuture;
 
+import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import java.util.function.ToIntFunction;
 
@@ -66,43 +67,6 @@ import java.util.function.ToIntFunction;
 public abstract class InvocableMapHelper
         extends Base
     {
-    /**
-     * Invoke the specified EntryProcessor asynchronously.
-     *
-     * @param cache  the cache to invoke against
-     * @param key    the key to invoke upon
-     * @param proc   the processor to invoke
-     *
-     * @param <K> the key type
-     * @param <V> the value type
-     * @param <R> the result type
-     *
-     * @return a CompletableFuture which will contain the result
-     *
-     * @deprecated As of Coherence 14.1.1, use enhanced {@link #invokeAsync(NamedCache, Object, int, EntryProcessor, BiConsumer[])}.
-     */
-    public static <K, V, R> CompletableFuture<R> invokeAsync(NamedCache<K, V> cache, K key, InvocableMap.EntryProcessor<K, V, R> proc)
-        {
-        CompletableFuture<R>           future    = new CompletableFuture<>();
-        AsynchronousProcessor<K, V, R> procAsync = new AsynchronousProcessor<>(proc);
-
-        procAsync.getCompletableFuture().whenComplete((mapResult, e) ->
-            {
-            if (e == null)
-                {
-                future.complete(mapResult == null ? null : mapResult.get(key));
-                }
-            else
-                {
-                future.completeExceptionally(e);
-                }
-            });
-
-        cache.invoke(key, procAsync);
-
-        return future;
-        }
-
     /**
      * Invoke the specified EntryProcessor asynchronously.
      * <p>
@@ -125,6 +89,33 @@ public abstract class InvocableMapHelper
     @SafeVarargs
     public static <K, V, R> CompletableFuture<R> invokeAsync(NamedCache<K, V> cache, K key, int nOrderId,
             InvocableMap.EntryProcessor<K, V, R> proc, BiConsumer<? super R, ? super Throwable>... continuations)
+        {
+        return invokeAsync(cache, key, nOrderId, proc, Daemons.commonPool(), continuations);
+        }
+
+    /**
+     * Invoke the specified EntryProcessor asynchronously.
+     * <p>
+     * The continuation which will be invoked when the processor completes and most importantly on the thread
+     * on which the operation completes which is not something that can be guaranteed if the continuation is
+     * applied via the returned CompletableFuture.
+     *
+     * @param cache          the cache to invoke against
+     * @param key            the key to invoke upon
+     * @param nOrderId       the unit of order
+     * @param proc           the processor to invoke
+     * @param executor       an optional {@link Executor} to use to complete the returned future
+     * @param continuations  continuations which will be invoked when the operation completes
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @param <R> the result type
+     *
+     * @return a CompletableFuture which will contain the result
+     */
+    @SafeVarargs
+    public static <K, V, R> CompletableFuture<R> invokeAsync(NamedCache<K, V> cache, K key, int nOrderId,
+            InvocableMap.EntryProcessor<K, V, R> proc, Executor executor, BiConsumer<? super R, ? super Throwable>... continuations)
         {
         SingleEntryAsynchronousProcessor<K, V, R> procAsync = new SingleEntryAsynchronousProcessor<>(proc, nOrderId);
 
@@ -166,10 +157,10 @@ public abstract class InvocableMapHelper
      */
     @SafeVarargs
     public static <K, V, R> CompletableFuture<Map<K, R>> invokeAllAsync(NamedCache<K, V> cache, Collection<? extends K> setKey,
-            int nOrderId, InvocableMap.EntryProcessor<K, V, R> proc,
+            int nOrderId, InvocableMap.EntryProcessor<K, V, R> proc, Executor executor,
             BiConsumer<? super Map<? extends K, ? extends R>, ? super Throwable>... continuations)
         {
-        AsynchronousProcessor<K, V, R> procAsync = new AsynchronousProcessor<>(proc, nOrderId);
+        AsynchronousProcessor<K, V, R> procAsync = new AsynchronousProcessor<>(proc, nOrderId, executor);
 
         CompletableFuture<Map<K, R>> future = procAsync.getCompletableFuture();
         for (BiConsumer<? super Map<K, R>, ? super Throwable> continuation : continuations)
@@ -212,12 +203,41 @@ public abstract class InvocableMapHelper
             ToIntFunction<K> funcOrder, InvocableMap.EntryProcessor<K, V, R> proc,
             BiConsumer<? super Map<? extends K, ? extends R>, ? super Throwable>... continuations)
         {
+        return invokeAllAsync(cache, setKey, funcOrder, proc, Daemons.commonPool(), continuations);
+        }
+
+    /**
+     * Invoke the specified EntryProcessor asynchronously.
+     * <p>
+     * The continuation which will be invoked when the processor completes and most importantly on the thread
+     * on which the operation completes which is not something that can be guaranteed if the continuation is
+     * applied via the returned CompletableFuture.
+     *
+     * @param cache          the cache to invoke against
+     * @param setKey         the set of keys to invoke upon
+     * @param funcOrder      function to compute unit of order based on the key
+     * @param proc           the processor to invoke
+     * @param executor       an optional {@link Executor} to use to complete the future
+     * @param continuations  continuations which will be invoked when the operation completes
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @param <R> the result type
+     *
+     * @return a CompletableFuture which will contain the result
+     */
+    @SafeVarargs
+    @SuppressWarnings("unchecked")
+    public static <K, V, R> CompletableFuture<Map<K, R>> invokeAllAsync(NamedCache<K, V> cache, Collection<? extends K> setKey,
+            ToIntFunction<K> funcOrder, InvocableMap.EntryProcessor<K, V, R> proc, Executor executor,
+            BiConsumer<? super Map<? extends K, ? extends R>, ? super Throwable>... continuations)
+        {
         Object[]                                    aKey    = setKey.toArray();
         SingleEntryAsynchronousProcessor<K, V, R>[] aProc   = new SingleEntryAsynchronousProcessor[aKey.length];
         CompletableFuture<R>[]                      aFuture = new CompletableFuture[aKey.length];
         for (int i = 0; i < aKey.length; ++i)
             {
-            aProc  [i] = new SingleEntryAsynchronousProcessor<>(proc, funcOrder.applyAsInt((K) aKey[i]));
+            aProc  [i] = new SingleEntryAsynchronousProcessor<>(proc, funcOrder.applyAsInt((K) aKey[i]), executor);
             aFuture[i] = aProc[i].getCompletableFuture();
             }
 

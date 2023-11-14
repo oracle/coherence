@@ -201,8 +201,8 @@ public class PagedTopicSubscriber<V>
 
         f_taskReconnect = new ReconnectTask(this);
 
-        f_daemon = new TaskDaemon("PagedTopic:Subscriber:" + m_caches.getTopicName() + ":" + f_id.getId());
-        f_executor       = f_daemon::executeTask;
+        f_daemon         = new TaskDaemon("PagedTopic:Subscriber:" + m_caches.getTopicName() + ":" + f_id.getId());
+        f_executor       = new TaskDaemon("PagedTopic:Subscriber:" + m_caches.getTopicName() + ":Receive:" + f_id.getId());
         f_daemonChannels = new TaskDaemon("PagedTopic:Subscriber:" + m_caches.getTopicName() + ":Channels:" + f_id.getId());
         f_executorChannels = f_daemonChannels::executeTask;
         f_daemon.start();
@@ -1159,6 +1159,7 @@ public class PagedTopicSubscriber<V>
                 InvocableMapHelper.invokeAsync(m_caches.Subscriptions,
                                                new Subscription.Key(nPart, nChannel, f_subscriberGroupId), m_caches.getUnitOfOrder(nPart),
                                                new PollProcessor(lHead, Integer.MAX_VALUE, f_nNotificationId, f_id),
+                                               f_executor,
                                                (result, e) -> onReceiveResult(channel, lVersion, lHead, result, e))
                                   .handleAsync((r, e) ->
                                       {
@@ -1408,9 +1409,8 @@ public class PagedTopicSubscriber<V>
 
             // We must execute against all Subscription keys for the channel and subscriber group
             CompletableFuture<Map<Subscription.Key, CommitResult>> future
-                    = InvocableMapHelper.invokeAllAsync(m_caches.Subscriptions,
-                                                        setKeys, m_caches.getUnitOfOrder(nPart),
-                                                        new CommitProcessor(position, f_id));
+                    = InvocableMapHelper.invokeAllAsync(m_caches.Subscriptions, setKeys,
+                            m_caches.getUnitOfOrder(nPart), new CommitProcessor(position, f_id), f_executor);
 
             return future.handle((map, err) ->
                             {
@@ -2206,7 +2206,7 @@ public class PagedTopicSubscriber<V>
             // update the globally visible head page
             return InvocableMapHelper.invokeAsync(m_caches.Subscriptions, channel.subscriberPartitionSync,
                                                   m_caches.getUnitOfOrder(channel.subscriberPartitionSync.getPartitionId()),
-                                                  new HeadAdvancer(lHeadAssumed + 1),
+                                                  new HeadAdvancer(lHeadAssumed + 1), f_executor,
                                                   (lPriorHeadRemote, e2) ->
                 {
                 if (lPriorHeadRemote < lHeadAssumed + 1)

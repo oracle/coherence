@@ -8,9 +8,9 @@ package cache;
 
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.testing.util.JacocoHelper;
 import com.tangosol.net.AsyncNamedCache;
+import com.tangosol.net.AsyncNamedMap;
 import com.tangosol.net.NamedCache;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
@@ -61,13 +61,14 @@ public abstract class BaseAsyncNamedCacheTests
     /**
      * Create a {@link BaseAsyncNamedCacheTests} instance.
      *
-     * @param ignored     the human-readable cache type for the test description.
      * @param sCacheName  the cache name to test (should map to a valid name in the coherence-cache-config.xml file
      *                    in this module's resources/ folder).
+     * @param options     the {@link AsyncNamedMap.Option options} to use to create the async maps to test
      */
-    protected BaseAsyncNamedCacheTests(String ignored, String sCacheName)
+    protected BaseAsyncNamedCacheTests(String sCacheName, AsyncNamedMap.Option... options)
         {
-        f_sCacheName     = sCacheName;
+        f_sCacheName = sCacheName;
+        f_options    = options;
         }
 
     /**
@@ -107,7 +108,7 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put(2, 2);
 
         SimpleHolder<Integer> holder = new SimpleHolder<>();
-        assertEquals(2, (int) cache.async().invoke(2, multiplier(2))
+        assertEquals(2, (int) cache.async(f_options).invoke(2, multiplier(2))
                 .whenComplete((r, t) -> System.out.println("testInvoke: " + r))
                 .whenComplete((r, t) -> holder.set(r))
                 .get(1, TimeUnit.MINUTES));
@@ -123,7 +124,7 @@ public abstract class BaseAsyncNamedCacheTests
         NamedCache<Integer, String> cache = getNamedCache();
         cache.put(2, "two");
 
-        cache.async().invoke(2, BaseAsyncNamedCacheTests::error)
+        cache.async(f_options).invoke(2, BaseAsyncNamedCacheTests::error)
                 .whenComplete((r, t) -> t.printStackTrace()).get(1, TimeUnit.MINUTES);
         }
 
@@ -140,7 +141,7 @@ public abstract class BaseAsyncNamedCacheTests
         expected.put("1", 1);
         expected.put("3", 9);
 
-        assertEquals(expected, cache.async()
+        assertEquals(expected, cache.async(f_options)
                 .invokeAll(Arrays.asList("1", "3"), BaseAsyncNamedCacheTests::square)
                 .whenComplete((r, t) -> System.out.println("testInvokeAllWithKeySet: " + r))
                 .get(1, TimeUnit.MINUTES));
@@ -159,14 +160,14 @@ public abstract class BaseAsyncNamedCacheTests
         expected.put("2", 4);
         expected.put("3", 9);
 
-        assertEquals(expected, cache.async().invokeAll(GREATER_THAN_1, BaseAsyncNamedCacheTests::square)
+        assertEquals(expected, cache.async(f_options).invokeAll(GREATER_THAN_1, BaseAsyncNamedCacheTests::square)
                 .whenComplete((r, t) -> System.out.println("testInvokeAllWithFilter: " + r)).get(1, TimeUnit.MINUTES));
 
-        expected = cache.async().invokeAll(NeverFilter.INSTANCE(), BaseAsyncNamedCacheTests::square)
+        expected = cache.async(f_options).invokeAll(NeverFilter.INSTANCE(), BaseAsyncNamedCacheTests::square)
                 .whenComplete((r, t) -> System.out.println("testInvokeAllWithFilter: " + r)).get(1, TimeUnit.MINUTES);
         assertEquals(0, expected.size());
 
-        Set<?> expected2 = cache.async().entrySet(NeverFilter.INSTANCE())
+        Set<?> expected2 = cache.async(f_options).entrySet(NeverFilter.INSTANCE())
                 .whenComplete((r, t) -> System.out.println("testInvokeAllWithFilter: " + r)).get(1, TimeUnit.MINUTES);
         assertEquals(0, expected2.size());
         }
@@ -181,7 +182,7 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put(1, "Aleks");
         cache.put(2, "Marija");
 
-        assertEquals(cache.keySet(), cache.async().keySet().get(1, TimeUnit.MINUTES));
+        assertEquals(cache.keySet(), cache.async(f_options).keySet().get(1, TimeUnit.MINUTES));
         }
 
     @Test
@@ -193,10 +194,10 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put(2, "Marija");
 
         Filter<?> filter = Filters.like(ValueExtractor.identity(), "A%");
-        assertEquals(cache.keySet(filter), cache.async().keySet(filter).get(1, TimeUnit.MINUTES));
+        assertEquals(cache.keySet(filter), cache.async(f_options).keySet(filter).get(1, TimeUnit.MINUTES));
 
         filter = Filters.like(ValueExtractor.identity(), "Z%");
-        assertEquals(0, cache.async().keySet(filter).get(1, TimeUnit.MINUTES).size());
+        assertEquals(0, cache.async(f_options).keySet(filter).get(1, TimeUnit.MINUTES).size());
         }
 
     @Test
@@ -208,7 +209,7 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put(2, "Marija");
 
         Set<Integer> setResults = new HashSet<>();
-        cache.async().keySet(setResults::add).get(1, TimeUnit.MINUTES);
+        cache.async(f_options).keySet(setResults::add).get(1, TimeUnit.MINUTES);
         assertEquals(2, setResults.size());
         assertTrue(setResults.contains(1));
         assertTrue(setResults.contains(2));
@@ -216,7 +217,7 @@ public abstract class BaseAsyncNamedCacheTests
         setResults.clear();
 
         Filter<?> filter = Filters.like(ValueExtractor.identity(), "A%");
-        cache.async().keySet(filter, setResults::add).get(1, TimeUnit.MINUTES);
+        cache.async(f_options).keySet(filter, setResults::add).get(1, TimeUnit.MINUTES);
         assertEquals(1, setResults.size());
         assertTrue(setResults.contains(1));
         }
@@ -230,7 +231,7 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put(2, "Marija");
 
         Filter<?> filter = oTarget -> { throw new RuntimeException(); };
-        cache.async().keySet(filter).get(1, TimeUnit.MINUTES);
+        cache.async(f_options).keySet(filter).get(1, TimeUnit.MINUTES);
         }
 
     @Test
@@ -241,7 +242,7 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put(1, "Aleks");
         cache.put(2, "Marija");
 
-        assertEquals(cache.entrySet(), cache.async().entrySet().get(1, TimeUnit.MINUTES));
+        assertEquals(cache.entrySet(), cache.async(f_options).entrySet().get(1, TimeUnit.MINUTES));
         }
 
     @Test
@@ -253,10 +254,10 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put(2, "Marija");
 
         Filter<?> filter = Filters.like(ValueExtractor.identity(), "A%");
-        assertThat(cache.async().entrySet(filter).get(1, TimeUnit.MINUTES), is(cache.entrySet(filter)));
+        assertThat(cache.async(f_options).entrySet(filter).get(1, TimeUnit.MINUTES), is(cache.entrySet(filter)));
 
         filter = Filters.like(ValueExtractor.identity(), "Z%");
-        assertEquals(0, cache.async().entrySet(filter).get(1, TimeUnit.MINUTES).size());
+        assertEquals(0, cache.async(f_options).entrySet(filter).get(1, TimeUnit.MINUTES).size());
         }
 
     @Test
@@ -268,7 +269,7 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put(2, "Marija");
 
         assertEquals(cache.entrySet(AlwaysFilter.INSTANCE, null),
-                     cache.async().entrySet(AlwaysFilter.INSTANCE, (Comparator<?>) null).get(1, TimeUnit.MINUTES));
+                     cache.async(f_options).entrySet(AlwaysFilter.INSTANCE, (Comparator<?>) null).get(1, TimeUnit.MINUTES));
         }
 
     @Test
@@ -280,7 +281,7 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put(2, "Marija");
 
         Set<String> setResults = new HashSet<>();
-        cache.async().entrySet((key, value) -> setResults.add(value)).get(1, TimeUnit.MINUTES);
+        cache.async(f_options).entrySet((key, value) -> setResults.add(value)).get(1, TimeUnit.MINUTES);
         assertEquals(2, setResults.size());
         assertTrue(setResults.contains("Aleks"));
         assertTrue(setResults.contains("Marija"));
@@ -288,7 +289,7 @@ public abstract class BaseAsyncNamedCacheTests
         setResults.clear();
 
         Filter<?> filter = Filters.like(ValueExtractor.identity(), "A%");
-        cache.async().entrySet(filter, entry -> setResults.add(entry.getValue())).get(1, TimeUnit.MINUTES);
+        cache.async(f_options).entrySet(filter, entry -> setResults.add(entry.getValue())).get(1, TimeUnit.MINUTES);
         assertEquals(1, setResults.size());
         assertTrue(setResults.contains("Aleks"));
         }
@@ -302,7 +303,7 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put(2, "Marija");
 
         Filter<?> filter = oTarget -> { throw new RuntimeException(); };
-        cache.async().entrySet(filter).get(1, TimeUnit.MINUTES);
+        cache.async(f_options).entrySet(filter).get(1, TimeUnit.MINUTES);
         }
 
     @Test
@@ -313,8 +314,8 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put(1, "Aleks");
         cache.put(2, "Marija");
 
-        assertEquals(cache.values().size(), cache.async().values().get(1, TimeUnit.MINUTES).size());
-        assertTrue(cache.values().containsAll(cache.async().values().get(1, TimeUnit.MINUTES)));
+        assertEquals(cache.values().size(), cache.async(f_options).values().get(1, TimeUnit.MINUTES).size());
+        assertTrue(cache.values().containsAll(cache.async(f_options).values().get(1, TimeUnit.MINUTES)));
         }
 
     @Test
@@ -327,10 +328,10 @@ public abstract class BaseAsyncNamedCacheTests
 
         Filter<?> filter = Filters.like(ValueExtractor.identity(), "A%");
         assertEquals(new ArrayList<>(cache.values(filter, null)),
-                     new ArrayList<>(cache.async().values(filter, (Comparator<String>) null).get(1, TimeUnit.MINUTES)));
+                     new ArrayList<>(cache.async(f_options).values(filter, (Comparator<String>) null).get(1, TimeUnit.MINUTES)));
 
         filter = Filters.like(ValueExtractor.identity(), "Z%");
-        assertEquals(0, cache.async().values(filter).get(1, TimeUnit.MINUTES).size());
+        assertEquals(0, cache.async(f_options).values(filter).get(1, TimeUnit.MINUTES).size());
         }
 
     @Test
@@ -342,7 +343,7 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put(2, "Marija");
 
         Set<String> setResults = new HashSet<>();
-        cache.async().values(setResults::add).get(1, TimeUnit.MINUTES);
+        cache.async(f_options).values(setResults::add).get(1, TimeUnit.MINUTES);
         assertEquals(2, setResults.size());
         assertTrue(setResults.contains("Aleks"));
         assertTrue(setResults.contains("Marija"));
@@ -350,7 +351,7 @@ public abstract class BaseAsyncNamedCacheTests
         setResults.clear();
 
         Filter<?> filter = Filters.like(ValueExtractor.identity(), "A%");
-        cache.async().values(filter, setResults::add).get(1, TimeUnit.MINUTES);
+        cache.async(f_options).values(filter, setResults::add).get(1, TimeUnit.MINUTES);
         assertEquals(1, setResults.size());
         assertTrue(setResults.contains("Aleks"));
         }
@@ -364,7 +365,7 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put(2, "Marija");
 
         Filter<?> filter = oTarget -> { throw new RuntimeException(); };
-        cache.async().values(filter).get(1, TimeUnit.MINUTES);
+        cache.async(f_options).values(filter).get(1, TimeUnit.MINUTES);
         }
 
     // ---- Map methods -----------------------------------------------------
@@ -373,7 +374,7 @@ public abstract class BaseAsyncNamedCacheTests
     public void shouldCallClear() throws Exception
         {
         NamedCache<Integer, String>      cache = getNamedCache();
-        AsyncNamedCache<Integer, String> async = cache.async();
+        AsyncNamedCache<Integer, String> async = cache.async(f_options);
 
         assertThat(async.size().get(1, TimeUnit.MINUTES), is(0));
         assertThat(async.isEmpty().get(1, TimeUnit.MINUTES), is(true));
@@ -394,7 +395,7 @@ public abstract class BaseAsyncNamedCacheTests
             throws Exception
         {
         NamedCache<Integer, String>      cache = getNamedCache();
-        AsyncNamedCache<Integer, String> async = cache.async();
+        AsyncNamedCache<Integer, String> async = cache.async(f_options);
 
         assertThat(async.containsKey(1).get(1, TimeUnit.MINUTES), is(false));
         cache.put(1, "one");
@@ -409,7 +410,7 @@ public abstract class BaseAsyncNamedCacheTests
         JacocoHelper.skipIfJacocoInstrumented();
         NamedCache<String, Integer> cache = getNamedCache();
         cache.put("1", 1);
-        assertThat(cache.async().getOrDefault("1", 100).get(1, TimeUnit.MINUTES), is(1));
+        assertThat(cache.async(f_options).getOrDefault("1", 100).get(1, TimeUnit.MINUTES), is(1));
         }
 
     @Test
@@ -418,7 +419,7 @@ public abstract class BaseAsyncNamedCacheTests
         JacocoHelper.skipIfJacocoInstrumented();
         NamedCache<String, Integer> cache = getNamedCache();
         cache.put("1", null);
-        assertThat(cache.async().getOrDefault("1", 100).get(1, TimeUnit.MINUTES), is(nullValue()));
+        assertThat(cache.async(f_options).getOrDefault("1", 100).get(1, TimeUnit.MINUTES), is(nullValue()));
         }
 
     @Test
@@ -427,7 +428,7 @@ public abstract class BaseAsyncNamedCacheTests
         JacocoHelper.skipIfJacocoInstrumented();
         NamedCache<String, Integer> cache = getNamedCache();
         cache.remove("1");
-        assertThat(cache.async().getOrDefault("1", 100).get(1, TimeUnit.MINUTES), is(100));
+        assertThat(cache.async(f_options).getOrDefault("1", 100).get(1, TimeUnit.MINUTES), is(100));
         }
 
     @Test
@@ -438,10 +439,10 @@ public abstract class BaseAsyncNamedCacheTests
         NamedCache<Integer, String> cache = getNamedCache();
         cache.put(2, "two");
 
-        assertEquals("one", cache.async().getOrDefault(1, "one")
+        assertEquals("one", cache.async(f_options).getOrDefault(1, "one")
                 .whenComplete((r, t) -> System.out.println("testGetOrDefault: " + r))
                 .get(1, TimeUnit.MINUTES));
-        assertEquals("two", cache.async().getOrDefault(2, "TWO")
+        assertEquals("two", cache.async(f_options).getOrDefault(2, "TWO")
                 .whenComplete((r, t) -> System.out.println("testGetOrDefault: " + r))
                 .get(1, TimeUnit.MINUTES));
         }
@@ -459,7 +460,7 @@ public abstract class BaseAsyncNamedCacheTests
 
         List<Integer>        listKeys = Arrays.asList(2, 4, 6, 8);
         Map<Integer, String> mapCache = new HashMap<>(cache.getAll(listKeys));
-        Map<Integer, String> mapAsync = new HashMap<>(cache.async().getAll(listKeys).get(1, TimeUnit.MINUTES));
+        Map<Integer, String> mapAsync = new HashMap<>(cache.async(f_options).getAll(listKeys).get(1, TimeUnit.MINUTES));
 
         assertThat(mapCache.size(), is(listKeys.size()));
         assertThat(mapAsync.size(), is(listKeys.size()));
@@ -483,7 +484,7 @@ public abstract class BaseAsyncNamedCacheTests
 
         List<Integer>        listKeys = Arrays.asList(22, 44, 66, 88);
         Map<Integer, String> mapCache = cache.getAll(listKeys);
-        Map<Integer, String> mapAsync = cache.async().getAll(listKeys).get(1, TimeUnit.MINUTES);
+        Map<Integer, String> mapAsync = cache.async(f_options).getAll(listKeys).get(1, TimeUnit.MINUTES);
 
         assertThat(mapCache.isEmpty(), is(true));
         assertThat(mapAsync.isEmpty(), is(true));
@@ -502,7 +503,7 @@ public abstract class BaseAsyncNamedCacheTests
 
         List<Integer>        listKeys = Arrays.asList(22, 4, 66, 8);
         Map<Integer, String> mapCache = new HashMap<>(cache.getAll(listKeys));
-        Map<Integer, String> mapAsync = new HashMap<>(cache.async().getAll(listKeys).get(1, TimeUnit.MINUTES));
+        Map<Integer, String> mapAsync = new HashMap<>(cache.async(f_options).getAll(listKeys).get(1, TimeUnit.MINUTES));
 
         assertThat(mapCache.size(), is(2));
         assertThat(mapAsync.size(), is(2));
@@ -524,7 +525,7 @@ public abstract class BaseAsyncNamedCacheTests
         List<Integer>           listKeys = Arrays.asList(2, 4, 6, 8);
         Map<Integer, String>    mapCache = new HashMap<>(cache.getAll(listKeys));
         Map<Integer, String>    mapAsync = new HashMap<>();
-        CompletableFuture<Void> future   = cache.async() .getAll(listKeys, entry ->
+        CompletableFuture<Void> future   = cache.async(f_options) .getAll(listKeys, entry ->
                 mapAsync.put(entry.getKey(), entry.getValue()));
 
         future.join();
@@ -551,7 +552,7 @@ public abstract class BaseAsyncNamedCacheTests
         List<Integer>           listKeys = Arrays.asList(22, 44, 66, 88);
         Map<Integer, String>    mapCache = new HashMap<>(cache.getAll(listKeys));
         Map<Integer, String>    mapAsync = new HashMap<>();
-        CompletableFuture<Void> future   = cache.async() .getAll(listKeys, entry ->
+        CompletableFuture<Void> future   = cache.async(f_options) .getAll(listKeys, entry ->
                 mapAsync.put(entry.getKey(), entry.getValue()));
 
         future.join();
@@ -573,7 +574,7 @@ public abstract class BaseAsyncNamedCacheTests
         List<Integer>           listKeys = Arrays.asList(22, 4, 66, 8);
         Map<Integer, String>    mapCache = new HashMap<>(cache.getAll(listKeys));
         Map<Integer, String>    mapAsync = new HashMap<>();
-        CompletableFuture<Void> future   = cache.async() .getAll(listKeys, entry ->
+        CompletableFuture<Void> future   = cache.async(f_options) .getAll(listKeys, entry ->
                 mapAsync.put(entry.getKey(), entry.getValue()));
 
         future.join();
@@ -598,7 +599,7 @@ public abstract class BaseAsyncNamedCacheTests
         List<Integer>           listKeys = Arrays.asList(2, 4, 6, 8);
         Map<Integer, String>    mapCache = new HashMap<>(cache.getAll(listKeys));
         Map<Integer, String>    mapAsync = new HashMap<>();
-        CompletableFuture<Void> future   = cache.async() .getAll(listKeys, mapAsync::put);
+        CompletableFuture<Void> future   = cache.async(f_options) .getAll(listKeys, mapAsync::put);
 
         future.join();
 
@@ -624,7 +625,7 @@ public abstract class BaseAsyncNamedCacheTests
         List<Integer>           listKeys = Arrays.asList(22, 44, 66, 88);
         Map<Integer, String>    mapCache = new HashMap<>(cache.getAll(listKeys));
         Map<Integer, String>    mapAsync = new HashMap<>();
-        CompletableFuture<Void> future   = cache.async() .getAll(listKeys, mapAsync::put);
+        CompletableFuture<Void> future   = cache.async(f_options) .getAll(listKeys, mapAsync::put);
 
         future.join();
 
@@ -645,7 +646,7 @@ public abstract class BaseAsyncNamedCacheTests
         List<Integer>           listKeys = Arrays.asList(22, 4, 66, 8);
         Map<Integer, String>    mapCache = new HashMap<>(cache.getAll(listKeys));
         Map<Integer, String>    mapAsync = new HashMap<>();
-        CompletableFuture<Void> future   = cache.async() .getAll(listKeys, mapAsync::put);
+        CompletableFuture<Void> future   = cache.async(f_options) .getAll(listKeys, mapAsync::put);
 
         future.join();
 
@@ -661,7 +662,7 @@ public abstract class BaseAsyncNamedCacheTests
             throws Exception
         {
         NamedCache<String, Integer>      cache = getNamedCache();
-        AsyncNamedCache<String, Integer> async = cache.async();
+        AsyncNamedCache<String, Integer> async = cache.async(f_options);
 
         async.put("1", 1).get(1, TimeUnit.MINUTES);
         assertThat(cache.get("1"), is(1));
@@ -672,7 +673,7 @@ public abstract class BaseAsyncNamedCacheTests
             throws Exception
         {
         NamedCache<String, Integer>      cache = getNamedCache();
-        AsyncNamedCache<String, Integer> async = cache.async();
+        AsyncNamedCache<String, Integer> async = cache.async(f_options);
 
         async.put("1", 1, 5000L).get(1, TimeUnit.MINUTES);
         assertThat(cache.get("1"), is(1));
@@ -684,7 +685,7 @@ public abstract class BaseAsyncNamedCacheTests
             throws Exception
         {
         NamedCache<String, Integer>      cache = getNamedCache();
-        AsyncNamedCache<String, Integer> async = cache.async();
+        AsyncNamedCache<String, Integer> async = cache.async(f_options);
 
         Map<String, Integer> map = Map.of("11", 11, "22", 22);
         async.putAll(map).get(1, TimeUnit.MINUTES);
@@ -703,7 +704,7 @@ public abstract class BaseAsyncNamedCacheTests
         then you need to rebuild coherence.
          */
         NamedCache<String, Integer>      cache = getNamedCache();
-        AsyncNamedCache<String, Integer> async = cache.async();
+        AsyncNamedCache<String, Integer> async = cache.async(f_options);
 
         Map<String, Integer> map = Map.of("11", 11, "22", 22);
         async.putAll(map, 5000L).get(1, TimeUnit.MINUTES);
@@ -718,7 +719,7 @@ public abstract class BaseAsyncNamedCacheTests
             throws Exception
         {
         NamedCache<String, Integer>      cache = getNamedCache();
-        AsyncNamedCache<String, Integer> async = cache.async();
+        AsyncNamedCache<String, Integer> async = cache.async(f_options);
 
         assertThat(async.putIfAbsent("1", 1).get(1, TimeUnit.MINUTES), is(nullValue()));
         assertThat(async.putIfAbsent("1", 100).get(1, TimeUnit.MINUTES), is(1));
@@ -738,8 +739,8 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put("1", 1);
         cache.put("2", 2);
 
-        assertFalse(cache.async().remove("1", 2).get(1, TimeUnit.MINUTES));
-        assertTrue(cache.async().remove("2", 2).get(1, TimeUnit.MINUTES));
+        assertFalse(cache.async(f_options).remove("1", 2).get(1, TimeUnit.MINUTES));
+        assertTrue(cache.async(f_options).remove("2", 2).get(1, TimeUnit.MINUTES));
 
         assertEquals(1, cache.size());
         assertTrue(cache.containsKey("1"));
@@ -754,9 +755,9 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put("1", 1);
         cache.put("2", null);
 
-        assertEquals(1, (int) cache.async().replace("1", 100).get(1, TimeUnit.MINUTES));
-        assertNull(cache.async().replace("2", 200).get(1, TimeUnit.MINUTES));
-        assertNull(cache.async().replace("3", 300).get(1, TimeUnit.MINUTES));
+        assertEquals(1, (int) cache.async(f_options).replace("1", 100).get(1, TimeUnit.MINUTES));
+        assertNull(cache.async(f_options).replace("2", 200).get(1, TimeUnit.MINUTES));
+        assertNull(cache.async(f_options).replace("3", 300).get(1, TimeUnit.MINUTES));
 
         assertEquals(2, cache.size());
         assertFalse(cache.containsKey("3"));
@@ -771,10 +772,10 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put("2", null);
         cache.put("3", null);
 
-        assertTrue(cache.async().replace("1", 1, 100).get(1, TimeUnit.MINUTES));
-        assertFalse(cache.async().replace("2", 2, 200).get(1, TimeUnit.MINUTES));
-        assertTrue(cache.async().replace("3", null, 300).get(1, TimeUnit.MINUTES));
-        assertFalse(cache.async().replace("4", 4, 400).get(1, TimeUnit.MINUTES));
+        assertTrue(cache.async(f_options).replace("1", 1, 100).get(1, TimeUnit.MINUTES));
+        assertFalse(cache.async(f_options).replace("2", 2, 200).get(1, TimeUnit.MINUTES));
+        assertTrue(cache.async(f_options).replace("3", null, 300).get(1, TimeUnit.MINUTES));
+        assertFalse(cache.async(f_options).replace("4", 4, 400).get(1, TimeUnit.MINUTES));
 
         assertEquals(100, (int) cache.get("1"));
         assertNull(cache.get("2"));
@@ -788,9 +789,9 @@ public abstract class BaseAsyncNamedCacheTests
         {
         NamedCache<String, Integer> cache = getNamedCache();
         cache.put("five", 5);
-        assertEquals(1, (int) cache.async().computeIfAbsent("1", Integer::parseInt).get(1, TimeUnit.MINUTES));
-        assertEquals(5, (int) cache.async().computeIfAbsent("five", Integer::parseInt).get(1, TimeUnit.MINUTES));
-        assertNull(cache.async().computeIfAbsent("null", (k) -> null).get(1, TimeUnit.MINUTES));
+        assertEquals(1, (int) cache.async(f_options).computeIfAbsent("1", Integer::parseInt).get(1, TimeUnit.MINUTES));
+        assertEquals(5, (int) cache.async(f_options).computeIfAbsent("five", Integer::parseInt).get(1, TimeUnit.MINUTES));
+        assertNull(cache.async(f_options).computeIfAbsent("null", (k) -> null).get(1, TimeUnit.MINUTES));
         }
 
     @Test
@@ -801,10 +802,10 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put("1", 1);
         cache.put("2", 2);
 
-        assertEquals(2, (int) cache.async().computeIfPresent("1", (k, v) -> v + v).get(1, TimeUnit.MINUTES));
-        assertEquals(4, (int) cache.async().computeIfPresent("2", (k, v) -> v * v).get(1, TimeUnit.MINUTES));
-        assertNull(cache.async().computeIfPresent("1", (k, v) -> null).get(1, TimeUnit.MINUTES));
-        assertNull(cache.async().computeIfPresent("3", (k, v) -> v * v).get(1, TimeUnit.MINUTES));
+        assertEquals(2, (int) cache.async(f_options).computeIfPresent("1", (k, v) -> v + v).get(1, TimeUnit.MINUTES));
+        assertEquals(4, (int) cache.async(f_options).computeIfPresent("2", (k, v) -> v * v).get(1, TimeUnit.MINUTES));
+        assertNull(cache.async(f_options).computeIfPresent("1", (k, v) -> null).get(1, TimeUnit.MINUTES));
+        assertNull(cache.async(f_options).computeIfPresent("3", (k, v) -> v * v).get(1, TimeUnit.MINUTES));
 
         assertEquals(4, (int) cache.get("2"));
         assertEquals(1, cache.size());
@@ -819,8 +820,8 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put("1", 1);
         cache.put("2", 2);
 
-        assertEquals(2, (int) cache.async().compute("1", (k, v) -> v + v).get(1, TimeUnit.MINUTES));
-        assertNull(cache.async().compute("2", (k, v) -> null).get(1, TimeUnit.MINUTES));
+        assertEquals(2, (int) cache.async(f_options).compute("1", (k, v) -> v + v).get(1, TimeUnit.MINUTES));
+        assertNull(cache.async(f_options).compute("2", (k, v) -> null).get(1, TimeUnit.MINUTES));
         assertFalse(cache.containsKey("2"));
         }
 
@@ -832,10 +833,10 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put("1", 1);
         cache.put("2", 2);
 
-        assertEquals(2, (int) cache.async().merge("1", 1, Integer::sum).get(1, TimeUnit.MINUTES));
-        assertEquals(3, (int) cache.async().merge("2", 1, Integer::sum).get(1, TimeUnit.MINUTES));
-        assertEquals(1, (int) cache.async().merge("3", 1, Integer::sum).get(1, TimeUnit.MINUTES));
-        assertNull(cache.async().merge("1", 1, (v1, v2) -> null).get(1, TimeUnit.MINUTES));
+        assertEquals(2, (int) cache.async(f_options).merge("1", 1, Integer::sum).get(1, TimeUnit.MINUTES));
+        assertEquals(3, (int) cache.async(f_options).merge("2", 1, Integer::sum).get(1, TimeUnit.MINUTES));
+        assertEquals(1, (int) cache.async(f_options).merge("3", 1, Integer::sum).get(1, TimeUnit.MINUTES));
+        assertNull(cache.async(f_options).merge("1", 1, (v1, v2) -> null).get(1, TimeUnit.MINUTES));
 
         assertFalse(cache.containsKey("1"));
         assertTrue(cache.containsKey("3"));
@@ -850,7 +851,7 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put("2", 2);
         cache.put("3", 3);
 
-        cache.async().replaceAll((k, v) -> v * v).get(1, TimeUnit.MINUTES);
+        cache.async(f_options).replaceAll((k, v) -> v * v).get(1, TimeUnit.MINUTES);
         assertEquals(1, (int) cache.get("1"));
         assertEquals(4, (int) cache.get("2"));
         assertEquals(9, (int) cache.get("3"));
@@ -865,7 +866,7 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put("2", 2);
         cache.put("3", 3);
 
-        cache.async().replaceAll(Arrays.asList("1", "3"), (k, v) -> v * v).get(1, TimeUnit.MINUTES);
+        cache.async(f_options).replaceAll(Arrays.asList("1", "3"), (k, v) -> v * v).get(1, TimeUnit.MINUTES);
         assertEquals(1, (int) cache.get("1"));
         assertEquals(2, (int) cache.get("2"));
         assertEquals(9, (int) cache.get("3"));
@@ -880,7 +881,7 @@ public abstract class BaseAsyncNamedCacheTests
         cache.put("2", 2);
         cache.put("3", 3);
 
-        cache.async().replaceAll(GREATER_THAN_2, (k, v) -> v * v).get(1, TimeUnit.MINUTES);
+        cache.async(f_options).replaceAll(GREATER_THAN_2, (k, v) -> v * v).get(1, TimeUnit.MINUTES);
         assertEquals(1, (int) cache.get("1"));
         assertEquals(2, (int) cache.get("2"));
         assertEquals(9, (int) cache.get("3"));
@@ -896,10 +897,10 @@ public abstract class BaseAsyncNamedCacheTests
 
         Count<String, Integer> count = new Count<>();
 
-        cache.async().aggregate(NullImplementation.getSet(), count)
+        cache.async(f_options).aggregate(NullImplementation.getSet(), count)
                 .thenAccept(x -> assertThat(x, is(0L)));
 
-        cache.async().aggregate(cache.keySet(), new LongSum<>(IdentityExtractor.INSTANCE()))
+        cache.async(f_options).aggregate(cache.keySet(), new LongSum<>(IdentityExtractor.INSTANCE()))
                 .thenAccept(x -> assertThat(x, is(6L)));
         }
 
@@ -913,16 +914,16 @@ public abstract class BaseAsyncNamedCacheTests
 
         Count<String, Integer> count = new Count<>();
 
-        cache.async().aggregate((Filter<?>) null, count)
+        cache.async(f_options).aggregate((Filter<?>) null, count)
                 .thenAccept(x -> assertThat(x, is(0)));
 
-        cache.async().aggregate(AlwaysFilter.INSTANCE, count)
+        cache.async(f_options).aggregate(AlwaysFilter.INSTANCE, count)
                 .thenAccept(x -> assertThat(x, is(3)));
 
-        cache.async().aggregate(AlwaysFilter.INSTANCE(), new LongSum<>(IdentityExtractor.INSTANCE()))
+        cache.async(f_options).aggregate(AlwaysFilter.INSTANCE(), new LongSum<>(IdentityExtractor.INSTANCE()))
                     .thenAccept(x -> assertThat(x, is(6L)));
 
-        cache.async().aggregate(
+        cache.async(f_options).aggregate(
                 Filters.greater(x -> ((Integer) x), 1), new LongSum<>(IdentityExtractor.INSTANCE()))
                 .thenAccept(x -> assertThat(x, is(5L)));
         }
@@ -946,7 +947,7 @@ public abstract class BaseAsyncNamedCacheTests
         EntryAggregator<Integer, Integer, List<Number>> composite = CompositeAggregator.createInstance(new
                 EntryAggregator[]{new Count<>(), new LongSum<>(IdentityExtractor.INSTANCE())});
 
-        cache.async().aggregate(setKeys, composite).thenAccept(x ->
+        cache.async(f_options).aggregate(setKeys, composite).thenAccept(x ->
             {
             assertEquals(x.get(0), 10);
             assertEquals(x.get(1), 55L);
@@ -981,4 +982,6 @@ public abstract class BaseAsyncNamedCacheTests
      * in this module's resources/ folder).
      */
     protected final String f_sCacheName;
+
+    protected AsyncNamedMap.Option[] f_options;
     }

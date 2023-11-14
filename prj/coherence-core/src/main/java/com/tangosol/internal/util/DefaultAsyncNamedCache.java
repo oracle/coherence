@@ -16,27 +16,22 @@ import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.PartitionedService;
-import com.tangosol.net.partition.PartitionSet;
 
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMap.StreamingAggregator;
 import com.tangosol.util.aggregator.AsynchronousAggregator;
-import com.tangosol.util.filter.PartitionedFilter;
 import com.tangosol.util.processor.AsynchronousProcessor;
 import com.tangosol.util.processor.SingleEntryAsynchronousProcessor;
 import com.tangosol.util.processor.StreamingAsynchronousProcessor;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import java.util.concurrent.CompletableFuture;
 
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 /**
@@ -69,8 +64,9 @@ public class DefaultAsyncNamedCache<K, V>
      */
     public DefaultAsyncNamedCache(NamedCache<K, V> cache, AsyncNamedCache.Option[] options)
         {
-        m_cache   = cache;
-        m_options = Options.from(AsyncNamedCache.Option.class, options);
+        m_cache    = cache;
+        m_options  = Options.from(AsyncNamedCache.Option.class, options);
+        f_executor = m_options.get(Complete.class).getExecutor();
         }
 
     // ---- AsyncNamedCache interface ---------------------------------------
@@ -178,7 +174,7 @@ public class DefaultAsyncNamedCache<K, V>
         }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public CompletableFuture<Void> putAll(Map<? extends K, ? extends V> map)
         {
         CacheService service = m_cache.getCacheService();
@@ -234,7 +230,7 @@ public class DefaultAsyncNamedCache<K, V>
         return processor instanceof SingleEntryAsynchronousProcessor
                 ? (SingleEntryAsynchronousProcessor<K, V, R>) processor
                 : new SingleEntryAsynchronousProcessor<>(
-                        processor, getOrderId());
+                        processor, getOrderId(), f_executor);
         }
 
     /**
@@ -250,7 +246,7 @@ public class DefaultAsyncNamedCache<K, V>
         return processor instanceof AsynchronousProcessor
                 ? (AsynchronousProcessor<K, V, R>) processor
                 : new AsynchronousProcessor<>(
-                        processor, getOrderId());
+                        processor, getOrderId(), f_executor);
         }
 
     /**
@@ -270,7 +266,7 @@ public class DefaultAsyncNamedCache<K, V>
         return processor instanceof StreamingAsynchronousProcessor
                 ? (StreamingAsynchronousProcessor<K, V, R>) processor
                 : new StreamingAsynchronousProcessor<>(
-                        processor, getOrderId(), callback);
+                        processor, getOrderId(), callback, f_executor);
         }
 
     /**
@@ -280,7 +276,7 @@ public class DefaultAsyncNamedCache<K, V>
      *
      * @return a fully configured AsynchronousProcessor to execute
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     protected <R> AsynchronousAggregator<? super K, ? super V, ?, R> instantiateAsyncAggregator(
             InvocableMap.EntryAggregator<? super K, ? super V, R> aggregator)
         {
@@ -290,7 +286,7 @@ public class DefaultAsyncNamedCache<K, V>
             }
         if (aggregator instanceof StreamingAggregator)
             {
-            return new AsynchronousAggregator<>((StreamingAggregator) aggregator, getOrderId());
+            return new AsynchronousAggregator<>((StreamingAggregator) aggregator, getOrderId(), f_executor);
             }
         throw new IllegalArgumentException("Aggregator must be a StreamingAggregator or AsynchronousAggregator");
         }
@@ -316,4 +312,9 @@ public class DefaultAsyncNamedCache<K, V>
      * The configuration options.
      */
     protected final Options<AsyncNamedCache.Option> m_options;
+
+    /**
+     * The {@link Executor} to use to complete futures.
+     */
+    protected final Executor f_executor;
     }
