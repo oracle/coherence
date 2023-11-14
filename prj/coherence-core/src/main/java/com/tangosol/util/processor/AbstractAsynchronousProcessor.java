@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.processor;
 
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.util.AsynchronousAgent;
 import com.tangosol.util.InvocableMap;
 
@@ -14,6 +15,7 @@ import com.tangosol.util.aggregator.AsynchronousAggregator;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executor;
 
 
 /**
@@ -38,11 +40,13 @@ public abstract class AbstractAsynchronousProcessor<K, V, R, T>
      *
      * @param processor     the underlying {@link InvocableMap.EntryProcessor}
      * @param iUnitOrderId  the unit-of-order id for this processor
+     * @param executor      an optional {@link Executor} to complete the future on,
+     *                      if not provided the {@link Daemons#commonPool()} is used
      */
     protected AbstractAsynchronousProcessor(InvocableMap.EntryProcessor<K, V, R> processor,
-                                 int iUnitOrderId)
+                                 int iUnitOrderId, Executor executor)
         {
-        super(iUnitOrderId);
+        super(iUnitOrderId, executor);
 
         f_processor = processor;
         }

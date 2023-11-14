@@ -20,11 +20,15 @@ import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
+import com.tangosol.net.AsyncNamedMap;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
 import java.util.Arrays;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
+import com.tangosol.net.NamedMap;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
@@ -44,9 +48,10 @@ public class AsyncNamedCacheTests
      * @param sCacheName    the cache name to test (should map to a valid name in the coherence-cache-config.xml file
      *                      in this module's resources/ folder).
      */
-    public AsyncNamedCacheTests(String sDescription, String sCacheName)
+    @SuppressWarnings("unused")
+    public AsyncNamedCacheTests(String sDescription, String sCacheName, AsyncNamedMap.Option[] opts)
         {
-        super(sDescription, sCacheName);
+        super(sCacheName, opts);
         }
 
     @BeforeClass
@@ -70,12 +75,20 @@ public class AsyncNamedCacheTests
      * @return parameters for the test
      */
     @Parameterized.Parameters(name="{0}")
+    @SuppressWarnings("ConstantForZeroLengthArrayAllocation")
     public static Iterable<Object[]> data()
         {
+        Executor               executor     = Executors.newSingleThreadExecutor();
+        AsyncNamedMap.Option[] optsExecutor = new AsyncNamedMap.Option[]{AsyncNamedMap.Complete.using(executor)};
+        AsyncNamedMap.Option[] opts         = new AsyncNamedMap.Option[0];
+
         return Arrays.asList(
-            new Object[] {"Distributed Cache", "dist-test"},
-            new Object[] {"Near Cache", "near-test"},
-            new Object[] {"View Cache", "view-dist-test"}
+            new Object[] {"Distributed Cache", "dist-test", opts},
+            new Object[] {"Distributed Cache (with executor)", "dist-test", optsExecutor},
+            new Object[] {"Near Cache", "near-test", opts},
+            new Object[] {"Near Cache (with executor)", "near-test", optsExecutor},
+            new Object[] {"View Cache", "view-dist-test", opts},
+            new Object[] {"View Cache (with executor)", "view-dist-test", optsExecutor}
             );
         }
 

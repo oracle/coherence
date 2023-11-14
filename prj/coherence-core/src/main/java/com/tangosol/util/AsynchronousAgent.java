@@ -25,6 +25,7 @@ import com.tangosol.util.processor.AsynchronousProcessor;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -52,10 +53,13 @@ public abstract class AsynchronousAgent<T>
      * @param iOrderId  a unit-of-order id associated with this agent. Ordering
      *                  semantics of operations based on this id are defined
      *                  by subclasses
+     * @param executor  an optional {@link Executor} to complete the future on,
+     *                  if not provided the {@link Daemons#commonPool()} is used
      */
-    protected AsynchronousAgent(int iOrderId)
+    protected AsynchronousAgent(int iOrderId, Executor executor)
         {
         m_iOrderId = iOrderId;
+        f_executor = executor == null ? Daemons.commonPool() : executor;
         }
 
     // ----- FlowControl support --------------------------------------------
@@ -225,7 +229,7 @@ public abstract class AsynchronousAgent<T>
                     }
                 else
                     {
-                    future.completeAsync(supplier, Daemons.commonPool())
+                    future.completeAsync(supplier, f_executor)
                             .whenComplete((r, e) ->
                                 {
                                 m_fCompleted = true;
@@ -354,7 +358,7 @@ public abstract class AsynchronousAgent<T>
                 {
                 assert m_supplier != null;
 
-                future.completeAsync(m_supplier, Daemons.commonPool())
+                future.completeAsync(m_supplier, f_executor)
                         .whenComplete((r, e) -> f_notifier.signal());
                 }
             }
@@ -394,4 +398,9 @@ public abstract class AsynchronousAgent<T>
      * Notification handler.
      */
     private final Notifier f_notifier = new SingleWaiterMultiNotifier();
+
+    /**
+     * The {@link Executor} to complete the future on.
+     */
+    private final Executor f_executor;
     }
