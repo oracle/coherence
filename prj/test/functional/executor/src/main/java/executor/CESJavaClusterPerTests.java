@@ -12,6 +12,7 @@ import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 
+import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.ClusterPort;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
@@ -28,7 +29,9 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
 
-import com.tangosol.net.Coherence;
+import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
+
+import com.tangosol.net.DefaultCacheServer;
 
 import executor.common.LogOutput;
 import executor.common.NewClusterPerTest;
@@ -71,6 +74,8 @@ public class CESJavaClusterPerTests
 
     // ----- constants ------------------------------------------------------
 
+    protected static final String CACHE_CONFIG = ConcurrentServicesSessionConfiguration.CONFIG_URI;
+
     protected static final String EXTEND_CONFIG = "coherence-concurrent-client-config.xml";
 
     // ----- data members ---------------------------------------------------
@@ -81,14 +86,15 @@ public class CESJavaClusterPerTests
     @Rule
     public CoherenceClusterResource m_coherence =
             new CoherenceClusterResource()
-                    .with(ClassName.of(Coherence.class),
+                    .with(SystemProperty.of("coherence.serializer", "java"),
+                          ClassName.of(DefaultCacheServer.class),
                           Multicast.ttl(0),
                           LocalHost.only(),
                           Logging.at(9),
                           Pof.disabled(),
+                          CacheConfig.of(CACHE_CONFIG),
                           ClusterPort.of(7574),
                           ClusterName.of(CESJavaSingleClusterTests.class.getSimpleName()), // default name is too long
-                          SystemProperty.of("coherence.serializer", "java"),
                           SystemProperty.of(EXTEND_ADDRESS_PROPERTY, LocalPlatform.get().getLoopbackAddress().getHostAddress()),
                           SystemProperty.of(EXTEND_PORT_PROPERTY, "9099"),
                           JmxFeature.enabled())
