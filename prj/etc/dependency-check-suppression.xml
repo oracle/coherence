@@ -486,13 +486,31 @@
     <cve>CVE-2023-44487</cve>
   </suppress>
 
-  <!-- COH-28822 - Address CVE-2023-4043 for org.eclipse.parsson/parsson@1.0.2 -->
+  <!-- COH-28822 - Address CVE-2023-4043 for org.eclipse.parsson/parsson@1.0.2,
+  org.eclipse.parsson/parsson-media@1.0.2, org.eclipse.parsson/parsson-media@1.0.3
+  -->
   <suppress>
     <notes><![CDATA[
     file name: parsson-1.0.2.jar
+    file name: parsson-media-1.0.2.jar
+    file name: parsson-media-1.0.3.jar
     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.eclipse\.parsson/parsson@.*$</packageUrl>
+    <packageUrl regex="true">^pkg:maven/org\.eclipse\.parsson/parsson.*@.*$</packageUrl>
+    <cpe>cpe:2.3:a:eclipse:parsson</cpe>
     <cve>CVE-2023-4043</cve>
+  </suppress>
+
+  <!-- Supress this since its coming from Bedrock. Its a test dependency
+  COH-28873 - Address CVE-2023-5763 from jakarta.el-5.0.0-M1.jar
+   -->
+  <suppress>
+    <notes><![CDATA[
+    file name: jakarta.el-5.0.0-M1.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.glassfish/jakarta\.el@.*$</packageUrl>
+    <cpe>cpe:2.3:a:eclipse:glassfish</cpe>
+    <cpe>cpe:2.3:a:eclipse:jakarta_expression_language</cpe>
+    <cve>CVE-2023-5763</cve>
   </suppress>
 
 </suppressions>
