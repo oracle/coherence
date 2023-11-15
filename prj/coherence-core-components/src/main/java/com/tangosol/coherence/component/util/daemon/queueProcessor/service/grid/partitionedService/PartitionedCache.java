@@ -4104,23 +4104,19 @@ public class PartitionedCache
     
     public void onBackupListenerRequest(PartitionedCache.BackupListenerRequest msgRequest)
         {
-        // import Component.Net.Member as com.tangosol.coherence.component.net.Member;
-        // import com.tangosol.persistence.CachePersistenceHelper as com.tangosol.persistence.CachePersistenceHelper;
-        // import com.tangosol.util.Binary;
-        
-        long              lExtentId = msgRequest.getCacheId();
-        Storage          storage   = getKnownStorage(lExtentId);
-        com.tangosol.coherence.component.net.Member            member    = getServiceMemberSet().getMember(msgRequest.getMemberId());
-        PartitionedCache.PartitionControl ctrl      = (PartitionedCache.PartitionControl) getPartitionControl(msgRequest.getPartition());
-        PersistentStore   store     = (storage.isPersistent() && isBackupPersistence())
-                                        ? ctrl.getPersistentBackupStore()
-                                        : null;
-        
+        long                                        lExtentId = msgRequest.getCacheId();
+        Storage                                     storage   = getKnownStorage(lExtentId);
+        com.tangosol.coherence.component.net.Member member    = getServiceMemberSet().getMember(msgRequest.getMemberId());
+
         if (storage != null && member != null)
             {
-            boolean fLite     = msgRequest.isLite();
-            Binary  binKey    = msgRequest.getKey();
-            long    ldtJoined = store == null ? 0 : getServiceMemberSet().getServiceJoinTime(member.getId());
+            PartitionedCache.PartitionControl ctrl      = (PartitionedCache.PartitionControl) getPartitionControl(msgRequest.getPartition());
+            PersistentStore                   store     = (storage.isPersistent() && isBackupPersistence())
+                                                            ? ctrl.getPersistentBackupStore()
+                                                            : null;
+            boolean                           fLite     = msgRequest.isLite();
+            Binary                            binKey    = msgRequest.getKey();
+            long                              ldtJoined = store == null ? 0 : getServiceMemberSet().getServiceJoinTime(member.getId());
         
             // add/remove the key listener to/from the storage
             if (msgRequest.isAdd())
@@ -8167,13 +8163,6 @@ public class PartitionedCache
      */
     protected void persistBackup(int nPartition, long lCacheId, com.tangosol.util.Binary binKey, com.tangosol.util.Binary binValue, boolean fRemove)
         {
-        // import com.oracle.coherence.persistence.PersistentStore;
-        // import com.tangosol.io.ReadBuffer;
-        // import com.tangosol.util.Base;
-        
-        Storage storage  = getKnownStorage(lCacheId);
-        boolean  fPersist = storage.isPersistent();
-        
         if (binValue == null)
             {
             // null is no diff, return
@@ -8185,8 +8174,9 @@ public class PartitionedCache
             {
             return;
             }
-        
-        if (fPersist)
+
+        Storage storage = getKnownStorage(lCacheId);
+        if (storage != null && storage.isPersistent())
             {
             PartitionedCache.PartitionControl ctrlPart = (PartitionedCache.PartitionControl) getPartitionControl(nPartition);
             PersistentStore   store    = ctrlPart.getPersistentBackupStore();
@@ -8229,15 +8219,8 @@ public class PartitionedCache
      */
     protected void persistBackup(long lCacheId, java.util.Map mapEntries)
         {
-        // import com.oracle.coherence.persistence.PersistentStore;
-        // import com.tangosol.io.ReadBuffer;
-        // import com.tangosol.util.Base;
-        // import java.util.Map$Entry as java.util.Map.Entry;
-        
-        Storage storage  = getKnownStorage(lCacheId);
-        boolean  fPersist = storage.isPersistent();
-        
-        if (fPersist)
+        Storage storage = getKnownStorage(lCacheId);
+        if (storage != null && storage.isPersistent())
             {
             Map mapByPartKeys = splitKeysByPartition(mapEntries.keySet().iterator());
         
@@ -8284,15 +8267,8 @@ public class PartitionedCache
      */
     protected void persistBackup(long lCacheId, java.util.Set setRemove)
         {
-        // import com.oracle.coherence.persistence.PersistentStore;
-        // import com.tangosol.io.ReadBuffer;
-        // import com.tangosol.util.Base;
-        // import java.util.Map$Entry as java.util.Map.Entry;
-        
-        Storage storage  = getKnownStorage(lCacheId);
-        boolean  fPersist = storage.isPersistent();
-        
-        if (fPersist)
+        Storage storage = getKnownStorage(lCacheId);
+        if (storage != null && storage.isPersistent())
             {
             Map mapByPartKeys = splitKeysByPartition(setRemove.iterator());
         
