@@ -115,9 +115,11 @@ public abstract class InvocableMapHelper
      */
     @SafeVarargs
     public static <K, V, R> CompletableFuture<R> invokeAsync(NamedCache<K, V> cache, K key, int nOrderId,
-            InvocableMap.EntryProcessor<K, V, R> proc, Executor executor, BiConsumer<? super R, ? super Throwable>... continuations)
+            InvocableMap.EntryProcessor<K, V, R> proc, Executor executor,
+            BiConsumer<? super R, ? super Throwable>... continuations)
         {
-        SingleEntryAsynchronousProcessor<K, V, R> procAsync = new SingleEntryAsynchronousProcessor<>(proc, nOrderId);
+        SingleEntryAsynchronousProcessor<K, V, R> procAsync =
+                new SingleEntryAsynchronousProcessor<>(proc, nOrderId, executor);
 
         CompletableFuture<R> future = procAsync.getCompletableFuture();
         for (BiConsumer<? super R, ? super Throwable> continuation : continuations)
