@@ -14,7 +14,6 @@ import com.tangosol.net.Session;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
 
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
@@ -71,15 +70,28 @@ public class PublisherMain
         @Override
         public Integer call() throws Exception
             {
-            System.err.println("***** In Publish.call()");
+            Logger.info("***** Entered Publish.call()");
             Publisher<String> publisher = ensurePublisher();
             int               cChannel  = publisher.getChannelCount();
-            System.err.println("***** In Publish.call() - publishing " + cChannel + " messages");
+            Logger.info("***** In Publish.call() - publishing " + cChannel + " messages");
             for (int i = 0; i < cChannel; i++)
                 {
-                publisher.publish("message-" + s_cMessage.getAndIncrement());
+                int nMessage = s_cMessage.getAndIncrement();
+                publisher.publish("message-" + nMessage)
+                        .handle((status, err) ->
+                            {
+                            if (err == null)
+                                {
+                                Logger.info("***** In Publish.call() - Completed publish of message " + nMessage + " with status: " + status);
+                                }
+                            else
+                                {
+                                Logger.info("***** In Publish.call() - Completed publish of message " + nMessage + " with error: ", err);
+                                }
+                            return null;
+                            });
                 }
-            System.err.println("***** In Publish.call() - published " + cChannel + " messages");
+            Logger.info("***** Exiting Publish.call() - published " + cChannel + " messages");
             return cChannel;
             }
         }
