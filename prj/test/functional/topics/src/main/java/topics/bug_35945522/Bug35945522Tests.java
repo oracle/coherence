@@ -17,6 +17,7 @@ import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
+import com.oracle.bedrock.runtime.concurrent.runnable.ThreadDump;
 import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.HeapSize;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
@@ -25,12 +26,12 @@ import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import topics.NamedTopicTests;
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -50,7 +51,6 @@ import static org.hamcrest.number.OrderingComparison.greaterThan;
 @SuppressWarnings("resource")
 public class Bug35945522Tests
     {
-    @Ignore("Disabled until we fix the intermittent failure")
     @Test
     public void shouldContinueToReceive() throws Exception
         {
@@ -97,13 +97,24 @@ public class Bug35945522Tests
             }
 
         // publish 2 messages to each channel
+        System.err.println("***** Publishing first message");
         assertThat(publisher.invoke(new PublisherMain.Publish()), is(cChannel));
+        System.err.println("***** Publishing second message");
         assertThat(publisher.invoke(new PublisherMain.Publish()), is(cChannel));
 
         // wait for the subscribers to receive them
         for (CoherenceClusterMember member : mapSub.values())
             {
-            Eventually.assertDeferred(() -> member.invoke(SubscriberMain.GET_RECEIVED_COUNT), is(2));
+            System.err.println("***** Checking member " + member.getName() + " for two messages");
+            try
+                {
+                Eventually.assertDeferred(() -> member.invoke(SubscriberMain.GET_RECEIVED_COUNT), is(2));
+                }
+            catch (AssertionError e)
+                {
+                member.submit(ThreadDump.toStdErr()).get(5, TimeUnit.MINUTES);
+                throw e;
+                }
             }
 
         // kill a subscriber from the middle of the set of subscribers

@@ -790,7 +790,11 @@ public class PagedTopicPartition
             int               nPart     = getPartition();
             for (int nNotify : anNotify)
                 {
-                ctxNotify.getBackingMapEntry(toBinaryKey(new NotificationKey(nPart, nNotify))).remove(false);
+                InvocableMap.Entry entry = ctxNotify.getBackingMapEntry(toBinaryKey(new NotificationKey(nPart, nNotify)));
+                if (entry.isPresent())
+                    {
+                    entry.remove(false);
+                    }
                 }
             }
         }
@@ -1502,7 +1506,21 @@ public class PagedTopicPartition
             {
             Binary      binPosKey    = ContentKey.toBinary(f_nPartition, nChannel, lPage, nPos);
             BinaryEntry entryElement = (BinaryEntry) ctxElements.getReadOnlyEntry(binPosKey);
-            Binary      binValue     = entryElement == null ? null : entryElement.getBinaryValue();
+            Binary      binValue     = entryElement.getBinaryValue();
+
+            if (binValue == null)
+                {
+                // For some reason the content cache entry was null.
+                // This could mean it really is not there (i.e. deleted or expired or something)
+                // or there is a race where the offer processor is still finishing and has committed
+                // the update to the Page but not yet committed the contents.
+                // So we will try to enlist the Content and get the value again
+                entryElement = ctxElements.getBackingMapEntry(binPosKey).asBinaryEntry();
+                if (entryElement.isPresent())
+                    {
+                    binValue = entryElement.getBinaryValue();
+                    }
+                }
 
             if (binValue != null && (filter == null || InvocableMapHelper.evaluateEntry(filter, entryElement)))
                 {
@@ -1557,7 +1575,18 @@ public class PagedTopicPartition
             if (nPos > nPosTail)
                 {
                 // that position is currently empty; register for notification when it is set
-                requestInsertionNotification(enlistPage(nChannel, lPage), nNotifierId, nChannel);
+                Page pageEnlisted = enlistPage(nChannel, lPage);
+                // The Page "may" have been update by an offer on another thread while we have been processing this method,
+                // so there may now be an entry in the page we have not read.
+                // Now we have enlisted the page it is not going to change, so we can tell by checking the tail.
+                int nPosTailLatest = pageEnlisted.getTail();
+                if (nPosTail == nPosTailLatest)
+                    {
+                    // the tail has not changed, so we need to add a notification
+                    requestInsertionNotification(pageEnlisted, nNotifierId, nChannel);
+                    }
+                // make sure the tail is set to the "latest" tail from the enlisted page
+                nPosTail = nPosTailLatest;
                 }
             result = new PollProcessor.Result(nPosTail - nPos + 1, nPos, listValues, subscription.getSubscriptionHead());
             }
@@ -2056,11 +2085,12 @@ public class PagedTopicPartition
             }
 
         // if the commit position is after the new position roll it back too
-        PagedPosition committed = subscription.getCommittedPosition();
+        PagedPosition committed        = subscription.getCommittedPosition();
         long          lPageCommitted   = committed.getPage();
         int           nOffsetCommitted = committed.getOffset();
         long          lPageSub         = subscription.getPage();
         int           nOffsetSub       = subscription.getPosition();
+
         if (lPageCommitted > lPageSub || (lPageCommitted == lPageSub && nOffsetCommitted > nOffsetSub))
             {
             PagedPosition posRollback = new PagedPosition(lPageSub, nOffsetSub);

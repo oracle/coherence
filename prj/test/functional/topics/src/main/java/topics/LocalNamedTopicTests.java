@@ -16,8 +16,11 @@ import com.tangosol.coherence.config.scheme.LocalScheme;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.model.ContentKey;
 
+import com.tangosol.internal.net.topic.impl.paged.model.Page;
+import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.CacheFactory;
@@ -25,6 +28,7 @@ import com.tangosol.net.CacheService;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.Session;
 
 import com.tangosol.net.events.EventDispatcher;
@@ -34,6 +38,7 @@ import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
 
 import com.tangosol.net.partition.ObservableSplittingBackingCache;
+import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Subscriber.CompleteOnEmpty;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
@@ -63,11 +68,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.net.URL;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import java.util.concurrent.CompletableFuture;
@@ -77,12 +84,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
 import static com.tangosol.net.cache.TypeAssertion.withoutTypeChecking;
-import static com.tangosol.net.topic.Subscriber.Name.of;
 
 import static com.tangosol.net.topic.Subscriber.inGroup;
 import static org.hamcrest.CoreMatchers.is;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import static org.junit.Assert.fail;
@@ -314,7 +321,7 @@ public class LocalNamedTopicTests
 
             // topic should contain just the first value
             assertThat(subscriber.receive().get(2, TimeUnit.MINUTES).getValue(), is(sPrefix + 0));
-            assertThat(subscriber.receive().get(2, TimeUnit.MINUTES) == null, is(true));
+            assertThat(subscriber.receive().get(2, TimeUnit.MINUTES), is(nullValue()));
             }
 
         for (int i = 0; i < listFutures.size(); i++)
@@ -392,6 +399,220 @@ public class LocalNamedTopicTests
             ObservableMap<?, ?> map       = context.getBackingMap();
 
             assertThat(map.getClass().getCanonicalName(), is(ObservableSplittingBackingCache.class.getCanonicalName()));
+            }
+        }
+
+    @Test
+    public void shouldSeekGroupSubscriberForwardsUsingTimestamp() throws Exception
+        {
+        NamedTopic<String> topic = ensureTopic(m_sSerializer + "-small-rewindable");
+
+        Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
+                          getDependencies(topic).isRetainConsumed(), is(true));
+
+        // publish a lot of messages, so we have multiple pages spread over all the partitions
+        String sSuffix  = "abcdefghijklmnopqrstuvwxyz";
+        int    nChannel = 1;
+
+        try (Publisher<String> publisher = topic.createPublisher(Publisher.OrderBy.id(nChannel)))
+            {
+            for (int i = 0; i < 500; i++)
+                {
+                String                              sMsg   = "element-" + i + sSuffix;
+                CompletableFuture<Publisher.Status> future = publisher.publish(sMsg);
+                Publisher.Status                    status = future.get(1, TimeUnit.MINUTES);
+
+                assertThat(status.getChannel(), is(nChannel));
+                // sleep to ensure that every message has a different millisecond timestamp
+                Thread.sleep(3L);
+                }
+            }
+
+        // Create two subscribers in different groups.
+        // We will receive messages from one and then seek the other to the same place
+        String sGroupPrefix = ensureGroupName();
+        try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupPrefix + "-one"), Subscriber.CompleteOnEmpty.enabled());
+             PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupPrefix + "-two")))
+            {
+            // move subscriber two on by receiving pages
+            // (we'll then seek subscriber one to the same place)
+            CompletableFuture<Subscriber.Element<String>> future = null;
+            for (int i = 0; i < 250; i++)
+                {
+                future = subscriberTwo.receive();
+                }
+
+            // Obtain the last received element for subscriber two
+            Subscriber.Element<String> element       = future.get(2, TimeUnit.MINUTES);
+            PagedPosition              pagedPosition = (PagedPosition) element.getPosition();
+            int                        nOffset       = pagedPosition.getOffset();
+
+            // ensure the position is not a head or tail of a page
+            PagedTopicCaches caches = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
+            Page             page   = caches.Pages.get(new Page.Key(nChannel, pagedPosition.getPage()));
+            while (nOffset == 0 || nOffset == page.getTail())
+                {
+                // we're at a head or tail so read another
+                future        = subscriberTwo.receive();
+                element       = future.get(2, TimeUnit.MINUTES);
+                pagedPosition = (PagedPosition) element.getPosition();
+                nOffset       = pagedPosition.getOffset();
+                page          = caches.Pages.get(new Page.Key(nChannel, pagedPosition.getPage()));
+                }
+
+            Instant       seekTimestamp        = element.getTimestamp();
+            PagedPosition expectedSeekPosition = (PagedPosition) element.getPosition();
+
+            // Poll the next element from subscriber two
+            Subscriber.Element<String> elementTwo = subscriberTwo.receive().get(2, TimeUnit.MINUTES);
+            assertThat(elementTwo, is(notNullValue()));
+            while (elementTwo.getTimestamp().equals(seekTimestamp))
+                {
+                // the next element is the same timestamp, so we need to read more
+                expectedSeekPosition = (PagedPosition) elementTwo.getPosition();
+                elementTwo = subscriberTwo.receive().get(2, TimeUnit.MINUTES);
+                assertThat(elementTwo, is(notNullValue()));
+                }
+
+            // we know we're now not at a head or tail of a page
+            // Seek subscriber one to the next message with a timestamp higher than seekTimestamp
+            Position result = subscriberOne.seek(element.getChannel(), seekTimestamp);
+            // should have the correct seek result
+            assertThat(result, is(expectedSeekPosition));
+
+            // Poll the next element for each subscriber, they should match
+            Subscriber.Element<String> elementOne = subscriberOne.receive().get(2, TimeUnit.MINUTES);
+            assertThat(elementOne, is(notNullValue()));
+            assertThat(elementOne.getPosition(), is(elementTwo.getPosition()));
+            assertThat(elementOne.getValue(), is(elementTwo.getValue()));
+
+            // now move subscriber two some way ahead
+            for (int i = 0; i < 100; i++)
+                {
+                subscriberTwo.receive().get(2, TimeUnit.MINUTES);
+                }
+
+            element              = subscriberTwo.receive().get(2, TimeUnit.MINUTES);
+            pagedPosition        = (PagedPosition) element.getPosition();
+            nOffset              = pagedPosition.getOffset();
+            page                 = caches.Pages.get(new Page.Key(nChannel, pagedPosition.getPage()));
+
+            // keep reading until subscriber two has read the tail of the page
+            while (nOffset != page.getTail())
+                {
+                // we're not at the tail so read another
+                future               = subscriberTwo.receive();
+                element              = future.get(2, TimeUnit.MINUTES);
+                pagedPosition        = (PagedPosition) element.getPosition();
+                nOffset              = pagedPosition.getOffset();
+                }
+
+            // we're now at the tail of a page
+            // Seek subscriber one to the last timestamp read by subscription two
+            System.err.println(">>>> Seeking subscriber one to timestamp from element: " + element + " ");
+            seekTimestamp = element.getTimestamp();
+            result = subscriberOne.seek(element.getChannel(), seekTimestamp);
+            // should have a seeked result
+            Optional<Subscriber.Element<String>> peek = subscriberOne.peek(element.getChannel());
+            if (peek.isPresent())
+                {
+                Subscriber.Element<String> elementPeek = peek.get();
+                System.err.println(">>>> Head element timestamp is " + elementPeek.getTimestamp());
+                System.err.println(">>>> Head element is " + elementPeek);
+                }
+            else
+                {
+                System.err.println(">>>> Head element is MISSING!!!!");
+                }
+            assertThat(result, is(notNullValue()));
+            System.err.println(">>>> Seeked subscriber one to timestamp from element: " + element + " result: " + result);
+
+            // Poll the next element for each subscriber, they should match
+            elementTwo = subscriberTwo.receive().get(2, TimeUnit.MINUTES);
+            assertThat(elementTwo, is(notNullValue()));
+            // ensure that we have read a later timestamp than the seeked to position
+            while (!elementTwo.getTimestamp().isAfter(seekTimestamp))
+                {
+                elementTwo = subscriberTwo.receive().get(2, TimeUnit.MINUTES);
+                assertThat(elementTwo, is(notNullValue()));
+                }
+
+            elementOne = subscriberOne.receive().get(2, TimeUnit.MINUTES);
+            assertThat(elementOne, is(notNullValue()));
+
+            System.err.println(">>>> ElementOne: " + elementOne);
+            System.err.println(">>>> ElementTwo: " + elementTwo);
+
+            assertThat(elementOne.getPosition(), is(elementTwo.getPosition()));
+            assertThat(elementOne.getValue(), is(elementTwo.getValue()));
+
+            // now move subscriber two some way ahead
+            for (int i = 0; i < 100; i++)
+                {
+                subscriberTwo.receive().get(2, TimeUnit.MINUTES);
+                }
+
+            // Poll the next element from subscriber two
+            element = subscriberTwo.receive().get(2, TimeUnit.MINUTES);
+            assertThat(element, is(notNullValue()));
+            while (element.getTimestamp().equals(seekTimestamp))
+                {
+                // the next element is the same timestamp, so we need to read more
+                element = subscriberTwo.receive().get(2, TimeUnit.MINUTES);
+                assertThat(element, is(notNullValue()));
+                }
+
+            pagedPosition        = (PagedPosition) element.getPosition();
+            nOffset              = pagedPosition.getOffset();
+            expectedSeekPosition = pagedPosition;
+
+            // keep reading until subscriber two has read the head of the page
+            while (nOffset != 0)
+                {
+                // we're not at the head so read another
+                future               = subscriberTwo.receive();
+                element              = future.get(2, TimeUnit.MINUTES);
+                pagedPosition        = (PagedPosition) element.getPosition();
+                nOffset              = pagedPosition.getOffset();
+                expectedSeekPosition = pagedPosition;
+                }
+
+            // we're now at the head of a page
+            // Seek subscriber one to the last timestamp read by subscription two
+            System.err.println(">>>> Seeking subscriber one to timestamp from element: " + element + " ");
+            seekTimestamp = element.getTimestamp();
+            result = subscriberOne.seek(element.getChannel(), seekTimestamp);
+            System.err.println(">>>> Seeked subscriber one to timestamp from element: " + element + " result: " + result);
+            peek = subscriberOne.peek(element.getChannel());
+            if (peek.isPresent())
+                {
+                Subscriber.Element<String> elementPeek = peek.get();
+                System.err.println(">>>> Head element timestamp is " + elementPeek.getTimestamp());
+                System.err.println(">>>> Head element is " + elementPeek);
+                }
+            else
+                {
+                System.err.println(">>>> Head element is MISSING!!!!");
+                }
+            // should have correct seeked result
+            assertThat(result, is(expectedSeekPosition));
+
+            // Poll the next element for each subscriber, they should match
+            elementTwo = subscriberTwo.receive().get(2, TimeUnit.MINUTES);
+            assertThat(elementTwo, is(notNullValue()));
+            // ensure that we have read a later timestamp than the seeked to position
+            while (!elementTwo.getTimestamp().isAfter(seekTimestamp))
+                {
+                elementTwo = subscriberTwo.receive().get(2, TimeUnit.MINUTES);
+                assertThat(elementTwo, is(notNullValue()));
+                }
+
+            elementOne = subscriberOne.receive().get(2, TimeUnit.MINUTES);
+            assertThat(elementOne, is(notNullValue()));
+            System.err.println(">>>> ElementOne: " + elementOne);
+            System.err.println(">>>> ElementTwo: " + elementTwo);
+            assertThat(elementOne.getPosition(), is(elementTwo.getPosition()));
+            assertThat(elementOne.getValue(), is(elementTwo.getValue()));
             }
         }
 

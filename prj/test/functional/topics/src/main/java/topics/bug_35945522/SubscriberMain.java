@@ -23,7 +23,6 @@ import java.util.concurrent.TimeoutException;
 public class SubscriberMain
         implements Constants
     {
-    @SuppressWarnings("resource")
     public static void main(String[] args) throws Exception
         {
         try (Coherence coherence = Coherence.clusterMember().start().get(5, TimeUnit.MINUTES))
@@ -36,16 +35,22 @@ public class SubscriberMain
 
             try (Subscriber<String> subscriber = session.createSubscriber(TOPIC_NAME, Subscriber.inGroup(GROUP_NAME)))
                 {
+                int cChannel = subscriber.getChannelCount();
                 s_subscriber    = subscriber;
                 s_nSubscriberId = ((PagedTopicSubscriber<String>) subscriber).getSubscriberId().getId();
+                Logger.info("Created subscriber: " + s_subscriber);
 
                 while (true)
                     {
                     try
                         {
-                        future = subscriber.receive();
-
                         Logger.info("Calling receive...");
+                        future = subscriber.receive();
+                        Logger.info("Called receive: " + future + " subscriber " + subscriber);
+                        for (int i = 0; i < cChannel; i++)
+                            {
+                            Logger.info("**** Channel (" + i + ") " + ((PagedTopicSubscriber<String>) subscriber).getChannel(i));
+                            }
                         Element<String> element = future.get(cWaitSeconds, TimeUnit.SECONDS);
                         Logger.info("Received message: " + element);
                         s_cReceived++;
