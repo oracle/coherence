@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -68,6 +68,24 @@ public class BatchingOperationsQueue<V, R>
               new DebouncedFlowControl(cbInitialBatch, Integer.MAX_VALUE),
               v -> 1,
               Runnable::run);
+        }
+
+    /**
+     * Create a new {@link BatchingOperationsQueue} that will call the specified
+     * {@link Consumer} function to process a batch of operations.
+     * <p>
+     * This constructor takes a {@link Consumer} to use to complete futures. This allows us
+     * to, for example, optionally use a daemon pool to complete futures that may otherwise
+     * complete on a service thread. If the {code completer} parameter is {@code null} futures
+     * will complete on the calling thread.
+     *
+     * @param functionBatch   the {@link Consumer} to call to process batches of operations
+     * @param cbInitialBatch  the size of the initial batch of operations
+     * @param backlog         the governing FlowControl object
+     */
+    public BatchingOperationsQueue(Consumer<Integer> functionBatch, int cbInitialBatch, DebouncedFlowControl backlog)
+        {
+        this(functionBatch, cbInitialBatch, backlog, v -> 1, Runnable::run);
         }
 
     /**
@@ -220,8 +238,7 @@ public class BatchingOperationsQueue<V, R>
      */
     public boolean isBatchComplete()
         {
-        purgeCurrentBatch();
-        return getCurrentBatchValues().isEmpty();
+        return purgeCurrentBatch();
         }
 
     /**
@@ -495,11 +512,28 @@ public class BatchingOperationsQueue<V, R>
      *
      * @param oValue      the value to use to complete the elements
      * @param onComplete  an optional {@link Consumer} to call when requests are completed
+     *
+     * @return {@code true} if the element was completed
      */
     @SuppressWarnings("unchecked")
-    public void completeElement(Object oValue, BiFunction<Throwable, V, Throwable> function, Consumer<R> onComplete)
+    public boolean completeElement(Object oValue, Consumer<R> onComplete)
         {
-        completeElements(1, NullImplementation.getLongArray(), LongArray.singleton((R) oValue), function, onComplete);
+        Queue<Element> queueCurrent = getCurrentBatch();
+        boolean        fCompleted   = false;
+
+        // remove the element from the current batch
+        Element element = queueCurrent.poll();
+        if (element != null)
+            {
+            V value = element.getValue();
+            m_cbCurrentBatch -= value != null ? f_backlogCalculator.applyAsLong(value) : 0;
+            // If the element is not yet complete then...
+            if (!element.isDone())
+                {
+                fCompleted = element.completeSynchronous((R) oValue, onComplete);
+                }
+            }
+        return fCompleted;
         }
 
     /**
@@ -856,6 +890,34 @@ public class BatchingOperationsQueue<V, R>
             }
 
         /**
+         * Complete this element's {@link CompletableFuture} synchronously.
+         *
+         * @param result      the value to use to complete the future
+         * @param onComplete  an optional {@link Consumer} to call when the future is actually completed
+         */
+        public boolean completeSynchronous(R result, Consumer<R> onComplete)
+            {
+            boolean fCompleted = false;
+            if (!m_fDone)
+                {
+                m_fDone = true;
+                fCompleted = f_future.complete(result);
+                if (fCompleted && onComplete != null)
+                    {
+                    try
+                        {
+                        onComplete.accept(result);
+                        }
+                    catch (Throwable t)
+                        {
+                        Logger.err(t);
+                        }
+                    }
+                }
+            return fCompleted;
+            }
+
+        /**
          * Complete exceptionally this element's {@link CompletableFuture}.
          *
          * @param throwable  the error that occurred
@@ -1009,7 +1071,8 @@ public class BatchingOperationsQueue<V, R>
             {
             execute(() ->
                 {
-                if (onComplete != null)
+                boolean fCompleted = future.complete(oValue);
+                if (fCompleted && onComplete != null)
                     {
                     try
                         {
@@ -1020,7 +1083,6 @@ public class BatchingOperationsQueue<V, R>
                         Logger.err(t);
                         }
                     }
-                future.complete(oValue);
                 });
             }
 

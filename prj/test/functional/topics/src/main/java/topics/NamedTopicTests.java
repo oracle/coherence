@@ -79,7 +79,7 @@ public class NamedTopicTests
     @Before
     public void logStart()
         {
-        String sMsg = ">>>>> Starting test: " + m_testName.getMethodName();
+        String sMsg = ">>>>> Starting test: " + m_testWatcher.getMethodName();
         for (CoherenceClusterMember member : cluster.getCluster())
             {
             member.submit(() ->
@@ -94,7 +94,7 @@ public class NamedTopicTests
     @After
     public void logEnd()
         {
-        String sMsg = ">>>>> Finished test: " + m_testName.getMethodName();
+        String sMsg = ">>>>> Finished test: " + m_testWatcher.getMethodName();
         for (CoherenceClusterMember member : cluster.getCluster())
             {
             member.submit(() ->

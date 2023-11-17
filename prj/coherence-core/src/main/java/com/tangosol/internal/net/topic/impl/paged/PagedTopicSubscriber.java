@@ -123,6 +123,8 @@ import java.util.concurrent.TimeoutException;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
 
 import java.util.stream.Collectors;
@@ -1135,11 +1137,6 @@ public class PagedTopicSubscriber<V>
 
         if (!queueRequest.isBatchComplete() || queueRequest.fillCurrentBatch(cBatch))
             {
-            if (queueRequest.isBatchComplete())
-                {
-                return;
-                }
-
             heartbeat();
             complete(queueRequest);
 
@@ -1148,7 +1145,7 @@ public class PagedTopicSubscriber<V>
                 {
                 // we have emptied the pre-fetch queue but the batch has more in it, so fetch more
                 PagedTopicChannel channel  = m_aChannel[nChannel];
-                long              lVersion = channel.m_lVersion.get();
+                long              lVersion = channel.getVersion();
                 long              lHead    = channel.m_lHead == PagedTopicChannel.HEAD_UNKNOWN
                                                     ? getSubscriptionHead(channel) : channel.m_lHead;
 
@@ -1249,12 +1246,22 @@ public class PagedTopicSubscriber<V>
      *
      * @param queueRequest  the queue of requests to complete
      */
-    @SuppressWarnings("unchecked")
-    private void complete(BatchingOperationsQueue<Request, ?> queueRequest)
+    protected void complete(BatchingOperationsQueue<Request, ?> queueRequest)
         {
         LinkedList<Request> queueBatch = queueRequest.getCurrentBatchValues();
+        complete(queueRequest, queueBatch);
+        }
 
-        Queue<CommittableElement> queueValuesPrefetched = m_queueValuesPrefetched;
+    /**
+     * Complete as many outstanding requests as possible from the contents of the pre-fetch queue.
+     *
+     * @param queueRequest  the queue of requests to complete
+     */
+    @SuppressWarnings("unchecked")
+    protected void complete(BatchingOperationsQueue<Request, ?> queueRequest,
+                            LinkedList<Request> queueBatch)
+        {
+        ConcurrentLinkedDeque<CommittableElement> queuePrefetched = m_queueValuesPrefetched;
 
         Request firstRequest = queueBatch.peek();
         while (firstRequest instanceof FunctionalRequest)
@@ -1266,7 +1273,7 @@ public class PagedTopicSubscriber<V>
         int cValues  = 0;
         int cRequest = queueBatch.size();
 
-        if (isActive() && !queueValuesPrefetched.isEmpty())
+        if (isActive() && !queuePrefetched.isEmpty())
             {
             Gate<?> gate = f_gate;
             // Wait to enter the gate as we need to check channel ownership under a lock
@@ -1274,12 +1281,12 @@ public class PagedTopicSubscriber<V>
             try
                 {
                 LongArray          aValues = new SparseArray<>();
-                CommittableElement element = queueValuesPrefetched.peek();
+                CommittableElement element = queuePrefetched.peek();
 
                 if (element != null && element.isEmpty())
                     {
                     // we're empty, remove the empty/null element from the pre-fetch queue
-                    queueValuesPrefetched.poll();
+                    queuePrefetched.poll();
                     while (cValues < cRequest)
                         {
                         Request request = queueBatch.get(cValues);
@@ -1288,19 +1295,23 @@ public class PagedTopicSubscriber<V>
                             ReceiveRequest receiveRequest = (ReceiveRequest) request;
                             if (!receiveRequest.isBatch())
                                 {
+                                // this is a single request, i.e subscriber.receive();
                                 aValues.set(cValues, null);
                                 }
                             else
                                 {
+                                // this is a batch request, i.e subscriber.receive(100);
                                 aValues.set(cValues, Collections.emptyList());
                                 }
                             cValues++;
                             }
                         }
+                    // complete all the requests as "empty"
+                    queueRequest.completeElements(cValues, aValues, this::onReceiveError, this::onReceiveComplete);
                     }
                 else
                     {
-                    while (m_nState == STATE_CONNECTED && cValues < cRequest && !queueValuesPrefetched.isEmpty())
+                    while (m_nState == STATE_CONNECTED && cValues < cRequest && !queuePrefetched.isEmpty())
                         {
                         Request request = queueBatch.get(cValues);
                         if (request instanceof ReceiveRequest)
@@ -1308,32 +1319,51 @@ public class PagedTopicSubscriber<V>
                             ReceiveRequest receiveRequest = (ReceiveRequest) request;
                             if (receiveRequest.isBatch())
                                 {
+                                // this is a batch request, i.e subscriber.receive(100);
                                 int cElement = receiveRequest.getElementCount();
-                                List<CommittableElement> list = new ArrayList<>();
-                                for (int i = 0; i < cElement && !queueValuesPrefetched.isEmpty(); i++)
+                                LinkedList<CommittableElement> list = new LinkedList<>();
+                                for (int i = 0; i < cElement && !queuePrefetched.isEmpty(); i++)
                                     {
-                                    element = queueValuesPrefetched.poll();
+                                    element = queuePrefetched.poll();
                                     // ensure we still own the channel
                                     if (element != null && !element.isEmpty() && isOwner(element.getChannel()))
                                         {
                                         list.add(element);
                                         }
                                     }
-                                aValues.set(cValues++, list);
+                                cValues++;
+                                boolean fCompleted = queueRequest.completeElement(list, this::onReceiveComplete);
+                                if (!fCompleted)
+                                    {
+                                    // failed to complete the future, it could have been cancelled
+                                    // push the all the elements back on the queue
+                                    CommittableElement e;
+                                    while ((e = list.pollLast()) != null)
+                                        {
+                                        queuePrefetched.offerFirst(e);
+                                        }
+                                    }
                                 }
                             else
                                 {
-                                element = queueValuesPrefetched.poll();
+                                // this is a single request, i.e subscriber.receive();
+                                element = queuePrefetched.poll();
                                 // ensure we still own the channel
                                 if (element != null && !element.isEmpty() && isOwner(element.getChannel()))
                                     {
-                                    aValues.set(cValues++, element);
+                                    cValues++;
+                                    boolean fCompleted = queueRequest.completeElement(element, this::onReceiveComplete);
+                                    if (!fCompleted)
+                                        {
+                                        // failed to complete the future, it could have been cancelled
+                                        // push the element back on the queue
+                                        queuePrefetched.offerFirst(element);
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                queueRequest.completeElements(cValues, aValues, this::onReceiveError, this::onReceiveComplete);
                 }
             finally
                 {
@@ -1341,6 +1371,16 @@ public class PagedTopicSubscriber<V>
                 gate.exit();
                 }
             }
+        }
+
+    /**
+     * Return the size of the prefetch queue.
+     *
+     * @return the size of the prefetch queue
+     */
+    public int getReceiveQueueSize()
+        {
+        return f_queueReceiveOrders.size();
         }
 
     private Throwable onReceiveError(Throwable err, Object o)
@@ -2001,16 +2041,6 @@ public class PagedTopicSubscriber<V>
         }
 
     /**
-     * Returns {@code true} if this subscriber is initialising.
-     *
-     * @return {@code true} if this subscriber is initialising
-     */
-    public boolean isInitialising()
-        {
-        return m_nState == STATE_INITIAL;
-        }
-
-    /**
      * Disconnect this subscriber.
      * <p>
      * This will cause the subscriber to re-initialize itself on re-connection.
@@ -2548,100 +2578,108 @@ public class PagedTopicSubscriber<V>
         {
         int nChannel = channel.subscriberPartitionSync.getChannelId();
 
-        // check that there is no error, and we still own the channel
-        if (e == null )
+        f_receiveLock.lock();
+        try
             {
-            Queue<Binary> queueValues = result.getElements();
-            int           cReceived   = queueValues.size();
-            int           cRemaining  = result.getRemainingElementCount();
-            int           nNext       = result.getNextIndex();
-
-            channel.setPolled();
-            ++m_cPolls;
-
-            if (cReceived == 0)
+            // check that there is no error, and we still own the channel
+            if (e == null )
                 {
-                ++m_cMisses;
-                }
-            else if (!queueValues.isEmpty())
-                {
-                channel.setHit();
-                m_cValues += cReceived;
-                channel.adjustPolls(cReceived);
+                Queue<Binary> queueValues = result.getElements();
+                int           cReceived   = queueValues.size();
+                int           cRemaining  = result.getRemainingElementCount();
+                int           nNext       = result.getNextIndex();
 
-                // add the received elements to the pre-fetch queue
-                queueValues.stream()
-                        .map(bin -> new CommittableElement(bin, nChannel))
-                        .forEach(m_queueValuesPrefetched::add);
+                channel.setPolled();
+                ++m_cPolls;
 
-                if (!m_queueValuesPrefetched.isEmpty())
+                if (cReceived == 0)
                     {
-                    long nTime = System.currentTimeMillis();
-                    channel.setFirstPolled((PagedPosition) m_queueValuesPrefetched.getFirst().getPosition(), nTime);
-                    channel.setLastPolled((PagedPosition) m_queueValuesPrefetched.getLast().getPosition(), nTime);
+                    ++m_cMisses;
                     }
-                }
-
-            channel.m_nNext = nNext;
-
-            if (cRemaining == PollProcessor.Result.EXHAUSTED)
-                {
-                // we know the page is exhausted, so the new head is at least one higher
-                if (lPageId >= channel.m_lHead && lPageId != Page.NULL_PAGE)
+                else if (!queueValues.isEmpty())
                     {
-                    channel.m_lHead = lPageId + 1;
-                    channel.m_nNext = 0;
-                    }
+                    channel.setHit();
+                    m_cValues += cReceived;
+                    channel.adjustPolls(cReceived);
 
-                // we're actually on the EMPTY_PAGE, so we'll concurrently increment the durable
-                // head pointer and then update our pointer accordingly
-                if (lPageId == Page.NULL_PAGE)
-                    {
-                    scheduleHeadIncrement(channel, lPageId);
-                    }
+                    // add the received elements to the pre-fetch queue
+                    queueValues.stream()
+                            .map(bin -> new CommittableElement(bin, nChannel))
+                            .forEach(m_queueValuesPrefetched::add);
 
-                // switch to a new channel since we've exhausted this page
-                switchChannel();
-                }
-            else if (cRemaining == 0 || cRemaining == PollProcessor.Result.NOT_ALLOCATED_CHANNEL)
-                {
-                // we received nothing or polled a channel we do not own
-                if (cRemaining == 0)
-                    {
-                    // we received nothing, mark the channel as empty
-                    onChannelEmpty(nChannel, lVersion);
-                    }
-
-                // attempt to switch to a non-empty channel
-                if (!switchChannel())
-                    {
-                    // we've run out of channels to poll from
-                    if (f_fCompleteOnEmpty)
+                    if (!m_queueValuesPrefetched.isEmpty())
                         {
-                        // add an empty element, which signals to the completion method that we're done
-                        m_queueValuesPrefetched.add(getEmptyElement());
-                        }
-                    else
-                        {
-                        // wait for non-empty;
-                        // Note: automatically registered for notification as part of returning an empty result set
-                        ++m_cWait;
+                        long nTime = System.currentTimeMillis();
+                        channel.setFirstPolled((PagedPosition) m_queueValuesPrefetched.getFirst().getPosition(), nTime);
+                        channel.setLastPolled((PagedPosition) m_queueValuesPrefetched.getLast().getPosition(), nTime);
                         }
                     }
+
+                channel.m_nNext = nNext;
+
+                if (cRemaining == PollProcessor.Result.EXHAUSTED)
+                    {
+                    // we know the page is exhausted, so the new head is at least one higher
+                    if (lPageId >= channel.m_lHead && lPageId != Page.NULL_PAGE)
+                        {
+                        channel.m_lHead = lPageId + 1;
+                        channel.m_nNext = 0;
+                        }
+
+                    // we're actually on the EMPTY_PAGE, so we'll concurrently increment the durable
+                    // head pointer and then update our pointer accordingly
+                    if (lPageId == Page.NULL_PAGE)
+                        {
+                        scheduleHeadIncrement(channel, lPageId);
+                        }
+
+                    // switch to a new channel since we've exhausted this page
+                    switchChannel();
+                    }
+                else if (cRemaining == 0 || cRemaining == PollProcessor.Result.NOT_ALLOCATED_CHANNEL)
+                    {
+                    // we received nothing or polled a channel we do not own
+                    if (cRemaining == 0)
+                        {
+                        // we received nothing, mark the channel as empty
+                        onChannelEmpty(nChannel, lVersion);
+                        }
+
+                    // attempt to switch to a non-empty channel
+                    if (!switchChannel())
+                        {
+                        // we've run out of channels to poll from
+                        if (f_fCompleteOnEmpty)
+                            {
+                            // add an empty element, which signals to the completion method that we're done
+                            m_queueValuesPrefetched.add(getEmptyElement());
+                            }
+                        else
+                            {
+                            // wait for non-empty;
+                            // Note: automatically registered for notification as part of returning an empty result set
+                            ++m_cWait;
+                            }
+                        }
+                    }
+                else if (cRemaining == PollProcessor.Result.UNKNOWN_SUBSCRIBER)
+                    {
+                    // The subscriber was unknown, possibly due to a persistence snapshot recovery or the topic being
+                    // destroyed whilst the poll was in progress.
+                    // Disconnect and let reconnection sort us out
+                    disconnectInternal(true);
+                    }
                 }
-            else if (cRemaining == PollProcessor.Result.UNKNOWN_SUBSCRIBER)
+            else // remove failed; this is fairly catastrophic
                 {
-                // The subscriber was unknown, possibly due to a persistence snapshot recovery or the topic being
-                // destroyed whilst the poll was in progress.
-                // Disconnect and let reconnection sort us out
-                disconnectInternal(true);
+                // TODO: figure out error handling
+                // fail all currently (and even concurrently) scheduled removes
+                f_queueReceiveOrders.handleError((err, bin) -> e, BatchingOperationsQueue.OnErrorAction.CompleteWithException);
                 }
             }
-        else // remove failed; this is fairly catastrophic
+        finally
             {
-            // TODO: figure out error handling
-            // fail all currently (and even concurrently) scheduled removes
-            f_queueReceiveOrders.handleError((err, bin) -> e, BatchingOperationsQueue.OnErrorAction.CompleteWithException);
+            f_receiveLock.unlock();
             }
         }
 
@@ -3209,7 +3247,7 @@ public class PagedTopicSubscriber<V>
      * CommittableElement is a wrapper around a {@link PageElement}
      * that makes it committable.
      */
-    private class CommittableElement
+    protected class CommittableElement
         implements Element<V>
         {
         // ----- constructors -----------------------------------------------
@@ -3219,7 +3257,7 @@ public class PagedTopicSubscriber<V>
          *
          * @param binValue  the binary element value
          */
-        CommittableElement(Binary binValue, int nChannel)
+        protected CommittableElement(Binary binValue, int nChannel)
             {
             m_element  = PageElement.fromBinary(binValue, f_serializer);
             f_nChannel = nChannel;
@@ -3513,9 +3551,30 @@ public class PagedTopicSubscriber<V>
          */
         protected void setEmpty(long lVersion)
             {
-            if (m_lVersion.get() == lVersion)
+            m_lock.lock();
+            try
                 {
-                m_fEmpty = true;
+                if (m_lVersion.get() == lVersion)
+                    {
+                    m_fEmpty = true;
+                    }
+                }
+            finally
+                {
+                m_lock.unlock();
+                }
+            }
+
+        protected long getVersion()
+            {
+            m_lock.lock();
+            try
+                {
+                return m_lVersion.get();
+                }
+            finally
+                {
+                m_lock.unlock();
                 }
             }
 
@@ -3543,8 +3602,16 @@ public class PagedTopicSubscriber<V>
          */
         protected void setPopulated()
             {
-            m_lVersion.incrementAndGet();
-            m_fEmpty = false;
+            m_lock.lock();
+            try
+                {
+                long l = m_lVersion.incrementAndGet();
+                m_fEmpty = false;
+                }
+            finally
+                {
+                m_lock.unlock();
+                }
             }
 
         /**
@@ -3637,10 +3704,11 @@ public class PagedTopicSubscriber<V>
             return "Channel=" + subscriberPartitionSync.getChannelId() +
                     ", owned=" + m_fOwned +
                     ", empty=" + m_fEmpty +
+                    ", version=" + m_lVersion.get() +
                     ", head=" + m_lHead +
                     ", next=" + m_nNext +
                     ", polls=" + m_cPolls +
-                    ", received=" + m_cReceived +
+                    ", received=" + m_cReceived.getCount() +
                     ", committed=" + m_cCommited +
                     ", first=" + m_firstPolled +
                     ", firstTimestamp=" + m_firstPolledTimestamp +
@@ -3764,6 +3832,11 @@ public class PagedTopicSubscriber<V>
          * A flag indicating a message has been received from this channel since ownership was last assigned.
          */
         boolean m_fHit;
+
+        /**
+         * The lock to control state updates.
+         */
+        private final Lock m_lock = new ReentrantLock();
         }
 
     // ----- inner class: FlushMode ----------------------------------------
@@ -3955,7 +4028,7 @@ public class PagedTopicSubscriber<V>
         protected void execute(PagedTopicSubscriber<?> subscriber, BatchingOperationsQueue<Request, ?> queueBatch)
             {
             Map<Integer, Position> map = subscriber.seekInternal(this);
-            queueBatch.completeElement(map, this::onRequestError, this::onRequestComplete);
+            queueBatch.completeElement(map, this::onRequestComplete);
             }
 
         /**
@@ -4082,7 +4155,7 @@ public class PagedTopicSubscriber<V>
                 default:
                     throw new IllegalStateException("Unexpected value: " + f_type);
                 }
-            queue.completeElement(map, this::onRequestError, this::onRequestComplete);
+            queue.completeElement(map, this::onRequestComplete);
             }
 
         // ----- data members ---------------------------------------------------
@@ -4649,6 +4722,11 @@ public class PagedTopicSubscriber<V>
     private final Gate<?> f_gateState;
 
     /**
+     * The lock to control receive processing.
+     */
+    private final Lock f_receiveLock = new ReentrantLock();
+
+    /**
      * The state of the subscriber.
      */
     private volatile int m_nState = STATE_INITIAL;
@@ -4662,7 +4740,7 @@ public class PagedTopicSubscriber<V>
     /**
      * Optional queue of prefetched values which can be used to fulfil future receive requests.
      */
-    private final ConcurrentLinkedDeque<CommittableElement> m_queueValuesPrefetched = new ConcurrentLinkedDeque<>();
+    protected final ConcurrentLinkedDeque<CommittableElement> m_queueValuesPrefetched = new ConcurrentLinkedDeque<>();
 
     /**
      * Queue of pending receive awaiting values.
