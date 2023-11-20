@@ -7,6 +7,7 @@
 
 package cache;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.AsyncNamedMap;
 import com.tangosol.net.Coherence;
@@ -15,6 +16,7 @@ import com.tangosol.net.Session;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -42,7 +44,7 @@ public class AsyncNamedMapExecutorTests
         }
 
     @Test
-    public void shouldUseExecutor()
+    public void shouldUseExecutor() throws Exception
         {
         NamedCache<String, String> cache    = s_session.getCache("dist-test");
         Executor                   real     = Executors.newSingleThreadExecutor();
@@ -54,11 +56,12 @@ public class AsyncNamedMapExecutorTests
             real.execute(runnable);
             return null;
             })
-        .when(executor).execute(any(Runnable.class));
+            .when(executor).execute(any(Runnable.class));
 
-        AsyncNamedCache<String, String> async = cache.async(AsyncNamedMap.Complete.using(executor));
-        async.put("key-1", "value-1");
-        assertThat(cache.get("key-1"), is("value-1"));
+        AsyncNamedCache<String, String> async  = cache.async(AsyncNamedMap.Complete.using(executor));
+        CompletableFuture<Void>         future = async.put("key-1", "value-1");
+        future.get(1, TimeUnit.MINUTES);
+        Eventually.assertDeferred(() -> cache.get("key-1"), is("value-1"));
 
         verify(executor, atLeastOnce()).execute(any(Runnable.class));
         }
