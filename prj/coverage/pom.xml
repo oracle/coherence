@@ -153,11 +153,6 @@
         </dependency>
         <dependency>
           <groupId>${coherence.group.id}</groupId>
-          <artifactId>coherence-metrics</artifactId>
-          <version>${project.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>${coherence.group.id}</groupId>
           <artifactId>coherence-micrometer</artifactId>
           <version>${project.version}</version>
         </dependency>

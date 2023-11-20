@@ -387,7 +387,6 @@
         <module>coherence-json</module>
         <module>coherence-login</module>
         <module>coherence-management</module>
-        <module>coherence-metrics</module>
         <module>coherence-micrometer</module>
         <module>coherence-http-helidon</module>
         <module>coherence-http-netty</module>
@@ -454,7 +453,6 @@
         <module>coherence-json</module>
         <module>coherence-login</module>
         <module>coherence-management</module>
-        <module>coherence-metrics</module>
         <module>coherence-micrometer</module>
         <module>coherence-http-helidon</module>
         <module>coherence-http-netty</module>
