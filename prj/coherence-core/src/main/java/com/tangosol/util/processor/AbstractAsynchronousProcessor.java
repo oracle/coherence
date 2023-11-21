@@ -40,6 +40,17 @@ public abstract class AbstractAsynchronousProcessor<K, V, R, T>
      *
      * @param processor     the underlying {@link InvocableMap.EntryProcessor}
      * @param iUnitOrderId  the unit-of-order id for this processor
+     */
+    protected AbstractAsynchronousProcessor(InvocableMap.EntryProcessor<K, V, R> processor, int iUnitOrderId)
+        {
+        this(processor, iUnitOrderId, null);
+        }
+
+    /**
+     * Construct AbstractAsynchronousProcessor instance.
+     *
+     * @param processor     the underlying {@link InvocableMap.EntryProcessor}
+     * @param iUnitOrderId  the unit-of-order id for this processor
      * @param executor      an optional {@link Executor} to complete the future on,
      *                      if not provided the {@link Daemons#commonPool()} is used
      */
