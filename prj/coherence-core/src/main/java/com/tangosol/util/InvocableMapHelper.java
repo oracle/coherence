@@ -69,6 +69,27 @@ public abstract class InvocableMapHelper
     {
     /**
      * Invoke the specified EntryProcessor asynchronously.
+     *
+     * @param cache  the cache to invoke against
+     * @param key    the key to invoke upon
+     * @param proc   the processor to invoke
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @param <R> the result type
+     *
+     * @return a CompletableFuture which will contain the result
+     *
+     * @deprecated As of Coherence 14.1.1, use enhanced
+     * {@link #invokeAsync(NamedCache, Object, int, InvocableMap.EntryProcessor, BiConsumer[])}.
+     */
+    public static <K, V, R> CompletableFuture<R> invokeAsync(NamedCache<K, V> cache, K key, InvocableMap.EntryProcessor<K, V, R> proc)
+        {
+        return invokeAsync(cache, key, Thread.currentThread().hashCode(), proc);
+        }
+
+    /**
+     * Invoke the specified EntryProcessor asynchronously.
      * <p>
      * The continuation which will be invoked when the processor completes and most importantly on the thread
      * on which the operation completes which is not something that can be guaranteed if the continuation is

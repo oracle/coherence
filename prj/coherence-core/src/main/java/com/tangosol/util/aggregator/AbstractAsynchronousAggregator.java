@@ -42,6 +42,17 @@ public abstract class AbstractAsynchronousAggregator<K, V, P, R>
      *
      * @param aggregator    the underlying streaming aggregator
      * @param iUnitOrderId  the unit-of-order id for this aggregator
+     */
+    protected AbstractAsynchronousAggregator(StreamingAggregator<K,V,P,R> aggregator, int iUnitOrderId)
+        {
+        this(aggregator, iUnitOrderId, null);
+        }
+
+    /**
+     * Construct an AsynchronousAggregator for a given streaming aggregator.
+     *
+     * @param aggregator    the underlying streaming aggregator
+     * @param iUnitOrderId  the unit-of-order id for this aggregator
      * @param executor      an optional {@link Executor} to complete the future on,
      *                      if not provided the {@link Daemons#commonPool()} is used
      */

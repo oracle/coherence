@@ -53,6 +53,18 @@ public abstract class AsynchronousAgent<T>
      * @param iOrderId  a unit-of-order id associated with this agent. Ordering
      *                  semantics of operations based on this id are defined
      *                  by subclasses
+     */
+    protected AsynchronousAgent(int iOrderId)
+        {
+        this(iOrderId, null);
+        }
+
+    /**
+     * Construct the agent.
+     *
+     * @param iOrderId  a unit-of-order id associated with this agent. Ordering
+     *                  semantics of operations based on this id are defined
+     *                  by subclasses
      * @param executor  an optional {@link Executor} to complete the future on,
      *                  if not provided the {@link Daemons#commonPool()} is used
      */
