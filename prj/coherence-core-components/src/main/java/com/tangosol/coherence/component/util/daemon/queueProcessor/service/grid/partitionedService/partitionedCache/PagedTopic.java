@@ -50,6 +50,7 @@ import com.tangosol.net.topic.Subscriber;
 import com.tangosol.net.topic.TopicException;
 import com.tangosol.run.xml.SimpleElement;
 import com.tangosol.run.xml.XmlElement;
+import com.tangosol.run.xml.XmlValue;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.ListMap;
@@ -2613,18 +2614,12 @@ public class PagedTopic
         // From interface: java.lang.Runnable
         public void run()
             {
-            // import Component.Net.Cluster;
-            // import Component.Util.Daemon.QueueProcessor.Service.Grid$ServiceConfig$Map as com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.ServiceConfig.Map;
-            // import com.oracle.coherence.common.base.Logger;
-            // import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches$Names as com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names;
-            // import java.util.concurrent.locks.ReentrantLock;
-            
             PagedTopic service    = getService();
-            String  sTopic     = getTopicName();
-            int     cRequired  = getRequiredChannelCount();
-            int     cChannel   = getChannelCount();
-            int     cConfigMap = service.getChannelCountFromConfigMap(sTopic);
-            int     cActual;
+            String     sTopic     = getTopicName();
+            int        cRequired  = getRequiredChannelCount();
+            int        cChannel   = getChannelCount();
+            int        cConfigMap = service.getChannelCountFromConfigMap(sTopic);
+            int        cActual;
             
             if (cConfigMap == 0)
                 {
@@ -2657,11 +2652,16 @@ public class PagedTopic
                                 ((Cluster) service.getCluster()).suspendService(sServiceName, /*fResumeOnFailover*/ true);
                                 }
             
-                            String     sCacheName = com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names.CONTENT.cacheNameForTopicName(sTopic);
-                            com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.ServiceConfig.Map      map        = service.getServiceConfigMap(); 
-                            XmlElement xmlElement = (XmlElement) map.get(sCacheName);
-            
-                            xmlElement.getSafeAttribute("channels").setInt(cChannel);
+                            String            sCacheName   = PagedTopicCaches.Names.CONTENT.cacheNameForTopicName(sTopic);
+                            ServiceConfig.Map map          = service.getServiceConfigMap();
+                            XmlElement         xmlElement  = (XmlElement) map.get(sCacheName);
+                            XmlValue           xmlChannels = xmlElement.getAttribute("channels");
+
+                            if (xmlChannels == null)
+                                {
+                                xmlChannels = xmlElement.addAttribute("channels");
+                                }
+                            xmlChannels.setInt(cChannel);
                             map.put(sCacheName, xmlElement);
                             
                             if (cConfigMap != cChannel)
@@ -2675,7 +2675,7 @@ public class PagedTopic
                             {
                             if (fSuspend)
                                 {
-                                ((Cluster) service.getCluster()).resumeService(sServiceName);
+                                service.getCluster().resumeService(sServiceName);
                                 }
                             }
                         }
