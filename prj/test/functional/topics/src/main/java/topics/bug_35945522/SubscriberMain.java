@@ -58,7 +58,7 @@ public class SubscriberMain
                     catch (Throwable t)
                         {
                         Logger.info("Exception occurred waiting on receive: "
-                                + t.getMessage() + "\n" + subscriber);
+                                + t.getClass().getSimpleName() + " " + t.getMessage() + "\n" + subscriber);
                         if (future != null && !future.isDone())
                             {
                             try
@@ -69,8 +69,7 @@ public class SubscriberMain
                                     {
                                     try
                                         {
-                                        Logger.info("Future completed before cancellation. message = "
-                                                + future.get(1, TimeUnit.SECONDS));
+                                        Logger.info("Future completed before cancellation");
                                         }
                                     catch (Throwable e)
                                         {
@@ -86,6 +85,17 @@ public class SubscriberMain
                                 {
                                 Logger.err(t);
                                 }
+                            }
+                        else
+                            {
+                            Logger.info("Future completed after catching exception");
+                            }
+
+                        if (future != null && future.isDone() && !future.isCancelled() && !future.isCompletedExceptionally())
+                            {
+                            Element<String> element = future.get(cWaitSeconds, TimeUnit.SECONDS);
+                            Logger.info("Received message: " + element);
+                            s_cReceived++;
                             }
                         }
                     }
