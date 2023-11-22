@@ -83,7 +83,7 @@ public class DistributedAsyncNamedCache<K, V>
     public CompletableFuture<V> get(K key)
         {
         InvocableMap.EntryProcessor processor = BinaryProcessors.get();
-        CompletableFuture<Binary> future = invoke(key, processor);
+        CompletableFuture<Binary>   future    = invoke(key, processor);
         return future.thenApply(f_valueFromInternalConverter::convert);
         }
 
@@ -223,6 +223,15 @@ public class DistributedAsyncNamedCache<K, V>
         InvocableMap.EntryProcessor processor = BinaryProcessors.putIfAbsent(binary, CacheMap.EXPIRY_DEFAULT);
         return invoke(key, processor)
                 .thenApply(bin -> bin == null ? null : f_valueFromInternalConverter.convert((Binary) bin));
+        }
+
+    @Override
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public CompletableFuture<V> remove(K key)
+        {
+        InvocableMap.EntryProcessor processor = BinaryProcessors.remove();
+        CompletableFuture<Binary>   future    = invoke(key, processor);
+        return future.thenApply(f_valueFromInternalConverter::convert);
         }
 
     @Override
