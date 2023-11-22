@@ -5,11 +5,10 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
-package cache;
+package grpc.proxy;
 
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
 import com.oracle.coherence.common.collections.ConcurrentLinkedQueue;
-
 import com.tangosol.net.cache.CacheStore;
 
 import java.util.HashMap;
@@ -18,10 +17,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
-/**
- * {@link CacheStore} implementation for testing with AsyncNamedcache
- * putAll operation.
- */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class TestCacheStore<K, V>
         implements CacheStore<K, V>

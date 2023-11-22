@@ -28,7 +28,6 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -815,6 +814,10 @@ public class CacheProcessors
         {
         public Boolean process(InvocableMap.Entry<K, V> entry)
             {
+            if (!entry.isPresent())
+                {
+                entry.getValue(); // maybe trigger a CacheStore load
+                }
             boolean fRemoved = entry.isPresent();
             entry.remove(false);
             return fRemoved;
@@ -850,6 +853,10 @@ public class CacheProcessors
 
         public Void process(InvocableMap.Entry<K, V> entry)
             {
+            if (!entry.isPresent())
+                {
+                entry.getValue(); // Maybe trigger a CacheStore load so the remove triggers an erase
+                }
             entry.remove(m_fSynthetic);
             return null;
             }
@@ -862,6 +869,10 @@ public class CacheProcessors
             for (Iterator<? extends InvocableMap.Entry<K, V>> iter = setEntries.iterator(); iter.hasNext(); )
                 {
                 InvocableMap.Entry<K, V> entry = iter.next();
+                if (!entry.isPresent())
+                    {
+                    entry.getValue(); // Maybe trigger a CacheStore load so the remove triggers an erase
+                    }
                 entry.remove(m_fSynthetic);
                 iter.remove();
                 if (ctxGuard != null)

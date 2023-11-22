@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -128,6 +128,16 @@ public final class BinaryProcessors
     public static InvocableMap.EntryProcessor<Binary, Binary, Binary> putIfAbsent(Binary value, long ttl)
         {
         return new BinaryPutIfAbsentProcessor(value, ttl);
+        }
+
+    /**
+     * Obtain an instance of the {@link BinaryRemoveProcessor}.
+     *
+     * @return an instance of the {@link BinaryRemoveProcessor}
+     */
+    public static InvocableMap.EntryProcessor<Binary, Binary, Binary> remove()
+        {
+        return BinaryRemoveProcessor.INSTANCE;
         }
 
     // ----- class: BaseProcessor -------------------------------------------
@@ -887,6 +897,14 @@ public final class BinaryProcessors
                 {
                 prevValue = ((BinaryEntry<Binary, Binary>) entry).getBinaryValue();
                 }
+            else
+                {
+                entry.getValue(); // maybe trigger a CacheStore load
+                if (entry.isPresent())
+                    {
+                    prevValue = ((BinaryEntry<Binary, Binary>) entry).getBinaryValue();
+                    }
+                }
             return prevValue;
             }
 
@@ -907,6 +925,14 @@ public final class BinaryProcessors
                 if (entry.isPresent())
                     {
                     mapResults.put(((BinaryEntry<Binary, Binary>) entry).getBinaryKey(), this.process(entry));
+                    }
+                else
+                    {
+                    entry.getValue();  // maybe trigger a CacheStore load
+                    if (entry.isPresent())
+                        {
+                        mapResults.put(((BinaryEntry<Binary, Binary>) entry).getBinaryKey(), this.process(entry));
+                        }
                     }
                 iter.remove();
                 if (ctxGuard != null)
@@ -945,6 +971,15 @@ public final class BinaryProcessors
                 {
                 prevValue = ((BinaryEntry<Binary, Binary>) entry).getBinaryValue();
                 entry.remove(false);
+                }
+            else
+                {
+                entry.getValue(); // maybe trigger a CacheStore load...
+                if (entry.isPresent())
+                    {
+                    prevValue = ((BinaryEntry<Binary, Binary>) entry).getBinaryValue();
+                    entry.remove(false);
+                    }
                 }
             return prevValue;
             }
