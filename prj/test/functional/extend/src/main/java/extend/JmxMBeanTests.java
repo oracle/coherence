@@ -122,6 +122,7 @@ public class JmxMBeanTests
         {
         InvocationService service = (InvocationService)
             getFactory().ensureService(INVOCATION_SERVICE_NAME);
+        Eventually.assertThat(service.isRunning(), is(true));
 
         try
             {
@@ -301,6 +302,7 @@ public class JmxMBeanTests
                     }
                 catch (Exception e)
                     {
+                    Base.log("JmxMBeanTests.MessagingDebugInvocable.run() got an exception: " + e);
                     throw ensureRuntimeException(e);
                     }
                 }
