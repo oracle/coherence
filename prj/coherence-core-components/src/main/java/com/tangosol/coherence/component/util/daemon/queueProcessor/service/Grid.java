@@ -2710,12 +2710,27 @@ public abstract class Grid
 
     public boolean isPatchCompatible(MemberSet setMembers, int nEncodedVersion)
         {
-        MasterMemberSet setMaster = getClusterMemberSet();
         if (setMembers.isEmpty())
             {
             return true;
             }
-        return setMaster.isPatchCompatible(nEncodedVersion);
+
+        MasterMemberSet setMaster = getClusterMemberSet();
+        int[]           anId      = setMembers.toIdArray();
+
+        for (int i = 0; i < anId.length; i++)
+            {
+            if (anId[i] == 0)
+                {
+                continue;
+                }
+            if (!setMaster.isPatchCompatible(anId[i], nEncodedVersion))
+                {
+                return false;
+                }
+            }
+
+        return true;
         }
 
     /**
