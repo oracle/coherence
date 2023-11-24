@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package topics;
 
@@ -95,6 +95,12 @@ public class DefaultConfigPofSerializerTopicTests
     static public int STORAGE_MEMBER_COUNT = 2;
 
     public static final String CACHE_CONFIG_FILE = DEFAULT_COHERENCE_CACHE_CONFIG;
+
+    // COH-23847 - hack to set the required system property outside the bedrock
+    static
+        {
+        System.setProperty("coherence.pof.enabled", "true");
+        }
 
     @ClassRule
     public static CoherenceClusterOrchestration orchestration =
