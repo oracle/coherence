@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.cache;
@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
 * A generic cache manager.
@@ -520,12 +521,12 @@ public class OldOldCache
         deferFlush();
 
         // walk all buckets
-        SafeHashMap.Entry[] aeBucket = m_aeBucket;
-        int                 cBuckets = aeBucket.length;
+        AtomicReferenceArray aeBucket = m_aeBucket;
+        int                  cBuckets = aeBucket.length();
         for (int iBucket = 0; iBucket < cBuckets; ++iBucket)
             {
             // walk all entries in the bucket
-            Entry entry = (Entry) aeBucket[iBucket];
+            Entry entry = (Entry) aeBucket.get(iBucket);
             while (entry != null)
                 {
                 if (entry.isExpired())
@@ -752,12 +753,12 @@ public class OldOldCache
                 if (c > 0)
                     {
                     // walk all buckets
-                    SafeHashMap.Entry[] aeBucket = map.m_aeBucket;
-                    int                 cBuckets = aeBucket.length;
+                    AtomicReferenceArray aeBucket = map.m_aeBucket;
+                    int                  cBuckets = aeBucket.length();
                     for (int iBucket = 0; iBucket < cBuckets; ++iBucket)
                         {
                         // walk all entries in the bucket
-                        Entry entry = (Entry) aeBucket[iBucket];
+                        Entry entry = (Entry) aeBucket.get(iBucket);
                         while (entry != null)
                             {
                             if (entry.isExpired())
@@ -866,12 +867,12 @@ public class OldOldCache
                 if (c > 0)
                     {
                     // walk all buckets
-                    SafeHashMap.Entry[] aeBucket = map.m_aeBucket;
-                    int                 cBuckets = aeBucket.length;
+                    AtomicReferenceArray aeBucket = map.m_aeBucket;
+                    int                  cBuckets = aeBucket.length();
                     for (int iBucket = 0; iBucket < cBuckets; ++iBucket)
                         {
                         // walk all entries in the bucket
-                        Entry entry = (Entry) aeBucket[iBucket];
+                        Entry entry = (Entry) aeBucket.get(iBucket);
                         while (entry != null)
                             {
                             if (entry.isExpired())

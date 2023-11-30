@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -29,6 +29,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
 * An implementation of java.util.Map that is synchronized, but minimally so.
@@ -87,7 +89,7 @@ public class SafeHashMap<K, V>
             }
 
         // initialize the hash map data structure
-        m_aeBucket     = new Entry[cInitialBuckets];
+        m_aeBucket     = new AtomicReferenceArray<>(cInitialBuckets);
         m_cCapacity    = (int) (cInitialBuckets * flLoadFactor);
         m_flLoadFactor = flLoadFactor;
         m_flGrowthRate = flGrowthRate;
@@ -215,12 +217,12 @@ public class SafeHashMap<K, V>
             synchronized (this)
                 {
                 // get the array of buckets
-                Entry[] aeBucket = m_aeBucket;
-                int     cBuckets = aeBucket.length;
+                AtomicReferenceArray<Entry> aeBucket = m_aeBucket;
+                int                         cBuckets = aeBucket.length();
 
                 // hash to a particular bucket
                 int    nBucket  = getBucketIndex(nHash, cBuckets);
-                Entry  entryCur = aeBucket[nBucket];
+                Entry  entryCur = aeBucket.get(nBucket);
 
                 // walk the linked list of entries (open hash) in the bucket
                 // to verify the Entry has not already been added
@@ -241,8 +243,11 @@ public class SafeHashMap<K, V>
 
                 // put the Entry in at the front of the list of entries
                 // for that bucket
-                entry.m_eNext     = aeBucket[nBucket];
-                aeBucket[nBucket] = entry;
+                aeBucket.accumulateAndGet(nBucket, entry, (oldHead, newHead) ->
+                    {
+                    newHead.m_eNext = oldHead;
+                    return newHead;
+                    });
 
                 if (++m_cEntries > m_cCapacity)
                     {
@@ -268,8 +273,8 @@ public class SafeHashMap<K, V>
     protected synchronized void grow()
         {
         // store off the old bucket array
-        Entry[] aeOld = m_aeBucket;
-        int     cOld  = aeOld.length;
+        AtomicReferenceArray<Entry> aeOld = m_aeBucket;
+        int                         cOld  = aeOld.length();
 
         // check if there is no more room to grow
         if (cOld >= BIGGEST_MODULO)
@@ -293,10 +298,10 @@ public class SafeHashMap<K, V>
 
         // create a new bucket array; in the case of an OutOfMemoryError
         // be sure to restore the old bucket array
-        Entry[] aeNew;
+        AtomicReferenceArray<Entry> aeNew;
         try
             {
-            aeNew = new Entry[cNew];
+            aeNew = new AtomicReferenceArray<>(cNew);
             }
         catch (OutOfMemoryError e)
             {
@@ -318,7 +323,7 @@ public class SafeHashMap<K, V>
         // rehash
         for (int i = 0; i < cOld; ++i)
             {
-            Entry entry       = aeOld[i];
+            Entry entry       = aeOld.get(i);
             Entry entryRetain = null;
             while (entry != null)
                 {
@@ -328,8 +333,11 @@ public class SafeHashMap<K, V>
 
                 // rehash the Entry into the new bucket array
                 int nBucket = getBucketIndex(entry.m_nHash, cNew);
-                entry.m_eNext  = aeNew[nBucket];
-                aeNew[nBucket] = entry;
+                aeNew.accumulateAndGet(nBucket, entry, (oldHead, newHead) ->
+                    {
+                    newHead.m_eNext = oldHead;
+                    return newHead;
+                    });
 
                 // clone each entry if Iterators are active (since they will
                 // need the entries in the same order to avoid having to
@@ -339,7 +347,7 @@ public class SafeHashMap<K, V>
                     Entry entryCopy = (Entry) entry.clone();
                     if (entryRetain == null)
                         {
-                        aeOld[i] = entryCopy;
+                        aeOld.set(i, entryCopy);
                         }
                     else
                         {
@@ -378,13 +386,13 @@ public class SafeHashMap<K, V>
     public synchronized V remove(Object oKey)
         {
         // get the array of buckets
-        Entry[] aeBucket = m_aeBucket;
-        int     cBuckets = aeBucket.length;
+        AtomicReferenceArray<Entry> aeBucket = m_aeBucket;
+        int                         cBuckets = aeBucket.length();
 
         // hash to a particular bucket
         int         nHash    = (oKey == null ? 0 : oKey.hashCode());
         int         nBucket  = getBucketIndex(nHash, cBuckets);
-        Entry<K, V> entryCur = aeBucket[nBucket];
+        Entry<K, V> entryCur = aeBucket.get(nBucket);
 
         // walk the linked list of entries (open hash) in the bucket
         // to verify the Entry has not already been added
@@ -399,7 +407,7 @@ public class SafeHashMap<K, V>
                 // remove the current Entry from the list
                 if (entryPrev == null)
                     {
-                    aeBucket[nBucket] = entryCur.m_eNext;
+                    aeBucket.set(nBucket, entryCur.m_eNext);
                     }
                 else
                     {
@@ -421,7 +429,7 @@ public class SafeHashMap<K, V>
     */
     public synchronized void clear()
         {
-        m_aeBucket  = new Entry[DEFAULT_INITIALSIZE];
+        m_aeBucket  = new AtomicReferenceArray<>(DEFAULT_INITIALSIZE);
         m_cEntries  = 0;
         m_cCapacity = (int) (DEFAULT_INITIALSIZE * m_flLoadFactor);
         }
@@ -518,14 +526,14 @@ public class SafeHashMap<K, V>
             SafeHashMap that = (SafeHashMap) super.clone();
 
             // only have to deep-clone the bucket array and the map entries
-            Entry[] aeBucket = m_aeBucket.clone();
-            int     cBuckets = aeBucket.length;
+            AtomicReferenceArray<Entry> aeBucket = new AtomicReferenceArray<>(m_aeBucket.length());
+            int                         cBuckets = aeBucket.length();
             for (int i = 0; i < cBuckets; ++i)
                 {
-                Entry entryThis = aeBucket[i];
+                Entry entryThis = m_aeBucket.get(i);
                 if (entryThis != null)
                     {
-                    aeBucket[i] = that.cloneEntryList(entryThis);
+                    aeBucket.set(i, that.cloneEntryList(entryThis));
                     }
                 }
             that.m_aeBucket    = aeBucket;
@@ -600,8 +608,8 @@ public class SafeHashMap<K, V>
             throws IOException
         {
         // store stats first
-        Entry[] aeBucket = m_aeBucket;
-        int     cBuckets = aeBucket.length;
+        AtomicReferenceArray<Entry> aeBucket = m_aeBucket;
+        int                         cBuckets = aeBucket.length();
 
         out.writeInt(cBuckets);
         out.writeInt(m_cCapacity);
@@ -614,7 +622,7 @@ public class SafeHashMap<K, V>
         out.writeInt(cEntries);
         for (int iBucket = 0; iBucket < cBuckets; ++iBucket)
             {
-            Entry entry = aeBucket[iBucket];
+            Entry entry = aeBucket.get(iBucket);
             while (entry != null)
                 {
                 out.writeObject(entry.m_oKey);
@@ -663,7 +671,7 @@ public class SafeHashMap<K, V>
             // JEP-290 - ensure we can allocate this array
             ExternalizableHelper.validateLoadArray(SafeHashMap.Entry[].class, cBuckets, in);
 
-            Entry[] aeBucket = m_aeBucket = new Entry[cBuckets];
+            AtomicReferenceArray<Entry> aeBucket = m_aeBucket = new AtomicReferenceArray<>(cBuckets);
 
             // read entries
             for (int i = 0; i < cEntries; ++i)
@@ -675,8 +683,11 @@ public class SafeHashMap<K, V>
 
                 Entry<K, V> entry = instantiateEntry(oKey, oValue, nHash);
 
-                entry.m_eNext     = aeBucket[nBucket];
-                aeBucket[nBucket] = entry;
+                aeBucket.accumulateAndGet(nBucket, entry, (oldHead, newHead) ->
+                    {
+                    newHead.m_eNext = oldHead;
+                    return newHead;
+                    });
                 }
             }
         else
@@ -712,12 +723,12 @@ public class SafeHashMap<K, V>
         while (true)
             {
             // get the bucket array
-            Entry[] aeBucket = getStableBucketArray();
-            int     cBuckets = aeBucket.length;
+            AtomicReferenceArray<Entry> aeBucket = getStableBucketArray();
+            int                         cBuckets = aeBucket.length();
 
             // hash to a particular bucket
             int   nBucket = getBucketIndex(nHash, cBuckets);
-            Entry entry   = aeBucket[nBucket];
+            Entry entry   = aeBucket.get(nBucket);
 
             // walk the linked list of entries (open hash) in the bucket
             while (entry != null)
@@ -761,18 +772,18 @@ public class SafeHashMap<K, V>
             }
 
         // get the array of buckets
-        Entry[] aeBucket = m_aeBucket;
-        int     cBuckets = aeBucket.length;
+        AtomicReferenceArray<Entry> aeBucket = m_aeBucket;
+        int                         cBuckets = aeBucket.length();
 
         // hash to a particular bucket
         int    nHash    = entry.m_nHash;
         int    nBucket  = getBucketIndex(nHash, cBuckets);
 
         // check the head
-        Entry entryHead = aeBucket[nBucket];
+        Entry entryHead = aeBucket.get(nBucket);
         if (entry == entryHead)
             {
-            aeBucket[nBucket] = entry.m_eNext;
+            aeBucket.set(nBucket, entry.m_eNext);
             }
         else
             {
@@ -819,19 +830,19 @@ public class SafeHashMap<K, V>
     *
     * @return the latest bucket array
     */
-    protected Entry[] getStableBucketArray()
+    protected AtomicReferenceArray<Entry> getStableBucketArray()
         {
         // get the bucket array
-        Entry[] aeBucket = m_aeBucket;
+        AtomicReferenceArray<Entry> aeBucket = m_aeBucket;
 
         // wait for any ongoing resize to complete
-        while (aeBucket.length == 0)
+        while (aeBucket.length() == 0)
             {
             synchronized (RESIZING)
                 {
                 // now that we have the lock, verify that it is
                 // still necessary to wait
-                if (m_aeBucket.length == 0)
+                if (m_aeBucket.length() == 0)
                     {
                     try
                         {
@@ -1335,12 +1346,12 @@ public class SafeHashMap<K, V>
                     }
 
                 // walk all buckets
-                Entry[] aeBucket = map.m_aeBucket;
-                int     cBuckets = aeBucket.length;
+                AtomicReferenceArray<Entry> aeBucket = map.m_aeBucket;
+                int                         cBuckets = aeBucket.length();
                 for (int iBucket = 0, i = 0; iBucket < cBuckets; ++iBucket)
                     {
                     // walk all entries in the bucket
-                    Entry entry = aeBucket[iBucket];
+                    Entry entry = aeBucket.get(iBucket);
                     while (entry != null)
                         {
                         a[i++] = (T) entry;
@@ -1396,7 +1407,7 @@ public class SafeHashMap<K, V>
                     return;
                     }
 
-                Entry[] aeBucket = this.m_aeBucket;
+                AtomicReferenceArray<Entry> aeBucket = this.m_aeBucket;
                 if (aeBucket == null)
                     {
                     SafeHashMap map = SafeHashMap.this;
@@ -1420,7 +1431,7 @@ public class SafeHashMap<K, V>
                     if (entry == null)
                         {
                         iBucket = m_iBucket;
-                        int cBuckets = aeBucket.length;
+                        int cBuckets = aeBucket.length();
                         do
                             {
                             if (++iBucket >= cBuckets)
@@ -1438,7 +1449,7 @@ public class SafeHashMap<K, V>
                                 return;
                                 }
 
-                            entry = aeBucket[iBucket];
+                            entry = aeBucket.get(iBucket);
                             }
                         while (entry == null);
                         }
@@ -1464,7 +1475,7 @@ public class SafeHashMap<K, V>
 
                             // find the same entry
                             Object oKey = m_entryPrev.m_oKey;
-                            entry = aeBucket[m_iBucket];
+                            entry = aeBucket.get(m_iBucket);
                             while (entry != null && entry.m_oKey != oKey)
                                 {
                                 entry = entry.m_eNext;
@@ -1574,7 +1585,7 @@ public class SafeHashMap<K, V>
             * of the hash map's reference to its buckets in order to detect
             * that a resize has occurred.
             */
-            private Entry[] m_aeBucket;
+            private AtomicReferenceArray<Entry> m_aeBucket;
 
             /**
             * Current bucket being iterated.
@@ -1773,12 +1784,12 @@ public class SafeHashMap<K, V>
                     }
 
                 // walk all buckets
-                Entry[] aeBucket = map.m_aeBucket;
-                int     cBuckets = aeBucket.length;
+                AtomicReferenceArray<Entry> aeBucket = map.m_aeBucket;
+                int                         cBuckets = aeBucket.length();
                 for (int iBucket = 0, i = 0; iBucket < cBuckets; ++iBucket)
                     {
                     // walk all entries in the bucket
-                    Entry entry = aeBucket[iBucket];
+                    Entry entry = aeBucket.get(iBucket);
                     while (entry != null)
                         {
                         a[i++] = (T) entry.m_oKey;
@@ -1926,12 +1937,12 @@ public class SafeHashMap<K, V>
                     }
 
                 // walk all buckets
-                Entry[] aeBucket = map.m_aeBucket;
-                int     cBuckets = aeBucket.length;
+                AtomicReferenceArray<Entry> aeBucket = map.m_aeBucket;
+                int                         cBuckets = aeBucket.length();
                 for (int iBucket = 0, i = 0; iBucket < cBuckets; ++iBucket)
                     {
                     // walk all entries in the bucket
-                    Entry entry = aeBucket[iBucket];
+                    Entry entry = aeBucket.get(iBucket);
                     while (entry != null)
                         {
                         a[i++] = (T) entry.m_oValue;
@@ -1951,7 +1962,7 @@ public class SafeHashMap<K, V>
     * When resizing, the entries array is replaced with an empty array to
     * signify a resize.
     */
-    private static final Entry[] NO_ENTRIES = new Entry[0];
+    private static final AtomicReferenceArray<Entry> NO_ENTRIES = new AtomicReferenceArray<>(0);
 
     /**
     * Default initial size provides a prime modulo and is large enough that
@@ -2003,7 +2014,7 @@ public class SafeHashMap<K, V>
     * The array of hash buckets.  This field is declared volatile in order to
     * reduce synchronization.
     */
-    protected volatile Entry[] m_aeBucket;
+    protected volatile AtomicReferenceArray<SafeHashMap.Entry> m_aeBucket;
 
     /**
     * The capacity of the hash map (the point at which it must resize), 1 &lt;= n.
