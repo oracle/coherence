@@ -4610,7 +4610,8 @@ public class Storage
                                     ? CacheMap.EXPIRY_NEVER
                                     : getService().getClusterService().calcTimestamp(ldtExpiry);
 
-                        bufValue = com.tangosol.util.ExternalizableHelper.encodeExpiry(bufValue, ldtExpiry);
+                        bufValue = com.tangosol.util.ExternalizableHelper.asBinary(
+                                com.tangosol.util.ExternalizableHelper.encodeExpiry(bufValue, ldtExpiry));
                         }
 
                     if (fRemove)
