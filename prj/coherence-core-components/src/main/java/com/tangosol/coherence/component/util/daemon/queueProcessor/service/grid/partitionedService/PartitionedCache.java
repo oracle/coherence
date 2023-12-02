@@ -38638,9 +38638,6 @@ public class PartitionedCache
                                 // no need to send events for updates that remove DECO_STORE
                                 fEvents  = false;
                                 fIncptrs = false;
-            
-                                // COH-15096: don't generate the UEM events either
-                                status.setSuppressEvents(true);
                                 }
                     
                             // no need update user indices for decoration updates
