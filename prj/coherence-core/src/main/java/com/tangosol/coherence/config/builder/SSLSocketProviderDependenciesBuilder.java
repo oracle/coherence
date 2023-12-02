@@ -58,6 +58,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 
@@ -640,7 +641,22 @@ public class SSLSocketProviderDependenciesBuilder
             {
             boolean fMatched = false;
 
-            if (sUrlHostname != null && sslSession != null)
+            try
+                {
+                // when this is called before handshake, peer certificate is null;
+                // after handshake, this will be called again with peer certificate(s)
+                if (sslSession.getPeerCertificates() == null)
+                    {
+                    return true;
+                    }
+                }
+            catch (SSLPeerUnverifiedException e)
+                {
+                Logger.err("DefaultHostnameVerifier rejecting hostname " + sUrlHostname
+                           + " with exception: " + e);
+                }
+
+            if (sUrlHostname != null && sUrlHostname.length() > 0 && sslSession != null)
                 {
                 Collection<String> colWildcardDNSNames = SSLCertUtility.getDNSSubjAltNames(sslSession, true, false);
                 String             sCertHostname       = SSLCertUtility.getCommonName(sslSession);
