@@ -229,6 +229,10 @@ public class DefaultCacheServer
                 }
             }
 
+        // For a clean shutdown, remove the shutdown hook added
+        // when the services are started to avoid leaking threads
+        Runtime.getRuntime().removeShutdownHook(m_threadShutdown);
+
         notifyShutdown();
         }
 
