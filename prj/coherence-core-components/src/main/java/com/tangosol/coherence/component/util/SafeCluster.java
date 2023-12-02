@@ -397,6 +397,11 @@ public class SafeCluster
         {
         setInternalCluster(null);
         setSurrogateMember(null);
+
+        if (m_commonDaemon != null)
+            {
+            m_commonDaemon.shutdown();
+            }
         
         getScopedServiceStore().clear();
         getLocalServices().clear();
