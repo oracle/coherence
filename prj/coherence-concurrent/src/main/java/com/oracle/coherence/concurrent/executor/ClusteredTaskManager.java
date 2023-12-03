@@ -35,6 +35,7 @@ import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
@@ -1022,14 +1023,9 @@ public class ClusteredTaskManager<T, A, R>
             {
             Caches.tasks(service).remove(sKey);
             }
-        else if (retain != Duration.ZERO)
+        else if (!Duration.ZERO.equals(retain))
             {
-            long                 cRetainMillis = m_retainDuration.toMillis();
-            ClusteredTaskManager value         = this;
-
-            m_retainDuration  = Duration.ZERO;
-
-            Caches.tasks(service).put(sKey, value, cRetainMillis);
+            Caches.tasks(service).invoke(sKey, new RetainProcessor(m_retainDuration.toMillis()));
             }
 
         // clean up the task properties
@@ -1276,6 +1272,89 @@ public class ClusteredTaskManager<T, A, R>
          * {@link InvocableMap.EntryProcessor}s to be invoked in list-order.
          */
         protected ArrayList<InvocableMap.EntryProcessor> m_listProcessors;
+        }
+
+    // ----- inner class: RetainProcessor -----------------------------------
+
+    /**
+     * Handles updating the {@link ClusteredTaskManager} appropriately if
+     * the task is being retained after execution.
+     *
+     * @since 22.06.7
+     */
+    public static class RetainProcessor
+        extends PortableAbstractProcessor
+        implements ExternalizableLite
+        {
+        // ----- constructors -----------------------------------------------
+
+        /**
+         * For serialization.
+         */
+        @SuppressWarnings("unused")
+        public RetainProcessor()
+            {
+            }
+
+        /**
+         * Constructs a new {@code RetainProcessor} that will apply
+         * the given expiry value to the processed entry.
+         *
+         * @param cMillis  the {@code time-to-live} for the entry.
+         */
+        public RetainProcessor(long cMillis)
+            {
+            m_cMillis = cMillis;
+            }
+
+        // ----- ExternalizableList interface -------------------------------
+
+        @Override
+        public void readExternal(DataInput in) throws IOException
+            {
+            m_cMillis = ExternalizableHelper.readLong(in);
+            }
+
+        @Override
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            ExternalizableHelper.writeLong(out, m_cMillis);
+            }
+
+        // ----- PortableAbstractProcessor methods --------------------------
+
+        @Override
+        public Object process(Entry entry)
+            {
+            if (entry.isPresent())
+                {
+                ClusteredTaskManager manager = (ClusteredTaskManager) entry.getValue();
+                manager.m_retainDuration = Duration.ZERO;
+                entry.setValue(manager, true);
+                ((BinaryEntry) entry).expire(m_cMillis);
+                }
+
+            return null;
+            }
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            m_cMillis = in.readLong(0);
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            out.writeLong(0, m_cMillis);
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The {@code ttl} to apply to the processed entry.
+         */
+        protected long m_cMillis;
         }
 
     // ----- inner class: CleanupContinuation -------------------------------

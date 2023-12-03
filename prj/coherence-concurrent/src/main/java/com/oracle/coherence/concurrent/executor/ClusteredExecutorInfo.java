@@ -98,6 +98,7 @@ public class ClusteredExecutorInfo
         m_cMaxMemory      = cMaxMemory;
         m_cTotalMemory    = totalMemory;
         m_cFreeMemory     = freeMemory;
+        m_ldtJoined       = System.nanoTime();
     }
 
     // ----- public methods -------------------------------------------------
@@ -360,8 +361,6 @@ public class ClusteredExecutorInfo
             {
             case JOINING:
 
-                m_ldtJoined = Base.getSafeTimeMillis();
-
                 // schedule introducing the Executor to existing (non-completed) Tasks
                 return new JoiningContinuation(m_sIdentity, service);
 
@@ -567,7 +566,7 @@ public class ClusteredExecutorInfo
 
             if (state == State.JOINING || state == State.RUNNING)
                 {
-                m_ldtJoined = Base.getSafeTimeMillis();
+                m_ldtJoined = System.nanoTime();
                 }
             }
 
