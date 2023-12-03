@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,7 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.concurrent.executor.management.ExecutorMBean;
 
+import com.oracle.coherence.concurrent.executor.options.CloseExecutor;
 import com.oracle.coherence.concurrent.executor.options.Description;
 import com.oracle.coherence.concurrent.executor.options.Member;
 import com.oracle.coherence.concurrent.executor.options.Name;
@@ -176,10 +177,7 @@ public class ClusteredRegistration
 
         // establish a TaskExecutor for the assigned task
         TaskExecutor taskExecutor = new TaskExecutor(sTaskId, assignment.isRecovered());
-
-        TaskExecutor existing = f_mapTaskExecutors.putIfAbsent(sTaskId, taskExecutor);
-
-        m_cTasksInProgressCount++;
+        TaskExecutor existing     = f_mapTaskExecutors.putIfAbsent(sTaskId, taskExecutor);
 
         //noinspection StatementWithEmptyBody
         if (existing == null)
@@ -1257,6 +1255,11 @@ public class ClusteredRegistration
                 viewAssignments.release();
 
                 m_viewAssignments = null;
+                }
+
+            if (f_optionsByType.contains(CloseExecutor.class))
+                {
+                f_executor.shutdown();
                 }
 
             // deregister in case the close wasn't initiated by the owning ClusteredExecutorService
