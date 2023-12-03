@@ -191,7 +191,7 @@ public class StandardExecutionStrategy
             {
             for (int i = 0, len = asExecutorIds.length; i < len && cRemaining > 0 && cExtra > 0; i++)
                 {
-                String sExecutorId = asExecutorIds[COUNTER.incrementAndGet() % len];
+                String sExecutorId = asExecutorIds[nextCount() % len];
                 if (cPendingRecoveries > 0)
                     {
                     newPlan.recover(sExecutorId);
@@ -255,6 +255,29 @@ public class StandardExecutionStrategy
         out.writeInt(0,     m_cDesiredExecutors);
         out.writeObject(1,  m_predicate);
         out.writeBoolean(2, m_fPerformConcurrently);
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Handle rolling over the round-robin counting integer when
+     * overflow occurs.
+     *
+     * @return the next integer value
+     *
+     * @since 22.06.7
+     */
+    protected int nextCount()
+        {
+        return COUNTER.updateAndGet(operand ->
+                                    {
+                                    int next = operand + 1;
+                                    if (next == Integer.MIN_VALUE) // overflow; reset counter
+                                        {
+                                        return 0;
+                                        }
+                                    return next;
+                                    });
         }
 
     // ----- data members ---------------------------------------------------

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -150,7 +150,15 @@ public class LiveObjectEventInterceptor
             {
             m_cacheService = (CacheService) ((PartitionedServiceDispatcher) dispatcher).getService();
             m_cacheService.addMemberListener(this);
+
             dispatcher.addEventInterceptor(sIdentifier, this);
+
+            Hook.addShutdownHook(m_cacheService.getBackingMapManager().getCacheFactory().getResourceRegistry(),
+                                 () ->
+                                      {
+                                      f_executorService.shutdown();
+                                      f_continuationService.shutdown();
+                                      });
             }
         }
 
@@ -710,6 +718,8 @@ public class LiveObjectEventInterceptor
          */
         protected final Set<Object> f_setMemberAware;
         }
+
+    // ----- constants ------------------------------------------------------
 
     /**
      * The delay in milliseconds between successive attempts to inspect the expiry of local {@link Leased} objects.

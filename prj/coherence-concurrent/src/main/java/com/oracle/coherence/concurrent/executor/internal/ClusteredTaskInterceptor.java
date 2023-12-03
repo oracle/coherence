@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,6 +15,8 @@ import com.oracle.coherence.concurrent.executor.PortableAbstractProcessor;
 import com.oracle.coherence.concurrent.executor.options.Debugging;
 
 import com.oracle.coherence.concurrent.executor.util.Caches;
+
+import com.tangosol.coherence.config.Config;
 
 import com.tangosol.io.ExternalizableLite;
 
@@ -84,8 +86,6 @@ public class ClusteredTaskInterceptor
     public ClusteredTaskInterceptor(String sServiceName)
         {
         f_cacheService       = (DistributedCacheService) CacheFactory.getCluster().getService(sServiceName);
-        f_cMaxBatch          = 20;
-        f_cMaxAllowedTasks   = 100;
         f_cOrchestratedTasks = new AtomicInteger(0);
         f_fPendingTasks      = new AtomicBoolean(false);
         f_executorService    = Executors.newSingleThreadExecutor(new DaemonThreadFactory("TaskInterceptorThread-"));
@@ -101,6 +101,9 @@ public class ClusteredTaskInterceptor
 
         f_atomicPartsPending.set(new PartitionSet(cParts));
         f_mapPendingTasks = new ConcurrentHashMap<>();
+
+        Hook.addShutdownHook(f_cacheService.getBackingMapManager().getCacheFactory().getResourceRegistry(),
+                             f_executorService::shutdown);
         }
 
     // ----- ClusteredTaskInterceptor methods -------------------------------
@@ -272,6 +275,10 @@ public class ClusteredTaskInterceptor
                 setBinaryEntries = Collections.EMPTY_SET;
                 }
             }
+        else if (event instanceof EntryEvent)
+            {
+            setBinaryEntries = Set.of(((EntryEvent) event).getEntry());
+            }
 
         for (BinaryEntry binaryEntry : setBinaryEntries)
             {
@@ -313,6 +320,13 @@ public class ClusteredTaskInterceptor
                                 {
                                 type = EntryEvent.Type.INSERTED;
                                 }
+                            else if (oldManager.getState() == ClusteredTaskManager.State.ORCHESTRATED
+                                && manager.getState() == ClusteredTaskManager.State.TERMINATING)
+                                {
+                                // treat the transition to TERMINATING as a REMOVED event as the task
+                                // could be retained, and we want to keep the PENDING queue moving
+                                type = EntryEvent.Type.REMOVED;
+                                }
                             }
                         else
                             {
@@ -331,6 +345,14 @@ public class ClusteredTaskInterceptor
                     }
                 else if (transType == TransferEvent.Type.DEPARTING)
                     {
+                    type = EntryEvent.Type.REMOVED;
+                    }
+                }
+            else
+                {
+                if (event.getType() == EntryEvent.Type.REMOVED)
+                    {
+                    // explicit remove or expiry
                     type = EntryEvent.Type.REMOVED;
                     }
                 }
@@ -415,7 +437,8 @@ public class ClusteredTaskInterceptor
                         ClusteredTaskManager manager = (ClusteredTaskManager) oValue;
                         int cOrchestrated;
 
-                        if (manager.getState() != ClusteredTaskManager.State.PENDING)
+                        if (manager.getState() != ClusteredTaskManager.State.PENDING &&
+                            manager.getState() != ClusteredTaskManager.State.TERMINATING)
                             {
                             cOrchestrated = f_cOrchestratedTasks.decrementAndGet();
                             }
@@ -681,12 +704,14 @@ public class ClusteredTaskInterceptor
     /**
      * The maximum batch size.
      */
-    protected final int f_cMaxBatch;
+    protected final int f_cMaxBatch =
+            Config.getInteger("coherence.executor.batch.max", 20);
 
     /**
      * The maximum tasks allowed to be run.
      */
-    protected final int f_cMaxAllowedTasks;
+    protected final int f_cMaxAllowedTasks =
+            Config.getInteger("coherence.executor.concurrent.tasks.max",100);
 
     /**
      * The number of orchestrated tasks.

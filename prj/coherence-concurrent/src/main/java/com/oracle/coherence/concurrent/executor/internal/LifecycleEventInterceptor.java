@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,7 +21,10 @@ import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.events.Event;
 import com.tangosol.net.events.EventInterceptor;
+
+import com.tangosol.net.events.SessionLifecycleEvent;
 
 import com.tangosol.net.events.application.LifecycleEvent;
 
@@ -35,24 +38,26 @@ import java.util.concurrent.ExecutorService;
  * a local {@link ExecutorService} for executing tasks.
  */
 public class LifecycleEventInterceptor
-        implements EventInterceptor<LifecycleEvent>
+        implements EventInterceptor<Event<?>>
     {
     // ----- EventInterceptor interface -------------------------------------
 
     @Override
-    public void onEvent(LifecycleEvent event)
+    public void onEvent(Event<?> event)
         {
         ExecutorTrace.log(() -> String.format("LifecycleEventInterceptor received event with type: %s", event.getType()));
 
         if (event.getType() == LifecycleEvent.Type.ACTIVATED)
             {
+            m_fClosed = false;
+            LifecycleEvent lifecycleEvent = (LifecycleEvent) event;
             try
                 {
                 // acquire the local member
                 Member member = CacheFactory.getCluster().getLocalMember();
 
                 // acquire the CCF that was just started
-                ConfigurableCacheFactory configurableCacheFactory = event.getConfigurableCacheFactory();
+                ConfigurableCacheFactory configurableCacheFactory = lifecycleEvent.getConfigurableCacheFactory();
 
                 // attempt to acquire the cache to determine if we're storage enabled
                 NamedCache<?, ?> cache = Caches.assignments(configurableCacheFactory);
@@ -110,20 +115,58 @@ public class LifecycleEventInterceptor
                 throw Base.ensureRuntimeException(e);
                 }
             }
-        else if (event.getType() == LifecycleEvent.Type.DISPOSING)
+        else if (event.getType() == LifecycleEvent.Type.DISPOSING ||
+                 event.getType() == SessionLifecycleEvent.Type.STOPPING)
             {
-            ResourceRegistry registry = event.getConfigurableCacheFactory().getResourceRegistry();
-
-            ClusteredExecutorService clusteredExecutorService =
-                    registry.getResource(ClusteredExecutorService.class,
-                                         ClusteredExecutorService.class.getSimpleName());
-
-            if (clusteredExecutorService != null)
+            if (!m_fClosed)
                 {
-                clusteredExecutorService.shutdownNow();
-                }
+                m_fClosed = true;
+                ResourceRegistry registry = getRegistry(event);
 
-            ConcurrentConfiguration.get().reset();
+                ClusteredExecutorService clusteredExecutorService =
+                        registry.getResource(ClusteredExecutorService.class,
+                                             ClusteredExecutorService.class.getSimpleName());
+
+                if (clusteredExecutorService != null)
+                    {
+                    clusteredExecutorService.shutdownNow();
+                    }
+
+                Hook.runShutdownHooks(registry);
+
+                ConcurrentConfiguration.get().reset();
+                }
             }
         }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Return the {@link ResourceRegistry} of the underlying
+     * {@link ConfigurableCacheFactory} associated with the event.
+     *
+     * @param event  the {@link Event}
+     *
+     * @return the {@link ResourceRegistry} of the underlying
+     *         {@link ConfigurableCacheFactory} associated with the event
+     */
+    protected ResourceRegistry getRegistry(Event<?> event)
+        {
+        if (event instanceof LifecycleEvent)
+            {
+            return ((LifecycleEvent) event).getConfigurableCacheFactory().getResourceRegistry();
+            }
+        else
+            {
+            return ((SessionLifecycleEvent) event).getSession().getResourceRegistry();
+            }
+        }
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * Flag indicating that the event processing associated with the termination
+     * of the executor runtime has been processed.
+     */
+    protected boolean m_fClosed;
     }

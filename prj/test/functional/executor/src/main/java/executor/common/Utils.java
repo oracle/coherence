@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -41,33 +41,38 @@ public final class Utils
      * @param assignmentCache    the {@link ClusteredAssignment} cache
      * @param taskManagerCache   the {@link ClusteredTaskManager} cache
      * @param propertiesCache    the {@link ClusteredProperties} cache
-     *
-     * @throws NullPointerException if any of the arguments are {@code null}
      */
     public static void dumpExecutorCacheStates(NamedCache<?, ?> executorInfoCache,
                                                NamedCache<?, ?> assignmentCache,
                                                NamedCache<?, ?> taskManagerCache,
                                                NamedCache<?, ?> propertiesCache)
         {
-        Objects.requireNonNull(executorInfoCache);
-        Objects.requireNonNull(assignmentCache);
-        Objects.requireNonNull(taskManagerCache);
-        Objects.requireNonNull(propertiesCache);
-
         final StringBuilder builder = new StringBuilder(1024);
 
         builder.append("\n\n### Dumping Cache States ...\n");
-        builder.append("=== Executors [count=").append(executorInfoCache.size()).append("] ===\n");
-        executorInfoCache.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
+        if (executorInfoCache != null)
+            {
+            builder.append("=== Executors [count=").append(executorInfoCache.size()).append("] ===\n");
+            executorInfoCache.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
+            }
 
-        builder.append("\n=== Assignments [count=").append(assignmentCache.size()).append("] ===\n");
-        assignmentCache.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
+        if (assignmentCache != null)
+            {
+            builder.append("\n=== Assignments [count=").append(assignmentCache.size()).append("] ===\n");
+            assignmentCache.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
+            }
 
-        builder.append("\n=== Tasks [count=").append(taskManagerCache.size()).append("] ===\n");
-        taskManagerCache.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
+        if (taskManagerCache != null)
+            {
+            builder.append("\n=== Tasks [count=").append(taskManagerCache.size()).append("] ===\n");
+            taskManagerCache.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
+            }
 
-        builder.append("\n=== Properties [count=").append(propertiesCache.size()).append("] ===\n");
-        propertiesCache.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
+        if (propertiesCache != null)
+            {
+            builder.append("\n=== Properties [count=").append(propertiesCache.size()).append("] ===\n");
+            propertiesCache.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
+            }
         builder.append("\n\n");
 
         System.out.print(builder);
