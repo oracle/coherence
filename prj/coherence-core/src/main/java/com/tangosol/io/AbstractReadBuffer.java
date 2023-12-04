@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io;
@@ -810,9 +810,6 @@ public abstract class AbstractReadBuffer
                 // pretend to have read to the end of the binary
                 setOffsetInternal(of + cb);
                 }
-
-            // validating UTF byte size read from stream by caller
-            ExternalizableHelper.validateLoadArray(byte[].class, cb, this);
             return convertUTF(of, cb);
             }
 

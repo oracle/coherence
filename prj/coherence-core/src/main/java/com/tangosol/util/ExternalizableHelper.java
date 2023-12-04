@@ -1363,7 +1363,6 @@ public abstract class ExternalizableHelper
                 {
                 return "";
                 }
-            validateLoadArray(byte[].class, cb, in);
 
             // get the "UTF binary"
             byte[] ab;
