@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.filter;
 
@@ -62,7 +62,7 @@ public class AnyFilterTest
         // create the AnyFilter to be tested
         IndexAwareFilter filter = new AnyFilter(new Filter[] {
                 new EqualsFilter(IdentityExtractor.INSTANCE, 3),
-                new EqualsFilter(IdentityExtractor.INSTANCE, 2)});
+                new BetweenFilter(IdentityExtractor.INSTANCE, 2, 3)});
 
         Map mapIndexes = new HashMap();
         mapIndexes.put(IdentityExtractor.INSTANCE, index);

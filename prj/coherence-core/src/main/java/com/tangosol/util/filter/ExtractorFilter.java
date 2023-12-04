@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -80,8 +80,8 @@ public abstract class ExtractorFilter<T, E>
     public ExtractorFilter(String sMethod)
         {
         m_extractor = sMethod.indexOf('.') < 0
-                ? new ReflectionExtractor(sMethod)
-                : new ChainedExtractor(sMethod);
+                ? new ReflectionExtractor<>(sMethod)
+                : new ChainedExtractor<>(sMethod);
         }
 
 
@@ -158,8 +158,9 @@ public abstract class ExtractorFilter<T, E>
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
-        return index == null ? calculateIteratorEffectiveness(setKeys.size())
-                : index.getIndexContents().size();
+        return index == null
+               ? -1
+               : setKeys.size();
         }
 
     /**

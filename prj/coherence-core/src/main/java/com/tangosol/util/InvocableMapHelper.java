@@ -695,33 +695,32 @@ public abstract class InvocableMapHelper
             filter = null;
             }
 
-        Object[] aoResult; // may contain keys or entries
+        Object[] aoResult = null; // may contain keys or entries
 
-        // apply an index
-        if (filter instanceof IndexAwareFilter)
+        if (mapIndexes != null && !mapIndexes.isEmpty())
             {
-            IndexAwareFilter filterIx        = (IndexAwareFilter) filter;
-            Set              setFilteredKeys = new SubSet(map.keySet());
+            // apply an index
+            if (filter instanceof IndexAwareFilter)
+                {
+                IndexAwareFilter filterIx = (IndexAwareFilter) filter;
+                Set setFilteredKeys = new SubSet(map.keySet());
 
-            if (mapIndexes == null)
-                {
-                mapIndexes = Collections.emptyMap();
+                try
+                    {
+                    filter = filterIx.applyIndex(mapIndexes, setFilteredKeys);
+                    }
+                catch (ConcurrentModificationException e)
+                    {
+                    // applyIndex failed; try again with a snapshot of the key set
+                    setFilteredKeys = new SubSet(
+                            new ImmutableArrayList(map.keySet().toArray()));
+                    filter = filterIx.applyIndex(mapIndexes, setFilteredKeys);
+                    }
+                aoResult = setFilteredKeys.toArray();
                 }
-
-            try
-                {
-                filter = filterIx.applyIndex(mapIndexes, setFilteredKeys);
-                }
-            catch (ConcurrentModificationException e)
-                {
-                // applyIndex failed; try again with a snapshot of the key set
-                setFilteredKeys = new SubSet(
-                        new ImmutableArrayList(map.keySet().toArray()));
-                filter = filterIx.applyIndex(mapIndexes, setFilteredKeys);
-                }
-            aoResult = setFilteredKeys.toArray();
             }
-        else
+
+        if (aoResult == null)
             {
             aoResult = map.keySet().toArray();
             }

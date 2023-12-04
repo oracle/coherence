@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
@@ -114,7 +114,17 @@ public class ContainsFilter<T, E>
     */
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
-        return calculateMatchEffectiveness(mapIndexes, setKeys);
+        MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
+        if (index == null)
+            {
+            // there is no relevant index
+            return -1;
+            }
+        else
+            {
+            Set setEQ = (Set) index.getIndexContents().get(getValue());
+            return setEQ == null ? 0 : setEQ.size();
+            }
         }
 
     /**
