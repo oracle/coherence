@@ -734,6 +734,8 @@ public class Storage
     private com.tangosol.net.internal.StorageVersion __m_Version;
     private static com.tangosol.util.ListMap __mapChildren;
 
+    private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
+
     // Static initializer
     static
         {
@@ -1209,7 +1211,7 @@ public class Storage
         try
             {
             List         listResult = new LinkedList();
-            Converter converter  = service.getBackingMapContext().getValueToInternalConverter();
+            Converter    converter  = service.getBackingMapContext().getValueToInternalConverter();
             PartitionSet partQuery  = new PartitionSet(cPartitions);
 
             if (cbPart == -1L && !partMask.isEmpty())
@@ -1224,7 +1226,7 @@ public class Storage
                 // not reprocessed
                 partMask.remove(nProbePart);
 
-                QueryResult result = query(filter, QUERY_AGGREGATE, partQuery, msgRequest.checkTimeoutRemaining());
+                QueryResult result = query(filter, QUERY_ENTRIES, partQuery, msgRequest.checkTimeoutRemaining());
                 Object[]    aEntry = result.getResults();
 
                 // since keys are always stored on-heap and seldom deserialized during
@@ -1272,7 +1274,7 @@ public class Storage
 
                 try
                     {
-                    QueryResult result = query(filter, QUERY_AGGREGATE, partQuery, msgRequest.checkTimeoutRemaining());
+                    QueryResult result = query(filter, QUERY_ENTRIES, partQuery, msgRequest.checkTimeoutRemaining());
 
                     Object oResult = agent.aggregate(
                             new ImmutableArrayList(result.getResults(), 0, result.getCount()).getSet());
@@ -1427,10 +1429,16 @@ public class Storage
 
                 // now that we typically query by partition, optimize for a situation
                 // when there are no entries in the partition
-                filterRemaining = setKeys.isEmpty()
-                                         ? null
-                                         : filterIx.applyIndex(getIndexMap(partMask), setKeys);
-                aoResult        = setKeys.toArray();
+                if (setKeys.isEmpty())
+                    {
+                    filterRemaining = null;
+                    aoResult        = EMPTY_OBJECT_ARRAY;
+                    }
+                else
+                    {
+                    filterRemaining = filterIx.applyIndex(getIndexMap(partMask), setKeys);
+                    aoResult        = setKeys.toArray();
+                    }
                 }
             catch (ConcurrentModificationException e)
                 {
@@ -2283,7 +2291,7 @@ public class Storage
         // import com.tangosol.util.filter.IndexAwareFilter;
         // import java.util.Map;
 
-        if (nQueryType == QUERY_KEYS)
+        if (nQueryType == QUERY_KEYS || nQueryType == QUERY_AGGREGATE)
             {
             return aoResult.length;
             }
@@ -2360,7 +2368,7 @@ public class Storage
         // import java.util.Map;
 
         Map     mapPrime = getBackingInternalCache();
-        boolean fKeys    = nQueryType == QUERY_KEYS;
+        boolean fKeys    = nQueryType == QUERY_KEYS || nQueryType == QUERY_AGGREGATE;
         boolean fInvoke  = nQueryType == QUERY_INVOKE;
         boolean fSame    = filter == filterOrig;
 
@@ -2451,7 +2459,7 @@ public class Storage
                 }
             }
 
-        return nQueryType == QUERY_KEYS
+        return fKeys
                ? cResults
                : checkIndexConsistency(filterOrig, aoResult, cResults, nQueryType, partMask, lIdxVersion);
         }
