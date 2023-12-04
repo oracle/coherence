@@ -101,6 +101,7 @@ public class AnyFilter
     /**
     * {@inheritDoc}
     */
+    @Override
     protected boolean evaluateEntry(Map.Entry entry, QueryContext ctx,
                                     QueryRecord.PartialResult.TraceStep step)
         {
@@ -121,12 +122,34 @@ public class AnyFilter
     /**
     * {@inheritDoc}
     */
+    @Override
+    protected Set<Filter<?>> simplifyFilters()
+        {
+        Set<Filter<?>> setFilters = new HashSet<>();
+        for (Filter<?> filter : m_aFilter)
+            {
+            if (filter instanceof AnyFilter)
+                {
+                // pull nested OR/ANY filters to top level
+                setFilters.addAll(((AnyFilter) filter).simplifyFilters());
+                }
+            else
+                {
+                // remove duplicates
+                setFilters.add(filter);
+                }
+            }
+        return setFilters;
+        }
+
+    /**
+    * {@inheritDoc}
+    */
+    @Override
     protected Filter applyIndex(Map mapIndexes, Set setKeys, QueryContext ctx,
             QueryRecord.PartialResult.TraceStep step)
         {
-        // this code is buggy, re-ordering is sometimes wrong
-        // remove comment when addressed
-        //optimizeFilterOrder(mapIndexes, setKeys);
+        optimizeFilterOrder(mapIndexes, setKeys);
 
         Filter[] aFilter    = m_aFilter;
         int      cFilters   = aFilter.length;
@@ -136,36 +159,34 @@ public class AnyFilter
         // listFilter is an array of filters that will have to be re-applied
         // setMatch   is an accumulating set of already matching keys
 
-        for (int i = 0; i < cFilters; i++)
+        SubSet setRemain = new SubSet(setKeys);
+        for (int i = cFilters - 1; i >= 0; i--)    // iterate backwards, to reduce the set of remaining keys as quickly as possible
             {
             Filter filter = aFilter[i];
             if (filter instanceof IndexAwareFilter)
                 {
-                SubSet setRemain = new SubSet(setKeys);
-                if (!setMatch.isEmpty())
-                    {
-                    setRemain.removeAll(setMatch);
-                    }
-
                 Filter filterDefer = applyFilter(filter, i, mapIndexes, setRemain, ctx, step);
-
+                Set    setRemoved  = setRemain.getRemoved();
+                Set    setRetained = setRemain.getRetained();
+                
                 if (filterDefer == null)
                     {
                     // these are definitely "in"
-                    setMatch.addAll(setRemain);
+                    setMatch.addAll(setRetained);
+                    
+                    // reset setRemain to contain only the keys that were removed
+                    setRemain = new SubSet(setRemoved);
                     }
                 else
                     {
-                    int cKeys   = setKeys.size();
-                    int cRemain = setRemain.size();
-                    if (cRemain < cKeys)
+                    if (!setRemoved.isEmpty())
                         {
                         // some keys are definitely "out" for this filter;
                         // we need to incorporate this knowledge into a deferred
                         // filter
-                        if (cRemain > 0)
+                        if (!setRemain.isEmpty())
                             {
-                            KeyFilter filterKey = new KeyFilter(setRemain);
+                            KeyFilter filterKey = new KeyFilter(setRetained);
                             listFilter.add(new AndFilter(filterDefer, filterKey));
                             }
                         else
@@ -179,6 +200,11 @@ public class AnyFilter
                         {
                         listFilter.add(filterDefer);
                         }
+
+                    // we have to reset setRemain it to contain all the keys
+                    // that are not definite matches
+                    setRemain = new SubSet(setKeys);
+                    setRemain.removeAll(setMatch);
                     }
                 }
             else

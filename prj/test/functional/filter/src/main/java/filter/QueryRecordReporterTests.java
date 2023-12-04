@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -136,9 +136,10 @@ public class QueryRecordReporterTests
 
         Filter filterAll = new AllFilter( new Filter[]
             {
-            new LikeFilter(IntegerToStringPersonKeyExtractor.INSTANCE, "9&%", '&', false),
+            new LikeFilter(IntegerToStringPersonKeyExtractor.INSTANCE, "&2%", '&', false),
             new LessEqualsFilter("getAge", 98),
-            new AndFilter( new BetweenFilter(StringToIntegerPersonAddressZipExtractor.INSTANCE, 100, 10000),
+            new LessEqualsFilter("getAge", 98),  // duplicate; should be removed
+            new AndFilter( new BetweenFilter(StringToIntegerPersonAddressZipExtractor.INSTANCE, 100, 15000),  // nested AND filter; should be unwrapped and pulled up
                            new EqualsFilter("getFirstName", "Hector"))
             });
 

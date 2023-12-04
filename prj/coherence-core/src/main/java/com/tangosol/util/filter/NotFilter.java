@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
@@ -90,9 +90,14 @@ public class NotFilter<T>
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
         Filter filter = m_filter;
-        return filter instanceof IndexAwareFilter
-            ? ((IndexAwareFilter) filter).calculateEffectiveness(mapIndexes, setKeys)
-            : setKeys.size()*ExtractorFilter.EVAL_COST;
+        if (filter instanceof IndexAwareFilter)
+            {
+            IndexAwareFilter ixFilter = (IndexAwareFilter) filter;
+            int nEffectiveness = ixFilter.calculateEffectiveness(getNonPartialIndexes(mapIndexes), setKeys);
+            return nEffectiveness < 0 ? -1 : setKeys.size() - nEffectiveness;
+            }
+        
+        return -1;
         }
 
     /**

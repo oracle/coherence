@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
@@ -150,8 +150,33 @@ public class ContainsAnyFilter<T, E>
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
-        return index == null ? calculateIteratorEffectiveness(setKeys.size())
-                             : ((Collection) getValue()).size();
+        if (index == null)
+            {
+            // there is no relevant index
+            return -1;
+            }
+        else
+            {
+            // calculating the exact number of keys retained is too expensive;
+            // ignore the fact that there may be duplicates and simply return
+            // the worst possible number of keys retained, as if they were unique
+
+            Collection colValues   = getValue();
+            Map        mapContents = index.getIndexContents();
+            int        cMatch      = 0;
+
+            for (Object oValue : colValues)
+                {
+                Set setEQ = (Set) mapContents.get(oValue);
+
+                if (setEQ != null)
+                    {
+                    cMatch += setEQ.size();
+                    }
+                }
+            
+            return Math.min(cMatch, setKeys.size());
+            }
         }
 
     /**
@@ -167,12 +192,12 @@ public class ContainsAnyFilter<T, E>
             }
         else
             {
-            Collection colValues = (Collection) getValue();
-            Set        setIn     = new HashSet();
-            for (Iterator iter = colValues.iterator(); iter.hasNext();)
+            Collection colValues   = getValue();
+            Map        mapContents = index.getIndexContents();
+            Set        setIn       = new HashSet();
+            for (Object oValue : colValues)
                 {
-                Object oValue = iter.next();
-                Set    setEQ  = (Set) index.getIndexContents().get(oValue);
+                Set setEQ = (Set) mapContents.get(oValue);
 
                 if (setEQ != null)
                     {

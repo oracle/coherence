@@ -11,11 +11,10 @@ package com.tangosol.util.filter;
 import com.tangosol.util.Filter;
 import com.tangosol.util.MapIndex;
 import com.tangosol.util.ValueExtractor;
-import com.tangosol.util.SafeSortedMap;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedMap;
 
@@ -90,7 +89,49 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
     */
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
-        return calculateRangeEffectiveness(mapIndexes, setKeys);
+        MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
+        if (index == null)
+            {
+            // there is no relevant index
+            return -1;
+            }
+        
+        Map<E, Set<?>> mapContents = index.getIndexContents();
+        if (mapContents.isEmpty())
+            {
+            return 0;
+            }
+        
+        int cMatch = 0;
+        if (mapContents instanceof SortedMap)
+            {
+            SortedMap<E, Set<?>> mapSorted     = (SortedMap<E, Set<?>>) mapContents;
+            Integer              cAllOrNothing = allOrNothing(index, mapSorted, setKeys);
+            if (cAllOrNothing != null)
+                {
+                return cAllOrNothing;
+                }
+
+            SortedMap<E, Set<?>> subMap = mapSorted.tailMap(getValue());
+            for (Set<?> set : subMap.values())
+                {
+                cMatch += ensureSafeSet(set).size();
+                }
+
+            cMatch = subtractEqualKeys(mapSorted, cMatch);
+            }
+        else
+            {
+            for (Map.Entry<E, Set<?>> entry : mapContents.entrySet())
+                {
+                if (evaluateExtracted(entry.getKey()))
+                    {
+                    cMatch += ensureSafeSet(entry.getValue()).size();
+                    }
+                }
+            }
+
+        return cMatch;
         }
 
     /**
@@ -98,8 +139,8 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
     */
     public Filter applyIndex(Map mapIndexes, Set setKeys)
         {
-        Object oValue = getValue();
-        if (oValue == null)
+        E value = getValue();
+        if (value == null)
             {
             // nothing could be compared to null
             setKeys.clear();
@@ -109,22 +150,34 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
         if (index == null)
             {
-            // there is no relevant index
+            // there is no relevant index; evaluate individual entries
             return this;
+            }
+        else if (index.getIndexContents().isEmpty())
+            {
+            // there are no entries in the index, which means no entries match this filter
+            setKeys.clear();
+            return null;
             }
 
         if (index.isOrdered())
             {
-            SortedMap mapContents = (SortedMap) index.getIndexContents();
-            Set       setEQ       = (Set) mapContents.get(oValue);
-            SortedMap mapLT       = mapContents.headMap(oValue);
-            SortedMap mapGE       = mapContents.tailMap(oValue);
+            SortedMap<E, Set<?>> mapContents   = (SortedMap<E, Set<?>>) index.getIndexContents();
+            Integer              cAllOrNothing = allOrNothing(index, mapContents, setKeys);
+            if (cAllOrNothing != null)
+                {
+                if (cAllOrNothing == 0)
+                    {
+                    setKeys.clear();
+                    }
+                return null;
+                }
+
+            SortedMap mapLT       = mapContents.headMap(value);
+            SortedMap mapGE       = mapContents.tailMap(value);
             boolean   fHeadHeavy  = mapLT.size() > mapContents.size() / 2;
 
-            if (setEQ != null)
-                {
-                setKeys.removeAll(setEQ);
-                }
+            removeEqualKeys(mapContents, setKeys);
 
             if (fHeadHeavy || index.isPartial())
                 {
@@ -148,35 +201,108 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
             }
         else
             {
-            Map mapContents = index.getIndexContents();
+            Map<E, Set<?>> mapContents = index.getIndexContents();
 
             if (index.isPartial())
                 {
                 Set setGT = new HashSet();
-                for (Object o : mapContents.entrySet())
+                for (Map.Entry<E, Set<?>> entry : mapContents.entrySet())
                     {
-                    Map.Entry  entry = (Map.Entry) o;
-                    Comparable oTest = (Comparable) entry.getKey();
-                    if (oTest != null && oTest.compareTo(oValue) > 0)
+                    if (evaluateExtracted(entry.getKey()))
                         {
-                        setGT.addAll(ensureSafeSet((Set) entry.getValue()));
+                        setGT.addAll(ensureSafeSet(entry.getValue()));
                         }
                     }
                 setKeys.retainAll(setGT);
                 }
             else
                 {
-                for (Object o : mapContents.entrySet())
+                for (Map.Entry<E, Set<?>> entry : mapContents.entrySet())
                     {
-                    Map.Entry  entry = (Map.Entry) o;
-                    Comparable oTest = (Comparable) entry.getKey();
-                    if (oTest == null || oTest.compareTo(oValue) <= 0)
+                    if (!evaluateExtracted(entry.getKey()))
                         {
-                        setKeys.removeAll(ensureSafeSet((Set) entry.getValue()));
+                        setKeys.removeAll(ensureSafeSet(entry.getValue()));
                         }
                     }
                 }
             }
+
+        return null;
+        }
+
+    // ---- helpers ---------------------------------------------------------
+
+    /**
+     * Subtract the number of equal keys from the specified match count.
+     *
+     * @param mapContents  the index contents
+     * @param cMatch       current match count
+     *
+     * @return the updated match count, after equal keys were subtracted
+     */
+    protected int subtractEqualKeys(SortedMap<E, Set<?>> mapContents, int cMatch)
+        {
+        Set<?> setEQ = mapContents.get(getValue());
+        if (setEQ != null)
+            {
+            cMatch -= setEQ.size();
+            }
+        return cMatch;
+        }
+
+    /**
+     * Remove equal keys from the specified key set.
+     *
+     * @param mapContents  the index contents
+     * @param setKeys      the mutable set of keys that remain to be filtered
+     */
+    protected void removeEqualKeys(SortedMap<E, Set<?>> mapContents, Set setKeys)
+        {
+        Set<?> setEQ = mapContents.get(getValue());
+        if (setEQ != null)
+            {
+            setKeys.removeAll(setEQ);
+            }
+        }
+
+    /**
+     * Determine if the filter will match all or none of the entries in the index.
+     *
+     * @param index        the index
+     * @param mapContents  the index contents
+     * @param setKeys      the set of keys to filter
+     *
+     * @return {@code 0} if no entries match; {@code setKeys.size()} if all entries match;
+     *         and {@code null} if only some entries match or no conclusive determination
+     *         can be made
+     */
+    protected Integer allOrNothing(MapIndex index, SortedMap<E, Set<?>> mapContents, Set setKeys)
+        {
+        if (!index.isPartial())
+            {
+            try
+                {
+                E loValue = mapContents.firstKey();
+                if (evaluateExtracted(loValue))
+                    {
+                    // all entries match, nothing to remove
+                    return setKeys.size();
+                    }
+
+                E hiValue = mapContents.lastKey();
+                if (!evaluateExtracted(hiValue))
+                    {
+                    // no entries match, remove all keys
+                    return 0;
+                    }
+                }
+            catch (NoSuchElementException e)
+                {
+                // could only happen if the index contents became empty, in which case no entries match
+                return 0;
+                }
+            }
+
         return null;
         }
     }

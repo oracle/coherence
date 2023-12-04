@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
@@ -18,8 +18,11 @@ import com.tangosol.util.ValueExtractor;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedMap;
+
+import static com.tangosol.util.filter.ExtractorFilter.ensureSafeSet;
 
 /**
 * Filter which compares the result of a method invocation with a value for
@@ -38,6 +41,7 @@ import java.util.SortedMap;
 // This class extends AndFilter to maintain backward compatibility with previous
 // versions of Coherence. The methods of AndFilter are overridden in this class
 // so that it effectively behave more like an ExtractorFilter.
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class BetweenFilter<T, E extends Comparable<? super E>>
         extends AndFilter
     {
@@ -128,7 +132,7 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
      */
     public ValueExtractor getValueExtractor()
         {
-        return ((ComparisonFilter) getFilters()[0]).getValueExtractor();
+        return getLowerFilter().getValueExtractor();
         }
 
     /**
@@ -140,7 +144,12 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
      */
     public E getLowerBound()
         {
-        return (E) ((ComparisonFilter) getFilters()[0]).getValue();
+        return getLowerFilter().getValue();
+        }
+
+    protected ComparisonFilter<T, E, E> getLowerFilter()
+        {
+        return (ComparisonFilter<T, E, E>) getFilters()[0];
         }
 
     /**
@@ -152,7 +161,12 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
      */
     public E getUpperBound()
         {
-        return (E) ((ComparisonFilter) getFilters()[1]).getValue();
+        return getUpperFilter().getValue();
+        }
+
+    protected ComparisonFilter<T, E, E> getUpperFilter()
+        {
+        return (ComparisonFilter<T, E, E>) getFilters()[1];
         }
 
     /**
@@ -164,7 +178,7 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
      */
     public boolean isLowerBoundInclusive()
         {
-        return getFilters()[0] instanceof GreaterEqualsFilter;
+        return getLowerFilter() instanceof GreaterEqualsFilter;
         }
 
     /**
@@ -176,7 +190,7 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
      */
     public boolean isUpperBoundInclusive()
         {
-        return getFilters()[1] instanceof LessEqualsFilter;
+        return getUpperFilter() instanceof LessEqualsFilter;
         }
 
     // ----- Filter methods -------------------------------------------------
@@ -215,6 +229,19 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
         return evaluateFilter(this, entry, ctx, step == null ? null : step.ensureStep(this));
         }
 
+    @Override
+    protected Set<Filter<?>> simplifyFilters()
+        {
+        // return this filter, as we don't want to change internal structure
+        return Set.of(this);
+        }
+
+    @Override
+    protected void optimizeFilterOrder(Map mapIndexes, Set setKeys)
+        {
+        // no-op; order is important here
+        }
+
     // ----- IndexAwareFilter methods ---------------------------------------
 
     /**
@@ -229,18 +256,25 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
             return null;
             }
 
-        MapIndex mapIndex = (MapIndex) mapIndexes.get(getValueExtractor());
+        MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
 
-        if (mapIndex == null)
+        if (index == null)
             {
+            // there is no relevant index; evaluate individual entries
             return this;
             }
+        else if (index.getIndexContents().isEmpty())
+            {
+            // there are no entries in the index, which means no entries match this filter
+            setKeys.clear();
+            return null;
+            }
 
-        Map<Object, Set> mapInverse = mapIndex.getIndexContents();
+        Map<Object, Set> mapInverse = index.getIndexContents();
 
         if (mapInverse instanceof SortedMap)
             {
-            applySortedIndex(setKeys, (SortedMap) mapInverse);
+            applySortedIndex(index, setKeys, (SortedMap) mapInverse);
             return null;
             }
 
@@ -250,7 +284,7 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
             {
             if (evaluateExtracted(entry.getKey()))
                 {
-                setToRetain.addAll(ExtractorFilter.ensureSafeSet(entry.getValue()));
+                setToRetain.addAll(ensureSafeSet(entry.getValue()));
                 }
             }
 
@@ -265,23 +299,56 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
     @Override
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
-        MapIndex mapIndex = (MapIndex) mapIndexes.get(getValueExtractor());
-
-        if (mapIndex == null)
+        MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
+        if (index == null)
             {
-            return setKeys.size() * EVAL_COST;
+            // there is no relevant index
+            return -1;
             }
 
-        Map mapInverse = mapIndex.getIndexContents();
-
-        if (mapInverse instanceof SortedMap)
+        Map<E, Set<?>> mapContents = index.getIndexContents();
+        int cMatch = 0;
+        if (mapContents instanceof SortedMap)
             {
-            SortedMap mapSorted = (SortedMap) mapInverse;
+            SortedMap<E, Set<?>> mapSorted     = (SortedMap<E, Set<?>>) mapContents;
+            Integer              cAllOrNothing = allOrNothing(index, mapSorted, setKeys);
+            if (cAllOrNothing != null)
+                {
+                return cAllOrNothing;
+                }
 
-            return mapSorted.subMap(getLowerBound(), getUpperBound()).size();
+            SortedMap<E, Set<?>> subMap = mapSorted.subMap(getLowerBound(), getUpperBound());
+            for (Set<?> set : subMap.values())
+                {
+                cMatch += ensureSafeSet(set).size();
+                }
+
+            // lower bound is included by default, so we need to remove it if it shouldn't be
+            if (!isLowerBoundInclusive())
+                {
+                Set<?> setLower = ensureSafeSet(mapSorted.get(getLowerBound()));
+                cMatch -= setLower.size();
+                }
+
+            // upper bound is excluded by default, so we need to add it if it shouldn't be
+            if (isUpperBoundInclusive())
+                {
+                Set<?> setUpper = ensureSafeSet(mapSorted.get(getUpperBound()));
+                cMatch += setUpper.size();
+                }
+            }
+        else
+            {
+            for (Map.Entry<E, Set<?>> entry : mapContents.entrySet())
+                {
+                if (evaluateExtracted(entry.getKey()))
+                    {
+                    cMatch += ensureSafeSet(entry.getValue()).size();
+                    }
+                }
             }
 
-        return mapInverse.size();
+        return cMatch;
         }
 
     // ----- QueryRecorderFilter methods ------------------------------------
@@ -374,31 +441,42 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
      * if the index corresponding to this filter's value extractor is a
      * sorted index.
      *
+     * @param index        the index to apply
      * @param setKeys      the set of keys of the entries being filtered
-     * @param mapInverted  the index to apply
+     * @param mapContents  the index contents to evaluate
      */
-    protected void applySortedIndex(Set setKeys, SortedMap<Object, Set> mapInverted)
+    protected void applySortedIndex(MapIndex index, Set setKeys, SortedMap<E, Set<?>> mapContents)
         {
-        Comparable             oLowerBound        = getLowerBound();
-        Comparable             oUpperBound        = getUpperBound();
+        Integer cAllOrNothing = allOrNothing(index, mapContents, setKeys);
+        if (cAllOrNothing != null)
+            {
+            if (cAllOrNothing == 0)
+                {
+                setKeys.clear();
+                }
+            return;
+            }
+
+        E                      lowerBound         = getLowerBound();
+        E                      upperBound         = getUpperBound();
         boolean                fIncludeLowerBound = isLowerBoundInclusive();
         boolean                fIncludeUpperBound = isUpperBoundInclusive();
-        SortedMap<Object, Set> mapRange           = mapInverted.subMap(oLowerBound, oUpperBound);
-        Collection             colKeysToRetain    = new HashSet();
+        SortedMap<E, Set<?>>   mapRange           = mapContents.subMap(lowerBound, upperBound);
+        Collection             colKeysToRetain    = new HashSet<>();
         boolean                fInsideRange       = fIncludeLowerBound;
 
-        for (Map.Entry<?, Set> entry : mapRange.entrySet())
+        for (Map.Entry<E, Set<?>> entry : mapRange.entrySet())
             {
             if (fInsideRange || evaluateExtracted(entry.getKey()))
                 {
                 fInsideRange = true;
-                colKeysToRetain.addAll(ExtractorFilter.ensureSafeSet(entry.getValue()));
+                colKeysToRetain.addAll(ensureSafeSet(entry.getValue()));
                 }
             }
 
         if (fIncludeUpperBound)
             {
-            Collection colUpper = mapInverted.get(oUpperBound);
+            Collection colUpper = mapContents.get(upperBound);
             if (colUpper != null)
                 {
                 colKeysToRetain.addAll(colUpper);
@@ -415,12 +493,44 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
             }
         }
 
-    // ----- constants ------------------------------------------------------
-
     /**
-     * The evaluation cost as a factor to the single index access operation.
+     * Determine if the filter will match all or none of the entries in the index.
      *
-     * @see IndexAwareFilter#calculateEffectiveness(Map, Set)
+     * @param index        the index
+     * @param mapContents  the index contents
+     * @param setKeys      the set of keys to filter
+     *
+     * @return {@code 0} if no entries match; {@code setKeys.size()} if all entries match;
+     *         and {@code null} if only some entries match or no conclusive determination
+     *         can be made
      */
-    public static int EVAL_COST = 1000;
+    protected Integer allOrNothing(MapIndex index, SortedMap<E, Set<?>> mapContents, Set setKeys)
+        {
+        if (!index.isPartial())
+            {
+            // optimize for corner cases when either all or none of the values match
+            try
+                {
+                E loValue = mapContents.firstKey();
+                E hiValue = mapContents.lastKey();
+                if (evaluateExtracted(loValue) && evaluateExtracted(hiValue))
+                    {
+                    // all entries match, nothing to remove
+                    return setKeys.size();
+                    }
+                else if (!getLowerFilter().evaluateExtracted(hiValue) || (loValue != null && !getUpperFilter().evaluateExtracted(loValue)))
+                    {
+                    // no entries match, remove all keys
+                    return 0;
+                    }
+                }
+            catch (NoSuchElementException e)
+                {
+                // could only happen if the index contents became empty, in which case no entries match
+                return 0;
+                }
+            }
+
+        return null;
+        }
     }

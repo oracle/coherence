@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
@@ -84,57 +84,6 @@ public abstract class ComparisonFilter<T, E, C>
 
 
     // ----- helpers --------------------------------------------------------
-
-    /**
-    * Helper method to calculate effectiveness for ComparisonFilters that need
-    * no more than a single index match in order to retrieve all necessary
-    * keys to perform the applyIndex() operation.
-    * Such filters are: Contains, Equals, NotEquals.
-    *
-    * @param mapIndexes  the available MapIndex objects keyed by the related
-    *                    ValueExtractor; read-only
-    * @param setKeys     the set of keys that will be filtered; read-only
-    *
-    * @return an effectiveness estimate of how well this filter can use the
-    *         specified indexes to filter the specified keys
-    */
-    protected int calculateMatchEffectiveness(Map mapIndexes, Set setKeys)
-        {
-        MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
-        return index == null ? calculateIteratorEffectiveness(setKeys.size()) : 1;
-        }
-
-    /**
-    * Helper method to calculate effectiveness for ComparisonFilters that need
-    * a range of values from an index in order to retrieve all necessary
-    * keys to perform the applyIndex() operation.
-    * Such filters are: Less, LessEquals, Greater, GreaterEquals.
-    *
-    * @param mapIndexes  the available MapIndex objects keyed by the related
-    *                    ValueExtractor; read-only
-    * @param setKeys     the set of keys that will be filtered; read-only
-    *
-    * @return an effectiveness estimate of how well this filter can use the
-    *         specified indexes to filter the specified keys
-    */
-    protected int calculateRangeEffectiveness(Map mapIndexes, Set setKeys)
-        {
-        MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
-        if (index == null)
-            {
-            return calculateIteratorEffectiveness(setKeys.size());
-            }
-        else if (index.isOrdered())
-            {
-            // TODO we could be more precise if the position of the value
-            // in the SortedMap could be quickly calculated
-            return Math.max(index.getIndexContents().size() / 4, 1);
-            }
-        else
-            {
-            return index.getIndexContents().size();
-            }
-        }
 
     /**
     * Return the string representation of the value.

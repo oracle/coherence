@@ -128,7 +128,7 @@ public class InKeySetFilter<T>
 
         return filter instanceof IndexAwareFilter
                 ? ((IndexAwareFilter) filter).calculateEffectiveness(mapIndexes, m_setKeys)
-                : setKeys.size()*ExtractorFilter.EVAL_COST;
+                : ExtractorFilter.calculateIteratorEffectiveness(setKeys.size());
         }
 
     /**
@@ -145,7 +145,7 @@ public class InKeySetFilter<T>
         Filter<T> filter = m_filter;
         return filter instanceof IndexAwareFilter
                 ? ((IndexAwareFilter) filter).applyIndex(mapIndexes, setKeys)
-                : null;
+                : filter;
         }
 
 
@@ -323,5 +323,5 @@ public class InKeySetFilter<T>
     * A flag that indicates that the key set has been converted to internal
     * form.
     */
-    transient private boolean m_fConverted;
+    private transient volatile boolean m_fConverted;
     }

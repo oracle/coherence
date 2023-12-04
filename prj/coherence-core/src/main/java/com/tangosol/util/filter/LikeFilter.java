@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
@@ -22,6 +22,7 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -172,30 +173,87 @@ public class LikeFilter<T, E>
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
         int nPlan = m_nPlan;
-        if (nPlan == ALWAYS_FALSE || nPlan == ALWAYS_TRUE)
+        if (m_nPlan == ALWAYS_FALSE)
             {
-            return 1;
+            return 0;
             }
 
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
         if (index == null)
             {
-            return calculateIteratorEffectiveness(setKeys.size());
+            // there is no relevant index
+            return -1;
             }
 
-        if (nPlan == EXACT_MATCH)
+        Map<E, Set<?>> mapContents = index.getIndexContents();
+        if (mapContents.isEmpty())
             {
-            return 1;
+            return 0;
             }
 
-        String sPattern = getPattern();
-        if (index.isOrdered() && sPattern.indexOf('%') != 0 && sPattern.indexOf('_') != 0)
+        switch (nPlan)
             {
-            return Math.max(index.getIndexContents().size() / 4, 1);
-            }
-        else
-            {
-            return index.getIndexContents().size();
+            case ALWAYS_TRUE:
+                return mapContents.values().stream().mapToInt(Set::size).sum();
+
+            case EXACT_MATCH:
+                return mapContents.getOrDefault(m_sPart, Collections.emptySet()).size();
+
+            case STARTS_WITH_CHAR:
+            case STARTS_WITH_STRING:
+                {
+                try
+                    {
+                    if (index.isOrdered())
+                        {
+                        String sPrefix = nPlan == STARTS_WITH_STRING
+                                         ? m_sPart
+                                         : String.valueOf(m_chPart);
+
+                        SortedMap<?, Set<?>> mapTail = ((SortedMap) mapContents).tailMap(sPrefix);
+                        int cMatch = 0;
+                        for (Iterator iter = mapTail.entrySet().iterator(); iter.hasNext(); )
+                            {
+                            Map.Entry<?, Set<?>> entry  = (Map.Entry<?, Set<?>>) iter.next();
+                            String               sValue = (String) entry.getKey();
+
+                            if (sValue != null && sValue.startsWith(sPrefix))
+                                {
+                                cMatch += ensureSafeSet(entry.getValue()).size();
+                                }
+                            else
+                                {
+                                break;
+                                }
+                            }
+                        return cMatch;
+                        }
+                    }
+                catch (ClassCastException e)
+                    {
+                    // incompatible types; go the long way
+                    }
+
+                // fall through
+                }
+
+            default:
+                {
+                int cMatch = 0;
+                for (Iterator iter = mapContents.entrySet().iterator(); iter.hasNext();)
+                    {
+                    Map.Entry entry  = (Map.Entry) iter.next();
+                    Object    oValue = entry.getKey();
+
+                    String sValue = oValue == null ? null : String.valueOf(oValue);
+                    if (isMatch(sValue))
+                        {
+                        cMatch += ensureSafeSet((Set) entry.getValue()).size();
+                        }
+                    }
+
+                return cMatch;
+                }
             }
         }
 
@@ -221,6 +279,12 @@ public class LikeFilter<T, E>
             // there is no relevant index
             return this;
             }
+        else if (index.getIndexContents().isEmpty())
+           {
+           // there are no entries in the index, which means no entries match this filter
+           setKeys.clear();
+           return null;
+           }
 
         if (nPlan == EXACT_MATCH)
             {
@@ -236,17 +300,16 @@ public class LikeFilter<T, E>
             return null;
             }
 
-        Map mapValues = index.getIndexContents();
+        Map mapContents = index.getIndexContents();
 
-        if ((nPlan == STARTS_WITH_STRING || nPlan == STARTS_WITH_CHAR)
-                && index.isOrdered())
+        if ((nPlan == STARTS_WITH_STRING || nPlan == STARTS_WITH_CHAR) && index.isOrdered())
             {
             try
                 {
                 String sPrefix = nPlan == STARTS_WITH_STRING ?
                     m_sPart : String.valueOf(m_chPart);
 
-                SortedMap mapTail  = ((SortedMap) mapValues).tailMap(sPrefix);
+                SortedMap mapTail  = ((SortedMap) mapContents).tailMap(sPrefix);
                 Set       setMatch = new HashSet();
                 for (Iterator iter = mapTail.entrySet().iterator(); iter.hasNext();)
                     {
@@ -272,7 +335,7 @@ public class LikeFilter<T, E>
             }
 
         Set setMatch = new HashSet();
-        for (Iterator iter = mapValues.entrySet().iterator(); iter.hasNext();)
+        for (Iterator iter = mapContents.entrySet().iterator(); iter.hasNext();)
             {
             Map.Entry entry  = (Map.Entry) iter.next();
             Object    oValue = entry.getKey();
