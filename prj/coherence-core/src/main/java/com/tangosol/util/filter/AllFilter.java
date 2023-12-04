@@ -13,6 +13,7 @@ import com.tangosol.util.QueryContext;
 import com.tangosol.util.QueryRecord;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -113,15 +114,31 @@ public class AllFilter
         return true;
         }
 
-    /**
-    * {@inheritDoc}
-    */
+    @Override
+    protected Set<Filter<?>> simplifyFilters()
+        {
+        Set<Filter<?>> setFilters = new HashSet<>();
+        for (Filter<?> filter : m_aFilter)
+            {
+            if (filter instanceof AllFilter)
+                {
+                // pull nested AND/ALL filters to top level
+                setFilters.addAll(((AllFilter) filter).simplifyFilters());
+                }
+            else
+                {
+                // remove duplicates
+                setFilters.add(filter);
+                }
+            }
+        return setFilters;
+        }
+
+    @Override
     protected Filter applyIndex(Map mapIndexes, Set setKeys,
                                    QueryContext ctx, QueryRecord.PartialResult.TraceStep step)
         {
-        // this code is buggy, re-ordering is sometimes wrong
-        // remove comment when addressed
-        //optimizeFilterOrder(mapIndexes, setKeys);
+        optimizeFilterOrder(mapIndexes, setKeys);
 
         Filter[] aFilter    = m_aFilter;
         int      cFilters   = aFilter.length;

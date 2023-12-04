@@ -438,52 +438,54 @@ public abstract class AbstractFilterTests
 
                     cacheTest.invoke(oKey, entry ->
                         {
-                        BinaryEntry binEntry = entry.asBinaryEntry();
-
                         System.out.printf("\nOr, using actual filters: "
                                           + "\n   (a && b) || (a && c): %s = %s"
                                           + "\n          a && (b || c): %s = %s\n\n",
-                                          (a && b) || (a && c), InvocableMapHelper.evaluateEntry(filter1, binEntry),
-                                          a && (b || c),        InvocableMapHelper.evaluateEntry(filter2, binEntry));
+                                          (a && b) || (a && c), InvocableMapHelper.evaluateEntry(filter1, entry),
+                                          a && (b || c),        InvocableMapHelper.evaluateEntry(filter2, entry));
 
-                        int    nPart    = binEntry.getBackingMapContext().getManagerContext().getKeyPartition(binEntry.getBinaryKey());
-                        Map    mapIndex = binEntry.getBackingMapContext().getIndexMap();
+                        if (entry instanceof BinaryEntry)
+                            {
+                            BinaryEntry binEntry = entry.asBinaryEntry();
 
-                        SubSet setKeys  = new SubSet(binEntry.getBackingMap().keySet());
-                        Filter filterA2 = ((IndexAwareFilter) filterA).applyIndex(mapIndex, setKeys);
-                        System.out.printf("\n\nFilter A: "
-                                          + "\n     retained keys: %d"
-                                          + "\n  filter remaining: %s",
-                                          setKeys.size(), filterA2);
+                            int nPart = binEntry.getBackingMapContext().getManagerContext().getKeyPartition(binEntry.getBinaryKey());
+                            Map mapIndex = binEntry.getBackingMapContext().getIndexMap();
 
-                        setKeys  = new SubSet(binEntry.getBackingMap().keySet());
-                        Filter filterB2 = ((IndexAwareFilter) filterB).applyIndex(mapIndex, setKeys);
-                        System.out.printf("\n\nFilter B: "
-                                          + "\n     retained keys: %d"
-                                          + "\n  filter remaining: %s",
-                                          setKeys.size(), filterB2);
+                            SubSet setKeys = new SubSet(binEntry.getBackingMap().keySet());
+                            Filter filterA2 = ((IndexAwareFilter) filterA).applyIndex(mapIndex, setKeys);
+                            System.out.printf("\n\nFilter A: "
+                                              + "\n     retained keys: %d"
+                                              + "\n  filter remaining: %s",
+                                              setKeys.size(), filterA2);
 
-                        setKeys  = new SubSet(binEntry.getBackingMap().keySet());
-                        Filter filterC2 = ((IndexAwareFilter) filterC).applyIndex(mapIndex, setKeys);
-                        System.out.printf("\n\nFilter C: "
-                                          + "\n     retained keys: %d"
-                                          + "\n  filter remaining: %s",
-                                          setKeys.size(), filterC2);
+                            setKeys = new SubSet(binEntry.getBackingMap().keySet());
+                            Filter filterB2 = ((IndexAwareFilter) filterB).applyIndex(mapIndex, setKeys);
+                            System.out.printf("\n\nFilter B: "
+                                              + "\n     retained keys: %d"
+                                              + "\n  filter remaining: %s",
+                                              setKeys.size(), filterB2);
 
-                        Set setKeysOne  = new SubSet(binEntry.getBackingMap().keySet());
-                        Filter filter12 = ((IndexAwareFilter) filter1).applyIndex(mapIndex, setKeysOne);
-                        System.out.printf("\n\nFilter 1: "
-                                          + "\n     retained keys: %d"
-                                          + "\n  filter remaining: %s",
-                                          setKeysOne.size(), filter12);
+                            setKeys = new SubSet(binEntry.getBackingMap().keySet());
+                            Filter filterC2 = ((IndexAwareFilter) filterC).applyIndex(mapIndex, setKeys);
+                            System.out.printf("\n\nFilter C: "
+                                              + "\n     retained keys: %d"
+                                              + "\n  filter remaining: %s",
+                                              setKeys.size(), filterC2);
 
-                        Set setKeysTwo  = new SubSet(binEntry.getBackingMap().keySet());
-                        Filter filter22 = ((IndexAwareFilter) filter2).applyIndex(mapIndex, setKeysTwo);
-                        System.out.printf("\n\nFilter 2: "
-                                          + "\n     retained keys: %d"
-                                          + "\n  filter remaining: %s",
-                                          setKeysTwo.size(), filter22);
+                            Set setKeysOne = new SubSet(binEntry.getBackingMap().keySet());
+                            Filter filter12 = ((IndexAwareFilter) filter1).applyIndex(mapIndex, setKeysOne);
+                            System.out.printf("\n\nFilter 1: "
+                                              + "\n     retained keys: %d"
+                                              + "\n  filter remaining: %s",
+                                              setKeysOne.size(), filter12);
 
+                            Set setKeysTwo = new SubSet(binEntry.getBackingMap().keySet());
+                            Filter filter22 = ((IndexAwareFilter) filter2).applyIndex(mapIndex, setKeysTwo);
+                            System.out.printf("\n\nFilter 2: "
+                                              + "\n     retained keys: %d"
+                                              + "\n  filter remaining: %s",
+                                              setKeysTwo.size(), filter22);
+                            }
                         return null;
                         });
                     }

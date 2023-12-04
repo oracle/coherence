@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -40,7 +40,7 @@ import jakarta.json.bind.annotation.JsonbProperty;
 * executed parallel query that does not employ any indexes. Then we could
 * override the default timeout values by using the PriorityFilter as follows:
 * <pre>
-*   EqualsFilter   filterStandard = new LikeFilter("getComments", "%fail%");
+*   LikeFilter     filterStandard = new LikeFilter("getComments", "%fail%");
 *   PriorityFilter filterPriority = new PriorityFilter(filterStandard);
 *   filterPriority.setExecutionTimeoutMillis(PriorityTask.TIMEOUT_NONE);
 *   filterPriority.setRequestTimeoutMillis(PriorityTask.TIMEOUT_NONE);
@@ -52,6 +52,7 @@ import jakarta.json.bind.annotation.JsonbProperty;
 * @author gg 2007.03.20
 * @since Coherence 3.3
 */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class PriorityFilter<T>
         extends    AbstractPriorityTask
         implements Filter<T>, EntryFilter<Object, T>, IndexAwareFilter<Object, T>, ExternalizableLite, PortableObject
@@ -94,7 +95,7 @@ public class PriorityFilter<T>
     */
     public boolean evaluateEntry(Map.Entry entry)
         {
-        return ((EntryFilter) m_filter).evaluateEntry(entry);
+        return m_filter.evaluateEntry(entry);
         }
 
 

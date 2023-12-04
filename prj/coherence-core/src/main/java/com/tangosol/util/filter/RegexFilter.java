@@ -1,20 +1,19 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
 
 
 import com.tangosol.util.ValueExtractor;
-
+import java.util.regex.Pattern;
 
 /**
 * Filter which uses the regular expression pattern match defined by the
-* {@link String#matches(String)} contract. This implementation is not index
-* aware and will not take advantage of existing indexes.
+* {@link Pattern#matches(String, CharSequence)} contract.
 *
 * @param <T> the type of the input argument to the filter
 * @param <E> the type of the extracted attribute to use for comparison
@@ -64,6 +63,27 @@ public class RegexFilter<T, E>
     */
     protected boolean evaluateExtracted(E extracted)
         {
-        return String.valueOf(extracted).matches(String.valueOf(getValue()));
+        ensureInitialized();
+        return m_pattern.matcher(String.valueOf(extracted)).matches();
         }
+
+    // ---- helpers ---------------------------------------------------------
+
+    /**
+     * Ensure that the regex pattern is compiled only once.
+     */
+    private void ensureInitialized()
+        {
+        if (m_pattern == null)
+            {
+            m_pattern = Pattern.compile(getValue());
+            }
+        }
+
+    // ---- data members ----------------------------------------------------
+
+    /**
+     * Compiled regex pattern.
+     */
+    private transient volatile Pattern m_pattern;
     }

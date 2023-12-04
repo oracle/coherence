@@ -82,7 +82,17 @@ public class NotEqualsFilter<T, E>
     */
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
-        return calculateMatchEffectiveness(mapIndexes, setKeys);
+        MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
+        if (index == null)
+            {
+            // there is no relevant index
+            return -1;
+            }
+        else
+            {
+            Set setEquals = (Set) index.getIndexContents().get(getValue());
+            return setEquals == null ? setKeys.size() : setKeys.size() - setEquals.size();
+            }
         }
 
     /**

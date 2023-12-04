@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
@@ -112,12 +112,39 @@ public class InFilter<T, E>
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
         if (index == null)
             {
-            // there is no relevant index
+            // there is no relevant index; evaluate individual entries
             return this;
+            }
+        else if (index.getIndexContents().isEmpty())
+            {
+            // there are no entries in the index, which means no entries match this filter
+            setKeys.clear();
+            return null;
             }
         else
             {
-            Collection colValues = (Collection) getValue();
+            Collection colValues   = getValue();
+            Map        mapContents = index.getIndexContents();
+
+            if (!index.isPartial())
+                {
+                // optimize for corner cases when either all or none of the values match
+                if (mapContents.keySet().equals(colValues))
+                    {
+                    // all entries match, nothing to remove
+                    return null;
+                    }
+
+                Set setCopy = new HashSet(mapContents.keySet());
+                setCopy.retainAll(colValues);
+                if (setCopy.isEmpty())
+                    {
+                    // no entries match, remove all keys
+                    setKeys.clear();
+                    return null;
+                    }
+                }
+
             int        cValues   = colValues.size();
             int        cKeys     = setKeys.size();
 
@@ -154,7 +181,7 @@ public class InFilter<T, E>
             for (Iterator iter = colValues.iterator(); iter.hasNext(); )
                 {
                 Object oValue = iter.next();
-                Set    setEQ  = (Set) index.getIndexContents().get(oValue);
+                Set    setEQ  = (Set) mapContents.get(oValue);
 
                 if (setEQ != null && !setEQ.isEmpty())
                     {
