@@ -207,7 +207,7 @@ public class AnyFilter
                     setRemain.removeAll(setMatch);
                     }
                 }
-            else
+            else if (filter != null)
                 {
                 listFilter.add(filter);
                 }

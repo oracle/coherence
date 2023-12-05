@@ -64,7 +64,7 @@ public abstract class ArrayFilter
         azzert(aFilter != null);
         for (int i = 0, c = aFilter.length; i < c; i++)
             {
-            azzert(aFilter[i] != null, "Null element");
+            azzert(aFilter[i] != null, String.format("Null element %d: %s", i, Arrays.toString(aFilter)));
             }
         m_aFilter = aFilter;
         }
