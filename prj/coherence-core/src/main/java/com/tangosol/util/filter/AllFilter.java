@@ -163,7 +163,7 @@ public class AllFilter
                     listFilter.add(filterNew);
                     }
                 }
-            else
+            else if (filter != null)
                 {
                 listFilter.add(filter);
                 }
