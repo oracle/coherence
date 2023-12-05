@@ -1099,7 +1099,18 @@ public class Coherence
                             try
                                 {
                                 session.close();
-                                cfg.sessionProvider().ifPresent(p -> p.releaseSession(session));
+                                if (isNotGarSession(cfg)) // we do not close the default GAR session
+                                    {
+                                    cfg.sessionProvider().ifPresent(p -> p.releaseSession(session));
+                                    if (session instanceof ConfigurableCacheFactorySession)
+                                        {
+                                        ConfigurableCacheFactory ccf = ((ConfigurableCacheFactorySession) session).getConfigurableCacheFactory();
+                                        if (ccf.isActive())
+                                            {
+                                            ccf.dispose();
+                                            }
+                                        }
+                                    }
                                 }
                             catch(Throwable t)
                                 {
@@ -1152,6 +1163,11 @@ public class Coherence
 
         f_dispatcher.dispatchStopped();
         f_registry.dispose();
+        }
+
+    private boolean isNotGarSession(SessionConfiguration configuration)
+        {
+        return f_mode != Mode.Gar || !configuration.getName().equals(f_sName);
         }
 
     /**
@@ -1350,7 +1366,7 @@ public class Coherence
             close();
             }
 
-        if (f_mode == Mode.ClusterMember || f_mode == Mode.Gar)
+        if (f_mode.isClusterMember())
             {
             Logger.info(() -> "Started Coherence server " + f_sName  + " mode=" + f_mode
                               + CacheFactory.getCluster().getServiceBanner());
@@ -1405,12 +1421,23 @@ public class Coherence
                     ConfigurableCacheFactorySession supplier = (ConfigurableCacheFactorySession) session;
                     ConfigurableCacheFactory        ccf      = supplier.getConfigurableCacheFactory();
 
-                    if (mode == Mode.ClusterMember)
+                    if (mode.isClusterMember())
                         {
-                        // This is a server and the session is not a client session so wrap in a DCS
-                        // to manage the auto-start services.
-                        DefaultCacheServer dcs = startCCF(sName, ccf);
-                        f_mapServer.put(sName, new PriorityHolder(configuration.getPriority(), dcs));
+                        if (ccf.isActive())
+                            {
+                            // The CCF is already active (e.g. we're the default CCF for a GAR)
+                            // so we just report the services, we do not need to start or monitor them
+                            DefaultCacheServer dcs = new DefaultCacheServer(ccf);
+                            dcs.reportStarted(((ExtensibleConfigurableCacheFactory) ccf).getServiceMap().keySet());
+                            }
+                        else
+                            {
+                            // This is a server and the session is not a client session so wrap in a DCS
+                            // to manage the auto-start services.
+                            ccf.activate();
+                            DefaultCacheServer dcs = startCCF(sName, ccf);
+                            f_mapServer.put(sName, new PriorityHolder(configuration.getPriority(), dcs));
+                            }
                         }
                     }
                 }
@@ -1891,34 +1918,35 @@ public class Coherence
          * The {@link Coherence} instance should run as a non-cluster member Extend client.
          * The proxy will be discovered using the name service.
          */
-        Client("remote"),
+        Client("remote", false),
         /**
          * The {@link Coherence} instance should run as a non-cluster member Extend client,
          * configured with a fixed address and port.
          */
-        ClientFixed("remote-fixed"),
+        ClientFixed("remote-fixed", false),
         /**
          * The {@link Coherence} instance should run as a cluster member client.
          */
-        ClusterMember("direct"),
+        ClusterMember("direct", true),
         /**
          * The {@link Coherence} instance should run as a non-cluster member gRPC client.
          * The proxy will be discovered using the name service.
          */
-        Grpc("grpc"),
+        Grpc("grpc", false),
         /**
          * The {@link Coherence} instance should run as a non-cluster member gRPC client,
          * configured with a fixed address and port.
          */
-        GrpcFixed("grpc-fixed"),
+        GrpcFixed("grpc-fixed", false),
         /**
          * The {@link Coherence} instance has been created from a gar.
          */
-        Gar("direct");
+        Gar("direct", true);
 
-        Mode(String sClient)
+        Mode(String sClient, boolean fClusterMember)
             {
-            f_sClient = sClient;
+            f_sClient        = sClient;
+            f_fClusterMember = fClusterMember;
             }
 
         /**
@@ -1929,6 +1957,16 @@ public class Coherence
         public String getClient()
             {
             return f_sClient;
+            }
+
+        /**
+         * Return {@code true} if this mode is a cluster member.
+         *
+         * @return {@code true} if this mode is a cluster member
+         */
+        public boolean isClusterMember()
+            {
+            return f_fClusterMember;
             }
 
         /**
@@ -1958,6 +1996,11 @@ public class Coherence
          * The default {@code coherence.client} property for this mode.
          */
         private final String f_sClient;
+
+        /**
+         * A flag indicating whether this mode is a cluster member.
+         */
+        private final boolean f_fClusterMember;
         }
 
     // ----- inner interface LifecycleListener ------------------------------
