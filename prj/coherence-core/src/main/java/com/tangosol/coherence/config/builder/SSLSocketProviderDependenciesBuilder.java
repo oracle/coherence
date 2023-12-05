@@ -641,10 +641,12 @@ public class SSLSocketProviderDependenciesBuilder
             {
             boolean fMatched = false;
 
+            // When this is called before handshake, peer certificate is
+            // either null or the call could return SSLPeerUnverifiedException.
+            // So, return true in this case.
+            // After the handshake, this will be called again with peer certificate(s).
             try
                 {
-                // when this is called before handshake, peer certificate is null;
-                // after handshake, this will be called again with peer certificate(s)
                 if (sslSession.getPeerCertificates() == null)
                     {
                     return true;
@@ -652,8 +654,7 @@ public class SSLSocketProviderDependenciesBuilder
                 }
             catch (SSLPeerUnverifiedException e)
                 {
-                Logger.err("DefaultHostnameVerifier rejecting hostname " + sUrlHostname
-                           + " with exception: " + e);
+                return true;
                 }
 
             if (sUrlHostname != null && sUrlHostname.length() > 0 && sslSession != null)
@@ -710,6 +711,17 @@ public class SSLSocketProviderDependenciesBuilder
             if (sUrlHostname.equalsIgnoreCase(sCertHostname))
                 {
                 return true;
+                }
+
+            if (sCertHostname.indexOf(".") < 0 && sUrlHostname.indexOf(".") > 0)
+                {
+                int domainIndex = sUrlHostname.indexOf(".");
+                if (domainIndex == sCertHostname.length()
+                    && sCertHostname.compareToIgnoreCase(sUrlHostname.substring(0, domainIndex)) == 0)
+                    {
+                    return true;
+                    }
+
                 }
 
             if (!ALLOW_LOCALHOST)
