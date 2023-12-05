@@ -810,6 +810,9 @@ public abstract class AbstractReadBuffer
                 // pretend to have read to the end of the binary
                 setOffsetInternal(of + cb);
                 }
+
+            // per JDK serialization filtering doc:
+            //     The filter is not called ... for java.lang.String instances that are encoded concretely in the stream.
             return convertUTF(of, cb);
             }
 
