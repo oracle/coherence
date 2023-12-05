@@ -380,7 +380,7 @@ public abstract class AbstractFilterTests
         // 4a) run equivalent queries
         //    (a && b) || (a && c) == a && (b || c)
         int cFailures = 0;
-        for (int i = 0; i < 64; i++)
+        for (int i = 0; i < 1000; i++)
             {
             Filter filterA = afilter[RND.nextInt(afilter.length)];
             Filter filterB = afilter[RND.nextInt(afilter.length)];
@@ -496,7 +496,7 @@ public abstract class AbstractFilterTests
 
         // 4b) run equivalent queries
         //    (a || b) && (a || c) == a || (b && c)
-        for (int i = 0; i < 64; i++)
+        for (int i = 0; i < 1000; i++)
             {
             Filter filterA = afilter[RND.nextInt(afilter.length)];
             Filter filterB = afilter[RND.nextInt(afilter.length)];
