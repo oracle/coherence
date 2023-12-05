@@ -78,7 +78,7 @@ public class LessEqualsFilter<T, E extends Comparable<? super E>>
     @Override
     protected boolean shouldRemoveKeys(Set set, Set setEQ)
         {
-        return set != null && set != setEQ;
+        return set != null && !set.equals(setEQ);
         }
 
     @Override
