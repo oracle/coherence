@@ -1363,9 +1363,10 @@ public abstract class ExternalizableHelper
                 {
                 return "";
                 }
-            validateLoadArray(byte[].class, cb, in);
 
             // get the "UTF binary"
+            // per JDK serialization filtering doc:
+            //     The filter is not called ... for java.lang.String instances that are encoded concretely in the stream.
             byte[] ab;
             if (cb < CHUNK_THRESHOLD)
                 {
@@ -4452,8 +4453,8 @@ public abstract class ExternalizableHelper
      * for the pre-approved decorations, including:
      * <ul><li>{@link #DECO_VALUE} stores the original, undecorated value;</li>
      * <li>{@link #DECO_EXPIRY}, {@link #DECO_STORE}, {@link #DECO_TX} and
-     * {@link #DECO_PUSHREP} are used by various facilities of Coherence
-     * and {@link #DECO_WLS} are assigned to Oracle
+     * {@link #DECO_PUSHREP} are used by various facilities of Coherence;</li>
+     * <li>{@link #DECO_TOPLINK} and {@link #DECO_WLS} are assigned to Oracle
      * products;</li>
      * <li>{@link #DECO_APP_1}, {@link #DECO_APP_2} and {@link #DECO_APP_3} are
      * made available for use by application developers;</li>
@@ -4494,7 +4495,8 @@ public abstract class ExternalizableHelper
      * <ul><li>{@link #DECO_VALUE} stores the original, undecorated value;</li>
      * <li>{@link #DECO_EXPIRY}, {@link #DECO_STORE}, {@link #DECO_TX} and
      * {@link #DECO_PUSHREP} are used by various facilities of Coherence;</li>
-     * <li> {@link #DECO_WLS} are assigned to Oracle products;</li>
+     * <li>{@link #DECO_TOPLINK} and {@link #DECO_WLS} are assigned to Oracle
+     * products;</li>
      * <li>{@link #DECO_APP_1}, {@link #DECO_APP_2} and {@link #DECO_APP_3} are
      * made available for use by application developers;</li>
      * <li>{@link #DECO_CUSTOM} is another application-definable decoration,
@@ -5513,8 +5515,9 @@ public abstract class ExternalizableHelper
     public static final int DECO_STORE   = 2;
 
     /**
-     * Decoration: Information managed on behalf of the transactions
-     * implementation.
+     * Decoration: Information managed on behalf of the {@link
+     * com.tangosol.coherence.transaction.OptimisticNamedCache
+     * OptimisticNamedCache} implementation.
      */
     public static final int DECO_TX      = 3;
 
@@ -5546,6 +5549,11 @@ public abstract class ExternalizableHelper
      * {@link #DECO_APP_2} and {@link #DECO_APP_3} decorations.
      */
     public static final int DECO_CUSTOM  = 7;
+
+    /**
+     * Decoration: Information managed on behalf of TopLink Grid.
+     */
+    public static final int DECO_TOPLINK = 8;
 
     /**
      * Decoration: Information managed on behalf of WebLogic.
