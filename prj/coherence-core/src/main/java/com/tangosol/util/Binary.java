@@ -1155,7 +1155,6 @@ public final class Binary
         int    cb = in.readInt();
         byte[] ab;
 
-        ExternalizableHelper.validateLoadArray(byte[].class, cb, in);
         if (cb < ExternalizableHelper.CHUNK_THRESHOLD)
             {
             ab = new byte[cb];

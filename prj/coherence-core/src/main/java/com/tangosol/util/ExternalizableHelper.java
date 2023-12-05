@@ -1357,9 +1357,10 @@ public abstract class ExternalizableHelper
                 {
                 return "";
                 }
-            validateLoadArray(byte[].class, cb, in);
 
             // get the "UTF binary"
+            // per JDK serialization filtering doc:
+            //     The filter is not called ... for java.lang.String instances that are encoded concretely in the stream.
             byte[] ab;
             if (cb < CHUNK_THRESHOLD)
                 {
