@@ -6,8 +6,16 @@
  */
 package ssl;
 
+import com.oracle.coherence.common.internal.net.ssl.SSLSocketChannel;
+
 import com.oracle.coherence.testing.net.EchoClient;
+import com.oracle.coherence.testing.net.EchoNIOClient;
+import com.oracle.coherence.testing.net.EchoNIOServer;
 import com.oracle.coherence.testing.net.EchoServer;
+
+import java.nio.channels.SocketChannel;
+import java.util.Set;
+import javax.net.ssl.SSLSession;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -470,7 +478,30 @@ public class SSLTests
             {
             assertEquals(server.getConnectionCount(), 0);
             client.echo(sMsg);
-            fail("IO exception expected");
+            if (client instanceof EchoNIOClient)
+                {
+                EchoNIOClient nioClient = (EchoNIOClient) client;
+                SocketChannel channel   = nioClient.getChannel();
+                if (channel instanceof SSLSocketChannel)
+                    {
+                    SSLSocketChannel sslChannel = (SSLSocketChannel) channel;
+                    SSLSession       session    = sslChannel.openSSLEngine().getSession();
+                    session.getPeerCertificates();
+                    }
+                }
+            else if (server instanceof EchoNIOServer)
+                {
+                EchoNIOServer      nioServer = (EchoNIOServer) server;
+                Set<SocketChannel> channels  = nioServer.getChannels();
+                SocketChannel      channel   = channels.iterator().next();
+                if (channel instanceof SSLSocketChannel)
+                    {
+                    SSLSocketChannel sslChannel = (SSLSocketChannel) channels.iterator().next();
+                    SSLSession       session    = sslChannel.openSSLEngine().getSession();
+                    session.getPeerCertificates();
+                    }
+                }
+            fail("IOException expected");
             }
         catch (IOException e)
             {
@@ -496,7 +527,31 @@ public class SSLTests
             {
             assertEquals(server.getConnectionCount(), 0);
             client.echo(sMsg);
-            fail("IO exception expected");
+            if (client instanceof EchoNIOClient)
+                {
+                EchoNIOClient nioClient = (EchoNIOClient) client;
+                SocketChannel channel   = nioClient.getChannel();
+                if (channel instanceof SSLSocketChannel)
+                    {
+                    SSLSocketChannel sslChannel = (SSLSocketChannel) channel;
+                    SSLSession       session    = sslChannel.openSSLEngine().getSession();
+                    session.getPeerCertificates();
+                    }
+                }
+            else if (server instanceof EchoNIOServer)
+                {
+                EchoNIOServer      nioServer = (EchoNIOServer) server;
+                Set<SocketChannel> channels  = nioServer.getChannels();
+                SocketChannel      channel
+                        = channels.iterator().next();
+                if (channel instanceof SSLSocketChannel)
+                    {
+                    SSLSocketChannel sslChannel = (SSLSocketChannel) channels.iterator().next();
+                    SSLSession       session    = sslChannel.openSSLEngine().getSession();
+                    session.getPeerCertificates();
+                    }
+                }
+            fail("IOException expected");
             }
         catch (IOException e)
             {

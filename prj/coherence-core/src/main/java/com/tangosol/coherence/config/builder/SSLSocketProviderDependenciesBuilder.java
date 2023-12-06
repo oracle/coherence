@@ -58,6 +58,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 
@@ -640,7 +641,23 @@ public class SSLSocketProviderDependenciesBuilder
             {
             boolean fMatched = false;
 
-            if (sUrlHostname != null && sslSession != null)
+            // When this is called before handshake, peer certificate is
+            // either null or the call could return SSLPeerUnverifiedException.
+            // So, return true in this case.
+            // After the handshake, this will be called again with peer certificate(s).
+            try
+                {
+                if (sslSession.getPeerCertificates() == null)
+                    {
+                    return true;
+                    }
+                }
+            catch (SSLPeerUnverifiedException e)
+                {
+                return true;
+                }
+
+            if (sUrlHostname != null && sUrlHostname.length() > 0 && sslSession != null)
                 {
                 Collection<String> colWildcardDNSNames = SSLCertUtility.getDNSSubjAltNames(sslSession, true, false);
                 String             sCertHostname       = SSLCertUtility.getCommonName(sslSession);
@@ -694,6 +711,17 @@ public class SSLSocketProviderDependenciesBuilder
             if (sUrlHostname.equalsIgnoreCase(sCertHostname))
                 {
                 return true;
+                }
+
+            if (sCertHostname.indexOf(".") < 0 && sUrlHostname.indexOf(".") > 0)
+                {
+                int domainIndex = sUrlHostname.indexOf(".");
+                if (domainIndex == sCertHostname.length()
+                    && sCertHostname.compareToIgnoreCase(sUrlHostname.substring(0, domainIndex)) == 0)
+                    {
+                    return true;
+                    }
+
                 }
 
             if (!ALLOW_LOCALHOST)
