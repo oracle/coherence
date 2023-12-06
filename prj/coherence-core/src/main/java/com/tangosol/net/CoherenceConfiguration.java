@@ -94,6 +94,16 @@ public interface CoherenceConfiguration
         return Optional.empty();
         }
 
+    /**
+     * Return the name of the default session.
+     *
+     * @return the name of the default session
+     */
+    default String getDefaultSessionName()
+        {
+        return Coherence.DEFAULT_NAME;
+        }
+
     // ----- inner class: Builder -------------------------------------------
 
     /**
@@ -120,6 +130,31 @@ public interface CoherenceConfiguration
         public Builder named(String sName)
             {
             m_sName = sName;
+            return this;
+            }
+
+        /**
+         * Set the name of the {@link Session} to return is a {@link Session}
+         * is requested with the {@link Coherence#DEFAULT_NAME default name}.
+         *
+         * @param sName  the name of the default {@link Session}
+         *
+         * @return  this {@link Builder}
+         *
+         * @throws IllegalArgumentException if this configuration does not contain
+         *         a session with the specified name
+         */
+        public Builder withDefaultSession(String sName)
+            {
+            if (sName != null)
+                {
+                if (!sName.equals(Coherence.DEFAULT_NAME) && !f_mapConfig.containsKey(sName))
+                    {
+                    throw new IllegalArgumentException("A Session with the name " + sName
+                            + " has not been added to this configuration");
+                    }
+                m_sDefaultSession = sName;
+                }
             return this;
             }
 
@@ -310,6 +345,11 @@ public interface CoherenceConfiguration
         private String m_sName;
 
         /**
+         * The name of the default {@link Session}
+         */
+        private String m_sDefaultSession = Coherence.DEFAULT_NAME;
+
+        /**
          * A map of named {@link SessionConfiguration} instances.
          */
         private final Map<String, SessionConfiguration> f_mapConfig = new HashMap<>();
@@ -348,11 +388,12 @@ public interface CoherenceConfiguration
         private SimpleConfig(Builder                           builder,
                              Map<String, SessionConfiguration> mapConfig)
             {
-            f_sName               = builder.m_sName == null || builder.m_sName.trim().isEmpty()
-                                            ? Coherence.DEFAULT_NAME : builder.m_sName.trim();
-            f_mapConfig           = Collections.unmodifiableMap(new HashMap<>(mapConfig));
-            f_listInterceptor     = Collections.unmodifiableList(new ArrayList<>(builder.f_listInterceptor));
-            f_context             = builder.m_context;
+            f_sName           = builder.m_sName == null || builder.m_sName.trim().isEmpty()
+                                        ? Coherence.DEFAULT_NAME : builder.m_sName.trim();
+            f_mapConfig       = Collections.unmodifiableMap(new HashMap<>(mapConfig));
+            f_listInterceptor = Collections.unmodifiableList(new ArrayList<>(builder.f_listInterceptor));
+            f_context         = builder.m_context;
+            f_sDefaultSession = builder.m_sDefaultSession == null ? Coherence.DEFAULT_NAME : builder.m_sDefaultSession;
             }
 
         // ----- CoherenceConfiguration API methods -------------------------
@@ -381,6 +422,12 @@ public interface CoherenceConfiguration
             return Optional.ofNullable(f_context);
             }
 
+        @Override
+        public String getDefaultSessionName()
+            {
+            return f_sDefaultSession;
+            }
+
         // ----- data members ---------------------------------------------------
 
         /**
@@ -402,5 +449,10 @@ public interface CoherenceConfiguration
          * An optional application {@link Context}.
          */
         private final Context f_context;
+
+        /**
+         * The name of the default session.
+         */
+        private final String f_sDefaultSession;
         }
     }

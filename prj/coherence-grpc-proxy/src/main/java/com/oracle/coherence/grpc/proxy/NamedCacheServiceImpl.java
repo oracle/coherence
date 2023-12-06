@@ -1370,14 +1370,16 @@ public class NamedCacheServiceImpl
         {
         Optional<Context> optional         = f_dependencies.getContext();
         ContainerContext  containerContext = null;
+        ClassLoader       loader           = null;
         String            sMTName;
         String            sScopeFinal;
 
         if (optional.isPresent())
             {
             Context context  = optional.get();
-            String  sAppName = context.getApplicationName();
+            String sAppName = context.getApplicationName();
 
+            loader           = context.getClassLoader();
             containerContext = context.getContainerContext();
             sMTName          = ServiceScheme.getScopePrefix(sAppName, containerContext);
 
@@ -1398,11 +1400,10 @@ public class NamedCacheServiceImpl
 
         if (containerContext != null)
             {
-            Coherence coherence = Coherence.getInstance(sMTName);
-
+            Coherence coherence = Coherence.getInstance(sMTName, loader);
             if (coherence == null)
                 {
-                String sNames = Coherence.getInstances()
+                String sNames = Coherence.getInstances(loader)
                         .stream()
                         .map(Coherence::getName)
                         .map(s -> Coherence.DEFAULT_NAME.equals(s) ? "<default>" : s)
