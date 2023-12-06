@@ -8698,3 +8698,16 @@ io.opentelemetry.proto:opentelemetry-proto:jar
 Java Bindings for the OpenTelemetry Protocol (OTLP)
 Copyright The OpenTelemetry Authors
 Apache License, Version 2.0
+
+
+==================================
+Jandex
+
+org.jboss:jandex:jar
+==================================
+
+Jandex
+ * JBoss, Home of Professional Open Source.
+ * Copyright 2013 Red Hat, Inc., and individual contributors
+ * as indicated by the @author tags.
+Apache License, Version 2.0
