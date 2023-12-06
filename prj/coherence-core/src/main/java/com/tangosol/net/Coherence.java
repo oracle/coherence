@@ -6,6 +6,7 @@
  */
 package com.tangosol.net;
 
+import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.Timeout;
 
@@ -48,13 +49,16 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ServiceLoader;
 
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.CompletableFuture;
 
 import java.util.concurrent.locks.Lock;
@@ -176,7 +180,22 @@ public class Coherence
      */
     public static Coherence create(CoherenceConfiguration config, Mode mode)
         {
-        return builder(config, mode).build();
+        return create(config, mode, null);
+        }
+
+    /**
+     * Create a default {@link Coherence} instance.
+     *
+     * @param config  the configuration to use to create the
+     *                {@link Coherence} instance
+     * @param mode    the {@link Mode} the {@link Coherence} instance will run in
+     * @param loader  the {@link ClassLoader} associated with the {@link Coherence} instance
+     *
+     * @return a default {@link Coherence} instance
+     */
+    public static Coherence create(CoherenceConfiguration config, Mode mode, ClassLoader loader)
+        {
+        return builder(config, mode).build(loader);
         }
 
     /**
@@ -427,7 +446,113 @@ public class Coherence
      */
     public static Collection<Coherence> getInstances()
         {
-        return Collections.unmodifiableCollection(s_mapInstance.values());
+        return getInstances(Classes.ensureClassLoader(null));
+        }
+
+    /**
+     * Returns all of the {@link Coherence} instances.
+     *
+     * @param loader  the {@link ClassLoader} to obtain instances
+     *
+     * @return all of the {@link Coherence} instances
+     */
+    public static Collection<Coherence> getInstances(ClassLoader loader)
+        {
+        Map<String, Coherence> map = getInstanceMap(loader);
+        return map == null ? Collections.emptyList()
+                : Collections.unmodifiableCollection(new ArrayList<>(map.values()));
+        }
+
+    private static Map<String, Coherence> getInstanceMap()
+        {
+        return getInstanceMap(null);
+        }
+
+    private static Map<String, Coherence> getInstanceMap(ClassLoader loader)
+        {
+        ClassLoader loaderSearch = Classes.ensureClassLoader(loader);
+
+        // most likely code path: retrieve existing factory from provided
+        // ClassLoader or its parents; create if it doesn't exist
+
+        // Note: Returning a map associated with the parent's class loader
+        // may disallow loading classes bound to the given class loader;
+        // however this constraint is introduced to accommodate for the EAR /
+        // WAR / GAR use case
+        Map<ClassLoader, Map<String, Coherence>> map = s_mapByLoader;
+        Map<String, Coherence> mapInstances;
+        do
+            {
+            mapInstances = map.get(loaderSearch);
+            }
+        while (mapInstances == null && (loaderSearch = loaderSearch.getParent()) != null);
+
+        return mapInstances;
+        }
+
+    private static Map<String, Coherence> ensureInstanceMap(ClassLoader loader)
+        {
+        loader = Classes.ensureClassLoader(loader);
+        Map<String, Coherence> mapInstance = getInstanceMap(loader);
+        if (mapInstance == null)
+            {
+            s_instanceLock.lock();
+            try
+                {
+                mapInstance = getInstanceMap(loader);
+                if (mapInstance == null)
+                    {
+                    mapInstance = s_mapByLoader.computeIfAbsent(loader, l -> new LinkedHashMap<>());
+                    }
+                }
+            finally
+                {
+                s_instanceLock.unlock();
+                }
+            }
+        return mapInstance;
+        }
+
+    protected static void removeInstance(String sName)
+        {
+        removeInstance(sName, null);
+        }
+
+    protected static void removeInstance(String sName, ClassLoader loader)
+        {
+        s_instanceLock.lock();
+        try
+            {
+            ClassLoader loaderSearch = Classes.ensureClassLoader(loader);
+
+            // most likely code path: retrieve existing factory from provided
+            // ClassLoader or its parents; create if it doesn't exist
+
+            // Note: Returning a map associated with the parent's class loader
+            // may disallow loading classes bound to the given class loader;
+            // however this constraint is introduced to accommodate for the EAR /
+            // WAR / GAR use case
+            Map<ClassLoader, Map<String, Coherence>> map = s_mapByLoader;
+            Map<String, Coherence> mapInstance;
+            do
+                {
+                mapInstance = map.get(loaderSearch);
+                }
+            while (mapInstance == null && (loaderSearch = loaderSearch.getParent()) != null);
+
+            if (mapInstance != null)
+                {
+                mapInstance.remove(sName);
+                if (mapInstance.isEmpty())
+                    {
+                    map.remove(loaderSearch);
+                    }
+                }
+            }
+        finally
+            {
+            s_instanceLock.unlock();
+            }
         }
 
     /**
@@ -442,7 +567,24 @@ public class Coherence
      */
     public static Coherence getInstance(String sName)
         {
-        return sName == null ? null : s_mapInstance.get(sName);
+        return getInstance(sName, null);
+        }
+
+    /**
+     * Returns the named {@link Coherence} instance or {@code null}
+     * if the name is {@code null} or no {@link Coherence} instance exists
+     * with the specified name.
+     *
+     * @param sName   the name of the {@link Coherence} instance to return
+     * @param loader  the {@link ClassLoader} associated with the {@link Coherence} instance
+     *
+     * @return the named {@link Coherence} instance or {@code null} if no
+     *         {@link Coherence} instance exists with the specified name
+     */
+    public static Coherence getInstance(String sName, ClassLoader loader)
+        {
+        Map<String, Coherence> map = getInstanceMap(loader);
+        return sName == null || map == null ? null : map.get(sName);
         }
 
     /**
@@ -457,12 +599,35 @@ public class Coherence
      */
     public static Coherence getInstance()
         {
-        Coherence coherence = s_mapInstance.get(Coherence.DEFAULT_NAME);
+        return getInstance((ClassLoader) null);
+        }
+
+    /**
+     * Returns a {@link Coherence} instance created or {@code null}
+     * if no {@link Coherence} instance exists.
+     * <p>
+     * This method is useful if only a single {@link Coherence} instance
+     * exists in an application. If multiple instances exists the actual
+     * instance returned is undetermined.
+     *
+     * @param loader  the {@link ClassLoader} associated with the {@link Coherence} instance
+     *
+     * @return a {@link Coherence} instance created
+     */
+    public static Coherence getInstance(ClassLoader loader)
+        {
+        Map<String, Coherence> map = getInstanceMap(loader);
+        if (map == null)
+            {
+            return null;
+            }
+
+        Coherence coherence = map.get(Coherence.DEFAULT_NAME);
         if (coherence != null)
             {
             return coherence;
             }
-        return s_mapInstance.entrySet()
+        return map.entrySet()
                 .stream()
                 .findFirst()
                 .map(Map.Entry::getValue)
@@ -481,14 +646,18 @@ public class Coherence
      */
     public static Optional<Session> findSession(String sName)
         {
-        for (Coherence coherence : s_mapInstance.values())
+        Map<String, Coherence> map = getInstanceMap();
+        if (map != null)
             {
-            if (coherence.hasSession(sName))
+            for (Coherence coherence : map.values())
                 {
-                Session session = coherence.getSession(sName);
-                if (session != null)
+                if (coherence.hasSession(sName))
                     {
-                    return Optional.of(session);
+                    Session session = coherence.getSession(sName);
+                    if (session != null)
+                        {
+                        return Optional.of(session);
+                        }
                     }
                 }
             }
@@ -516,11 +685,18 @@ public class Coherence
 
         if (col == null)
             {
-            col = s_mapInstance.values()
-                    .stream()
-                    .flatMap(coh -> coh.getSessionsWithScope(sScope).stream())
-                    .collect(Collectors.toList());
-
+            Map<String, Coherence> map = getInstanceMap();
+            if (map != null)
+                {
+                col = map.values()
+                        .stream()
+                        .flatMap(coh -> coh.getSessionsWithScope(sScope).stream())
+                        .collect(Collectors.toList());
+                }
+            else
+                {
+                col = Collections.emptyList();
+                }
             }
         return col;
         }
@@ -535,7 +711,14 @@ public class Coherence
     public static void closeAll()
         {
         Logger.info("Stopping all Coherence instances");
-        s_mapInstance.values().forEach(Coherence::close);
+        Map<String, Coherence> map = getInstanceMap();
+        if (map != null)
+            {
+            List<Coherence> list = new ArrayList<>(map.values());
+            list.forEach(Coherence::close);
+            list.clear();
+            }
+
         if (s_systemServiceMonitor != null)
             {
             s_systemServiceMonitor.close();
@@ -552,7 +735,7 @@ public class Coherence
                 }
             catch (Exception e)
                 {
-                e.printStackTrace();
+                Logger.err(e);
                 }
             finally
                 {
@@ -793,10 +976,7 @@ public class Coherence
     private Coherence addSessionInternal(SessionConfiguration config)
         {
         validate(config);
-        String s;
-
         f_mapAdditionalSessionConfig.put(config.getName(), config);
-
         if (isStarted())
             {
             // This Coherence instance is already started so start the session
@@ -907,6 +1087,7 @@ public class Coherence
      *
      * @throws InterruptedException if Coherence does not start within the timeout
      */
+    @SuppressWarnings("unused")
     public Coherence startAndWait() throws InterruptedException
         {
         return startAndWait(DEFAULT_START_TIMEOUT);
@@ -1070,9 +1251,15 @@ public class Coherence
         return f_futureStarted;
         }
 
+    public boolean isActive()
+        {
+        return m_fStarted && !m_fClosed;
+        }
+
     /**
      * Close this {@link Coherence} instance.
      */
+    @SuppressWarnings({"resource", "OptionalAssignedToNull"})
     @Override
     public synchronized void close()
         {
@@ -1085,7 +1272,7 @@ public class Coherence
         m_fClosed = true;
         try
             {
-            s_mapInstance.remove(f_sName);
+            removeInstance(f_sName);
             if (m_fStarted)
                 {
                 m_fStarted = false;
@@ -1320,6 +1507,10 @@ public class Coherence
             }
 
         String sSessionName = sName == null ? Coherence.DEFAULT_NAME : sName;
+        if (Coherence.DEFAULT_NAME.equals(sSessionName))
+            {
+            sSessionName = f_config.getDefaultSessionName();
+            }
 
         SessionConfiguration configuration = getSessionConfiguration(sSessionName);
         if (configuration == null || !configuration.isEnabled())
@@ -1333,6 +1524,7 @@ public class Coherence
     /**
      * Start this {@link Coherence} instance.
      */
+    @SuppressWarnings("resource")
     private synchronized void startInternal()
         {
         Iterable<EventInterceptor<?>> globalInterceptors = f_config.getInterceptors();
@@ -1819,6 +2011,7 @@ public class Coherence
             f_server    = server;
             }
 
+        @SuppressWarnings("unused")
         public int getPriority()
             {
             return f_nPriority;
@@ -1868,18 +2061,36 @@ public class Coherence
          */
         public Coherence build()
             {
+            return build(null);
+            }
+
+        /**
+         * Build a {@link Coherence} instance.
+         *
+         * @param loader  the {@link ClassLoader} associated with the {@link Coherence} instance
+         *
+         * @return a {@link Coherence} instance
+         */
+        public Coherence build(ClassLoader loader)
+            {
             // validate the configuration
             Coherence.validate(f_config);
 
-            return build(false);
+            return build(loader, false);
             }
 
         // ----- helper methods ---------------------------------------------
 
         protected Coherence build(boolean fAllowDuplicate)
             {
-            Coherence coherence = new Coherence(f_config, f_mode);
-            Coherence prev      = s_mapInstance.putIfAbsent(f_config.getName(), coherence);
+            return build(null, fAllowDuplicate);
+            }
+
+        protected Coherence build(ClassLoader loader, boolean fAllowDuplicate)
+            {
+            Coherence              coherence = new Coherence(f_config, f_mode);
+            Map<String, Coherence> map       = ensureInstanceMap(loader);
+            Coherence              prev      = map.putIfAbsent(f_config.getName(), coherence);
             if (prev != null && f_mode != Mode.Gar)
                 {
                 if (!fAllowDuplicate)
@@ -1889,7 +2100,6 @@ public class Coherence
                     }
                 return prev;
                 }
-
             return coherence;
             }
 
@@ -2117,9 +2327,14 @@ public class Coherence
     // ----- data members ---------------------------------------------------
 
     /**
-     * The map of all named {@link Coherence} instances.
+     * The map of all named {@link Coherence} instances by class loader.
      */
-    private static final CopyOnWriteMap<String, Coherence> s_mapInstance = new CopyOnWriteMap<>(LinkedHashMap.class);
+    private static final Map<ClassLoader, Map<String, Coherence>> s_mapByLoader = new CopyOnWriteMap<>(WeakHashMap.class);
+
+    /**
+     * The lock controlling mutation of {@link #s_mapByLoader}.
+     */
+    private static final Lock s_instanceLock = new ReentrantLock();
 
     /**
      * The lock to manage the global system session state.
@@ -2145,7 +2360,6 @@ public class Coherence
     /**
      * This instance's System session configuration.
      */
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private SessionConfiguration m_localSystemSessionConfig;
 
     /**
