@@ -25,16 +25,13 @@ import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
 
 import com.oracle.bedrock.runtime.java.options.ClassName;
-import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
 
-import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 
 import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
-import com.tangosol.net.Coherence;
 
 import com.tangosol.net.DefaultCacheServer;
 import executor.common.NewClusterPerTest;
