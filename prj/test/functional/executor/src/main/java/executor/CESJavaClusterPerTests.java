@@ -25,15 +25,18 @@ import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
 
 import com.oracle.bedrock.runtime.java.options.ClassName;
+import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
 
+import com.oracle.bedrock.runtime.options.StabilityPredicate;
+import com.oracle.bedrock.testsupport.junit.TestLogs;
+
 import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
+import com.tangosol.net.Coherence;
 
 import com.tangosol.net.DefaultCacheServer;
-
-import executor.common.LogOutput;
 import executor.common.NewClusterPerTest;
 
 import java.io.File;
@@ -41,6 +44,7 @@ import java.io.File;
 import org.junit.Rule;
 
 import org.junit.experimental.categories.Category;
+import org.junit.rules.TestName;
 
 /**
  * Tests will spin up a new cluster for each test using java as the serialization
@@ -78,7 +82,18 @@ public class CESJavaClusterPerTests
 
     protected static final String EXTEND_CONFIG = "coherence-concurrent-client-config.xml";
 
+    public void shouldNotExpireExecutorsWithRollingRestart()
+        {
+        super.shouldNotExpireExecutorsWithRollingRestart();
+        }
+
     // ----- data members ---------------------------------------------------
+
+    @Rule
+    public TestName m_testName = new TestName();
+
+    @Rule
+    public TestLogs m_testLogs = new TestLogs();
 
     /**
      * The {@link CoherenceClusterResource} to establish a {@link CoherenceCluster} for testing.
@@ -95,12 +110,13 @@ public class CESJavaClusterPerTests
                           CacheConfig.of(CACHE_CONFIG),
                           ClusterPort.of(7574),
                           ClusterName.of(CESJavaSingleClusterTests.class.getSimpleName()), // default name is too long
+                          SystemProperty.of("coherence.concurrent.scope", "$SYS"),
                           SystemProperty.of(EXTEND_ADDRESS_PROPERTY, LocalPlatform.get().getLoopbackAddress().getHostAddress()),
                           SystemProperty.of(EXTEND_PORT_PROPERTY, "9099"),
-                          JmxFeature.enabled())
+                          JmxFeature.enabled(),
+                          m_testLogs)
                     .include(STORAGE_ENABLED_MEMBER_COUNT,
                              DisplayName.of("CacheServer"),
-                             LogOutput.to(getLabel(), "CacheServer"),
                              RoleName.of(STORAGE_ENABLED_MEMBER_ROLE),
                              LocalStorage.enabled(),
                              SystemProperty.of("coherence.distributed.threads", "10"),
@@ -108,14 +124,12 @@ public class CESJavaClusterPerTests
                              SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true))
                     .include(STORAGE_DISABLED_MEMBER_COUNT,
                              DisplayName.of("ComputeServer"),
-                             LogOutput.to(getLabel(), "ComputeServer"),
                              RoleName.of(STORAGE_DISABLED_MEMBER_ROLE),
                              LocalStorage.disabled(),
                              SystemProperty.of(EXTEND_ENABLED_PROPERTY, false),
                              SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true))
                     .include(PROXY_MEMBER_COUNT,
                              DisplayName.of("ProxyServer"),
-                             LogOutput.to(getLabel(), "ProxyServer"),
                              RoleName.of(PROXY_MEMBER_ROLE),
                              LocalStorage.disabled(),
                              SystemProperty.of(EXTEND_ENABLED_PROPERTY, true));

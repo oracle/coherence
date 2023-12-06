@@ -37,6 +37,7 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.util.Base;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.Extractors;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.InvocableMap;
@@ -2149,8 +2150,8 @@ public class ClusteredTaskManager<T, A, R>
      * @since 22.06.7
      */
     protected static final Filter<ExecutorInfo> RUNNING_EXECUTOR_FILTER =
-            Filters.equal(ExecutorInfo::getState, ExecutorInfo.State.JOINING)
-                    .or(Filters.equal(ExecutorInfo::getState, ExecutorInfo.State.RUNNING));
+            Filters.equal(Extractors.extract("state"), ExecutorInfo.State.JOINING)
+                    .or(Filters.equal(Extractors.extract("state"), ExecutorInfo.State.RUNNING));
 
     // ----- data members ---------------------------------------------------
 
