@@ -29,6 +29,7 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
 
+import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.common.base.Blocking;
@@ -105,12 +106,6 @@ import static org.hamcrest.core.Is.is;
 public class TaskExecutorServicePersistenceTests
     {
     // ----- test lifecycle -------------------------------------------------
-
-    @AfterClass
-    public static void afterClass()
-        {
-        s_coherence.after();
-        }
 
     @BeforeClass
     public static void setupClass()
@@ -431,7 +426,8 @@ public class TaskExecutorServicePersistenceTests
                           SystemProperty.of("coherence.concurrent.persistence.environment",   "default-active"),
                           SystemProperty.of("coherence.distributed.persistence.active.dir",   s_fileActive.getAbsoluteFile()),
                           SystemProperty.of("coherence.distributed.persistence.snapshot.dir", s_fileSnapshot.getAbsoluteFile()),
-                          SystemProperty.of("coherence.distributed.persistence.trash.dir",    s_fileTrash.getAbsoluteFile()))
+                          SystemProperty.of("coherence.distributed.persistence.trash.dir",    s_fileTrash.getAbsoluteFile()),
+                          StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()))
                     .include(STORAGE_ENABLED_MEMBER_COUNT,
                              DisplayName.of("CacheServer"),
                              LogOutput.to(TaskExecutorServicePersistenceTests.class.getSimpleName(), "CacheServer"),

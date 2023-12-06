@@ -24,6 +24,7 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
 
+import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.tangosol.net.Coherence;
 
 import executor.common.CoherenceClusterResource;
@@ -65,12 +66,6 @@ public class CESJavaSingleClusterTests
         ensureExecutorProxyAvailable(s_coherence.getCluster());
         }
 
-    @AfterClass
-    public static void afterClass()
-        {
-        s_coherence.after();
-        }
-
     // ----- AbstractClusteredExecutorServiceTests --------------------------
 
     public CoherenceClusterResource getCoherence()
@@ -104,7 +99,8 @@ public class CESJavaSingleClusterTests
                           ClusterName.of(CESJavaSingleClusterTests.class.getSimpleName()), // default name is too long
                           SystemProperty.of(EXTEND_ADDRESS_PROPERTY, EXTEND_HOST),
                           SystemProperty.of(EXTEND_PORT_PROPERTY, EXTEND_PORT),
-                          JmxFeature.enabled())
+                          JmxFeature.enabled(),
+                          StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()))
                     .include(STORAGE_ENABLED_MEMBER_COUNT,
                              DisplayName.of("CacheServer"),
                              LogOutput.to(CESJavaSingleClusterTests.class.getSimpleName(), "CacheServer"),

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -24,6 +24,7 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
 
+import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
@@ -67,7 +68,6 @@ import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -80,8 +80,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
 import org.junit.experimental.categories.Category;
-
-import org.junit.rules.TestRule;
 
 import static executor.AbstractClusteredExecutorServiceTests.EXECUTOR_LOGGING_PROPERTY;
 import static executor.AbstractClusteredExecutorServiceTests.EXTEND_ENABLED_PROPERTY;
@@ -97,16 +95,11 @@ import static org.hamcrest.core.Is.is;
  * @author lh
  * @since 21.12
  */
+@SuppressWarnings("resource")
 @Category(SingleClusterForAllTests.class)
 public class TaskExecutorServiceClusterMemberTests
     {
     // ----- test lifecycle -------------------------------------------------
-
-    @AfterClass
-    public static void afterClass()
-        {
-        s_coherence.after();
-        }
 
     @BeforeClass
     public static void setupClass()
@@ -141,25 +134,24 @@ public class TaskExecutorServiceClusterMemberTests
             Caches.tasks(getCacheService()).clear();
             Caches.assignments(getCacheService()).clear();
             }
-        m_session.close();
-        m_local.close();
+        Coherence.closeAll();
         }
 
     @SuppressWarnings("rawtypes")
     @Before
-    public void setup()
+    public void setup() throws Exception
         {
         System.setProperty("coherence.cluster", "TaskExecutorServiceClusterMemberTests");
         System.setProperty("tangosol.coherence.distributed.localstorage", "false");
-        m_local = Coherence.clusterMember(CoherenceConfiguration.builder().discoverSessions().build());
-        m_local.start().join();
-        m_session = m_local.getSession(ConcurrentServicesSessionConfiguration.SESSION_NAME);
+        Coherence coherence = Coherence.clusterMember(CoherenceConfiguration.builder().discoverSessions().build());
+        coherence.start().get(5, TimeUnit.MINUTES);
+        Session session = coherence.getSession(ConcurrentServicesSessionConfiguration.SESSION_NAME);
 
         // establish an ExecutorService based on storage disabled (client) member
-        m_taskExecutorService = new ClusteredExecutorService(m_session);
+        m_taskExecutorService = new ClusteredExecutorService(session);
 
         // verify that there are getInitialExecutorCount() Executors available and that they are in the RUNNING state
-        NamedCache executors = Caches.executors(m_session);
+        NamedCache executors = Caches.executors(session);
 
         Eventually.assertDeferred(executors::size, is(getInitialExecutorCount()));
 
@@ -325,7 +317,8 @@ public class TaskExecutorServiceClusterMemberTests
                           Logging.at(9),
                           ClusterPort.of(7574),
                           ClusterName.of(TaskExecutorServiceClusterMemberTests.class.getSimpleName()),
-                          JmxFeature.enabled())
+                          JmxFeature.enabled(),
+                          StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()))
                     .include(STORAGE_ENABLED_MEMBER_COUNT,
                              DisplayName.of("CacheServer"),
                              LogOutput.to(TaskExecutorServiceClusterMemberTests.class.getSimpleName(), "CacheServer"),
@@ -340,22 +333,6 @@ public class TaskExecutorServiceClusterMemberTests
                              LocalStorage.disabled(),
                              SystemProperty.of(EXTEND_ENABLED_PROPERTY, false),
                              SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true));
-
-    /**
-     * Rule to demarcate tests in a single-log test run.
-     */
-    @Rule
-    public TestRule watcher = new Watcher();
-
-    /**
-     * The local Coherence reference.
-     */
-    protected Coherence m_local;
-
-    /**
-     * Coherence session.
-     */
-    protected Session m_session;
 
     /**
      * The {@link TaskExecutorService}.

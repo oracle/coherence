@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -25,6 +25,7 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
 
+import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.testsupport.junit.TestLogs;
@@ -75,7 +76,6 @@ import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -121,16 +121,11 @@ import static org.hamcrest.core.Is.is;
  * @author lh
  * @since 21.12
  */
+@SuppressWarnings("resource")
 @Category(SingleClusterForAllTests.class)
 public class ExecutorRESTManagementTests
     {
     // ----- test lifecycle -------------------------------------------------
-
-    @AfterClass
-    public static void afterClass()
-        {
-        s_coherence.after();
-        }
 
     @BeforeClass
     public static void setupClass()
@@ -159,25 +154,24 @@ public class ExecutorRESTManagementTests
             Caches.tasks(service).clear();
             Caches.assignments(service).clear();
             }
-        m_session.close();
-        m_local.close();
+        Coherence.closeAll();
         }
 
     @SuppressWarnings("rawtypes")
     @Before
-    public void setup()
+    public void setup() throws Exception
         {
         System.setProperty("coherence.cluster", CLUSTER_NAME);
         System.setProperty("coherence.distributed.localstorage", "false");
-        m_local = Coherence.clusterMember(CoherenceConfiguration.builder().discoverSessions().build());
-        m_local.start().join();
-        m_session = m_local.getSession(ConcurrentServicesSessionConfiguration.SESSION_NAME);
+        Coherence coherence = Coherence.clusterMember(CoherenceConfiguration.builder().discoverSessions().build());
+        coherence.start().get(5, TimeUnit.MINUTES);
+        Session session = coherence.getSession(ConcurrentServicesSessionConfiguration.SESSION_NAME);
 
         // establish an ExecutorService based on storage disabled (client) member
-        m_taskExecutorService = new ClusteredExecutorService(m_session);
+        m_taskExecutorService = new ClusteredExecutorService(session);
 
         // verify that there are getInitialExecutorCount() Executors available and that they are in the RUNNING state
-        NamedCache executors = Caches.executors(m_session);
+        NamedCache executors = Caches.executors(session);
 
         Eventually.assertDeferred(executors::size, is(getInitialExecutorCount()));
 
@@ -468,7 +462,8 @@ public class ExecutorRESTManagementTests
                           ClusterPort.of(7574),
                           ClusterName.of(CLUSTER_NAME),
                           JmxFeature.enabled(),
-                          s_testLogs)
+                          s_testLogs,
+                          StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()))
                     .include(STORAGE_ENABLED_MEMBER_COUNT,
                              DisplayName.of("CacheServer"),
                              LogOutput.to(CLUSTER_NAME, "CacheServer"),
@@ -486,16 +481,6 @@ public class ExecutorRESTManagementTests
                              LocalStorage.disabled(),
                              SystemProperty.of("coherence.executor.extend.enabled", false),
                              SystemProperty.of("coherence.executor.trace.logging", true));
-
-    /**
-     * The Coherence object to be used for the tests.
-     */
-    protected Coherence m_local;
-
-    /**
-     * The Session object to be used for the tests.
-     */
-    protected Session   m_session;
 
     /**
      * The Client object to be used for the tests.
