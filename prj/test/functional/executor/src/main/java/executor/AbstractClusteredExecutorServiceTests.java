@@ -145,6 +145,10 @@ public abstract class AbstractClusteredExecutorServiceTests
     public void setup()
         {
         initCluster();
+
+        ensureConcurrentServiceRunning(getCluster());
+        ensureExecutorProxyAvailable(getCluster());
+
         // establish an ExecutorService based on the *Extend client
         m_taskExecutorService = createExecutorService();
 
