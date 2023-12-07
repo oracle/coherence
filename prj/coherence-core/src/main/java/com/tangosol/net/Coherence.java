@@ -49,7 +49,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -1259,7 +1258,7 @@ public class Coherence
     /**
      * Close this {@link Coherence} instance.
      */
-    @SuppressWarnings({"resource", "OptionalAssignedToNull"})
+    @SuppressWarnings({"OptionalAssignedToNull"})
     @Override
     public synchronized void close()
         {
@@ -1276,6 +1275,15 @@ public class Coherence
             if (m_fStarted)
                 {
                 m_fStarted = false;
+
+                // Stop servers in reverse order
+                f_mapServer.values()
+                        .stream()
+                        .sorted(Comparator.reverseOrder())
+                        .map(PriorityHolder::getServer)
+                        .forEach(this::stopServer);
+
+                f_mapServer.clear();
 
                 // close sessions in reverse order
                 getSessionConfigurations()
@@ -1304,15 +1312,6 @@ public class Coherence
                                 Logger.err("Error closing session " + session.getName(), t);
                                 }
                         });
-
-                // Stop servers in reverse order
-                f_mapServer.values()
-                        .stream()
-                        .sorted(Comparator.reverseOrder())
-                        .map(PriorityHolder::getServer)
-                        .forEach(this::stopServer);
-
-                f_mapServer.clear();
 
                 if (f_mode == Mode.Gar)
                     {
