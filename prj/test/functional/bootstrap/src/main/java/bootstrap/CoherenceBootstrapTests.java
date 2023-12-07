@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -41,6 +41,8 @@ class CoherenceBootstrapTests
     @BeforeAll
     static void setup()
         {
+        System.setProperty("coherence.wka", "127.0.0.1");
+        System.setProperty("coherence.localhost", "127.0.0.1");
         System.setProperty("coherence.ttl", "0");
         System.setProperty("coherence.cluster", "CoherenceBootstrapTests");
         System.setProperty("coherence.cacheconfig", Resources.DEFAULT_RESOURCE_PACKAGE + "/coherence-cache-config.xml");
@@ -293,5 +295,35 @@ class CoherenceBootstrapTests
         assertThat(coherence.getSession("Two").isActive(), is(true));
 
         assertThrows(IllegalStateException.class, () -> coherence.addSession(sessionTwo));
+        }
+
+    @Test
+    public void shouldCloseAndRestartCoherence() throws Exception
+        {
+        CoherenceConfiguration configuration = CoherenceConfiguration.builder()
+                .discoverSessions()
+                .build();
+
+        // Start Coherence
+        Coherence coherence = Coherence.clusterMember(configuration).startAndWait();
+        assertThat(coherence.isActive(), is(true));
+
+        Session session = coherence.getSession();
+        assertThat(session, is(notNullValue()));
+        assertThat(session.isActive(), is(true));
+
+        // close this instance
+        coherence.close();
+        assertThat(coherence.isClosed(), is(true));
+        assertThat(coherence.isActive(), is(false));
+        assertThat(session.isActive(), is(false));
+
+        // restart Coherence
+        coherence = Coherence.clusterMember(configuration).startAndWait();
+        assertThat(coherence.isActive(), is(true));
+
+        session = coherence.getSession();
+        assertThat(session, is(notNullValue()));
+        assertThat(session.isActive(), is(true));
         }
     }
