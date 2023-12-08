@@ -5230,6 +5230,7 @@ public class Coherence
             _trace("  snapshot [remove | retrieve] archived <snapshot-name>");
             _trace("  stats [cluster | service | p2p] [reset]");
             _trace("  suspend [all]");
+            _trace("  truncate");
             _trace("  unlock <key>");
             _trace("  waitkey <start key> <stop key>");
             _trace("  who | cluster");
