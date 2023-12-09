@@ -108,7 +108,7 @@ public class InKeySetFilter<T>
     public boolean evaluateEntry(Map.Entry entry)
         {
         Filter<T> filter = m_filter;
-        return m_setKeys.contains(m_fConverted && entry instanceof BinaryEntry ? ((BinaryEntry<?, ?>) entry).getBinaryKey() : entry.getKey()) &&
+        return m_setKeys.contains(entry instanceof BinaryEntry ? ((BinaryEntry<?, ?>) entry).getBinaryKey() : entry.getKey()) &&
                (filter == null || InvocableMapHelper.evaluateEntry(filter, entry));
         }
 
