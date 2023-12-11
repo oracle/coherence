@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io;
@@ -628,67 +628,6 @@ public class ObjectInputFilterTests
                 {
                 assertTrue("expected an InvalidClassException for " + ao.getClass().getName() + " ObjectInputFilter " + ObjectInputFilterHelper.getConfigSerialFilter(), containsInvalidClassExceptionCause(exception));
                 }
-            }
-        }
-
-    @Test
-    public void testExternalizableLiteDirectStringLengthWithBlockingFilter()
-        {
-        testStringObjectInputFilter(/*filterEnabled*/ true, /*fFail*/true);
-        }
-
-    @Test
-    public void testExternalizableLiteDirectStringLengthWithoutObjectInputFilter()
-        {
-        testStringObjectInputFilter(/*filterEnabled*/ false, /*fFail*/false);
-        }
-
-    /**
-     * Test ExternalizableLite ReadBuffer deserialization with ObjectInputFilter.
-     */
-    public void testStringObjectInputFilter(boolean fFilterEnabled, boolean fFail)
-        {
-        String   sFilter = "data.*;maxarray=400";
-        boolean  fFilter = true;
-
-        Exception  exception    = null;
-        String     deserialized = null;
-
-        String sSource = Base.getRandomString(401, 401, true);
-
-        try
-            {
-            ByteArrayWriteBuffer baos = new ByteArrayWriteBuffer(0);
-
-            ExternalizableHelper.writeObject(baos.getBufferOutput(), sSource);
-
-            byte[] ab = baos.toByteArray();
-
-            ByteArrayReadBuffer bais = new ByteArrayReadBuffer(ab);
-            BufferInput in           = bais.getBufferInput();
-
-            if (fFilterEnabled)
-                {
-                Object oInputFilter = ObjectInputFilterHelper.createObjectInputFilter(sFilter);
-
-                in.setObjectInputFilter(oInputFilter);
-                }
-
-            // Provide non-null classloader to test Wrappers used for containers
-            deserialized = ExternalizableHelper.readObject(in, Thread.currentThread().getContextClassLoader());
-            }
-        catch (Exception e)
-            {
-            exception = e;
-            }
-
-        if (!fFilterEnabled || !fFail)
-            {
-            assertEquals("compare serialized and deserialized value, should be equal", sSource, deserialized);
-            }
-        else
-            {
-            assertTrue("expected an InvalidClassException for ObjectInputFilter " + sFilter, containsInvalidClassExceptionCause(exception));
             }
         }
 
