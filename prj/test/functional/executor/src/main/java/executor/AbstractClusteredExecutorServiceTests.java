@@ -63,6 +63,7 @@ import com.oracle.coherence.concurrent.executor.util.Caches;
 
 import com.tangosol.io.Serializer;
 
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
@@ -123,7 +124,7 @@ import static org.junit.Assert.fail;
  * @author lh
  * @since 21.12
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({"rawtypes", "unchecked", "resource"})
 public abstract class AbstractClusteredExecutorServiceTests
         extends AbstractTaskExecutorServiceTests
     {
@@ -182,6 +183,11 @@ public abstract class AbstractClusteredExecutorServiceTests
     public void cleanup()
         {
         String sMsg = ">>>>> Finished test: " + f_watcher.getMethodName();
+        if (m_cacheFactory != null && m_cacheFactory.isActive())
+            {
+            m_cacheFactory.dispose();
+            m_cacheFactory = null;
+            }
         for (CoherenceClusterMember member : getCoherence().getCluster())
             {
             if (member != null)
@@ -201,6 +207,7 @@ public abstract class AbstractClusteredExecutorServiceTests
 
             Eventually.assertDeferred(() -> m_taskExecutorService.isShutdown(), is(true));
             }
+        CacheFactory.shutdown();
         }
 
     // ----- contract -------------------------------------------------------
@@ -238,8 +245,12 @@ public abstract class AbstractClusteredExecutorServiceTests
         clusterResource.getCluster();
 
         // connect as an *Extend client
+        System.setProperty("coherence.client", "remote-fixed");
         m_cacheFactory = clusterResource.createSession((
-                SessionBuilders.extendClient(m_extendConfig, SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, "true"))));
+                SessionBuilders.extendClient(m_extendConfig,
+                                             SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, "true"),
+                                             SystemProperty.of("coherence.client", "remote-fixed"))));
+        m_cacheFactory.activate();
         }
 
     // ----- test methods ---------------------------------------------------
@@ -1441,7 +1452,8 @@ public abstract class AbstractClusteredExecutorServiceTests
 
     public CacheService getCacheService()
         {
-        return m_taskExecutorService.getCacheService();
+        return m_taskExecutorService == null
+                ? null : m_taskExecutorService.getCacheService();
         }
 
     /**
