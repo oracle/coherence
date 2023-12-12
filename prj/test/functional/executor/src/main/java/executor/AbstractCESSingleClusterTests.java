@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@ package executor;
 
 import com.oracle.coherence.concurrent.executor.util.Caches;
 
+import com.tangosol.net.CacheService;
 import executor.common.SingleClusterForAllTests;
 import executor.common.Utils;
 
@@ -28,13 +29,17 @@ public abstract class AbstractCESSingleClusterTests
     {
     // ----- test lifecycle -------------------------------------------------
 
+    @SuppressWarnings("resource")
     @Override
     public void cleanup()
         {
+        CacheService service = getCacheService();
+        if (service != null)
+            {
+            Caches.tasks(service).clear();
+            Caches.assignments(service).clear();
+            }
         super.cleanup();
-
-        Caches.tasks(getCacheService()).clear();
-        Caches.assignments(getCacheService()).clear();
         }
 
     // ----- constructors ---------------------------------------------------
