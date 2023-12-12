@@ -14,6 +14,10 @@ then
   buildah login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}" "${DOCKER_REGISTRY}"
 fi
 
+buildah rmi "${IMAGE_NAME}" || true
+buildah manifest rm "${IMAGE_NAME}" || true
+buildah rmi --prune || true
+
 if [ "${NO_DAEMON}" != "true" ]
 then
   buildah pull "docker-daemon:${IMAGE_NAME}-amd64"
@@ -34,8 +38,6 @@ LOCAL_NAME="localhost/${IMAGE_SUFFIX}"
 
 buildah images
 
-# Create distroless based images
-buildah manifest rm "${IMAGE_NAME}" || true
 buildah manifest create "${IMAGE_NAME}"
 buildah manifest add --arch amd64 --os linux "${IMAGE_NAME}" "${IMAGE_NAME}-amd64"
 buildah manifest add --arch arm64 --os linux "${IMAGE_NAME}" "${IMAGE_NAME}-arm64"
