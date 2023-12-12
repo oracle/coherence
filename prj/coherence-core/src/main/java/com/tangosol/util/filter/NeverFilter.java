@@ -53,6 +53,10 @@ public class NeverFilter<T>
         return false;
         }
 
+    public String toExpression()
+        {
+        return "FALSE";
+        }
 
     // ----- EntryFilter interface ------------------------------------------
 

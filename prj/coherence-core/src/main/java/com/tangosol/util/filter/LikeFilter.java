@@ -145,6 +145,12 @@ public class LikeFilter<T, E>
         buildPlan();
         }
 
+    // ----- Filter interface -----------------------------------------------
+
+    protected String getOperator()
+        {
+        return "LIKE";
+        }
 
     // ----- ExtractorFilter methods ----------------------------------------
 

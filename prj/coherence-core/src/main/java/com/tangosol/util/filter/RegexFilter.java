@@ -55,6 +55,12 @@ public class RegexFilter<T, E>
         super(sMethod, sRegex);
         }
 
+    // ----- Filter interface -----------------------------------------------
+
+    protected String getOperator()
+        {
+        return "MATCHES";
+        }
 
     // ----- ExtractorFilter methods ----------------------------------------
 

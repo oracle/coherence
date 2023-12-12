@@ -99,8 +99,12 @@ public class InKeySetFilter<T>
         throw new UnsupportedOperationException();
         }
 
+    public String toExpression()
+        {
+        return "IN KEYSET " + m_setKeys;
+        }
 
-    // ----- EntryFilter interface ------------------------------------------
+// ----- EntryFilter interface ------------------------------------------
 
     /**
     * {@inheritDoc}

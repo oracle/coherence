@@ -68,7 +68,6 @@ public class AllFilter
         return true;
         }
 
-
     // ----- IndexAwareFilter interface -------------------------------------
 
     /**
@@ -183,5 +182,23 @@ public class AllFilter
             return new AllFilter((Filter[])
                 listFilter.toArray(new Filter[cFilters]));
             }
+        }
+
+    protected String getName()
+        {
+        switch (m_aFilter.length)
+            {
+            case 1:
+                return m_aFilter[0].getClass().getSimpleName();
+            case 2:
+                return "AndFilter";
+            default:
+                return super.getName();
+            }
+        }
+
+    protected String getOperator()
+        {
+        return "AND";
         }
     }

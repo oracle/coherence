@@ -70,6 +70,10 @@ public class NotFilter<T>
         return !m_filter.evaluate(o);
         }
 
+    public String toExpression()
+        {
+        return "!(" + m_filter.toExpression() + ")";
+        }
 
     // ----- EntryFilter interface ------------------------------------------
 
