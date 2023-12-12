@@ -137,7 +137,7 @@ public class AllFilter
     protected Filter applyIndex(Map mapIndexes, Set setKeys,
                                    QueryContext ctx, QueryRecord.PartialResult.TraceStep step)
         {
-        optimizeFilterOrder(mapIndexes, setKeys);
+        //optimizeFilterOrder(mapIndexes, setKeys);
 
         Filter[] aFilter    = m_aFilter;
         int      cFilters   = aFilter.length;
