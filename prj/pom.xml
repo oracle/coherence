@@ -916,6 +916,7 @@
                           "${major}.${minor}.${service}-${nextPatchSet}")
 
                   // project metadata properties
+                  desc = ""
                   if (!"true".equals(props.getProperty("project.official")))
                       {
                       desc = props.getProperty("project.build.description")
@@ -926,7 +927,6 @@
                           props.setProperty("project.timestamp", timestamp)
                           desc = "(dev-" + props.getProperty("user.name") + ")"
                           }
-                      props.setProperty("project.impl.description", desc)
                       props.setProperty("skip.docs", "true")
                       props.setProperty("skip.sources", "true")
                       }
@@ -935,6 +935,7 @@
                       props.setProperty("skip.docs", "false")
                       props.setProperty("skip.sources", "false")
                       }
+                  props.setProperty("project.impl.description", desc)
 
                   // infer the java.home.path iff JAVA_HOME is undefined
                   javaHomePath = props.get("java.home.path")
