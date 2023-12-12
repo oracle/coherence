@@ -11,15 +11,14 @@ package com.tangosol.util.filter;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 
-import com.tangosol.util.MapIndex;
 import com.tangosol.util.ValueExtractor;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 import javax.json.bind.annotation.JsonbProperty;
 
@@ -70,6 +69,26 @@ public abstract class ComparisonFilter<T, E, C>
         }
 
 
+    // ----- Filter interface -----------------------------------------------
+
+    public String toExpression()
+        {
+        C value = getValue();
+        String sValue = value instanceof Number
+                        || value instanceof Collection
+                        || value instanceof Map
+                        || value.getClass().isArray()
+                        ? toStringValue() : "'" + value + "'";
+        return getValueExtractor().getCanonicalName() + " " + getOperator() + " " + sValue;
+        }
+
+    protected String getOperator()
+        {
+        // it should really be abstract, but that would break custom filters that extend it,
+        // se let's just return an "unknown" operator
+        return "?";
+        }
+
     // ----- accessors ------------------------------------------------------
 
     /**
@@ -111,7 +130,7 @@ public abstract class ComparisonFilter<T, E, C>
         if (o instanceof ComparisonFilter)
             {
             ComparisonFilter that = (ComparisonFilter) o;
-            return this.getClass() ==       that.getClass()
+            return this.getClass() == that.getClass()
                 && equals(this.m_extractor, that.m_extractor)
                 && equals(this.m_value,    that.m_value)
                 ;
@@ -138,9 +157,7 @@ public abstract class ComparisonFilter<T, E, C>
     */
     public String toString()
         {
-        String sClass = getClass().getName();
-
-        return sClass.substring(sClass.lastIndexOf('.') + 1) +
+        return getClass().getSimpleName() +
             '(' + getValueExtractor() + ", " + toStringValue() + ')';
         }
 

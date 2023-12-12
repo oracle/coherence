@@ -68,6 +68,12 @@ public class InFilter<T, E>
         super(sMethod, new HashSet<>(setValues));
         }
 
+    // ----- Filter interface -----------------------------------------------
+
+    protected String getOperator()
+        {
+        return "IN";
+        }
 
     // ----- ExtractorFilter methods ----------------------------------------
 

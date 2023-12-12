@@ -2,11 +2,12 @@
 Explain Plan
 Filter Name                                                         Index   Cost
 ======================================================================================
-AllFilter                                                         \| ----  \| 0
+AllFilter\s+\| ----  \| 0
   LikeFilter\(filter\.nestinglevel1\.nestinglevel2\.nestinglev\.\.\. \(0\) \| 0     \| 11
-  BetweenFilter\(filter\.nestinglevel1\.nestinglevel2\.nesting\.\.\. \(1\) \| 1     \| 67
-  LessEqualsFilter\(\.getAge\(\), 98\)                                 \| 2     \| 100000
-  EqualsFilter\(\.getFirstName\(\), Hector\)                           \| 3     \| 100000
+  AndFilter\s+\| ----  \| 0
+    BetweenFilter\(filter\.nestinglevel1\.nestinglevel2\.nesti\.\.\. \(1\) \| 1     \| 67
+    EqualsFilter\(\.getFirstName\(\), Hector\)\s+\| 2     \| 100000
+  LessEqualsFilter\(\.getAge\(\), 98\)\s+\| 3     \| 100000
 
 
 Index Lookups
@@ -14,8 +15,8 @@ Index Description                             Extractor                        O
 ======================================================================================
 0   \| Partitioned: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B,\.\.\. \(2\)\s+\| filter\.nestinglevel1\.nes\.\.\. \(3\) \| true
 1   \| Partitioned: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B, Size=3\s+\| filter\.nestinglevel1\.nes\.\.\. \(4\) \| true
-2   \| No index found                        \| \.getAge\(\)                       \| false
-3   \| No index found                        \| \.getFirstName\(\)                 \| false
+2   \| No index found                        \| \.getFirstName\(\)                 \| false
+3   \| No index found                        \| \.getAge\(\)                       \| false
 
 
 Complete filter and index descriptions

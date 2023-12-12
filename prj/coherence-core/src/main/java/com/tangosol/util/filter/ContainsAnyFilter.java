@@ -87,6 +87,12 @@ public class ContainsAnyFilter<T, E>
         super(sMethod, new HashSet<>(setValues));
         }
 
+    // ----- Filter interface -----------------------------------------------
+
+    protected String getOperator()
+        {
+        return "CONTAINS ANY";
+        }
 
     // ----- ExtractorFilter methods ----------------------------------------
 

@@ -21,6 +21,7 @@ import com.tangosol.util.QueryRecord;
 import com.tangosol.util.QueryContext;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -69,6 +70,35 @@ public abstract class ArrayFilter
         m_aFilter = aFilter;
         }
 
+
+    // ----- Filter interface -----------------------------------------------
+
+    public String toExpression()
+        {
+        String        sOperator = getOperator();
+        StringBuilder sb        = new StringBuilder();
+
+        sb.append('(');
+
+        Filter[] aFilter = m_aFilter;
+        for (int i = 0, c = aFilter.length; i < c; i++)
+            {
+            if (i > 0)
+                {
+                sb.append(' ').append(sOperator).append(' ');
+                }
+            sb.append(aFilter[i].toExpression());
+            }
+
+        sb.append(')');
+
+        return sb.toString();
+        }
+
+    protected String getOperator()
+        {
+        throw new UnsupportedOperationException();
+        }
 
     // ----- EntryFilter interface ------------------------------------------
 
@@ -224,7 +254,7 @@ public abstract class ArrayFilter
             return;
             }
 
-        Set<Filter<?>>   setFilter = simplifyFilters();
+        Set<Filter>      setFilter = new LinkedHashSet<>(Arrays.asList(m_aFilter));
         int              cFilters  = setFilter.size();
         WeightedFilter[] aWeighted = new WeightedFilter[cFilters];
         Filter<?>[]      aFilter   = new Filter[cFilters];
@@ -370,9 +400,8 @@ public abstract class ArrayFilter
     */
     public String toString()
         {
-        String        sClass = getClass().getName();
-        StringBuilder sb     = new StringBuilder(
-            sClass.substring(sClass.lastIndexOf('.') + 1));
+        String        sName = getName();
+        StringBuilder sb    = new StringBuilder(sName);
 
         sb.append('(');
 
@@ -391,6 +420,10 @@ public abstract class ArrayFilter
         return sb.toString();
         }
 
+    protected String getName()
+        {
+        return getClass().getSimpleName();
+        }
 
     // ----- ExternalizableLite interface -----------------------------------
 

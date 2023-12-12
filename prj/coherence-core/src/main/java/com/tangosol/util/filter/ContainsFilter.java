@@ -77,6 +77,12 @@ public class ContainsFilter<T, E>
         super(sMethod, value);
         }
 
+    // ----- Filter interface -----------------------------------------------
+
+    protected String getOperator()
+        {
+        return "CONTAINS";
+        }
 
     // ----- ExtractorFilter methods ----------------------------------------
 
