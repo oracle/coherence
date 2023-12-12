@@ -64,6 +64,10 @@ public class PresentFilter<T>
         return true;
         }
 
+    public String toExpression()
+        {
+        return "IS PRESENT";
+        }
 
     // ----- EntryFilter interface ------------------------------------------
 

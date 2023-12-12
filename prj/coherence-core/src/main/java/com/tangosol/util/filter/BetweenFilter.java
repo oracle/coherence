@@ -204,6 +204,14 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
         return evaluateExtracted(getValueExtractor().extract(oTarget));
         }
 
+    public String toExpression()
+        {
+        return getValueExtractor().getCanonicalName() + " BETWEEN " +
+               (isLowerBoundInclusive() ? '[' : '(') +
+               getLowerBound() + ", " + getUpperBound() +
+               (isUpperBoundInclusive() ? ']' : ')');
+        }
+
     // ----- EntryFilter interface ------------------------------------------
 
     /**
@@ -428,12 +436,7 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
 
         int cu = ((Comparable) oExtracted).compareTo(oUpperBound);
 
-        if ((fIncludeUpperBound && cu > 0) || (!fIncludeUpperBound && cu >= 0))
-            {
-            return false;
-            }
-
-        return true;
+        return (!fIncludeUpperBound || cu <= 0) && (fIncludeUpperBound || cu < 0);
         }
 
     /**

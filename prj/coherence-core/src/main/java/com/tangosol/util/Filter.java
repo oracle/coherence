@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
 
@@ -48,6 +48,16 @@ public interface Filter<T>
     public boolean evaluate(T o);
 
     // ---- Filter methods --------------------------------------------------
+
+    /**
+     * Return a string expression for this filter.
+     *
+     * @return a string expression for this filter
+     */
+    public default String toExpression()
+        {
+        return toString();
+        }
 
     /**
      * Return a composed filter that represents a short-circuiting logical

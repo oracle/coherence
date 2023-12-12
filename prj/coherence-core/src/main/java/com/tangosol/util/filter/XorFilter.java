@@ -105,4 +105,9 @@ public class XorFilter
         return InvocableMapHelper.evaluateEntry(afilter[0], entry)
              ^ InvocableMapHelper.evaluateEntry(afilter[1], entry);
         }
+
+    protected String getOperator()
+        {
+        return "XOR";
+        }
     }

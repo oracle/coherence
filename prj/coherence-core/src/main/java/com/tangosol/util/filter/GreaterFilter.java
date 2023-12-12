@@ -67,6 +67,12 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
         super(sMethod, value);
         }
 
+    // ----- Filter interface -----------------------------------------------
+
+    protected String getOperator()
+        {
+        return ">";
+        }
 
     // ----- ExtractorFilter methods ----------------------------------------
 

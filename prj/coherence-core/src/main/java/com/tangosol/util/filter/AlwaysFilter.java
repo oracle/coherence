@@ -55,6 +55,10 @@ public class AlwaysFilter<T>
         return true;
         }
 
+    public String toExpression()
+        {
+        return "TRUE";
+        }
 
     // ----- EntryFilter interface ------------------------------------------
 

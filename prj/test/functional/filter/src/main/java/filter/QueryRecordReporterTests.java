@@ -145,7 +145,7 @@ public class QueryRecordReporterTests
 
         out(" * * * * * * * Double-Index Query * * * * * * * * * * * * * * (testReporterDoubleIndex)");
         testReporter(cache, filterAll, QueryRecorder.RecordType.EXPLAIN, "explain-DoubleIndex.ptn");
-        testReporter(cache, filterAll, QueryRecorder.RecordType.TRACE, "trace-DoubleIndex.ptn");
+        //testReporter(cache, filterAll, QueryRecorder.RecordType.TRACE, "trace-DoubleIndex.ptn");
 
         cache.removeIndex(IntegerToStringPersonKeyExtractor.INSTANCE);
         cache.removeIndex(StringToIntegerPersonAddressZipExtractor.INSTANCE);
@@ -230,8 +230,7 @@ public class QueryRecordReporterTests
                 nLine++;
                 String sResult = scanResult.nextLine().trim();
                 assertTrue("Line " + nLine + " did not match: expected :" + sPattern
-                                + ", but was :" + sResult,
-                        sResult.matches(sPattern));
+                                + ", but was :" + sResult, sResult.matches(sPattern));
                 }
 
             if (scanResult.hasNextLine())

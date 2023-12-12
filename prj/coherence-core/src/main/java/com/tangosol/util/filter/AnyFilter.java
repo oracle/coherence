@@ -246,4 +246,22 @@ public class AnyFilter
             return new AnyFilter((Filter[]) listFilter.toArray(new Filter[cFilters]));
             }
         }
+
+    protected String getName()
+        {
+        switch (m_aFilter.length)
+            {
+            case 1:
+                return m_aFilter[0].getClass().getSimpleName();
+            case 2:
+                return "OrFilter";
+            default:
+                return super.getName();
+            }
+        }
+
+    protected String getOperator()
+        {
+        return "OR";
+        }
     }
