@@ -1857,6 +1857,9 @@ public class ClusteredTaskManager<T, A, R>
                         {
                         manager.m_lastResult = m_newResult;
                         manager.m_nResultVersion++;
+
+                        // move forward the generation of processed results
+                        manager.m_lProcessedResultGeneration = m_lProcessedResultMapGeneration;
                         }
                     else
                         {
@@ -1864,12 +1867,6 @@ public class ClusteredTaskManager<T, A, R>
                                 "Task [%s] result [%s] has not changed.  No update will be performed",
                                 manager.getTaskId(), manager.getLastResult()), debug);
                         }
-                    }
-
-                // move forward the generation of processed results
-                if (manager.m_lProcessedResultGeneration < m_lProcessedResultMapGeneration)
-                    {
-                    manager.m_lProcessedResultGeneration = m_lProcessedResultMapGeneration;
                     }
 
                 // update if the result completed the task (iff completed)
@@ -1880,9 +1877,8 @@ public class ClusteredTaskManager<T, A, R>
                     }
 
                 ExecutorTrace.log(() -> String.format(
-                        "Task [%s] (completed=[%s], cancelled=[%s], state=[%s], resultVersion[%s]",
-                        manager.getTaskId(), manager.isCompleted(), manager.isCancelled(), manager.m_state,
-                        manager.m_nResultVersion), debug);
+                        "Task [%s] ([%s])",
+                        manager.getTaskId(), manager), debug);
 
                 entry.setValue(manager);
                 }
