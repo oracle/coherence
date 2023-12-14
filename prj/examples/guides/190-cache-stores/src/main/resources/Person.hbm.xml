@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2021 Oracle and/or its affiliates.
+  ~ Copyright (c) 2021, 2023 Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ http://oss.oracle.com/licenses/upl.
+  ~ https://oss.oracle.com/licenses/upl.
   -->
 <!DOCTYPE hibernate-mapping PUBLIC
         "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
@@ -13,7 +13,7 @@
      and adapted for functional testing of coherence-hibernate-cache-store -->
 <!-- tag::config[] -->
 <hibernate-mapping package="com.oracle.coherence.guides.cachestores">
-  <class name="Person" table="PERSON">
+  <class name="Person" table="PERSON"> <!--1-->
     <id name="id" column="id">
       <generator class="native"/>
     </id>

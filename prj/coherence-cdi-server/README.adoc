@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
@@ -204,7 +204,7 @@ stored locally, and the amount of data transferred over the network.
 For example, you may have a complex `Person` objects in the backing map, but only need their names in order to populate
 a drop down on the client UI.
 
-In that case, you can implement a custom <<custom-extractor,ExtractorBinding>> (recommended), or use a built-in
+In that case, you can implement a custom <<extractor-binding-custom,ExtractorBinding>> (recommended), or use a built-in
 `@PropertyExtractor` for convenience:
 
 [source,java]
@@ -753,7 +753,7 @@ events of type `EntryEvent<Long, String>` because the property extractor will be
 values in the original event to extract just the `lastName` property, creating a new event with `String` values.
 
 There are a number of built in `ExtractorBinding` annotations, and it is also possible to create custom
-`ExtractorBinding` annotation - see the <<custom-extractor,Custom ExtractorBinding Annotations>> section below.
+`ExtractorBinding` annotation - see the <<extractor-binding-custom,Custom ExtractorBinding Annotations>> section below.
 
 Multiple extractor binding annotations can be added to an injection point, in which case multiple properties will be
 extracted, and the event will contain a `List` of the extracted property values.
@@ -779,7 +779,7 @@ event value is a `List` and in this case both properties are of tyep `String`, s
 If more complex event transformations are required than just extracting properties from event values, a custom
 `MapEventTransformerBinding` can be created that will produce a custom `MapEventTransformer` instance that will be
 applied to the observer's events.
-See the <<custom-transformer,Custom MapEventTransformerBinding Annotations>> section below for details on how to create
+See the <<transformer-binding-custom,Custom MapEventTransformerBinding Annotations>> section below for details on how to create
 `MapEventTransformerBinding` annotations.
 
 
@@ -1244,6 +1244,7 @@ The steps to create and use a `MapEventTransformerBinding` annotation are:
 annotation that will be the factory for producing instances of the custom `MapEventTransformer`.
 * Annotate the view injection point with the custom annotation.
 
+[#transformer-binding-custom]
 ==== Create the Custom Extractor Annotation
 
 Creating the extractor annotation is simply creating a normal Java annotation class which is annotated with
