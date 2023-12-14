@@ -124,42 +124,50 @@ public class MBeanServerProxyNotificationTests
     @Test
     public void shouldRegisterMultipleTimesNotificationListener() throws Exception
         {
-        CoherenceClusterMember member     = s_cluster.findAny().get();
-        int                    nMemberId  = member.getLocalMemberId();
-        MBeanServerProxy       proxy      = s_registry.getMBeanServerProxy();
-        String                 sMBeanName = String.format(UNIQUE_MBEAN_PATTERN, nMemberId);
-        String                 sHandback  = UUID.randomUUID().toString();
-        Listener               listener   = new Listener(5, sHandback);
-        int                    cBefore    = countMBeanListeners(member, sMBeanName);
+        CoherenceClusterMember member        = s_cluster.findAny().get();
+        int                    nMemberId     = member.getLocalMemberId();
+        MBeanServerProxy       proxy         = s_registry.getMBeanServerProxy();
+        String                 sMBeanName    = String.format(UNIQUE_MBEAN_PATTERN, nMemberId);
+        String                 sHandback     = UUID.randomUUID().toString();
+        Listener               listener      = new Listener(5, sHandback);
+        Listener               listenerTrack = new Listener(5, sHandback);
+        int                    cBefore       = countMBeanListeners(member, sMBeanName);
 
         proxy.addNotificationListener(sMBeanName, listener, null, sHandback);
+        proxy.addNotificationListener(sMBeanName, listenerTrack, null, sHandback);
 
-        // Ensure that the listener is added by checking the listener count on the server
-        Eventually.assertDeferred(() -> countMBeanListeners(member, sMBeanName), is(cBefore + 1));
+        // ensure that the listener and the listenerTrack is added by checking the listener count on the server
+        Eventually.assertDeferred(() -> countMBeanListeners(member, sMBeanName), is(cBefore + 2));
         Eventually.assertDeferred(listener::getCount, is(5L));
+        Eventually.assertDeferred(listenerTrack::getCount, is(5L));
 
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 111);
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 222);
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 333);
 
         Eventually.assertDeferred("verify that listener has been called 3 times", listener::getCount, is(2L));
+        Eventually.assertDeferred("verify that listenerTrack has been called 3 times", listenerTrack::getCount, is(2L));
 
         // the listener should eventually receive the notifications
         Eventually.assertDeferred(listener::getNewValue, is(333));
 
         proxy.removeNotificationListener(sMBeanName, listener, null, sHandback);
 
-        // Ensure that the listener is gone by checking the listener count on the server goes back to the before count
-        Eventually.assertDeferred(() -> countMBeanListeners(member, sMBeanName), is(cBefore));
+        // ensure that the listener is gone, and that listenerTrack remains, by checking that the listener count on the server goes back to the before count (plus one)
+        Eventually.assertDeferred(() -> countMBeanListeners(member, sMBeanName), is(cBefore + 1));
 
-        // should not receive this notification
+        // listener should not receive this notification, listenerTrack should
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 444);
+        Eventually.assertDeferred("verify that listenerTrack has been called 4 times", listenerTrack::getCount, is(1L));
         Eventually.assertDeferred("verify listener was unregistered and not called for modification setting CacheSize to 444", listener::getCount, is(2L));
+
+        // Bug 35843616 ensuring that the event has been delivered before we re-register the primary listener
+        Eventually.assertDeferred(listenerTrack::getNewValue, is(444));
 
         proxy.addNotificationListener(sMBeanName, listener, null, sHandback);
 
-        // Ensure that the listener is added by checking the listener count on the server
-        Eventually.assertDeferred(() -> countMBeanListeners(member, sMBeanName), is(cBefore + 1));
+        // ensure that the listener is added by checking the listener count on the server
+        Eventually.assertDeferred(() -> countMBeanListeners(member, sMBeanName), is(cBefore + 2));
 
         Eventually.assertDeferred("verify listener still not called for modification setting CacheSize to 444", listener::getCount, is(2L));
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 555);
