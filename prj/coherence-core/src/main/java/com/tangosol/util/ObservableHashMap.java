@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
 
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
 * An ObservableMap implementation that extends the SafeHashMap.
@@ -341,16 +342,16 @@ public class ObservableHashMap<K, V>
         else
             {
             // grab a copy of all entries
-            SafeHashMap.Entry[] aeBucket = m_aeBucket;
+            AtomicReferenceArray aeBucket = m_aeBucket;
 
             // clear the map
             super.clear();
 
             // walk all buckets
-            for (int i = 0, c = aeBucket.length; i < c; ++i)
+            for (int i = 0, c = aeBucket.length(); i < c; ++i)
                 {
                 // walk all entries in the bucket
-                Entry entry = (Entry) aeBucket[i];
+                Entry entry = (Entry) aeBucket.get(i);
                 while (entry != null)
                     {
                     entry.onRemove();
