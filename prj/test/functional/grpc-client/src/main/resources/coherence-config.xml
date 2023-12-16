@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -40,7 +40,7 @@
       <scheme-name>direct-scheme</scheme-name>
       <service-name>TestCacheService</service-name>
       <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
-      <partition-count system-property="coherence.partition.count">13</partition-count>
+      <partition-count system-property="coherence.partition.count">23</partition-count>
       <backing-map-scheme>
         <local-scheme/>
       </backing-map-scheme>

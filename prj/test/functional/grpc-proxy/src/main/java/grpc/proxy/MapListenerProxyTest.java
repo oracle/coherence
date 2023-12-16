@@ -106,7 +106,7 @@ class MapListenerProxyTest
     static void setup()
         {
         s_binary1    = ExternalizableHelper.toBinary(ONE, SERIALIZER);
-        s_binaryKey1 = BinaryHelper.toBinaryKey(s_binary1);
+        s_binaryKey1 = s_binary1;
         s_bytesKey1  = BinaryHelper.toByteString(s_binaryKey1);
         s_bytes1     = BinaryHelper.toByteString(ONE, SERIALIZER);
         s_binary2    = ExternalizableHelper.toBinary(TWO, SERIALIZER);

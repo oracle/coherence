@@ -10,7 +10,10 @@
 
 package com.tangosol.coherence.component.util.safeService.safeCacheService;
 
+import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.PartitionedService;
+import com.tangosol.util.Binary;
+import com.tangosol.util.Converter;
 
 /*
 * Integrates
@@ -183,6 +186,13 @@ public class SafeDistributedCacheService
         {
         return ((com.tangosol.net.DistributedCacheService) getRunningCacheService()).getKeyOwner(oKey);
         }
+
+    @Override
+    public <V> Converter<V, Binary> instantiateKeyToBinaryConverter(ClassLoader loader, boolean fPassThrough)
+        {
+        return ((DistributedCacheService) getRunningCacheService()).instantiateKeyToBinaryConverter(loader, fPassThrough);
+        }
+
     /**
      * Getter for property KeyPartitioningStrategy.<p>
      */

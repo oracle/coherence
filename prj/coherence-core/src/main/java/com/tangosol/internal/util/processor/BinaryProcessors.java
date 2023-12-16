@@ -607,7 +607,14 @@ public final class BinaryProcessors
         public Binary process(InvocableMap.Entry<Binary, Binary> entry)
             {
             BinaryEntry<Binary, Binary> binaryEntry = (BinaryEntry<Binary, Binary>) entry;
-            Binary                      binary      = m_map.get(binaryEntry.getBinaryKey());
+            Binary                      binaryKey   = binaryEntry.getBinaryKey();
+            Binary                      binary      = m_map.get(binaryKey);
+            if (binary == null)
+                {
+                // try the undecorated key
+                Binary binNoDeco = ExternalizableHelper.getUndecorated((ReadBuffer) binaryKey).toBinary();
+                binary = m_map.get(binNoDeco);
+                }
             if (binary == null)
                 {
                 entry.setValue(null);
@@ -725,7 +732,14 @@ public final class BinaryProcessors
         public Binary process(InvocableMap.Entry<Binary, Binary> entry)
             {
             BinaryEntry<Binary, Binary> binaryEntry = (BinaryEntry<Binary, Binary>) entry;
-            Binary                      binary      = m_map.get(binaryEntry.getBinaryKey());
+            Binary                      binaryKey   = binaryEntry.getBinaryKey();
+            Binary                      binary      = m_map.get(binaryKey);
+            if (binary == null)
+                {
+                // try the undecorated key
+                Binary binNoDeco = ExternalizableHelper.getUndecorated((ReadBuffer) binaryKey).toBinary();
+                binary = m_map.get(binNoDeco);
+                }
             if (binary == null)
                 {
                 entry.setValue(null);

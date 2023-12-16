@@ -166,6 +166,16 @@ public class GrpcRemoteCacheService
         return CacheFactory.VERSION_ENCODED;
         }
 
+    /**
+     * Return {@code true} if the key association check is deferred to the proxy server.
+     *
+     *  @return {@code true} if the key association check is deferred to the proxy server
+     */
+    public boolean isDeferKeyAssociationCheck()
+        {
+        return getDependencies().isDeferKeyAssociationCheck();
+        }
+
     // ----- helper methods -------------------------------------------------
 
     @Override
@@ -225,6 +235,7 @@ public class GrpcRemoteCacheService
         deps.setSerializer(m_serializer, m_serializer.getName());
         deps.setExecutor(m_executor);
         deps.setDeadline(dependencies.getDeadline());
+        deps.setDeferKeyAssociationCheck(dependencies.isDeferKeyAssociationCheck());
 
         AsyncNamedCacheClient<?, ?> client = new AsyncNamedCacheClient<>(deps);
 

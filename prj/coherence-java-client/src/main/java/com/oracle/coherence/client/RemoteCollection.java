@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.client;
@@ -312,7 +312,7 @@ public abstract class RemoteCollection<K, V, T>
             Collection<Map.Entry<ByteString, ByteString>> entries = ConverterCollections
                     .getCollection(list, this::fromEntryResult, this::toEntryResult);
 
-            return ConverterCollections.getEntrySet(entries, m_client::fromByteString, m_client::toByteString,
+            return ConverterCollections.getEntrySet(entries, m_client::fromByteString, m_client::toKeyByteString,
                                                     m_client::fromByteString, m_client::toByteString);
             }
 
@@ -341,7 +341,7 @@ public abstract class RemoteCollection<K, V, T>
         protected EntryResult toEntryResult(Map.Entry<ByteString, ByteString> entry)
             {
             return EntryResult.newBuilder()
-                    .setKey(m_client.toByteString(entry.getKey()))
+                    .setKey(m_client.toKeyByteString(entry.getKey()))
                     .setValue(m_client.toByteString(entry.getValue()))
                     .build();
             }
