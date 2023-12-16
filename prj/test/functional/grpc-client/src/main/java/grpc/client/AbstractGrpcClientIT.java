@@ -12,10 +12,13 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.client.AsyncNamedCacheClient;
 import com.oracle.coherence.client.DeactivationListener;
 
+import com.oracle.coherence.client.GrpcRemoteCacheService;
 import com.oracle.coherence.io.json.JsonSerializer;
 
+import com.tangosol.coherence.component.net.extend.remoteService.RemoteCacheService;
 import com.tangosol.coherence.component.util.SafeAsyncNamedCache;
 
+import com.tangosol.coherence.component.util.safeService.SafeCacheService;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
 import com.tangosol.io.DefaultSerializer;
@@ -24,12 +27,14 @@ import com.tangosol.io.SerializerFactory;
 
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.OperationalContext;
 
 import com.tangosol.net.RequestIncompleteException;
 import com.tangosol.net.grpc.GrpcDependencies;
 
+import com.tangosol.net.partition.KeyPartitioningStrategy;
 import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Base;
 import com.tangosol.util.Extractors;
@@ -57,6 +62,7 @@ import com.tangosol.util.processor.ExtractorProcessor;
 import io.grpc.StatusRuntimeException;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 
@@ -84,6 +90,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -141,6 +148,7 @@ abstract class AbstractGrpcClientIT
         }
 
     // ----- test methods ---------------------------------------------------
+
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
@@ -201,7 +209,6 @@ abstract class AbstractGrpcClientIT
         Eventually.assertDeferred(cache::isEmpty, is(true));
         }
 
-
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
     void shouldReturnTrueForContainsKeyWithExistingMapping(String sSerializerName, Serializer serializer)
@@ -217,6 +224,21 @@ abstract class AbstractGrpcClientIT
         assertThat(result, is(true));
         }
 
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    void shouldReturnTrueForContainsAssociatedKeyWithExistingMapping(String sSerializerName, Serializer serializer)
+        {
+        String                                cacheName = createCacheName();
+        NamedCache<TestAssociatedKey, String> cache     = ensureCache(cacheName);
+
+        clearAndPopulateAssociated(cache, "foo", 5);
+
+        NamedCache<TestAssociatedKey, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
+        TestAssociatedKey                     key        = new TestAssociatedKey("key-2", "foo");
+        boolean                               result     = grpcClient.containsKey(key);
+
+        assertThat(result, is(true));
+        }
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
@@ -329,7 +351,6 @@ abstract class AbstractGrpcClientIT
         verify(listener).released(same(asyncClient));
         }
 
-
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
     void shouldGetExistingKey(String sSerializerName, Serializer serializer)
@@ -345,6 +366,20 @@ abstract class AbstractGrpcClientIT
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
+    void shouldGetExistingAssociatedKey(String sSerializerName, Serializer serializer)
+        {
+        String                                cacheName = createCacheName();
+        NamedCache<TestAssociatedKey, String> cache     = ensureCache(cacheName);
+        clearAndPopulateAssociated(cache, "foo", 5);
+
+        NamedCache<TestAssociatedKey, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
+        TestAssociatedKey                     key        = new TestAssociatedKey("key-2", "foo");
+        String                                result     = grpcClient.get(key);
+        assertThat(result, is("value-2"));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
     void shouldGetExistingKeyMappedToNull(String sSerializerName, Serializer serializer)
         {
         String                     cacheName = createCacheName();
@@ -353,7 +388,7 @@ abstract class AbstractGrpcClientIT
         cache.put("key-2", null);
 
         NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
-        String                           result  = grpcClient.get("key-2");
+        String                     result     = grpcClient.get("key-2");
         assertThat(result, is(nullValue()));
         }
 
@@ -451,6 +486,21 @@ abstract class AbstractGrpcClientIT
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
+    void shouldGetAllWhenAllAssociatedKeysMatch(String sSerializerName, Serializer serializer)
+        {
+        String                                cacheName = createCacheName();
+        NamedCache<TestAssociatedKey, String> cache     = ensureCache(cacheName);
+        clearAndPopulateAssociated(cache, "foo", 4);
+
+        Collection<TestAssociatedKey> keys = Arrays.asList(
+                new TestAssociatedKey("key-2", "foo"),
+                new TestAssociatedKey("key-4", "foo"));
+
+        assertGetAll(cache, sSerializerName, serializer, keys);
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
     void shouldGetAllWhenAllSomeKeysMatch(String sSerializerName, Serializer serializer)
         {
         String                     cacheName = createCacheName();
@@ -462,12 +512,16 @@ abstract class AbstractGrpcClientIT
         assertGetAll(cache, sSerializerName, serializer, keys);
         }
 
-    void assertGetAll(NamedCache<String, String> cache, String sSerializerName, Serializer serializer, Collection<String> keys)
+    <K> void assertGetAll(NamedCache<K, String> cache, String sSerializerName, Serializer serializer, Collection<K> keys)
         {
-        Map<String, String> expected = cache.getAll(keys);
+        NamedCache<K, String> grpcClient = createClient(cache.getCacheName(), sSerializerName, serializer);
+        assertGetAll(cache, grpcClient, keys);
+        }
 
-        NamedCache<String, String> grpcClient = createClient(cache.getCacheName(), sSerializerName, serializer);
-        Map<String, String>        results    = grpcClient.getAll(keys);
+    <K> void assertGetAll(NamedCache<K, String> cache, NamedCache<K, String> grpcClient, Collection<K> keys)
+        {
+        Map<K, String> expected = cache.getAll(keys);
+        Map<K, String> results    = grpcClient.getAll(keys);
         assertThat(results, is(expected));
         }
 
@@ -498,7 +552,6 @@ abstract class AbstractGrpcClientIT
         assertThat(result, is(false));
         }
 
-
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
     void shouldInsertNewEntry(String sSerializerName, Serializer serializer)
@@ -513,6 +566,54 @@ abstract class AbstractGrpcClientIT
 
         assertThat(cache.get("key-1"), is("value-1"));
         }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    void shouldInsertNewAssociatedEntry(String sSerializerName, Serializer serializer)
+        {
+        String                                cacheName = createCacheName();
+        NamedCache<TestAssociatedKey, String> cache     = ensureCache(cacheName);
+        cache.clear();
+
+        TestAssociatedKey                     key        = new TestAssociatedKey("key-1", "foo");
+        NamedCache<TestAssociatedKey, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
+        String                                result     = grpcClient.put(key, "value-1");
+        assertThat(result, is(nullValue()));
+
+        assertThat(cache.get(key), is("value-1"));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    void shouldInsertNewAssociatedEntriesToSamePartition(String sSerializerName, Serializer serializer)
+        {
+        String                                cacheName = createCacheName();
+        NamedCache<TestAssociatedKey, String> cache     = ensureCache(cacheName);
+        TestAssociatedKey                     key1      = new TestAssociatedKey("key-1", "foo");
+        TestAssociatedKey                     key2      = new TestAssociatedKey("key-2", "foo");
+        TestAssociatedKey                     key3      = new TestAssociatedKey("key-3", "foo");
+        TestAssociatedKey                     key4      = new TestAssociatedKey("key-4", "foo");
+
+        cache.clear();
+
+        NamedCache<TestAssociatedKey, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
+        grpcClient.put(key1, "value-1");
+        grpcClient.put(key2, "value-2");
+        grpcClient.put(key3, "value-3");
+        grpcClient.put(key4, "value-4");
+
+        GetEntryPartition<TestAssociatedKey, String> processor = new GetEntryPartition<>();
+        int                                          nPart1    = cache.invoke(key1, processor);
+        int                                          nPart2    = cache.invoke(key2, processor);
+        int                                          nPart3    = cache.invoke(key3, processor);
+        int                                          nPart4    = cache.invoke(key4, processor);
+
+        assertThat(nPart2, is(nPart1));
+        assertThat(nPart3, is(nPart1));
+        assertThat(nPart4, is(nPart1));
+        }
+
+
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
@@ -616,6 +717,23 @@ abstract class AbstractGrpcClientIT
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
+    void shouldPutIfAbsentForExistingAssociatedKey(String sSerializerName, Serializer serializer)
+        {
+        String                                cacheName = createCacheName();
+        NamedCache<TestAssociatedKey, String> cache     = ensureCache(cacheName);
+        TestAssociatedKey                     key       = new TestAssociatedKey("key-1", "foo");
+        cache.clear();
+        cache.put(key, "value-1");
+
+        NamedCache<TestAssociatedKey, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
+        String                                result     = grpcClient.putIfAbsent(key, "value-2");
+
+        assertThat(result, is("value-1"));
+        assertThat(cache.get(key), is("value-1"));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
     void shouldPutIfAbsentForExistingKeyMappedToNullValue(String sSerializerName, Serializer serializer)
         {
         String                     cacheName = createCacheName();
@@ -651,6 +769,30 @@ abstract class AbstractGrpcClientIT
         assertThat(cache.get("key-1"), is("value-1"));
         assertThat(cache.get("key-2"), is("value-2"));
         }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    void shouldPutAllAssociatedEntries(String sSerializerName, Serializer serializer)
+        {
+        String                                cacheName = createCacheName();
+        NamedCache<TestAssociatedKey, String> cache     = ensureCache(cacheName);
+        cache.clear();
+
+        Map<TestAssociatedKey, String> map = new HashMap<>();
+        TestAssociatedKey              key1 = new TestAssociatedKey("key-1", "foo");
+        TestAssociatedKey              key2 = new TestAssociatedKey("key-2", "foo");
+        map.put(key1, "value-1");
+        map.put(key2, "value-2");
+
+        NamedCache<TestAssociatedKey, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
+
+        grpcClient.putAll(map);
+
+        assertThat(cache.size(), is(2));
+        assertThat(cache.get(key1), is("value-1"));
+        assertThat(cache.get(key2), is("value-2"));
+        }
+
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
@@ -720,6 +862,25 @@ abstract class AbstractGrpcClientIT
         assertThat(cache.size(), is(count - 1));
         }
 
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    void shouldReturnPreviousAssociatedValueForRemoveOnExistingMapping(String sSerializerName, Serializer serializer)
+        {
+        String                                cacheName = createCacheName();
+        NamedCache<TestAssociatedKey, String> cache     = ensureCache(cacheName);
+        int                                   count     = 10;
+
+        clearAndPopulateAssociated(cache, "foo", count);
+
+        NamedCache<TestAssociatedKey, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
+        TestAssociatedKey                     key        = new TestAssociatedKey("key-1", "foo");
+        String                                result     = grpcClient.remove(key);
+
+        assertThat(result, is("value-1"));
+        assertThat(cache.get(key), is(nullValue()));
+        assertThat(cache.size(), is(count - 1));
+        }
+
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
@@ -759,9 +920,25 @@ abstract class AbstractGrpcClientIT
         cache.put("key-1", "value-1");
 
         NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
-        boolean                          result  = grpcClient.remove("key-1", "value-1");
+        boolean                    result     = grpcClient.remove("key-1", "value-1");
         assertThat(result, is(true));
         assertThat(cache.containsKey("key-1"), is(false));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    void shouldReturnTrueForRemoveMappingOnMatchingMappingWithAssociatedKey(String sSerializerName, Serializer serializer)
+        {
+        String                                cacheName = createCacheName();
+        NamedCache<TestAssociatedKey, String> cache     = ensureCache(cacheName);
+        TestAssociatedKey                     key       = new TestAssociatedKey("key-1", "foo");
+        cache.clear();
+        cache.put(key, "value-1");
+
+        NamedCache<TestAssociatedKey, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
+        boolean                               result     = grpcClient.remove(key, "value-1");
+        assertThat(result, is(true));
+        assertThat(cache.containsKey(key), is(false));
         }
 
 
@@ -793,6 +970,21 @@ abstract class AbstractGrpcClientIT
         assertThat(cache.get("key-1"), is("value-123"));
         }
 
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    void shouldReturnNonNullForReplaceOnExistentMappingWithAssociatedKey(String sSerializerName, Serializer serializer)
+        {
+        String                                cacheName = createCacheName();
+        NamedCache<TestAssociatedKey, String> cache     = ensureCache(cacheName);
+        TestAssociatedKey                     key       = new TestAssociatedKey("key-1", "foo");
+
+        clearAndPopulateAssociated(cache, "foo", 5);
+
+        NamedCache<TestAssociatedKey, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
+        String                                result     = grpcClient.replace(key, "value-123");
+        assertThat(result, is("value-1"));
+        assertThat(cache.get(key), is("value-123"));
+        }
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
@@ -850,6 +1042,31 @@ abstract class AbstractGrpcClientIT
         Object[]     expectedValues = new ArrayList<>(cache.values()).stream().map(v -> v + '1').toArray();
 
         NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
+
+        grpcClient.replaceAll(keys, (k, v) ->
+           {
+           v = v + "1";
+           return v;
+           });
+
+        Collection<String> newValues = cache.values();
+
+        assertThat(newValues, containsInAnyOrder(expectedValues));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    void shouldReplaceAllWithAssociatedKeySet(String sSerializerName, Serializer serializer)
+        {
+        String                                cacheName = createCacheName();
+        NamedCache<TestAssociatedKey, String> cache     = ensureCache(cacheName);
+
+        clearAndPopulateAssociated(cache, "foo", 5);
+
+        List<TestAssociatedKey> keys           = new ArrayList<>(cache.keySet());
+        Object[]                expectedValues = new ArrayList<>(cache.values()).stream().map(v -> v + '1').toArray();
+
+        NamedCache<TestAssociatedKey, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
 
         grpcClient.replaceAll(keys, (k, v) ->
            {
@@ -1002,6 +1219,28 @@ abstract class AbstractGrpcClientIT
         assertThat(cache.get("k2"), is(nullValue()));
         }
 
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    void shouldComputeAndUpdateEntryWithAssociatedKey(String sSerializerName, Serializer serializer)
+        {
+        String                                 cacheName = createCacheName();
+        NamedCache<TestAssociatedKey, Integer> cache     = ensureCache(cacheName);
+        TestAssociatedKey                      key1      = new TestAssociatedKey("k1", "foo");
+        TestAssociatedKey                      key2      = new TestAssociatedKey("k2", "foo");
+        cache.clear();
+        cache.put(key1, 1);
+        cache.put(key2, 2);
+
+        NamedCache<TestAssociatedKey, Integer> grpcClient = createClient(cacheName, sSerializerName, serializer);
+
+        //noinspection ConstantConditions
+        int newValue = grpcClient.compute(key1, (k, v) -> v + v);
+        assertThat(newValue, is(2));
+
+        grpcClient.compute(key2, (k, v) -> null);
+
+        assertThat(cache.get(key2), is(nullValue()));
+        }
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
@@ -1025,6 +1264,29 @@ abstract class AbstractGrpcClientIT
         assertThat(lastName, is("builder"));
         }
 
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    void shouldCallInvokeWithAssociatedKey(String sSerializerName, Serializer serializer)
+        {
+        String                                cacheName = createCacheName();
+        NamedCache<TestAssociatedKey, Person> cache     = ensureCache(cacheName);
+        TestAssociatedKey                     key       = new TestAssociatedKey("bb", "foo");
+
+        cache.clear();
+
+        Person person = new Person("bob", "builder", 25, "male");
+        cache.put(key, person);
+
+        ValueExtractor<Person, String>                                 extractor = new UniversalExtractor<>("lastName");
+        InvocableMap.EntryProcessor<TestAssociatedKey, Person, String> processor = new ExtractorProcessor<>(extractor);
+
+        NamedCache<TestAssociatedKey, Person> grpcClient = createClient(cacheName, sSerializerName, serializer);
+
+        String lastName = grpcClient.invoke(key, processor);
+
+        assertThat(lastName, is(notNullValue()));
+        assertThat(lastName, is("builder"));
+        }
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
@@ -1105,6 +1367,35 @@ abstract class AbstractGrpcClientIT
         assertThat(map, hasEntry(person2.getLastName(), person2.getFirstName()));
         }
 
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    void shouldCallInvokeAllWithAssociatedKeys(String sSerializerName, Serializer serializer)
+        {
+        String                                cacheName = createCacheName("people");
+        NamedCache<TestAssociatedKey, Person> cache     = ensureCache(cacheName);
+        cache.clear();
+        Person person1 = new Person("Arthur", "Dent", 25, "male");
+        Person person2 = new Person("Dirk", "Gently", 25, "male");
+        Person person3 = new Person("Ford", "Prefect", 25, "male");
+
+        TestAssociatedKey key1 = new TestAssociatedKey(person1.getLastName(), "foo");
+        TestAssociatedKey key2 = new TestAssociatedKey(person2.getLastName(), "foo");
+        TestAssociatedKey key3 = new TestAssociatedKey(person3.getLastName(), "foo");
+        cache.put(key1, person1);
+        cache.put(key2, person2);
+        cache.put(key3, person3);
+
+        ValueExtractor<Person, String>                                 extractor = new UniversalExtractor<>("firstName");
+        InvocableMap.EntryProcessor<TestAssociatedKey, Person, String> processor = new ExtractorProcessor<>(extractor);
+        List<TestAssociatedKey>                                        keys      = Arrays.asList(key1, key2);
+
+        NamedCache<TestAssociatedKey, Person> grpcClient = createClient(cacheName, sSerializerName, serializer);
+
+        Map<TestAssociatedKey, String> map = grpcClient.invokeAll(keys, processor);
+
+        assertThat(map, hasEntry(key1, person1.getFirstName()));
+        assertThat(map, hasEntry(key2, person2.getFirstName()));
+        }
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
@@ -1178,6 +1469,36 @@ abstract class AbstractGrpcClientIT
         int expected = cache.aggregate(keys, aggregator);
 
         NamedCache<String, Person> grpcClient = createClient(cacheName, sSerializerName, serializer);
+
+        int result = grpcClient.aggregate(keys, aggregator);
+
+        assertThat(result, is(expected));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    void shouldCallAggregateWithAssociatedKeysExpectingSingleResult(String sSerializerName, Serializer serializer)
+        {
+        String                                cacheName = createCacheName("people");
+        NamedCache<TestAssociatedKey, Person> cache     = ensureCache(cacheName);
+        cache.clear();
+        Person person1 = new Person("Arthur", "Dent", 25, "male");
+        Person person2 = new Person("Dirk", "Gently", 25, "male");
+        Person person3 = new Person("Ford", "Prefect", 35, "male");
+
+        TestAssociatedKey key1 = new TestAssociatedKey(person1.getLastName(), "foo");
+        TestAssociatedKey key2 = new TestAssociatedKey(person2.getLastName(), "foo");
+        TestAssociatedKey key3 = new TestAssociatedKey(person3.getLastName(), "foo");
+        cache.put(key1, person1);
+        cache.put(key2, person2);
+        cache.put(key3, person3);
+
+        InvocableMap.EntryAggregator<TestAssociatedKey, Person, Integer> aggregator = new Count<>();
+        List<TestAssociatedKey>                                          keys       = Arrays.asList(key1, key2);
+
+        int expected = cache.aggregate(keys, aggregator);
+
+        NamedCache<TestAssociatedKey, Person> grpcClient = createClient(cacheName, sSerializerName, serializer);
 
         int result = grpcClient.aggregate(keys, aggregator);
 
@@ -1448,22 +1769,47 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldSubscribeToEventsForSingleKey(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                                cacheName     = "test-events-" + System.currentTimeMillis();
-        NamedCache<String, String>            cache         = ensureCache(cacheName);
-        CollectingMapListener<String, String> listenerCache = new CollectingMapListener<>(9);
-        cache.clear();
-        cache.addMapListener(listenerCache, "key-2", true);
+        assertSubscribeToEventsForSingleKey("key-2", AbstractGrpcClientIT::generateCacheEventsForStringValue,
+                sSerializerName, serializer);
+        }
 
-        NamedCache<String, String>            grpcClient  = createClient(cacheName, sSerializerName, serializer);
-        CollectingMapListener<String, String> listenerOne = new CollectingMapListener<>(3);
-        CollectingMapListener<String, String> listenerTwo = new CollectingMapListener<>(6);
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    void shouldSubscribeToEventsForSingleAssociatedKey(String sSerializerName, Serializer serializer) throws Exception
+        {
+        String            sAssociated = "foo";
+        TestAssociatedKey key         = new TestAssociatedKey("key-2", sAssociated);
+
+        assertSubscribeToEventsForSingleKey(key, cache -> generateCacheEventsForAssociatedKey(cache, sAssociated),
+                sSerializerName, serializer);
+        }
+
+    <K> void assertSubscribeToEventsForSingleKey(K key, Consumer<NamedCache<K, String>> generateEvents,
+            String sSerializerName, Serializer serializer) throws Exception
+        {
+        String                           cacheName     = "test-events-" + System.currentTimeMillis();
+        NamedCache<K, String>            cache         = ensureCache(cacheName);
+        NamedCache<K, String>            grpcClient    = createClient(cacheName, sSerializerName, serializer);
+        CollectingMapListener<K, String> listenerCache = new CollectingMapListener<>(9);
+
+        if (key instanceof KeyPartitioningStrategy.PartitionAwareKey)
+            {
+            assumeDeferKeyAssociation(cache);
+            assumeDeferKeyAssociation(grpcClient);
+            }
+
+        cache.clear();
+        cache.addMapListener(listenerCache, key, true);
+
+        CollectingMapListener<K, String> listenerOne = new CollectingMapListener<>(3);
+        CollectingMapListener<K, String> listenerTwo = new CollectingMapListener<>(6);
 
         // Add both listeners
-        grpcClient.addMapListener(listenerOne, "key-2", true);
-        grpcClient.addMapListener(listenerTwo, "key-2", true);
+        grpcClient.addMapListener(listenerOne, key, true);
+        grpcClient.addMapListener(listenerTwo, key, true);
 
         // update the cache to generate events
-        generateCacheEventsForStringValue(cache);
+        generateEvents.accept(cache);
 
         assertThat(listenerOne.awaitEvents(1, TimeUnit.MINUTES), is(true));
         assertThat("Incorrect number of insert events", listenerOne.getInsertCount(), is(1));
@@ -1471,10 +1817,10 @@ abstract class AbstractGrpcClientIT
         assertThat("Incorrect number of delete events", listenerOne.getDeleteCount(), is(1));
 
         // remove the listenerOne - listener two should still get events
-        grpcClient.removeMapListener(listenerOne, "key-2");
+        grpcClient.removeMapListener(listenerOne, key);
 
         // update the cache to generate events
-        generateCacheEventsForStringValue(cache);
+        generateEvents.accept(cache);
 
         assertThat(listenerTwo.awaitEvents(1, TimeUnit.MINUTES), is(true));
         assertThat("Incorrect number of insert events", listenerOne.getInsertCount(), is(1));
@@ -1485,10 +1831,10 @@ abstract class AbstractGrpcClientIT
         assertThat("Incorrect number of delete events", listenerTwo.getDeleteCount(), is(2));
 
         // remove the listenerTwo
-        grpcClient.removeMapListener(listenerTwo, "key-2");
+        grpcClient.removeMapListener(listenerTwo, key);
 
         // update the cache to generate events
-        generateCacheEventsForStringValue(cache);
+        generateEvents.accept(cache);
 
         assertThat(listenerCache.awaitEvents(1, TimeUnit.MINUTES), is(true));
         assertThat("Incorrect number of insert events", listenerOne.getInsertCount(), is(1));
@@ -1557,6 +1903,38 @@ abstract class AbstractGrpcClientIT
         for (int i = 0; i < 10; i++)
             {
             cache.remove("key-" + i);
+            }
+        }
+
+    private static void generateCacheEventsForAssociatedKey(NamedCache<TestAssociatedKey, String> cache, String sAssociated)
+        {
+        for (int i = 0; i < 10; i++)
+            {
+            cache.put(new TestAssociatedKey("key-" + i, sAssociated), "value-" + i);
+            }
+        for (int i = 0; i < 10; i++)
+            {
+            cache.put(new TestAssociatedKey("key-" + i, sAssociated), "value-" + i + "-updated");
+            }
+        for (int i = 0; i < 10; i++)
+            {
+            cache.remove(new TestAssociatedKey("key-" + i, sAssociated));
+            }
+        }
+
+    protected static void generateCacheEventsForPartitionedKey(NamedCache<TestPartitionKey, String> cache, int nPart)
+        {
+        for (int i = 0; i < 10; i++)
+            {
+            cache.put(new TestPartitionKey("key-" + i, nPart), "value-" + i);
+            }
+        for (int i = 0; i < 10; i++)
+            {
+            cache.put(new TestPartitionKey("key-" + i, nPart), "value-" + i + "-updated");
+            }
+        for (int i = 0; i < 10; i++)
+            {
+            cache.remove(new TestPartitionKey("key-" + i, nPart));
             }
         }
 
@@ -1826,6 +2204,25 @@ abstract class AbstractGrpcClientIT
 
     // ----- helper methods -------------------------------------------------
 
+    protected void assumeDeferKeyAssociation(NamedCache<?, ?> cache)
+        {
+        CacheService service = cache.getCacheService();
+        if (service instanceof SafeCacheService)
+            {
+            service = ((SafeCacheService) service).getRunningCacheService();
+            }
+        if (service instanceof GrpcRemoteCacheService)
+            {
+            Assumptions.assumeTrue(((GrpcRemoteCacheService) service).isDeferKeyAssociationCheck(),
+                    "Skipping test as defer-key-association-check is false");
+            }
+        else if (service instanceof RemoteCacheService)
+            {
+            Assumptions.assumeTrue(((RemoteCacheService) service).isDeferKeyAssociationCheck(),
+                                "Skipping test as defer-key-association-check is false");
+            }
+        }
+
     protected String createCacheName()
         {
         return createCacheName("test-cache-");  
@@ -1891,6 +2288,42 @@ abstract class AbstractGrpcClientIT
         for (int i = 1; i <= count; i++)
             {
             cache.put("key-" + i, "value-" + i);
+            }
+        }
+
+    /**
+     * Clear the specified cache and populate it with entries.
+     *
+     * @param cache        the cache to clear and populate
+     * @param sAssociated  the associated key
+     * @param count        the number of entries to add to the cache
+     */
+    @SuppressWarnings("SameParameterValue")
+    protected void clearAndPopulateAssociated(NamedCache<TestAssociatedKey, String> cache, String sAssociated, int count)
+        {
+        cache.clear();
+        for (int i = 1; i <= count; i++)
+            {
+            TestAssociatedKey key = new TestAssociatedKey("key-" + i, sAssociated);
+            cache.put(key, "value-" + i);
+            }
+        }
+
+    /**
+     * Clear the specified cache and populate it with entries.
+     *
+     * @param cache  the cache to clear and populate
+     * @param nPart  the partition id
+     * @param count  the number of entries to add to the cache
+     */
+    @SuppressWarnings("SameParameterValue")
+    protected void clearAndPopulatePartition(NamedCache<TestPartitionKey, String> cache, int nPart, int count)
+        {
+        cache.clear();
+        for (int i = 1; i <= count; i++)
+            {
+            TestPartitionKey key = new TestPartitionKey("key-" + i, nPart);
+            cache.put(key, "value-" + i);
             }
         }
 

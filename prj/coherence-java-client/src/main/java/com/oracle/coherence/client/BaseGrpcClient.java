@@ -20,10 +20,13 @@ import com.tangosol.coherence.config.Config;
 import com.tangosol.io.NamedSerializerFactory;
 import com.tangosol.io.Serializer;
 
+import com.tangosol.net.cache.KeyAssociation;
 import com.tangosol.net.events.EventDispatcher;
 
 import com.tangosol.net.grpc.GrpcDependencies;
 
+import com.tangosol.net.partition.KeyPartitioningStrategy;
+import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 import io.grpc.Channel;
 
@@ -64,6 +67,7 @@ public abstract class BaseGrpcClient<V>
                                    .map(Serializer::getName)
                                    .orElseGet(BaseGrpcClient::getDefaultSerializerFormat));
         f_serializer   = dependencies.getSerializer().orElseGet(() -> createSerializer(f_sFormat));
+        f_fDeferKeyAssociationCheck = dependencies.isDeferKeyAssociationCheck();
         }
 
     // ----- helper methods -------------------------------------------------
@@ -154,6 +158,36 @@ public abstract class BaseGrpcClient<V>
     protected ByteString toByteString(Object obj)
         {
         return UnsafeByteOperations.unsafeWrap(ExternalizableHelper.toBinary(obj, f_serializer).toByteBuffer());
+        }
+
+    /**
+     * Convert the specified object to a binary key.
+     *
+     * @param obj  the object to convert
+     *
+     * @return the {@link ByteString} for the specified key object
+     */
+    protected ByteString toKeyByteString(Object obj)
+        {
+        Binary bin = ExternalizableHelper.toBinary(obj, f_serializer);
+        if (f_fDeferKeyAssociationCheck)
+            {
+            return UnsafeByteOperations.unsafeWrap(bin.toByteBuffer());
+            }
+        BinaryHelper.toKeyByteString(bin, obj, f_serializer);
+        Binary binDeco = bin;
+
+        if (obj instanceof KeyAssociation)
+            {
+            obj = ((KeyAssociation<?>) obj).getAssociatedKey();
+            if (obj != null)
+                {
+                binDeco = ExternalizableHelper.toBinary(obj, f_serializer);
+                }
+            }
+
+        return UnsafeByteOperations.unsafeWrap(ExternalizableHelper.decorateBinary(bin,
+                binDeco.calculateNaturalPartition(0)).toByteBuffer());
         }
 
     /**
@@ -302,6 +336,16 @@ public abstract class BaseGrpcClient<V>
             {
             return GrpcDependencies.DEFAULT_DEADLINE_MILLIS;
             }
+
+        /**
+         * Return the flag to indicate if the KeyAssociation check is deferred.
+         *
+         * @return  the flag to indicate if the KeyAssociation check is deferred
+         */
+        default boolean isDeferKeyAssociationCheck()
+            {
+            return false;
+            }
         }
 
     // ----- DefaultDependencies ----------------------------------------
@@ -380,6 +424,12 @@ public abstract class BaseGrpcClient<V>
                 return Dependencies.super.getDeadline();
                 }
             return m_cDeadlineMillis;
+            }
+
+        @Override
+        public boolean isDeferKeyAssociationCheck()
+            {
+            return m_fDeferKeyAssociationCheck;
             }
 
         // ----- setters ----------------------------------------------------
@@ -466,6 +516,16 @@ public abstract class BaseGrpcClient<V>
             m_cDeadlineMillis = cMillis;
             }
 
+        /**
+         * Set the flag to indicate if the KeyAssociation check is deferred.
+         *
+         * @param f  the flag to indicate if the KeyAssociation check is deferred
+         */
+        public void setDeferKeyAssociationCheck(boolean f)
+            {
+            m_fDeferKeyAssociationCheck = f;
+            }
+
         // ----- data members -----------------------------------------------
 
         /**
@@ -507,6 +567,11 @@ public abstract class BaseGrpcClient<V>
          * The request timeout.
          */
         private long m_cDeadlineMillis;
+
+        /**
+         * The flag to indicate if the KeyAssociation check is deferred.
+         */
+        private boolean m_fDeferKeyAssociationCheck;
         }
 
     // ----- data members ---------------------------------------------------
@@ -555,4 +620,9 @@ public abstract class BaseGrpcClient<V>
      * The service dependencies.
      */
     protected final Dependencies f_dependencies;
+
+    /**
+     * The flag to indicate if the KeyAssociation check is deferred.
+     */
+    private final boolean f_fDeferKeyAssociationCheck;
     }

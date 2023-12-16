@@ -100,6 +100,7 @@ class path, or module path, of the JVM.
       <initiator-config>
         <serializer>${coherence.extend.serializer ${coherence.serializer java}}</serializer>
       </initiator-config>
+      <defer-key-association-check system-property="coherence.extend.defer.key.association"/>
     </remote-cache-scheme>
 
     <!-- near caching scheme for fixed extend clients -->
@@ -127,6 +128,7 @@ class path, or module path, of the JVM.
           </remote-addresses>
         </tcp-initiator>
       </initiator-config>
+      <defer-key-association-check system-property="coherence.extend.defer.key.association"/>
     </remote-cache-scheme>
 
     <!-- near caching scheme for gRPC clients -->
@@ -160,6 +162,7 @@ class path, or module path, of the JVM.
         </name-service-addresses>
         <socket-provider system-property="coherence.grpc.socketprovider"/>
       </grpc-channel>
+      <defer-key-association-check system-property="coherence.grpc.defer.key.association"/>
     </remote-grpc-cache-scheme>
 
     <!-- near caching scheme for gRPC clients -->
@@ -192,6 +195,7 @@ class path, or module path, of the JVM.
         </remote-addresses>
         <socket-provider system-property="coherence.grpc.socketprovider"/>
       </grpc-channel>
+      <defer-key-association-check system-property="coherence.grpc.defer.key.association"/>
     </remote-grpc-cache-scheme>
 
     <!-- partitioned caching scheme for clustered clients -->

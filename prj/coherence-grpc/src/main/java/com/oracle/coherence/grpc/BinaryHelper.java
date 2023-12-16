@@ -19,8 +19,9 @@ import com.tangosol.io.Serializer;
 
 import com.tangosol.io.nio.ByteBufferReadBuffer;
 
+import com.tangosol.net.cache.KeyAssociation;
+import com.tangosol.net.partition.KeyPartitioningStrategy;
 import com.tangosol.util.Binary;
-import com.tangosol.util.ByteSequence;
 import com.tangosol.util.ExternalizableHelper;
 
 import java.util.List;
@@ -52,56 +53,6 @@ public final class BinaryHelper
         }
 
     // ----- helper methods -------------------------------------------------
-
-    /**
-     * Convert a {@link BytesValue} to a {@link Binary} that is decorated
-     * to make the {@link Binary} suitable for use as a cache key.
-     *
-     * @param bytes  the {@link BytesValue} to convert
-     *
-     * @return a {@link Binary} that is suitable for use as a cache key
-     *
-     * @throws NullPointerException if the {@link BytesValue} is {@code null}
-     */
-    public static Binary toBinaryKey(BytesValue bytes)
-        {
-        return toBinaryKey(bytes.getValue());
-        }
-
-    /**
-     * Convert a {@link ByteString} to a {@link Binary} that is decorated
-     * to make the {@link Binary} suitable for use as a cache key.
-     *
-     * @param bytes  the {@link ByteString} to convert
-     *
-     * @return a {@link Binary} that is suitable for use as a cache key
-     *
-     * @throws NullPointerException if the {@link ByteString} is {@code null}
-     */
-    public static Binary toBinaryKey(ByteString bytes)
-        {
-        Binary bin = BinaryHelper.toBinary(bytes);
-        return toBinaryKey(bin);
-        }
-
-    /**
-     * Convert a {@link Binary} to a {@link Binary} that is decorated
-     * to make the {@link Binary} suitable for use as a cache key.
-     *
-     * @param binary  the {@link Binary} to convert
-     *
-     * @return a {@link Binary} that is suitable for use as a cache key
-     *
-     * @throws NullPointerException if the {@link Binary} is {@code null}
-     */
-    public static Binary toBinaryKey(Binary binary)
-        {
-        if (!ExternalizableHelper.isIntDecorated((ByteSequence) binary))
-            {
-            return ExternalizableHelper.decorateBinary(binary, binary.hashCode()).toBinary();
-            }
-        return binary;
-        }
 
     /**
      * Convert a {@link BytesValue} to a {@link Binary}.
@@ -325,8 +276,7 @@ public final class BinaryHelper
     public static Entry toEntry(Map.Entry<?, ?> entry, Serializer serializer)
         {
         Binary binary = ExternalizableHelper.toBinary(entry.getKey(), serializer);
-        Binary key    = toBinaryKey(binary);
-        return toEntry(toByteString(key), toByteString(entry.getValue(), serializer));
+        return toEntry(toByteString(binary), toByteString(entry.getValue(), serializer));
         }
 
     /**
@@ -364,6 +314,28 @@ public final class BinaryHelper
                 .filter(Objects::nonNull)
                 .map(String::valueOf)
                 .map(StringValue::of);
+        }
+
+    public static ByteString toKeyByteString(Binary bin, Object obj, Serializer serializer)
+        {
+        Binary binDeco = bin;
+        if (obj instanceof KeyPartitioningStrategy.PartitionAwareKey)
+            {
+            int nPart = ((KeyPartitioningStrategy.PartitionAwareKey) obj).getPartitionId();
+            return UnsafeByteOperations.unsafeWrap(ExternalizableHelper.decorateBinary(bin, nPart).toByteBuffer());
+            }
+
+        if (obj instanceof KeyAssociation)
+            {
+            obj = ((KeyAssociation<?>) obj).getAssociatedKey();
+            if (obj != null)
+                {
+                binDeco = ExternalizableHelper.toBinary(obj, serializer);
+                }
+            }
+
+        return UnsafeByteOperations.unsafeWrap(ExternalizableHelper.decorateBinary(bin,
+                binDeco.calculateNaturalPartition(0)).toByteBuffer());
         }
 
     // ----- constants ------------------------------------------------------

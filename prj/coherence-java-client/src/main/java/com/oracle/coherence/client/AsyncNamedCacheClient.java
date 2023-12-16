@@ -169,7 +169,7 @@ public class AsyncNamedCacheClient<K, V>
             try
                 {
                 List<ByteString> keys = colKeys.stream()
-                        .map(this::toByteString)
+                        .map(this::toKeyByteString)
                         .collect(Collectors.toList());
 
                 long nDeadline = PriorityTask.TIMEOUT_DEFAULT;
@@ -234,7 +234,7 @@ public class AsyncNamedCacheClient<K, V>
                     nDeadline = ((PriorityTask) entryProcessor).getRequestTimeoutMillis();
                     }
 
-                return f_service.invoke(Requests.invoke(f_sScopeName, f_sName, f_sFormat, toByteString(k),
+                return f_service.invoke(Requests.invoke(f_sScopeName, f_sName, f_sFormat, toKeyByteString(k),
                                                         toByteString(entryProcessor)), nDeadline)
                         .thenApplyAsync(this::valueFromBytesValue)
                         .thenApply(r -> (R) r)
@@ -273,7 +273,7 @@ public class AsyncNamedCacheClient<K, V>
                                                                                                    new HashMap<>(),
                                                                                                    function);
                 Collection<ByteString>                 serializedKeys = colKeys.stream()
-                        .map(this::toByteString)
+                        .map(this::toKeyByteString)
                         .collect(Collectors.toList());
 
                 long nDeadline = PriorityTask.TIMEOUT_DEFAULT;
@@ -353,7 +353,7 @@ public class AsyncNamedCacheClient<K, V>
                     };
                 FutureStreamObserver<Entry, Void> observer       = new FutureStreamObserver<>(future, VOID, function);
                 Collection<ByteString>            serializedKeys = colKeys.stream()
-                        .map(this::toByteString)
+                        .map(this::toKeyByteString)
                         .collect(Collectors.toList());
                 invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, serializedKeys, toByteString(processor)),
                                   observer);
@@ -577,7 +577,7 @@ public class AsyncNamedCacheClient<K, V>
                     };
                 FutureStreamObserver<Entry, Void> observer = new FutureStreamObserver<>(future, VOID, function);
                 Collection<ByteString>            keys     = colKeys.stream()
-                        .map(this::toByteString)
+                        .map(this::toKeyByteString)
                         .collect(Collectors.toList());
 
                 invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, keys, toByteString(processor)), observer);
@@ -653,7 +653,7 @@ public class AsyncNamedCacheClient<K, V>
     public CompletableFuture<V> putIfAbsent(K key, V value)
         {
         return executeIfActive(() -> f_service.putIfAbsent(Requests.putIfAbsent(f_sScopeName, f_sName, f_sFormat,
-                                                                                toByteString(key), toByteString(value)))
+                        toKeyByteString(key), toByteString(value)))
                 .thenApplyAsync(this::valueFromBytesValue)
                 .toCompletableFuture());
         }
@@ -686,7 +686,7 @@ public class AsyncNamedCacheClient<K, V>
     public CompletableFuture<V> replace(K key, V value)
         {
         return executeIfActive(() -> f_service.replace(Requests.replace(f_sScopeName, f_sName, f_sFormat,
-                                                                        toByteString(key), toByteString(value)))
+                        toKeyByteString(key), toByteString(value)))
                 .thenApplyAsync(this::valueFromBytesValue)
                 .toCompletableFuture());
         }
@@ -695,7 +695,7 @@ public class AsyncNamedCacheClient<K, V>
     public CompletableFuture<Boolean> replace(K key, V oldValue, V newValue)
         {
         return executeIfActive(() -> f_service.replaceMapping(
-                Requests.replace(f_sScopeName, f_sName, f_sFormat, toByteString(key),
+                Requests.replace(f_sScopeName, f_sName, f_sFormat, toKeyByteString(key),
                                  toByteString(oldValue), toByteString(newValue)))
                 .thenApplyAsync(BoolValue::getValue)
                 .toCompletableFuture());
@@ -741,7 +741,7 @@ public class AsyncNamedCacheClient<K, V>
         else
             {
             List<ByteString> keys = colKeys.stream()
-                    .map(this::toByteString)
+                    .map(this::toKeyByteString)
                     .collect(Collectors.toList());
             return f_service.getAll(Requests.getAll(f_sScopeName, f_sName, f_sFormat, keys));
             }
@@ -814,7 +814,7 @@ public class AsyncNamedCacheClient<K, V>
      */
     protected CompletableFuture<V> getInternal(Object key, V defaultValue)
         {
-        return executeIfActive(() -> f_service.get(Requests.get(f_sScopeName, f_sName, f_sFormat, toByteString(key)))
+        return executeIfActive(() -> f_service.get(Requests.get(f_sScopeName, f_sName, f_sFormat, toKeyByteString(key)))
                 .thenApplyAsync(optional -> this.valueFromOptionalValue(optional, defaultValue))
                 .toCompletableFuture());
         }
@@ -897,7 +897,7 @@ public class AsyncNamedCacheClient<K, V>
     protected CompletableFuture<V> putInternal(K key, V value, long cTtl)
         {
         return executeIfActive(() -> f_service.put(Requests.put(f_sScopeName, f_sName, f_sFormat,
-                                                                toByteString(key), toByteString(value), cTtl))
+                        toKeyByteString(key), toByteString(value), cTtl))
                 .thenApplyAsync(this::valueFromBytesValue)
                 .toCompletableFuture());
         }
@@ -913,14 +913,14 @@ public class AsyncNamedCacheClient<K, V>
     protected CompletableFuture<Empty> putAllInternal(Map<? extends K, ? extends V> map, long cMillis)
         {
         return executeIfActive(() ->
-        {
+            {
             try
                 {
                 List<Entry> entries = new ArrayList<>();
                 for (Map.Entry<? extends K, ? extends V> entry : map.entrySet())
                     {
                     entries.add(Entry.newBuilder()
-                                        .setKey(toByteString(entry.getKey()))
+                                        .setKey(toKeyByteString(entry.getKey()))
                                         .setValue(toByteString(entry.getValue())).build());
                     }
                 return f_service.putAll(Requests.putAll(f_sScopeName, f_sName, f_sFormat, entries, cMillis)).toCompletableFuture();
@@ -929,7 +929,7 @@ public class AsyncNamedCacheClient<K, V>
                 {
                 return failedFuture(t);
                 }
-        });
+            });
         }
 
     /**
@@ -957,7 +957,7 @@ public class AsyncNamedCacheClient<K, V>
      */
     protected CompletableFuture<V> removeInternal(Object key)
         {
-        return executeIfActive(() -> f_service.remove(Requests.remove(f_sScopeName, f_sName, f_sFormat, toByteString(key)))
+        return executeIfActive(() -> f_service.remove(Requests.remove(f_sScopeName, f_sName, f_sFormat, toKeyByteString(key)))
                 .thenApplyAsync(this::valueFromBytesValue)
                 .toCompletableFuture());
         }
@@ -1018,7 +1018,7 @@ public class AsyncNamedCacheClient<K, V>
                     try
                         {
                         MapListenerRequest request = Requests.removeKeyMapListener(f_sScopeName, f_sName,
-                                f_sFormat, toByteString(key), fPriming, ByteString.EMPTY);
+                                f_sFormat, toKeyByteString(key), fPriming, ByteString.EMPTY);
 
                         uid = request.getUid();
                         return m_evtResponseObserver.send(request);
@@ -1192,7 +1192,7 @@ public class AsyncNamedCacheClient<K, V>
     protected CompletableFuture<Boolean> containsKeyInternal(Object oKey)
         {
         return executeIfActive(() -> f_service.containsKey(Requests.containsKey(f_sScopeName, f_sName, f_sFormat,
-                                                                                toByteString(oKey)))
+                        toKeyByteString(oKey)))
                 .thenApplyAsync(BoolValue::getValue)
                 .toCompletableFuture());
         }
@@ -1323,8 +1323,8 @@ public class AsyncNamedCacheClient<K, V>
         assertActive();
         try
             {
-            ContainsEntryRequest       request   = Requests.containsEntry(f_sScopeName, f_sName, f_sFormat, toByteString(key),
-                                                                          toByteString(value));
+            ContainsEntryRequest       request   = Requests.containsEntry(f_sScopeName, f_sName, f_sFormat,
+                                                            toKeyByteString(key), toByteString(value));
             CompletionStage<BoolValue> stage     = f_service.containsEntry(request);
             BoolValue                  boolValue = stage.toCompletableFuture().get();
 
@@ -1699,7 +1699,7 @@ public class AsyncNamedCacheClient<K, V>
             try
                 {
                 MapListenerRequest request = Requests
-                        .addKeyMapListener(f_sScopeName, f_sName, f_sFormat, toByteString(key),
+                        .addKeyMapListener(f_sScopeName, f_sName, f_sFormat, toKeyByteString(key),
                                            fLite, priming, ByteString.EMPTY);
                 uid = request.getUid();
                 return m_evtResponseObserver.send(request);
