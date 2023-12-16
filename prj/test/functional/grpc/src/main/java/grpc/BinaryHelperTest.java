@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -109,27 +109,6 @@ class BinaryHelperTest
         }
 
     @Test
-    void shouldConvertBinaryToBinaryKey()
-        {
-        Binary binary = new Binary(new byte[] {1, 2, 3, 4});
-        Binary key    = BinaryHelper.toBinaryKey(binary);
-
-        assertThat(ExternalizableHelper.isIntDecorated((ByteSequence) key), is(true));
-        assertThat(ExternalizableHelper.extractIntDecoration(key),          is(binary.hashCode()));
-        }
-
-    @Test
-    void shouldConvertBinaryKeyToBinaryKey()
-        {
-        Binary     binary          = new Binary(new byte[] {1, 2, 3, 4});
-        ReadBuffer readBuffer      = ExternalizableHelper.decorateBinary(binary, 19);
-        Binary     decoratedBinary = readBuffer.toBinary();
-        Binary     key             = BinaryHelper.toBinaryKey(decoratedBinary);
-
-        assertThat(key, is(sameInstance(decoratedBinary)));
-        }
-
-    @Test
     void shouldConvertByteStringToBinary()
         {
         ByteString bytes  = ByteString.copyFrom(new byte[] {1, 2, 3, 4});
@@ -146,29 +125,6 @@ class BinaryHelperTest
         Binary     binary     = BinaryHelper.toBinary(bytesValue);
 
         assertThat(binary.toByteArray(), is(bytes.toByteArray()));
-        }
-
-    @Test
-    void shouldConvertByteStringToBinaryKey()
-        {
-        ByteString bytes  = ByteString.copyFrom(new byte[] {1, 2, 3, 4});
-        Binary     binary = BinaryHelper.toBinary(bytes);
-        Binary     key    = BinaryHelper.toBinaryKey(bytes);
-
-        assertThat(ExternalizableHelper.isIntDecorated((ByteSequence) key), is(true));
-        assertThat(ExternalizableHelper.extractIntDecoration(key),          is(binary.hashCode()));
-        }
-
-    @Test
-    void shouldConvertBytesValueToBinaryKey()
-        {
-        ByteString bytes      = ByteString.copyFrom(new byte[] {1, 2, 3, 4});
-        BytesValue bytesValue = BytesValue.of(bytes);
-        Binary     binary     = BinaryHelper.toBinary(bytesValue);
-        Binary     key        = BinaryHelper.toBinaryKey(bytesValue);
-
-        assertThat(ExternalizableHelper.isIntDecorated((ByteSequence) key), is(true));
-        assertThat(ExternalizableHelper.extractIntDecoration(key),          is(binary.hashCode()));
         }
 
     @Test

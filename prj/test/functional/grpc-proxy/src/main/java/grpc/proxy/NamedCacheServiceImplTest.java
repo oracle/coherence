@@ -61,7 +61,6 @@ import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.Converter;
 import com.tangosol.util.ExternalizableHelper;
-import com.tangosol.util.Extractors;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
 
@@ -100,7 +99,6 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -116,6 +114,7 @@ import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -1653,6 +1652,11 @@ class NamedCacheServiceImplTest
             when(cacheService.getSerializer()).thenReturn(CACHE_SERIALIZER);
             when(cacheService.getContextClassLoader()).thenReturn(Base.getContextClassLoader());
             when(cacheService.getBackingMapManager()).thenReturn(bmm);
+            if (partitioned)
+                {
+                DistributedCacheService distributedCacheService = (DistributedCacheService) cacheService;
+                when(distributedCacheService.instantiateKeyToBinaryConverter(any(), anyBoolean())).thenReturn(new ConverterDown());
+                }
             when(bmm.getContext()).thenReturn(ctx);
             when(ctx.getKeyFromInternalConverter()).thenReturn(new ConverterUp());
             when(ctx.getValueFromInternalConverter()).thenReturn(new ConverterUp());

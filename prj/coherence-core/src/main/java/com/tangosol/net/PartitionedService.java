@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
@@ -17,6 +17,8 @@ import com.tangosol.net.partition.PartitionListener;
 import com.tangosol.net.partition.PartitionSet;
 
 import com.tangosol.persistence.GUIDHelper.GUIDResolver;
+import com.tangosol.util.Binary;
+import com.tangosol.util.Converter;
 
 import java.util.Set;
 
@@ -98,6 +100,17 @@ public interface PartitionedService
     *          key or null if the ownership is currently undetermined
     */
     public Member getKeyOwner(Object oKey);
+
+    /**
+     * Instantiate a {@link Converter} that can convert a key to a {@link Binary} key.
+     *
+     * @param loader        the {@link ClassLoader} to use
+     * @param fPassThrough  {@link true} if the converter should be a pass-thru binary converter
+     * @param <V>           the type of key to convert
+     *
+     * @return a {@link Converter} that can convert a key to a {@link Binary} key
+     */
+    public <V> Converter<V, Binary> instantiateKeyToBinaryConverter(ClassLoader loader, boolean fPassThrough);
 
     /**
     * Determine the primary owner of the specified partition.  It is possible

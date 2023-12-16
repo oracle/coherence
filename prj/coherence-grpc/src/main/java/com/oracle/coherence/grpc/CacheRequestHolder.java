@@ -9,6 +9,7 @@ package com.oracle.coherence.grpc;
 import com.google.protobuf.ByteString;
 
 import com.google.protobuf.BytesValue;
+import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.AsyncNamedCache;
@@ -16,7 +17,9 @@ import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.PartitionedService;
 import com.tangosol.util.Binary;
+import com.tangosol.util.ByteSequence;
 import com.tangosol.util.Converter;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -130,7 +133,7 @@ public class CacheRequestHolder<Req, Res>
      */
     public Binary convertKeyDown(ByteString bytes)
         {
-        Binary binary = BinaryHelper.toBinaryKey(bytes);
+        Binary  binary = BinaryHelper.toBinary(bytes);
         return convertKeyDown(binary);
         }
 
@@ -166,7 +169,14 @@ public class CacheRequestHolder<Req, Res>
             Converter<Binary, Binary> converter;
             if (f_sFormat == null || f_sFormat.trim().isEmpty() || f_sFormat.equals(cacheFormat))
                 {
-                converter = BinaryHelper::toBinaryKey;
+                if (cacheService instanceof PartitionedService)
+                    {
+                    converter = ((PartitionedService) cacheService).instantiateKeyToBinaryConverter(null, true);
+                    }
+                else
+                    {
+                    converter = bin -> bin;
+                    }
                 }
             else
                 {
