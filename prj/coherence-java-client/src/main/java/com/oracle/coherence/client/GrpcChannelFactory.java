@@ -76,6 +76,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 /**
  * A default implementation of {@link GrpcChannelFactory}.
@@ -460,8 +461,16 @@ public class GrpcChannelFactory
                                                                    .set(LoadBalancer.ATTR_HEALTH_CHECKING_CONFIG, config)
                                                                    .build();
 
+                            // ToDo: This is a work around for a bug in gRPC Java 1.60.0
+                            // We should be able to create a single EquivalentAddressGroup with all the addresses in
+                            // but if we do that gRPC throws an NPE
+                            // This code can be changed when gRPC fixes the issues
+                            List<EquivalentAddressGroup> listGroup = list.stream()
+                                    .map(addr -> new EquivalentAddressGroup(addr, attrs))
+                                    .collect(Collectors.toList());
+
                             result = NameResolver.ResolutionResult.newBuilder()
-                                    .setAddresses(Collections.singletonList(new EquivalentAddressGroup(list, attrs)))
+                                    .setAddresses(listGroup)
                                     .setAttributes(Attributes.EMPTY)
                                     .build();
                             }

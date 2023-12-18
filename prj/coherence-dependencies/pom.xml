@@ -180,7 +180,7 @@
     <graal.version>19.3.1</graal.version>
     <!-- the tag of the Graal image at ghcr.io/graalvm/graalvm-ce -->
     <graal.image.tag>ol8-java11-22.1.0</graal.image.tag>
-    <grpc.version>1.57.1</grpc.version>
+    <grpc.version>1.60.0</grpc.version>
     <!--
     NOTE: changing this version may mean updating other dependencies to match versions that Helidon uses:
     eclipse.mp.config.version
@@ -189,7 +189,7 @@
     grpc.version ???
     This is not always possible if we need to bump versions for CVE's
     -->
-    <helidon.version>2.6.4</helidon.version>
+    <helidon.version>2.6.5</helidon.version>
     <helidon.sitegen.version>2.1.2</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
     <jackson.version>2.14.1</jackson.version>
@@ -880,61 +880,12 @@
       <!-- gRPC -->
       <dependency>
         <groupId>io.grpc</groupId>
-        <artifactId>grpc-protobuf</artifactId>
+        <artifactId>grpc-bom</artifactId>
         <version>${grpc.version}</version>
-        <exclusions>
-          <exclusion>
-            <artifactId>grpc-api</artifactId>
-            <groupId>io.grpc</groupId>
-          </exclusion>
-        </exclusions>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-stub</artifactId>
-        <version>${grpc.version}</version>
-        <exclusions>
-            <exclusion>
-                <!-- Used for compilation of "their" sources -->
-                <groupId>com.google.errorprone</groupId>
-                <artifactId>error_prone_annotations</artifactId>
-            </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-services</artifactId>
-        <version>${grpc.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-core</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-api</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-netty</artifactId>
-        <version>${grpc.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-context</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-core</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-api</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
+
       <dependency>
         <!-- required for dependency convergence, used from guava and perfmark-api -->
         <groupId>com.google.errorprone</groupId>

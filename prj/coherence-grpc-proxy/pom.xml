@@ -42,6 +42,10 @@
       <groupId>io.grpc</groupId>
       <artifactId>grpc-services</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-inprocess</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>io.opentracing.contrib</groupId>
