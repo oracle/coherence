@@ -32,6 +32,7 @@ import com.tangosol.util.filter.GreaterFilter;
 
 import com.tangosol.util.filter.LessEqualsFilter;
 import com.tangosol.util.filter.NeverFilter;
+import com.tangosol.util.filter.NotEqualsFilter;
 import com.tangosol.util.processor.AbstractProcessor;
 
 import common.AbstractFunctionalTest;
@@ -40,6 +41,7 @@ import data.Person;
 
 import java.io.Serializable;
 
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -171,6 +173,38 @@ public class IndexTests
             }
 
         stopUpdateThreads(updateThreads);
+        }
+
+    @Test
+    public void testConditionalIndexOnKey()
+        {
+        final NamedCache cache = getNamedCache();
+
+        cache.clear();
+
+        ValueExtractor<Long, Integer> extractor = new LastDigit().fromKey();
+        Filter<String> condition = new NotEqualsFilter<>(ValueExtractor.identity(), "");
+
+        ConditionalExtractor condExtractor = new ConditionalExtractor<>(condition, extractor, false);
+        try
+            {
+            cache.addIndex(condExtractor, false, null);
+
+            Filter<?> query = new EqualsFilter<>(extractor, 3);
+
+            cache.put(123L, ""); //fail condition
+            assertTrue(cache.entrySet(query).isEmpty());
+
+            cache.put(123L, "notEmpty"); //pass condition
+            assertTrue(cache.entrySet(query).contains(new AbstractMap.SimpleEntry<>(123L, "notEmpty")));
+
+            cache.put(123L, ""); //fail condition
+            assertTrue(cache.entrySet(query).isEmpty());
+            }
+        finally
+            {
+            cache.removeIndex(condExtractor);
+            }
         }
 
     @Test
@@ -1053,6 +1087,30 @@ public class IndexTests
             return super.hashCode();
             }
         public static boolean s_fFail;
+        }
+
+    public class LastDigit
+            implements ValueExtractor<Long, Integer>
+        {
+        @Override
+        public Integer extract(Long key)
+            {
+            String digits = key.toString();
+            Integer ret = Integer.parseInt(digits.substring(digits.length() - 1));
+            return ret;
+            }
+
+        @Override
+        public int hashCode()
+            {
+            return -89342518;
+            }
+
+        @Override
+        public boolean equals(Object that)
+            {
+            return that instanceof LastDigit;
+            }
         }
 
     // ----- constants and data members -------------------------------------
