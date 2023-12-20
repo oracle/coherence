@@ -836,7 +836,9 @@ public class ClusteredExecutorInfo
 
             String sExecutorName = (String) results[1];
 
-            tasks().invokeAll(AlwaysFilter.INSTANCE, new ClusteredTaskManager.NotifyExecutionStrategyProcessor());
+            NamedCache<String, ClusteredTaskManager> cacheTasks = tasks();
+
+            cacheTasks.invokeAll(cacheTasks.keySet(), new ClusteredTaskManager.NotifyExecutionStrategyProcessor());
 
             Logger.fine(() -> String.format("Executor [name=%s, id=%s] joined.", sExecutorName, m_sExecutorId));
             }
