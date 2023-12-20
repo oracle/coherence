@@ -55,56 +55,25 @@
       <artifactId>netty-transport-native-unix-common</artifactId>
     </dependency>
 
-    <!--
-    We use Helidon's repackaged io.grpc artifact so that gRPC
-    will work with Java modules.
-    -->
     <dependency>
-      <groupId>io.helidon.grpc</groupId>
-      <artifactId>io.grpc</artifactId>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-api</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-core</artifactId>
+    </dependency>
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-netty</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>io.grpc</groupId>
-          <artifactId>grpc-context</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.grpc</groupId>
-          <artifactId>grpc-core</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.grpc</groupId>
-          <artifactId>grpc-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-stub</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>io.grpc</groupId>
-          <artifactId>grpc-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-protobuf</artifactId>
-      <exclusions>
-          <exclusion>
-              <groupId>io.grpc</groupId>
-              <artifactId>grpc-core</artifactId>
-          </exclusion>
-          <exclusion>
-              <groupId>io.grpc</groupId>
-              <artifactId>grpc-api</artifactId>
-          </exclusion>
-        </exclusions>
     </dependency>
 
     <dependency>
