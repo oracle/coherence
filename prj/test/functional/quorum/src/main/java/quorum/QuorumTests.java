@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -27,6 +27,8 @@ import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
+
+import com.oracle.coherence.testing.SystemPropertyIsolation;
 
 import com.tangosol.net.AbstractInvocable;
 import com.tangosol.net.AddressProvider;
@@ -76,6 +78,7 @@ import com.oracle.coherence.testing.TestInfrastructureHelper;
 import data.Trade;
 
 import org.junit.After;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -120,7 +123,7 @@ public class QuorumTests
     */
     public QuorumTests()
         {
-        super(FILE_CFG_CACHE);
+        this(FILE_CFG_CACHE);
         }
 
     /**
@@ -131,6 +134,7 @@ public class QuorumTests
     protected QuorumTests(String sCacheConfig)
         {
         super(sCacheConfig);
+        System.setProperty("coherence.service.startup.timeout", "15000");
         }
 
 
@@ -294,7 +298,7 @@ public class QuorumTests
         {
         NamedCache cache       = getNamedCache("dist-quorum0");
         NamedCache cacheEvents = getNamedCache("distribution-events");
-        Properties props       = new Properties();
+        Properties props       = getCommonProperties();
 
         props.setProperty("test.quorum.test.partitioned0", "true");
 
@@ -435,7 +439,7 @@ public class QuorumTests
         {
         NamedCache cache       = getNamedCache("dist-quorum1");
         NamedCache cacheEvents = getNamedCache("distribution-events");
-        Properties props = new Properties();
+        Properties props = getCommonProperties();
 
         props.setProperty("test.quorum.test.partitioned1", "true");
 
@@ -491,7 +495,7 @@ public class QuorumTests
         {
         NamedCache cache       = getNamedCache("dist-quorum2");
         NamedCache cacheEvents = getNamedCache("distribution-events");
-        Properties props = new Properties();
+        Properties props = getCommonProperties();
 
         props.setProperty("test.quorum.test.partitioned2", "true");
 
@@ -551,7 +555,7 @@ public class QuorumTests
         {
         NamedCache cache       = getNamedCache("dist-quorum3");
         NamedCache cacheEvents = getNamedCache("distribution-events");
-        Properties props       = new Properties();
+        Properties props       = getCommonProperties();
         int[][]    aiOwners;
         int        cOrphans;
 
@@ -654,6 +658,7 @@ public class QuorumTests
                 .add(SystemProperty.of("test.quorum.proxy", true))
                 .add(SystemProperty.of("coherence.extend.address", hostName))
                 .add(SystemProperty.of("test.unicast.address", hostName))
+                .add(SystemProperty.of("coherence.service.startup.timeout", 15000))
                 .add(SystemProperty.of("coherence.extend.port", LocalPlatform.get().getAvailablePorts()));
 
         CoherenceCacheServer proxy0 = startCoherenceClusterMember(optionsByType, "testProxy0-0");
@@ -883,7 +888,7 @@ public class QuorumTests
         public ServerConfig(String sName, String[] asProp)
             {
             Name  = gePrefix() + sName;
-            Props = new Properties();
+            Props = getCommonProperties();
             Props.setProperty("coherence.override", getOverrideConfig());
             Props.setProperty("test.log.level", "3");
             for (int i = 0; i < asProp.length; i+=2)
@@ -936,13 +941,18 @@ public class QuorumTests
 
             // turn off the publisher over unicast
             clusterReal.getPublisher().getUdpSocketUnicast().setTxDebugDropRate(100000);
+            try
+                {
+                Eventually.assertDeferred(() -> clusterReal.getClusterService().getQuorumControl().getConvictedMembers().isEmpty(), is(false));
 
-            Eventually.assertDeferred(() -> clusterReal.getClusterService().getQuorumControl().getConvictedMembers().isEmpty(), is(false));
-
-            assertTrue("Quorum policy failed",
-                    clusterReal.isRunning() && clusterSafe.getMemberSet().size() == cMembers);
-
-            clusterReal.getPublisher().getUdpSocketUnicast().setTxDebugDropRate(0);
+                assertTrue("Quorum policy failed",
+                           clusterReal.isRunning() && clusterSafe.getMemberSet().size() == cMembers);
+                }
+            finally
+                {
+                // ensure turn back on publisher over unicast
+                clusterReal.getPublisher().getUdpSocketUnicast().setTxDebugDropRate(0);
+                }
 
             Eventually.assertDeferred(() -> clusterReal.getClusterService().getQuorumControl().getConvictedMembers().isEmpty(), is(true));
 
@@ -2299,6 +2309,19 @@ public class QuorumTests
         return "";
         }
 
+    /**
+     * Return common Coherence properties used by servers and client.
+     *
+     * @return Properties
+     */
+    protected Properties getCommonProperties()
+        {
+        Properties props = new Properties();
+
+        props.put("coherence.service.startup.timeout", "15000");
+        return props;
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -2325,4 +2348,11 @@ public class QuorumTests
      * A {@link TestInfrastructureHelper} instance that we can pass to Bedrock on an invoking().
      */
     protected static TestInfrastructureHelper m_helper = new TestInfrastructureHelper();
+
+    /**
+     * A {@link ClassRule} to isolate system properties set between test class
+     * execution (not individual test method executions).
+     */
+    @ClassRule
+    public static SystemPropertyIsolation s_systemPropertyIsolation = new SystemPropertyIsolation();
     }
