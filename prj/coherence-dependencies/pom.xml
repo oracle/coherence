@@ -1511,7 +1511,6 @@
             <failBuildOnAnyVulnerability>false</failBuildOnAnyVulnerability>
             <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
             <nvdValidForHours>48</nvdValidForHours>
-            <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
             <excludes>
               <!-- Exclude stuff we do not deploy -->
               <exclude>com.oracle.coherence:coherence-examples-rest</exclude>
