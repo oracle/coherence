@@ -671,7 +671,7 @@
     <maven.bundle.plugin.version>4.2.1</maven.bundle.plugin.version>
     <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
     <maven.dependency.plugin.version>2.8</maven.dependency.plugin.version>
-    <maven.dependency-check.plugin.version>8.4.2</maven.dependency-check.plugin.version>
+    <maven.dependency-check.plugin.version>9.0.7</maven.dependency-check.plugin.version>
     <maven.deploy.plugin.version>2.8.2</maven.deploy.plugin.version>
     <maven.directory.plugin.version>0.1</maven.directory.plugin.version>
     <maven.enforcer.plugin.version>3.0.0-M2</maven.enforcer.plugin.version>
@@ -1371,6 +1371,7 @@
             <skipProvidedScope>true</skipProvidedScope>
             <failBuildOnAnyVulnerability>false</failBuildOnAnyVulnerability>
             <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+            <nvdValidForHours>48</nvdValidForHours>
             <excludes>
               <!-- Exclude stuff we do not deploy -->
               <exclude>com.oracle.coherence:coherence-examples-rest</exclude>
