@@ -183,7 +183,7 @@ public class JmxMBeanTests
             assertTrue(equals(oMember, service.getCluster().getLocalMember()));
 
             assertTrue("Expected String but got " + oResult, oResult instanceof String);
-            assertTrue(oResult.equals(oMember.toString()));
+            assertTrue("oResult != oMember, oResult=" + oResult, oResult.equals(oMember.toString()));
             }
         finally
             {
@@ -433,7 +433,13 @@ public class JmxMBeanTests
                             }
                         cRetry++;
                         }
-                    while (m_sValue == null && cRetry < 2);
+                    while (m_sValue == null && cRetry < 10);
+                    
+                    if (m_sValue == null)
+                        {
+                        // temp debug: if we get here then we didn't find the MBean after cRetry + 1 tries
+                        setValue("Didn't find MBean in " + (cRetry + 1) + " goes");
+                        }
                     }
                 catch (Exception e)
                     {
