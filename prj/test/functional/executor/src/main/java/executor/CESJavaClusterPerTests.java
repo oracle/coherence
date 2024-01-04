@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -34,6 +34,7 @@ import com.oracle.bedrock.testsupport.junit.TestLogs;
 import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
 
 import com.tangosol.net.DefaultCacheServer;
+
 import executor.common.NewClusterPerTest;
 
 import java.io.File;
@@ -41,6 +42,7 @@ import java.io.File;
 import org.junit.Rule;
 
 import org.junit.experimental.categories.Category;
+
 import org.junit.rules.TestName;
 
 /**
@@ -79,11 +81,6 @@ public class CESJavaClusterPerTests
 
     protected static final String EXTEND_CONFIG = "coherence-concurrent-client-config.xml";
 
-    public void shouldNotExpireExecutorsWithRollingRestart()
-        {
-        super.shouldNotExpireExecutorsWithRollingRestart();
-        }
-
     // ----- data members ---------------------------------------------------
 
     @Rule
@@ -116,7 +113,6 @@ public class CESJavaClusterPerTests
                              DisplayName.of("CacheServer"),
                              RoleName.of(STORAGE_ENABLED_MEMBER_ROLE),
                              LocalStorage.enabled(),
-                             SystemProperty.of("coherence.distributed.threads", "10"),
                              SystemProperty.of(EXTEND_ENABLED_PROPERTY, false),
                              SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true))
                     .include(STORAGE_DISABLED_MEMBER_COUNT,

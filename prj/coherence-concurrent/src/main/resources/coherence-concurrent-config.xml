@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -91,6 +91,8 @@
     <distributed-scheme>
       <scheme-name>concurrent</scheme-name>
       <service-name>Concurrent</service-name>
+      <thread-count-max>${coherence.concurrent.distributed.threads.max ${coherence.distributed.threads.max}}</thread-count-max>
+      <thread-count-min>${coherence.concurrent.distributed.threads.min ${coherence.distributed.threads.min}}</thread-count-min>
       <member-listener>
         <class-name>com.oracle.coherence.concurrent.internal.Cleaner</class-name>
       </member-listener>
