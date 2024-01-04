@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2024, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ https://oss.oracle.com/licenses/upl.
@@ -278,6 +278,7 @@
     <testcontainers.version>1.18.3</testcontainers.version>
 
     <!-- commercial test dependency versions -->
+    <jol.version>0.17</jol.version>
   </properties>
 
   <dependencyManagement>
@@ -818,6 +819,13 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+
+      <dependency>
+        <groupId>org.openjdk.jol</groupId>
+        <artifactId>jol-core</artifactId>
+        <version>${jol.version}</version>
+      </dependency>
+
 
       <!-- JUnit 4 -->
       <dependency>
