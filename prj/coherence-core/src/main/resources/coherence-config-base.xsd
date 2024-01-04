@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2000, 2023, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ https://oss.oracle.com/licenses/upl.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
   -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified"
@@ -42,9 +42,16 @@
 
     <!-- param type with the option for an empty value -->
     <xsd:simpleType name="coherence-base-type">
-        <xsd:union memberTypes="coherence-param-type coherence-empty-token" />
+        <xsd:union memberTypes="coherence-param-type coherence-empty-token coherence-system-property-macro-type" />
     </xsd:simpleType>
 
+    <!-- type for matching system property macros in values,
+         e.g., ${some.property} or 10${some.property}0 -->
+    <xsd:simpleType name="coherence-system-property-macro-type">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value=".*\$\{.*\}.*" />
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <!-- substitute type of format @port@ -->
     <xsd:simpleType name="coherence-substitute-token-type">
