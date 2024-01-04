@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -58,7 +58,6 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 
@@ -641,28 +640,12 @@ public class SSLSocketProviderDependenciesBuilder
             {
             boolean fMatched = false;
 
-            // When this is called before handshake, peer certificate is
-            // either null or the call could return SSLPeerUnverifiedException.
-            // So, return true in this case.
-            // After the handshake, this will be called again with peer certificate(s).
-            try
-                {
-                if (sslSession.getPeerCertificates() == null)
-                    {
-                    return true;
-                    }
-                }
-            catch (SSLPeerUnverifiedException e)
-                {
-                return true;
-                }
-
-            if (sUrlHostname != null && sUrlHostname.length() > 0 && sslSession != null)
+            if (sUrlHostname != null && !sUrlHostname.isEmpty() && sslSession != null)
                 {
                 Collection<String> colWildcardDNSNames = SSLCertUtility.getDNSSubjAltNames(sslSession, true, false);
                 String             sCertHostname       = SSLCertUtility.getCommonName(sslSession);
 
-                if (colWildcardDNSNames != null && colWildcardDNSNames.size() > 0)
+                if (colWildcardDNSNames != null && !colWildcardDNSNames.isEmpty())
                     {
                     fMatched = VERIFY_CN_AFTER_SAN
                             ? verifySANWildcardDNSNames(sUrlHostname, colWildcardDNSNames)
@@ -680,7 +663,7 @@ public class SSLSocketProviderDependenciesBuilder
                     // non-wildcard SAN DNS Names
                     Collection<String> colSubAltNames = SSLCertUtility.getDNSSubjAltNames(sslSession, false, true);
 
-                    if (colSubAltNames != null && colSubAltNames.size() > 0)
+                    if (colSubAltNames != null && !colSubAltNames.isEmpty())
                         {
                         fMatched = VERIFY_CN_AFTER_SAN
                                 ? doDNSSubjAltNamesVerify(sUrlHostname, colSubAltNames) || doVerify(sUrlHostname, sCertHostname)
