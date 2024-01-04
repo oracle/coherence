@@ -511,6 +511,11 @@
         <classifier>runtime</classifier>
         <version>${jacoco.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.openjdk.jol</groupId>
+        <artifactId>jol-core</artifactId>
+        <version>${jol.version}</version>
+      </dependency>
 
       <dependency>
         <groupId>com.oracle.bedrock.coherence</groupId>
@@ -724,6 +729,7 @@
     <jersey.version>2.40</jersey.version>
     <jettison.version>1.1</jettison.version>
     <jline.version>3.23.0</jline.version>
+    <jol.version>0.17</jol.version>
     <jsonb.version>1.0</jsonb.version>
     <jsonp.version>1.1.2</jsonp.version>
     <jvisualvm.version>RELEASE138</jvisualvm.version>
