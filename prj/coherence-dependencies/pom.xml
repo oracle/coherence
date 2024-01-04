@@ -255,6 +255,7 @@
     <testcontainers.version>1.17.3</testcontainers.version>
 
     <!-- commercial test dependency versions -->
+    <jol.version>0.17</jol.version>
   </properties>
 
   <dependencyManagement>
@@ -811,6 +812,13 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+
+      <dependency>
+        <groupId>org.openjdk.jol</groupId>
+        <artifactId>jol-core</artifactId>
+        <version>${jol.version}</version>
+      </dependency>
+
 
       <!-- JUnit 4 -->
       <dependency>
