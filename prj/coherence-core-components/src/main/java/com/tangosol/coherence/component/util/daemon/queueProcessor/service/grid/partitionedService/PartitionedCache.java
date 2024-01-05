@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -5443,7 +5443,7 @@ public class PartitionedCache
             {
             return;
             }
-        
+
         com.tangosol.coherence.component.net.RequestContext      context      = msgRequest.getRequestContext();
         PartitionSet partMask     = msgRequest.getRequestMaskSafe();
         PartitionedCache.ResultInfo  resultInfo   = getResultInfo(context);
@@ -5484,7 +5484,7 @@ public class PartitionedCache
                     {
                     // query to find and lock the matching entries
                     QueryResult result = storage.query(msgRequest.getFilter(), Storage.QUERY_INVOKE, partMask, msgRequest.checkTimeoutRemaining());
-        
+
                     aoStatus = result.getResults();
                     cEntries = result.getCount();
         
@@ -20443,6 +20443,7 @@ public class PartitionedCache
          */
         public void onEntryChanged(com.tangosol.net.internal.EntryInfo entryInfo, com.oracle.coherence.common.base.Continuation continuation)
             {
+            // import com.tangosol.net.cache.ReadWriteBackingMap;
             // import com.tangosol.net.events.partition.cache.EntryEvent$Type as com.tangosol.net.events.partition.cache.EntryEvent.Type;
             // import com.tangosol.net.events.internal.StorageDispatcher as com.tangosol.net.events.internal.StorageDispatcher;
             // import com.tangosol.util.BinaryEntry;
@@ -20453,6 +20454,14 @@ public class PartitionedCache
             Storage    storage    = service.getStorage(binEntry.getBackingMapContext().getCacheName());
             com.tangosol.net.events.partition.cache.EntryEvent.Type   eventType  = entryInfo.getEventType();
             com.tangosol.net.events.internal.StorageDispatcher  dispatcher = getStorageDispatcher(storage);
+            boolean     fDispatch  = storage.hasInterceptors() && dispatcher != null;
+
+            if (fDispatch && eventType == com.tangosol.net.events.partition.cache.EntryEvent.Type.UPDATED &&
+                ReadWriteBackingMap.BIN_ERASE_PENDING.equals(binEntry.getBinaryValue()))
+                {
+                eventType = com.tangosol.net.events.partition.cache.EntryEvent.Type.REMOVED;
+                }
+
             if (storage.hasInterceptors() && dispatcher != null && dispatcher.isSubscribed(eventType))
                 {
                 // prepare a continuation to raise the entry event, and wrap it as a task to
@@ -20482,7 +20491,7 @@ public class PartitionedCache
             com.tangosol.net.events.partition.cache.EntryEvent.Type  eventType  = null;
             com.tangosol.net.events.internal.StorageDispatcher dispatcher = getStorageDispatcher(binEntry.getStorage());
             if (dispatcher != null &&
-                (binEntry.isValueRemoved()
+                ((binEntry.isValueRemoved() || ReadWriteBackingMap.BIN_ERASE_PENDING.equals(binEntry.getBinaryValue()))
                     ? dispatcher.isSubscribed(eventType = com.tangosol.net.events.partition.cache.EntryEvent.Type.REMOVING)
                     : dispatcher.isSubscribed(com.tangosol.net.events.partition.cache.EntryEvent.Type.INSERTING) || dispatcher.isSubscribed(com.tangosol.net.events.partition.cache.EntryEvent.Type.UPDATING)))
                 {
