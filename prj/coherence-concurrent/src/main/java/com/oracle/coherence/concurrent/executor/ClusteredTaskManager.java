@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -123,7 +123,11 @@ public class ClusteredTaskManager<T, A, R>
         m_completionRunnable     = completionRunnable;
         m_fRunCompletionRunnable = completionRunnable != null;
         m_retainDuration         = retainDuration;
-        m_debugging              = optionsByType.get(Debugging.class, Debugging.of(Logger.FINEST));
+
+        // a value less than zero means that debug logging, unless overriden by the user,
+        // will only be available if the system property coherence.executor.trace.logging
+        // is true and coherence.log.level is set to seven or higher
+        m_debugging = optionsByType.get(Debugging.class, Debugging.of(Integer.MIN_VALUE));
 
         m_lastResult     = Result.none();
         m_nResultVersion = 0;
@@ -306,7 +310,7 @@ public class ClusteredTaskManager<T, A, R>
         ExecutorTrace.entering(ClusteredTaskManager.class, "asyncProcessChanges", service, key, this, cause);
 
         long          nNewResultCount = m_lCurrentResultGeneration - m_lProcessedResultGeneration;
-        Debugging     debug           = m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : m_debugging;
+        Debugging     debug           = m_debugging;
         boolean       fWillLog        = Logger.isEnabled(debug.getLogLevel());
         StringBuilder bldrDebug       = fWillLog ? new StringBuilder(256) : null;
 
@@ -844,7 +848,7 @@ public class ClusteredTaskManager<T, A, R>
 
         ExecutorTrace.entering(ClusteredTaskManager.class, "asyncEvaluateResult", sTaskId, originalResult);
 
-        Debugging debug = m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : m_debugging;
+        Debugging debug = m_debugging;
 
         // assume there is no change in the result
         boolean resultChanged = false;
@@ -969,7 +973,7 @@ public class ClusteredTaskManager<T, A, R>
     protected boolean asyncEvaluateExecutionStrategy(CacheService service,
             EnumSet<ExecutionStrategy.EvaluationRationale> rationales)
         {
-        Debugging debug = m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : m_debugging;
+        Debugging debug = m_debugging;
 
         // assume there is no change in the ExecutionPlan
         boolean fExecutionPlanUpdated;
@@ -1530,7 +1534,7 @@ public class ClusteredTaskManager<T, A, R>
             if (entry.isPresent())
                 {
                 ClusteredTaskManager manager = entry.getValue();
-                Debugging            debug   = manager.m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : manager.m_debugging;
+                Debugging            debug   = manager.m_debugging;
 
                 if (manager.isCompleted())
                     {
@@ -1690,7 +1694,7 @@ public class ClusteredTaskManager<T, A, R>
                     || m_previous == null
                     || m_previous.isEmpty())
                     {
-                    Debugging debug = manager.m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : manager.m_debugging;
+                    Debugging debug = manager.m_debugging;
                     ExecutorTrace.log(() -> String.format("Changing Executor [%s] action from [%s] to [%s]",
                                                    m_sExecutorId, existing, m_desired), debug);
 
@@ -1833,9 +1837,7 @@ public class ClusteredTaskManager<T, A, R>
             if (entry.isPresent())
                 {
                 ClusteredTaskManager manager = entry.getValue();
-                Debugging            debug   = manager.m_debugging.getLogLevel() < Logger.FINEST
-                                               ? new Debugging()
-                                               : manager.m_debugging;
+                Debugging            debug   = manager.m_debugging;
 
                 if (manager.m_collector != null)
                     {
@@ -1975,7 +1977,7 @@ public class ClusteredTaskManager<T, A, R>
                 if (entry.isPresent())
                     {
                     ClusteredTaskManager taskManager = entry.getValue();
-                    Debugging            debug       = taskManager.m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : taskManager.m_debugging;
+                    Debugging            debug       = taskManager.m_debugging;
 
                     if (taskManager.isOwner(m_sExecutorId))
                         {
@@ -2005,9 +2007,9 @@ public class ClusteredTaskManager<T, A, R>
                     }
                 else
                     {
-                    if (Logger.isEnabled(Logger.FINE))
+                    if (Logger.isEnabled(Logger.FINEST))
                         {
-                        Logger.fine(String.format("Ignoring result contributed for Task [%s] as the Task is no longer"
+                        Logger.finest(String.format("Ignoring result contributed for Task [%s] as the Task is no longer"
                                 + " present. Executor [%s]: %s", entry.getKey(), m_sExecutorId, m_result));
                         }
 
@@ -2090,7 +2092,7 @@ public class ClusteredTaskManager<T, A, R>
             if (entry.isPresent())
                 {
                 ClusteredTaskManager manager = entry.getValue();
-                Debugging            debug   = manager.m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : manager.m_debugging;
+                Debugging            debug   = manager.m_debugging;
 
                 if (manager.isCompleted())
                     {
