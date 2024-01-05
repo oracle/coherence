@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -57,9 +57,11 @@ public class ExecutorTrace
      */
     public static void log(String message, Debugging debugging)
         {
-        if (isEnabled())
+        int nLevel = debugging.getLogLevel();
+
+        if (isEnabled() || nLevel >= Logger.ALWAYS)
             {
-            Logger.log(message, debugging.getLogLevel());
+            Logger.log(message, getAdjustedLogLevel(nLevel));
             }
         }
 
@@ -97,9 +99,11 @@ public class ExecutorTrace
      */
     public static void log(Supplier<String> supplierMessage, Debugging debugging)
         {
-        if (isEnabled())
+        int nLevel = debugging.getLogLevel();
+
+        if (isEnabled() || nLevel >= Logger.ALWAYS)
             {
-            Logger.log(supplierMessage, debugging.getLogLevel());
+            Logger.log(supplierMessage, getAdjustedLogLevel(nLevel));
             }
         }
 
@@ -190,6 +194,7 @@ public class ExecutorTrace
      *
      * @since 22.06
      */
+    @SuppressWarnings("unused")
     public static void exiting(Class<?> clz, String sMethod, Object result, Supplier<Object> params)
         {
         if (isEnabled())
@@ -216,7 +221,23 @@ public class ExecutorTrace
            }
         }
 
-    // ----- static data members --------------------------------------------
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Returns {@value LOGLEVEL} if {@code nLogLevel} is negative or greater
+     * than 9 (Coherence's max log level) otherwise returns
+     * {@code nLogLevel}.
+     *
+     * @param nLogLevel  the log level to adjust
+     *
+     * @return the adjusted log level
+     */
+    private static int getAdjustedLogLevel(int nLogLevel)
+        {
+        return nLogLevel < 0 || nLogLevel > 9 ? LOGLEVEL : nLogLevel;
+        }
+
+    // ----- constants ------------------------------------------------------
 
     /**
      * Log level for ExecutorTrace messages

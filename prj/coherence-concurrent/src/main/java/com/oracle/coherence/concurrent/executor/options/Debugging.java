@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent.executor.options;
@@ -56,31 +56,6 @@ public class Debugging
         }
 
     // ----- accessors ------------------------------------------------------
-
-    ///**
-    // * Sets the Coherence ExecutorService log {@link Level}.
-    // *
-    // * @param  logLevel  the Coherence ExecutorService log {@link Level}
-    // */
-    //public void setExecutorServiceLogLevel(Level logLevel)
-    //    {
-    //    m_executorServiceLogLevel = logLevel;
-    //    }
-    //
-    ///**
-    // * Obtains the Coherence ExecutorService log level.
-    // *
-    // * @return the Coherence ExecutorService log {@link Level}
-    // */
-    //public Level getExecutorServiceLogLevel()
-    //    {
-    //    if (m_executorServiceLogLevel == null)
-    //        {
-    //        m_executorServiceLogLevel = Level.INFO;
-    //        }
-    //
-    //    return m_executorServiceLogLevel;
-    //    }
 
     /**
      * Obtains the log level of the {@link Debugging} option.

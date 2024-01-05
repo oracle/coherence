@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2016, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor.internal;
-
-import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
 import com.oracle.coherence.concurrent.executor.Task;
@@ -398,7 +396,6 @@ public class ClusteredTaskInterceptor
                         binaryEntry.setValue(manager);
 
                         Debugging debug = manager.getDebugging();
-                        debug = debug.getLogLevel() < Logger.FINEST ? new Debugging() : debug;
                         ExecutorTrace.log(() -> String.format("INSERTING: In Partition [%s], Task Sequence [%s],"
                                                        + " Task State [%s], Orchestrated Count [%s]",
                                                        manager.getPartitionId(), manager.getTaskSequence(),
@@ -417,7 +414,6 @@ public class ClusteredTaskInterceptor
                             }
 
                         Debugging debug = manager.getDebugging();
-                        debug = debug.getLogLevel() < Logger.FINEST ? new Debugging() : debug;
                         ExecutorTrace.log(() -> String.format("INSERTED: In Partition [%s], Task Sequence [%s],"
                                                        + " Task State [%s], Orchestrated Count [%s]",
                                                        manager.getPartitionId(), manager.getTaskSequence(),
@@ -448,7 +444,6 @@ public class ClusteredTaskInterceptor
                             }
 
                         Debugging debug = manager.getDebugging();
-                        debug = debug.getLogLevel() < Logger.FINEST ? new Debugging() : debug;
                         ExecutorTrace.log(() -> String.format(
                                 "REMOVED: Orchestrated Task Count [%s], Partition [%s], Task Sequence [%s]",
                                 cOrchestrated, manager.getPartitionId(), manager.getTaskSequence()), debug);
