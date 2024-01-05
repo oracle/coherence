@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.coherence.reporter;
@@ -10,6 +10,7 @@ package com.tangosol.coherence.reporter;
 
 import com.tangosol.run.xml.XmlElement;
 
+import java.math.BigDecimal;
 import java.text.DateFormat;
 
 import java.util.Date;
@@ -147,7 +148,8 @@ public class ColumnView
             }
 
         return oValue instanceof Date && m_dateFormat != null
-                ? m_dateFormat.format((Date) oValue).toString()
+                ? m_dateFormat.format((Date) oValue)
+                : oValue instanceof Double ? BigDecimal.valueOf((Double) oValue).toPlainString()
                 : oValue.toString();
         }
 
