@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 
 <report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
@@ -151,6 +151,58 @@
           <query>
             <pattern>Coherence:type=Platform,Domain=java.lang,subType=Memory,nodeId={NodeId},*</pattern>
           </query>
+        </column>
+
+        <column id="HeapCommittedMB">
+          <type>function</type>
+          <name>HeapCommittedMB</name>
+          <header>Heap Committed MB</header>
+          <function-name>divide</function-name>
+          <params>
+            <column-ref>HeapCommitted</column-ref>
+            <column-ref>ConstMB</column-ref>
+          </params>
+        </column>
+
+        <column id="HeapInitMB">
+          <type>function</type>
+          <name>HeapInitMB</name>
+          <header>Heap Init MB</header>
+          <function-name>divide</function-name>
+          <params>
+            <column-ref>HeapInit</column-ref>
+            <column-ref>ConstMB</column-ref>
+          </params>
+        </column>
+
+        <column id="HeapMaxMB">
+          <type>function</type>
+          <name>HeapMaxMB</name>
+          <header>Heap Max MB</header>
+          <function-name>divide</function-name>
+          <params>
+            <column-ref>HeapMax</column-ref>
+            <column-ref>ConstMB</column-ref>
+          </params>
+        </column>
+
+        <column id="HeapUsedMB">
+          <type>function</type>
+          <name>HeapUsedMB</name>
+          <header>Heap Used MB</header>
+          <function-name>divide</function-name>
+          <params>
+            <column-ref>HeapUsed</column-ref>
+            <column-ref>ConstMB</column-ref>
+          </params>
+        </column>
+
+        <column id="ConstMB">
+          <type>constant</type>
+          <name>ConstMB</name>
+          <hidden>true</hidden>
+          <data-type>double</data-type>
+          <value>1048576</value>
         </column>
       </row>
     </report>

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.coherence.reporter;
@@ -89,7 +89,7 @@ public class Reporter
         }
 
     /**
-    * Generate the CSV file based on the the specified configuration.
+    * Generate the CSV file based on the specified configuration.
     *
     * @param sReport        the URI or the content of the report
     * @param sPathTemplate  the output path template
@@ -102,7 +102,7 @@ public class Reporter
         }
 
     /**
-    * Generate the CSV file based on the the specified configuration.
+    * Generate the CSV file based on the specified configuration.
     *
     * @param sReport        the URI or the content of the report
     * @param sPathTemplate  the output path template
@@ -117,7 +117,7 @@ public class Reporter
         }
 
     /**
-    * Generate the CSV file and/or TabularData based on the the specified
+    * Generate the CSV file and/or TabularData based on the specified
     * configuration.
     *
     * @param sReport        the URI or the content of the report
