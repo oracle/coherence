@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -389,7 +389,17 @@ public class Coherence
      */
     public static Builder clientBuilder(CoherenceConfiguration config)
         {
-        return clientBuilder(config, Mode.Client);
+        Mode   mode    = Mode.Client;
+        String sClient = Config.getProperty("coherence.client");
+        try
+            {
+            mode = Mode.fromClientName(sClient);
+            }
+        catch (Exception e)
+            {
+            // ignored, just use Mode.Client
+            }
+        return clientBuilder(config, mode);
         }
 
     /**
@@ -1291,25 +1301,29 @@ public class Coherence
                         .forEach(cfg ->
                             {
                             Session session = f_mapSession.get(cfg.getName());
-                            try
+                            if (session != null)
                                 {
-                                session.close();
-                                if (isNotGarSession(cfg)) // we do not close the default GAR session
+                                try
                                     {
-                                    cfg.sessionProvider().ifPresent(p -> p.releaseSession(session));
-                                    if (session instanceof ConfigurableCacheFactorySession)
+                                    session.close();
+                                    if (isNotGarSession(cfg)) // we do not close the default GAR session
                                         {
-                                        ConfigurableCacheFactory ccf = ((ConfigurableCacheFactorySession) session).getConfigurableCacheFactory();
-                                        if (ccf.isActive())
+                                        cfg.sessionProvider().ifPresent(p -> p.releaseSession(session));
+                                        if (session instanceof ConfigurableCacheFactorySession)
                                             {
-                                            ccf.dispose();
+                                            ConfigurableCacheFactory ccf = ((ConfigurableCacheFactorySession) session)
+                                                    .getConfigurableCacheFactory();
+                                            if (ccf.isActive())
+                                                {
+                                                ccf.dispose();
+                                                }
                                             }
                                         }
                                     }
-                                }
-                            catch(Throwable t)
-                                {
-                                Logger.err("Error closing session " + session.getName(), t);
+                                catch(Throwable t)
+                                    {
+                                    Logger.err("Error closing session " + session.getName(), t);
+                                    }
                                 }
                         });
 
