@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package ssl;
 
+import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.coherence.common.net.SocketProvider;
 import com.tangosol.coherence.config.ParameterMacroExpressionParser;
 import com.tangosol.coherence.config.builder.ParameterizedBuilderRegistry;
@@ -162,7 +163,7 @@ public abstract class BaseSocketProviderTests
 
     protected int getPort()
         {
-        return Integer.getInteger("test.extend.port", 7778);
+        return Integer.getInteger("test.extend.port", LocalPlatform.get().getAvailablePorts().next());
         }
 
     protected int getIterations()
