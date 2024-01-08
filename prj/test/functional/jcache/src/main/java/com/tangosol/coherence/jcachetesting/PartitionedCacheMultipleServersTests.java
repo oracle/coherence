@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,7 +19,8 @@ import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
 import com.oracle.bedrock.runtime.console.FileWriterApplicationConsole;
-import com.oracle.bedrock.runtime.java.options.HeapSize;
+import com.oracle.bedrock.runtime.java.options.Freeform;
+import com.oracle.bedrock.runtime.java.options.Freeforms;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.java.profiles.JmxProfile;
@@ -48,6 +49,7 @@ import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -85,6 +87,7 @@ public class PartitionedCacheMultipleServersTests
         CacheFactory.shutdown();
         String sLocalStorage = System.getProperty("coherence.distributed.localstorage", "false");
         System.setProperty("coherence.distributed.localstorage", sLocalStorage);
+        System.setProperty("coherence.serializer", "pof");
 
 
         beforeClassSetup();
@@ -184,7 +187,7 @@ public class PartitionedCacheMultipleServersTests
 
         if (Boolean.getBoolean("tangosol.pof.enabled"))
             {
-            optionsByType.addAll(Pof.config("coherence-jcache-junit-pof-config.xml"), Pof.enabled());
+            optionsByType.addAll(SystemProperty.of("coherence.serializer", "pof"), Pof.config("coherence-jcache-junit-pof-config.xml"), Pof.enabled());
             }
 
         return optionsByType;
@@ -201,18 +204,22 @@ public class PartitionedCacheMultipleServersTests
 
         System.out.println("OraclebedrockGetLocalHost()=" + localHostName);
 
-        String cacheconfigfile = System.getProperty("coherence.cacheconfig",
+        String cacheconfigfile  = System.getProperty("coherence.cacheconfig",
                                      "coherence-jcache-cache-config.xml");
+        String[] defaultJvmOpts = new String[]{ "-server",
+                    "-XX:+HeapDumpOnOutOfMemoryError",
+                    "-XX:HeapDumpPath=" + ensureOutputDir("jcache").getAbsolutePath(),
+                    "-XX:+ExitOnOutOfMemoryError"};
 
         return  OptionsByType.of(
                 CacheConfig.of(cacheconfigfile),
+                new Freeforms(new Freeform(defaultJvmOpts)),
                 JmxProfile.enabled(),
                 JMXManagementMode.LOCAL_ONLY,
                 JmxProfile.authentication(false),
                 JmxProfile.hostname(localHostName),
                 SystemProperty.of("java.rmi.server.hostname", localHostName),
                 LocalHost.only(),
-                HeapSize.of(64, HeapSize.Units.MB, 256, HeapSize.Units.MB),
                 IPv4Preferred.yes()
                 );
         }
