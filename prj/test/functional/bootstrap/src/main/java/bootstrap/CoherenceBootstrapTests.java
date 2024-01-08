@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,8 +19,8 @@ import com.tangosol.net.Session;
 
 import com.tangosol.net.SessionConfiguration;
 import com.tangosol.util.Resources;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * @author Jonathan Knight  2020.12.13
  */
+@SuppressWarnings("resource")
 class CoherenceBootstrapTests
     {
     @BeforeAll
@@ -48,7 +49,7 @@ class CoherenceBootstrapTests
         System.setProperty("coherence.cacheconfig", Resources.DEFAULT_RESOURCE_PACKAGE + "/coherence-cache-config.xml");
         }
 
-    @AfterEach
+    @BeforeEach
     void cleanup()
         {
         Coherence.closeAll();
