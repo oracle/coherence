@@ -1,9 +1,0 @@
-coherence:
-  sessions:
-    - name: default
-      scope: default-scope
-      channel: Foo
-    - name: system
-      scope: sys-scope
-      channel: Bar
-      serializer: json
