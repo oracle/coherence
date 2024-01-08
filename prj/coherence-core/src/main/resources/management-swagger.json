@@ -93,6 +93,11 @@
       "name": "Storage",
       "description": "The Storage resource provides a set of endpoints for managing Coherence Storage Managers.",
       "x-priority":17
+    },
+    {
+      "name": "View",
+      "description": "The View resource provides a set of endpoints for managing Coherence view caches based on the cache service instance to which it belongs. Use this resource to access operational information and performance statistics. Cache data is aggregated across all cluster members or it can be viewed for each cluster member. Applications should initially use this resource to discover caches and their associated cache names. Cache names are required to access management data.",
+      "x-priority":18
     }
   ],
   "paths": {
@@ -2908,6 +2913,144 @@
         }
       }
     },
+    "/management/coherence/cluster/services/{serviceName}/views": {
+      "get": {
+        "tags": [
+          "View Cache"
+        ],
+        "summary": "View Caches by Service",
+        "description": "Use this endpoint to view a list of view caches that are managed by a specific service. Cache names are often used as parameters when performing other resource operations.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/views GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns a list of view caches",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/viewAggregate"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/views/{viewName}": {
+      "get": {
+        "tags": [
+          "View Cache"
+        ],
+        "summary": "View Cache Information by Service",
+        "description": "Use this endpoint to view general statistics for a view cache that is managed by a specific service. The information is aggregated across all cache members. Use the query parameters to change which aggregated results to view and whether the results should be constrained to cluster members with a specific member role.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/views/{viewName} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/viewName"
+          },
+          {
+            "$ref": "#/parameters/role"
+          },
+          {
+            "$ref": "#/parameters/collector"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns information about a view cache",
+            "schema": {
+              "$ref": "#/definitions/viewAggregate"
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/views/{viewName}/members": {
+      "get": {
+        "tags": [
+          "View Cache"
+        ],
+        "summary": "View Cache Members by Service",
+        "description": "Use this endpoint to list the members of a view cache that is managed by a specific service.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/views/{viewName}/members GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/viewName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that lists view cache members",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/viewMember"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/views/{viewName}/members/{memberIdentifier}": {
+      "get": {
+        "tags": [
+          "View Cache"
+        ],
+        "summary": "View Cache Member Information by Service",
+        "description": "Use this endpoint to view detailed operational and performance statistics for a view cache that is managed by a specific service. The information includes data about cache operations, cache events, cache listeners, cache queries, and cache storage. You can also view many cache settings.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/views/{viewName}/members/{memberIdentifier} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/viewName"
+          },
+          {
+            "$ref": "#/parameters/memberIdentifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns information about a view cache",
+            "schema": {
+              "$ref": "#/definitions/viewMember"
+            }
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/caches": {
       "get": {
         "tags": [
@@ -3086,6 +3229,130 @@
         "responses": {
           "200": {
             "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/views": {
+      "get": {
+        "tags": [
+          "View Cache (Short Form)"
+        ],
+        "summary": "View Caches",
+        "description": "Use this endpoint to view a list of view caches in the cluster. View cache names are often used as parameters when performing other cache resource operations.",
+        "operationId": "/management/coherence/cluster/views GET",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns a list of caches",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/viewAggregate"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/views/{viewName}": {
+      "get": {
+        "tags": [
+          "View Cache (Short Form)"
+        ],
+        "summary": "View Cache Information",
+        "description": "Use this endpoint to view general statistics for a view cache. The information is aggregated across all cache members. Use the query parameters to change which aggregated results to view and to determine whether the results should be constrained to cluster members with a specific member role.",
+        "operationId": "/management/coherence/cluster/views/{viewName} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/viewName"
+          },
+          {
+            "$ref": "#/parameters/role"
+          },
+          {
+            "$ref": "#/parameters/collector"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns information about a view",
+            "schema": {
+              "$ref": "#/definitions/viewAggregate"
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/views/{viewName}/members": {
+      "get": {
+        "tags": [
+          "View Cache (Short Form)"
+        ],
+        "summary": "View Cache Members",
+        "description": "Use this endpoint to list the members of a cache.",
+        "operationId": "/management/coherence/cluster/views/{viewName}/members GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/viewName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that lists view cache members",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/viewMember"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/views/{viewName}/members/{memberIdentifier}": {
+      "get": {
+        "tags": [
+          "Cache (Short Form)"
+        ],
+        "summary": "View Cache Member Information",
+        "description": "Use this endpoint to view detailed operational and performance statistics for a view cache. The information includes data about cache operations, cache events, cache listeners, cache queries, and cache storage. You can also view many cache settings.",
+        "operationId": "/management/coherence/cluster/views/{viewName}/members/{memberIdentifier} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/viewName"
+          },
+          {
+            "$ref": "#/parameters/memberIdentifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns information about a view cache",
+            "schema": {
+              "$ref": "#/definitions/cacheMember"
+            }
           }
         }
       }
@@ -6602,6 +6869,32 @@
         }
       }
     },
+    "view": {
+      "type": "object",
+      "description": "Details of the particular view cache.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the view cache."
+        },
+        "readOnly": {
+          "type": "boolean",
+          "description": "Readonly setting for the cachestore."
+        },
+        "transformer": {
+          "type": "string",
+          "description": "Used by the associated view-scheme to transform values retrieved from the underlying cache."
+        },
+        "filter": {
+          "type": "string",
+          "description": "Filter used to to restrict the result set."
+        },
+        "cacheValues": {
+          "type": "boolean",
+          "description": "Specifies if the view is to maintain both keys and values (the default; i.e. true), or only keys."
+        }
+      }
+    },
     "topic": {
       "type": "object",
       "description": "Details of the particular topic.",
@@ -6700,6 +6993,21 @@
         "highUnits": {
           "type": "integer",
           "format": "int64"
+        }
+      }
+    },
+    "viewAggregate": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the view."
+        },
+        "reconnectInterval": {
+          "$ref": "#/definitions/summaryNumber"
+        },
+        "size": {
+          "$ref": "#/definitions/summaryNumber"
         }
       }
     },
@@ -7137,6 +7445,69 @@
           "items": {
             "type": "string"
           },
+          "readOnly": true
+        }
+      }
+    },
+    "viewMember": {
+      "type": "object",
+      "properties": {
+        "readOnly": {
+          "type": "boolean",
+          "description": "Readonly setting for the cachestore.",
+          "readOnly": true
+        },
+        "transformed": {
+          "type": "boolean",
+          "description": "Indicates if the view transforms values.",
+          "readOnly": true
+        },
+        "transformer": {
+          "type": "string",
+          "description": "Used by the associated view-scheme to transform values retrieved from the underlying cache.",
+          "readOnly": true
+        },
+        "reconnectInterval": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Indicates the period in which re-synchronization with the underlying cache will be delayed in the case the connection is severed.",
+          "readOnly": true
+        },
+        "filter": {
+          "type": "string",
+          "description": "Filter used to to restrict the result set.",
+          "readOnly": true
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The number of entries in the cache.",
+          "readOnly": true
+        },
+        "cacheValues": {
+          "type": "boolean",
+          "description": "Specifies if the view is to maintain both keys and values (the default; i.e. true), or only keys.",
+          "readOnly": true
+        },
+        "viewName": {
+          "type": "string",
+          "description": "Name of the view cache.",
+          "readOnly": true
+        },
+        "service": {
+          "type": "string",
+          "description": "The service name.",
+          "readOnly": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the view cache.",
+          "readOnly": true
+        },
+        "nodeId": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The ID of member to which the MBean belongs",
           "readOnly": true
         }
       }
@@ -10093,6 +10464,13 @@
       "name": "cacheName",
       "in": "path",
       "description": "Name of the cache.",
+      "required": true,
+      "type": "string"
+    },
+    "viewName": {
+      "name": "viewName",
+      "in": "path",
+      "description": "Name of the view cache.",
       "required": true,
       "type": "string"
     },

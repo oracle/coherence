@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1903,6 +1903,16 @@ public abstract class AbstractManagementResource
     public static final String TOPIC_QUERY = TOPICS_QUERY + "," + Registry.KEY_NAME;
 
     /**
+     * MBean query to filter out all the ViewMBean objects in the cluster.
+     */
+    public static final String VIEWS_QUERY = ":" + Registry.VIEW_TYPE;
+
+    /**
+     * MBean query to filter out all the ViewMBean objects of a particular view.
+     */
+    public static final String VIEW_QUERY = VIEWS_QUERY + "," + Registry.KEY_NAME;
+
+    /**
      * MBean query to filter out all the TopicSubscriberMBean  objects in the cluster.
      */
     public static final String SUBSCRIBERS_QUERY = ":" + Registry.SUBSCRIBER_TYPE;
@@ -1947,6 +1957,11 @@ public abstract class AbstractManagementResource
      * MBean query to filter out all the ReporterMBean objects.
      */
     public static final String REPORTER_MEMBERS_QUERY = ":" + Registry.REPORTER_TYPE;
+
+    /**
+     * MBean query to filter out all the ViewMBean objects of a particular cache and service.
+     */
+    public static final String VIEW_MEMBERS_WITH_SERVICE_QUERY = VIEWS_QUERY +"," + Registry.KEY_NAME;
 
     /**
      * MBean query to filter out all the Flash journal MBean objects.
@@ -2239,42 +2254,44 @@ public abstract class AbstractManagementResource
     public static final String SNAPSHOT_NAME    = "snapshotName";
     public static final String JFR_CMD          = "jfrCmd";
     public static final String TOPIC_NAME       = "topicName";
+    public static final String VIEW_NAME        = "viewName";
     public static final String SUBSCRIBER_GROUP_NAME = "subscriberGroupName";
 
     // ------------------------------ Path param constants ends --------------------------------------
 
     // ------------------------------ URL constants --------------------------------------------------
 
-    public static final String METADATA_CATALOG = "metadata-catalog";
-    public static final String SERVICES         = "services";
-    public static final String MEMBERS          = "members";
-    public static final String REPORTERS        = "reporters";
-    public static final String CACHES           = "caches";
-    public static final String MANAGEMENT       = "management";
-    public static final String SHUTDOWN         = "shutdown";
-    public static final String CLUSTER_STATE    = "logClusterState";
-    public static final String MEMBER_STATE     = "logMemberState";
-    public static final String CLUSTER          = "cluster";
-    public static final String SEARCH           = "search";
-    public static final String STORAGE          = "storage";
-    public static final String JOURNAL          = "journal";
-    public static final String JOURNAL_TYPE     = "journalType";
-    public static final String NETWORK_STATS    = "networkStats";
-    public static final String VERBOSE          = "verbose";
-    public static final String HOTCACHE         = "hotcache";
-    public static final String WEB_APPS         = "webApplications";
-    public static final String PERSISTENCE      = "persistence";
-    public static final String PROXY            = "proxy";
-    public static final String PARTICIPANTS     = "participants";
-    public static final String STATISTICS       = "statistics";
-    public static final String INCOMING         = "incoming";
-    public static final String OUTGOING         = "outgoing";
-    public static final String EXECUTORS        = "executors";
-    public static final String STATE            = "state";
-    public static final String ENVIRONMENT      = "environment";
-    public static final String HEALTH           = "health";
-    public static final String TOPICS           = "topics";
-    public static final String SUBSCRIBERS      = "subscribers";
+    public static final String METADATA_CATALOG  = "metadata-catalog";
+    public static final String SERVICES          = "services";
+    public static final String MEMBERS           = "members";
+    public static final String REPORTERS         = "reporters";
+    public static final String CACHES            = "caches";
+    public static final String MANAGEMENT        = "management";
+    public static final String SHUTDOWN          = "shutdown";
+    public static final String CLUSTER_STATE     = "logClusterState";
+    public static final String MEMBER_STATE      = "logMemberState";
+    public static final String CLUSTER           = "cluster";
+    public static final String SEARCH            = "search";
+    public static final String STORAGE           = "storage";
+    public static final String JOURNAL           = "journal";
+    public static final String JOURNAL_TYPE      = "journalType";
+    public static final String NETWORK_STATS     = "networkStats";
+    public static final String VERBOSE           = "verbose";
+    public static final String HOTCACHE          = "hotcache";
+    public static final String WEB_APPS          = "webApplications";
+    public static final String PERSISTENCE       = "persistence";
+    public static final String PROXY             = "proxy";
+    public static final String PARTICIPANTS      = "participants";
+    public static final String STATISTICS        = "statistics";
+    public static final String INCOMING          = "incoming";
+    public static final String OUTGOING          = "outgoing";
+    public static final String EXECUTORS         = "executors";
+    public static final String STATE             = "state";
+    public static final String ENVIRONMENT       = "environment";
+    public static final String HEALTH            = "health";
+    public static final String TOPICS            = "topics";
+    public static final String VIEWS             = "views";
+    public static final String SUBSCRIBERS       = "subscribers";
     public static final String SUBSCRIBER_GROUPS = "subscriberGroups";
 
     public static final String SUBSCRIBER_GROUPS_LCASE = "subscribergroups";
