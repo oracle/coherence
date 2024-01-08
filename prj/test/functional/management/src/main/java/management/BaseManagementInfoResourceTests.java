@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -69,6 +69,7 @@ import com.tangosol.net.topic.Subscriber;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
+import com.tangosol.util.filter.AlwaysFilter;
 
 import com.oracle.coherence.testing.AbstractTestInfrastructure;
 
@@ -162,6 +163,7 @@ import static com.tangosol.internal.management.resources.AbstractManagementResou
 import static com.tangosol.internal.management.resources.AbstractManagementResource.SERVICE;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.STORAGE;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.TRUNCATE;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.VIEWS;
 import static com.tangosol.internal.management.resources.ClusterMemberResource.DIAGNOSTIC_CMD;
 import static com.tangosol.internal.management.resources.ClusterResource.DUMP_CLUSTER_HEAP;
 import static com.tangosol.internal.management.resources.ClusterResource.ROLE;
@@ -3278,6 +3280,37 @@ public abstract class BaseManagementInfoResourceTests
         }
 
     @Test
+    public void testViews()
+        {
+        WebTarget target   = getBaseTarget().path(VIEWS);
+        Response  response = target.path("view-cache").request().get();
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        Map mapResponse = readEntity(target, response);
+
+        String sMembersUrl = getLink(mapResponse, "members");
+        target   = m_client.target(sMembersUrl);
+        response = target.request().get();
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+
+        Map mapCacheMembers = readEntity(target, response);
+        assertThat(mapCacheMembers, notNullValue());
+
+        List<Map> listCacheMembers = (List<Map>) mapCacheMembers.get("items");
+        assertThat(listCacheMembers.size(), is(1));
+        assertThat(listCacheMembers, notNullValue());
+
+        for (Map mapCacheMember : listCacheMembers)
+            {
+            assertThat(mapCacheMember.get(NAME), is("view-cache"));
+            assertThat(mapCacheMember.get("type"), is("View"));
+            assertThat(mapCacheMember.get("readOnly"), instanceOf(Boolean.class));
+            assertThat(mapCacheMember.containsKey("transformer"), is(true));
+            assertThat(mapCacheMember.get("filter"), is(AlwaysFilter.INSTANCE().toString()));
+            }
+        }
+
+    @Test
     public void testReadOnlyManagementReturnsUnauthorized()
         {
         // only run when read-only management is enabled
@@ -4636,6 +4669,8 @@ public abstract class BaseManagementInfoResourceTests
         cache = CacheFactory.getCache(CLEAR_CACHE_NAME);
         cache.put(1, binValue);
 
+        cache = CacheFactory.getCache("view-cache");
+        cache.put(1, binValue);
         return null;
         }
 
@@ -4914,7 +4949,7 @@ public abstract class BaseManagementInfoResourceTests
     /**
      * The list of caches used by this test class.
      */
-    private static final String[] CACHES_LIST = {CACHE_NAME, "near-test", CACHE_NAME_FOO, PERSISTENCE_CACHE_NAME, CLEAR_CACHE_NAME};
+    private static final String[] CACHES_LIST = {CACHE_NAME, "near-test", CACHE_NAME_FOO, PERSISTENCE_CACHE_NAME, CLEAR_CACHE_NAME, "view-cache"};
 
     /**
      * The list of topics caches used by this test class.
