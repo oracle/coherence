@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -37,7 +37,7 @@ public class ManagementInfoResourceSSLTests
         System.setProperty("coherence.management.http.provider", "mySSLProvider");
         System.setProperty("coherence.security.keystore", "file:server.jks");
         System.setProperty("coherence.security.store.password", "password");
-        System.setProperty("coherence.security.key.password", "private");
+        System.setProperty("coherence.security.key.password", "password");
         System.setProperty("coherence.security.truststore", "file:trust-server.jks");
         System.setProperty("coherence.security.trust.password", "password");
 

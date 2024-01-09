@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -56,7 +56,7 @@ public class SimpleMetricsSSLTests
         props.put("coherence.metrics.http.provider", "mySSLProvider");
         props.put("coherence.security.keystore", "file:server.jks");
         props.put("coherence.security.store.password", "password");
-        props.put("coherence.security.key.password", "private");
+        props.put("coherence.security.key.password", "password");
         props.put("coherence.security.truststore", "file:trust-server.jks");
         props.put("coherence.security.trust.password", "password");
 

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -86,85 +86,85 @@
       <arg line="x509 -req -passin pass:1111 -days 3650 -in target/classes/guest.csr -CA target/ca/cacert.pem -CAkey target/ca/cakey.pem -set_serial 01 -out target/classes/guest.chain"/>
     </exec>
 
-    <!-- Remove passphrase from client key --> 
+    <!-- Remove passphrase from client key -->
     <exec executable="openssl">
       <arg line="rsa -passin pass:1111 -in target/classes/client.key -out target/classes/client.key"/>
     </exec>
 
-    <!-- Remove passphrase from server key --> 
+    <!-- Remove passphrase from server key -->
     <exec executable="openssl">
       <arg line="rsa -passin pass:1111 -in target/classes/server.key -out target/classes/server.key"/>
     </exec>
 
-    <!-- Remove passphrase from guest key --> 
+    <!-- Remove passphrase from guest key -->
     <exec executable="openssl">
       <arg line="rsa -passin pass:1111 -in target/classes/guest.key -out target/classes/guest.key"/>
     </exec>
 
-    <!-- Create client.pem from client key --> 
+    <!-- Create client.pem from client key -->
     <exec executable="openssl">
       <arg line="pkcs8 -topk8 -nocrypt -in target/classes/client.key -out target/classes/client.pem"/>
     </exec>
 
-    <!-- Create server.pem from client key --> 
+    <!-- Create server.pem from client key -->
     <exec executable="openssl">
       <arg line="pkcs8 -topk8 -nocrypt -in target/classes/server.key -out target/classes/server.pem"/>
     </exec>
 
-    <!-- Create guest.pem from client key --> 
+    <!-- Create guest.pem from client key -->
     <exec executable="openssl">
       <arg line="pkcs8 -topk8 -nocrypt -in target/classes/guest.key -out target/classes/guest.pem"/>
     </exec>
 
-    <!-- Create client.p12 from client.pem --> 
+    <!-- Create client.p12 from client.pem -->
     <exec executable="openssl">
-      <arg line="pkcs12 -export -passout pass:private -inkey target/classes/client.pem -name client -in target/classes/client.chain -out target/classes/client.p12"/>
+      <arg line="pkcs12 -export -passout pass:password -inkey target/classes/client.pem -name client -in target/classes/client.chain -out target/classes/client.p12"/>
     </exec>
 
-    <!-- Create server.p12 from server.pem --> 
+    <!-- Create server.p12 from server.pem -->
     <exec executable="openssl">
-      <arg line="pkcs12 -export -passout pass:private -inkey target/classes/server.pem -name server -in target/classes/server.chain -out target/classes/server.p12"/>
+      <arg line="pkcs12 -export -passout pass:password -inkey target/classes/server.pem -name server -in target/classes/server.chain -out target/classes/server.p12"/>
     </exec>
 
-    <!-- Create guest.p12 from guest.pem --> 
+    <!-- Create guest.p12 from guest.pem -->
     <exec executable="openssl">
-      <arg line="pkcs12 -export -passout pass:private -inkey target/classes/guest.pem -name guest -in target/classes/guest.chain -out target/classes/guest.p12"/>
+      <arg line="pkcs12 -export -passout pass:password -inkey target/classes/guest.pem -name guest -in target/classes/guest.chain -out target/classes/guest.p12"/>
     </exec>
 
     <!-- Create the client keystore -->
     <exec executable="${keytool}">
-      <arg line="-importkeystore -storepass password -noprompt -srcstorepass private -srckeystore target/classes/client.p12 -srcstoretype pkcs12 -destkeypass private -deststoretype JKS -destkeystore target/classes/client.jks"/>
+      <arg line="-importkeystore -storepass password -noprompt -srcstorepass password -srckeystore target/classes/client.p12 -srcstoretype pkcs12 -deststoretype pkcs12 -destkeystore target/classes/client.jks"/>
     </exec>
 
     <!-- Create the server keystore -->
     <exec executable="${keytool}">
-      <arg line="-importkeystore -storepass password -noprompt -srcstorepass private -srckeystore target/classes/server.p12 -srcstoretype pkcs12 -destkeypass private -deststoretype JKS -destkeystore target/classes/server.jks"/>
+      <arg line="-importkeystore -storepass password -noprompt -srcstorepass password -srckeystore target/classes/server.p12 -srcstoretype pkcs12 -deststoretype pkcs12 -destkeystore target/classes/server.jks"/>
     </exec>
 
     <!-- Create the guest keystore -->
     <exec executable="${keytool}">
-      <arg line="-importkeystore -storepass password -noprompt -srcstorepass private -srckeystore target/classes/guest.p12 -srcstoretype pkcs12 -destkeypass private -deststoretype JKS -destkeystore target/classes/guest.jks"/>
+      <arg line="-importkeystore -storepass password -noprompt -srcstorepass password -srckeystore target/classes/guest.p12 -srcstoretype pkcs12 -deststoretype pkcs12 -destkeystore target/classes/guest.jks"/>
     </exec>
 
     <!-- Create the rogue keystore -->
     <exec executable="${keytool}">
-      <arg line="-genkey -keyalg RSA -keysize 4096 -validity 3650 -dname 'CN=rogue, O=Evil, L=Eviland, ST=EV, C=US' -alias rogue -keypass private -keystore target/classes/rogue.jks -storepass password -storetype JKS"/>
+      <arg line="-genkey -keyalg RSA -keysize 4096 -validity 3650 -dname 'CN=rogue, O=Evil, L=Eviland, ST=EV, C=US' -alias rogue -keystore target/classes/rogue.jks -storepass password -storetype pkcs12"/>
     </exec>
 
     <!-- Create the process keystore and certificate -->
     <exec executable="${keytool}">
-      <arg line="-genkey -keyalg RSA -keysize 4096 -validity 3650 -dname 'CN=process, O=Oracle, L=Burlington, ST=MA, C=US' -alias process -storetype JKS -keystore target/classes/process.jks -keypass private -storepass password"/>
+      <arg line="-genkey -keyalg RSA -keysize 4096 -validity 3650 -dname 'CN=process, O=Oracle, L=Burlington, ST=MA, C=US' -alias process -storetype pkcs12 -keystore target/classes/process.jks -storepass password"/>
     </exec>
     <exec executable="${keytool}">
-      <arg line="-exportcert -alias process -file target/classes/process.pem -keystore target/classes/process.jks -storepass password"/>
+      <arg line="-exportcert -alias process -file target/classes/process.pem -keystore target/classes/process.jks -storepass password -storetype pkcs12"/>
     </exec>
 
     <!-- Create the peer keystore and certificate -->
     <exec executable="${keytool}">
-      <arg line="-importkeystore -storepass password -noprompt -srcstorepass private -srckeystore target/classes/client.p12 -srcstoretype pkcs12 -destkeypass private -deststoretype JKS -destkeystore target/classes/peer.jks"/>
+      <arg line="-importkeystore -storepass password -noprompt -srcstorepass password -srckeystore target/classes/client.p12 -srcstoretype pkcs12 -deststoretype pkcs12 -destkeystore target/classes/peer.jks"/>
     </exec>
     <exec executable="${keytool}">
-      <arg line="-importkeystore -storepass password -noprompt -srcstorepass private -srckeystore target/classes/server.p12 -srcstoretype pkcs12 -destkeypass private -deststoretype JKS -destkeystore target/classes/peer.jks"/>
+      <arg line="-importkeystore -storepass password -noprompt -srcstorepass password -srckeystore target/classes/server.p12 -srcstoretype pkcs12 -deststoretype pkcs12 -destkeystore target/classes/peer.jks"/>
     </exec>
 
     <!-- Create the trust keystore -->
@@ -186,17 +186,17 @@
 
     <!-- Create the client CSR -->
     <exec executable="keytool">
-      <arg line="-certreq -alias client -file target/classes/client.csr -keypass private -keystore target/classes/client.jks -storepass password"/>
+      <arg line="-certreq -alias client -file target/classes/client.csr -keypass password -keystore target/classes/client.jks -storepass password"/>
     </exec>
 
     <!-- Create the server CSR -->
     <exec executable="keytool">
-      <arg line="-certreq -alias server -file target/classes/server.csr -keypass private -keystore target/classes/server.jks -storepass password"/>
+      <arg line="-certreq -alias server -file target/classes/server.csr -keypass password -keystore target/classes/server.jks -storepass password"/>
     </exec>
 
     <!-- Create the guest CSR -->
     <exec executable="keytool">
-      <arg line="-certreq -alias guest -file target/classes/guest.csr -keypass private -keystore target/classes/guest.jks -storepass password"/>
+      <arg line="-certreq -alias guest -file target/classes/guest.csr -keypass password -keystore target/classes/guest.jks -storepass password"/>
     </exec>
   </target>
 
@@ -208,17 +208,17 @@
 
     <!-- Update the client keystore -->
     <exec executable="keytool">
-      <arg line="-import -alias client -noprompt -file target/classes/client.chain -keypass private -keystore target/classes/client.jks -storepass password"/>
+      <arg line="-import -alias client -noprompt -file target/classes/client.chain -keypass password -keystore target/classes/client.jks -storepass password"/>
     </exec>
 
     <!-- Update the server keystore -->
     <exec executable="keytool">
-      <arg line="-import -alias server -noprompt -file target/classes/server.chain -keypass private -keystore target/classes/server.jks -storepass password"/>
+      <arg line="-import -alias server -noprompt -file target/classes/server.chain -keypass password -keystore target/classes/server.jks -storepass password"/>
     </exec>
 
     <!-- Update the guest keystore -->
     <exec executable="keytool">
-      <arg line="-import -alias guest -noprompt -file target/classes/guest.chain -keypass private -keystore target/classes/guest.jks -storepass password"/>
+      <arg line="-import -alias guest -noprompt -file target/classes/guest.chain -keypass password -keystore target/classes/guest.jks -storepass password"/>
     </exec>
 
     <!-- Export the client certificate -->

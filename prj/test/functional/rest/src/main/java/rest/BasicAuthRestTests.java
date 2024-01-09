@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -61,9 +61,9 @@ public class BasicAuthRestTests
 
         loginConfig = new File(fileName);
         String config = "Coherence { com.tangosol.security.KeystoreLogin required"
-            + " keyStorePath=\"" + resDir + "client.jks\"; };"
-            + " CoherenceREST { com.tangosol.security.KeystoreLogin required "
-            + " keyStorePath=\"" + resDir + "client.jks\"; };\n";
+            + " keyStorePath=\"" + resDir + "client.jks\" keyStoreType=\"PKCS12\" keyStorePass=\"password\"; };"
+            + " CoherenceREST { com.tangosol.security.KeystoreLogin required"
+            + " keyStorePath=\"" + resDir + "client.jks\" keyStoreType=\"PKCS12\" keyStorePass=\"password\"; };\n";
         BufferedWriter output = new BufferedWriter(new FileWriter(loginConfig));
         output.write(config);
         output.close();
@@ -98,7 +98,7 @@ public class BasicAuthRestTests
         {
         return super.createClient()
                 .register(HttpAuthenticationFeature.basicBuilder()
-                                  .credentials("client", "private").build());
+                                  .credentials("client", "password").build());
         }
 
     // ----- constants ------------------------------------------------------

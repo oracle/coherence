@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -29,7 +29,7 @@
 
     <!-- Create the testcert keystore -->
     <exec executable="${keytool}">
-      <arg line="-genkey -keyalg RSA -alias testcert -validity 3650 -dname 'CN=TestCert, O=Oracle, OU=Coherence, C=US' -storetype jks -keystore target/classes/testcert.jks -keypass password -storepass password"/>
+      <arg line="-genkey -keyalg RSA -alias testcert -validity 3650 -dname 'CN=TestCert, O=Oracle, OU=Coherence, C=US' -storetype pkcs12 -keystore target/classes/testcert.jks -keypass password -storepass password"/>
     </exec>
   </target>
 </project>

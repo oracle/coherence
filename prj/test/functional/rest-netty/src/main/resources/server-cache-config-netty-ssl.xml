@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -36,13 +36,15 @@
                 <key-store>
                   <url>file:server.jks</url>
                   <password>password</password>
+                  <type>PKCS12</type>
                 </key-store>
-                <password>private</password>
+                <password>password</password>
               </identity-manager>
               <trust-manager>
                 <key-store>
                   <url>file:trust-server.jks</url>
                   <password>password</password>
+                  <type>PKCS12</type>
                 </key-store>
               </trust-manager>
             </ssl>

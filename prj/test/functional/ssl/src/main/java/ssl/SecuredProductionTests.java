@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -55,7 +55,7 @@ public class SecuredProductionTests extends GlobalSocketProviderTests
         System.setProperty("coherence.security.truststore", "trust.jks");
         System.setProperty("coherence.security.password", "password");
         System.setProperty("coherence.security.truststore.password", "password");
-        System.setProperty("coherence.security.key.password", "private");
+        System.setProperty("coherence.security.key.password", "password");
         System.setProperty("coherence.mode", "prod");
         System.setProperty("coherence.secured.production", "true");
         System.setProperty(LocalStorage.PROPERTY, "false");
@@ -70,7 +70,7 @@ public class SecuredProductionTests extends GlobalSocketProviderTests
                 SystemProperty.of("coherence.security.truststore", "trust.jks"),
                 SystemProperty.of("coherence.security.password", "password"),
                 SystemProperty.of("coherence.security.truststore.password", "password"),
-                SystemProperty.of("coherence.security.key.password", "private"),
+                SystemProperty.of("coherence.security.key.password", "password"),
                 SystemProperty.of("coherence.mode", "prod"),
                 SystemProperty.of("coherence.secured.production", "true"));
 
