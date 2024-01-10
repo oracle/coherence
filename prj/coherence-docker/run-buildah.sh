@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
@@ -93,10 +93,14 @@ else
       -v /var/run/docker.sock:/var/run/docker.sock  \
       -v $BUILDAH_VOLUME:/var/lib/containers:Z  \
       --privileged --network host \
+      -e JAVA_EA_BASE_URL="${JAVA_EA_BASE_URL}" \
+      -e BUILDER_IMAGE="${BUILDER_IMAGE}" \
       -e IMAGE_NAME="${IMAGE_NAME}" \
       -e IMAGE_ARCH="${IMAGE_ARCH}" \
       -e AMD_BASE_IMAGE="${AMD_BASE_IMAGE}" \
       -e ARM_BASE_IMAGE="${ARM_BASE_IMAGE}" \
+      -e AMD_BASE_IMAGE_17="${AMD_BASE_IMAGE_17}" \
+      -e ARM_BASE_IMAGE_17="${ARM_BASE_IMAGE_17}" \
       -e GRAAL_AMD_BASE_IMAGE="${GRAAL_AMD_BASE_IMAGE}" \
       -e GRAAL_ARM_BASE_IMAGE="${GRAAL_ARM_BASE_IMAGE}" \
       -e NO_GRAAL="${NO_GRAAL}" \
