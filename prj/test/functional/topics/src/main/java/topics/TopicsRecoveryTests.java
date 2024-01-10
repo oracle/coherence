@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,6 +17,7 @@ import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
+import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.options.DisplayName;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -148,6 +149,7 @@ public class TopicsRecoveryTests
                                                                  LocalHost.only(),
                                                                  LocalStorage.enabled(),
                                                                  CacheConfig.of(CACHE_CONFIG),
+                                                                 IPv4Preferred.autoDetect(),
                                                                  s_testLogs.builder(),
                                                                  DisplayName.of(m_testName.getMethodName())))
                 {
@@ -217,6 +219,7 @@ public class TopicsRecoveryTests
                                                                  LocalHost.only(),
                                                                  LocalStorage.enabled(),
                                                                  CacheConfig.of(CACHE_CONFIG),
+                                                                 IPv4Preferred.autoDetect(),
                                                                  s_testLogs.builder(),
                                                                  DisplayName.of(m_testName.getMethodName())))
                 {
@@ -304,6 +307,7 @@ public class TopicsRecoveryTests
                                                                  LocalHost.only(),
                                                                  LocalStorage.enabled(),
                                                                  CacheConfig.of(CACHE_CONFIG),
+                                                                 IPv4Preferred.autoDetect(),
                                                                  s_testLogs.builder(),
                                                                  LaunchLogging.disabled(),
                                                                  DisplayName.of(m_testName.getMethodName())))
