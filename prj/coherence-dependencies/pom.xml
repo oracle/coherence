@@ -1356,6 +1356,9 @@
               <https.nonProxyHosts>${http.nonProxyHosts}</https.nonProxyHosts>
               <bedrock.profile.illegalaccess>deny</bedrock.profile.illegalaccess>
               <bedrock.profile.illegalaccess.classname>com.oracle.coherence.testing.bedrock.IllegalaccessProfile</bedrock.profile.illegalaccess.classname>
+              <bedrock.profile.loom/>
+              <bedrock.profile.loom.classname>com.oracle.bedrock.runtime.coherence.profiles.LoomProfile</bedrock.profile.loom.classname>
+              <coherence.virtualthreads.enabled>${coherence.virtualthreads.enabled}</coherence.virtualthreads.enabled>
             </systemPropertyVariables>
             <useSystemClassLoader>true</useSystemClassLoader>
             <useManifestOnlyJar>false</useManifestOnlyJar>
@@ -1525,6 +1528,9 @@
               <jacoco.dest.folder>${project.build.directory}</jacoco.dest.folder>
               <bedrock.profile.illegalaccess>deny</bedrock.profile.illegalaccess>
               <bedrock.profile.illegalaccess.classname>com.oracle.coherence.testing.bedrock.IllegalaccessProfile</bedrock.profile.illegalaccess.classname>
+              <bedrock.profile.loom/>
+              <bedrock.profile.loom.classname>com.oracle.bedrock.runtime.coherence.profiles.LoomProfile</bedrock.profile.loom.classname>
+              <coherence.virtualthreads.enabled>${coherence.virtualthreads.enabled}</coherence.virtualthreads.enabled>
             </systemPropertyVariables>
             <useSystemClassLoader>true</useSystemClassLoader>
             <useManifestOnlyJar>false</useManifestOnlyJar>
