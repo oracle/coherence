@@ -73,6 +73,13 @@
     <!-- The groupId of the Coherence product -->
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
 
+    <!--
+    Enable or disable the use of virtual threads in tests.
+    No actual value is set here so the default will be used in tests.
+    Set theis property on the command line to change it for a specific Maven build.
+    -->
+    <coherence.virtualthreads.enabled/>
+
     <!-- project information -->
     <project.build.number>0</project.build.number>
     <project.official>false</project.official>
@@ -831,6 +838,9 @@
                   <coherence.lambdas>static</coherence.lambdas>
                   <bedrock.profile.illegalaccess>deny</bedrock.profile.illegalaccess>
                   <bedrock.profile.illegalaccess.classname>com.oracle.coherence.testing.bedrock.IllegalaccessProfile</bedrock.profile.illegalaccess.classname>
+                  <bedrock.profile.loom/>
+                  <bedrock.profile.loom.classname>com.oracle.bedrock.runtime.coherence.profiles.LoomProfile</bedrock.profile.loom.classname>
+                  <coherence.virtualthreads.enabled>${coherence.virtualthreads.enabled}</coherence.virtualthreads.enabled>
                 </systemPropertyVariables>
                 <excludes>
                   <exclude>**/StreamTest.java</exclude>
@@ -854,6 +864,9 @@
                   <coherence.lambdas>static</coherence.lambdas>
                   <bedrock.profile.illegalaccess>deny</bedrock.profile.illegalaccess>
                   <bedrock.profile.illegalaccess.classname>com.oracle.coherence.testing.bedrock.IllegalaccessProfile</bedrock.profile.illegalaccess.classname>
+                  <bedrock.profile.loom/>
+                  <bedrock.profile.loom.classname>com.oracle.bedrock.runtime.coherence.profiles.LoomProfile</bedrock.profile.loom.classname>
+                  <coherence.virtualthreads.enabled>${coherence.virtualthreads.enabled}</coherence.virtualthreads.enabled>
                 </systemPropertyVariables>
                 <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
               </configuration>
