@@ -100,27 +100,27 @@ public class DockerImageTests
 
     // ----- test methods ---------------------------------------------------
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] {0}")
     @MethodSource("getImageNames")
     void shouldStartContainerWithNoArgs(String sImageName)
         {
         ImageNames.verifyTestAssumptions();
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
-                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))))
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
             }
         }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] {0}")
     @MethodSource("getImageNames")
     void shouldStartContainerWithExtend(String sImageName)
         {
         assertCoherenceClient(sImageName, "remote-fixed", new CheckExtendCacheAccess(), new CheckConcurrentAccess());
         }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] {0}")
     @MethodSource("getImageNames")
     void shouldStartGrpcServerAndConnectWithGrpc(String sImageName)
         {
@@ -134,7 +134,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
-                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
                 .withExposedPorts(EXTEND_PORT, GRPC_PORT, CONCURRENT_EXTEND_PORT)))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
@@ -167,7 +167,7 @@ public class DockerImageTests
             }
         }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] {0}")
     @MethodSource("getImageNames")
     void shouldStartWithJavaOpts(String sImageName)
         {
@@ -177,7 +177,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
-                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
                 .withFileSystemBind(fileArgsDir.getAbsolutePath(), "/args", BindMode.READ_ONLY)))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
@@ -186,7 +186,7 @@ public class DockerImageTests
             }
         }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] {0}")
     @MethodSource("getImageNames")
     void shouldAddToClasspath(String sImageName)
         {
@@ -200,7 +200,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
-                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
                 .withFileSystemBind(sLibs, COHERENCE_HOME + "/ext/conf", BindMode.READ_ONLY)
                 .withExposedPorts(EXTEND_PORT)))
             {
@@ -219,7 +219,7 @@ public class DockerImageTests
             }
         }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] {0}")
     @MethodSource("getImageNames")
     void shouldStartRestManagementServer(String sImageName) throws Exception
         {
@@ -227,7 +227,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
-                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
                 .withExposedPorts(MANAGEMENT_PORT)))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
@@ -243,7 +243,7 @@ public class DockerImageTests
             }
         }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] {0}")
     @MethodSource("getImageNames")
     void shouldStartCoherenceMetricsServer(String sImageName) throws Exception
         {
@@ -251,7 +251,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
-                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
                 .withExposedPorts(METRICS_PORT)))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
@@ -268,14 +268,14 @@ public class DockerImageTests
         }
 
     @SuppressWarnings("unchecked")
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] {0}")
     @MethodSource("getImageNames")
     void shouldStartServiceWithWellKnowAddresses(String sImageName) throws Exception
         {
         ImageNames.verifyTestAssumptions();
 
-        String sName1  = "storage-1";
-        String sName2  = "storage-2";
+        String sName1  = "Storage-" + ImageNames.getTag(sImageName) + "-1";
+        String sName2  = "Storage-" + ImageNames.getTag(sImageName) + "-2";
 
         try (Network network = Network.newNetwork())
             {

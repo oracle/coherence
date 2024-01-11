@@ -167,6 +167,16 @@ public class ImageNames
             }
         }
 
+    public static String getTag(String sImage)
+        {
+        int idx = sImage.indexOf(':');
+        if (idx > 0)
+            {
+            return sImage.substring(idx + 1);
+            }
+        return "unknown";
+        }
+
     /**
      * The system property containing the image names.
      */
