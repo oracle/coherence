@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
@@ -129,6 +129,13 @@ This guide walks you through how to use and configure Cache Stores.
 [link=examples/guides/210-ssl/README.adoc]
 --
 This guide walks you through how to secure Coherence using SSL/TLS.
+--
+
+[CARD]
+.CDI Response Caching
+[link=examples/guides/600-response-caching/README.adoc]
+--
+This guide walks you through how to configure CDI Response Caching to cache the results of method invocations.
 --
 
 [CARD]
