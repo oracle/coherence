@@ -19,12 +19,15 @@ import com.tangosol.net.Session;
 
 import com.tangosol.net.SessionConfiguration;
 import com.tangosol.util.Resources;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -45,16 +48,23 @@ class CoherenceBootstrapTests
         System.setProperty("coherence.wka", "127.0.0.1");
         System.setProperty("coherence.localhost", "127.0.0.1");
         System.setProperty("coherence.ttl", "0");
-        System.setProperty("coherence.cluster", "CoherenceBootstrapTests");
         System.setProperty("coherence.cacheconfig", Resources.DEFAULT_RESOURCE_PACKAGE + "/coherence-cache-config.xml");
         }
 
     @BeforeEach
-    void cleanup()
+    void before(TestInfo info)
+        {
+        System.err.println(">>>> Starting test " + info.getDisplayName());
+        System.setProperty("coherence.cluster", "CoherenceBootstrapTests-" + m_nCluster.incrementAndGet());
+        }
+
+    @AfterEach
+    void cleanup(TestInfo info)
         {
         Coherence.closeAll();
         CacheFactory.getCacheFactoryBuilder().releaseAll(null);
         CacheFactory.shutdown();
+        System.err.println(">>>> Completed clean-up after test " + info.getDisplayName());
         }
 
     @Test
@@ -327,4 +337,6 @@ class CoherenceBootstrapTests
         assertThat(session, is(notNullValue()));
         assertThat(session.isActive(), is(true));
         }
+
+    private static final AtomicInteger m_nCluster = new AtomicInteger();
     }
