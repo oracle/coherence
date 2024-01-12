@@ -154,7 +154,7 @@ This guide walks you through how to tweak Coherence to provide more performance 
 
 [CARD]
 .Executor Service
-[link=examples/guides/906-partition-level-transactions/README.adoc]
+[link=examples/guides/510-executor/README.adoc]
 --
 This guide explains how to use the Coherence Executor Service.
 --
