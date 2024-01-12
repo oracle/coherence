@@ -1880,6 +1880,7 @@ public class Coherence
                     if (s_systemSession == null)
                         {
                         s_systemSession = createSystemSession(interceptors);
+                        s_systemServiceMonitor = m_localSystemServiceMonitor;
                         fCreated        = true;
                         }
                     }
@@ -1892,7 +1893,6 @@ public class Coherence
                 {
                 m_localSystemSession = s_systemSession;
                 }
-            s_systemServiceMonitor = m_localSystemServiceMonitor;
             if (!fCreated)
                 {
                 s_systemSession.ifPresent(session -> registerInterceptors(session, interceptors));
@@ -2361,7 +2361,7 @@ public class Coherence
     private static Optional<ConfigurableCacheFactorySession> s_systemSession;
 
     /**
-     * The {@link DefaultCacheServer} wrapping the System session.
+     * The {@link ServiceMonitor} wrapping the System session.
      */
     private static ServiceMonitor s_systemServiceMonitor;
 
