@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
@@ -157,6 +157,13 @@ This guide walks you through how to tweak Coherence to provide more performance 
 [link=examples/guides/906-partition-level-transactions/README.adoc]
 --
 This guide explains how to use the Coherence Executor Service.
+--
+
+[CARD]
+.CDI Response Caching
+[link=examples/guides/600-response-caching/README.adoc]
+--
+This guide walks you through how to configure CDI Response Caching to cache the results of method invocations.
 --
 
 [CARD]
