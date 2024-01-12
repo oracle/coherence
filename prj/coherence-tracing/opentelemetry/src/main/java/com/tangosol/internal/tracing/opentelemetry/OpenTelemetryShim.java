@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,12 +12,16 @@ import com.tangosol.internal.tracing.Span;
 import com.tangosol.internal.tracing.Tracer;
 import com.tangosol.internal.tracing.TracingShim;
 
+import com.tangosol.util.Base;
+
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 
 import io.opentelemetry.api.events.GlobalEventEmitterProvider;
 
 import io.opentelemetry.api.trace.TracerProvider;
+
+import io.opentelemetry.context.propagation.ContextPropagators;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -72,6 +76,20 @@ public class OpenTelemetryShim
             if (checkTracingEnabled(flSamplingRatio))
                 {
                 configureTracingSampling(flSamplingRatio);
+
+                OpenTelemetry underlying = getUnderlying();
+                if (underlying != null && !INTERNAL_NOOP.equals(underlying))
+                    {
+                    return null; // Tracer wasn't registered by Coherence,
+                                 // which implies pre-existing Tracer; no control
+                    }
+
+                if (INTERNAL_NOOP.equals(underlying))
+                    {
+                    GlobalOpenTelemetry.resetForTest();
+                    GlobalEventEmitterProvider.resetForTest();
+                    }
+
                 GlobalOpenTelemetry.get(); // initialize OT
                 }
 
@@ -89,17 +107,21 @@ public class OpenTelemetryShim
                             OpenTelemetry ot = (OpenTelemetry) GLOBAL_TELEMETRY_REGISTERED_FIELD.get(null);
                             if (ot != null)
                                 {
-                                Closeable c = (Closeable) OBFUSCATED_TELEMETRY_DELEGATE_FIELD.get(ot);
-                                c.close();
+                                Object oDelegate = OBFUSCATED_TELEMETRY_DELEGATE_FIELD.get(ot);
+                                if (oDelegate instanceof Closeable)
+                                    {
+                                    ((Closeable) oDelegate).close();
+                                    }
                                 }
                             }
                         catch (IllegalAccessException | IOException e)
                             {
-                            throw new RuntimeException(e);
+                            throw Base.ensureRuntimeException(e);
                             }
 
                         GlobalOpenTelemetry.resetForTest();
                         GlobalEventEmitterProvider.resetForTest();
+                        GlobalOpenTelemetry.set(INTERNAL_NOOP);
                         }
                     }
 
@@ -189,8 +211,30 @@ public class OpenTelemetryShim
      *
      * @return {@code true} if a non-noop {@link OpenTelemetry} instance has been
      *         registered with the {@link GlobalOpenTelemetry}
+     *
+     * @throws RuntimeException if any of the reflection calls fail
      */
     private static boolean isTelemetryRegistered()
+        {
+        OpenTelemetry otelActual = getUnderlying();
+
+        if (otelActual == null || INTERNAL_NOOP.equals(otelActual))
+            {
+            return false;
+            }
+
+        return !OpenTelemetry.noop().equals(otelActual);
+        }
+
+    /**
+     * Return the actual {@link OpenTelemetry} instance registered
+     * with {@link GlobalOpenTelemetry}.
+     *
+     * @return the registered {@link OpenTelemetry} instance or {@code null}
+     *
+     * @throws RuntimeException if any of the reflection calls fail
+     */
+    private static OpenTelemetry getUnderlying()
         {
         try
             {
@@ -198,15 +242,14 @@ public class OpenTelemetryShim
 
             if (otel == null)
                 {
-                return false;
+                return null;
                 }
 
-            OpenTelemetry otelActual = (OpenTelemetry) OBFUSCATED_TELEMETRY_DELEGATE_FIELD.get(otel);
-            return otelActual != OpenTelemetry.noop();
+            return (OpenTelemetry) OBFUSCATED_TELEMETRY_DELEGATE_FIELD.get(otel);
             }
-        catch (IllegalAccessException e)
+        catch (IllegalAccessException iae)
             {
-            throw new RuntimeException();
+            throw Base.ensureRuntimeException(iae);
             }
         }
 
@@ -253,6 +296,25 @@ public class OpenTelemetryShim
                                Float.compare(0.0f, flSamplingRatio) == 0
                                ? "1.0"
                                : String.valueOf(flSamplingRatio));
+            }
+        }
+
+    // ----- inner class: InternalNoopTelemetry -----------------------------
+
+    /**
+     * A no-op {@link OpenTelemetry} implementation.
+     */
+    public static class InternalNoopTelemetry
+            implements OpenTelemetry
+        {
+        public TracerProvider getTracerProvider()
+            {
+            return TracerProvider.noop();
+            }
+
+        public ContextPropagators getPropagators()
+            {
+            return ContextPropagators.noop();
             }
         }
 
@@ -308,6 +370,13 @@ public class OpenTelemetryShim
      * configure the defined sampler.
      */
     protected static final String OTEL_TRACES_SAMPLER_ARG_PROPERTY = "otel.traces.sampler.arg";
+
+    /**
+     * Internal no-op {@link OpenTelemetry} instance.  This will be used when
+     * Coherence manages the lifecycle of {@link OpenTelemetry} to be able to
+     * discern from a user-installed no-op {@link OpenTelemetry} instance.
+     */
+    protected static final OpenTelemetry INTERNAL_NOOP = new InternalNoopTelemetry();
 
     // ----- data members ---------------------------------------------------
 

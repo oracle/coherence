@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -73,7 +73,7 @@ public class OpenTelemetryShimLoader
 
         if (listMissingDeps != null)
             {
-            Logger.finest(MessageFormat.format("Tracing support will not be enabled.  "
+            Logger.finest(MessageFormat.format("OpenTelemetry support will not be enabled.  "
                     + "The following dependencies appear to be missing: {0}", listMissingDeps));
             return false;
             }

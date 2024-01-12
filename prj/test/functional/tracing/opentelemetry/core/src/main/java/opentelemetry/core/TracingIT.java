@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,6 +17,7 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.internal.tracing.TracingHelper;
 
+import com.tangosol.internal.tracing.opentelemetry.OpenTelemetryShim;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.TypeAssertion;
@@ -52,6 +53,7 @@ import org.mockserver.integration.ClientAndServer;
 import tracing.AbstractTracingIT;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -210,7 +212,9 @@ public class TracingIT
         runTest(() -> assertThat(TracingHelper.isEnabled(), is(true)), "tracing-enabled-with-zero.xml");
 
         assertThat(TracingHelper.isEnabled(), is(false));
-        assertThat(getOpenTelemetryWithNoInit(), nullValue());
+        assertThat(getOpenTelemetryWithNoInit(), notNullValue());
+        assertThat(getOpenTelemetryDelegateNoInit().getClass(),
+                   is(OpenTelemetryShim.InternalNoopTelemetry.class));
         }
 
     /**
@@ -273,6 +277,33 @@ public class TracingIT
         otel.setAccessible(true);
 
         return (OpenTelemetry) otel.get(null);
+        }
+
+    /**
+     * Obtain the {@link OpenTelemetry} instance delegate registered with the
+     * {@link GlobalOpenTelemetry} via reflection to avoid initializing the
+     * runtime.
+     *
+     * @return the registered {@link OpenTelemetry}, or {@code null} if there
+     *         is no such registration
+     *
+     * @throws Exception if a reflection error occurs
+     */
+    protected OpenTelemetry getOpenTelemetryDelegateNoInit()
+        throws Exception
+        {
+        OpenTelemetry otel = getOpenTelemetryWithNoInit();
+        if (otel != null)
+            {
+            Field fieldDelegate = Class.forName(
+                            GlobalOpenTelemetry.class.getName() +
+                            "$ObfuscatedOpenTelemetry")
+                    .getDeclaredField("delegate");
+            fieldDelegate.setAccessible(true);
+            otel = (OpenTelemetry) fieldDelegate.get(otel);
+            }
+
+        return otel;
         }
 
     /**
