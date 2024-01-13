@@ -206,6 +206,7 @@
     eclipse.mp.metrics.version
     netty.version ???
     grpc.version ???
+    parrson-media.version ??
     This is not always possible if we need to bump versions for CVE's
     -->
     <helidon.version>3.2.5</helidon.version>
@@ -256,6 +257,8 @@
     <opentracing.version>0.33.0</opentracing.version>
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
     <oracle.db.version>11.2.0.3.0</oracle.db.version>
+    <!-- make sure this version of parsson-media is in sync with Helidon -->
+    <parsson-media.version>1.0.5</parsson-media.version>
     <protobuf.version>3.21.12</protobuf.version>
     <resin.version>3.0</resin.version>
     <rxjava.version>3.0.2</rxjava.version>
@@ -956,6 +959,17 @@
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-registry-prometheus</artifactId>
         <version>${micrometer.version}</version>
+      </dependency>
+
+      <!-- parsson-media dependency to force usage of the version specified
+      here. This is to get around pulling in older version of this artifact
+      as third party dependency of
+      org.glassfish.jersey.media:jersey-media-json-processing:jar
+      This dependency comes from Helidon -->
+      <dependency>
+        <groupId>org.eclipse.parsson</groupId>
+        <artifactId>parsson-media</artifactId>
+        <version>${parsson-media.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
