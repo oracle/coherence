@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2021, 2023 Oracle and/or its affiliates.
+  ~ Copyright (c) 2021, 2024 Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ https://oss.oracle.com/licenses/upl.
@@ -22,6 +22,8 @@
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${project.version}</coherence.version>
     <helidon.version>3.2.5</helidon.version>
+    <!-- make sure this version of parsson-media is in sync with Helidon -->
+    <parsson-media.version>1.0.5</parsson-media.version>
 
     <java.version>17</java.version>
 
@@ -77,6 +79,12 @@
       <artifactId>helidon-microprofile-metrics</artifactId>
     </dependency>
     <!-- end::deps2[] -->
+    <dependency>
+      <groupId>org.eclipse.parsson</groupId>
+      <artifactId>parsson-media</artifactId>
+      <version>${parsson-media.version}</version>
+    </dependency>
+
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
