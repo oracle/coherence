@@ -6,11 +6,16 @@
  */
 package com.oracle.coherence.testing.junit;
 
+import com.oracle.bedrock.runtime.Application;
+import com.oracle.bedrock.runtime.LocalPlatform;
+import com.oracle.bedrock.runtime.options.Arguments;
+import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.coherence.common.util.Threads;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import java.io.File;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -61,14 +66,51 @@ public class ThreadDumpOnTimeoutRule
      *
      * @param nTimeout  the timeout value
      * @param units     the {@link TimeUnit units} for the timeout
+     * @param runnable  a {@link Runnable} to execute when the test times out
      *
      * @throws NullPointerException if the {@code units} parameter is {@code null}
      */
     public ThreadDumpOnTimeoutRule(long nTimeout, TimeUnit units, Runnable runnable)
         {
-        f_nTimeout = nTimeout;
-        f_units    = Objects.requireNonNull(units);
-        f_runnable = runnable;
+        this(nTimeout, units, false, runnable);
+        }
+
+    /**
+     * Create a timeout rule.
+     * <p/>
+     * If the {@code nTimeout} parameter is less than or equal to zero, no
+     * timeout will be configured.
+     *
+     * @param nTimeout  the timeout value
+     * @param units     the {@link TimeUnit units} for the timeout
+     * @param fJcmdThreadDump {@code true} to generate a JCMD thread dump to a file
+     *
+     * @throws NullPointerException if the {@code units} parameter is {@code null}
+     */
+    public ThreadDumpOnTimeoutRule(long nTimeout, TimeUnit units, boolean fJcmdThreadDump)
+        {
+        this(nTimeout, units, fJcmdThreadDump, null);
+        }
+
+    /**
+     * Create a timeout rule.
+     * <p/>
+     * If the {@code nTimeout} parameter is less than or equal to zero, no
+     * timeout will be configured.
+     *
+     * @param nTimeout        the timeout value
+     * @param units           the {@link TimeUnit units} for the timeout
+     * @param fJcmdThreadDump {@code true} to generate a JCMD thread dump to a file
+     * @param runnable        a {@link Runnable} to execute when the test times out
+     *
+     * @throws NullPointerException if the {@code units} parameter is {@code null}
+     */
+    public ThreadDumpOnTimeoutRule(long nTimeout, TimeUnit units, boolean fJcmdThreadDump, Runnable runnable)
+        {
+        f_nTimeout        = nTimeout;
+        f_units           = Objects.requireNonNull(units);
+        f_runnable        = runnable;
+        f_fJcmdThreadDump = fJcmdThreadDump;
         }
 
     // ----- TestRule methods -----------------------------------------------
@@ -78,7 +120,7 @@ public class ThreadDumpOnTimeoutRule
         {
         if (f_nTimeout > 0)
             {
-            return new FailOnTimeoutStatement(base, description, f_nTimeout, f_units, f_runnable);
+            return new FailOnTimeoutStatement(base, description, f_nTimeout, f_units, f_fJcmdThreadDump, f_runnable);
             }
         return base;
         }
@@ -119,6 +161,23 @@ public class ThreadDumpOnTimeoutRule
         return new ThreadDumpOnTimeoutRule(nTimeout, units, runnable);
         }
 
+    /**
+     * Create a timeout rule.
+     * <p/>
+     * If the {@code nTimeout} parameter is less than or equal to zero, no
+     * timeout will be configured.
+     *
+     * @param nTimeout  the timeout value
+     * @param units     the {@link TimeUnit units} for the timeout
+     * @param fJcmd     {@code true} to generate a JCMD thread dump to a file
+     *
+     * @throws NullPointerException if the {@code units} parameter is {@code null}
+     */
+    public static ThreadDumpOnTimeoutRule after(long nTimeout, TimeUnit units, boolean fJcmd)
+        {
+        return new ThreadDumpOnTimeoutRule(nTimeout, units, fJcmd);
+        }
+
     // ----- inner class: FailOnTimeoutStatement ----------------------------
 
     /**
@@ -138,13 +197,14 @@ public class ThreadDumpOnTimeoutRule
          * @param units        the {@link TimeUnit units} for the timeout
          */
         protected FailOnTimeoutStatement(Statement delegate, Description description,
-                                         long nTimeout, TimeUnit units, Runnable runnable)
+                long nTimeout, TimeUnit units, boolean fJcmdThreadDump, Runnable runnable)
             {
-            f_delegate    = delegate;
-            f_description = description;
-            f_nTimeout    = nTimeout;
-            f_units       = units;
-            f_runnable    = runnable;
+            f_delegate        = delegate;
+            f_description     = description;
+            f_nTimeout        = nTimeout;
+            f_units           = units;
+            f_runnable        = runnable;
+            f_fJcmdThreadDump = fJcmdThreadDump;
             }
 
         // ----- Statement methods ------------------------------------------
@@ -199,6 +259,10 @@ public class ThreadDumpOnTimeoutRule
                 // Test timed out, so print a thread-dump
                 System.err.println("Test timed out: " + f_description.getDisplayName());
                 System.err.println(Threads.getThreadDump(true));
+                if (f_fJcmdThreadDump)
+                    {
+                    jcmdThreadDump(f_description.getTestClass());
+                    }
                 if (f_runnable != null)
                     {
                     try
@@ -211,6 +275,30 @@ public class ThreadDumpOnTimeoutRule
                         }
                     }
                 return e;
+                }
+            }
+
+        protected void jcmdThreadDump(Class<?> testClass)
+            {
+            try
+                {
+                File dir = MavenProjectFileUtils.ensureTestOutputFolder(testClass, "dump");
+                dir.mkdirs();
+
+                File          fileDump = new File(dir, "threads.txt");
+                long          pid      = ProcessHandle.current().pid();
+                LocalPlatform platform = LocalPlatform.get();
+
+                try (Application application = platform.launch("jcmd", Arguments.of(
+                        String.valueOf(pid), "Thread.dump_to_file", fileDump.getAbsolutePath())))
+                    {
+                    application.waitFor();
+                    }
+                }
+            catch (Exception e)
+                {
+                System.err.println("Failed to capture JCMD thread dump");
+                e.printStackTrace();
                 }
             }
 
@@ -237,6 +325,8 @@ public class ThreadDumpOnTimeoutRule
         private final TimeUnit f_units;
 
         private final Runnable f_runnable;
+
+        private final boolean f_fJcmdThreadDump;
         }
 
     // ----- inner class: CallableStatement ---------------------------------
@@ -313,4 +403,6 @@ public class ThreadDumpOnTimeoutRule
     private final TimeUnit f_units;
 
     private final Runnable f_runnable;
+
+    private final boolean f_fJcmdThreadDump;
     }
