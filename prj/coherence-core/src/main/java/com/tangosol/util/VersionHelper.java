@@ -8,7 +8,6 @@
 package com.tangosol.util;
 
 import java.util.Arrays;
-import java.util.function.IntPredicate;
 
 /**
  * A utility class for working with Coherence versions.
@@ -83,7 +82,7 @@ public class VersionHelper
         {
         if (nYear > 23)
             {
-            return encodeVersion(14, 1, 2, 0, 0);
+            return encodeVersion(15, 0, 0, 0, 0);
             }
         return encodeVersion(14, 1, 1, 0, 0);
         }
@@ -289,18 +288,71 @@ public class VersionHelper
         return (nRequired & ~0x3F) == (nActual & ~0x3F) && (nRequired & 0x3F) <= (nActual & 0x3F);
         }
 
+    /**
+     * Compare two version strings for compatability.
+     * <p>
+     * The first string is the version to test, the second is the version required.
+     * If the second version is compatible with the first, then "pass" is displayed
+     * otherwise "fail" is displayed.
+     *
+     * @param args the two version strings to compare
+     */
+    public static void main(String[] args)
+        {
+        if (args.length == 2)
+            {
+            String sVersionOne = args[0];
+            String sVersionTwo = args[1];
+            int    nEncodedOne = VersionHelper.parseVersion(sVersionOne.replace("-", "."));
+            int    nEncodedTwo = VersionHelper.parseVersion(sVersionTwo.replace("-", "."));
+            int    nExitCode;
+            if (VersionHelper.isVersionCompatible(nEncodedTwo, nEncodedOne))
+                {
+                System.out.println("pass");
+                nExitCode = 0;
+                }
+            else
+                {
+                System.out.println("fail");
+                nExitCode = 1;
+                }
+
+            if (Boolean.getBoolean("no.exit.code"))
+                {
+                nExitCode = 0;
+                }
+            System.exit(nExitCode);
+            }
+
+        System.err.println("Usage:");
+        System.err.println("VersionHelper <versionCheck> <versionRequired>");
+        System.err.println();
+        System.err.println("Displays \"pass\" if <versionCheck> is compatible with <versionRequired>");
+        System.err.println("Displays \"fail\" if <versionCheck> is not compatible with <versionRequired>");
+        System.err.println();
+        System.err.println("Exit code zero, versionCheck is compatible with versionRequired");
+        System.err.println("Exit code one, versionCheck is not compatible with versionRequired");
+        System.err.println("Exit code two, incorrect version arguments were specified");
+        System.err.println();
+        System.err.println("If the no.exit.code system property is set to true, the exit code will be zero regardless of a pass or fail.");
+        System.err.println();
+        System.exit(2);
+        }
+
     // ----- constants ------------------------------------------------------
 
     /**
-     * The encoded CE 23.09.0 version.
+     * The encoded CE 23.09.0 and 1 versions.
      */
     public static final int VERSION_23_09 = encodeVersion(23, 9, 0);
+    public static final int VERSION_23_09_1 = encodeVersion(23, 9, 1);
 
     /**
-     * The encoded 14.1.1.2206.0 and 6 versions.
+     * The encoded 14.1.1.2206.0, 6 and 7 versions.
      */
     public static final int VERSION_14_1_1_2206   = encodeVersion(14, 1, 1, 2206, 0);
     public static final int VERSION_14_1_1_2206_6 = encodeVersion(14, 1, 1, 2206, 6);
+    public static final int VERSION_14_1_1_2206_7 = encodeVersion(14, 1, 1, 2206, 7);
 
     /**
      * The encoded 14.1.2.0.0 version.
@@ -308,26 +360,23 @@ public class VersionHelper
     public static final int VERSION_14_1_2_0 = encodeVersion(14, 1, 2, 0, 0);
 
     /**
-     * The encoded 14.1.1.0.0, 16 and 17 versions.
+     * The encoded 14.1.1.0.0 and 16 versions.
      */
     public static final int VERSION_14_1_1_0    = encodeVersion(14, 1, 1, 0, 0);
-    public static final int VERSION_14_1_1_0_15 = encodeVersion(14, 1, 1, 0, 15);
     public static final int VERSION_14_1_1_0_16 = encodeVersion(14, 1, 1, 0, 16);
     public static final int VERSION_14_1_1_0_17 = encodeVersion(14, 1, 1, 0, 17);
 
     /**
-     * The encoded 12.2.1.4.0, 20 and 21 versions.
+     * The encoded 12.2.1.4.0 and 20 versions.
      */
     public static final int VERSION_12_2_1_4    = encodeVersion(12, 2, 1, 4, 0);
-    public static final int VERSION_12_2_1_4_19 = encodeVersion(12, 2, 1, 4, 19);
     public static final int VERSION_12_2_1_4_20 = encodeVersion(12, 2, 1, 4, 20);
     public static final int VERSION_12_2_1_4_21 = encodeVersion(12, 2, 1, 4, 21);
 
     /**
-     * The encoded 12.2.1.6.0, 6 and 7 versions.
+     * The encoded 12.2.1.6.0 and 6 versions.
      */
     public static final int VERSION_12_2_1_6   = encodeVersion(12, 2, 1, 6, 0);
-    public static final int VERSION_12_2_1_6_5 = encodeVersion(12, 2, 1, 6, 5);
     public static final int VERSION_12_2_1_6_6 = encodeVersion(12, 2, 1, 6, 6);
     public static final int VERSION_12_2_1_6_7 = encodeVersion(12, 2, 1, 6, 7);
     }

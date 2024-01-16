@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.builder;
 
+import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.BackingMapContext;
@@ -30,6 +31,7 @@ import com.tangosol.util.SimpleResourceRegistry;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.IntPredicate;
 
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -304,6 +306,43 @@ public class MockBmmContext
         public ResourceRegistry getResourceRegistry()
             {
             return null;
+            }
+
+        public boolean isSuspended()
+            {
+            return false;
+            }
+
+        @Override
+        public boolean isVersionCompatible(int nMajor, int nMinor, int nMicro, int nPatchSet, int nPatch)
+            {
+            int nEncoded = ServiceMemberSet.encodeVersion(nMajor, nMinor, nMicro, nPatchSet, nPatch);
+            return CacheFactory.VERSION_ENCODED >= nEncoded;
+            }
+
+        @Override
+        public boolean isVersionCompatible(int nYear, int nMonth, int nPatch)
+            {
+            int nEncoded = ServiceMemberSet.encodeVersion(nYear, nMonth, nPatch);
+            return CacheFactory.VERSION_ENCODED >= nEncoded;
+            }
+
+        @Override
+        public boolean isVersionCompatible(int nVersion)
+            {
+            return CacheFactory.VERSION_ENCODED >= nVersion;
+            }
+
+        @Override
+        public boolean isVersionCompatible(IntPredicate predicate)
+            {
+            return predicate.test(CacheFactory.VERSION_ENCODED);
+            }
+
+        @Override
+        public int getMinimumServiceVersion()
+            {
+            return CacheFactory.VERSION_ENCODED;
             }
 
         private Cluster m_cluster;

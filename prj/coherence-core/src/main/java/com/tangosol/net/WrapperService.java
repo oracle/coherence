@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
@@ -14,6 +14,8 @@ import com.tangosol.run.xml.XmlElement;
 
 import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.ServiceListener;
+
+import java.util.function.IntPredicate;
 
 
 /**
@@ -196,6 +198,35 @@ public class WrapperService
         return getService().getResourceRegistry();
         }
 
+    @Override
+    public boolean isVersionCompatible(int nMajor, int nMinor, int nMicro, int nPatchSet, int nPatch)
+        {
+        return getService().isVersionCompatible(nMajor, nMinor, nMicro, nPatchSet, nPatch);
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nYear, int nMonth, int nPatch)
+        {
+        return getService().isVersionCompatible(nYear, nMonth, nPatch);
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nVersion)
+        {
+        return getService().isVersionCompatible(nVersion);
+        }
+
+    @Override
+    public boolean isVersionCompatible(IntPredicate predicate)
+        {
+        return getService().isVersionCompatible(predicate);
+        }
+
+    @Override
+    public int getMinimumServiceVersion()
+        {
+        return getService().getMinimumServiceVersion();
+        }
 
     // ----- Object methods -------------------------------------------------
 
