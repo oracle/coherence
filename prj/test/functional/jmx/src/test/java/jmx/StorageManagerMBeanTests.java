@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -179,6 +179,8 @@ public class StorageManagerMBeanTests
         server.invoke(name, "clearCache", null, null);
         Eventually.assertDeferred(cache::size, is(0));
         Eventually.assertDeferred(atomicDelete::get, is(100));
+        Long ClearCount = (Long) server.getAttribute(name, "ClearCount");
+        assertEquals("expected ClearCount to be 1", Long.valueOf(1), ClearCount);
         }
 
     /**
