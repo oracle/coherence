@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -178,6 +178,8 @@ public class QuorumTests
 
         props.setProperty("tangosol.coherence.override", getOverrideConfig());
 
+        sServer = gePrefix() + sServer;
+
         PartitionedService svc      = (PartitionedService) CacheFactory.getService("PartitionedCacheWithQuorum");
         int                cServers = svc.getOwnershipEnabledMembers().size();
 
@@ -203,6 +205,8 @@ public class QuorumTests
         {
         PartitionedService svc      = (PartitionedService) CacheFactory.getService("PartitionedCacheWithQuorum");
         int                cServers = svc.getOwnershipEnabledMembers().size();
+
+        sServer = gePrefix() + sServer;
 
         stopCacheServer(sServer, fGraceful);
         cacheEvents.put("DISTRIBUTION_ALLOWED", Boolean.valueOf(fDistribution));
