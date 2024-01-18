@@ -1,4 +1,4 @@
-:coherence-version: 23.09-SNAPSHOT
+:coherence-version: 24.03-SNAPSHOT
 :coherence-gradle-plugin-version: {coherence-version}
 :com-github-vlsi-jandex-version: 1.86
 
@@ -40,29 +40,19 @@ task listed under the task group `Coherence` when you execute:
 gradle tasks
 ----
 
-The `coherencePof` task will use the output of the `compileJava` task as input. As such the `coherencePof` task will
-depend on the `compileJava` task.
-
-Executing:
+The `coherencePof` task is added as a `doLast` action to the `compileJava` task. Therefore, executing:
 
 [source,bash]
 ----
 gradle compileJava
 ----
 
-will NOT execute the `coherencePof` task but on the other hand executing:
-
-[source,bash]
-----
-gradle coherencePof
-----
-
-will execute the `compileJava` task first. By *default*, the `coherencePof` task will take the *build output* as
-input for classes to be instrumented excluding any test classes. The POF Gradle Plugin supports
+will automatically execute the `coherencePof` task. By *default*, the `coherencePof` task will instrument all Java
+classes excluding any test classes. The POF Gradle Plugin supports
 https://docs.gradle.org/current/userguide/incremental_build.html[incremental builds]. This means that only if Java classes
-have changed, the `coherencePof` task will execute (and only for the changed classes).
+have changed, the `coherencePof` task will execute.
 
-The `coherencePof` task will also become a dependency to all tasks that depend on the `compileJava`. Thefore, executing
+The `coherencePof` task will also become a dependency to all tasks that depend on the `compileJava`. Therefore, executing
 the `build` or `jar` task will invoke the `coherencePof` task in case of class changes.
 
 By just adding the plugin using the configuration above, the Coherence Gradle Plugin will discover and instrument all
@@ -122,7 +112,7 @@ if you assume that the `Color` class from the earlier code examples:
 </schema>
 ----
 
-In order to use a `schema.xml` file, you need to set `usePofSchemaXml` to `true`. Also, you can customze the location of
+In order to use a `schema.xml` file, you need to set `usePofSchemaXml` to `true`. Also, you can customize the location of
 the `schema.xml` by setting `pofSchemaXmlPath` to a value other than `META-INF/schema.xml`. For example:
 
 .Build.gradle

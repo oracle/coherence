@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -26,6 +26,7 @@ import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
+import java.nio.file.Path;
 import java.util.Objects;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -51,6 +52,18 @@ public class TestUtils
             }
         }
 
+    public static void copyUsingPaths(Path source, Path destination)
+        {
+        try
+            {
+            Files.copy(source, destination);
+            }
+        catch (IOException e)
+            {
+            throw Exceptions.ensureRuntimeException(e);
+            }
+        }
+
     public static void copyFileTo(String sourceFileName, File root, String destinationDir, String destinationFilename)
         {
         File fileJavaDir = new File(root, destinationDir);
@@ -65,34 +78,36 @@ public class TestUtils
             {
             Files.copy(url.openStream(), new File(fileJavaDir, destinationFilename).toPath());
             }
-        catch (IOException e)
+        catch (IOException ex)
             {
-            throw Exceptions.ensureRuntimeException(e);
+            throw Exceptions.ensureRuntimeException(ex);
             }
         }
 
+    public static void setupGradlePropertiesFileInDirectory(File gradlePropertiesFile)
+            {
+            String sProxyHost = System.getProperty("https.proxyHost");
+            String sProxyPort = System.getProperty("https.proxyPort");
 
+            if (sProxyHost == null)
+                {
+                return;
+                }
+
+            String sGradlePropertiesFileName = "gradle";
+            String sPreparedBuildScript     = readToStringWithVariables(sGradlePropertiesFileName, ".properties",
+                    sProxyHost,
+                    sProxyHost,
+                    sProxyPort,
+                    sProxyPort
+            );
+            LOGGER.info(sPreparedBuildScript);
+            appendToFile(gradlePropertiesFile, sPreparedBuildScript);
+            }
     public static void setupGradlePropertiesFile(File gradleProjectRootDirectory)
         {
-
-        String sProxyHost = System.getProperty("https.proxyHost");
-        String sProxyPort = System.getProperty("https.proxyPort");
-
-        if (sProxyHost == null)
-            {
-            return;
-            }
-
-        String sGradlePropertiesFileName = "gradle";
-        File   fileBuild                = new File(gradleProjectRootDirectory, "gradle.properties");
-        String sPreparedBuildScript     = readToStringWithVariables(sGradlePropertiesFileName, ".properties",
-                sProxyHost,
-                sProxyHost,
-                sProxyPort,
-                sProxyPort
-                );
-        LOGGER.info(sPreparedBuildScript);
-        appendToFile(fileBuild, sPreparedBuildScript);
+        File   fileBuild = new File(gradleProjectRootDirectory, "gradle.properties");
+        setupGradlePropertiesFileInDirectory(fileBuild);
         }
     public static void setupGradleSettingsFile(File gradleProjectRootDirectory, String settingsFilename, Object... templateVariables)
         {
@@ -110,6 +125,13 @@ public class TestUtils
         LOGGER.info(sPreparedBuildScript);
 
         appendToFile(fileBuild, sPreparedBuildScript);
+        }
+
+    public static void copyTemplatedFile(File template, File destination, Object... templateVariables)
+        {
+        String sTemplate = readToString(template);
+        String sResult = String.format(sTemplate, templateVariables);
+        appendToFile(destination, sResult);
         }
 
     public static String readToString(String buildFileName, Object... templateVariables)
@@ -144,7 +166,17 @@ public class TestUtils
             throw Exceptions.ensureRuntimeException(e);
             }
         }
-
+    public static String readToString(File fileToRead)
+        {
+        try
+            {
+            return Files.readString(fileToRead.toPath());
+            }
+        catch (IOException e)
+            {
+            throw Exceptions.ensureRuntimeException(e);
+            }
+        }
     public static Class<?> getPofClass(File gradleProjectRootDirectory, String classname, String baseDirectory)
         {
         File fileClassDirectory = new File(gradleProjectRootDirectory, baseDirectory);
