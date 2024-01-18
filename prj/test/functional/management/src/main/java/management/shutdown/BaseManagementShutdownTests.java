@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -463,6 +463,7 @@ public abstract class BaseManagementShutdownTests {
         propsServer2.add(SystemProperty.of("coherence.role", SERVER_PREFIX + "-2"));
         propsServer2.add(SystemProperty.of("test.server.name", SERVER_PREFIX + "-2"));
         propsServer2.add(SystemProperty.of("coherence.metrics.http.enabled", "true"));
+        propsServer2.add(SystemProperty.of("coherence.metrics.http.port", "0"));
         builder.include(1, CoherenceClusterMember.class, beforeLaunch.apply(propsServer2).asArray());
 
         s_cluster = builder.build(LocalPlatform.get());
