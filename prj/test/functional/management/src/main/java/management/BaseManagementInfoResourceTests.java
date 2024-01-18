@@ -354,7 +354,7 @@ public abstract class BaseManagementInfoResourceTests
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
-        assertThat(((String) (response.readEntity(Map.class).get(DESCRIPTION)))
+        assertThat(((String) (readEntity(target, response).get(DESCRIPTION)))
                            .startsWith("SafeCluster: Name=" + CLUSTER_NAME + ", ClusterPort="),
                    is(true));
         }
@@ -991,12 +991,11 @@ public abstract class BaseManagementInfoResourceTests
 
         Number nMemberId = listMemberIds.get(0);
 
-        response = getBaseTarget().path("members").path(String.valueOf(nMemberId))
-                .path(DESCRIPTION).request(MediaType.APPLICATION_JSON_TYPE)
-                .get();
+        target = getBaseTarget().path("members").path(String.valueOf(nMemberId)).path(DESCRIPTION);
+        response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat(((String) (response.readEntity(Map.class).get(DESCRIPTION)))
+        assertThat(((String) readEntity(target, response).get(DESCRIPTION))
                            .startsWith("Member(Id=" + nMemberId),
                    is(true));
         }
@@ -1010,16 +1009,18 @@ public abstract class BaseManagementInfoResourceTests
         // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
 
-        Response response = getBaseTarget().path(DIAGNOSTIC_CMD)
+        WebTarget target   = getBaseTarget().path(DIAGNOSTIC_CMD)
                 .path("jfrStart")
-                .queryParam(OPTIONS, encodeValue("name=all"))
-                .request(MediaType.APPLICATION_JSON_TYPE)
-                .post(null);
+                .queryParam(OPTIONS, encodeValue("name=all"));
+        Response  response = target.request(MediaType.APPLICATION_JSON_TYPE).post(null);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
-        String result = response.readEntity(String.class);
-        assertThat("Result returned: " + result, result.indexOf(SERVER_PREFIX + "-1"), greaterThan(0));
-        assertThat("Result returned: " + result, result.indexOf(SERVER_PREFIX + "-2"), greaterThan(0));
+
+        Map    mapResult  = readEntity(target, response);
+        List   listStatus = (List) mapResult.get("status");
+        String result     = (String) listStatus.get(0) + listStatus.get(1);
+        assertThat("Result returned: " + result, result.indexOf(SERVER_PREFIX + "-1"), greaterThanOrEqualTo(0));
+        assertThat("Result returned: " + result, result.indexOf(SERVER_PREFIX + "-2"), greaterThanOrEqualTo(0));
 
         File   folder   = s_dirJFR;
         String sJfr1    = folder.getAbsolutePath() + File.separator + "all1.jfr";
@@ -1031,13 +1032,14 @@ public abstract class BaseManagementInfoResourceTests
                 .post(null);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-        response = getBaseTarget().path(DIAGNOSTIC_CMD)
-                .path("jfrDump")
-                .queryParam(OPTIONS, encodeValue("name=all"))
-                .request(MediaType.APPLICATION_JSON_TYPE)
-                .post(null);
+        target = getBaseTarget().path(DIAGNOSTIC_CMD).path("jfrDump")
+                .queryParam(OPTIONS, encodeValue("name=all"));
+        response = target.request(MediaType.APPLICATION_JSON_TYPE).post(null);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        result = response.readEntity(String.class);
+
+        mapResult  = readEntity(target, response);
+        listStatus = (List) mapResult.get("status");
+        result     = (String) listStatus.get(0) + listStatus.get(1);
 
         // for JDK11, when dump file is not provided,
         // DiagnosticCommand generates a file name instead of throwing exception
@@ -1079,16 +1081,14 @@ public abstract class BaseManagementInfoResourceTests
         String sFilePath = jfrDir.getAbsolutePath() + File.separator;
         String sFileName = sFilePath + "testMemberJfr-myRecording.jfr";
 
-        Response response = getBaseTarget().path(DIAGNOSTIC_CMD)
-                .path("jfrStart")
-                .queryParam(OPTIONS, encodeValue("name=myJfr,duration=3s,filename=" + sFileName))
-                .queryParam(ROLE_NAME, SERVER_PREFIX + "-1")
-                .request(MediaType.APPLICATION_JSON_TYPE)
-                .post(null);
+        WebTarget target  = getBaseTarget().path(DIAGNOSTIC_CMD).path("jfrStart")
+                .queryParam(OPTIONS, encodeValue("name=myJfr,duration=3s,filename="+ sFileName))
+                .queryParam(ROLE_NAME, SERVER_PREFIX + "-1");
+        Response response = target.request(MediaType.APPLICATION_JSON_TYPE).post(null);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
 
-        String result = response.readEntity(String.class);
+        String result = (String) ((List) readEntity(target, response).get("status")).get(0);
 
         File testFile1 = new File(sFilePath + "1-testMemberJfr-myRecording.jfr");
         File testFile2 = new File(sFilePath + "2-testMemberJfr-myRecording.jfr");
@@ -1121,7 +1121,7 @@ public abstract class BaseManagementInfoResourceTests
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
-        Map mapResponse = new LinkedHashMap(response.readEntity(Map.class));
+        Map mapResponse = readEntity(getBaseTarget(), response);
 
         List<Number> listMemberIds = (List<Number>) mapResponse.get("memberIds");
 
@@ -1340,12 +1340,11 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testServiceDescription()
         {
-        Response response = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME))
-                .path(DESCRIPTION).request(MediaType.APPLICATION_JSON_TYPE)
-                .get();
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path(DESCRIPTION);
+        Response  response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat(((String) (response.readEntity(Map.class).get(DESCRIPTION)))
+        assertThat(((String) readEntity(target, response).get(DESCRIPTION))
                            .startsWith("PartitionedCache{Name="),
                    is(true));
         }
@@ -2785,7 +2784,7 @@ public abstract class BaseManagementInfoResourceTests
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
-        Map mapResponse = new LinkedHashMap(readEntity(target, response, entyty));
+        Map mapResponse = readEntity(target, response, entyty);
         assertThat(mapResponse.size(), is(1));
 
         Map membersResponseMap = (Map) mapResponse.get(SERVICES);
@@ -3992,7 +3991,7 @@ public abstract class BaseManagementInfoResourceTests
         response = memTarget.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-        Map mapCacheMembers = new LinkedHashMap(readEntity(memTarget, response));
+        Map mapCacheMembers = readEntity(memTarget, response);
         assertThat(mapCacheMembers, notNullValue());
 
         List<Map> listCacheMembers = (List<Map>) mapCacheMembers.get("items");
@@ -4016,7 +4015,7 @@ public abstract class BaseManagementInfoResourceTests
             memTarget = m_client.target(sSelfUrl);
             response  = memTarget.request().get();
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-            mapResponse = new LinkedHashMap(readEntity(memTarget, response));
+            mapResponse = readEntity(memTarget, response);
 
             List<Map> listCacheMembersOfANode = (List<Map>) mapResponse.get("items");
             assertThat(listCacheMembersOfANode, notNullValue());
@@ -4056,7 +4055,7 @@ public abstract class BaseManagementInfoResourceTests
 
         WebTarget cachesTarget   = getBaseTarget().path(CACHES).queryParam("fields", "name,totalPuts");
         Response  cachesResponse = cachesTarget.request().get();
-        mapResponse   = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        mapResponse   = readEntity(cachesTarget, cachesResponse);
         listCacheMaps = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
         listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPIC_CACHES_LIST).anyMatch(topicCacheName -> topicCacheName.equals(cacheMap.get(NAME))));
@@ -4072,7 +4071,7 @@ public abstract class BaseManagementInfoResourceTests
 
         cachesTarget   = getBaseTarget().path(CACHES).queryParam("fields", "name,units");
         cachesResponse = cachesTarget.request().get();
-        mapResponse    = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        mapResponse    = readEntity(cachesTarget, cachesResponse);
         listCacheMaps  = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
         listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPIC_CACHES_LIST).anyMatch(topicCacheName -> topicCacheName.equals(cacheMap.get(NAME))));
@@ -4097,7 +4096,7 @@ public abstract class BaseManagementInfoResourceTests
 
         cachesTarget   = getBaseTarget().path(CACHES).queryParam("fields", "name,insertCount");
         cachesResponse = cachesTarget.request().get();
-        mapResponse    = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        mapResponse    = readEntity(cachesTarget, cachesResponse);
         listCacheMaps  = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
         listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPIC_CACHES_LIST).anyMatch(topicCacheName -> topicCacheName.equals(cacheMap.get(NAME))));
@@ -4113,7 +4112,7 @@ public abstract class BaseManagementInfoResourceTests
 
         cachesTarget   = getBaseTarget().path(CACHES).queryParam("fields", SERVICE);
         cachesResponse = cachesTarget.request().get();
-        mapResponse    = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        mapResponse    = readEntity(cachesTarget, cachesResponse);
         listCacheMaps  = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
         listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(serviceName -> ((String) cacheMap.get(SERVICE)).contains(serviceName)));
@@ -4154,7 +4153,7 @@ public abstract class BaseManagementInfoResourceTests
 
         WebTarget cachesTarget = getBaseTarget().path(CACHES).queryParam("fields", "name,totalPuts");
         Response cachesResponse = cachesTarget.request().get();
-        mapResponse = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        mapResponse = readEntity(cachesTarget, cachesResponse);
         listCacheMaps = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
         assertThat(listCacheMaps.size(), greaterThan(1));
@@ -4169,7 +4168,7 @@ public abstract class BaseManagementInfoResourceTests
 
         cachesTarget = getBaseTarget().path(CACHES).queryParam("fields", "name,units");
         cachesResponse = cachesTarget.request().get();
-        mapResponse = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        mapResponse = readEntity(cachesTarget, cachesResponse);
         listCacheMaps = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
         listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPIC_CACHES_LIST).anyMatch(topicCacheName -> topicCacheName.equals(cacheMap.get(NAME))));
@@ -4187,13 +4186,13 @@ public abstract class BaseManagementInfoResourceTests
 
         cachesTarget = getBaseTarget().path(CACHES).queryParam("fields", "name,insertCount");
         cachesResponse = cachesTarget.request().get();
-        mapResponse = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        mapResponse = readEntity(cachesTarget, cachesResponse);
         listCacheMaps = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
 
         cachesTarget = getBaseTarget().path(CACHES).queryParam("fields", SERVICE);
         cachesResponse = cachesTarget.request().get();
-        mapResponse = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        mapResponse = readEntity(cachesTarget, cachesResponse);
         listCacheMaps = (List<Map>) mapResponse.get("items");
         listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) cacheMap.get(SERVICE)).contains(topicServiceName)));
 
