@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,13 +19,11 @@ import com.tangosol.io.pof.schema.annotation.PortableType;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 
-import org.gradle.api.artifacts.Configuration;
-
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileType;
+import org.gradle.api.file.FileCollection;
 
 import org.gradle.api.logging.Logger;
-
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Property;
 
 import org.gradle.api.tasks.Input;
@@ -34,10 +32,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 
-import org.gradle.work.ChangeType;
-import org.gradle.work.FileChange;
-import org.gradle.work.Incremental;
-import org.gradle.work.InputChanges;
+import org.gradle.api.tasks.compile.JavaCompile;
 
 import javax.inject.Inject;
 
@@ -45,7 +40,9 @@ import java.io.File;
 import java.io.IOException;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.oracle.coherence.common.schema.ClassFileSchemaSource.Filters.hasAnnotation;
 
@@ -108,13 +105,12 @@ abstract class CoherenceTask
      **/
     @Input
     @Optional
-    public abstract Property<File> getResourcesDirectory();
+    public abstract Property<FileCollection> getResourcesDirectories();
 
     /**
-     * Sets the project's main classes directory. This is an optional property.
+     * Sets the project's main classes directory. This is the main input directory.
      **/
     @InputFiles
-    @Incremental
     public abstract DirectoryProperty getClassesDirectory();
 
     /**
@@ -125,10 +121,9 @@ abstract class CoherenceTask
 
     /**
      * The Gradle action to run when the task is executed.
-     * @param inputChanges the input changes for incremental builds
      */
     @TaskAction
-    public void instrumentPofClasses(InputChanges inputChanges) {
+    public void instrumentPofClasses() {
 
         final boolean fDebug = getDebug().get();
         final Logger  logger = getLogger();
@@ -144,15 +139,15 @@ abstract class CoherenceTask
             throw new IllegalStateException("The classesDirectory is not specified.");
             }
 
-        final File resourcesDirectory;
+        final Set<File> resourcesDirectoriesAsFiles;
 
-        if (this.getResourcesDirectory().isPresent())
+        if (this.getResourcesDirectories().isPresent())
             {
-            resourcesDirectory = this.getResourcesDirectory().get();
+            resourcesDirectoriesAsFiles = this.getResourcesDirectories().get().getFiles();
             }
         else
             {
-            resourcesDirectory = null;
+            resourcesDirectoriesAsFiles = null;
             }
 
         final File outputDirectory;
@@ -188,86 +183,33 @@ abstract class CoherenceTask
             usePofSchemaXmlPath = false;
             }
 
-        final String executionType = inputChanges.isIncremental() ? "incrementally" : "non-incrementally";
-        logger.lifecycle("Start executing Gradle task instrumentPofClasses..." + executionType);
-
         logger.info("The following configuration properties are configured:");
 
         logger.info("Property classesDirectory   = {}", classesDirectory.getAbsolutePath());
-        logger.info("Property resourcesDirectory = {}", resourcesDirectory != null ? resourcesDirectory.getAbsolutePath() : "N/A");
+
+        if (resourcesDirectoriesAsFiles == null || resourcesDirectoriesAsFiles.isEmpty())
+            {
+            logger.info("Property resourcesDirectory = {}", "N/A");
+            }
+        else
+            {
+            for (File resourceDirectory : resourcesDirectoriesAsFiles)
+                {
+                logger.info("Property resourcesDirectory = {}", resourceDirectory.getAbsolutePath());
+                }
+            }
+
         logger.info("Property outputDirectory    = {}", outputDirectory.getAbsolutePath());
         logger.info("Property sPofSchemaXmlPath  = {}", sPofSchemaXmlPath);
         logger.info("Property debug              = {}", fDebug);
 
-        final List<File> incrementallyChangedFiles = new ArrayList<>();
-
-        if (!inputChanges.isIncremental())
+        if (!classesDirectory.equals(outputDirectory))
             {
             logger.info("Copying all classes from '{}' to '{}'.", classesDirectory, outputDirectory);
             final boolean didTheCopyOperationSucceed = getProject()
                     .copy(copy -> copy.from(classesDirectory).into(outputDirectory))
                     .getDidWork();
             logger.debug("Copying of classes {}.", didTheCopyOperationSucceed ? "completed" : "not completed");
-            }
-        else
-            {
-            final Iterable<FileChange> changes = inputChanges.getFileChanges(this.getClassesDirectory());
-
-            for (FileChange fileChange : changes)
-                {
-                final File       sourceFile       = fileChange.getFile();
-                final FileType   fileType         = fileChange.getFileType();
-                final ChangeType changeType       = fileChange.getChangeType();
-                final String     relativeFilePath = sourceFile.getAbsolutePath().substring(classesDirectory.getAbsolutePath().length());
-                final String     targetBasePath   = outputDirectory.getAbsolutePath();
-                final File       targetFile       = new File(targetBasePath + File.separator + relativeFilePath);
-
-                logger.info("sourceFile: '{}'.", sourceFile.getAbsolutePath());
-                logger.info("fileType: '{}'.", fileType.name());
-                logger.info("changeType: {}.", changeType.name());
-                logger.info("relativeFilePath: '{}'.", relativeFilePath);
-                logger.info("targetBasePath: '{}'.", targetBasePath);
-                logger.info("targetFile: '{}'.", targetFile.getAbsolutePath());
-
-                switch (changeType)
-                    {
-                    case ADDED ->
-                        {
-                        if (FileType.DIRECTORY.equals(fileType))
-                            {
-                            targetFile.mkdirs();
-                            continue;
-                            }
-                        final boolean didTheCopyOperationSucceed = getProject().copy(copy ->
-                            {
-                            copy.from(sourceFile)
-                                .into(targetFile.getParent());
-                            }).getDidWork();
-                        logger.info("Copy added file '{}' to '{}'. Success: '{}'.", sourceFile.getAbsolutePath(),
-                                outputDirectory, didTheCopyOperationSucceed);
-                        incrementallyChangedFiles.add(targetFile);
-                        }
-                    case MODIFIED ->
-                        {
-                        final boolean didTheCopyOperationSucceed = getProject().copy(copy ->
-                        {
-                            copy.from(sourceFile)
-                                .into(outputDirectory);
-                        }).getDidWork();
-                        logger.info("Copy modified file '{}' to '{}'. Success: '{}'.", sourceFile.getAbsolutePath(),
-                                outputDirectory, didTheCopyOperationSucceed);
-                        incrementallyChangedFiles.add(targetFile);
-                        }
-                    case REMOVED ->
-                        {
-                        getProject().delete(delete ->
-                            {
-                            logger.info("Delete file '{}'.", targetFile.getAbsolutePath());
-                            delete.delete(targetFile);
-                            });
-                        }
-                    }
-                }
             }
 
         final ClassFileSchemaSource classFileSchemaSource  = new ClassFileSchemaSource();
@@ -277,16 +219,40 @@ abstract class CoherenceTask
 
         if (usePofSchemaXmlPath && sPofSchemaXmlPath != null)
             {
-            File schemaSourceXmlFile = new File(this.getResourcesDirectory().get(), sPofSchemaXmlPath);
-            addPofXmlSchema(schemaBuilder, schemaSourceXmlFile);
+            if (resourcesDirectoriesAsFiles != null && !resourcesDirectoriesAsFiles.isEmpty())
+                {
+                Set<File> missingLocations = new HashSet<>();
+                for (File resourceDirectory : resourcesDirectoriesAsFiles)
+                    {
+                    final File schemaSourceXmlFile = new File(resourceDirectory, sPofSchemaXmlPath);
+                    if (schemaSourceXmlFile.exists())
+                        {
+                        if (schemaSourceXmlFile.isDirectory())
+                            {
+                            throw new IllegalStateException(
+                                String.format("Declared schemaSource XML file '%s' is a directory,", schemaSourceXmlFile));
+                            }
+                        addPofXmlSchema(schemaBuilder, schemaSourceXmlFile);
+                        }
+                    else
+                        {
+                        missingLocations.add(schemaSourceXmlFile);
+                        }
+                    }
+                    if (missingLocations.size() == resourcesDirectoriesAsFiles.size())
+                        {
+                        throw new IllegalStateException(
+                            String.format("The declared schemaSource XML file '%s' does not exist " +
+                                    "in the provided %s resource folder(s).", sPofSchemaXmlPath, resourcesDirectoriesAsFiles.size()));
+                        }
+                }
+
+
             }
 
         if (classesDirectory.exists())
             {
-            if (!inputChanges.isIncremental())
-                {
-                listClassesDirectories.add(outputDirectory);
-                }
+            listClassesDirectories.add(outputDirectory);
             }
         else
             {
@@ -296,13 +262,6 @@ abstract class CoherenceTask
         classFileSchemaSource.withTypeFilter(hasAnnotation(PortableType.class))
                              .withMissingPropertiesAsObject();
 
-        if (!incrementallyChangedFiles.isEmpty())
-            {
-            for (File classFile : incrementallyChangedFiles)
-                {
-                classFileSchemaSource.withClassFile(classFile);
-                }
-            }
         if (!listClassesDirectories.isEmpty())
             {
             for (File classesDir : listClassesDirectories)
@@ -312,7 +271,7 @@ abstract class CoherenceTask
                 }
             }
 
-        if (!listInstrument.isEmpty() || !incrementallyChangedFiles.isEmpty())
+        if (!listInstrument.isEmpty())
             {
             final List<File>            listDeps     = resolveDependencies();
             final ClassFileSchemaSource dependencies = new ClassFileSchemaSource()
@@ -329,7 +288,7 @@ abstract class CoherenceTask
                     .peek(f -> logger.lifecycle("Adding classes from " + f + " to schema"))
                     .forEach(dependencies::withClassesFromJarFile);
 
-            Schema schema = schemaBuilder
+            final Schema schema = schemaBuilder
                     .addSchemaSource(dependencies)
                     .addSchemaSource(classFileSchemaSource)
                     .build();
@@ -368,15 +327,17 @@ abstract class CoherenceTask
         }
 
     /**
-     * Resolves project dependencies from the runtimeClasspath.
+     * Resolves project dependencies from the JavaCompile task's classpath.
      * @return list of resolved project dependencies or an empty List
      */
     private List<File> resolveDependencies()
         {
-        List<File>    listArtifacts = new ArrayList<>();
-        Configuration configuration = getProject().getConfigurations().getByName("runtimeClasspath");
+        final List<File>    listArtifacts = new ArrayList<>();
 
-        configuration.forEach(file ->
+        final JavaCompile javaCompileTask = (JavaCompile) getProject().getTasks().findByName(JavaPlugin.COMPILE_JAVA_TASK_NAME);
+        final Set<File> dependencies = javaCompileTask.getClasspath().getFiles();
+
+        for (File file : dependencies)
             {
             getLogger().info("Adding dependency '{}'.", file.getAbsolutePath());
             if (file.exists())
@@ -387,7 +348,7 @@ abstract class CoherenceTask
                 {
                 getLogger().info("Dependency '{}' does not exist.", file.getAbsolutePath());
                 }
-            });
+            }
         getLogger().lifecycle("Resolved {} dependencies.", listArtifacts.size());
         return listArtifacts;
         }

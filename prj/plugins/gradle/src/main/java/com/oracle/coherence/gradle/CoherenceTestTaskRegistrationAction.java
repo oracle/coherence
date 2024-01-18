@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,10 +7,9 @@
 package com.oracle.coherence.gradle;
 
 import org.gradle.api.Project;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.compile.JavaCompile;
-
-import java.io.File;
 
 /**
  * Gradle Task Configuration logic for the test classes.
@@ -27,12 +26,12 @@ public class CoherenceTestTaskRegistrationAction extends AbstractCoherenceTaskRe
      * @param coherenceExtension configuration for data for the Gradle task
      * @param project the Gradle project
      * @param javaCompileTask the Gradle compile task
-     * @param processResourcesDestinationDirProvider The Gradle {@link Provider} for the destination directory of the processTestResources task
+     * @param testResourcesFolders The Gradle {@link Provider} for the destination directory of the processTestResources task
      */
     public CoherenceTestTaskRegistrationAction(CoherenceExtension coherenceExtension, Project project,
-                                               JavaCompile javaCompileTask, Provider<File> processResourcesDestinationDirProvider)
+                                               JavaCompile javaCompileTask, FileCollection testResourcesFolders)
         {
-        super(coherenceExtension, project, javaCompileTask, processResourcesDestinationDirProvider);
+        super(coherenceExtension, project, javaCompileTask, testResourcesFolders);
         }
 
     // ----- CoherenceTestTaskRegistrationAction methods --------------------
@@ -56,8 +55,6 @@ public class CoherenceTestTaskRegistrationAction extends AbstractCoherenceTaskRe
             coherencePofTask.setDescription("Generate Pof-instrumented test classes.");
             }
 
-        coherencePofTask.getOutputDirectory().set(
-                project.getLayout().getBuildDirectory().dir(CoherencePlugin.DEFAULT_POF_TEST_CLASSES_OUTPUT_DIRECTORY));
         super.execute(coherencePofTask);
         }
     }
