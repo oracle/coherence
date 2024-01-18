@@ -644,7 +644,6 @@ public class CoherencePluginTests
 
                     if ("gradle.properties".equals(source.getFileName().toString()))
                         {
-                        TestUtils.copyUsingPaths(source, destination);
                         TestUtils.setupGradlePropertiesFileInDirectory(destination.toFile());
                         }
                     else if ("settings.gradle".equals(source.getFileName().toString()))
