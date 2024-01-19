@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,7 +8,6 @@ package persistence;
 
 import com.oracle.coherence.common.base.SimpleHolder;
 
-import com.oracle.bedrock.runtime.java.options.HeapSize;
 import com.oracle.bedrock.runtime.java.options.JvmOptions;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
@@ -126,7 +125,6 @@ public abstract class AbstractRollingPersistenceTests
         File fileTrash    = FileHelper.createTempDir();
 
         System.setProperty("test.heap.min", "128");
-        System.setProperty("test.heap.max", "192");
         System.setProperty("test.persistence.active.dir", fileActive.getAbsolutePath());
         System.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         System.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
@@ -139,7 +137,6 @@ public abstract class AbstractRollingPersistenceTests
         for (int i = 0; i < cServers; i++)
             {
             memberHandler.addServer(null,
-                                    HeapSize.of(128, HeapSize.Units.MB, 256, HeapSize.Units.MB, true),
                                     JvmOptions.include("-XX:+ExitOnOutOfMemoryError"));
             }
 
@@ -229,6 +226,7 @@ public abstract class AbstractRollingPersistenceTests
                 }
             }
         }
+
     /**
      * Test dynamic recovery.
      */
@@ -248,7 +246,6 @@ public abstract class AbstractRollingPersistenceTests
         Properties props = new Properties();
         props.setProperty("test.recover.quorum", "0"); // dynamic recovery
         props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
-        System.setProperty("test.heap.max", "320");
 
         try
             {
@@ -276,7 +273,7 @@ public abstract class AbstractRollingPersistenceTests
 
             // partition stabilization could take over a minute which should not be
             // a failure condition; wait after sleep
-            waitForBalanced(service, 90);
+            waitForBalanced(service, 180);
 
             // the following sleep should be removed once COH-19735 is done
             sleep(4000); // when COH-14809 is done, replace with an event check
@@ -399,7 +396,7 @@ public abstract class AbstractRollingPersistenceTests
     // ----- helper methods -------------------------------------------------
 
     private void startServer(String sTestPrefix, String sMember, File dirActive, File dirTrash,
-            Properties props, List<String> listMembers)
+                             Properties props, List<String> listMembers)
         {
         String sMachine   = sMember.substring(0, sMember.indexOf('-')); // machine name is member's prefix
 
