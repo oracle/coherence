@@ -427,6 +427,7 @@
     <packageUrl regex="true">^pkg:maven/org\.graalvm\.sdk/graal\-sdk@.*$</packageUrl>
     <cve>CVE-2023-22006</cve>
     <cve>CVE-2023-22049</cve>
+    <cve>CVE-2024-20932</cve>
   </suppress>
 
   <!-- suppress netty-* CVE-2023-4586 in 4.1.100 -->
