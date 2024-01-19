@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -140,6 +140,7 @@ public class ManagementShutdownTests extends AbstractFunctionalTest
         propsServer2.putAll(propsServer1);
         propsServer2.setProperty("coherence.member", SERVER_PREFIX + "-2");
         propsServer2.setProperty("coherence.metrics.http.enabled", "true");
+        propsServer2.setProperty("coherence.metrics.http.port", "0");
 
         CoherenceClusterMember member2 = startCacheServer(SERVER_PREFIX + "-2", "rest", CACHE_CONFIG, propsServer2);
 

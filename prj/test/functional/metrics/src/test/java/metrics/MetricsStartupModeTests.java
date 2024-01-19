@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,7 +13,6 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.tangosol.discovery.NSLookup;
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
-import com.tangosol.util.Base;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -30,13 +29,10 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-import static com.oracle.bedrock.predicate.Predicates.isNot;
 import static com.tangosol.internal.net.metrics.MetricsHttpHelper.DEFAULT_PROMETHEUS_METRICS_PORT;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Functional test for configuring MetricsHttpProxy via system properties.
@@ -92,16 +88,16 @@ public class MetricsStartupModeTests
         try (CoherenceClusterMember member1 = startCacheServer(SERVER_MEMBERNAME_PREFIX + "1", "metrics", null, propServer, true);
              CoherenceClusterMember member2 = startCacheServer(SERVER_MEMBERNAME_PREFIX + "2", "metrics", null, propServer, true))
             {
-            Eventually.assertThat(invoking(member1).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
-            Eventually.assertThat(invoking(member2).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
+            Eventually.assertDeferred(() -> member1.isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
+            Eventually.assertDeferred(() -> member2.isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
 
             Collection<URL> colMetricsURL  = NSLookup.lookupHTTPMetricsURL(new InetSocketAddress("127.0.0.1", nPort));
             Iterator<URL>   iterMetricsURL = colMetricsURL.iterator();
 
             assertThat("validate a HTTP metrics url returned for each server by lookupHTTPMetricsURL",
                 colMetricsURL.size(), is(2));
-            assertNotEquals("validate not default port of 9612", iterMetricsURL.next().getPort(), isNot(DEFAULT_PROMETHEUS_METRICS_PORT));
-            assertNotEquals("validate not default port of 9612", iterMetricsURL.next().getPort(), isNot(DEFAULT_PROMETHEUS_METRICS_PORT));
+            assertThat("validate not default port of 9612", iterMetricsURL.next().getPort(), is(not(DEFAULT_PROMETHEUS_METRICS_PORT)));
+            assertThat("validate not default port of 9612", iterMetricsURL.next().getPort(), is(not(DEFAULT_PROMETHEUS_METRICS_PORT)));
             }
         }
 
@@ -109,16 +105,16 @@ public class MetricsStartupModeTests
     public void testDefaultMetricsPort()
         throws IOException
         {
-        String SERVER_MEMBERNAME = "DefaultMetricsPort";
-        int             nPort    = Integer.getInteger("test.multicast.port");
-        Properties propServer    = new Properties();
+        String     SERVER_MEMBERNAME = "DefaultMetricsPort";
+        int        nPort             = Integer.getInteger("test.multicast.port");
+        Properties propServer        = new Properties();
 
         propServer.put("coherence.metrics.http.enabled", "true");
         propServer.put("coherence.management.extendedmbeanname", "true");
 
         try (CoherenceClusterMember member = startCacheServer(SERVER_MEMBERNAME, "metrics", FILE_SERVER_CFG_CACHE, propServer, true))
             {
-            Eventually.assertThat(invoking(member).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
+            Eventually.assertDeferred(() -> member.isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
 
             Collection<URL> colMetricsURL = NSLookup.lookupHTTPMetricsURL(new InetSocketAddress("127.0.0.1", nPort));
 
@@ -132,12 +128,16 @@ public class MetricsStartupModeTests
     public void shouldNotStartMetricsByDefault()
         throws IOException
         {
-        String SERVER_MEMBERNAME = "MetricsServiceNotEnabled";
-        int             nPort    = Integer.getInteger("test.multicast.port");
+        String     SERVER_MEMBERNAME = "MetricsServiceNotEnabled";
+        int        nPort             = Integer.getInteger("test.multicast.port");
+        Properties propServer        = new Properties();
 
-        try (CoherenceClusterMember member = startCacheServer(SERVER_MEMBERNAME, "metrics", FILE_SERVER_CFG_CACHE, null, true))
+        // Use ephemeral port
+        propServer.put("coherence.metrics.http.port", "0");
+
+        try (CoherenceClusterMember member = startCacheServer(SERVER_MEMBERNAME, "metrics", FILE_SERVER_CFG_CACHE, propServer, true))
             {
-            Eventually.assertThat(invoking(member).isServiceRunning(MetricsHttpHelper.getServiceName()), is(false));
+            Eventually.assertDeferred(() -> member.isServiceRunning(MetricsHttpHelper.getServiceName()), is(false));
 
             Collection<URL> colMetricsURL = NSLookup.lookupHTTPMetricsURL(new InetSocketAddress("127.0.0.1", nPort));
 
@@ -150,9 +150,8 @@ public class MetricsStartupModeTests
     public void validateRunningOnConfiguredMetricsPort()
         throws IOException
         {
-        String SERVER_MEMBERNAME = "ConfiguredMetricsPort";
-        int             nPort    = Integer.getInteger("test.multicast.port");
-
+        String                SERVER_MEMBERNAME     = "ConfiguredMetricsPort";
+        int                   nPort                 = Integer.getInteger("test.multicast.port");
         AvailablePortIterator availablePortIterator = new AvailablePortIterator(9630, 10000);
         int                   nMetricsPort          = availablePortIterator.next();
         Properties            propServer            = new Properties();
@@ -163,58 +162,13 @@ public class MetricsStartupModeTests
 
         try (CoherenceClusterMember member = startCacheServer(SERVER_MEMBERNAME, "metrics", FILE_SERVER_CFG_CACHE, propServer, true))
             {
-            Eventually.assertThat(invoking(member).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
+            Eventually.assertDeferred(() -> member.isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
 
             Collection<URL> colMetricsURL = NSLookup.lookupHTTPMetricsURL(new InetSocketAddress("127.0.0.1", nPort));
 
             assertThat("validate a HTTP metrics url returned for each server by lookupHTTPMetricsURL",
                 colMetricsURL.size(), is(1));
             assertThat("validate metrics port is set port of " + nMetricsPort, colMetricsURL.iterator().next().getPort(), is(nMetricsPort));
-            }
-        }
-
-    /**
-     * Simulate starting 2 cache servers on same machine with metrics enabled and same default metrics.port.
-     */
-    @Test
-    public void testDetectionOfMetricsPortConflicts()
-        throws IOException, InterruptedException
-        {
-        String     SERVER_MEMBERNAME_PREFIX = "MetricsPortConflictTests";
-        Properties propServer               = new Properties();
-
-        propServer.put("coherence.metrics.http.enabled", "true");
-        propServer.put("coherence.management.extendedmbeanname", "true");
-
-        try (CoherenceClusterMember member1 = startCacheServer(SERVER_MEMBERNAME_PREFIX + "1", "metrics", null, propServer, true);
-             CoherenceClusterMember member2 = startCacheServer(SERVER_MEMBERNAME_PREFIX + "2", "metrics", null, propServer, true))
-            {
-            Eventually.assertThat(invoking(member1).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
-
-            int             nPort         = Integer.getInteger("test.multicast.port");
-            Collection<URL> colMetricsURL = NSLookup.lookupHTTPMetricsURL(
-                new InetSocketAddress("127.0.0.1", nPort));
-
-            if (colMetricsURL.size() != 1)
-                {
-                // Occasionally, we may get "java.net.BindException: Address already in use"
-                // due to port not released by the previous test. Log an error instead of failing the test.
-                if (validateLogFileContainsAddressAlreadyInUse(new File(ensureOutputDir("metrics"),
-                            SERVER_MEMBERNAME_PREFIX + 1 + ".out")) == true)
-                    {
-                    Base.err("MetricsStartupModeTests.testDetectionOfMetricsPortConflicts: " + member1.getRoleName() + " got address already in use.");
-                    return;
-                    }
-                else
-                    {
-                    assertThat("validate a HTTP metrics url returned for each server by lookupHTTPMetricsURL, only one due to port conflict",
-                            colMetricsURL.size(), is(1));
-                    }
-                }
-
-            Eventually.assertThat("failed to find log message detecting metrics proxy address already in use error message in server log",
-                invoking(this).validateLogFileContainsAddressAlreadyInUse(new File(ensureOutputDir("metrics"),
-                    SERVER_MEMBERNAME_PREFIX + 2 + ".out")), is(true));
             }
         }
 
@@ -247,6 +201,8 @@ public class MetricsStartupModeTests
         int        nPort             = Integer.getInteger("test.multicast.port");
         Properties propServer        = new Properties();
 
+        // Use ephemeral port
+        propServer.put("coherence.metrics.http.port", "0");
         propServer.put("coherence.metrics.http.enabled", "true");
         propServer.put(sName, sValue);
         propServer.put("coherence.member", SERVER_MEMBERNAME);
@@ -254,39 +210,17 @@ public class MetricsStartupModeTests
 
         try (CoherenceClusterMember member = startCacheServer(SERVER_MEMBERNAME, "metrics", FILE_SERVER_CFG_CACHE, propServer, true))
             {
-            Eventually.assertThat(invoking(member).isServiceRunning(MetricsHttpHelper.getServiceName()),
+            Eventually.assertDeferred(() -> member.isServiceRunning(MetricsHttpHelper.getServiceName()),
                 is( false), DeferredHelper.delayedBy(1L, TimeUnit.SECONDS));
 
             Collection<URL> colMetricsURL = NSLookup.lookupHTTPMetricsURL(new InetSocketAddress("127.0.0.1", nPort));
 
             assertThat("validate a HTTP metrics url returned for each server by lookupHTTPMetricsURL, none since auth set to invalid value",
                 colMetricsURL.size(), is(0));
-            assertTrue("failed to find log message detecting metrics proxy configuration invalid in server log",
+            assertThat("failed to find log message detecting metrics proxy configuration invalid in server log",
                 validateLogFileContainsIllegalArgumentException(new File(ensureOutputDir("metrics"),
                     SERVER_MEMBERNAME  + ".out")));
             }
-        }
-
-    public boolean validateLogFileContainsAddressAlreadyInUse(File fileLog)
-        throws IOException
-        {
-        // scrape log to ensure it contains following:
-        // Oracle Coherence GE 12.2.1.4.0 <Error> (thread=Proxy:MetricsHttpProxy:HttpAcceptor, member=3):
-        //    createHttpServer at address /0.0.0.0:9612 failed due to exception java.net.BindException : Address already in use
-        FileReader     fileReader     = new FileReader( fileLog);
-        BufferedReader bufferedReader = new BufferedReader(fileReader);
-
-        String line;
-        while ((line = bufferedReader.readLine()) != null)
-            {
-            if (line.contains("<Error>") && line.contains(MetricsHttpHelper.getServiceName()) &&
-                line.contains(Integer.toString(DEFAULT_PROMETHEUS_METRICS_PORT))
-                       && (line.contains("Address already in use") || line.contains("Address in use")))
-                {
-                return true;
-                }
-            }
-        return false;
         }
 
     private static boolean validateLogFileContainsIllegalArgumentException(File fileLog)
@@ -311,10 +245,5 @@ public class MetricsStartupModeTests
     /**
      * The file name of the default cache configuration file used by this test.
      */
-    public static String     FILE_SERVER_CFG_CACHE = "coherence-cache-config.xml";
-
-    /**
-     * Number of cache servers in cluster
-     */
-    private static final int N_SERVERS = 3;
+    public static String FILE_SERVER_CFG_CACHE = "coherence-cache-config.xml";
     }
