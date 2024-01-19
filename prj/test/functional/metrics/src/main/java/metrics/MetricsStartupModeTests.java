@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -132,10 +132,14 @@ public class MetricsStartupModeTests
     @Test
     public void shouldNotStartMetricsByDefault() throws IOException
         {
-        String sName = "MetricsServiceNotEnabled";
-        int    nPort = Integer.getInteger("test.multicast.port");
+        String     sName      = "MetricsServiceNotEnabled";
+        int        nPort      = Integer.getInteger("test.multicast.port");
+        Properties propServer = new Properties();
 
-        try (CoherenceClusterMember member = startCacheServer(sName, "metrics", FILE_SERVER_CFG_CACHE, null, true))
+        // Use ephemeral port
+        propServer.put("coherence.metrics.http.port", "0");
+
+        try (CoherenceClusterMember member = startCacheServer(sName, "metrics", FILE_SERVER_CFG_CACHE, propServer, true))
             {
             Eventually.assertThat(invoking(member).isServiceRunning(MetricsHttpHelper.getServiceName()), is(false));
 
@@ -198,6 +202,8 @@ public class MetricsStartupModeTests
         int        nPort       = Integer.getInteger("test.multicast.port");
         Properties propServer  = new Properties();
 
+        // Use ephemeral port
+        propServer.put("coherence.metrics.http.port", "0");
         propServer.put("coherence.metrics.http.enabled", "true");
         propServer.put(sName, sValue);
         propServer.put("coherence.member", sMemberName);
