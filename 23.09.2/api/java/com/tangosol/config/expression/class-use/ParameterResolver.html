@@ -1128,28 +1128,69 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color">
 <div class="block">Return true if the backing map is transient.</div>
 </div>
-<div class="col-first odd-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">CacheStoreScheme.</span><code><a href="../../../coherence/config/scheme/CacheStoreScheme.html#realize(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realize</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-first odd-row-color"><code>boolean</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">ReadWriteBackingMapScheme.</span><code><a href="../../../coherence/config/scheme/ReadWriteBackingMapScheme.html#isWriteBehindRemove(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">isWriteBehindRemove</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
 <div class="col-last odd-row-color">
+<div class="block">Returns true if the write-behind applies to remove.</div>
+</div>
+<div class="col-first even-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">CacheStoreScheme.</span><code><a href="../../../coherence/config/scheme/CacheStoreScheme.html#realize(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realize</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-last even-row-color">
 <div class="block">Realize (ensure) a remote NamedCache, CacheStore, CacheLoader, or BinaryEntryStore
  as specified by the builder.</div>
 </div>
-<div class="col-first even-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">ClassScheme.</span><code><a href="../../../coherence/config/scheme/ClassScheme.html#realize(com.tangosol.config.expression.ParameterResolver,java.lang.ClassLoader,com.tangosol.coherence.config.ParameterList)" class="member-name-link">realize</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+<div class="col-first odd-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">ClassScheme.</span><code><a href="../../../coherence/config/scheme/ClassScheme.html#realize(com.tangosol.config.expression.ParameterResolver,java.lang.ClassLoader,com.tangosol.coherence.config.ParameterList)" class="member-name-link">realize</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html" title="class or interface in java.lang" class="external-link">ClassLoader</a>&nbsp;loader,
  <a href="../../../coherence/config/ParameterList.html" title="interface in com.tangosol.coherence.config">ParameterList</a>&nbsp;listParameters)</code></div>
-<div class="col-last even-row-color">
+<div class="col-last odd-row-color">
 <div class="block">Realizes (creates if necessary) an instance of a object of type T, using the provided <a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression"><code>ParameterResolver</code></a>
  to resolve values any referenced <a href="../Parameter.html" title="class in com.tangosol.config.expression"><code>Parameter</code></a>s.</div>
 </div>
-<div class="col-first odd-row-color"><code>&lt;V&gt;&nbsp;<a href="../../../net/topic/NamedTopic.html" title="interface in com.tangosol.net.topic">NamedTopic</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">PagedTopicScheme.</span><code><a href="../../../coherence/config/scheme/PagedTopicScheme.html#realize(com.tangosol.net.ValueTypeAssertion,com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realize</a><wbr>(<a href="../../../net/ValueTypeAssertion.html" title="interface in com.tangosol.net">ValueTypeAssertion</a>&lt;V&gt;&nbsp;typeConstraint,
+<div class="col-first even-row-color"><code>&lt;V&gt;&nbsp;<a href="../../../net/topic/NamedTopic.html" title="interface in com.tangosol.net.topic">NamedTopic</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">PagedTopicScheme.</span><code><a href="../../../coherence/config/scheme/PagedTopicScheme.html#realize(com.tangosol.net.ValueTypeAssertion,com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realize</a><wbr>(<a href="../../../net/ValueTypeAssertion.html" title="interface in com.tangosol.net">ValueTypeAssertion</a>&lt;V&gt;&nbsp;typeConstraint,
  <a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
  <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;deps)</code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code><a href="../../../net/NamedCache.html" title="interface in com.tangosol.net">NamedCache</a></code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">AbstractCachingScheme.</span><code><a href="../../../coherence/config/scheme/AbstractCachingScheme.html#realizeCache(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeCache</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Realizes a <a href="../../../net/NamedCache.html" title="interface in com.tangosol.net"><code>NamedCache</code></a> (possibly "ensuring it") based on the state
+ of the builder, the provided <a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression"><code>ParameterResolver</code></a> and <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>
+ dependencies.</div>
+</div>
+<div class="col-first even-row-color"><code><a href="../../../net/NamedCache.html" title="interface in com.tangosol.net">NamedCache</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">ClassScheme.</span><code><a href="../../../coherence/config/scheme/ClassScheme.html#realizeCache(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeCache</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Realizes a <a href="../../../net/NamedCache.html" title="interface in com.tangosol.net"><code>NamedCache</code></a> (possibly "ensuring it") based on the state
+ of the builder, the provided <a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression"><code>ParameterResolver</code></a> and <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>
+ dependencies.</div>
+</div>
+<div class="col-first odd-row-color"><code><a href="../../../net/NamedCache.html" title="interface in com.tangosol.net">NamedCache</a></code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">CustomScheme.</span><code><a href="../../../coherence/config/scheme/CustomScheme.html#realizeCache(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeCache</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Realizes a <a href="../../../net/NamedCache.html" title="interface in com.tangosol.net"><code>NamedCache</code></a> (possibly "ensuring it") based on the state
+ of the builder, the provided <a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression"><code>ParameterResolver</code></a> and <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>
+ dependencies.</div>
+</div>
+<div class="col-first even-row-color"><code><a href="../../../net/NamedCache.html" title="interface in com.tangosol.net">NamedCache</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">NearScheme.</span><code><a href="../../../coherence/config/scheme/NearScheme.html#realizeCache(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeCache</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Realizes a <a href="../../../net/NamedCache.html" title="interface in com.tangosol.net"><code>NamedCache</code></a> (possibly "ensuring it") based on the state
+ of the builder, the provided <a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression"><code>ParameterResolver</code></a> and <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>
+ dependencies.</div>
+</div>
+<div class="col-first odd-row-color"><code><a href="../../../net/NamedCache.html" title="interface in com.tangosol.net">NamedCache</a></code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">PagedTopicStorageScheme.</span><code><a href="../../../coherence/config/scheme/PagedTopicStorageScheme.html#realizeCache(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeCache</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
 <div class="col-first even-row-color"><code><a href="../../../net/NamedCache.html" title="interface in com.tangosol.net">NamedCache</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">AbstractCachingScheme.</span><code><a href="../../../coherence/config/scheme/AbstractCachingScheme.html#realizeCache(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeCache</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+<div class="col-second even-row-color"><span class="type-name-label">TransactionalScheme.</span><code><a href="../../../coherence/config/scheme/TransactionalScheme.html#realizeCache(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeCache</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
  <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Realizes a <a href="../../../net/NamedCache.html" title="interface in com.tangosol.net"><code>NamedCache</code></a> (possibly "ensuring it") based on the state
@@ -1157,245 +1198,209 @@ loadScripts(document, 'script');</script>
  dependencies.</div>
 </div>
 <div class="col-first odd-row-color"><code><a href="../../../net/NamedCache.html" title="interface in com.tangosol.net">NamedCache</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">ClassScheme.</span><code><a href="../../../coherence/config/scheme/ClassScheme.html#realizeCache(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeCache</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+<div class="col-second odd-row-color"><span class="type-name-label">WrapperCachingScheme.</span><code><a href="../../../coherence/config/scheme/WrapperCachingScheme.html#realizeCache(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeCache</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
  <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Realizes a <a href="../../../net/NamedCache.html" title="interface in com.tangosol.net"><code>NamedCache</code></a> (possibly "ensuring it") based on the state
- of the builder, the provided <a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression"><code>ParameterResolver</code></a> and <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>
- dependencies.</div>
-</div>
-<div class="col-first even-row-color"><code><a href="../../../net/NamedCache.html" title="interface in com.tangosol.net">NamedCache</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">CustomScheme.</span><code><a href="../../../coherence/config/scheme/CustomScheme.html#realizeCache(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeCache</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">CacheStoreScheme.</span><code><a href="../../../coherence/config/scheme/CacheStoreScheme.html#realizeLocal(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeLocal</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
  <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
 <div class="col-last even-row-color">
-<div class="block">Realizes a <a href="../../../net/NamedCache.html" title="interface in com.tangosol.net"><code>NamedCache</code></a> (possibly "ensuring it") based on the state
- of the builder, the provided <a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression"><code>ParameterResolver</code></a> and <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>
- dependencies.</div>
-</div>
-<div class="col-first odd-row-color"><code><a href="../../../net/NamedCache.html" title="interface in com.tangosol.net">NamedCache</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">NearScheme.</span><code><a href="../../../coherence/config/scheme/NearScheme.html#realizeCache(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeCache</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Realizes a <a href="../../../net/NamedCache.html" title="interface in com.tangosol.net"><code>NamedCache</code></a> (possibly "ensuring it") based on the state
- of the builder, the provided <a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression"><code>ParameterResolver</code></a> and <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>
- dependencies.</div>
-</div>
-<div class="col-first even-row-color"><code><a href="../../../net/NamedCache.html" title="interface in com.tangosol.net">NamedCache</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">PagedTopicStorageScheme.</span><code><a href="../../../coherence/config/scheme/PagedTopicStorageScheme.html#realizeCache(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeCache</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="../../../net/NamedCache.html" title="interface in com.tangosol.net">NamedCache</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">TransactionalScheme.</span><code><a href="../../../coherence/config/scheme/TransactionalScheme.html#realizeCache(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeCache</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Realizes a <a href="../../../net/NamedCache.html" title="interface in com.tangosol.net"><code>NamedCache</code></a> (possibly "ensuring it") based on the state
- of the builder, the provided <a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression"><code>ParameterResolver</code></a> and <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>
- dependencies.</div>
-</div>
-<div class="col-first even-row-color"><code><a href="../../../net/NamedCache.html" title="interface in com.tangosol.net">NamedCache</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">WrapperCachingScheme.</span><code><a href="../../../coherence/config/scheme/WrapperCachingScheme.html#realizeCache(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeCache</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">CacheStoreScheme.</span><code><a href="../../../coherence/config/scheme/CacheStoreScheme.html#realizeLocal(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeLocal</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
-<div class="col-last odd-row-color">
 <div class="block">Return an instance of a CacheStore, CacheLoader or a BinaryEntryStore.</div>
 </div>
-<div class="col-first even-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">AbstractCachingScheme.</span><code><a href="../../../coherence/config/scheme/AbstractCachingScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
-<div class="col-last even-row-color">
-<div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
- resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
-</div>
 <div class="col-first odd-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">BackingMapScheme.</span><code><a href="../../../coherence/config/scheme/BackingMapScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
- resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
-</div>
-<div class="col-first even-row-color"><code><a href="../../../../oracle/coherence/caffeine/CaffeineCache.html" title="class in com.oracle.coherence.caffeine">CaffeineCache</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">CaffeineScheme.</span><code><a href="../../../coherence/config/scheme/CaffeineScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">ClassScheme.</span><code><a href="../../../coherence/config/scheme/ClassScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+<div class="col-second odd-row-color"><span class="type-name-label">AbstractCachingScheme.</span><code><a href="../../../coherence/config/scheme/AbstractCachingScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
  <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
 <div class="col-last odd-row-color">
 <div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
  resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
 </div>
 <div class="col-first even-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">CustomScheme.</span><code><a href="../../../coherence/config/scheme/CustomScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+<div class="col-second even-row-color"><span class="type-name-label">BackingMapScheme.</span><code><a href="../../../coherence/config/scheme/BackingMapScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
  <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
  resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
 </div>
-<div class="col-first odd-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">ExternalScheme.</span><code><a href="../../../coherence/config/scheme/ExternalScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
- resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
-</div>
-<div class="col-first even-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">FlashJournalScheme.</span><code><a href="../../../coherence/config/scheme/FlashJournalScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
-<div class="col-last even-row-color">
-<div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
- resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
-</div>
-<div class="col-first odd-row-color"><code><a href="../../../net/cache/LocalCache.html" title="class in com.tangosol.net.cache">LocalCache</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">LocalScheme.</span><code><a href="../../../coherence/config/scheme/LocalScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
- resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
-</div>
-<div class="col-first even-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">OverflowScheme.</span><code><a href="../../../coherence/config/scheme/OverflowScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
-<div class="col-last even-row-color">
-<div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
- resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
-</div>
-<div class="col-first odd-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">PagedExternalScheme.</span><code><a href="../../../coherence/config/scheme/PagedExternalScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
- resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
-</div>
-<div class="col-first even-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">PagedTopicStorageScheme.</span><code><a href="../../../coherence/config/scheme/PagedTopicStorageScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">RamJournalScheme.</span><code><a href="../../../coherence/config/scheme/RamJournalScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
- resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
-</div>
-<div class="col-first even-row-color"><code><a href="../../../net/cache/ReadWriteBackingMap.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMapScheme.</span><code><a href="../../../coherence/config/scheme/ReadWriteBackingMapScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
-<div class="col-last even-row-color">
-<div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
- resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
-</div>
-<div class="col-first odd-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">WrapperCachingScheme.</span><code><a href="../../../coherence/config/scheme/WrapperCachingScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+<div class="col-first odd-row-color"><code><a href="../../../../oracle/coherence/caffeine/CaffeineCache.html" title="class in com.oracle.coherence.caffeine">CaffeineCache</a></code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">CaffeineScheme.</span><code><a href="../../../coherence/config/scheme/CaffeineScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
  <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code>boolean</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">ClassScheme.</span><code><a href="../../../coherence/config/scheme/ClassScheme.html#realizes(java.lang.Class,com.tangosol.config.expression.ParameterResolver,java.lang.ClassLoader)" class="member-name-link">realizes</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;clzClass,
+<div class="col-first even-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">ClassScheme.</span><code><a href="../../../coherence/config/scheme/ClassScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
+ resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
+</div>
+<div class="col-first odd-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">CustomScheme.</span><code><a href="../../../coherence/config/scheme/CustomScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
+ resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
+</div>
+<div class="col-first even-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">ExternalScheme.</span><code><a href="../../../coherence/config/scheme/ExternalScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
+ resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
+</div>
+<div class="col-first odd-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">FlashJournalScheme.</span><code><a href="../../../coherence/config/scheme/FlashJournalScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
+ resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
+</div>
+<div class="col-first even-row-color"><code><a href="../../../net/cache/LocalCache.html" title="class in com.tangosol.net.cache">LocalCache</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">LocalScheme.</span><code><a href="../../../coherence/config/scheme/LocalScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
+ resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
+</div>
+<div class="col-first odd-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">OverflowScheme.</span><code><a href="../../../coherence/config/scheme/OverflowScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
+ resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
+</div>
+<div class="col-first even-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">PagedExternalScheme.</span><code><a href="../../../coherence/config/scheme/PagedExternalScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
+ resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
+</div>
+<div class="col-first odd-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">PagedTopicStorageScheme.</span><code><a href="../../../coherence/config/scheme/PagedTopicStorageScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">RamJournalScheme.</span><code><a href="../../../coherence/config/scheme/RamJournalScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
+ resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
+</div>
+<div class="col-first odd-row-color"><code><a href="../../../net/cache/ReadWriteBackingMap.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap</a></code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">ReadWriteBackingMapScheme.</span><code><a href="../../../coherence/config/scheme/ReadWriteBackingMapScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
+ resolvable parameters and provided <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
+</div>
+<div class="col-first even-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">WrapperCachingScheme.</span><code><a href="../../../coherence/config/scheme/WrapperCachingScheme.html#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../../../coherence/config/builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>boolean</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">ClassScheme.</span><code><a href="../../../coherence/config/scheme/ClassScheme.html#realizes(java.lang.Class,com.tangosol.config.expression.ParameterResolver,java.lang.ClassLoader)" class="member-name-link">realizes</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;clzClass,
  <a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html" title="class or interface in java.lang" class="external-link">ClassLoader</a>&nbsp;loader)</code></div>
-<div class="col-last even-row-color">
+<div class="col-last odd-row-color">
 <div class="block">Determines if the <a href="../../../coherence/config/builder/ParameterizedBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>ParameterizedBuilder</code></a> will realize an instance of the specified class (without
  requiring the builder to actually realize an object).</div>
 </div>
-<div class="col-first odd-row-color"><code><a href="../../../net/Service.html" title="interface in com.tangosol.net">Service</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">AbstractServiceScheme.</span><code><a href="../../../coherence/config/scheme/AbstractServiceScheme.html#realizeService(com.tangosol.config.expression.ParameterResolver,java.lang.ClassLoader,com.tangosol.net.Cluster)" class="member-name-link">realizeService</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html" title="class or interface in java.lang" class="external-link">ClassLoader</a>&nbsp;loader,
- <a href="../../../net/Cluster.html" title="interface in com.tangosol.net">Cluster</a>&nbsp;cluster)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Realize (ensure) a Service.</div>
-</div>
 <div class="col-first even-row-color"><code><a href="../../../net/Service.html" title="interface in com.tangosol.net">Service</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">CustomScheme.</span><code><a href="../../../coherence/config/scheme/CustomScheme.html#realizeService(com.tangosol.config.expression.ParameterResolver,java.lang.ClassLoader,com.tangosol.net.Cluster)" class="member-name-link">realizeService</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+<div class="col-second even-row-color"><span class="type-name-label">AbstractServiceScheme.</span><code><a href="../../../coherence/config/scheme/AbstractServiceScheme.html#realizeService(com.tangosol.config.expression.ParameterResolver,java.lang.ClassLoader,com.tangosol.net.Cluster)" class="member-name-link">realizeService</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html" title="class or interface in java.lang" class="external-link">ClassLoader</a>&nbsp;loader,
  <a href="../../../net/Cluster.html" title="interface in com.tangosol.net">Cluster</a>&nbsp;cluster)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Realize (ensure) a Service.</div>
 </div>
 <div class="col-first odd-row-color"><code><a href="../../../net/Service.html" title="interface in com.tangosol.net">Service</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">RemoteCacheScheme.</span><code><a href="../../../coherence/config/scheme/RemoteCacheScheme.html#realizeService(com.tangosol.config.expression.ParameterResolver,java.lang.ClassLoader,com.tangosol.net.Cluster)" class="member-name-link">realizeService</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+<div class="col-second odd-row-color"><span class="type-name-label">CustomScheme.</span><code><a href="../../../coherence/config/scheme/CustomScheme.html#realizeService(com.tangosol.config.expression.ParameterResolver,java.lang.ClassLoader,com.tangosol.net.Cluster)" class="member-name-link">realizeService</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html" title="class or interface in java.lang" class="external-link">ClassLoader</a>&nbsp;loader,
  <a href="../../../net/Cluster.html" title="interface in com.tangosol.net">Cluster</a>&nbsp;cluster)</code></div>
 <div class="col-last odd-row-color">
 <div class="block">Realize (ensure) a Service.</div>
 </div>
 <div class="col-first even-row-color"><code><a href="../../../net/Service.html" title="interface in com.tangosol.net">Service</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">RemoteInvocationScheme.</span><code><a href="../../../coherence/config/scheme/RemoteInvocationScheme.html#realizeService(com.tangosol.config.expression.ParameterResolver,java.lang.ClassLoader,com.tangosol.net.Cluster)" class="member-name-link">realizeService</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+<div class="col-second even-row-color"><span class="type-name-label">RemoteCacheScheme.</span><code><a href="../../../coherence/config/scheme/RemoteCacheScheme.html#realizeService(com.tangosol.config.expression.ParameterResolver,java.lang.ClassLoader,com.tangosol.net.Cluster)" class="member-name-link">realizeService</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html" title="class or interface in java.lang" class="external-link">ClassLoader</a>&nbsp;loader,
  <a href="../../../net/Cluster.html" title="interface in com.tangosol.net">Cluster</a>&nbsp;cluster)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Realize (ensure) a Service.</div>
 </div>
 <div class="col-first odd-row-color"><code><a href="../../../net/Service.html" title="interface in com.tangosol.net">Service</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">TransactionalScheme.</span><code><a href="../../../coherence/config/scheme/TransactionalScheme.html#realizeService(com.tangosol.config.expression.ParameterResolver,java.lang.ClassLoader,com.tangosol.net.Cluster)" class="member-name-link">realizeService</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+<div class="col-second odd-row-color"><span class="type-name-label">RemoteInvocationScheme.</span><code><a href="../../../coherence/config/scheme/RemoteInvocationScheme.html#realizeService(com.tangosol.config.expression.ParameterResolver,java.lang.ClassLoader,com.tangosol.net.Cluster)" class="member-name-link">realizeService</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html" title="class or interface in java.lang" class="external-link">ClassLoader</a>&nbsp;loader,
  <a href="../../../net/Cluster.html" title="interface in com.tangosol.net">Cluster</a>&nbsp;cluster)</code></div>
 <div class="col-last odd-row-color">
 <div class="block">Realize (ensure) a Service.</div>
 </div>
 <div class="col-first even-row-color"><code><a href="../../../net/Service.html" title="interface in com.tangosol.net">Service</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">ViewScheme.</span><code><a href="../../../coherence/config/scheme/ViewScheme.html#realizeService(com.tangosol.config.expression.ParameterResolver,java.lang.ClassLoader,com.tangosol.net.Cluster)" class="member-name-link">realizeService</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+<div class="col-second even-row-color"><span class="type-name-label">TransactionalScheme.</span><code><a href="../../../coherence/config/scheme/TransactionalScheme.html#realizeService(com.tangosol.config.expression.ParameterResolver,java.lang.ClassLoader,com.tangosol.net.Cluster)" class="member-name-link">realizeService</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html" title="class or interface in java.lang" class="external-link">ClassLoader</a>&nbsp;loader,
  <a href="../../../net/Cluster.html" title="interface in com.tangosol.net">Cluster</a>&nbsp;cluster)</code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code>int</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">BackupMapConfig.</span><code><a href="../../../coherence/config/scheme/BackupMapConfig.html#resolveType(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder)" class="member-name-link">resolveType</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder">MapBuilder</a>&nbsp;bldrPrimaryMap)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Resolve the backup map type using the configuration specified
- by the application.</div>
+<div class="col-last even-row-color">
+<div class="block">Realize (ensure) a Service.</div>
 </div>
+<div class="col-first odd-row-color"><code><a href="../../../net/Service.html" title="interface in com.tangosol.net">Service</a></code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">ViewScheme.</span><code><a href="../../../coherence/config/scheme/ViewScheme.html#realizeService(com.tangosol.config.expression.ParameterResolver,java.lang.ClassLoader,com.tangosol.net.Cluster)" class="member-name-link">realizeService</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html" title="class or interface in java.lang" class="external-link">ClassLoader</a>&nbsp;loader,
+ <a href="../../../net/Cluster.html" title="interface in com.tangosol.net">Cluster</a>&nbsp;cluster)</code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
 <div class="col-first even-row-color"><code>int</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">DistributedScheme.BackupConfig.</span><code><a href="../../../coherence/config/scheme/DistributedScheme.BackupConfig.html#resolveType(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder)" class="member-name-link">resolveType</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+<div class="col-second even-row-color"><span class="type-name-label">BackupMapConfig.</span><code><a href="../../../coherence/config/scheme/BackupMapConfig.html#resolveType(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder)" class="member-name-link">resolveType</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
  <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder">MapBuilder</a>&nbsp;bldrPrimaryMap)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Resolve the backup map type using the configuration specified
  by the application.</div>
 </div>
-<div class="col-first odd-row-color"><code>protected void</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">AbstractCachingScheme.</span><code><a href="../../../coherence/config/scheme/AbstractCachingScheme.html#validate(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">validate</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
+<div class="col-first odd-row-color"><code>int</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">DistributedScheme.BackupConfig.</span><code><a href="../../../coherence/config/scheme/DistributedScheme.BackupConfig.html#resolveType(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder)" class="member-name-link">resolveType</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../../../coherence/config/builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder">MapBuilder</a>&nbsp;bldrPrimaryMap)</code></div>
 <div class="col-last odd-row-color">
-<div class="block">Validate the properties.</div>
+<div class="block">Resolve the backup map type using the configuration specified
+ by the application.</div>
 </div>
 <div class="col-first even-row-color"><code>protected void</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">AbstractCompositeScheme.</span><code><a href="../../../coherence/config/scheme/AbstractCompositeScheme.html#validate(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">validate</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">AbstractCachingScheme.</span><code><a href="../../../coherence/config/scheme/AbstractCachingScheme.html#validate(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">validate</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Validate the properties.</div>
 </div>
 <div class="col-first odd-row-color"><code>protected void</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">BackingMapScheme.</span><code><a href="../../../coherence/config/scheme/BackingMapScheme.html#validate(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">validate</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">AbstractCompositeScheme.</span><code><a href="../../../coherence/config/scheme/AbstractCompositeScheme.html#validate(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">validate</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
 <div class="col-last odd-row-color">
 <div class="block">Validate the properties.</div>
 </div>
 <div class="col-first even-row-color"><code>protected void</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">BundleManager.BundleConfig.</span><code><a href="../../../coherence/config/scheme/BundleManager.BundleConfig.html#validate(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">validate</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">BackingMapScheme.</span><code><a href="../../../coherence/config/scheme/BackingMapScheme.html#validate(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">validate</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
 <div class="col-last even-row-color">
+<div class="block">Validate the properties.</div>
+</div>
+<div class="col-first odd-row-color"><code>protected void</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">BundleManager.BundleConfig.</span><code><a href="../../../coherence/config/scheme/BundleManager.BundleConfig.html#validate(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">validate</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Validate the bundle configuration.</div>
 </div>
-<div class="col-first odd-row-color"><code>protected void</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">CaffeineScheme.</span><code><a href="../../../coherence/config/scheme/CaffeineScheme.html#validate(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">validate</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Validate the properties.</div>
-</div>
 <div class="col-first even-row-color"><code>protected void</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">ExternalScheme.</span><code><a href="../../../coherence/config/scheme/ExternalScheme.html#validate(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">validate</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">CaffeineScheme.</span><code><a href="../../../coherence/config/scheme/CaffeineScheme.html#validate(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">validate</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Validate the properties.</div>
 </div>
 <div class="col-first odd-row-color"><code>protected void</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">LocalScheme.</span><code><a href="../../../coherence/config/scheme/LocalScheme.html#validate(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">validate</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">ExternalScheme.</span><code><a href="../../../coherence/config/scheme/ExternalScheme.html#validate(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">validate</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
 <div class="col-last odd-row-color">
 <div class="block">Validate the properties.</div>
 </div>
 <div class="col-first even-row-color"><code>protected void</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">PagedExternalScheme.</span><code><a href="../../../coherence/config/scheme/PagedExternalScheme.html#validate(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">validate</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">LocalScheme.</span><code><a href="../../../coherence/config/scheme/LocalScheme.html#validate(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">validate</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Validate the properties.</div>
 </div>
 <div class="col-first odd-row-color"><code>protected void</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">ReadWriteBackingMapScheme.</span><code><a href="../../../coherence/config/scheme/ReadWriteBackingMapScheme.html#validate(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">validate</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">PagedExternalScheme.</span><code><a href="../../../coherence/config/scheme/PagedExternalScheme.html#validate(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">validate</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
 <div class="col-last odd-row-color">
+<div class="block">Validate the properties.</div>
+</div>
+<div class="col-first even-row-color"><code>protected void</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMapScheme.</span><code><a href="../../../coherence/config/scheme/ReadWriteBackingMapScheme.html#validate(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">validate</a><wbr>(<a href="../ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
+<div class="col-last even-row-color">
 <div class="block">Validate the properties.</div>
 </div>
 </div>

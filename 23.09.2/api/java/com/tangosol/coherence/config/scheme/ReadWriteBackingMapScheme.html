@@ -238,68 +238,74 @@ loadScripts(document, 'script');</script>
  could be taken.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="../../../net/cache/ReadWriteBackingMap.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double)" class="member-name-link">instantiateReadWriteBackingMap</a><wbr>(<a href="../../../net/BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double,boolean)" class="member-name-link">instantiateReadWriteBackingMap</a><wbr>(<a href="../../../net/BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
  <a href="../../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
  <a href="../../../net/cache/BinaryEntryStore.html" title="interface in com.tangosol.net.cache">BinaryEntryStore</a>&nbsp;storeBinary,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
- double&nbsp;dflRefreshAheadFactor)</code></div>
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Construct a ReadWriteBackingMap using the specified parameters.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="../../../net/cache/ReadWriteBackingMap.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double)" class="member-name-link">instantiateReadWriteBackingMap</a><wbr>(<a href="../../../net/BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double,boolean)" class="member-name-link">instantiateReadWriteBackingMap</a><wbr>(<a href="../../../net/BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
  <a href="../../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
  <a href="../../../net/cache/CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;store,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
- double&nbsp;dflRefreshAheadFactor)</code></div>
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Construct a ReadWriteBackingMap using the specified parameters.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="../../../net/cache/ReadWriteBackingMap.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.NonBlockingEntryStore,boolean,int,double)" class="member-name-link">instantiateReadWriteBackingMap</a><wbr>(<a href="../../../net/BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.NonBlockingEntryStore,boolean,int,double,boolean)" class="member-name-link">instantiateReadWriteBackingMap</a><wbr>(<a href="../../../net/BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
  <a href="../../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
  <a href="../../../net/cache/NonBlockingEntryStore.html" title="interface in com.tangosol.net.cache">NonBlockingEntryStore</a>&nbsp;storeBinary,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
- double&nbsp;dflRefreshAheadFactor)</code></div>
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Construct a ReadWriteBackingMap using the specified parameters.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="../../../net/partition/ReadWriteSplittingBackingMap.html" title="class in com.tangosol.net.partition">ReadWriteSplittingBackingMap</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateReadWriteSplittingBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double)" class="member-name-link">instantiateReadWriteSplittingBackingMap</a><wbr>(<a href="../../../net/BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateReadWriteSplittingBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double,boolean)" class="member-name-link">instantiateReadWriteSplittingBackingMap</a><wbr>(<a href="../../../net/BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
  <a href="../../../net/partition/PartitionAwareBackingMap.html" title="interface in com.tangosol.net.partition">PartitionAwareBackingMap</a>&nbsp;mapInternal,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
  <a href="../../../net/cache/BinaryEntryStore.html" title="interface in com.tangosol.net.cache">BinaryEntryStore</a>&nbsp;storeBinary,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
- double&nbsp;dflRefreshAheadFactor)</code></div>
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Construct a ReadWriteSplittingBackingMap using the specified parameters.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="../../../net/partition/ReadWriteSplittingBackingMap.html" title="class in com.tangosol.net.partition">ReadWriteSplittingBackingMap</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateReadWriteSplittingBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double)" class="member-name-link">instantiateReadWriteSplittingBackingMap</a><wbr>(<a href="../../../net/BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateReadWriteSplittingBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double,boolean)" class="member-name-link">instantiateReadWriteSplittingBackingMap</a><wbr>(<a href="../../../net/BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
  <a href="../../../net/partition/PartitionAwareBackingMap.html" title="interface in com.tangosol.net.partition">PartitionAwareBackingMap</a>&nbsp;mapInternal,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
  <a href="../../../net/cache/CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;store,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
- double&nbsp;dflRefreshAheadFactor)</code></div>
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Construct a ReadWriteSplittingBackingMap using the specified parameters.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="../../../net/partition/ReadWriteSplittingBackingMap.html" title="class in com.tangosol.net.partition">ReadWriteSplittingBackingMap</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateReadWriteSplittingBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.NonBlockingEntryStore,boolean,int,double)" class="member-name-link">instantiateReadWriteSplittingBackingMap</a><wbr>(<a href="../../../net/BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateReadWriteSplittingBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.NonBlockingEntryStore,boolean,int,double,boolean)" class="member-name-link">instantiateReadWriteSplittingBackingMap</a><wbr>(<a href="../../../net/BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
  <a href="../../../net/partition/PartitionAwareBackingMap.html" title="interface in com.tangosol.net.partition">PartitionAwareBackingMap</a>&nbsp;mapInternal,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
  <a href="../../../net/cache/NonBlockingEntryStore.html" title="interface in com.tangosol.net.cache">NonBlockingEntryStore</a>&nbsp;storeBinary,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
- double&nbsp;dflRefreshAheadFactor)</code></div>
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Construct a ReadWriteSplittingBackingMap using the specified parameters.</div>
 </div>
@@ -315,58 +321,68 @@ loadScripts(document, 'script');</script>
  are rethrown to the calling thread (possibly over the network to a remote
  member).</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../../net/cache/ReadWriteBackingMap.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../../../config/expression/ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
- <a href="../builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isWriteBehindRemove(com.tangosol.config.expression.ParameterResolver)" class="member-name-link">isWriteBehindRemove</a><wbr>(<a href="../../../config/expression/ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns true if the write-behind applies to remove.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../../net/cache/ReadWriteBackingMap.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#realizeMap(com.tangosol.config.expression.ParameterResolver,com.tangosol.coherence.config.builder.MapBuilder.Dependencies)" class="member-name-link">realizeMap</a><wbr>(<a href="../../../config/expression/ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver,
+ <a href="../builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder">MapBuilder.Dependencies</a>&nbsp;dependencies)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Realize a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a> based on the state of the <a href="../builder/MapBuilder.html" title="interface in com.tangosol.coherence.config.builder"><code>MapBuilder</code></a>,
  resolvable parameters and provided <a href="../builder/MapBuilder.Dependencies.html" title="class in com.tangosol.coherence.config.builder"><code>MapBuilder.Dependencies</code></a>.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setCacheStoreScheme(com.tangosol.coherence.config.scheme.CacheStoreScheme)" class="member-name-link">setCacheStoreScheme</a><wbr>(<a href="CacheStoreScheme.html" title="class in com.tangosol.coherence.config.scheme">CacheStoreScheme</a>&nbsp;bldr)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setCacheStoreScheme(com.tangosol.coherence.config.scheme.CacheStoreScheme)" class="member-name-link">setCacheStoreScheme</a><wbr>(<a href="CacheStoreScheme.html" title="class in com.tangosol.coherence.config.scheme">CacheStoreScheme</a>&nbsp;bldr)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Set the <a href="CacheStoreScheme.html" title="class in com.tangosol.coherence.config.scheme"><code>CacheStoreScheme</code></a> builder.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setCacheStoreTimeout(com.tangosol.config.expression.Expression)" class="member-name-link">setCacheStoreTimeout</a><wbr>(<a href="../../../config/expression/Expression.html" title="interface in com.tangosol.config.expression">Expression</a>&lt;<a href="../unit/Millis.html" title="class in com.tangosol.coherence.config.unit">Millis</a>&gt;&nbsp;expr)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setCacheStoreTimeout(com.tangosol.config.expression.Expression)" class="member-name-link">setCacheStoreTimeout</a><wbr>(<a href="../../../config/expression/Expression.html" title="interface in com.tangosol.config.expression">Expression</a>&lt;<a href="../unit/Millis.html" title="class in com.tangosol.coherence.config.unit">Millis</a>&gt;&nbsp;expr)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Set the timeout interval to use for CacheStore/CacheLoader read and
  write operations.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setInternalMap(com.tangosol.util.ObservableMap)" class="member-name-link">setInternalMap</a><wbr>(<a href="../../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;map)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setInternalMap(com.tangosol.util.ObservableMap)" class="member-name-link">setInternalMap</a><wbr>(<a href="../../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;map)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Set the internal map.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setInternalScheme(com.tangosol.coherence.config.scheme.CachingScheme)" class="member-name-link">setInternalScheme</a><wbr>(<a href="CachingScheme.html" title="interface in com.tangosol.coherence.config.scheme">CachingScheme</a>&nbsp;scheme)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setInternalScheme(com.tangosol.coherence.config.scheme.CachingScheme)" class="member-name-link">setInternalScheme</a><wbr>(<a href="CachingScheme.html" title="interface in com.tangosol.coherence.config.scheme">CachingScheme</a>&nbsp;scheme)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Set the internal scheme.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setMissCacheScheme(com.tangosol.coherence.config.scheme.LocalScheme)" class="member-name-link">setMissCacheScheme</a><wbr>(<a href="LocalScheme.html" title="class in com.tangosol.coherence.config.scheme">LocalScheme</a>&nbsp;scheme)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setMissCacheScheme(com.tangosol.coherence.config.scheme.LocalScheme)" class="member-name-link">setMissCacheScheme</a><wbr>(<a href="LocalScheme.html" title="class in com.tangosol.coherence.config.scheme">LocalScheme</a>&nbsp;scheme)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Set the miss cache <a href="Scheme.html" title="interface in com.tangosol.coherence.config.scheme"><code>Scheme</code></a>.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setReadOnly(com.tangosol.config.expression.Expression)" class="member-name-link">setReadOnly</a><wbr>(<a href="../../../config/expression/Expression.html" title="interface in com.tangosol.config.expression">Expression</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;&nbsp;expr)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setReadOnly(com.tangosol.config.expression.Expression)" class="member-name-link">setReadOnly</a><wbr>(<a href="../../../config/expression/Expression.html" title="interface in com.tangosol.config.expression">Expression</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;&nbsp;expr)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Set the read-only flag.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setRefreshAheadFactor(com.tangosol.config.expression.Expression)" class="member-name-link">setRefreshAheadFactor</a><wbr>(<a href="../../../config/expression/Expression.html" title="interface in com.tangosol.config.expression">Expression</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html" title="class or interface in java.lang" class="external-link">Double</a>&gt;&nbsp;expr)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setRefreshAheadFactor(com.tangosol.config.expression.Expression)" class="member-name-link">setRefreshAheadFactor</a><wbr>(<a href="../../../config/expression/Expression.html" title="interface in com.tangosol.config.expression">Expression</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html" title="class or interface in java.lang" class="external-link">Double</a>&gt;&nbsp;expr)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Set the refresh ahead factor.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setRollbackCacheStoreFailures(com.tangosol.config.expression.Expression)" class="member-name-link">setRollbackCacheStoreFailures</a><wbr>(<a href="../../../config/expression/Expression.html" title="interface in com.tangosol.config.expression">Expression</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;&nbsp;expr)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setRollbackCacheStoreFailures(com.tangosol.config.expression.Expression)" class="member-name-link">setRollbackCacheStoreFailures</a><wbr>(<a href="../../../config/expression/Expression.html" title="interface in com.tangosol.config.expression">Expression</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;&nbsp;expr)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Set the flag to indicate that cache store failures should be rolled back.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setWriteBatchFactor(com.tangosol.config.expression.Expression)" class="member-name-link">setWriteBatchFactor</a><wbr>(<a href="../../../config/expression/Expression.html" title="interface in com.tangosol.config.expression">Expression</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html" title="class or interface in java.lang" class="external-link">Double</a>&gt;&nbsp;expr)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setWriteBatchFactor(com.tangosol.config.expression.Expression)" class="member-name-link">setWriteBatchFactor</a><wbr>(<a href="../../../config/expression/Expression.html" title="interface in com.tangosol.config.expression">Expression</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html" title="class or interface in java.lang" class="external-link">Double</a>&gt;&nbsp;expr)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Set the write batch factor.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setWriteBehindRemove(com.tangosol.config.expression.Expression)" class="member-name-link">setWriteBehindRemove</a><wbr>(<a href="../../../config/expression/Expression.html" title="interface in com.tangosol.config.expression">Expression</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;&nbsp;expr)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Set the write-behind-remove flag.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setWriteDelay(com.tangosol.config.expression.Expression)" class="member-name-link">setWriteDelay</a><wbr>(<a href="../../../config/expression/Expression.html" title="interface in com.tangosol.config.expression">Expression</a>&lt;<a href="../unit/Seconds.html" title="class in com.tangosol.coherence.config.unit">Seconds</a>&gt;&nbsp;expr)</code></div>
@@ -873,7 +889,36 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double)">
+<section class="detail" id="isWriteBehindRemove(com.tangosol.config.expression.ParameterResolver)">
+<h3>isWriteBehindRemove</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isWriteBehindRemove</span><wbr><span class="parameters">(<a href="../../../config/expression/ParameterResolver.html" title="interface in com.tangosol.config.expression">ParameterResolver</a>&nbsp;resolver)</span></div>
+<div class="block">Returns true if the write-behind applies to remove.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>resolver</code> - the ParameterResolver</dd>
+<dt>Returns:</dt>
+<dd>true if the write-behind applies to remove.</dd>
+<dt>Since:</dt>
+<dd>12.2.1.4.18</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="setWriteBehindRemove(com.tangosol.config.expression.Expression)">
+<h3>setWriteBehindRemove</h3>
+<div class="member-signature"><span class="annotations"><a href="../../../config/annotation/Injectable.html" title="annotation interface in com.tangosol.config.annotation">@Injectable</a>
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">setWriteBehindRemove</span><wbr><span class="parameters">(<a href="../../../config/expression/Expression.html" title="interface in com.tangosol.config.expression">Expression</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;&nbsp;expr)</span></div>
+<div class="block">Set the write-behind-remove flag.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>expr</code> - true if the write-behind applies to remove.</dd>
+<dt>Since:</dt>
+<dd>12.2.1.4.18</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double,boolean)">
 <h3>instantiateReadWriteBackingMap</h3>
 <div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="../../../net/cache/ReadWriteBackingMap.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap</a></span>&nbsp;<span class="element-name">instantiateReadWriteBackingMap</span><wbr><span class="parameters">(<a href="../../../net/BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
  <a href="../../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
@@ -881,11 +926,12 @@ loadScripts(document, 'script');</script>
  <a href="../../../net/cache/CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;store,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
- double&nbsp;dflRefreshAheadFactor)</span></div>
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</span></div>
 <div class="block">Construct a ReadWriteBackingMap using the specified parameters.
  <p>
  This method exposes a corresponding ReadWriteBackingMap
- <a href="../../../net/cache/ReadWriteBackingMap.html#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double)"><code>constructor</code></a>
+ <a href="../../../net/cache/ReadWriteBackingMap.html#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double,boolean)"><code>constructor</code></a>
  and is provided for the express purpose of allowing its override.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
@@ -913,13 +959,15 @@ loadScripts(document, 'script');</script>
                               refresh-ahead; only applicable when
                               the <tt>mapInternal</tt> parameter is an
                               instance of <a href="../../../net/cache/ConfigurableCacheMap.html" title="interface in com.tangosol.net.cache"><code>ConfigurableCacheMap</code></a></dd>
+<dd><code>fWriteBehindRemove</code> - pass true if the specified loader is in fact a
+                              CacheStore that needs to apply write-behind to remove</dd>
 <dt>Returns:</dt>
 <dd>the instantiated <a href="../../../net/cache/ReadWriteBackingMap.html" title="class in com.tangosol.net.cache"><code>ReadWriteBackingMap</code></a></dd>
 </dl>
 </section>
 </li>
 <li>
-<section class="detail" id="instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double)">
+<section class="detail" id="instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double,boolean)">
 <h3>instantiateReadWriteBackingMap</h3>
 <div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="../../../net/cache/ReadWriteBackingMap.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap</a></span>&nbsp;<span class="element-name">instantiateReadWriteBackingMap</span><wbr><span class="parameters">(<a href="../../../net/BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
  <a href="../../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
@@ -927,11 +975,12 @@ loadScripts(document, 'script');</script>
  <a href="../../../net/cache/BinaryEntryStore.html" title="interface in com.tangosol.net.cache">BinaryEntryStore</a>&nbsp;storeBinary,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
- double&nbsp;dflRefreshAheadFactor)</span></div>
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</span></div>
 <div class="block">Construct a ReadWriteBackingMap using the specified parameters.
  <p>
  This method exposes a corresponding ReadWriteBackingMap
- <a href="../../../net/cache/ReadWriteBackingMap.html#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double)"><code>constructor</code></a>
+ <a href="../../../net/cache/ReadWriteBackingMap.html#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double,boolean)"><code>constructor</code></a>
  and is provided for the express purpose of allowing its override.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
@@ -959,13 +1008,15 @@ loadScripts(document, 'script');</script>
                               refresh-ahead; only applicable when
                               the <tt>mapInternal</tt> parameter is an
                               instance of <a href="../../../net/cache/ConfigurableCacheMap.html" title="interface in com.tangosol.net.cache"><code>ConfigurableCacheMap</code></a></dd>
+<dd><code>fWriteBehindRemove</code> - pass true if the specified loader is in fact a
+                              CacheStore that needs to apply write-behind to remove</dd>
 <dt>Returns:</dt>
 <dd>the instantiated <a href="../../../net/cache/ReadWriteBackingMap.html" title="class in com.tangosol.net.cache"><code>ReadWriteBackingMap</code></a></dd>
 </dl>
 </section>
 </li>
 <li>
-<section class="detail" id="instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.NonBlockingEntryStore,boolean,int,double)">
+<section class="detail" id="instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.NonBlockingEntryStore,boolean,int,double,boolean)">
 <h3>instantiateReadWriteBackingMap</h3>
 <div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="../../../net/cache/ReadWriteBackingMap.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap</a></span>&nbsp;<span class="element-name">instantiateReadWriteBackingMap</span><wbr><span class="parameters">(<a href="../../../net/BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
  <a href="../../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
@@ -973,11 +1024,12 @@ loadScripts(document, 'script');</script>
  <a href="../../../net/cache/NonBlockingEntryStore.html" title="interface in com.tangosol.net.cache">NonBlockingEntryStore</a>&nbsp;storeBinary,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
- double&nbsp;dflRefreshAheadFactor)</span></div>
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</span></div>
 <div class="block">Construct a ReadWriteBackingMap using the specified parameters.
  <p>
  This method exposes a corresponding ReadWriteBackingMap
- <a href="../../../net/cache/ReadWriteBackingMap.html#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double)"><code>constructor</code></a>
+ <a href="../../../net/cache/ReadWriteBackingMap.html#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double,boolean)"><code>constructor</code></a>
  and is provided for the express purpose of allowing its override.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
@@ -1005,13 +1057,15 @@ loadScripts(document, 'script');</script>
                               refresh-ahead; only applicable when
                               the <tt>mapInternal</tt> parameter is an
                               instance of <a href="../../../net/cache/ConfigurableCacheMap.html" title="interface in com.tangosol.net.cache"><code>ConfigurableCacheMap</code></a></dd>
+<dd><code>fWriteBehindRemove</code> - pass true if the specified loader is in fact a
+                              CacheStore that needs to apply write-behind to remove</dd>
 <dt>Returns:</dt>
 <dd>the instantiated <a href="../../../net/cache/ReadWriteBackingMap.html" title="class in com.tangosol.net.cache"><code>ReadWriteBackingMap</code></a></dd>
 </dl>
 </section>
 </li>
 <li>
-<section class="detail" id="instantiateReadWriteSplittingBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double)">
+<section class="detail" id="instantiateReadWriteSplittingBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double,boolean)">
 <h3>instantiateReadWriteSplittingBackingMap</h3>
 <div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="../../../net/partition/ReadWriteSplittingBackingMap.html" title="class in com.tangosol.net.partition">ReadWriteSplittingBackingMap</a></span>&nbsp;<span class="element-name">instantiateReadWriteSplittingBackingMap</span><wbr><span class="parameters">(<a href="../../../net/BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
  <a href="../../../net/partition/PartitionAwareBackingMap.html" title="interface in com.tangosol.net.partition">PartitionAwareBackingMap</a>&nbsp;mapInternal,
@@ -1019,11 +1073,12 @@ loadScripts(document, 'script');</script>
  <a href="../../../net/cache/CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;store,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
- double&nbsp;dflRefreshAheadFactor)</span></div>
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</span></div>
 <div class="block">Construct a ReadWriteSplittingBackingMap using the specified parameters.
  <p>
  This method exposes a corresponding ReadWriteSplittingBackingMap
- <a href="../../../net/partition/ReadWriteSplittingBackingMap.html#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double)"><code>constructor</code></a>
+ <a href="../../../net/partition/ReadWriteSplittingBackingMap.html#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double,boolean)"><code>constructor</code></a>
  and is provided for the express purpose of allowing its override.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
@@ -1051,13 +1106,15 @@ loadScripts(document, 'script');</script>
                               refresh-ahead; only applicable when
                               the <tt>mapInternal</tt> parameter is an
                               instance of <a href="../../../net/cache/ConfigurableCacheMap.html" title="interface in com.tangosol.net.cache"><code>ConfigurableCacheMap</code></a></dd>
+<dd><code>fWriteBehindRemove</code> - pass true if the specified loader is in fact a
+                              CacheStore that needs to apply write-behind to remove</dd>
 <dt>Returns:</dt>
 <dd>the instantiated <a href="../../../net/partition/ReadWriteSplittingBackingMap.html" title="class in com.tangosol.net.partition"><code>ReadWriteSplittingBackingMap</code></a></dd>
 </dl>
 </section>
 </li>
 <li>
-<section class="detail" id="instantiateReadWriteSplittingBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double)">
+<section class="detail" id="instantiateReadWriteSplittingBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double,boolean)">
 <h3>instantiateReadWriteSplittingBackingMap</h3>
 <div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="../../../net/partition/ReadWriteSplittingBackingMap.html" title="class in com.tangosol.net.partition">ReadWriteSplittingBackingMap</a></span>&nbsp;<span class="element-name">instantiateReadWriteSplittingBackingMap</span><wbr><span class="parameters">(<a href="../../../net/BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
  <a href="../../../net/partition/PartitionAwareBackingMap.html" title="interface in com.tangosol.net.partition">PartitionAwareBackingMap</a>&nbsp;mapInternal,
@@ -1065,11 +1122,12 @@ loadScripts(document, 'script');</script>
  <a href="../../../net/cache/BinaryEntryStore.html" title="interface in com.tangosol.net.cache">BinaryEntryStore</a>&nbsp;storeBinary,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
- double&nbsp;dflRefreshAheadFactor)</span></div>
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</span></div>
 <div class="block">Construct a ReadWriteSplittingBackingMap using the specified parameters.
  <p>
  This method exposes a corresponding ReadWriteSplittingBackingMap
- <a href="../../../net/partition/ReadWriteSplittingBackingMap.html#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double)"><code>constructor</code></a>
+ <a href="../../../net/partition/ReadWriteSplittingBackingMap.html#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double,boolean)"><code>constructor</code></a>
  and is provided for the express purpose of allowing its override.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
@@ -1097,13 +1155,15 @@ loadScripts(document, 'script');</script>
                               refresh-ahead; only applicable when
                               the <tt>mapInternal</tt> parameter is an
                               instance of <a href="../../../net/cache/ConfigurableCacheMap.html" title="interface in com.tangosol.net.cache"><code>ConfigurableCacheMap</code></a></dd>
+<dd><code>fWriteBehindRemove</code> - pass true if the specified loader is in fact a
+                              CacheStore that needs to apply write-behind to remove</dd>
 <dt>Returns:</dt>
 <dd>the instantiated <a href="../../../net/partition/ReadWriteSplittingBackingMap.html" title="class in com.tangosol.net.partition"><code>ReadWriteSplittingBackingMap</code></a></dd>
 </dl>
 </section>
 </li>
 <li>
-<section class="detail" id="instantiateReadWriteSplittingBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.NonBlockingEntryStore,boolean,int,double)">
+<section class="detail" id="instantiateReadWriteSplittingBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.NonBlockingEntryStore,boolean,int,double,boolean)">
 <h3>instantiateReadWriteSplittingBackingMap</h3>
 <div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="../../../net/partition/ReadWriteSplittingBackingMap.html" title="class in com.tangosol.net.partition">ReadWriteSplittingBackingMap</a></span>&nbsp;<span class="element-name">instantiateReadWriteSplittingBackingMap</span><wbr><span class="parameters">(<a href="../../../net/BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
  <a href="../../../net/partition/PartitionAwareBackingMap.html" title="interface in com.tangosol.net.partition">PartitionAwareBackingMap</a>&nbsp;mapInternal,
@@ -1111,11 +1171,12 @@ loadScripts(document, 'script');</script>
  <a href="../../../net/cache/NonBlockingEntryStore.html" title="interface in com.tangosol.net.cache">NonBlockingEntryStore</a>&nbsp;storeBinary,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
- double&nbsp;dflRefreshAheadFactor)</span></div>
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</span></div>
 <div class="block">Construct a ReadWriteSplittingBackingMap using the specified parameters.
  <p>
  This method exposes a corresponding ReadWriteSplittingBackingMap
- <a href="../../../net/partition/ReadWriteSplittingBackingMap.html#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double)"><code>constructor</code></a>
+ <a href="../../../net/partition/ReadWriteSplittingBackingMap.html#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double,boolean)"><code>constructor</code></a>
  and is provided for the express purpose of allowing its override.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
@@ -1143,6 +1204,8 @@ loadScripts(document, 'script');</script>
                               refresh-ahead; only applicable when
                               the <tt>mapInternal</tt> parameter is an
                               instance of <a href="../../../net/cache/ConfigurableCacheMap.html" title="interface in com.tangosol.net.cache"><code>ConfigurableCacheMap</code></a></dd>
+<dd><code>fWriteBehindRemove</code> - pass true if the specified loader is in fact a
+                              CacheStore that needs to apply write-behind to remove</dd>
 <dt>Returns:</dt>
 <dd>the instantiated <a href="../../../net/partition/ReadWriteSplittingBackingMap.html" title="class in com.tangosol.net.partition"><code>ReadWriteSplittingBackingMap</code></a></dd>
 </dl>

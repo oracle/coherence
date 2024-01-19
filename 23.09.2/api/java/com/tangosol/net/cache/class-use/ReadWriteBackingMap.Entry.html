@@ -204,60 +204,66 @@ loadScripts(document, 'script');</script>
 <div class="block">Return a <code>Span.Builder</code> for a given operation on an entry.</div>
 </div>
 <div class="col-first even-row-color"><code>protected void</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMap.StoreWrapper.</span><code><a href="../ReadWriteBackingMap.StoreWrapper.html#onStoreFailure(com.tangosol.net.cache.ReadWriteBackingMap.Entry,java.lang.Exception)" class="member-name-link">onStoreFailure</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry,
+<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMap.StoreWrapper.</span><code><a href="../ReadWriteBackingMap.StoreWrapper.html#onEraseFailure(com.tangosol.net.cache.ReadWriteBackingMap.Entry,java.lang.Exception)" class="member-name-link">onEraseFailure</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e)</code></div>
 <div class="col-last even-row-color">
-<div class="block">Logs a store store() failure.</div>
+<div class="block">Logs a store erase() failure.</div>
 </div>
 <div class="col-first odd-row-color"><code>protected void</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">ReadWriteBackingMap.StoreWrapper.</span><code><a href="../ReadWriteBackingMap.StoreWrapper.html#onStoreFailure(com.tangosol.net.cache.ReadWriteBackingMap.Entry,java.lang.Exception,boolean)" class="member-name-link">onStoreFailure</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e,
- boolean&nbsp;fThrow)</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">ReadWriteBackingMap.StoreWrapper.</span><code><a href="../ReadWriteBackingMap.StoreWrapper.html#onStoreFailure(com.tangosol.net.cache.ReadWriteBackingMap.Entry,java.lang.Exception)" class="member-name-link">onStoreFailure</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e)</code></div>
 <div class="col-last odd-row-color">
 <div class="block">Logs a store store() failure.</div>
 </div>
 <div class="col-first even-row-color"><code>protected void</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMap.</span><code><a href="../ReadWriteBackingMap.html#putToInternalCache(com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">putToInternalCache</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry)</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMap.StoreWrapper.</span><code><a href="../ReadWriteBackingMap.StoreWrapper.html#onStoreFailure(com.tangosol.net.cache.ReadWriteBackingMap.Entry,java.lang.Exception,boolean)" class="member-name-link">onStoreFailure</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e,
+ boolean&nbsp;fThrow)</code></div>
 <div class="col-last even-row-color">
+<div class="block">Logs a store store() failure.</div>
+</div>
+<div class="col-first odd-row-color"><code>protected void</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">ReadWriteBackingMap.</span><code><a href="../ReadWriteBackingMap.html#putToInternalCache(com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">putToInternalCache</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry)</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Add the key and value pair to the internal cache in such a way that the
  resulting map event would be marked as "synthetic".</div>
 </div>
-<div class="col-first odd-row-color"><code>protected void</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">ReadWriteBackingMap.StoreWrapper.</span><code><a href="../ReadWriteBackingMap.StoreWrapper.html#replace(com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">replace</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry)</code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>protected void</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMap.StoreWrapper.</span><code><a href="../ReadWriteBackingMap.StoreWrapper.html#replace(com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">replace</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry)</code></div>
+<div class="col-last even-row-color">
 <div class="block">Replace the value in the internal cache for the specified entry.</div>
 </div>
-<div class="col-first even-row-color"><code>protected boolean</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMap.StoreWrapper.</span><code><a href="../ReadWriteBackingMap.StoreWrapper.html#requeue(com.tangosol.net.cache.ReadWriteBackingMap.WriteQueue,int,com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">requeue</a><wbr>(<a href="../ReadWriteBackingMap.WriteQueue.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.WriteQueue</a>&nbsp;queue,
+<div class="col-first odd-row-color"><code>protected boolean</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">ReadWriteBackingMap.StoreWrapper.</span><code><a href="../ReadWriteBackingMap.StoreWrapper.html#requeue(com.tangosol.net.cache.ReadWriteBackingMap.WriteQueue,int,com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">requeue</a><wbr>(<a href="../ReadWriteBackingMap.WriteQueue.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.WriteQueue</a>&nbsp;queue,
  int&nbsp;cThreshold,
  <a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry)</code></div>
-<div class="col-last even-row-color">
+<div class="col-last odd-row-color">
 <div class="block">Requeue the specified entry.</div>
 </div>
-<div class="col-first odd-row-color"><code>protected void</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">ReadWriteBackingMap.StoreWrapper.</span><code><a href="../ReadWriteBackingMap.StoreWrapper.html#store(com.tangosol.net.cache.ReadWriteBackingMap.Entry,boolean)" class="member-name-link">store</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;binEntry,
+<div class="col-first even-row-color"><code>protected void</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMap.StoreWrapper.</span><code><a href="../ReadWriteBackingMap.StoreWrapper.html#store(com.tangosol.net.cache.ReadWriteBackingMap.Entry,boolean)" class="member-name-link">store</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;binEntry,
  boolean&nbsp;fAllowChange)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Store the specified entry in the underlying store.</div>
-</div>
-<div class="col-first even-row-color"><code>protected void</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMap.BinaryEntryStoreWrapper.</span><code><a href="../ReadWriteBackingMap.BinaryEntryStoreWrapper.html#storeInternal(com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">storeInternal</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;binEntry)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Store the specified entry in the underlying store.</div>
 </div>
 <div class="col-first odd-row-color"><code>protected void</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">ReadWriteBackingMap.CacheStoreWrapper.</span><code><a href="../ReadWriteBackingMap.CacheStoreWrapper.html#storeInternal(com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">storeInternal</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;binEntry)</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">ReadWriteBackingMap.BinaryEntryStoreWrapper.</span><code><a href="../ReadWriteBackingMap.BinaryEntryStoreWrapper.html#storeInternal(com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">storeInternal</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;binEntry)</code></div>
 <div class="col-last odd-row-color">
 <div class="block">Store the specified entry in the underlying store.</div>
 </div>
 <div class="col-first even-row-color"><code>protected void</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMap.NonBlockingEntryStoreWrapper.</span><code><a href="../ReadWriteBackingMap.NonBlockingEntryStoreWrapper.html#storeInternal(com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">storeInternal</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;binEntry)</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMap.CacheStoreWrapper.</span><code><a href="../ReadWriteBackingMap.CacheStoreWrapper.html#storeInternal(com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">storeInternal</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;binEntry)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Store the specified entry in the underlying store.</div>
 </div>
-<div class="col-first odd-row-color"><code>protected abstract void</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">ReadWriteBackingMap.StoreWrapper.</span><code><a href="../ReadWriteBackingMap.StoreWrapper.html#storeInternal(com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">storeInternal</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;binEntry)</code></div>
+<div class="col-first odd-row-color"><code>protected void</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">ReadWriteBackingMap.NonBlockingEntryStoreWrapper.</span><code><a href="../ReadWriteBackingMap.NonBlockingEntryStoreWrapper.html#storeInternal(com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">storeInternal</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;binEntry)</code></div>
 <div class="col-last odd-row-color">
+<div class="block">Store the specified entry in the underlying store.</div>
+</div>
+<div class="col-first even-row-color"><code>protected abstract void</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMap.StoreWrapper.</span><code><a href="../ReadWriteBackingMap.StoreWrapper.html#storeInternal(com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">storeInternal</a><wbr>(<a href="../ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;binEntry)</code></div>
+<div class="col-last even-row-color">
 <div class="block">Store the specified entry in the underlying store.</div>
 </div>
 </div>

@@ -51,29 +51,19 @@ lang="bash"
 
 >gradle tasks</markup>
 
-<p>The <code>coherencePof</code> task will use the output of the <code>compileJava</code> task as input. As such the <code>coherencePof</code> task will
-depend on the <code>compileJava</code> task.</p>
-
-<p>Executing:</p>
+<p>The <code>coherencePof</code> task is added as a <code>doLast</code> action to the <code>compileJava</code> task. Therefore, executing:</p>
 
 <markup
 lang="bash"
 
 >gradle compileJava</markup>
 
-<p>will NOT execute the <code>coherencePof</code> task but on the other hand executing:</p>
-
-<markup
-lang="bash"
-
->gradle coherencePof</markup>
-
-<p>will execute the <code>compileJava</code> task first. By <strong>default</strong>, the <code>coherencePof</code> task will take the <strong>build output</strong> as
-input for classes to be instrumented excluding any test classes. The POF Gradle Plugin supports
+<p>will automatically execute the <code>coherencePof</code> task. By <strong>default</strong>, the <code>coherencePof</code> task will instrument all Java
+classes excluding any test classes. The POF Gradle Plugin supports
 <a id="" title="" target="_blank" href="https://docs.gradle.org/current/userguide/incremental_build.html">incremental builds</a>. This means that only if Java classes
-have changed, the <code>coherencePof</code> task will execute (and only for the changed classes).</p>
+have changed, the <code>coherencePof</code> task will execute.</p>
 
-<p>The <code>coherencePof</code> task will also become a dependency to all tasks that depend on the <code>compileJava</code>. Thefore, executing
+<p>The <code>coherencePof</code> task will also become a dependency to all tasks that depend on the <code>compileJava</code>. Therefore, executing
 the <code>build</code> or <code>jar</code> task will invoke the <code>coherencePof</code> task in case of class changes.</p>
 
 <p>By just adding the plugin using the configuration above, the Coherence Gradle Plugin will discover and instrument all
@@ -141,7 +131,7 @@ title="META-INF/schema.xml"
 
 &lt;/schema&gt;</markup>
 
-<p>In order to use a <code>schema.xml</code> file, you need to set <code>usePofSchemaXml</code> to <code>true</code>. Also, you can customze the location of
+<p>In order to use a <code>schema.xml</code> file, you need to set <code>usePofSchemaXml</code> to <code>true</code>. Also, you can customize the location of
 the <code>schema.xml</code> by setting <code>pofSchemaXmlPath</code> to a value other than <code>META-INF/schema.xml</code>. For example:</p>
 
 <markup
@@ -178,7 +168,7 @@ lang="groovy"
 title="Build.gradle"
 >plugins {
   id 'java'
-  id 'com.oracle.coherence.ce' version '23.09-SNAPSHOT'
+  id 'com.oracle.coherence.ce' version '24.03-SNAPSHOT'
   id 'com.github.vlsi.jandex' version '1.86'
 }</markup>
 
@@ -187,7 +177,7 @@ lang="groovy"
 title="Build.gradle"
 >plugins {
   id 'java'
-  id 'com.oracle.coherence.ce' version '23.09-SNAPSHOT'
+  id 'com.oracle.coherence.ce' version '24.03-SNAPSHOT'
   id 'org.kordamp.gradle.jandex' version '0.13.2'
 }</markup>
 
@@ -301,13 +291,13 @@ lang="groovy"
 title="build.gradle"
 >plugins {
   id 'java'
-  id 'com.oracle.coherence.ce' version '23.09-SNAPSHOT'
+  id 'com.oracle.coherence.ce' version '24.03-SNAPSHOT'
   id 'com.github.vlsi.jandex' version '1.86'
 }
 
 dependencies {
   &#8230;&#8203;
-  implementation 'com.oracle.coherence:coherence:23.09-SNAPSHOT'
+  implementation 'com.oracle.coherence:coherence:24.03-SNAPSHOT'
 }
 
 repositories {

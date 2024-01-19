@@ -637,19 +637,6 @@ function createRoutes(){
             component: loadPage('coherence-concurrent-README', '/coherence-concurrent/README', {})
         },
         {
-            path: '/coherence-helidon-client/README',
-            meta: {
-                h1: 'Coherence Java CDI Client',
-                title: 'Coherence Java CDI Client',
-                h1Prefix: null,
-                description: null,
-                keywords: null,
-                customLayout: null,
-                hasNav: false
-            },
-            component: loadPage('coherence-helidon-client-README', '/coherence-helidon-client/README', {})
-        },
-        {
             path: '/docs/README',
             meta: {
                 h1: 'Coherence Documentation Module',
@@ -687,19 +674,6 @@ function createRoutes(){
                 hasNav: false
             },
             component: loadPage('coherence-micrometer-README', '/coherence-micrometer/README', {})
-        },
-        {
-            path: '/coherence-helidon-grpc-proxy/README',
-            meta: {
-                h1: 'Helidon MP gRPC Server',
-                title: 'Helidon MP gRPC Server',
-                h1Prefix: null,
-                description: null,
-                keywords: null,
-                customLayout: null,
-                hasNav: false
-            },
-            component: loadPage('coherence-helidon-grpc-proxy-README', '/coherence-helidon-grpc-proxy/README', {})
         },
         {
             path: '/coherence-grpc/README',

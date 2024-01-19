@@ -233,32 +233,47 @@ implements <a href="CacheMap.html" title="interface in com.tangosol.net.cache">C
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Field</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><code>protected static final <a href="../../util/Binary.html" title="class in com.tangosol.util">Binary</a></code></div>
-<div class="col-second even-row-color"><code><a href="#BIN_STORE_PENDING" class="member-name-link">BIN_STORE_PENDING</a></code></div>
+<div class="col-first even-row-color"><code>static final <a href="../../util/Binary.html" title="class in com.tangosol.util">Binary</a></code></div>
+<div class="col-second even-row-color"><code><a href="#BIN_ERASE_PENDING" class="member-name-link">BIN_ERASE_PENDING</a></code></div>
 <div class="col-last even-row-color">
+<div class="block">Binary representation of a decorated null for write-behind remove.</div>
+</div>
+<div class="col-first odd-row-color"><code>protected static final <a href="../../util/Binary.html" title="class in com.tangosol.util">Binary</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#BIN_STORE_PENDING" class="member-name-link">BIN_STORE_PENDING</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">The binary form of the decoration indicating that the CacheStore
  on the primary member has not yet written the value.</div>
 </div>
-<div class="col-first odd-row-color"><code>protected static final float</code></div>
-<div class="col-second odd-row-color"><code><a href="#GUARD_RECOVERY" class="member-name-link">GUARD_RECOVERY</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>protected static final float</code></div>
+<div class="col-second even-row-color"><code><a href="#GUARD_RECOVERY" class="member-name-link">GUARD_RECOVERY</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">The recovery threshold to use for guarded execution of
  write-behind/refresh-ahead threads.</div>
 </div>
-<div class="col-first even-row-color"><code>protected <a href="../../util/MapListenerSupport.html" title="class in com.tangosol.util">MapListenerSupport</a></code></div>
-<div class="col-second even-row-color"><code><a href="#m_listenerSupport" class="member-name-link">m_listenerSupport</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>protected <a href="../../util/MapListenerSupport.html" title="class in com.tangosol.util">MapListenerSupport</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#m_listenerSupport" class="member-name-link">m_listenerSupport</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">MapListenerSupport object.</div>
 </div>
-<div class="col-first odd-row-color"><code>static final long</code></div>
-<div class="col-second odd-row-color"><code><a href="#MIN_REQUEUE_DELAY" class="member-name-link">MIN_REQUEUE_DELAY</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static final long</code></div>
+<div class="col-second even-row-color"><code><a href="#MIN_REQUEUE_DELAY" class="member-name-link">MIN_REQUEUE_DELAY</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">The minimum "retry after requeue" time interval.</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#PROP_WB_REMOVE_DEFAULT" class="member-name-link">PROP_WB_REMOVE_DEFAULT</a></code></div>
+<div class="col-last odd-row-color">
+<div class="block">A Boolean system property to control whether write behind remove is enabled.</div>
 </div>
 <div class="col-first even-row-color"><code>protected static final <a href="../../util/Binary.html" title="class in com.tangosol.util">Binary</a></code></div>
 <div class="col-second even-row-color"><code><a href="#REMOVED" class="member-name-link">REMOVED</a></code></div>
 <div class="col-last even-row-color">
 <div class="block">Marker object used by <a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache"><code>ReadWriteBackingMap.Entry</code></a> to indicate <a href="BackingMapBinaryEntry.html#remove(boolean)"><code>remove</code></a> was called on the Entry.</div>
+</div>
+<div class="col-first odd-row-color"><code>static final boolean</code></div>
+<div class="col-second odd-row-color"><code><a href="#RWBM_WB_REMOVE_DEFAULT" class="member-name-link">RWBM_WB_REMOVE_DEFAULT</a></code></div>
+<div class="col-last odd-row-color">
+<div class="block">The default write behind remove behavior.</div>
 </div>
 </div>
 <div class="inherited-list">
@@ -284,20 +299,42 @@ implements <a href="CacheMap.html" title="interface in com.tangosol.net.cache">C
 <div class="col-last even-row-color">
 <div class="block">Construct a ReadWriteBackingMap based on a BinaryEntryStore.</div>
 </div>
-<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader)" class="member-name-link">ReadWriteBackingMap</a><wbr>(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
+<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double,boolean)" class="member-name-link">ReadWriteBackingMap</a><wbr>(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
+ <a href="../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
+ <a href="BinaryEntryStore.html" title="interface in com.tangosol.net.cache">BinaryEntryStore</a>&nbsp;storeBinary,
+ boolean&nbsp;fReadOnly,
+ int&nbsp;cWriteBehindSeconds,
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Construct a ReadWriteBackingMap based on a BinaryEntryStore.</div>
+</div>
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader)" class="member-name-link">ReadWriteBackingMap</a><wbr>(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
  <a href="../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
  <a href="CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;loader)</code></div>
-<div class="col-last odd-row-color">
+<div class="col-last even-row-color">
 <div class="block">Construct a ReadWriteBackingMap based on a CacheLoader (CacheStore).</div>
 </div>
-<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double)" class="member-name-link">ReadWriteBackingMap</a><wbr>(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
+<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double)" class="member-name-link">ReadWriteBackingMap</a><wbr>(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
  <a href="../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
  <a href="CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;loader,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
  double&nbsp;dflRefreshAheadFactor)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Construct a ReadWriteBackingMap based on a CacheLoader (CacheStore).</div>
+</div>
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double,boolean)" class="member-name-link">ReadWriteBackingMap</a><wbr>(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
+ <a href="../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
+ <a href="CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;loader,
+ boolean&nbsp;fReadOnly,
+ int&nbsp;cWriteBehindSeconds,
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Construct a ReadWriteBackingMap based on a CacheLoader (CacheStore).</div>
 </div>
@@ -309,6 +346,17 @@ implements <a href="CacheMap.html" title="interface in com.tangosol.net.cache">C
  int&nbsp;cWriteBehindSeconds,
  double&nbsp;dflRefreshAheadFactor)</code></div>
 <div class="col-last odd-row-color">
+<div class="block">Construct a ReadWriteBackingMap based on a NonBlockingEntryStore.</div>
+</div>
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.NonBlockingEntryStore,boolean,int,double,boolean)" class="member-name-link">ReadWriteBackingMap</a><wbr>(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
+ <a href="../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
+ <a href="NonBlockingEntryStore.html" title="interface in com.tangosol.net.cache">NonBlockingEntryStore</a>&nbsp;storeBinary,
+ boolean&nbsp;fReadOnly,
+ int&nbsp;cWriteBehindSeconds,
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
+<div class="col-last even-row-color">
 <div class="block">Construct a ReadWriteBackingMap based on a NonBlockingEntryStore.</div>
 </div>
 </div>
@@ -357,8 +405,9 @@ implements <a href="CacheMap.html" title="interface in com.tangosol.net.cache">C
 <div class="block">Remove everything from the Map.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#configureCacheStore(com.tangosol.net.cache.ReadWriteBackingMap.StoreWrapper,boolean)" class="member-name-link">configureCacheStore</a><wbr>(<a href="ReadWriteBackingMap.StoreWrapper.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.StoreWrapper</a>&nbsp;store,
- boolean&nbsp;fReadOnly)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#configureCacheStore(com.tangosol.net.cache.ReadWriteBackingMap.StoreWrapper,boolean,boolean)" class="member-name-link">configureCacheStore</a><wbr>(<a href="ReadWriteBackingMap.StoreWrapper.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.StoreWrapper</a>&nbsp;store,
+ boolean&nbsp;fReadOnly,
+ boolean&nbsp;fWBRemove)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Set up the StoreWrapper that this backing map will use.</div>
 </div>
@@ -488,201 +537,213 @@ implements <a href="CacheMap.html" title="interface in com.tangosol.net.cache">C
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Get the optional map used to cache CacheLoader (or CacheStore) misses.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getPendingWrites()" class="member-name-link">getPendingWrites</a>()</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getPendingRemoves()" class="member-name-link">getPendingRemoves</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Get the pending removes key set for the CacheStore used by this
+ backing map.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getPendingWrites()" class="member-name-link">getPendingWrites</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Return the size of the write-behind queue if configured, or the
  number of pending writes of the non-blocking store, if configured.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="ReadWriteBackingMap.ReadQueue.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.ReadQueue</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getReadQueue()" class="member-name-link">getReadQueue</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="ReadWriteBackingMap.ReadQueue.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.ReadQueue</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getReadQueue()" class="member-name-link">getReadQueue</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Get the queue of keys that are yet to be read.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.ReadThread.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.ReadThread</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getReadThread()" class="member-name-link">getReadThread</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.ReadThread.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.ReadThread</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getReadThread()" class="member-name-link">getReadThread</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Get the refresh-ahead thread.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>double</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getRefreshAheadFactor()" class="member-name-link">getRefreshAheadFactor</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>double</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getRefreshAheadFactor()" class="member-name-link">getRefreshAheadFactor</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Return the refresh-ahead factor.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getSyntheticEventsMap()" class="member-name-link">getSyntheticEventsMap</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getSyntheticEventsMap()" class="member-name-link">getSyntheticEventsMap</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Get the map of keys for which the events should be marked as
  synthetic (internal).</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>double</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getWriteBatchFactor()" class="member-name-link">getWriteBatchFactor</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>double</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getWriteBatchFactor()" class="member-name-link">getWriteBatchFactor</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Return the write-batch factor.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>long</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getWriteBehindMillis()" class="member-name-link">getWriteBehindMillis</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>long</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getWriteBehindMillis()" class="member-name-link">getWriteBehindMillis</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Return the number of milliseconds between write-behind writes to the
  CacheStore or <tt>0</tt> if write-behind is not enabled.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getWriteBehindSeconds()" class="member-name-link">getWriteBehindSeconds</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getWriteBehindSeconds()" class="member-name-link">getWriteBehindSeconds</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Return the number of seconds between write-behind writes to the
  CacheStore or <tt>0</tt> if write-behind is not enabled.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getWriteMaxBatchSize()" class="member-name-link">getWriteMaxBatchSize</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getWriteMaxBatchSize()" class="member-name-link">getWriteMaxBatchSize</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Get the maximum size of the write-behind batch.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="ReadWriteBackingMap.WriteQueue.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.WriteQueue</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getWriteQueue()" class="member-name-link">getWriteQueue</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="ReadWriteBackingMap.WriteQueue.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.WriteQueue</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getWriteQueue()" class="member-name-link">getWriteQueue</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Get the queue of entries that are yet to be written.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getWriteRequeueThreshold()" class="member-name-link">getWriteRequeueThreshold</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getWriteRequeueThreshold()" class="member-name-link">getWriteRequeueThreshold</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Return the maximum size of the write-behind queue for which failed
  CacheStore write operations are requeued or <tt>0</tt> if write-behind
  requeueing is disabled.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.WriteThread.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.WriteThread</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getWriteThread()" class="member-name-link">getWriteThread</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.WriteThread.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.WriteThread</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getWriteThread()" class="member-name-link">getWriteThread</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Get the write-behind thread.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#hashCode()" class="member-name-link">hashCode</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#hashCode()" class="member-name-link">hashCode</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the hash code value for this map.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#heartbeat()" class="member-name-link">heartbeat</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#heartbeat()" class="member-name-link">heartbeat</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Issue a service guardian "heartbeat" for the current thread.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="CacheStore.html" title="interface in com.tangosol.net.cache">CacheStore</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateCacheLoaderCacheStore(com.tangosol.net.cache.CacheLoader)" class="member-name-link">instantiateCacheLoaderCacheStore</a><wbr>(<a href="CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;loader)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="CacheStore.html" title="interface in com.tangosol.net.cache">CacheStore</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateCacheLoaderCacheStore(com.tangosol.net.cache.CacheLoader)" class="member-name-link">instantiateCacheLoaderCacheStore</a><wbr>(<a href="CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;loader)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Factory pattern: Instantiate a CacheLoaderCacheStore wrapper around a
  passed CacheLoader.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.StoreWrapper.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.StoreWrapper</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateCacheStoreWrapper(com.tangosol.net.cache.BinaryEntryStore)" class="member-name-link">instantiateCacheStoreWrapper</a><wbr>(<a href="BinaryEntryStore.html" title="interface in com.tangosol.net.cache">BinaryEntryStore</a>&nbsp;store)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.StoreWrapper.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.StoreWrapper</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateCacheStoreWrapper(com.tangosol.net.cache.BinaryEntryStore)" class="member-name-link">instantiateCacheStoreWrapper</a><wbr>(<a href="BinaryEntryStore.html" title="interface in com.tangosol.net.cache">BinaryEntryStore</a>&nbsp;store)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Factory pattern: Instantiate a StoreWrapper wrapper around the
  passed BinaryEntryStore.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.StoreWrapper.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.StoreWrapper</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateCacheStoreWrapper(com.tangosol.net.cache.CacheStore)" class="member-name-link">instantiateCacheStoreWrapper</a><wbr>(<a href="CacheStore.html" title="interface in com.tangosol.net.cache">CacheStore</a>&nbsp;store)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.StoreWrapper.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.StoreWrapper</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateCacheStoreWrapper(com.tangosol.net.cache.CacheStore)" class="member-name-link">instantiateCacheStoreWrapper</a><wbr>(<a href="CacheStore.html" title="interface in com.tangosol.net.cache">CacheStore</a>&nbsp;store)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Factory pattern: Instantiate a StoreWrapper wrapper around the
  passed CacheStore.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.StoreWrapper.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.StoreWrapper</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateCacheStoreWrapper(com.tangosol.net.cache.NonBlockingEntryStore)" class="member-name-link">instantiateCacheStoreWrapper</a><wbr>(<a href="NonBlockingEntryStore.html" title="interface in com.tangosol.net.cache">NonBlockingEntryStore</a>&nbsp;store)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.StoreWrapper.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.StoreWrapper</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateCacheStoreWrapper(com.tangosol.net.cache.NonBlockingEntryStore)" class="member-name-link">instantiateCacheStoreWrapper</a><wbr>(<a href="NonBlockingEntryStore.html" title="interface in com.tangosol.net.cache">NonBlockingEntryStore</a>&nbsp;store)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Factory pattern: Instantiate a StoreWrapper wrapper around the
  passed NonBlockingEntryStore.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="../../util/ConcurrentMap.html" title="interface in com.tangosol.util">ConcurrentMap</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateControlMap()" class="member-name-link">instantiateControlMap</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="../../util/ConcurrentMap.html" title="interface in com.tangosol.util">ConcurrentMap</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateControlMap()" class="member-name-link">instantiateControlMap</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Factory pattern: Create the concurrency control map for this backing map.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateEntry(java.lang.Object,java.lang.Object,java.lang.Object)" class="member-name-link">instantiateEntry</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;oKey,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateEntry(java.lang.Object,java.lang.Object,java.lang.Object)" class="member-name-link">instantiateEntry</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;oKey,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;oValue,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;oValueOrig)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Factory pattern: instantiate a queue entry.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateEntry(java.lang.Object,java.lang.Object,java.lang.Object,long)" class="member-name-link">instantiateEntry</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;oKey,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateEntry(java.lang.Object,java.lang.Object,java.lang.Object,long)" class="member-name-link">instantiateEntry</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;oKey,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;oValue,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;oValueOrig,
  long&nbsp;cExpiry)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Factory pattern: instantiate a queue entry.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.EntrySet.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.EntrySet</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateEntrySet()" class="member-name-link">instantiateEntrySet</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.EntrySet.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.EntrySet</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateEntrySet()" class="member-name-link">instantiateEntrySet</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Factory pattern: instantiate an entry set for this backing map.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="../../util/MapListener.html" title="interface in com.tangosol.util">MapListener</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateInternalListener()" class="member-name-link">instantiateInternalListener</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="../../util/MapListener.html" title="interface in com.tangosol.util">MapListener</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateInternalListener()" class="member-name-link">instantiateInternalListener</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Factory pattern: Create a MapListener that listens to the internal
  cache and routes those events to anyone listening to this
  ReadWriteBackingMap.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.KeySet.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.KeySet</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateKeySet()" class="member-name-link">instantiateKeySet</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.KeySet.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.KeySet</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateKeySet()" class="member-name-link">instantiateKeySet</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Factory pattern: instantiate a key set for this backing map.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.ReadLatch.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.ReadLatch</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateReadLatch(java.lang.Object)" class="member-name-link">instantiateReadLatch</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;oKey)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.ReadLatch.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.ReadLatch</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateReadLatch(java.lang.Object)" class="member-name-link">instantiateReadLatch</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;oKey)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Factory pattern: Instantiate a new read latch the given key.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.ReadQueue.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.ReadQueue</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateReadQueue()" class="member-name-link">instantiateReadQueue</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.ReadQueue.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.ReadQueue</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateReadQueue()" class="member-name-link">instantiateReadQueue</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Factory pattern: Instantiate a new <tt>ReadQueue</tt> object.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.ReadThread.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.ReadThread</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateReadThread()" class="member-name-link">instantiateReadThread</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.ReadThread.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.ReadThread</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateReadThread()" class="member-name-link">instantiateReadThread</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Factory pattern: Instantiate the refresh-ahead thread.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.ValuesCollection.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.ValuesCollection</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateValuesCollection()" class="member-name-link">instantiateValuesCollection</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.ValuesCollection.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.ValuesCollection</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateValuesCollection()" class="member-name-link">instantiateValuesCollection</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Factory pattern.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.WriteQueue.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.WriteQueue</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateWriteQueue()" class="member-name-link">instantiateWriteQueue</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.WriteQueue.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.WriteQueue</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateWriteQueue()" class="member-name-link">instantiateWriteQueue</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Factory pattern: Instantiate a new WriteQueue object.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.WriteThread.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.WriteThread</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateWriteThread()" class="member-name-link">instantiateWriteThread</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.WriteThread.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.WriteThread</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateWriteThread()" class="member-name-link">instantiateWriteThread</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Factory pattern: Instantiate the write-behind thread.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isActive()" class="member-name-link">isActive</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isActive()" class="member-name-link">isActive</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Determine if the backing map is still active.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isReadOnly()" class="member-name-link">isReadOnly</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isReadOnly()" class="member-name-link">isReadOnly</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Determine if the backing map should send data changes through the
  CacheStore, or should just keep them in memory.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isRefreshAhead()" class="member-name-link">isRefreshAhead</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isRefreshAhead()" class="member-name-link">isRefreshAhead</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Determine if the backing map preemptively reads soon-to-be expired entries
  on a refresh-ahead thread.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isRethrowExceptions()" class="member-name-link">isRethrowExceptions</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isRethrowExceptions()" class="member-name-link">isRethrowExceptions</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Determine if exceptions caught during synchronous CacheStore operations
  are rethrown to the calling thread; if false, exceptions are logged.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isWriteBehind()" class="member-name-link">isWriteBehind</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isWriteBehind()" class="member-name-link">isWriteBehind</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Determine if the backing map writes changes on a write-behind thread
  through the CacheStore.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isWriteBehindRemove()" class="member-name-link">isWriteBehindRemove</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Determine if the backing map should apply write-behind delay to
+ remove from CacheStore.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isWriteThrough()" class="member-name-link">isWriteThrough</a>()</code></div>
@@ -953,6 +1014,51 @@ implements <a href="CacheMap.html" title="interface in com.tangosol.net.cache">C
 </section>
 </li>
 <li>
+<section class="detail" id="BIN_ERASE_PENDING">
+<h3>BIN_ERASE_PENDING</h3>
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../../util/Binary.html" title="class in com.tangosol.util">Binary</a></span>&nbsp;<span class="element-name">BIN_ERASE_PENDING</span></div>
+<div class="block">Binary representation of a decorated null for write-behind remove.</div>
+<dl class="notes">
+<dt>Since:</dt>
+<dd>12.2.1.4.18</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="PROP_WB_REMOVE_DEFAULT">
+<h3>PROP_WB_REMOVE_DEFAULT</h3>
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">PROP_WB_REMOVE_DEFAULT</span></div>
+<div class="block">A Boolean system property to control whether write behind remove is enabled.</div>
+<dl class="notes">
+<dt>Since:</dt>
+<dd>12.1.4.18</dd>
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../../../../constant-values.html#com.tangosol.net.cache.ReadWriteBackingMap.PROP_WB_REMOVE_DEFAULT">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="RWBM_WB_REMOVE_DEFAULT">
+<h3>RWBM_WB_REMOVE_DEFAULT</h3>
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">RWBM_WB_REMOVE_DEFAULT</span></div>
+<div class="block">The default write behind remove behavior.  This behavior will be used
+ if write behind remove has not been specified in the cache configuration
+ for a RWBM instance.  The default value is false and can be overridden
+ by the system property:
+ <pre>
+ coherence.rwbm.writebehind.remove.default
+ </pre></div>
+<dl class="notes">
+<dt>Since:</dt>
+<dd>12.2.1.4.18</dd>
+</dl>
+</section>
+</li>
+<li>
 <section class="detail" id="m_listenerSupport">
 <h3>m_listenerSupport</h3>
 <div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="../../util/MapListenerSupport.html" title="class in com.tangosol.util">MapListenerSupport</a></span>&nbsp;<span class="element-name">m_listenerSupport</span></div>
@@ -1028,6 +1134,51 @@ implements <a href="CacheMap.html" title="interface in com.tangosol.net.cache">C
 </section>
 </li>
 <li>
+<section class="detail" id="&lt;init&gt;(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double,boolean)">
+<h3>ReadWriteBackingMap</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">ReadWriteBackingMap</span><wbr><span class="parameters">(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
+ <a href="../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
+ <a href="CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;loader,
+ boolean&nbsp;fReadOnly,
+ int&nbsp;cWriteBehindSeconds,
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</span></div>
+<div class="block">Construct a ReadWriteBackingMap based on a CacheLoader (CacheStore).</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>ctxService</code> - the context provided by the CacheService
+                               which is using this backing map</dd>
+<dd><code>mapInternal</code> - the ObservableMap used to store the data
+                               internally in this backing map</dd>
+<dd><code>mapMisses</code> - the Map used to cache CacheStore misses
+                               (optional)</dd>
+<dd><code>loader</code> - the CacheLoader responsible for the
+                               persistence of the cached data (optional)</dd>
+<dd><code>fReadOnly</code> - pass true is the specified loader is in fact
+                               a CacheStore that needs to be used only for
+                               read operations; changes to the cache will
+                               not be persisted</dd>
+<dd><code>cWriteBehindSeconds</code> - number of seconds to write if there is a
+                               CacheStore; zero disables write-behind
+                               caching, which (combined with !fReadOnly)
+                               implies write-through</dd>
+<dd><code>dflRefreshAheadFactor</code> - the interval before an entry expiration time
+                               (expressed as a percentage of the internal
+                               cache expiration interval) during which an
+                               asynchronous load request for the
+                               entry will be scheduled; zero disables
+                               refresh-ahead; only applicable when
+                               the <tt>mapInternal</tt> parameter is an
+                               instance of <a href="ConfigurableCacheMap.html" title="interface in com.tangosol.net.cache"><code>ConfigurableCacheMap</code></a></dd>
+<dd><code>fWriteBehindRemove</code> - pass true if the specified loader is in fact a
+                               CacheStore that needs to apply write-behind to remove</dd>
+<dt>Since:</dt>
+<dd>12.2.1.4.18</dd>
+</dl>
+</section>
+</li>
+<li>
 <section class="detail" id="&lt;init&gt;(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double)">
 <h3>ReadWriteBackingMap</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">ReadWriteBackingMap</span><wbr><span class="parameters">(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
@@ -1070,6 +1221,51 @@ implements <a href="CacheMap.html" title="interface in com.tangosol.net.cache">C
 </section>
 </li>
 <li>
+<section class="detail" id="&lt;init&gt;(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double,boolean)">
+<h3>ReadWriteBackingMap</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">ReadWriteBackingMap</span><wbr><span class="parameters">(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
+ <a href="../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
+ <a href="BinaryEntryStore.html" title="interface in com.tangosol.net.cache">BinaryEntryStore</a>&nbsp;storeBinary,
+ boolean&nbsp;fReadOnly,
+ int&nbsp;cWriteBehindSeconds,
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</span></div>
+<div class="block">Construct a ReadWriteBackingMap based on a BinaryEntryStore.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>ctxService</code> - the context provided by the CacheService
+                               which is using this backing map</dd>
+<dd><code>mapInternal</code> - the ObservableMap used to store the data
+                               internally in this backing map</dd>
+<dd><code>mapMisses</code> - the Map used to cache CacheStore misses
+                               (optional)</dd>
+<dd><code>storeBinary</code> - the BinaryEntryStore responsible for the
+                               persistence of the cached data (optional)</dd>
+<dd><code>fReadOnly</code> - pass true is the specified loader is in fact
+                               a CacheStore that needs to be used only for
+                               read operations; changes to the cache will
+                               not be persisted</dd>
+<dd><code>cWriteBehindSeconds</code> - number of seconds to write if there is a
+                               CacheStore; zero disables write-behind
+                               caching, which (combined with !fReadOnly)
+                               implies write-through</dd>
+<dd><code>dflRefreshAheadFactor</code> - the interval before an entry expiration time
+                               (expressed as a percentage of the internal
+                               cache expiration interval) during which an
+                               asynchronous load request for the
+                               entry will be scheduled; zero disables
+                               refresh-ahead; only applicable when
+                               the <tt>mapInternal</tt> parameter is an
+                               instance of <a href="ConfigurableCacheMap.html" title="interface in com.tangosol.net.cache"><code>ConfigurableCacheMap</code></a></dd>
+<dd><code>fWriteBehindRemove</code> - pass true if the specified loader is in fact
+                               a CacheStore that needs to apply write-behind to remove</dd>
+<dt>Since:</dt>
+<dd>12.2.1.4.18</dd>
+</dl>
+</section>
+</li>
+<li>
 <section class="detail" id="&lt;init&gt;(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.NonBlockingEntryStore,boolean,int,double)">
 <h3>ReadWriteBackingMap</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">ReadWriteBackingMap</span><wbr><span class="parameters">(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
@@ -1108,6 +1304,51 @@ implements <a href="CacheMap.html" title="interface in com.tangosol.net.cache">C
                                instance of <a href="ConfigurableCacheMap.html" title="interface in com.tangosol.net.cache"><code>ConfigurableCacheMap</code></a></dd>
 <dt>Since:</dt>
 <dd>Coherence 21.06</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="&lt;init&gt;(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.NonBlockingEntryStore,boolean,int,double,boolean)">
+<h3>ReadWriteBackingMap</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">ReadWriteBackingMap</span><wbr><span class="parameters">(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
+ <a href="../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
+ <a href="NonBlockingEntryStore.html" title="interface in com.tangosol.net.cache">NonBlockingEntryStore</a>&nbsp;storeBinary,
+ boolean&nbsp;fReadOnly,
+ int&nbsp;cWriteBehindSeconds,
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</span></div>
+<div class="block">Construct a ReadWriteBackingMap based on a NonBlockingEntryStore.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>ctxService</code> - the context provided by the CacheService
+                               which is using this backing map</dd>
+<dd><code>mapInternal</code> - the ObservableMap used to store the data
+                               internally in this backing map</dd>
+<dd><code>mapMisses</code> - the Map used to cache CacheStore misses
+                               (optional)</dd>
+<dd><code>storeBinary</code> - the NonBlockingEntryStore responsible for the
+                               persistence of the cached data (optional)</dd>
+<dd><code>fReadOnly</code> - pass true is the specified loader is in fact
+                               a CacheStore that needs to be used only for
+                               read operations; changes to the cache will
+                               not be persisted</dd>
+<dd><code>cWriteBehindSeconds</code> - number of seconds to write if there is a
+                               CacheStore; zero disables write-behind
+                               caching, which (combined with !fReadOnly)
+                               implies write-through</dd>
+<dd><code>dflRefreshAheadFactor</code> - the interval before an entry expiration time
+                               (expressed as a percentage of the internal
+                               cache expiration interval) during which an
+                               asynchronous load request for the
+                               entry will be scheduled; zero disables
+                               refresh-ahead; only applicable when
+                               the <tt>mapInternal</tt> parameter is an
+                               instance of <a href="ConfigurableCacheMap.html" title="interface in com.tangosol.net.cache"><code>ConfigurableCacheMap</code></a></dd>
+<dd><code>fWriteBehindRemove</code> - pass true if the specified loader is in fact
+                               a CacheStore that needs to apply write-behind to remove</dd>
+<dt>Since:</dt>
+<dd>12.2.1.4.18</dd>
 </dl>
 </section>
 </li>
@@ -1480,6 +1721,21 @@ implements <a href="CacheMap.html" title="interface in com.tangosol.net.cache">C
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>number of pending writes</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="isWriteBehindRemove()">
+<h3>isWriteBehindRemove</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isWriteBehindRemove</span>()</div>
+<div class="block">Determine if the backing map should apply write-behind delay to
+ remove from CacheStore.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>true to delay the remove from CacheStore (a read-write cache),
+         or false to remove from CacheStore immediately</dd>
+<dt>Since:</dt>
+<dd>12.2.1.4.18</dd>
 </dl>
 </section>
 </li>
@@ -2203,6 +2459,20 @@ implements <a href="CacheMap.html" title="interface in com.tangosol.net.cache">C
 </section>
 </li>
 <li>
+<section class="detail" id="getPendingRemoves()">
+<h3>getPendingRemoves</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a></span>&nbsp;<span class="element-name">getPendingRemoves</span>()</div>
+<div class="block">Get the pending removes key set for the CacheStore used by this
+ backing map.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>the key set of pending removes for the CacheStore</dd>
+<dt>Since:</dt>
+<dd>12.2.1.4.18</dd>
+</dl>
+</section>
+</li>
+<li>
 <section class="detail" id="getControlMap()">
 <h3>getControlMap</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../../util/ConcurrentMap.html" title="interface in com.tangosol.util">ConcurrentMap</a></span>&nbsp;<span class="element-name">getControlMap</span>()</div>
@@ -2519,10 +2789,11 @@ implements <a href="CacheMap.html" title="interface in com.tangosol.net.cache">C
 </section>
 </li>
 <li>
-<section class="detail" id="configureCacheStore(com.tangosol.net.cache.ReadWriteBackingMap.StoreWrapper,boolean)">
+<section class="detail" id="configureCacheStore(com.tangosol.net.cache.ReadWriteBackingMap.StoreWrapper,boolean,boolean)">
 <h3>configureCacheStore</h3>
 <div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">configureCacheStore</span><wbr><span class="parameters">(<a href="ReadWriteBackingMap.StoreWrapper.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.StoreWrapper</a>&nbsp;store,
- boolean&nbsp;fReadOnly)</span></div>
+ boolean&nbsp;fReadOnly,
+ boolean&nbsp;fWBRemove)</span></div>
 <div class="block">Set up the StoreWrapper that this backing map will use.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
@@ -2530,6 +2801,7 @@ implements <a href="CacheMap.html" title="interface in com.tangosol.net.cache">C
                    delegate persistence responsibilities to</dd>
 <dd><code>fReadOnly</code> - pass true to prevent the usage of the cache store
                    write operations</dd>
+<dd><code>fWBRemove</code> - pass true to apply write-behind to remove</dd>
 </dl>
 </section>
 </li>

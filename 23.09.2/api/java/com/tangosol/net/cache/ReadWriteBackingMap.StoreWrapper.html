@@ -462,128 +462,134 @@ loadScripts(document, 'script');</script>
 <div class="block">Logs a store eraseAll() failure.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onEraseFailure(java.lang.Object,java.lang.Exception)" class="member-name-link">onEraseFailure</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;oKeyReal,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onEraseFailure(com.tangosol.net.cache.ReadWriteBackingMap.Entry,java.lang.Exception)" class="member-name-link">onEraseFailure</a><wbr>(<a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Logs a store erase() failure.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onLoadAllFailure(java.util.Collection,java.lang.Exception)" class="member-name-link">onLoadAllFailure</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collection.html" title="class or interface in java.util" class="external-link">Collection</a>&nbsp;colKeys,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onEraseFailure(java.lang.Object,java.lang.Exception)" class="member-name-link">onEraseFailure</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;oKeyReal,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Logs a store loadAll() failure.</div>
+<div class="block">Logs a store erase() failure.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onLoadAllFailure(java.util.Collection,java.lang.Exception,boolean)" class="member-name-link">onLoadAllFailure</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collection.html" title="class or interface in java.util" class="external-link">Collection</a>&nbsp;colKeys,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e,
- boolean&nbsp;fThrow)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onLoadAllFailure(java.util.Collection,java.lang.Exception)" class="member-name-link">onLoadAllFailure</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collection.html" title="class or interface in java.util" class="external-link">Collection</a>&nbsp;colKeys,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Logs a store loadAll() failure.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onLoadFailure(java.lang.Object,java.lang.Exception)" class="member-name-link">onLoadFailure</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;oKeyReal,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Logs a store load() failure.</div>
-</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onLoadFailure(java.lang.Object,java.lang.Exception,boolean)" class="member-name-link">onLoadFailure</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;oKeyReal,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onLoadAllFailure(java.util.Collection,java.lang.Exception,boolean)" class="member-name-link">onLoadAllFailure</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collection.html" title="class or interface in java.util" class="external-link">Collection</a>&nbsp;colKeys,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e,
  boolean&nbsp;fThrow)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Logs a store loadAll() failure.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onLoadFailure(java.lang.Object,java.lang.Exception)" class="member-name-link">onLoadFailure</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;oKeyReal,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Logs a store load() failure.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onStoreAllFailure(java.util.Set,java.lang.Exception)" class="member-name-link">onStoreAllFailure</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&nbsp;setBinEntries,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Logs a store storeAll() failure.</div>
-</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onStoreAllFailure(java.util.Set,java.lang.Exception,boolean)" class="member-name-link">onStoreAllFailure</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&nbsp;setBinEntries,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onLoadFailure(java.lang.Object,java.lang.Exception,boolean)" class="member-name-link">onLoadFailure</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;oKeyReal,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e,
  boolean&nbsp;fThrow)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Logs a store load() failure.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onStoreAllFailure(java.util.Set,java.lang.Exception)" class="member-name-link">onStoreAllFailure</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&nbsp;setBinEntries,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Logs a store storeAll() failure.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onStoreFailure(com.tangosol.net.cache.ReadWriteBackingMap.Entry,java.lang.Exception)" class="member-name-link">onStoreFailure</a><wbr>(<a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Logs a store store() failure.</div>
-</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onStoreFailure(com.tangosol.net.cache.ReadWriteBackingMap.Entry,java.lang.Exception,boolean)" class="member-name-link">onStoreFailure</a><wbr>(<a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onStoreAllFailure(java.util.Set,java.lang.Exception,boolean)" class="member-name-link">onStoreAllFailure</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&nbsp;setBinEntries,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e,
  boolean&nbsp;fThrow)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Logs a store storeAll() failure.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onStoreFailure(com.tangosol.net.cache.ReadWriteBackingMap.Entry,java.lang.Exception)" class="member-name-link">onStoreFailure</a><wbr>(<a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Logs a store store() failure.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#replace(com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">replace</a><wbr>(<a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onStoreFailure(com.tangosol.net.cache.ReadWriteBackingMap.Entry,java.lang.Exception,boolean)" class="member-name-link">onStoreFailure</a><wbr>(<a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e,
+ boolean&nbsp;fThrow)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Logs a store store() failure.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#replace(com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">replace</a><wbr>(<a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Replace the value in the internal cache for the specified entry.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#reportUnsupported(java.lang.String)" class="member-name-link">reportUnsupported</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sOp)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#reportUnsupported(java.lang.String)" class="member-name-link">reportUnsupported</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sOp)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Log the info about an unsupported operation.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#requeue(com.tangosol.net.cache.ReadWriteBackingMap.WriteQueue,int,com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">requeue</a><wbr>(<a href="ReadWriteBackingMap.WriteQueue.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.WriteQueue</a>&nbsp;queue,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#requeue(com.tangosol.net.cache.ReadWriteBackingMap.WriteQueue,int,com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">requeue</a><wbr>(<a href="ReadWriteBackingMap.WriteQueue.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.WriteQueue</a>&nbsp;queue,
  int&nbsp;cThreshold,
  <a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Requeue the specified entry.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resetStatistics()" class="member-name-link">resetStatistics</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resetStatistics()" class="member-name-link">resetStatistics</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Reset the CacheStore statistics.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setEraseAllSupported(boolean)" class="member-name-link">setEraseAllSupported</a><wbr>(boolean&nbsp;fSupported)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setEraseAllSupported(boolean)" class="member-name-link">setEraseAllSupported</a><wbr>(boolean&nbsp;fSupported)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Set the flag that determines whether or not the wrapped store
  supports eraseAll() operations.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setEraseSupported(boolean)" class="member-name-link">setEraseSupported</a><wbr>(boolean&nbsp;fSupported)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setEraseSupported(boolean)" class="member-name-link">setEraseSupported</a><wbr>(boolean&nbsp;fSupported)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Set the flag that determines whether or not the wrapped store
  supports erase() operations.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setStoreAllSupported(boolean)" class="member-name-link">setStoreAllSupported</a><wbr>(boolean&nbsp;fSupported)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setStoreAllSupported(boolean)" class="member-name-link">setStoreAllSupported</a><wbr>(boolean&nbsp;fSupported)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Set the flag that determines whether or not the wrapped store
  supports storeAll() operations.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setStoreSupported(boolean)" class="member-name-link">setStoreSupported</a><wbr>(boolean&nbsp;fSupported)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setStoreSupported(boolean)" class="member-name-link">setStoreSupported</a><wbr>(boolean&nbsp;fSupported)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Set the flag that determines whether or not the wrapped store
  supports store() operations.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#store(com.tangosol.net.cache.ReadWriteBackingMap.Entry,boolean)" class="member-name-link">store</a><wbr>(<a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;binEntry,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#store(com.tangosol.net.cache.ReadWriteBackingMap.Entry,boolean)" class="member-name-link">store</a><wbr>(<a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;binEntry,
  boolean&nbsp;fAllowChange)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Store the specified entry in the underlying store.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#storeAll(java.util.Set)" class="member-name-link">storeAll</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&nbsp;setBinEntries)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Store the entries in the specified set in the underlying store.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#storeAllInternal(java.util.Set)" class="member-name-link">storeAllInternal</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&nbsp;setBinEntries)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#storeAll(java.util.Set)" class="member-name-link">storeAll</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&nbsp;setBinEntries)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Store the entries in the specified set in the underlying store.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#storeInternal(com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">storeInternal</a><wbr>(<a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;binEntry)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#storeAllInternal(java.util.Set)" class="member-name-link">storeAllInternal</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&nbsp;setBinEntries)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Store the entries in the specified set in the underlying store.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#storeInternal(com.tangosol.net.cache.ReadWriteBackingMap.Entry)" class="member-name-link">storeInternal</a><wbr>(<a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;binEntry)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Store the specified entry in the underlying store.</div>
 </div>
 </div>
@@ -1369,6 +1375,21 @@ loadScripts(document, 'script');</script>
 <dt>Returns:</dt>
 <dd>the number of milliseconds until another attempt should be
          made to persist the specified value</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="onEraseFailure(com.tangosol.net.cache.ReadWriteBackingMap.Entry,java.lang.Exception)">
+<h3>onEraseFailure</h3>
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">onEraseFailure</span><wbr><span class="parameters">(<a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a>&nbsp;entry,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a>&nbsp;e)</span></div>
+<div class="block">Logs a store erase() failure. This method is intended to be
+ overwritten if a particular store can fail and the backing
+ map must take action based on it.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>entry</code> - the entry</dd>
+<dd><code>e</code> - the exception</dd>
 </dl>
 </section>
 </li>

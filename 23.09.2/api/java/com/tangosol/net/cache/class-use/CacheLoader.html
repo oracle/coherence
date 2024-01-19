@@ -88,24 +88,26 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code>protected <a href="../ReadWriteBackingMap.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMapScheme.</span><code><a href="../../../coherence/config/scheme/ReadWriteBackingMapScheme.html#instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double)" class="member-name-link">instantiateReadWriteBackingMap</a><wbr>(<a href="../../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
+<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMapScheme.</span><code><a href="../../../coherence/config/scheme/ReadWriteBackingMapScheme.html#instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double,boolean)" class="member-name-link">instantiateReadWriteBackingMap</a><wbr>(<a href="../../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
  <a href="../../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
  <a href="../CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;store,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
- double&nbsp;dflRefreshAheadFactor)</code></div>
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Construct a ReadWriteBackingMap using the specified parameters.</div>
 </div>
 <div class="col-first odd-row-color"><code>protected <a href="../../partition/ReadWriteSplittingBackingMap.html" title="class in com.tangosol.net.partition">ReadWriteSplittingBackingMap</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">ReadWriteBackingMapScheme.</span><code><a href="../../../coherence/config/scheme/ReadWriteBackingMapScheme.html#instantiateReadWriteSplittingBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double)" class="member-name-link">instantiateReadWriteSplittingBackingMap</a><wbr>(<a href="../../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
+<div class="col-second odd-row-color"><span class="type-name-label">ReadWriteBackingMapScheme.</span><code><a href="../../../coherence/config/scheme/ReadWriteBackingMapScheme.html#instantiateReadWriteSplittingBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double,boolean)" class="member-name-link">instantiateReadWriteSplittingBackingMap</a><wbr>(<a href="../../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
  <a href="../../partition/PartitionAwareBackingMap.html" title="interface in com.tangosol.net.partition">PartitionAwareBackingMap</a>&nbsp;mapInternal,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
  <a href="../CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;store,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
- double&nbsp;dflRefreshAheadFactor)</code></div>
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
 <div class="col-last odd-row-color">
 <div class="block">Construct a ReadWriteSplittingBackingMap using the specified parameters.</div>
 </div>
@@ -323,14 +325,26 @@ V&gt;&nbsp;<a href="../CacheStore.html" title="interface in com.tangosol.net.cac
 <div class="block">Construct a ReadWriteBackingMap based on a CacheLoader (CacheStore).</div>
 </div>
 <div class="col-first odd-row-color"><code>&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../VersionedBackingMap.html#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader,com.tangosol.net.NamedCache,com.tangosol.net.NamedCache,boolean)" class="member-name-link">VersionedBackingMap</a><wbr>(<a href="../../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
+<div class="col-second odd-row-color"><code><a href="../ReadWriteBackingMap.html#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double,boolean)" class="member-name-link">ReadWriteBackingMap</a><wbr>(<a href="../../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
+ <a href="../../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
+ <a href="../CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;loader,
+ boolean&nbsp;fReadOnly,
+ int&nbsp;cWriteBehindSeconds,
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Construct a ReadWriteBackingMap based on a CacheLoader (CacheStore).</div>
+</div>
+<div class="col-first even-row-color"><code>&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../VersionedBackingMap.html#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader,com.tangosol.net.NamedCache,com.tangosol.net.NamedCache,boolean)" class="member-name-link">VersionedBackingMap</a><wbr>(<a href="../../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
  <a href="../../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
  <a href="../CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;loader,
  <a href="../../NamedCache.html" title="interface in com.tangosol.net">NamedCache</a>&nbsp;mapVersionTransient,
  <a href="../../NamedCache.html" title="interface in com.tangosol.net">NamedCache</a>&nbsp;mapVersionPersist,
  boolean&nbsp;fManageTransient)</code></div>
-<div class="col-last odd-row-color">
+<div class="col-last even-row-color">
 <div class="block"><span class="deprecated-label">Deprecated.</span></div>
 <div class="block">Construct a VersionedBackingMap using a CacheLoader object.</div>
 </div>
@@ -354,6 +368,18 @@ V&gt;&nbsp;<a href="../CacheStore.html" title="interface in com.tangosol.net.cac
  int&nbsp;cWriteBehindSeconds,
  double&nbsp;dflRefreshAheadFactor)</code></div>
 <div class="col-last even-row-color">
+<div class="block">Construct a ReadWriteSplittingBackingMap based on a CacheStore.</div>
+</div>
+<div class="col-first odd-row-color"><code>&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../../partition/ReadWriteSplittingBackingMap.html#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double,boolean)" class="member-name-link">ReadWriteSplittingBackingMap</a><wbr>(<a href="../../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
+ <a href="../../partition/PartitionAwareBackingMap.html" title="interface in com.tangosol.net.partition">PartitionAwareBackingMap</a>&nbsp;mapInternal,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
+ <a href="../CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;loader,
+ boolean&nbsp;fReadOnly,
+ int&nbsp;cWriteBehindSeconds,
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Construct a ReadWriteSplittingBackingMap based on a CacheStore.</div>
 </div>
 </div>

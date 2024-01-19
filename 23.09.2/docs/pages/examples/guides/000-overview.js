@@ -261,7 +261,7 @@ bootstrap a Coherence instance.</p>
 </v-flex>
 <v-flex xs12 sm4 lg3>
 <v-card>
-<router-link to="/examples/guides/906-partition-level-transactions/README"><div class="card__link-hover"/>
+<router-link to="/examples/guides/510-executor/README"><div class="card__link-hover"/>
 </router-link>
 <v-card-title primary class="headline layout justify-center">
 <span style="text-align:center">Executor Service</span>
@@ -269,6 +269,19 @@ bootstrap a Coherence instance.</p>
 <v-card-text class="caption">
 <p></p>
 <p>This guide explains how to use the Coherence Executor Service.</p>
+</v-card-text>
+</v-card>
+</v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
+<router-link to="/examples/guides/600-response-caching/README"><div class="card__link-hover"/>
+</router-link>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">CDI Response Caching</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>This guide walks you through how to configure CDI Response Caching to cache the results of method invocations.</p>
 </v-card-text>
 </v-card>
 </v-flex>

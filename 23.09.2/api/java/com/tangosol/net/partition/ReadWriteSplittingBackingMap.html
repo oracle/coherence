@@ -133,7 +133,7 @@ implements <a href="PartitionAwareBackingMap.html" title="interface in com.tango
 <h2>Field Summary</h2>
 <div class="inherited-list">
 <h3 id="fields-inherited-from-class-com.tangosol.net.cache.ReadWriteBackingMap">Fields inherited from class&nbsp;com.tangosol.net.cache.<a href="../cache/ReadWriteBackingMap.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap</a></h3>
-<code><a href="../cache/ReadWriteBackingMap.html#BIN_STORE_PENDING">BIN_STORE_PENDING</a>, <a href="../cache/ReadWriteBackingMap.html#GUARD_RECOVERY">GUARD_RECOVERY</a>, <a href="../cache/ReadWriteBackingMap.html#m_listenerSupport">m_listenerSupport</a>, <a href="../cache/ReadWriteBackingMap.html#MIN_REQUEUE_DELAY">MIN_REQUEUE_DELAY</a>, <a href="../cache/ReadWriteBackingMap.html#REMOVED">REMOVED</a></code></div>
+<code><a href="../cache/ReadWriteBackingMap.html#BIN_ERASE_PENDING">BIN_ERASE_PENDING</a>, <a href="../cache/ReadWriteBackingMap.html#BIN_STORE_PENDING">BIN_STORE_PENDING</a>, <a href="../cache/ReadWriteBackingMap.html#GUARD_RECOVERY">GUARD_RECOVERY</a>, <a href="../cache/ReadWriteBackingMap.html#m_listenerSupport">m_listenerSupport</a>, <a href="../cache/ReadWriteBackingMap.html#MIN_REQUEUE_DELAY">MIN_REQUEUE_DELAY</a>, <a href="../cache/ReadWriteBackingMap.html#PROP_WB_REMOVE_DEFAULT">PROP_WB_REMOVE_DEFAULT</a>, <a href="../cache/ReadWriteBackingMap.html#REMOVED">REMOVED</a>, <a href="../cache/ReadWriteBackingMap.html#RWBM_WB_REMOVE_DEFAULT">RWBM_WB_REMOVE_DEFAULT</a></code></div>
 <div class="inherited-list">
 <h3 id="fields-inherited-from-class-com.tangosol.net.cache.CacheMap">Fields inherited from interface&nbsp;com.tangosol.net.cache.<a href="../cache/CacheMap.html" title="interface in com.tangosol.net.cache">CacheMap</a></h3>
 <code><a href="../cache/CacheMap.html#EXPIRY_DEFAULT">EXPIRY_DEFAULT</a>, <a href="../cache/CacheMap.html#EXPIRY_NEVER">EXPIRY_NEVER</a></code></div>
@@ -157,13 +157,35 @@ implements <a href="PartitionAwareBackingMap.html" title="interface in com.tango
 <div class="col-last even-row-color">
 <div class="block">Construct a ReadWriteSplittingBackingMap based on a BinaryEntryStore.</div>
 </div>
-<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double)" class="member-name-link">ReadWriteSplittingBackingMap</a><wbr>(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
+<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double,boolean)" class="member-name-link">ReadWriteSplittingBackingMap</a><wbr>(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
+ <a href="PartitionAwareBackingMap.html" title="interface in com.tangosol.net.partition">PartitionAwareBackingMap</a>&nbsp;mapInternal,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
+ <a href="../cache/BinaryEntryStore.html" title="interface in com.tangosol.net.cache">BinaryEntryStore</a>&nbsp;storeBinary,
+ boolean&nbsp;fReadOnly,
+ int&nbsp;cWriteBehindSeconds,
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Construct a ReadWriteSplittingBackingMap based on a BinaryEntryStore.</div>
+</div>
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double)" class="member-name-link">ReadWriteSplittingBackingMap</a><wbr>(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
  <a href="PartitionAwareBackingMap.html" title="interface in com.tangosol.net.partition">PartitionAwareBackingMap</a>&nbsp;mapInternal,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
  <a href="../cache/CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;loader,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
  double&nbsp;dflRefreshAheadFactor)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Construct a ReadWriteSplittingBackingMap based on a CacheStore.</div>
+</div>
+<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double,boolean)" class="member-name-link">ReadWriteSplittingBackingMap</a><wbr>(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
+ <a href="PartitionAwareBackingMap.html" title="interface in com.tangosol.net.partition">PartitionAwareBackingMap</a>&nbsp;mapInternal,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
+ <a href="../cache/CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;loader,
+ boolean&nbsp;fReadOnly,
+ int&nbsp;cWriteBehindSeconds,
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
 <div class="col-last odd-row-color">
 <div class="block">Construct a ReadWriteSplittingBackingMap based on a CacheStore.</div>
 </div>
@@ -175,6 +197,17 @@ implements <a href="PartitionAwareBackingMap.html" title="interface in com.tango
  int&nbsp;cWriteBehindSeconds,
  double&nbsp;dflRefreshAheadFactor)</code></div>
 <div class="col-last even-row-color">
+<div class="block">Construct a ReadWriteSplittingBackingMap based on a BinaryEntryStore.</div>
+</div>
+<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.NonBlockingEntryStore,boolean,int,double,boolean)" class="member-name-link">ReadWriteSplittingBackingMap</a><wbr>(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
+ <a href="PartitionAwareBackingMap.html" title="interface in com.tangosol.net.partition">PartitionAwareBackingMap</a>&nbsp;mapInternal,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
+ <a href="../cache/NonBlockingEntryStore.html" title="interface in com.tangosol.net.cache">NonBlockingEntryStore</a>&nbsp;storeNonBlockingBinary,
+ boolean&nbsp;fReadOnly,
+ int&nbsp;cWriteBehindSeconds,
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Construct a ReadWriteSplittingBackingMap based on a BinaryEntryStore.</div>
 </div>
 </div>
@@ -234,7 +267,7 @@ implements <a href="PartitionAwareBackingMap.html" title="interface in com.tango
 </div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-com.tangosol.net.cache.ReadWriteBackingMap">Methods inherited from class&nbsp;com.tangosol.net.cache.<a href="../cache/ReadWriteBackingMap.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap</a></h3>
-<code><a href="../cache/ReadWriteBackingMap.html#addMapListener(com.tangosol.util.MapListener)">addMapListener</a>, <a href="../cache/ReadWriteBackingMap.html#addMapListener(com.tangosol.util.MapListener,com.tangosol.util.Filter,boolean)">addMapListener</a>, <a href="../cache/ReadWriteBackingMap.html#addMapListener(com.tangosol.util.MapListener,java.lang.Object,boolean)">addMapListener</a>, <a href="../cache/ReadWriteBackingMap.html#cancelOutstandingReads(java.lang.Object)">cancelOutstandingReads</a>, <a href="../cache/ReadWriteBackingMap.html#clear()">clear</a>, <a href="../cache/ReadWriteBackingMap.html#configureCacheStore(com.tangosol.net.cache.ReadWriteBackingMap.StoreWrapper,boolean)">configureCacheStore</a>, <a href="../cache/ReadWriteBackingMap.html#configureInternalCache(com.tangosol.util.ObservableMap)">configureInternalCache</a>, <a href="../cache/ReadWriteBackingMap.html#configureReadThread(double)">configureReadThread</a>, <a href="../cache/ReadWriteBackingMap.html#configureWriteThread(int)">configureWriteThread</a>, <a href="../cache/ReadWriteBackingMap.html#containsKey(java.lang.Object)">containsKey</a>, <a href="../cache/ReadWriteBackingMap.html#containsValue(java.lang.Object)">containsValue</a>, <a href="../cache/ReadWriteBackingMap.html#entrySet()">entrySet</a>, <a href="../cache/ReadWriteBackingMap.html#equals(java.lang.Object)">equals</a>, <a href="../cache/ReadWriteBackingMap.html#extractExpiry(com.tangosol.net.cache.ReadWriteBackingMap.Entry)">extractExpiry</a>, <a href="../cache/ReadWriteBackingMap.html#flush()">flush</a>, <a href="../cache/ReadWriteBackingMap.html#flush(com.tangosol.net.cache.ReadWriteBackingMap.WriteQueue,com.tangosol.net.cache.ReadWriteBackingMap.StoreWrapper)">flush</a>, <a href="../cache/ReadWriteBackingMap.html#get(java.lang.Object)">get</a>, <a href="../cache/ReadWriteBackingMap.html#getAll(java.util.Collection)">getAll</a>, <a href="../cache/ReadWriteBackingMap.html#getCachedOrPending(java.lang.Object)">getCachedOrPending</a>, <a href="../cache/ReadWriteBackingMap.html#getCacheService()">getCacheService</a>, <a href="../cache/ReadWriteBackingMap.html#getCacheStore()">getCacheStore</a>, <a href="../cache/ReadWriteBackingMap.html#getCacheStoreTimeoutMillis()">getCacheStoreTimeoutMillis</a>, <a href="../cache/ReadWriteBackingMap.html#getContext()">getContext</a>, <a href="../cache/ReadWriteBackingMap.html#getControlMap()">getControlMap</a>, <a href="../cache/ReadWriteBackingMap.html#getFromInternalCache(java.lang.Object)">getFromInternalCache</a>, <a href="../cache/ReadWriteBackingMap.html#getInternalCache()">getInternalCache</a>, <a href="../cache/ReadWriteBackingMap.html#getInternalConfigurableCache()">getInternalConfigurableCache</a>, <a href="../cache/ReadWriteBackingMap.html#getInternalListener()">getInternalListener</a>, <a href="../cache/ReadWriteBackingMap.html#getMissesCache()">getMissesCache</a>, <a href="../cache/ReadWriteBackingMap.html#getPendingWrites()">getPendingWrites</a>, <a href="../cache/ReadWriteBackingMap.html#getReadQueue()">getReadQueue</a>, <a href="../cache/ReadWriteBackingMap.html#getReadThread()">getReadThread</a>, <a href="../cache/ReadWriteBackingMap.html#getRefreshAheadFactor()">getRefreshAheadFactor</a>, <a href="../cache/ReadWriteBackingMap.html#getSyntheticEventsMap()">getSyntheticEventsMap</a>, <a href="../cache/ReadWriteBackingMap.html#getWriteBatchFactor()">getWriteBatchFactor</a>, <a href="../cache/ReadWriteBackingMap.html#getWriteBehindMillis()">getWriteBehindMillis</a>, <a href="../cache/ReadWriteBackingMap.html#getWriteBehindSeconds()">getWriteBehindSeconds</a>, <a href="../cache/ReadWriteBackingMap.html#getWriteMaxBatchSize()">getWriteMaxBatchSize</a>, <a href="../cache/ReadWriteBackingMap.html#getWriteQueue()">getWriteQueue</a>, <a href="../cache/ReadWriteBackingMap.html#getWriteRequeueThreshold()">getWriteRequeueThreshold</a>, <a href="../cache/ReadWriteBackingMap.html#getWriteThread()">getWriteThread</a>, <a href="../cache/ReadWriteBackingMap.html#hashCode()">hashCode</a>, <a href="../cache/ReadWriteBackingMap.html#heartbeat()">heartbeat</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateCacheLoaderCacheStore(com.tangosol.net.cache.CacheLoader)">instantiateCacheLoaderCacheStore</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateCacheStoreWrapper(com.tangosol.net.cache.BinaryEntryStore)">instantiateCacheStoreWrapper</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateCacheStoreWrapper(com.tangosol.net.cache.CacheStore)">instantiateCacheStoreWrapper</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateCacheStoreWrapper(com.tangosol.net.cache.NonBlockingEntryStore)">instantiateCacheStoreWrapper</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateControlMap()">instantiateControlMap</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateEntry(java.lang.Object,java.lang.Object,java.lang.Object)">instantiateEntry</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateEntry(java.lang.Object,java.lang.Object,java.lang.Object,long)">instantiateEntry</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateEntrySet()">instantiateEntrySet</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateInternalListener()">instantiateInternalListener</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateKeySet()">instantiateKeySet</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateReadLatch(java.lang.Object)">instantiateReadLatch</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateReadQueue()">instantiateReadQueue</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateReadThread()">instantiateReadThread</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateValuesCollection()">instantiateValuesCollection</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateWriteQueue()">instantiateWriteQueue</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateWriteThread()">instantiateWriteThread</a>, <a href="../cache/ReadWriteBackingMap.html#isActive()">isActive</a>, <a href="../cache/ReadWriteBackingMap.html#isReadOnly()">isReadOnly</a>, <a href="../cache/ReadWriteBackingMap.html#isRefreshAhead()">isRefreshAhead</a>, <a href="../cache/ReadWriteBackingMap.html#isRethrowExceptions()">isRethrowExceptions</a>, <a href="../cache/ReadWriteBackingMap.html#isWriteBehind()">isWriteBehind</a>, <a href="../cache/ReadWriteBackingMap.html#isWriteThrough()">isWriteThrough</a>, <a href="../cache/ReadWriteBackingMap.html#keySet()">keySet</a>, <a href="../cache/ReadWriteBackingMap.html#put(java.lang.Object,java.lang.Object)">put</a>, <a href="../cache/ReadWriteBackingMap.html#put(java.lang.Object,java.lang.Object,long)">put</a>, <a href="../cache/ReadWriteBackingMap.html#putAll(java.util.Map)">putAll</a>, <a href="../cache/ReadWriteBackingMap.html#putInternal(java.lang.Object,java.lang.Object,long)">putInternal</a>, <a href="../cache/ReadWriteBackingMap.html#putToInternalCache(com.tangosol.net.cache.ReadWriteBackingMap.Entry)">putToInternalCache</a>, <a href="../cache/ReadWriteBackingMap.html#putToInternalCache(java.lang.Object,java.lang.Object)">putToInternalCache</a>, <a href="../cache/ReadWriteBackingMap.html#putToInternalCache(java.lang.Object,java.lang.Object,long)">putToInternalCache</a>, <a href="../cache/ReadWriteBackingMap.html#putToInternalMap(java.lang.Object,java.lang.Object,long)">putToInternalMap</a>, <a href="../cache/ReadWriteBackingMap.html#release()">release</a>, <a href="../cache/ReadWriteBackingMap.html#remove(java.lang.Object)">remove</a>, <a href="../cache/ReadWriteBackingMap.html#removeAll(java.util.Collection)">removeAll</a>, <a href="../cache/ReadWriteBackingMap.html#removeFromWriteQueue(java.lang.Object)">removeFromWriteQueue</a>, <a href="../cache/ReadWriteBackingMap.html#removeInternal(java.lang.Object,boolean)">removeInternal</a>, <a href="../cache/ReadWriteBackingMap.html#removeMapListener(com.tangosol.util.MapListener)">removeMapListener</a>, <a href="../cache/ReadWriteBackingMap.html#removeMapListener(com.tangosol.util.MapListener,com.tangosol.util.Filter)">removeMapListener</a>, <a href="../cache/ReadWriteBackingMap.html#removeMapListener(com.tangosol.util.MapListener,java.lang.Object)">removeMapListener</a>, <a href="../cache/ReadWriteBackingMap.html#setCacheName(java.lang.String)">setCacheName</a>, <a href="../cache/ReadWriteBackingMap.html#setCacheStoreTimeoutMillis(long)">setCacheStoreTimeoutMillis</a>, <a href="../cache/ReadWriteBackingMap.html#setRefreshAheadFactor(double)">setRefreshAheadFactor</a>, <a href="../cache/ReadWriteBackingMap.html#setRethrowExceptions(boolean)">setRethrowExceptions</a>, <a href="../cache/ReadWriteBackingMap.html#setWriteBatchFactor(double)">setWriteBatchFactor</a>, <a href="../cache/ReadWriteBackingMap.html#setWriteBehindMillis(long)">setWriteBehindMillis</a>, <a href="../cache/ReadWriteBackingMap.html#setWriteBehindSeconds(int)">setWriteBehindSeconds</a>, <a href="../cache/ReadWriteBackingMap.html#setWriteMaxBatchSize(int)">setWriteMaxBatchSize</a>, <a href="../cache/ReadWriteBackingMap.html#setWriteRequeueThreshold(int)">setWriteRequeueThreshold</a>, <a href="../cache/ReadWriteBackingMap.html#size()">size</a>, <a href="../cache/ReadWriteBackingMap.html#terminateReadThread()">terminateReadThread</a>, <a href="../cache/ReadWriteBackingMap.html#terminateWriteThread()">terminateWriteThread</a>, <a href="../cache/ReadWriteBackingMap.html#toString()">toString</a>, <a href="../cache/ReadWriteBackingMap.html#updateThreadName(com.tangosol.util.Daemon,java.lang.String)">updateThreadName</a>, <a href="../cache/ReadWriteBackingMap.html#values()">values</a>, <a href="../cache/ReadWriteBackingMap.html#waitFor(java.lang.Object,long)">waitFor</a></code></div>
+<code><a href="../cache/ReadWriteBackingMap.html#addMapListener(com.tangosol.util.MapListener)">addMapListener</a>, <a href="../cache/ReadWriteBackingMap.html#addMapListener(com.tangosol.util.MapListener,com.tangosol.util.Filter,boolean)">addMapListener</a>, <a href="../cache/ReadWriteBackingMap.html#addMapListener(com.tangosol.util.MapListener,java.lang.Object,boolean)">addMapListener</a>, <a href="../cache/ReadWriteBackingMap.html#cancelOutstandingReads(java.lang.Object)">cancelOutstandingReads</a>, <a href="../cache/ReadWriteBackingMap.html#clear()">clear</a>, <a href="../cache/ReadWriteBackingMap.html#configureCacheStore(com.tangosol.net.cache.ReadWriteBackingMap.StoreWrapper,boolean,boolean)">configureCacheStore</a>, <a href="../cache/ReadWriteBackingMap.html#configureInternalCache(com.tangosol.util.ObservableMap)">configureInternalCache</a>, <a href="../cache/ReadWriteBackingMap.html#configureReadThread(double)">configureReadThread</a>, <a href="../cache/ReadWriteBackingMap.html#configureWriteThread(int)">configureWriteThread</a>, <a href="../cache/ReadWriteBackingMap.html#containsKey(java.lang.Object)">containsKey</a>, <a href="../cache/ReadWriteBackingMap.html#containsValue(java.lang.Object)">containsValue</a>, <a href="../cache/ReadWriteBackingMap.html#entrySet()">entrySet</a>, <a href="../cache/ReadWriteBackingMap.html#equals(java.lang.Object)">equals</a>, <a href="../cache/ReadWriteBackingMap.html#extractExpiry(com.tangosol.net.cache.ReadWriteBackingMap.Entry)">extractExpiry</a>, <a href="../cache/ReadWriteBackingMap.html#flush()">flush</a>, <a href="../cache/ReadWriteBackingMap.html#flush(com.tangosol.net.cache.ReadWriteBackingMap.WriteQueue,com.tangosol.net.cache.ReadWriteBackingMap.StoreWrapper)">flush</a>, <a href="../cache/ReadWriteBackingMap.html#get(java.lang.Object)">get</a>, <a href="../cache/ReadWriteBackingMap.html#getAll(java.util.Collection)">getAll</a>, <a href="../cache/ReadWriteBackingMap.html#getCachedOrPending(java.lang.Object)">getCachedOrPending</a>, <a href="../cache/ReadWriteBackingMap.html#getCacheService()">getCacheService</a>, <a href="../cache/ReadWriteBackingMap.html#getCacheStore()">getCacheStore</a>, <a href="../cache/ReadWriteBackingMap.html#getCacheStoreTimeoutMillis()">getCacheStoreTimeoutMillis</a>, <a href="../cache/ReadWriteBackingMap.html#getContext()">getContext</a>, <a href="../cache/ReadWriteBackingMap.html#getControlMap()">getControlMap</a>, <a href="../cache/ReadWriteBackingMap.html#getFromInternalCache(java.lang.Object)">getFromInternalCache</a>, <a href="../cache/ReadWriteBackingMap.html#getInternalCache()">getInternalCache</a>, <a href="../cache/ReadWriteBackingMap.html#getInternalConfigurableCache()">getInternalConfigurableCache</a>, <a href="../cache/ReadWriteBackingMap.html#getInternalListener()">getInternalListener</a>, <a href="../cache/ReadWriteBackingMap.html#getMissesCache()">getMissesCache</a>, <a href="../cache/ReadWriteBackingMap.html#getPendingRemoves()">getPendingRemoves</a>, <a href="../cache/ReadWriteBackingMap.html#getPendingWrites()">getPendingWrites</a>, <a href="../cache/ReadWriteBackingMap.html#getReadQueue()">getReadQueue</a>, <a href="../cache/ReadWriteBackingMap.html#getReadThread()">getReadThread</a>, <a href="../cache/ReadWriteBackingMap.html#getRefreshAheadFactor()">getRefreshAheadFactor</a>, <a href="../cache/ReadWriteBackingMap.html#getSyntheticEventsMap()">getSyntheticEventsMap</a>, <a href="../cache/ReadWriteBackingMap.html#getWriteBatchFactor()">getWriteBatchFactor</a>, <a href="../cache/ReadWriteBackingMap.html#getWriteBehindMillis()">getWriteBehindMillis</a>, <a href="../cache/ReadWriteBackingMap.html#getWriteBehindSeconds()">getWriteBehindSeconds</a>, <a href="../cache/ReadWriteBackingMap.html#getWriteMaxBatchSize()">getWriteMaxBatchSize</a>, <a href="../cache/ReadWriteBackingMap.html#getWriteQueue()">getWriteQueue</a>, <a href="../cache/ReadWriteBackingMap.html#getWriteRequeueThreshold()">getWriteRequeueThreshold</a>, <a href="../cache/ReadWriteBackingMap.html#getWriteThread()">getWriteThread</a>, <a href="../cache/ReadWriteBackingMap.html#hashCode()">hashCode</a>, <a href="../cache/ReadWriteBackingMap.html#heartbeat()">heartbeat</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateCacheLoaderCacheStore(com.tangosol.net.cache.CacheLoader)">instantiateCacheLoaderCacheStore</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateCacheStoreWrapper(com.tangosol.net.cache.BinaryEntryStore)">instantiateCacheStoreWrapper</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateCacheStoreWrapper(com.tangosol.net.cache.CacheStore)">instantiateCacheStoreWrapper</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateCacheStoreWrapper(com.tangosol.net.cache.NonBlockingEntryStore)">instantiateCacheStoreWrapper</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateControlMap()">instantiateControlMap</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateEntry(java.lang.Object,java.lang.Object,java.lang.Object)">instantiateEntry</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateEntry(java.lang.Object,java.lang.Object,java.lang.Object,long)">instantiateEntry</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateEntrySet()">instantiateEntrySet</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateInternalListener()">instantiateInternalListener</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateKeySet()">instantiateKeySet</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateReadLatch(java.lang.Object)">instantiateReadLatch</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateReadQueue()">instantiateReadQueue</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateReadThread()">instantiateReadThread</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateValuesCollection()">instantiateValuesCollection</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateWriteQueue()">instantiateWriteQueue</a>, <a href="../cache/ReadWriteBackingMap.html#instantiateWriteThread()">instantiateWriteThread</a>, <a href="../cache/ReadWriteBackingMap.html#isActive()">isActive</a>, <a href="../cache/ReadWriteBackingMap.html#isReadOnly()">isReadOnly</a>, <a href="../cache/ReadWriteBackingMap.html#isRefreshAhead()">isRefreshAhead</a>, <a href="../cache/ReadWriteBackingMap.html#isRethrowExceptions()">isRethrowExceptions</a>, <a href="../cache/ReadWriteBackingMap.html#isWriteBehind()">isWriteBehind</a>, <a href="../cache/ReadWriteBackingMap.html#isWriteBehindRemove()">isWriteBehindRemove</a>, <a href="../cache/ReadWriteBackingMap.html#isWriteThrough()">isWriteThrough</a>, <a href="../cache/ReadWriteBackingMap.html#keySet()">keySet</a>, <a href="../cache/ReadWriteBackingMap.html#put(java.lang.Object,java.lang.Object)">put</a>, <a href="../cache/ReadWriteBackingMap.html#put(java.lang.Object,java.lang.Object,long)">put</a>, <a href="../cache/ReadWriteBackingMap.html#putAll(java.util.Map)">putAll</a>, <a href="../cache/ReadWriteBackingMap.html#putInternal(java.lang.Object,java.lang.Object,long)">putInternal</a>, <a href="../cache/ReadWriteBackingMap.html#putToInternalCache(com.tangosol.net.cache.ReadWriteBackingMap.Entry)">putToInternalCache</a>, <a href="../cache/ReadWriteBackingMap.html#putToInternalCache(java.lang.Object,java.lang.Object)">putToInternalCache</a>, <a href="../cache/ReadWriteBackingMap.html#putToInternalCache(java.lang.Object,java.lang.Object,long)">putToInternalCache</a>, <a href="../cache/ReadWriteBackingMap.html#putToInternalMap(java.lang.Object,java.lang.Object,long)">putToInternalMap</a>, <a href="../cache/ReadWriteBackingMap.html#release()">release</a>, <a href="../cache/ReadWriteBackingMap.html#remove(java.lang.Object)">remove</a>, <a href="../cache/ReadWriteBackingMap.html#removeAll(java.util.Collection)">removeAll</a>, <a href="../cache/ReadWriteBackingMap.html#removeFromWriteQueue(java.lang.Object)">removeFromWriteQueue</a>, <a href="../cache/ReadWriteBackingMap.html#removeInternal(java.lang.Object,boolean)">removeInternal</a>, <a href="../cache/ReadWriteBackingMap.html#removeMapListener(com.tangosol.util.MapListener)">removeMapListener</a>, <a href="../cache/ReadWriteBackingMap.html#removeMapListener(com.tangosol.util.MapListener,com.tangosol.util.Filter)">removeMapListener</a>, <a href="../cache/ReadWriteBackingMap.html#removeMapListener(com.tangosol.util.MapListener,java.lang.Object)">removeMapListener</a>, <a href="../cache/ReadWriteBackingMap.html#setCacheName(java.lang.String)">setCacheName</a>, <a href="../cache/ReadWriteBackingMap.html#setCacheStoreTimeoutMillis(long)">setCacheStoreTimeoutMillis</a>, <a href="../cache/ReadWriteBackingMap.html#setRefreshAheadFactor(double)">setRefreshAheadFactor</a>, <a href="../cache/ReadWriteBackingMap.html#setRethrowExceptions(boolean)">setRethrowExceptions</a>, <a href="../cache/ReadWriteBackingMap.html#setWriteBatchFactor(double)">setWriteBatchFactor</a>, <a href="../cache/ReadWriteBackingMap.html#setWriteBehindMillis(long)">setWriteBehindMillis</a>, <a href="../cache/ReadWriteBackingMap.html#setWriteBehindSeconds(int)">setWriteBehindSeconds</a>, <a href="../cache/ReadWriteBackingMap.html#setWriteMaxBatchSize(int)">setWriteMaxBatchSize</a>, <a href="../cache/ReadWriteBackingMap.html#setWriteRequeueThreshold(int)">setWriteRequeueThreshold</a>, <a href="../cache/ReadWriteBackingMap.html#size()">size</a>, <a href="../cache/ReadWriteBackingMap.html#terminateReadThread()">terminateReadThread</a>, <a href="../cache/ReadWriteBackingMap.html#terminateWriteThread()">terminateWriteThread</a>, <a href="../cache/ReadWriteBackingMap.html#toString()">toString</a>, <a href="../cache/ReadWriteBackingMap.html#updateThreadName(com.tangosol.util.Daemon,java.lang.String)">updateThreadName</a>, <a href="../cache/ReadWriteBackingMap.html#values()">values</a>, <a href="../cache/ReadWriteBackingMap.html#waitFor(java.lang.Object,long)">waitFor</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-java.util.AbstractMap">Methods inherited from class&nbsp;java.util.<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/AbstractMap.html" title="class or interface in java.util" class="external-link">AbstractMap</a></h3>
 <code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/AbstractMap.html#clone()" title="class or interface in java.util" class="external-link">clone</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/AbstractMap.html#isEmpty()" title="class or interface in java.util" class="external-link">isEmpty</a></code></div>
@@ -302,6 +335,54 @@ implements <a href="PartitionAwareBackingMap.html" title="interface in com.tango
 </section>
 </li>
 <li>
+<section class="detail" id="&lt;init&gt;(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double,boolean)">
+<h3>ReadWriteSplittingBackingMap</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">ReadWriteSplittingBackingMap</span><wbr><span class="parameters">(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
+ <a href="PartitionAwareBackingMap.html" title="interface in com.tangosol.net.partition">PartitionAwareBackingMap</a>&nbsp;mapInternal,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
+ <a href="../cache/CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;loader,
+ boolean&nbsp;fReadOnly,
+ int&nbsp;cWriteBehindSeconds,
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</span></div>
+<div class="block">Construct a ReadWriteSplittingBackingMap based on a CacheStore.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>ctxService</code> - the context provided by the CacheService
+                              which is using this backing map</dd>
+<dd><code>mapInternal</code> - the PartitionAwareBackingMap used to store
+                              the data internally in this backing map;
+                              it must implement the ObservableMap
+                              interface</dd>
+<dd><code>mapMisses</code> - the Map used to cache CacheStore misses
+                              (optional)</dd>
+<dd><code>loader</code> - the CacheLoader responsible for the
+                              persistence of the cached data (optional)</dd>
+<dd><code>fReadOnly</code> - pass true is the specified loader is in
+                              fact a CacheStore that needs to be used
+                              only for read operations; changes to the
+                              cache will not be persisted</dd>
+<dd><code>cWriteBehindSeconds</code> - number of seconds to write if there is a
+                              CacheStore; zero disables write-behind
+                              caching, which (combined with !fReadOnly)
+                              implies write-through</dd>
+<dd><code>dflRefreshAheadFactor</code> - the interval before an entry expiration
+                              time (expressed as a percentage of the
+                              internal cache expiration interval) during
+                              which an asynchronous load request for the
+                              entry will be scheduled; zero disables
+                              refresh-ahead; only applicable when
+                              the <tt>mapInternal</tt> parameter is an
+                              instance of
+                              <a href="../cache/LocalCache.html" title="class in com.tangosol.net.cache"><code>LocalCache</code></a></dd>
+<dd><code>fWriteBehindRemove</code> - pass true if the specified loader is in fact
+                              a CacheStore that needs to apply write-behind to remove</dd>
+<dt>Since:</dt>
+<dd>12.2.1.4.18</dd>
+</dl>
+</section>
+</li>
+<li>
 <section class="detail" id="&lt;init&gt;(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double)">
 <h3>ReadWriteSplittingBackingMap</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">ReadWriteSplittingBackingMap</span><wbr><span class="parameters">(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
@@ -341,6 +422,54 @@ implements <a href="PartitionAwareBackingMap.html" title="interface in com.tango
                               the <tt>mapInternal</tt> parameter is an
                               instance of
                               <a href="../cache/LocalCache.html" title="class in com.tangosol.net.cache"><code>LocalCache</code></a></dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="&lt;init&gt;(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double,boolean)">
+<h3>ReadWriteSplittingBackingMap</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">ReadWriteSplittingBackingMap</span><wbr><span class="parameters">(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
+ <a href="PartitionAwareBackingMap.html" title="interface in com.tangosol.net.partition">PartitionAwareBackingMap</a>&nbsp;mapInternal,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
+ <a href="../cache/BinaryEntryStore.html" title="interface in com.tangosol.net.cache">BinaryEntryStore</a>&nbsp;storeBinary,
+ boolean&nbsp;fReadOnly,
+ int&nbsp;cWriteBehindSeconds,
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</span></div>
+<div class="block">Construct a ReadWriteSplittingBackingMap based on a BinaryEntryStore.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>ctxService</code> - the context provided by the CacheService
+                              which is using this backing map</dd>
+<dd><code>mapInternal</code> - the PartitionAwareBackingMap used to store
+                              the data internally in this backing map;
+                              it must implement the ObservableMap
+                              interface</dd>
+<dd><code>mapMisses</code> - the Map used to cache CacheStore misses
+                              (optional)</dd>
+<dd><code>storeBinary</code> - the BinaryEntryStore responsible for the
+                              persistence of the cached data (optional)</dd>
+<dd><code>fReadOnly</code> - pass true is the specified loader is in
+                              fact a CacheStore that needs to be used
+                              only for read operations; changes to the
+                              cache will not be persisted</dd>
+<dd><code>cWriteBehindSeconds</code> - number of seconds to write if there is a
+                              CacheStore; zero disables write-behind
+                              caching, which (combined with !fReadOnly)
+                              implies write-through</dd>
+<dd><code>dflRefreshAheadFactor</code> - the interval before an entry expiration
+                              time (expressed as a percentage of the
+                              internal cache expiration interval) during
+                              which an asynchronous load request for the
+                              entry will be scheduled; zero disables
+                              refresh-ahead; only applicable when
+                              the <tt>mapInternal</tt> parameter is an
+                              instance of
+                              <a href="../cache/LocalCache.html" title="class in com.tangosol.net.cache"><code>LocalCache</code></a></dd>
+<dd><code>fWriteBehindRemove</code> - pass true if the specified loader is in fact
+                              a CacheStore that needs to apply write-behind to remove</dd>
+<dt>Since:</dt>
+<dd>12.2.1.4.18</dd>
 </dl>
 </section>
 </li>
@@ -385,6 +514,55 @@ implements <a href="PartitionAwareBackingMap.html" title="interface in com.tango
                                the <tt>mapInternal</tt> parameter is an
                                instance of
                                <a href="../cache/LocalCache.html" title="class in com.tangosol.net.cache"><code>LocalCache</code></a></dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="&lt;init&gt;(com.tangosol.net.BackingMapManagerContext,com.tangosol.net.partition.PartitionAwareBackingMap,java.util.Map,com.tangosol.net.cache.NonBlockingEntryStore,boolean,int,double,boolean)">
+<h3>ReadWriteSplittingBackingMap</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">ReadWriteSplittingBackingMap</span><wbr><span class="parameters">(<a href="../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;ctxService,
+ <a href="PartitionAwareBackingMap.html" title="interface in com.tangosol.net.partition">PartitionAwareBackingMap</a>&nbsp;mapInternal,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
+ <a href="../cache/NonBlockingEntryStore.html" title="interface in com.tangosol.net.cache">NonBlockingEntryStore</a>&nbsp;storeNonBlockingBinary,
+ boolean&nbsp;fReadOnly,
+ int&nbsp;cWriteBehindSeconds,
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</span></div>
+<div class="block">Construct a ReadWriteSplittingBackingMap based on a BinaryEntryStore.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>ctxService</code> - the context provided by the CacheService
+                               which is using this backing map</dd>
+<dd><code>mapInternal</code> - the PartitionAwareBackingMap used to store
+                               the data internally in this backing map;
+                               it must implement the ObservableMap
+                               interface</dd>
+<dd><code>mapMisses</code> - the Map used to cache CacheStore misses
+                               (optional)</dd>
+<dd><code>storeNonBlockingBinary</code> - the NonBlockingEntryStore responsible for
+                               the persistence of the cached data
+                               (optional)</dd>
+<dd><code>fReadOnly</code> - pass true is the specified loader is in
+                               fact a CacheStore that needs to be used
+                               only for read operations; changes to the
+                               cache will not be persisted</dd>
+<dd><code>cWriteBehindSeconds</code> - number of seconds to write if there is a
+                               CacheStore; zero disables write-behind
+                               caching, which (combined with !fReadOnly)
+                               implies write-through</dd>
+<dd><code>dflRefreshAheadFactor</code> - the interval before an entry expiration
+                               time (expressed as a percentage of the
+                               internal cache expiration interval) during
+                               which an asynchronous load request for the
+                               entry will be scheduled; zero disables
+                               refresh-ahead; only applicable when
+                               the <tt>mapInternal</tt> parameter is an
+                               instance of
+                               <a href="../cache/LocalCache.html" title="class in com.tangosol.net.cache"><code>LocalCache</code></a></dd>
+<dd><code>fWriteBehindRemove</code> - pass true if the specified loader is in fact
+                               a CacheStore that needs to apply write-behind to remove</dd>
+<dt>Since:</dt>
+<dd>12.2.1.4.18</dd>
 </dl>
 </section>
 </li>

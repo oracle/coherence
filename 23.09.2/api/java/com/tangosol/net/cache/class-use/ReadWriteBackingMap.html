@@ -84,35 +84,38 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code>protected <a href="../ReadWriteBackingMap.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMapScheme.</span><code><a href="../../../coherence/config/scheme/ReadWriteBackingMapScheme.html#instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double)" class="member-name-link">instantiateReadWriteBackingMap</a><wbr>(<a href="../../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
+<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMapScheme.</span><code><a href="../../../coherence/config/scheme/ReadWriteBackingMapScheme.html#instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.BinaryEntryStore,boolean,int,double,boolean)" class="member-name-link">instantiateReadWriteBackingMap</a><wbr>(<a href="../../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
  <a href="../../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
  <a href="../BinaryEntryStore.html" title="interface in com.tangosol.net.cache">BinaryEntryStore</a>&nbsp;storeBinary,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
- double&nbsp;dflRefreshAheadFactor)</code></div>
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Construct a ReadWriteBackingMap using the specified parameters.</div>
 </div>
 <div class="col-first odd-row-color"><code>protected <a href="../ReadWriteBackingMap.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">ReadWriteBackingMapScheme.</span><code><a href="../../../coherence/config/scheme/ReadWriteBackingMapScheme.html#instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double)" class="member-name-link">instantiateReadWriteBackingMap</a><wbr>(<a href="../../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
+<div class="col-second odd-row-color"><span class="type-name-label">ReadWriteBackingMapScheme.</span><code><a href="../../../coherence/config/scheme/ReadWriteBackingMapScheme.html#instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.CacheLoader,boolean,int,double,boolean)" class="member-name-link">instantiateReadWriteBackingMap</a><wbr>(<a href="../../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
  <a href="../../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
  <a href="../CacheLoader.html" title="interface in com.tangosol.net.cache">CacheLoader</a>&nbsp;store,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
- double&nbsp;dflRefreshAheadFactor)</code></div>
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
 <div class="col-last odd-row-color">
 <div class="block">Construct a ReadWriteBackingMap using the specified parameters.</div>
 </div>
 <div class="col-first even-row-color"><code>protected <a href="../ReadWriteBackingMap.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMapScheme.</span><code><a href="../../../coherence/config/scheme/ReadWriteBackingMapScheme.html#instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.NonBlockingEntryStore,boolean,int,double)" class="member-name-link">instantiateReadWriteBackingMap</a><wbr>(<a href="../../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
+<div class="col-second even-row-color"><span class="type-name-label">ReadWriteBackingMapScheme.</span><code><a href="../../../coherence/config/scheme/ReadWriteBackingMapScheme.html#instantiateReadWriteBackingMap(com.tangosol.net.BackingMapManagerContext,com.tangosol.util.ObservableMap,java.util.Map,com.tangosol.net.cache.NonBlockingEntryStore,boolean,int,double,boolean)" class="member-name-link">instantiateReadWriteBackingMap</a><wbr>(<a href="../../BackingMapManagerContext.html" title="interface in com.tangosol.net">BackingMapManagerContext</a>&nbsp;context,
  <a href="../../../util/ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;mapInternal,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapMisses,
  <a href="../NonBlockingEntryStore.html" title="interface in com.tangosol.net.cache">NonBlockingEntryStore</a>&nbsp;storeBinary,
  boolean&nbsp;fReadOnly,
  int&nbsp;cWriteBehindSeconds,
- double&nbsp;dflRefreshAheadFactor)</code></div>
+ double&nbsp;dflRefreshAheadFactor,
+ boolean&nbsp;fWriteBehindRemove)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Construct a ReadWriteBackingMap using the specified parameters.</div>
 </div>
