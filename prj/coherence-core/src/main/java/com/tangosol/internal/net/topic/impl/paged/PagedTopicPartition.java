@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1406,6 +1406,12 @@ public class PagedTopicPartition
             return PollProcessor.Result.notAllocated(Integer.MAX_VALUE);
             }
 
+        if (!Objects.equals(subscriberId, subscription.getChannelOwner(nChannel)))
+            {
+            // Ownership has changed and the subscription is out of date, so update, which will cause a rollback
+            subscription.setOwningSubscriber(subscriberId);
+            }
+
         // update the "last polled by" subscriber
         subscription.setLastPolledSubscriber(subscriberId);
 
@@ -1690,9 +1696,15 @@ public class PagedTopicPartition
                     new IllegalArgumentException("Invalid position type"));
             }
 
-        Subscription  subscription  = entrySubscription.getValue();
-        SubscriberId  owner         = subscription.getOwningSubscriber();
-        boolean       fOwned        = Objects.equals(owner, subscriberId);
+        PagedTopicSubscription pagedTopicSubscription = getPagedTopicSubscription(entrySubscription);
+        Subscription           subscription           = entrySubscription.getValue();
+
+        // If it exists, the PagedTopicSubscription is a more consistent holder of channel allocations and subscriptions.
+        SubscriberId owner = pagedTopicSubscription != null
+                ? pagedTopicSubscription.getOwningSubscriber(nChannel)
+                : subscription.getOwningSubscriber();
+
+        boolean fOwned = Objects.equals(owner, subscriberId);
 
         if (!fOwned && getDependencies().isOnlyOwnedCommits())
             {
