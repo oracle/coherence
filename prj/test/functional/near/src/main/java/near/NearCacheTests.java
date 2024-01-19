@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,7 +9,6 @@ package near;
 
 import com.oracle.bedrock.options.Timeout;
 
-import com.oracle.bedrock.runtime.java.options.HeapSize;
 import com.oracle.bedrock.runtime.java.options.JvmOptions;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
@@ -102,10 +101,8 @@ public class NearCacheTests
         {
         startCacheServer("NearCacheTests-1", "near", FILE_CFG_CACHE,
                          null, true, null,
-                         HeapSize.of(128, HeapSize.Units.MB, 384, HeapSize.Units.MB, true),
                          JvmOptions.include("-XX:+ExitOnOutOfMemoryError"));
         startCacheServer("NearCacheTests-2", "near", FILE_CFG_CACHE, null, true, null,
-                         HeapSize.of(128, HeapSize.Units.MB, 384, HeapSize.Units.MB, true),
                          JvmOptions.include("-XX:+ExitOnOutOfMemoryError"));
         }
 
