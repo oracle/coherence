@@ -13,10 +13,13 @@ import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.testing.AbstractTestInfrastructure;
 import com.tangosol.discovery.NSLookup;
 
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 
+import com.tangosol.net.Coherence;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -78,6 +81,12 @@ public class MetricsStartupModeTests
         {
         }
 
+    @After
+    public void cleanup()
+        {
+        AbstractTestInfrastructure.stopAllApplications();
+        }
+
     // ----- test -----------------------------------------------------------
 
     @Test
@@ -92,8 +101,8 @@ public class MetricsStartupModeTests
         propServer.put("coherence.metrics.http.enabled", "true");
         propServer.put("coherence.management.extendedmbeanname", "true");
 
-        try (CoherenceClusterMember member1 = startCacheServer(sPrefix + "1", "metrics", null, propServer, true);
-             CoherenceClusterMember member2 = startCacheServer(sPrefix + "2", "metrics", null, propServer, true))
+        try (CoherenceClusterMember member1 = startCacheServer(sPrefix + "1", propServer);
+             CoherenceClusterMember member2 = startCacheServer(sPrefix + "2", propServer))
             {
             Eventually.assertThat(invoking(member1).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
             Eventually.assertThat(invoking(member2).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
@@ -117,7 +126,7 @@ public class MetricsStartupModeTests
         propServer.put("coherence.metrics.http.enabled", "true");
         propServer.put("coherence.management.extendedmbeanname", "true");
 
-        try (CoherenceClusterMember member = startCacheServer(sName, "metrics", FILE_SERVER_CFG_CACHE, propServer, true))
+        try (CoherenceClusterMember member = startCacheServer(sName, propServer))
             {
             Eventually.assertThat(invoking(member).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
 
@@ -139,7 +148,7 @@ public class MetricsStartupModeTests
         // Use ephemeral port
         propServer.put("coherence.metrics.http.port", "0");
 
-        try (CoherenceClusterMember member = startCacheServer(sName, "metrics", FILE_SERVER_CFG_CACHE, propServer, true))
+        try (CoherenceClusterMember member = startCacheServer(sName, propServer))
             {
             Eventually.assertThat(invoking(member).isServiceRunning(MetricsHttpHelper.getServiceName()), is(false));
 
@@ -164,7 +173,7 @@ public class MetricsStartupModeTests
         propServer.put("coherence.metrics.http.port", Integer.toString(nMetricsPort));
         propServer.put("coherence.management.extendedmbeanname", "true");
 
-        try (CoherenceClusterMember member = startCacheServer(sName, "metrics", FILE_SERVER_CFG_CACHE, propServer, true))
+        try (CoherenceClusterMember member = startCacheServer(sName, propServer))
             {
             Eventually.assertThat(invoking(member).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
 
@@ -209,7 +218,7 @@ public class MetricsStartupModeTests
         propServer.put("coherence.member", sMemberName);
         propServer.put("coherence.management.extendedmbeanname", "true");
 
-        try (CoherenceClusterMember member = startCacheServer(sMemberName, "metrics", FILE_SERVER_CFG_CACHE, propServer, true))
+        try (CoherenceClusterMember member = startCacheServer(sMemberName, propServer))
             {
             Eventually.assertThat(invoking(member).isServiceRunning(MetricsHttpHelper.getServiceName()),
                 is( false), DeferredHelper.delayedBy(1L, TimeUnit.SECONDS));
@@ -238,6 +247,12 @@ public class MetricsStartupModeTests
                 }
             }
         return false;
+        }
+
+    CoherenceClusterMember startCacheServer(String sMemberName, Properties propServer)
+        {
+        return AbstractTestInfrastructure.startCacheServer(sMemberName, "metrics", FILE_SERVER_CFG_CACHE,
+                propServer, true, null, Coherence.class);
         }
 
     // ----- constants ------------------------------------------------------
