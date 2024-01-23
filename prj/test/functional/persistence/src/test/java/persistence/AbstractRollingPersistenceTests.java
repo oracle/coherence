@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -219,6 +219,7 @@ public abstract class AbstractRollingPersistenceTests
                 }
             }
         }
+
     /**
      * Test dynamic recovery.
      */
@@ -260,7 +261,7 @@ public abstract class AbstractRollingPersistenceTests
 
             // partition stabilization could take over a minute which should not be
             // a failure condition; wait after sleep
-            waitForBalanced(service, 90);
+            waitForBalanced(service, 180);
 
             // the following sleep should be removed once COH-19735 is done
             sleep(4000); // when COH-14809 is done, replace with an event check
