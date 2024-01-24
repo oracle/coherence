@@ -1,25 +1,30 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.internal.util;
+package core21;
 
-import org.junit.jupiter.api.AfterEach;
+
+import com.tangosol.internal.util.VirtualThreads;
+import com.tangosol.net.CacheFactory;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class VirtualThreadsTest
+
+public class VirtualThreadsTests
     {
-    @AfterEach
+    @BeforeEach
     public void reset()
         {
-        System.setProperty(PROPERTY_ENABLED, "true");
-        System.setProperty(PROPERTY_SERVICE_ENABLED, "true");
+        System.clearProperty(PROPERTY_ENABLED);
+        System.clearProperty(PROPERTY_SERVICE_ENABLED);
+        CacheFactory.shutdown();
         }
 
     @Test
@@ -34,6 +39,14 @@ public class VirtualThreadsTest
     @Test
     public void ensureVirtualThreadsAreEnabledByDefault()
         {
+        assertThat(VirtualThreads.isEnabled(), is(true));
+        assertThat(VirtualThreads.isEnabled(SERVICE_NAME), is(true));
+        }
+
+    @Test
+    public void ensureVirtualThreadsCanBeEnabledGlobally()
+        {
+        System.setProperty(PROPERTY_ENABLED, "true");
         assertThat(VirtualThreads.isEnabled(), is(true));
         assertThat(VirtualThreads.isEnabled(SERVICE_NAME), is(true));
         }

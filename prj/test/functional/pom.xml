@@ -123,6 +123,7 @@
         <module>concurrent</module>
         <module>concurrent-cdi</module>
         <module>core</module>
+        <module>core21</module>
         <module>dependencies</module>
         <module>discovery</module>
         <module>dslquery</module>

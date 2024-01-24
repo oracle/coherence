@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,9 @@
 package com.tangosol.internal.util;
 
 import com.tangosol.coherence.config.Config;
+
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.Cluster;
 
 import java.util.function.Function;
 
@@ -73,7 +76,7 @@ public class VirtualThreads
      */
     public static boolean isEnabled()
         {
-        return Config.getBoolean(PROPERTY_ENABLED, true);
+        return CacheFactory.getCluster().getDependencies().isVirtualThreadsEnabled();
         }
 
     /**
@@ -96,12 +99,12 @@ public class VirtualThreads
     /**
      * Config property used to globally enable or disable virtual threads.
      */
-    static final String PROPERTY_ENABLED = "coherence.virtualthreads.enabled";
+    public static final String PROPERTY_ENABLED = "coherence.virtualthreads.enabled";
 
     /**
      * Config property used to selectively enable or disable virtual threads for
      * a specific service.
      */
-    static final Function<String, String> PROPERTY_SERVICE_ENABLED =
+    public static final Function<String, String> PROPERTY_SERVICE_ENABLED =
             (sServiceName) -> String.format("coherence.service.%s.virtualthreads.enabled", sServiceName);
     }
