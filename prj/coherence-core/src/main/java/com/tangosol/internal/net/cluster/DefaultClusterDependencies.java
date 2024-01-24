@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.cluster;
 
-import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.Predicate;
 
@@ -167,6 +166,7 @@ public class DefaultClusterDependencies
             m_builderUnicastSocketProvider   = deps.getUnicastSocketProviderBuilder();
             m_sLambdasSerializationMode      = deps.getLambdasSerializationMode();
             m_fSecuredProduction             = deps.isSecuredProduction();
+            m_fVirtualThreadsEnabled         = deps.isVirtualThreadsEnabled();
 
             m_customResources = new SimpleResourceRegistry();
             deps.registerResources(m_customResources);
@@ -2067,6 +2067,30 @@ public class DefaultClusterDependencies
         return this;
         }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isVirtualThreadsEnabled()
+        {
+        return m_fVirtualThreadsEnabled;
+        }
+
+    /**
+     * Set the virtual-threads-enabled flag.
+     *
+     * @param fEnabled  true to enable the using of virtual threads.
+     *
+     * @return this object
+     *
+     * @since 24.03
+     */
+    public DefaultClusterDependencies setVirtualThreadsEnabled(boolean fEnabled)
+        {
+        m_fVirtualThreadsEnabled = fEnabled;
+        return this;
+        }
+
 
     // ----- DefaultClusterDependencies methods -----------------------------
 
@@ -2726,4 +2750,10 @@ public class DefaultClusterDependencies
      * Default is false.
      */
     private boolean m_fSecuredProduction = false;
+
+    /**
+     * Specifies whether using virtual threads is enabled.
+     * Default is true.
+     */
+    private boolean m_fVirtualThreadsEnabled = true;
     }

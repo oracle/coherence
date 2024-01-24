@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -1019,6 +1019,8 @@ to find specific notes on changes suggested for production use.
       <thread-count-max system-property="coherence.common.pool.max.threads"/>
       <thread-count-min system-property="coherence.common.pool.min.threads"/>
     </common-daemon-pool>
+
+    <virtual-threads-enabled system-property="coherence.virtualthreads.enabled">true</virtual-threads-enabled>
   </cluster-config>
 
   <logging-config>

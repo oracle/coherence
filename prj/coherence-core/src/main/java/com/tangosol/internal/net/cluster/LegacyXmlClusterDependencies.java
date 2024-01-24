@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -166,6 +166,8 @@ public class LegacyXmlClusterDependencies
         DefaultProcessingContext ctxCommonPool = new DefaultProcessingContext(ctxClusterConfig, xmlCommonPool);
         ctxCommonPool.processDocument(xmlCommonPool);
         ctxCommonPool.close();
+
+        setVirtualThreadsEnabled(xml.getSafeElement("virtual-threads-enabled").getBoolean(isVirtualThreadsEnabled()));
 
         // ------------------------------------------------------------------------
         // SUSPEND: Use CODI to parse the operational configuration
