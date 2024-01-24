@@ -215,7 +215,7 @@
     <groovy.version>4.0.11</groovy.version>
     <jackson.version>2.14.1</jackson.version>
     <jackson.databind.version>2.14.1</jackson.databind.version>
-    <jacoco.version>0.8.8</jacoco.version>
+    <jacoco.version>0.8.11</jacoco.version>
     <jaeger.version>1.8.1</jaeger.version>
     <!-- NOTE: these Jakarta versions should ideally be in sync' with that used by Helidon -->
     <jakarta.activation.version>2.0.1</jakarta.activation.version>
