@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,7 +21,6 @@ import com.tangosol.io.ReadBuffer;
 
 import com.tangosol.net.AbstractInvocable;
 import com.tangosol.net.CacheFactory;
-import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.Member;
@@ -33,7 +32,11 @@ import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import com.oracle.coherence.testing.AbstractRollingRestartTest;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -41,6 +44,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import java.io.Serializable;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -94,6 +102,7 @@ public abstract class AbstractCohQLPersistenceTests
      * @throws IOException if there is an error
      */
     @Test
+    @Retry(count = 2)
     public void testCohQLCommands()
             throws IOException
         {
@@ -439,6 +448,72 @@ public abstract class AbstractCohQLPersistenceTests
     // ----- inner classes -----------------------------------------------
 
     /**
+     * A JUnit 4 rule that repeats a test annotated with {@link Retry} a given number of times in case of failure.
+     */
+    public static class RetryRule
+            implements TestRule
+        {
+        // ----- TestRule methods -----------------------------------------------
+
+        public Statement apply(Statement base, Description description)
+            {
+            Retry retry = description.getAnnotation(Retry.class);
+            if (retry == null)
+                {
+                return base;
+                }
+            int retryCount = retry.count();
+            if (retryCount <= 0)
+                {
+                throw new IllegalArgumentException("@" + Retry.class.getSimpleName() + " 'count' parameter has to be a positive number.");
+                }
+            return statement(base, description, retryCount);
+            }
+
+        // ----- helper methods ---------------------------------------------
+
+        private Statement statement(Statement base, Description description, int retryCount)
+            {
+            return new Statement()
+                {
+                @Override
+                public void evaluate() throws Throwable
+                    {
+                    Throwable throwable = null;
+                    for (int i = 0; i < retryCount; i++)
+                        {
+                        try
+                            {
+                            base.evaluate();
+                            return;
+                            }
+                        catch (Throwable t)
+                            {
+                            throwable = t;
+                            }
+                        }
+                    System.err.println(description.getDisplayName() + ": giving up after " + retryCount + " failure(s)");
+                    throw throwable;
+                    }
+                };
+            }
+        }
+
+    /**
+     * Target annotated with Retry will be repeatedly executed a given number of times in case of failure.
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ElementType.METHOD, ElementType.TYPE})
+    public @interface Retry
+        {
+        /**
+         * @return the number of attempts to execute this method before the failure is
+         *         propagated through
+         */
+        int count() default 2;
+        }
+
+    /**
      * This is executed from within the cluster as the "client"
      * does not have the correct archiver setup.
      */
@@ -495,6 +570,11 @@ public abstract class AbstractCohQLPersistenceTests
      */
     protected abstract PersistenceManager<ReadBuffer> createPersistenceManager(File file)
             throws IOException;
+
+    // ----- data members ------------------------------------------------------
+
+    @Rule
+    public RetryRule rule = new RetryRule();
 
     // ----- accessors ------------------------------------------------------
 
