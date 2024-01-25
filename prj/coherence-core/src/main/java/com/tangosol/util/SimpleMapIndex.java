@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1261,7 +1261,17 @@ public class SimpleMapIndex
                                 + " estimate the index size using serialization,"
                                 + " which could impact its performance";
                             }
-                        Logger.info(sMsg);
+
+                        long ldtNow = Base.getLastSafeTimeMillis();
+
+                        // Enh 35977966: only log a message every 60 seconds to minimize output due to above messages
+                        // displaying for each cache entry and overwhelming the log files with messages
+                        if (ldtNow > s_ldtLastIndexLogTime + 60_000L)
+                            {
+                            Logger.info(sMsg);
+                            s_ldtLastIndexLogTime = ldtNow;
+                            }
+
                         m_state = state;
                         break;
                         }
@@ -1322,7 +1332,7 @@ public class SimpleMapIndex
             catch (Exception e)
                 {
                 // something went wrong with either conversion or the index
-                // the index was thought to be STANDARD, but appears to be not
+                // was thought to be STANDARD, but appears to be not
                 // homogeneous
                 return DEFAULT_SIZE;
                 }
@@ -1528,4 +1538,9 @@ public class SimpleMapIndex
     * Specifies whether or not the index is based on the immutable values (e.g. keys).
     */
     protected boolean m_fImmutableValues;
+
+    /**
+     * Used to minimize logging of index error message.
+     */
+    private static long s_ldtLastIndexLogTime = 0;
     }
