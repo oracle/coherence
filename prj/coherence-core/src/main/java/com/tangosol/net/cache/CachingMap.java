@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -655,6 +655,11 @@ public class CachingMap<K, V>
             {
             // all keys found in front
             return mapResult;
+            }
+        else
+            {
+            // ensure mapResult is modifiable to enable adding missing entries retrieved from backing map
+            mapResult = new HashMap<K,V>(mapResult);
             }
 
         Set<K> setMiss = new HashSet<>(colKeys);
