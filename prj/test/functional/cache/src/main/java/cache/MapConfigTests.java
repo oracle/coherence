@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,8 @@ package cache;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.caffeine.CaffeineCache;
+
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 import com.oracle.coherence.testing.TestHelper;
 
@@ -15,6 +17,7 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.cache.AbstractEvictionPolicy;
 import com.tangosol.net.cache.ConfigurableCacheMap.Entry;
 import com.tangosol.net.cache.LocalCache;
+import com.tangosol.net.cache.NearCache;
 import com.tangosol.net.cache.SimpleMemoryCalculator;
 import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.NamedCache;
@@ -32,6 +35,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.hamcrest.Matchers.is;
 
@@ -162,6 +166,15 @@ public class MapConfigTests
         Eventually.assertDeferred(() -> isUnitsBytesCorrect(mbs, sCacheName), is(true));
         }
 
+    @Test
+    public void testNearFrontSchemeCaffeine()
+        {
+        String                       sCacheName = "near-caffeine-cache1";
+        NamedCache<Integer,Integer>  cacheNear  = CacheFactory.getCache(sCacheName);
+
+        verifyCaffeineFrontMap(cacheNear);
+        }
+
     // ----- helpers --------------------------------------------------------
 
     /**
@@ -228,6 +241,36 @@ public class MapConfigTests
 
         assertNotNull(backingMap);
         assertEquals(clzEvictionPolicy, ((LocalCache) backingMap).getEvictionPolicy().getClass());
+        }
+
+    /**
+     * Verify that front map is Caffeine
+     *
+     * @param cache  the cache
+     */
+    protected void verifyCaffeineFrontMap(NamedCache cache)
+        {
+        cache.put(1, 1);
+        cache.put(2, 2);
+        cache.put(3, 3);
+        cache.put(4, 4);
+
+        Map cacheFrontMap = ((NearCache) cache).getFrontMap();
+
+        assertNotNull(cacheFrontMap);
+        assertEquals(3, cache.get(3));
+        assertEquals(3, cacheFrontMap.get(3));
+
+        for (int k = 1; k <= 4; k++)
+            {
+            // prime front cache
+            cache.get(k);
+            assertThat(cacheFrontMap.get(k), is(k));
+            }
+
+        assertThat(cache.size(), is(4));
+        assertThat(cacheFrontMap.size(), is(4));
+        assertThat(cacheFrontMap.getClass(), is(CaffeineCache.class));
         }
 
     // ----- inner classes --------------------------------------------------
