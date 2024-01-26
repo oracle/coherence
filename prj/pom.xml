@@ -791,10 +791,10 @@
     <javadoc.doclet.class>com.xtangosol.tools.javadoc.RemoveInheritedDoclet</javadoc.doclet.class>
     <javadoc.doclet.path>${tools.path}/doclet/lib/doclet.jar</javadoc.doclet.path>
     <javadoc.copyright>
-      Copyright &amp;copy; 2000, 2020, Oracle and/or its affiliates.
+      Copyright &amp;copy; 2000, 2024, Oracle and/or its affiliates.
 
       Licensed under the Universal Permissive License v 1.0 as shown at
-      http://oss.oracle.com/licenses/upl.
+      https://oss.oracle.com/licenses/upl.
     </javadoc.copyright>
     <javadoc.copyright.header>
       &lt;b&gt;Java API Reference for Oracle&#174; Coherence Community Edition&lt;br&gt;
@@ -2191,13 +2191,13 @@
   <licenses>
     <license>
       <name>Universal Permissive License v 1.0</name>
-      <url>http://oss.oracle.com/licenses/upl</url>
+      <url>https://oss.oracle.com/licenses/upl</url>
       <distribution>repo</distribution>
       <comments>
         Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
         Licensed under the Universal Permissive License v 1.0 as shown at
-        http://oss.oracle.com/licenses/upl.
+        https://oss.oracle.com/licenses/upl.
       </comments>
     </license>
   </licenses>
