@@ -15,6 +15,7 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.common.base.Logger;
 import com.tangosol.net.AbstractInvocable;
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.NamedCache;
 
@@ -88,6 +89,8 @@ public class NearCacheTests
     public NearCacheTests()
         {
         super(FILE_CFG_CACHE);
+        System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE);
+        Logger.config("coherence.cacheconfig=" + FILE_CFG_CACHE);
         }
 
 
@@ -504,7 +507,7 @@ public class NearCacheTests
         {
         NearCache<Integer, Person> cache = (NearCache) getNamedCache("near-coh-23095");
 
-        CacheStatistics cacheStats     = ((LocalCache) cache.getFrontMap()).getCacheStatistics();
+        CacheStatistics cacheStats     = getFrontMapCacheStatistics(cache);
         long            cInitialMisses = cacheStats.getCacheMisses();
 
         cache.computeIfAbsent(2,
@@ -549,6 +552,13 @@ public class NearCacheTests
         catch (InterruptedException ie)
             {
             Assert.fail("Test timed out");
+            }
+
+        // Caffeine front cache background eviction intermittently does not completely clear the cache, it does not have low units
+        // computing size does not ensure eviction processing of expired entries is completed for CaffeineCache
+        for (int j = 0; j < 10000; j++)
+            {
+            cache.get(j);
             }
 
         // eventually front cache should be empty
@@ -598,6 +608,10 @@ public class NearCacheTests
         {
         public void run()
             {
+            ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                        .getConfigurableCacheFactory(m_sCacheConfig, null);
+            setFactory(factory);
+
             try
                 {
                 setResult(Boolean.valueOf(test()));
@@ -655,7 +669,7 @@ public class NearCacheTests
 
             out("waiting for others...");
             NamedCache cache = getCache();
-            Eventually.assertThat(invoking(cache).get(RUNNING), is((Object) Integer.valueOf(0)));
+            Eventually.assertDeferred(() -> cache.get(RUNNING), is((Object) Integer.valueOf(0)));
             }
 
         /**
@@ -702,6 +716,7 @@ public class NearCacheTests
 
         protected transient boolean m_fFinished;
         protected           String  m_sCacheName;
+        protected           String  m_sCacheConfig = System.getProperty("coherence.cacheconfig");
         }
 
     /**
@@ -975,8 +990,22 @@ public class NearCacheTests
         private String    m_sKey;
         }
 
+    // ----- helpers ---------------------------------------------------------
+
+    /**
+     * Return {@link CacheStatistics} for front map.
+     *
+     * @param cache  the near cache
+     *
+     * @return {@link CacheStatistics} for front map
+     */
+    protected CacheStatistics getFrontMapCacheStatistics(NearCache cache)
+        {
+        return ((LocalCache) cache.getFrontMap()).getCacheStatistics();
+        }
+
     // ---- constants -------------------------------------------------------
 
     protected static final String RUNNING  = "running-agents";
-    protected static final String FILE_CFG_CACHE = "near-cache-config.xml";
+    protected static String FILE_CFG_CACHE = "near-cache-config.xml";
     }

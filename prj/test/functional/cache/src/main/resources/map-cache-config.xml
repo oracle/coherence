@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -114,6 +114,11 @@
     <cache-mapping>
       <cache-name>caffeine*</cache-name>
       <scheme-name>caffeine-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>near-caffeine-*</cache-name>
+      <scheme-name>near-scheme-with-caffeine-front-map</scheme-name>
     </cache-mapping>
 
     <cache-mapping>
@@ -356,8 +361,20 @@
              <scheme-ref>dist-default-scheme</scheme-ref>      
           </distributed-scheme>
         </back-scheme>            
-     </near-scheme> 
-     
+     </near-scheme>
+
+    <near-scheme>
+      <scheme-name>near-scheme-with-caffeine-front-map</scheme-name>
+      <front-scheme>
+        <caffeine-scheme/>
+      </front-scheme>
+      <back-scheme>
+        <distributed-scheme>
+          <scheme-ref>dist-default-scheme</scheme-ref>
+        </distributed-scheme>
+      </back-scheme>
+    </near-scheme>
+
   </caching-schemes> 
   
 </cache-config>

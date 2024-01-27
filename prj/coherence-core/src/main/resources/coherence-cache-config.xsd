@@ -1009,7 +1009,7 @@
               For more information on Caffeine, and the highly efficient TinyLFU
               eviction policy it uses, see https://github.com/ben-manes/caffeine.
 
-              Used in: standalone-caching-scheme
+              Used in: standalone-caching-scheme, front-scheme
           </xsd:documentation>
       </xsd:annotation>
       <xsd:complexType>
@@ -1493,6 +1493,7 @@
                 <xsd:choice>
                     <xsd:element ref="local-scheme" />
                     <xsd:element ref="class-scheme" />
+                    <xsd:element ref="caffeine-scheme" />
                 </xsd:choice>
                 <xsd:any namespace="##other" processContents="lax"
                     minOccurs="0" maxOccurs="unbounded" />
