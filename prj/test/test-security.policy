@@ -973,3 +973,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../test/functional/guardian/targ
   permission java.lang.RuntimePermission "shutdownHooks";
   permission java.lang.RuntimePermission "exitVM";
 };
+
+grant codeBase "file:${oracle.coherence.lib}/../../test/functional/near/target/-" {
+   permission java.lang.RuntimePermission "getProtectionDomain";
+};
