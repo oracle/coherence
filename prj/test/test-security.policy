@@ -937,3 +937,7 @@ permission java.lang.RuntimePermission "getClassLoader";
   permission java.lang.management.ManagementPermission "monitor";
   permission javax.management.MBeanPermission "*", "registerMBean";
 };
+
+grant codeBase "file:${oracle.coherence.lib}/../../test/functional/near/target/-" {
+   permission java.lang.RuntimePermission "getProtectionDomain";
+};
