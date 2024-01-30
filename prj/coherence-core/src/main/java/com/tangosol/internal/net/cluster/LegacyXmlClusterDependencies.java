@@ -9,6 +9,7 @@ package com.tangosol.internal.net.cluster;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.net.InetAddresses;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.config.ParameterMacroExpressionParser;
 import com.tangosol.coherence.config.builder.AddressProviderBuilder;
 import com.tangosol.coherence.config.builder.ListBasedAddressProviderBuilder;
@@ -985,14 +986,12 @@ public class LegacyXmlClusterDependencies
         Set<?> set = (Set<?>) provider;
         if (set.isEmpty())
             {
-            boolean fRetry = Boolean.getBoolean(PROP_WKA_RESOLVE_RETRY);
+            boolean fRetry = Config.getBoolean(PROP_WKA_RESOLVE_RETRY);
             if (fRetry)
                 {
-                long nTimeout = Long.parseLong(System.getProperty(PROP_WKA_TIMEOUT,
-                                        String.valueOf(DEFAULT_WKA_RESOLVE_TIMEOUT.toMillis())));
-                long nRetry   = Long.parseLong(System.getProperty(PROP_WKA_RESOLVE_FREQUENCY,
-                                        String.valueOf(DEFAULT_WKA_RESOLVE_FREQUENCY.toMillis())));
-                long nStart = System.currentTimeMillis();
+                long nTimeout = Config.getLong(PROP_WKA_TIMEOUT, DEFAULT_WKA_RESOLVE_TIMEOUT.toMillis());
+                long nRetry   = Config.getLong(PROP_WKA_RESOLVE_FREQUENCY, DEFAULT_WKA_RESOLVE_FREQUENCY.toMillis());
+                long nStart   = System.currentTimeMillis();
 
                 Logger.info("Failed to resolve WKA addresses, retrying for " + nTimeout + " millis");
                 while (set.isEmpty() && nTimeout > (System.currentTimeMillis() - nStart))
