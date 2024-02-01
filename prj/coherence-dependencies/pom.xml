@@ -252,7 +252,7 @@
     <mockito.version>3.12.4</mockito.version>
     <objenesis.version>2.2</objenesis.version>
     <oracle.bedrock.version>6.0.4</oracle.bedrock.version>
-    <testcontainers.version>1.17.3</testcontainers.version>
+    <testcontainers.version>1.19.3</testcontainers.version>
 
     <!-- commercial test dependency versions -->
     <jol.version>0.17</jol.version>

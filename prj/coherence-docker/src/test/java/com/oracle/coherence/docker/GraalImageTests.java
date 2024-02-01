@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,7 +21,6 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
-import com.oracle.coherence.client.GrpcSessionConfiguration;
 
 import com.oracle.coherence.common.base.Classes;
 import com.tangosol.coherence.component.net.extend.remoteService.RemoteCacheService;
@@ -109,7 +108,6 @@ public class GraalImageTests
                                                                  SystemProperty.of("coherence.extend.port", extendPort),
                                                                  SystemProperty.of("coherence.concurrent.extend.address", "127.0.0.1"),
                                                                  SystemProperty.of("coherence.concurrent.extend.port", concurrentPort),
-                                                                 SystemProperty.of(GrpcSessionConfiguration.PROP_DEFAULT_SESSION_ENABLED, false),
                                                                  IPv4Preferred.yes(),
                                                                  LocalHost.only(),
                                                                  DisplayName.of("client"),
