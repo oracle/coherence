@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -115,6 +115,7 @@ public abstract class MetricsHttpHelper
      *
      * @param mapServices  add started MetricsHttpService to this map if it is started.
      */
+    @SuppressWarnings("rawtypes")
     public static void ensureMetricsService(Map<Service, String> mapServices)
         {
         boolean fEnabled = Config.getBoolean(PROP_METRICS_ENABLED, false);
@@ -140,7 +141,10 @@ public abstract class MetricsHttpHelper
                 // start the Metrics HTTP acceptor
                 ProxyService service = (ProxyService)
                         cluster.ensureService(MetricsHttpHelper.getServiceName(), ProxyService.TYPE_DEFAULT);
-                service.setDependencies(deps);
+                if (service.getDependencies() == null)
+                    {
+                    service.setDependencies(deps);
+                    }
                 service.start();
                 mapServices.put(service, MetricsHttpHelper.getServiceName());
                 }
