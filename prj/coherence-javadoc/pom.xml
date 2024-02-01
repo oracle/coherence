@@ -560,6 +560,7 @@
 
                     <include>com/tangosol/net/management/*.java</include>
                     <include>com/tangosol/net/management/annotation/*.java</include>
+                    <include>com/tangosol/net/messaging/*Exception.java</include>
                     <include>com/tangosol/net/partition/*.java</include>
                     <include>com/tangosol/net/proxy/*.java</include>
                     <include>com/tangosol/net/security/*.java</include>
@@ -648,6 +649,8 @@
                     <exclude>com/oracle/coherence/concurrent/internal/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/internal/cdi/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/locks/internal/*.java</exclude>
+
+                    <exclude>com/oracle/coherence/grpc/internal/*.java</exclude>
 
                     <exclude>com/tangosol/util/CheckedWrapperException.java</exclude>
                     <exclude>com/tangosol/util/CommandLine.java</exclude>
