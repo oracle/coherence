@@ -47,6 +47,10 @@
       <artifactId>coherence-json</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-java-client</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.glassfish</groupId>
@@ -75,12 +79,6 @@
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-bedrock-testing-support</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-java-client</artifactId>
       <scope>test</scope>
     </dependency>
 
