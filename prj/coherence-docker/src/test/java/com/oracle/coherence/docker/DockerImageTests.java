@@ -6,6 +6,9 @@
  */
 package com.oracle.coherence.docker;
 
+import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.model.ContainerNetwork;
+import com.github.dockerjava.api.model.NetworkSettings;
 import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
@@ -47,6 +50,8 @@ import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.containers.wait.strategy.WaitStrategy;
 import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
@@ -107,6 +112,7 @@ public class DockerImageTests
         ImageNames.verifyTestAssumptions();
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
+                .waitingFor(Wait.forHealthcheck())
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
@@ -134,6 +140,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
+                .waitingFor(Wait.forHealthcheck())
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
                 .withExposedPorts(EXTEND_PORT, GRPC_PORT, CONCURRENT_EXTEND_PORT)))
             {
@@ -177,6 +184,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
+                .waitingFor(Wait.forHealthcheck())
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
                 .withFileSystemBind(fileArgsDir.getAbsolutePath(), "/args", BindMode.READ_ONLY)))
             {
@@ -200,6 +208,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
+                .waitingFor(Wait.forHealthcheck())
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
                 .withFileSystemBind(sLibs, COHERENCE_HOME + "/ext/conf", BindMode.READ_ONLY)
                 .withExposedPorts(EXTEND_PORT)))
@@ -227,6 +236,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
+                .waitingFor(Wait.forHealthcheck())
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
                 .withExposedPorts(MANAGEMENT_PORT)))
             {
@@ -251,6 +261,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
+                .waitingFor(Wait.forHealthcheck())
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
                 .withExposedPorts(METRICS_PORT)))
             {
@@ -281,26 +292,46 @@ public class DockerImageTests
             {
             try (GenericContainer<?> container1 = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                     .withImagePullPolicy(NeverPull.INSTANCE)
+                    .waitingFor(Wait.forHealthcheck())
                     .withExposedPorts(MANAGEMENT_PORT)
                     .withNetwork(network)
                     .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build(sName1)))
                     .withEnv("COHERENCE_WKA", sName1 + "," + sName2)
+                    .withEnv("COHERENCE_WKA_DNS_RESOLUTION_RETRY", "true")
                     .withEnv("COHERENCE_MEMBER", sName1)
                     .withEnv("COHERENCE_CLUSTER", "test-cluster")
                     .withEnv("COHERENCE_CLUSTER", "storage")
+                    .withCreateContainerCmdModifier(cmd -> cmd.withHostName(sName1).withName(sName1))
                     .withNetworkAliases(sName1)))
                 {
+                Eventually.assertDeferred(container1::isHealthy, is(true));
+                InspectContainerResponse info = container1.getContainerInfo();
+                NetworkSettings          net  = info.getNetworkSettings();
+
+                Map<String, ContainerNetwork> mapNetwork = net.getNetworks();
+                StringBuilder sbWka = new StringBuilder(sName1);
+                for (ContainerNetwork n : mapNetwork.values())
+                    {
+                    String sIP = n.getIpAddress();
+                    if (sIP != null && !sIP.isEmpty())
+                        {
+                        sbWka.append(",").append(sIP);
+                        }
+                    }
+
                 try (GenericContainer<?> container2 = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                         .withImagePullPolicy(NeverPull.INSTANCE)
+                        .waitingFor(Wait.forHealthcheck())
                         .withNetwork(network)
                         .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build(sName2)))
-                        .withEnv("COHERENCE_WKA", sName1 + "," + sName2)
+                        .withEnv("COHERENCE_WKA", sbWka.toString())
+                        .withEnv("COHERENCE_WKA_DNS_RESOLUTION_RETRY", "true")
                         .withEnv("COHERENCE_MEMBER", sName2)
                         .withEnv("COHERENCE_CLUSTER", "test-cluster")
                         .withEnv("COHERENCE_CLUSTER", "storage")
+                        .withCreateContainerCmdModifier(cmd -> cmd.withHostName(sName2).withName(sName2))
                         .withNetworkAliases(sName2)))
                     {
-                    Eventually.assertDeferred(container1::isHealthy, is(true));
                     Eventually.assertDeferred(container2::isHealthy, is(true));
 
                     int                  hostPort = container1.getMappedPort(MANAGEMENT_PORT);

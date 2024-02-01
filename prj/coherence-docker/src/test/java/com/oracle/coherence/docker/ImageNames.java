@@ -12,8 +12,10 @@ import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.ApplicationConsole;
 import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.Platform;
+import com.oracle.bedrock.runtime.console.CapturingApplicationConsole;
 import com.oracle.bedrock.runtime.console.NullApplicationConsole;
 import com.oracle.bedrock.runtime.options.Argument;
+import com.oracle.bedrock.runtime.options.Console;
 import org.junit.jupiter.api.Assumptions;
 
 /**
@@ -82,6 +84,26 @@ public class ImageNames
         }
 
     /**
+     * Return the digests of the test images.
+     *
+     * @return the names of the test images
+     */
+    public static String[] getImageDigests()
+        {
+        if (s_asImageDigest == null)
+            {
+            String[] asName   = getImageNames();
+            String[] asDigest = new String[asName.length];
+            for (int i = 0; i < asName.length; i++)
+                {
+                asDigest[i] = imageDigest(asName[i]);
+                }
+            s_asImageDigest = asDigest;
+            }
+        return s_asImageDigest;
+        }
+
+    /**
      * Verify the assumptions needed to run Graal tests.
      */
     public static void verifyGraalTestAssumptions()
@@ -140,6 +162,26 @@ public class ImageNames
         }
 
     /**
+     * Return the digests of the Graal test images.
+     *
+     * @return the digests of the Graal test images
+     */
+    public static String[] getGraalImageDigests()
+        {
+        if (s_asGraalImageDigest == null)
+            {
+            String[] asName   = getGraalImageNames();
+            String[] asDigest = new String[asName.length];
+            for (int i = 0; i < asName.length; i++)
+                {
+                asDigest[i] = imageDigest(asName[i]);
+                }
+            s_asGraalImageDigest = asDigest;
+            }
+        return s_asGraalImageDigest;
+        }
+
+    /**
      * Verify that the image being tested is already present.
      *
      * @param sImage  the name of the image
@@ -164,6 +206,41 @@ public class ImageNames
             {
             int exitCode = app.waitFor();
             return exitCode == 0;
+            }
+        }
+
+    /**
+     * Get the digest for an image.
+     *
+     * @param sImage  the name of the image
+     *
+     * @return the image digest
+     */
+    public static String imageDigest(String sImage)
+        {
+        String sDocker = "docker.io/";
+        if (sImage.startsWith(sDocker))
+            {
+            sImage = sImage.substring(sDocker.length());
+            }
+
+        Platform                    platform = LocalPlatform.get();
+        CapturingApplicationConsole console  = new CapturingApplicationConsole();
+
+        try (Application app = platform.launch("docker",
+                   Argument.of("images"),
+                   Argument.of(sImage),
+                   Argument.of("--no-trunc"),
+                   Argument.of("--quiet"),
+                   LaunchLogging.disabled(),
+                   Console.of(console)))
+            {
+            int exitCode = app.waitFor();
+            if (exitCode != 0)
+                {
+                throw new IllegalArgumentException("Cannot get digest for image " + sImage);
+                }
+            return console.getCapturedOutputLines().poll();
             }
         }
 
@@ -194,6 +271,8 @@ public class ImageNames
 
     private static String[] s_asImageName;
 
+    private static String[] s_asImageDigest;
+
     private static Boolean s_fImagesExist;
 
     /**
@@ -202,6 +281,8 @@ public class ImageNames
     private static final String GRAAL_IMAGE_NAMES = System.getProperty(PROP_GRAAL_IMAGES);
 
     private static String[] s_asGraalImageName;
+
+    private static String[] s_asGraalImageDigest;
 
     private static Boolean s_fGraalImagesExist;
     }

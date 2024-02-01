@@ -257,6 +257,7 @@ fi
 
   # Commit the container to an image
   buildah commit "container-${1}" "coherence:${1}"
+  buildah tag "coherence:${1}" "${4}"
 
   # Export the image to the Docker daemon unless NO_DAEMON is true
   if [ "${NO_DAEMON}" != "true" ]
@@ -299,6 +300,14 @@ if [ "${NO_DAEMON}" != "true" ]
 then
   buildah push -f v2s2 "coherence:${IMAGE_ARCH}" "docker-daemon:${IMAGE_NAME}"
   echo "Pushed linux/${IMAGE_ARCH} image ${IMAGE_NAME} to Docker daemon"
+else
+  buildah tag "coherence:${IMAGE_ARCH}" "${IMAGE_NAME}"
+  if [ "${PODMAN_IMPORT}" == "true" ]
+  then
+    TAR_NAME="${BASEDIR}/target/coherence-image.tar"
+    buildah push -f v2s2 -q "coherence:${IMAGE_ARCH}" "oci-archive:${TAR_NAME}:${IMAGE_NAME}"
+    podman import "${TAR_NAME}" "${IMAGE_NAME}"
+  fi
 fi
 
 if [ "${AMD_BASE_IMAGE_17}" != "" ]
@@ -310,6 +319,14 @@ then
   then
     buildah push -f v2s2 "coherence:${IMAGE_ARCH}" "docker-daemon:${IMAGE_NAME}-java17"
     echo "Pushed linux/${IMAGE_ARCH} image ${IMAGE_NAME}-java17 to Docker daemon"
+  else
+    buildah tag "coherence:${IMAGE_ARCH}" "${IMAGE_NAME}-java17"
+    if [ "${PODMAN_IMPORT}" == "true" ]
+    then
+      TAR_NAME="${BASEDIR}/target/coherence-image.tar"
+      buildah push -f v2s2 -q "coherence:${IMAGE_ARCH}" "oci-archive:${TAR_NAME}:${IMAGE_NAME}-java17"
+      podman import "${TAR_NAME}" "${IMAGE_NAME}-java17"
+    fi
   fi
 fi
 
@@ -322,6 +339,14 @@ then
   then
     buildah push -f v2s2 "coherence:${IMAGE_ARCH}" "docker-daemon:${IMAGE_NAME}-java17"
     echo "Pushed linux/${IMAGE_ARCH} image ${IMAGE_NAME}-java17 to Docker daemon"
+  else
+    buildah tag "coherence:${IMAGE_ARCH}" "${IMAGE_NAME}-java17"
+    if [ "${PODMAN_IMPORT}" == "true" ]
+    then
+      TAR_NAME="${BASEDIR}/target/coherence-image.tar"
+      buildah push -f v2s2 -q "coherence:${IMAGE_ARCH}" "oci-archive:${TAR_NAME}:${IMAGE_NAME}-java17"
+      podman import "${TAR_NAME}" "${IMAGE_NAME}-java17"
+    fi
   fi
 fi
 
@@ -338,6 +363,14 @@ then
   then
     buildah push -f v2s2 "coherence:${IMAGE_ARCH}" "docker-daemon:${IMAGE_NAME}-graal"
     echo "Pushed linux/${IMAGE_ARCH} image ${IMAGE_NAME}-graal to Docker daemon"
+  else
+    buildah tag "coherence:${IMAGE_ARCH}" "${IMAGE_NAME}-graal"
+    if [ "${PODMAN_IMPORT}" == "true" ]
+    then
+      TAR_NAME="${BASEDIR}/target/coherence-image.tar"
+      buildah push -f v2s2 -q "coherence:${IMAGE_ARCH}" "oci-archive:${TAR_NAME}:${IMAGE_NAME}-graal"
+      podman import "${TAR_NAME}" "${IMAGE_NAME}-graal"
+    fi
   fi
 fi
 
