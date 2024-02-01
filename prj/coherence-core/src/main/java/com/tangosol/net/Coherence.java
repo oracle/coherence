@@ -25,6 +25,7 @@ import com.tangosol.internal.health.HealthCheckWrapper;
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 import com.tangosol.internal.net.SystemSessionConfiguration;
 
+import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 import com.tangosol.net.events.CoherenceDispatcher;
 import com.tangosol.net.events.CoherenceLifecycleEvent;
 import com.tangosol.net.events.EventDispatcher;
@@ -1361,6 +1362,8 @@ public class Coherence
             f_futureClosed.completeExceptionally(thrown);
             }
 
+        stopMetrics();
+
         f_dispatcher.dispatchStopped();
         f_registry.dispose();
         }
@@ -1578,6 +1581,7 @@ public class Coherence
             }
         else
             {
+            ensureMetrics();
             Logger.info(() -> "Started Coherence client " + f_sName + " mode=" + f_mode);
             }
         }
@@ -1955,6 +1959,62 @@ public class Coherence
             }
         }
 
+    private void ensureMetrics()
+        {
+        if (f_mode.isClusterMember())
+            {
+            // metrics will have been started by a DCS instance
+            return;
+            }
+        if (m_metricsMonitor == null)
+            {
+            f_lockMetrics.lock();
+            try
+                {
+                if (m_metricsMonitor == null)
+                    {
+                    Map<Service, String> mapService = new HashMap<>();
+                    MetricsHttpHelper.ensureMetricsService(mapService);
+                    MetricsServiceMonitor monitor = new MetricsServiceMonitor();
+                    monitor.registerServices(mapService);
+                    monitor.start();
+                    m_metricsMonitor = monitor;
+                    }
+                }
+            finally
+                {
+                f_lockMetrics.unlock();
+                }
+            }
+        }
+
+    private void stopMetrics()
+        {
+        if (f_mode.isClusterMember())
+            {
+            // metrics is managed by a DCS instance
+            return;
+            }
+
+        if (m_metricsMonitor != null)
+            {
+            f_lockMetrics.lock();
+            try
+                {
+                if (m_metricsMonitor != null)
+                    {
+                    m_metricsMonitor.unregisterAll();
+                    m_metricsMonitor = null;
+                    }
+                }
+            finally
+                {
+                f_lockMetrics.unlock();
+                }
+
+            }
+        }
+
     /**
      * Validate the {@link CoherenceConfiguration}.
      *
@@ -2303,6 +2363,22 @@ public class Coherence
     // ----- constants ------------------------------------------------------
 
     /**
+     * A custom {@link SimpleServiceMonitor} that allows
+     * an easy way to unregister all services.
+     */
+    private static class MetricsServiceMonitor
+            extends SimpleServiceMonitor
+        {
+        public void unregisterAll()
+            {
+            Set<Service> set = new HashSet<>(m_mapServices.keySet());
+            unregisterServices(set);
+            }
+        }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
      * The name of the System configuration uri.
      */
     public static final String SYS_CCF_URI = "coherence-system-config.xml";
@@ -2458,4 +2534,14 @@ public class Coherence
      * The {@link Mode} that the {@link Coherence} instance will run in.
      */
     private final Mode f_mode;
+
+    /**
+     * The lock to control starting and stopping metrics when running as a client.
+     */
+    private final ReentrantLock f_lockMetrics = new ReentrantLock();
+
+    /**
+     * The {@link ServiceMonitor} used to monitor metrics when running as a client.
+     */
+    private MetricsServiceMonitor m_metricsMonitor;
     }
