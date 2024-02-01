@@ -168,12 +168,6 @@
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
-    <dependency>
-      <groupId>io.helidon.webserver</groupId>
-      <artifactId>helidon-webserver-grpc</artifactId>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
 
     <!-- Jackson -->
     <dependency>

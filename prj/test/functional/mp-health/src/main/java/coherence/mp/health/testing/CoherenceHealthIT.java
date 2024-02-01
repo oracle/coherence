@@ -36,7 +36,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-@Disabled("Disabled until Helidon is built with Java 21")
 public class CoherenceHealthIT
     {
     @BeforeAll

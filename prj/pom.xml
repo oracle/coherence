@@ -1015,6 +1015,22 @@
         <copyright.exclude.files>${top.parent.basedir}\etc\copyright-exclude-windows.txt</copyright.exclude.files>
       </properties>
     </profile>
+
+    <!--
+    Helidon 3 Profile
+    This will switch the Helidon dependency to Helidon 3.
+    This profile is automatically active when Java < 21 is used.
+    -->
+    <profile>
+      <id>helidon3</id>
+      <activation>
+        <jdk>(,20]</jdk>
+      </activation>
+      <properties>
+        <helidon.version>${helidon.version.java17}</helidon.version>
+      </properties>
+    </profile>
+
   </profiles>
 
   <repositories>

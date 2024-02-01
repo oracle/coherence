@@ -27,7 +27,6 @@ import static org.hamcrest.Matchers.is;
  *
  * @author Jonathan Knight  2020.12.03
  */
-@Disabled("Disabled until Helidon is built with Java 21")
 class HelidonConfigPropertyResolverIT
     {
     @Test
