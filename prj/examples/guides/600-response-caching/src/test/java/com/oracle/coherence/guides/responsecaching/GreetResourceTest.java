@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,7 +10,7 @@ import com.oracle.coherence.cdi.Name;
 
 import com.tangosol.net.NamedMap;
 
-import io.helidon.microprofile.tests.junit5.HelidonTest;
+import io.helidon.microprofile.testing.junit5.HelidonTest;
 
 import jakarta.inject.Inject;
 

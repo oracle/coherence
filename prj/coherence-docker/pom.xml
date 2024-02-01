@@ -51,6 +51,7 @@
     <dependency>
       <groupId>org.glassfish</groupId>
       <artifactId>jakarta.json</artifactId>
+      <classifier>module</classifier>
     </dependency>
 
     <!-- tracing dependencies -->
@@ -63,12 +64,6 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
-    </dependency>
-
-    <!-- JMX MP for simpler JMX in containers -->
-    <dependency>
-      <groupId>org.glassfish.external</groupId>
-      <artifactId>opendmk_jmxremote_optional_jar</artifactId>
     </dependency>
 
     <dependency>

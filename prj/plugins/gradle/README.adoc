@@ -1,8 +1,7 @@
 :coherence-version: 24.03-SNAPSHOT
 :coherence-gradle-plugin-version: {coherence-version}
 :com-github-vlsi-jandex-version: 1.86
-
-:org-kordamp-gradle-jandex-version: 0.13.2
+:org-kordamp-gradle-jandex-version: 1.1.0
 
 = POF Gradle Plugin
 

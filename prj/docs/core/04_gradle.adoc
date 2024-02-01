@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
@@ -15,7 +15,7 @@
 :coherence-gradle-plugin-version: 23.09.1
 :coherence-version: {version-coherence}
 :com-github-vlsi-jandex-version: 1.86
-:org-kordamp-gradle-jandex-version: 0.13.2
+:org-kordamp-gradle-jandex-version: 1.1.0
 
 The POF Gradle Plugin provides automated instrumentation of classes with the `@PortableType` annotation to generate
 consistent (and correct) implementations of Evolvable POF serialization methods.

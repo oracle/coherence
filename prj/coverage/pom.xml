@@ -118,11 +118,6 @@
         </dependency>
         <dependency>
           <groupId>${coherence.group.id}</groupId>
-          <artifactId>coherence-http-helidon</artifactId>
-          <version>${project.version}</version>
-        </dependency>
-        <dependency>
-         <groupId>${coherence.group.id}</groupId>
           <artifactId>coherence-http-netty</artifactId>
           <version>${project.version}</version>
         </dependency>

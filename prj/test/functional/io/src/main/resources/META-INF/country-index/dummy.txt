@@ -1,0 +1,1 @@
+A dummy file because the Jandex plugin seems incapable of creating directories

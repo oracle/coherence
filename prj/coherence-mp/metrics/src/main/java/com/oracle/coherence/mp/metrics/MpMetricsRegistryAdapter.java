@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,19 +14,17 @@ import com.tangosol.net.metrics.MetricsRegistryAdapter;
 import java.util.Map;
 import java.util.Objects;
 import java.util.ServiceLoader;
+import java.util.function.Supplier;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
-import org.eclipse.microprofile.metrics.Gauge;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricID;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.MetricRegistry.Type;
-import org.eclipse.microprofile.metrics.MetricType;
 import org.eclipse.microprofile.metrics.Tag;
 
-import org.eclipse.microprofile.metrics.annotation.RegistryType;
+import org.eclipse.microprofile.metrics.annotation.RegistryScope;
 
 /**
  * An implementation of {@link MetricsRegistryAdapter}  registers Coherence
@@ -59,8 +57,8 @@ public class MpMetricsRegistryAdapter
      */
     @Inject
     public MpMetricsRegistryAdapter(
-            @RegistryType(type = Type.VENDOR) MetricRegistry vendorRegistry,
-            @RegistryType(type = Type.APPLICATION) MetricRegistry appRegistry)
+            @RegistryScope(scope = MetricRegistry.VENDOR_SCOPE) MetricRegistry vendorRegistry,
+            @RegistryScope(scope = MetricRegistry.APPLICATION_SCOPE) MetricRegistry appRegistry)
         {
         f_vendorRegistry = Objects.requireNonNull(vendorRegistry);
         f_appRegistry    = Objects.requireNonNull(appRegistry);
@@ -82,23 +80,22 @@ public class MpMetricsRegistryAdapter
                 // BUG: which doesn't allow description to be different for metrics
                 // BUG: that have the same name
                 //.withDescription(sDescription)
-                .withType(MetricType.GAUGE)
                 .build();
 
-        Gauge<Object> gauge = new MBeanMetricGauge(metric);
+        Supplier<Number> gauge = new MBeanMetricGauge(metric);
 
         switch (metric.getScope())
             {
             case VENDOR:
                 if (!f_vendorRegistry.getGauges().containsKey(id))
                     {
-                    f_vendorRegistry.register(metadata, gauge, aTags);
+                    f_vendorRegistry.gauge(metadata, gauge, aTags);
                     }
                 break;
             case APPLICATION:
                 if (!f_appRegistry.getGauges().containsKey(id))
                     {
-                    f_appRegistry.register(metadata, gauge, aTags);
+                    f_appRegistry.gauge(metadata, gauge, aTags);
                     }
                 break;
             case BASE:
@@ -211,7 +208,7 @@ public class MpMetricsRegistryAdapter
      * Coherence {@link MBeanMetric}.
      */
     private static class MBeanMetricGauge
-            implements Gauge<Object>
+            implements Supplier<Number>
         {
         // ---- constructors ------------------------------------------------
 
@@ -228,9 +225,9 @@ public class MpMetricsRegistryAdapter
         // ---- Gauge interface ---------------------------------------------
 
         @Override
-        public Object getValue()
+        public Number get()
             {
-            Object value = metric.getValue();
+            Number value = (Number) metric.getValue();
             return value == null ? 0 : value;
             }
 

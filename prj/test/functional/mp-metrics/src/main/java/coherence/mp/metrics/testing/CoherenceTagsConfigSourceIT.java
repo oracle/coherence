@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,8 @@ import com.oracle.coherence.mp.metrics.CoherenceTagsConfigSource;
 import org.eclipse.microprofile.metrics.MetricID;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -21,6 +23,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  *
  * @author Aleks Seovic  2020.03.26
  */
+@Disabled("This test does not do anything")
 public class CoherenceTagsConfigSourceIT
     {
     @BeforeAll

@@ -141,7 +141,6 @@
         <module>health</module>
         <module>http</module>
         <module>http-config</module>
-        <module>http-helidon</module>
         <module>http-netty</module>
         <module>io</module>
         <module>jcache</module>
@@ -165,7 +164,6 @@
         <module>reporter</module>
         <module>repository</module>
         <module>rest</module>
-        <module>rest-helidon</module>
         <module>rest-netty</module>
         <module>rwbm</module>
         <module>security</module>

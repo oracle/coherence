@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,7 +10,7 @@ package com.oracle.coherence.tutorials.graphql;
 import io.helidon.microprofile.cdi.Main;
 
 import io.helidon.microprofile.server.ServerCdiExtension;
-import io.helidon.microprofile.tests.junit5.HelidonTest;
+import io.helidon.microprofile.testing.junit5.HelidonTest;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

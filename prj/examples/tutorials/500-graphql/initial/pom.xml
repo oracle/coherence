@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2021, 2024 Oracle and/or its affiliates.
+  ~ Copyright (c) 2021, 2024, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ https://oss.oracle.com/licenses/upl.
@@ -21,18 +21,18 @@
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${project.version}</coherence.version>
-    <helidon.version>3.2.5</helidon.version>
+    <helidon.version>4.0.4</helidon.version>
     <!-- make sure this version of parsson-media is in sync with Helidon -->
     <parsson-media.version>1.0.5</parsson-media.version>
 
-    <java.version>17</java.version>
+    <java.version>21</java.version>
 
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <maven.exec.plugin.version>3.1.0</maven.exec.plugin.version>
     <maven.failsafe.plugin.version>3.0.0-M7</maven.failsafe.plugin.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon -->
-    <maven.jandex.plugin.version>1.2.3</maven.jandex.plugin.version>
+    <maven.jandex.plugin.version>3.1.2</maven.jandex.plugin.version>
     <maven.surefire.plugin.version>3.0.0-M7</maven.surefire.plugin.version>
 
     <junit.jupiter.version>5.9.0</junit.jupiter.version>
@@ -99,8 +99,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>io.helidon.microprofile.tests</groupId>
-      <artifactId>helidon-microprofile-tests-junit5</artifactId>
+      <groupId>io.helidon.microprofile.testing</groupId>
+      <artifactId>helidon-microprofile-testing-junit5</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -132,7 +132,7 @@
 
       <!-- tag::jandex[] -->
       <plugin>
-        <groupId>org.jboss.jandex</groupId>
+        <groupId>io.smallrye</groupId>
         <artifactId>jandex-maven-plugin</artifactId>
         <version>${maven.jandex.plugin.version}</version>
         <executions>
