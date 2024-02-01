@@ -121,8 +121,10 @@
     Image names MUST include a registry prefix (for example even Docker Hub images need a docker.io/
     prefix. This is because the images are NOT built using Docker.
     -->
-    <docker.base.image.name.amd>gcr.io/distroless/java-base-debian11</docker.base.image.name.amd>
-    <docker.base.image.name.arm>gcr.io/distroless/java-base-debian11</docker.base.image.name.arm>
+    <docker.base.image.name.amd>gcr.io/distroless/java-base-debian12</docker.base.image.name.amd>
+    <docker.base.image.name.arm>gcr.io/distroless/java-base-debian12</docker.base.image.name.arm>
+    <docker.base.image.name.amd.17>gcr.io/distroless/java17-debian12</docker.base.image.name.amd.17>
+    <docker.base.image.name.arm.17>gcr.io/distroless/java17-debian12</docker.base.image.name.arm.17>
     <graal.base.image.name.amd>container-registry.oracle.com/graalvm/enterprise:${graal.image.tag}</graal.base.image.name.amd>
     <graal.base.image.name.arm>container-registry.oracle.com/graalvm/enterprise:${graal.image.tag}</graal.base.image.name.arm>
     <graal.image.skip>false</graal.image.skip>
