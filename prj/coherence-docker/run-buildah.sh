@@ -61,7 +61,12 @@ fi
 
 chmod +x "${SCRIPT_NAME}"
 
-BUILDAH=$(which buildah || true)
+BUILDAH=""
+if [ "${LOCAL_BUILDAH}" == "true" ]
+then
+  BUILDAH=$(which buildah || true)
+fi
+
 if [ "${BUILDAH}" != "" ]
 then
   echo "Running Buildah locally"
@@ -69,7 +74,8 @@ then
   then
     export NO_DAEMON=true
   fi
-  sh "${SCRIPT_NAME}"
+# we must run the script with Buildah unshare
+  buildah unshare "${SCRIPT_NAME}"
 else
   echo "Buildah not found locally - running in container"
   if [ "${NO_DAEMON}" == "" ]
@@ -89,8 +95,22 @@ else
     docker volume create "${BUILDAH_VOLUME}"
   fi
 
+  if [ "${DOCKER_HOST}" == "" ]
+  then
+    PDM=$(which podman || true)
+    if [ "${PDM}" != "" ]
+    then
+#     we're using Podman
+      MY_UID=$(id -u)
+      DOCKER_HOST=/run/user/${MY_UID}/podman/podman.sock
+    else
+#     we're using Docker
+      DOCKER_HOST=/var/run/docker.sock
+    fi
+  fi
+
   docker run --rm ${ARGS} -v "${BASEDIR}:${BASEDIR}" \
-      -v /var/run/docker.sock:/var/run/docker.sock  \
+      -v ${DOCKER_HOST}:${DOCKER_HOST}  \
       -v $BUILDAH_VOLUME:/var/lib/containers:Z  \
       --privileged --network host \
       -e JAVA_EA_BASE_URL="${JAVA_EA_BASE_URL}" \
@@ -109,6 +129,8 @@ else
       -e PORT_MANAGEMENT="${PORT_MANAGEMENT}" \
       -e PORT_METRICS="${PORT_METRICS}" \
       -e MAIN_CLASS="${MAIN_CLASS}" \
+      -e PODMAN_IMPORT="${PODMAN_IMPORT}" \
+      -e DOCKER_HOST="${DOCKER_HOST}" \
       -e NO_DAEMON="${NO_DAEMON}" \
       -e COHERENCE_VERSION="${COHERENCE_VERSION}" \
       -e DOCKER_REGISTRY="${DOCKER_REGISTRY}" \
