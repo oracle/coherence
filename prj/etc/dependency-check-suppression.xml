@@ -500,4 +500,26 @@
     <cve>CVE-2023-5763</cve>
   </suppress>
 
+  <!--
+  See COH-29388 - Update needed for graphql-java-18.3.jar coming from Helidon
+  -->
+  <suppress>
+    <notes><![CDATA[
+    file name: graphql-java-18.3.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.graphql\-java/graphql\-java@.*$</packageUrl>
+    <cpe>cpe:2.3:a:graphql-java:graphql-java</cpe>
+    <cpe>cpe:2.3:a:graphql-java_project:graphql-java</cpe>
+    <cve>CVE-2023-28867</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: graphql-java-18.3.jar/META-INF/maven/com.google.guava/guava/pom.xml
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.google\.guava/guava@.*$</packageUrl>
+    <cpe>cpe:2.3:a:google:guava</cpe>
+    <cve>CVE-2023-2976</cve>
+    <cve>CVE-2020-8908</cve>
+  </suppress>
+
 </suppressions>
