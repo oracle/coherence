@@ -497,6 +497,12 @@ public class Coherence
             }
         while (mapInstances == null && (loaderSearch = loaderSearch.getParent()) != null);
 
+        if (mapInstances == null)
+            {
+            // last resort - try finding the map using the ClassLoader of the Coherence class
+            mapInstances = map.get(Coherence.class.getClassLoader());
+            }
+
         return mapInstances;
         }
 
