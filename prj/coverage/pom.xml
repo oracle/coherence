@@ -307,12 +307,6 @@
         </dependency>
         <dependency>
           <groupId>${coherence.group.id}.tests</groupId>
-          <artifactId>http-helidon</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>${coherence.group.id}.tests</groupId>
           <artifactId>http-netty</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
