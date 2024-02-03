@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1125,17 +1125,7 @@ public class IndexIntegrityTests
                 mapBM.getEntry(ctx.getKeyToInternalConverter().convert(oKey));
 
         entry.setExpiryMillis(Base.getSafeTimeMillis() - 5000);
-
-        try
-            {
-            // Expiry has a quarter-second granularity; pause this thread to
-            // ensure that we don't optimize over the expiry check.  See
-            // OldCache.m_lNextFlush.
-            Blocking.sleep(0x200L);
-            }
-        catch (InterruptedException e)
-            {
-            }
+        mapBM.evict();
         }
 
     // ----- debugging ----------------------------------------------------
