@@ -1125,7 +1125,18 @@ public class IndexIntegrityTests
                 mapBM.getEntry(ctx.getKeyToInternalConverter().convert(oKey));
 
         entry.setExpiryMillis(Base.getSafeTimeMillis() - 5000);
-        mapBM.evict();
+
+        try
+            {
+            // Expiry has a quarter-second granularity; pause this thread to
+            // ensure that we don't optimize over the expiry check.  See
+            // OldCache.m_lNextFlush.
+            Blocking.sleep(0x200L);
+            mapBM.evict();
+            }
+        catch (InterruptedException e)
+            {
+            }
         }
 
     // ----- debugging ----------------------------------------------------
