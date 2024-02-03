@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -27,8 +27,13 @@ import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
@@ -507,6 +512,62 @@ public class SafeHashMap<K, V>
         return col;
         }
 
+
+    // ----- Map interface (default methods) --------------------------------
+
+    @Override
+    public synchronized boolean remove(Object key, Object value)
+        {
+        return super.remove(key, value);
+        }
+
+    @Override
+    public synchronized boolean replace(K key, V oldValue, V newValue)
+        {
+        return super.replace(key, oldValue, newValue);
+        }
+
+    @Override
+    public synchronized V replace(K key, V newValue)
+        {
+        return super.replace(key, newValue);
+        }
+
+    @Override
+    public synchronized V putIfAbsent(K key, V value)
+        {
+        return super.putIfAbsent(key, value);
+        }
+
+    @Override
+    public synchronized void replaceAll(BiFunction<? super K, ? super V, ? extends V> function)
+        {
+        super.replaceAll(function);
+        }
+
+    @Override
+    public synchronized V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction)
+        {
+        return super.computeIfAbsent(key, mappingFunction);
+        }
+
+    @Override
+    public synchronized V computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction)
+        {
+        return super.computeIfPresent(key, remappingFunction);
+        }
+
+    @Override
+    public synchronized V compute(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction)
+        {
+        return super.compute(key, remappingFunction);
+        }
+
+    @Override
+    public synchronized V merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction)
+        {
+        return super.merge(key, value, remappingFunction);
+        }
 
     // ----- Cloneable interface --------------------------------------------
 

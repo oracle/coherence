@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -550,8 +550,9 @@ public class SegmentedConcurrentMap
                 // oContext is the assumed value
                 if (entry.casValueInternal(oContext, NO_VALUE))
                     {
-                    return super.invokeFound(
+                    super.invokeFound(
                         oKey, oContext, aeBucket, nBucket, entryPrev, entryCur);
+                    return oContext;
                     }
                 }
             return NO_VALUE;
