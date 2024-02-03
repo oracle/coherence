@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -759,7 +759,7 @@ public class SegmentedHashMap
 
             // In the case of an update, it is possible that the Entry is
             // being removed or the value is being updated by another thread
-            return !fOnlyIfAbsent ? entry.setValueInternal(oValue) : NO_VALUE;
+            return !fOnlyIfAbsent ? entry.setValueInternal(oValue) : entry.getValue();
             }
         }
 
