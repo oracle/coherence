@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2024, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ https://oss.oracle.com/licenses/upl.
@@ -183,18 +183,7 @@
       <!-- include the standard maven resources directory -->
       <resource>
         <directory>src/main/resources</directory>
-        <excludes>
-          <exclude>tangosol-coherence.xml</exclude>
-        </excludes>
-      </resource>
-
-      <!-- include tangosol-coherence.xml with filtering enabled -->
-      <resource>
-        <directory>src/main/resources</directory>
         <filtering>true</filtering>
-        <includes>
-          <include>tangosol-coherence.xml</include>
-        </includes>
       </resource>
 
       <!-- include the licenses -->
