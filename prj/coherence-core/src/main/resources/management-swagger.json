@@ -2,7 +2,7 @@
   "info": {
     "title": "RESTful Management Interface for Oracle Coherence MBeans",
     "description": "RESTful Management Interface for Oracle Coherence MBeans",
-    "version": "22.06"
+    "version": "${project.version.official}"
   },
   "schemes": [
     "http",
