@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
 import java.util.Set;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -177,6 +176,7 @@ public class CoherenceMicrometerMetrics
         List<Tag> tags = identifier.getFormattedTags()
                                    .entrySet()
                                    .stream()
+                                   .filter(e -> !NAME_TAG_EXCLUDES.contains(e.getKey()))
                                    .map(e -> toTag(sName, e))
                                    .filter(Objects::nonNull)
                                    .collect(Collectors.toList());
@@ -374,6 +374,13 @@ public class CoherenceMicrometerMetrics
      * The singleton instance of {@link CoherenceMicrometerMetrics}.
      */
     public static final CoherenceMicrometerMetrics INSTANCE = new CoherenceMicrometerMetrics();
+
+    /**
+     * Micrometer specific list of Tag names to exclude from {@link MBeanMetric.Identifier} instance of {@link Tags}.
+     * <p>
+     * Exclude the "loader" tag as not all cache MBeans have a loader attribute.
+     */
+    public static final Set<String> NAME_TAG_EXCLUDES = Collections.singleton("loader");
 
     // ----- data members ---------------------------------------------------
 
