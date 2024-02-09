@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -129,30 +129,10 @@ public class InFilter<T, E>
             }
         else
             {
-            Collection colValues   = getValue();
             Map        mapContents = index.getIndexContents();
-
-            if (!index.isPartial())
-                {
-                // optimize for corner cases when either all or none of the values match
-                if (mapContents.keySet().equals(colValues))
-                    {
-                    // all entries match, nothing to remove
-                    return null;
-                    }
-
-                Set setCopy = new HashSet(mapContents.keySet());
-                setCopy.retainAll(colValues);
-                if (setCopy.isEmpty())
-                    {
-                    // no entries match, remove all keys
-                    setKeys.clear();
-                    return null;
-                    }
-                }
-
-            int        cValues   = colValues.size();
-            int        cKeys     = setKeys.size();
+            Collection colValues   = getValue();
+            int        cValues     = colValues.size();
+            int        cKeys       = setKeys.size();
 
             // an empirically chosen factor that suits 90% of the data sets
             // tested; the aim is to accommodate for common use cases in which

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -162,17 +162,37 @@ public class ContainsAllFilter<T, E>
             {
             Collection colValues     = getValue();
             Map        mapContents   = index.getIndexContents();
-            int        cKeysContents = mapContents.keySet().size();
 
-            if (cKeysContents == 0 || !mapContents.keySet().containsAll(colValues))
+            if (mapContents.isEmpty())
                 {
                 return 0;
                 }
 
-            // calculating the exact number of keys retained is too expensive;
-            // assume normal distribution of keys across index and return
-            // an estimate based on the number of values in a collection
-            return setKeys.size() * (colValues.size() / cKeysContents);
+            Set setMatches = null;
+
+            for (Object oValue : colValues)
+                {
+                Set setEQ = (Set) mapContents.get(oValue);
+
+                if (setEQ == null)
+                    {
+                    return 0;
+                    }
+                else if (setMatches == null)
+                    {
+                    setMatches = new HashSet(setEQ);
+                    }
+                else
+                    {
+                    setMatches.retainAll(setEQ);
+                    if (setMatches.isEmpty())
+                        {
+                        return 0;
+                        }
+                    }
+                }
+
+            return setMatches == null ? 0 : setMatches.size();
             }
         }
 
@@ -191,6 +211,13 @@ public class ContainsAllFilter<T, E>
             {
             Collection colValues   = getValue();
             Map        mapContents = index.getIndexContents();
+
+            if (mapContents.isEmpty())
+                {
+                // there are no entries in the index, which means no entries match this filter
+                setKeys.clear();
+                return null;
+                }
 
             for (Object oValue : colValues)
                 {
