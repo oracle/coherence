@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
+
+import com.oracle.coherence.common.collections.NullableSortedMap;
 
 import com.tangosol.util.extractor.IdentityExtractor;
 
@@ -284,7 +286,7 @@ public class ConditionalIndexTest
                 oIndexValue, oIndexValue2);
 
         // get the inverse map
-        SafeSortedMap mapInverse = (SafeSortedMap)mapIndex.
+        NullableSortedMap mapInverse = (NullableSortedMap)mapIndex.
                 getIndexContents();
 
         // get the entry from the inverse map keyed by the extracted value
@@ -402,7 +404,7 @@ public class ConditionalIndexTest
                 oIndexValue, oIndexValue2);
 
         // get the inverse map
-        SafeSortedMap mapInverse = (SafeSortedMap) mapIndex.
+        NullableSortedMap mapInverse = (NullableSortedMap) mapIndex.
                 getIndexContents();
 
         // get the set of keys from the inverse map keyed by the extracted
@@ -512,7 +514,7 @@ public class ConditionalIndexTest
         assertEquals(MapIndex.NO_VALUE, oIndexValue3);
 
         // get the inverse map
-        SafeSortedMap mapInverse = (SafeSortedMap) mapIndex.getIndexContents();
+        NullableSortedMap mapInverse = (NullableSortedMap) mapIndex.getIndexContents();
 
         // assert the the inverse map does contain an entry for the
         // extracted values for key
@@ -561,7 +563,7 @@ public class ConditionalIndexTest
 
         // assert the the inverse map does contain an entry for the
         // extracted value for key
-        mapInverse = (SafeSortedMap) mapIndex.getIndexContents();
+        mapInverse = (NullableSortedMap) mapIndex.getIndexContents();
         assertTrue(mapInverse.containsKey(oExtractedNew));
 
         // assert that the set mapped to the old extracted value for key
@@ -702,7 +704,7 @@ public class ConditionalIndexTest
         assertEquals(MapIndex.NO_VALUE, oIndexValue2);
 
         // get the inverse map
-        SafeSortedMap mapInverse = (SafeSortedMap) mapIndex.
+        NullableSortedMap mapInverse = (NullableSortedMap) mapIndex.
                 getIndexContents();
 
         // get the set of keys from the inverse map keyed by the extracted
@@ -832,7 +834,7 @@ public class ConditionalIndexTest
         mapIndex.delete(delEntry);
 
         // get the inverse map
-        SafeSortedMap mapInverse = (SafeSortedMap) mapIndex.getIndexContents();
+        NullableSortedMap mapInverse = (NullableSortedMap) mapIndex.getIndexContents();
 
         // get the set of keys from the inverse map keyed by the extracted
         // value for key

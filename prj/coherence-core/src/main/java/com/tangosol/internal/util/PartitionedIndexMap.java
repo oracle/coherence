@@ -1,11 +1,14 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.internal.util;
+
+import com.oracle.coherence.common.collections.NullableConcurrentMap;
+import com.oracle.coherence.common.collections.NullableSortedMap;
 
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.partition.PartitionSet;
@@ -15,8 +18,7 @@ import com.tangosol.util.Base;
 import com.tangosol.util.ChainedSet;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.MapIndex;
-import com.tangosol.util.SafeSortedMap;
-import com.tangosol.util.SegmentedHashMap;
+import com.tangosol.util.SimpleMapIndex;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.comparator.SafeComparator;
 
@@ -276,7 +278,7 @@ public class PartitionedIndexMap<K, V>
                 cUnits += (mapIndex != null ? mapIndex.getUnits() : 0);
                 }
 
-            return Math.round(cUnits * 1.1);
+            return cUnits;
             }
 
         // ---- Object methods ----------------------------------------------
@@ -482,7 +484,7 @@ public class PartitionedIndexMap<K, V>
              */
             protected Map<E, Set<K>> emptyMap()
                 {
-                return (Map<E, Set<K>>) SegmentedHashMap.EMPTY;
+                return (Map<E, Set<K>>) NullableConcurrentMap.EMPTY;
                 }
 
             /**
@@ -576,7 +578,7 @@ public class PartitionedIndexMap<K, V>
             @Override
             public SortedMap<E, Set<K>> subMap(E fromKey, E toKey)
                 {
-                SafeSortedMap mapSorted = new SafeSortedMap(f_comparator);
+                NullableSortedMap mapSorted = new NullableSortedMap(f_comparator);
 
                 for (int nPart : getPartitions())
                     {
@@ -590,7 +592,7 @@ public class PartitionedIndexMap<K, V>
             @Override
             public SortedMap<E, Set<K>> headMap(E toKey)
                 {
-                SafeSortedMap mapSorted = new SafeSortedMap(f_comparator);
+                NullableSortedMap mapSorted = new NullableSortedMap(f_comparator);
 
                 for (int nPart : getPartitions())
                     {
@@ -604,7 +606,7 @@ public class PartitionedIndexMap<K, V>
             @Override
             public SortedMap<E, Set<K>> tailMap(E fromKey)
                 {
-                SafeSortedMap mapSorted = new SafeSortedMap(f_comparator);
+                NullableSortedMap mapSorted = new NullableSortedMap(f_comparator);
 
                 for (int nPart : getPartitions())
                     {
@@ -638,7 +640,7 @@ public class PartitionedIndexMap<K, V>
             @Override
             protected Map<E, Set<K>> emptyMap()
                 {
-                return (Map<E, Set<K>>) SafeSortedMap.EMPTY;
+                return (Map<E, Set<K>>) NullableSortedMap.EMPTY;
                 }
 
             @Override

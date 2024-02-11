@@ -15,18 +15,21 @@ import com.tangosol.util.comparator.SafeComparator;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -121,6 +124,22 @@ public class NullableSortedMap<K, V>
         {
         f_map = subMap;
         f_comparator = comparator;
+        }
+
+    // ---- internal API ----------------------------------------------------
+
+    /**
+     * Get entry for the specified key.
+     *
+     * @param key  the key to get the entry for
+     *
+     * @return the entry for the specified key, or {@code null} if the entry doesn't exist
+     */
+    public Entry<K, V> getEntry(K key)
+        {
+        Nullable<K> nullableKey = Nullable.of(key);
+        Nullable<V> value = f_map.get(nullableKey);
+        return value == null ? null : new NullableEntry(new SimpleMapEntry<>(nullableKey, value));
         }
 
     // ---- Map interface ---------------------------------------------------
@@ -1094,6 +1113,13 @@ public class NullableSortedMap<K, V>
 
         private final Collection<Nullable<T>> f_col;
         }
+
+    // ---- constants -------------------------------------------------------
+
+    /**
+     * An empty, immutable NullableSortedMap instance.
+     */
+    public static final NavigableMap<?, ?> EMPTY = Collections.unmodifiableNavigableMap(new NullableSortedMap<>());
 
     // ---- data members ----------------------------------------------------
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,7 +17,6 @@ import com.tangosol.net.cache.SimpleMemoryCalculator;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.MapIndex;
-import com.tangosol.util.SimpleMapIndex;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
@@ -106,7 +105,7 @@ public class IndexTests
      * To test the difference between the actual index cost with the calculated index cost.
      */
     @Test
-    public void testIndexSize()
+    public void testIndexSize() throws InterruptedException
         {
         final NamedCache cache = getNamedCache("index-size");
         cache.clear();
@@ -131,6 +130,7 @@ public class IndexTests
         System.gc();
         long beforeIndex = getMemoryUsage();
 
+        System.out.println("Creating index...");
         cache.addIndex(extractor, false, null);
 
         Map<ValueExtractor, MapIndex> indexMap = getIndexMap(cache);
