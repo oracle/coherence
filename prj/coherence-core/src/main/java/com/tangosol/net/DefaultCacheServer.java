@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -228,10 +228,6 @@ public class DefaultCacheServer
                 Logger.err(e);
                 }
             }
-
-        // For a clean shutdown, remove the shutdown hook added
-        // when the services are started to avoid leaking threads
-        Runtime.getRuntime().removeShutdownHook(m_threadShutdown);
 
         notifyShutdown();
         }
