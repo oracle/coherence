@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
 
 
+import com.oracle.coherence.common.base.Nullable;
 import com.tangosol.io.ExternalizableLite;
 
 import java.io.DataInput;
@@ -442,7 +443,7 @@ public class MapSet
     /**
     * A no-value object.
     */
-    protected static final Object NO_VALUE = new byte[0];
+    protected static final Object NO_VALUE = Nullable.of(true);
 
 
     // ----- data members ---------------------------------------------------
