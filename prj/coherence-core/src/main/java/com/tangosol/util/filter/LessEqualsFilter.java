@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,9 +8,6 @@
 package com.tangosol.util.filter;
 
 import com.tangosol.util.ValueExtractor;
-
-import java.util.Set;
-import java.util.SortedMap;
 
 /**
 * Filter which compares the result of a method invocation with a value for
@@ -24,7 +21,6 @@ import java.util.SortedMap;
 *
 * @author cp/gg 2002.10.29
 */
-@SuppressWarnings({"unchecked", "rawtypes"})
 public class LessEqualsFilter<T, E extends Comparable<? super E>>
         extends    LessFilter<T, E>
         implements IndexAwareFilter<Object, T>
@@ -83,25 +79,8 @@ public class LessEqualsFilter<T, E extends Comparable<? super E>>
     // ---- helpers ---------------------------------------------------------
 
     @Override
-    protected boolean shouldRemoveKeys(Set set, Set setEQ)
+    protected boolean includeEquals()
         {
-        return set != null && !set.equals(setEQ);
-        }
-
-    @Override
-    protected int addEqualKeys(SortedMap<E, Set<?>> mapContents, int cMatch)
-        {
-        Set<?> setEQ = mapContents.get(getValue());
-        return setEQ == null ? cMatch : cMatch + setEQ.size();
-        }
-
-    @Override
-    protected void addEqualKeys(SortedMap<E, Set<?>> mapContents, Set setLE)
-        {
-        Set<?> setEQ = mapContents.get(getValue());
-        if (setEQ != null)
-            {
-            setLE.addAll(setEQ);
-            }
+        return true;
         }
     }

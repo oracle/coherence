@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,7 +20,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.SortedMap;
+import java.util.NavigableMap;
 
 import static com.tangosol.util.filter.ExtractorFilter.ensureSafeSet;
 
@@ -280,9 +280,9 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
 
         Map<Object, Set> mapInverse = index.getIndexContents();
 
-        if (mapInverse instanceof SortedMap)
+        if (mapInverse instanceof NavigableMap)
             {
-            applySortedIndex(index, setKeys, (SortedMap) mapInverse);
+            applySortedIndex(index, setKeys, (NavigableMap) mapInverse);
             return null;
             }
 
@@ -316,33 +316,19 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
 
         Map<E, Set<?>> mapContents = index.getIndexContents();
         int cMatch = 0;
-        if (mapContents instanceof SortedMap)
+        if (mapContents instanceof NavigableMap)
             {
-            SortedMap<E, Set<?>> mapSorted     = (SortedMap<E, Set<?>>) mapContents;
-            Integer              cAllOrNothing = allOrNothing(index, mapSorted, setKeys);
+            NavigableMap<E, Set<?>> mapSorted     = (NavigableMap<E, Set<?>>) mapContents;
+            Integer                 cAllOrNothing = allOrNothing(index, mapSorted, setKeys);
             if (cAllOrNothing != null)
                 {
                 return cAllOrNothing;
                 }
 
-            SortedMap<E, Set<?>> subMap = mapSorted.subMap(getLowerBound(), getUpperBound());
+            NavigableMap<E, Set<?>> subMap = mapSorted.subMap(getLowerBound(), isLowerBoundInclusive(), getUpperBound(), isUpperBoundInclusive());
             for (Set<?> set : subMap.values())
                 {
                 cMatch += ensureSafeSet(set).size();
-                }
-
-            // lower bound is included by default, so we need to remove it if it shouldn't be
-            if (!isLowerBoundInclusive())
-                {
-                Set<?> setLower = ensureSafeSet(mapSorted.get(getLowerBound()));
-                cMatch -= setLower.size();
-                }
-
-            // upper bound is excluded by default, so we need to add it if it shouldn't be
-            if (isUpperBoundInclusive())
-                {
-                Set<?> setUpper = ensureSafeSet(mapSorted.get(getUpperBound()));
-                cMatch += setUpper.size();
                 }
             }
         else
@@ -448,7 +434,7 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
      * @param setKeys      the set of keys of the entries being filtered
      * @param mapContents  the index contents to evaluate
      */
-    protected void applySortedIndex(MapIndex index, Set setKeys, SortedMap<E, Set<?>> mapContents)
+    protected void applySortedIndex(MapIndex index, Set setKeys, NavigableMap<E, Set<?>> mapContents)
         {
         Integer cAllOrNothing = allOrNothing(index, mapContents, setKeys);
         if (cAllOrNothing != null)
@@ -460,30 +446,12 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
             return;
             }
 
-        E                      lowerBound         = getLowerBound();
-        E                      upperBound         = getUpperBound();
-        boolean                fIncludeLowerBound = isLowerBoundInclusive();
-        boolean                fIncludeUpperBound = isUpperBoundInclusive();
-        SortedMap<E, Set<?>>   mapRange           = mapContents.subMap(lowerBound, upperBound);
-        Collection             colKeysToRetain    = new HashSet<>();
-        boolean                fInsideRange       = fIncludeLowerBound;
+        NavigableMap<E, Set<?>> mapRange        = mapContents.subMap(getLowerBound(), isLowerBoundInclusive(), getUpperBound(), isUpperBoundInclusive());
+        Collection              colKeysToRetain = new HashSet<>();
 
         for (Map.Entry<E, Set<?>> entry : mapRange.entrySet())
             {
-            if (fInsideRange || evaluateExtracted(entry.getKey()))
-                {
-                fInsideRange = true;
-                colKeysToRetain.addAll(ensureSafeSet(entry.getValue()));
-                }
-            }
-
-        if (fIncludeUpperBound)
-            {
-            Collection colUpper = mapContents.get(upperBound);
-            if (colUpper != null)
-                {
-                colKeysToRetain.addAll(colUpper);
-                }
+            colKeysToRetain.addAll(ensureSafeSet(entry.getValue()));
             }
 
         if (colKeysToRetain.isEmpty())
@@ -507,29 +475,29 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
      *         and {@code null} if only some entries match or no conclusive determination
      *         can be made
      */
-    protected Integer allOrNothing(MapIndex index, SortedMap<E, Set<?>> mapContents, Set setKeys)
+    protected Integer allOrNothing(MapIndex index, NavigableMap<E, Set<?>> mapContents, Set setKeys)
         {
         if (!index.isPartial())
             {
             // optimize for corner cases when either all or none of the values match
-            try
+            Map.Entry<E, Set<?>> loEntry = mapContents.firstEntry();
+            Map.Entry<E, Set<?>> hiEntry = mapContents.lastEntry();
+            if (loEntry == null || hiEntry == null)
                 {
-                E loValue = mapContents.firstKey();
-                E hiValue = mapContents.lastKey();
-                if (evaluateExtracted(loValue) && evaluateExtracted(hiValue))
-                    {
-                    // all entries match, nothing to remove
-                    return setKeys.size();
-                    }
-                else if (!getLowerFilter().evaluateExtracted(hiValue) || (loValue != null && !getUpperFilter().evaluateExtracted(loValue)))
-                    {
-                    // no entries match, remove all keys
-                    return 0;
-                    }
+                // the map is empty, remove all keys
+                return 0;
                 }
-            catch (NoSuchElementException e)
+
+            E loValue = loEntry.getKey();
+            E hiValue = hiEntry.getKey();
+            if (evaluateExtracted(loValue) && evaluateExtracted(hiValue))
                 {
-                // could only happen if the index contents became empty, in which case no entries match
+                // all entries match, nothing to remove
+                return setKeys.size();
+                }
+            else if (!getLowerFilter().evaluateExtracted(hiValue) || (loValue != null && !getUpperFilter().evaluateExtracted(loValue)))
+                {
+                // no entries match, remove all keys
                 return 0;
                 }
             }

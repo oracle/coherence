@@ -18,7 +18,6 @@ import com.tangosol.util.Base;
 import com.tangosol.util.ChainedSet;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.MapIndex;
-import com.tangosol.util.SimpleMapIndex;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.comparator.SafeComparator;
 
@@ -31,6 +30,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -498,6 +501,16 @@ public class PartitionedIndexMap<K, V>
                 }
 
             /**
+             * Instantiate an entry for the specified key.
+             *
+             * @return the key to create an entry for
+             */
+            protected Entry instantiateEntry(E key)
+                {
+                return new Entry(key);
+                }
+
+            /**
              * Return the index contents for the specified partition.
              *
              * @param nPart  the partition to get index contents for
@@ -565,8 +578,202 @@ public class PartitionedIndexMap<K, V>
         @SuppressWarnings("NullableProblems")
         class SortedIndexContents
                 extends IndexContents
-                implements SortedMap<E, Set<K>>
+                implements NavigableMap<E, Set<K>>
             {
+            // ---- NavigableMap interface ----------------------------------
+
+            @Override
+            public Map.Entry<E, Set<K>> lowerEntry(E key)
+                {
+                return instantiateEntry(lowerKey(key));
+                }
+
+            @Override
+            public E lowerKey(E key)
+                {
+                E lowerKey = null;
+                for (int nPart : getPartitions())
+                    {
+                    E partKey = getIndexContents(nPart).lowerKey(key);
+                    if (partKey != null && (lowerKey == null || f_comparator.compare(partKey, lowerKey) > 0))
+                        {
+                        lowerKey = partKey;
+                        }
+                    }
+
+                return lowerKey;
+                }
+
+            @Override
+            public Map.Entry<E, Set<K>> floorEntry(E key)
+                {
+                return instantiateEntry(floorKey(key));
+                }
+
+            @Override
+            public E floorKey(E key)
+                {
+                E floorKey = null;
+                for (int nPart : getPartitions())
+                    {
+                    E partKey = getIndexContents(nPart).floorKey(key);
+                    if (partKey != null && (floorKey == null || f_comparator.compare(partKey, floorKey) > 0))
+                        {
+                        floorKey = partKey;
+                        }
+                    }
+
+                return floorKey;
+                }
+
+            @Override
+            public Map.Entry<E, Set<K>> ceilingEntry(E key)
+                {
+                return instantiateEntry(ceilingKey(key));
+                }
+
+            @Override
+            public E ceilingKey(E key)
+                {
+                E ceilingKey = null;
+                for (int nPart : getPartitions())
+                    {
+                    E partKey = getIndexContents(nPart).ceilingKey(key);
+                    if (partKey != null && (ceilingKey == null || f_comparator.compare(partKey, ceilingKey) < 0))
+                        {
+                        ceilingKey = partKey;
+                        }
+                    }
+
+                return ceilingKey;
+                }
+
+            @Override
+            public Map.Entry<E, Set<K>> higherEntry(E key)
+                {
+                return instantiateEntry(higherKey(key));
+                }
+
+            @Override
+            public E higherKey(E key)
+                {
+                E higherKey = null;
+                for (int nPart : getPartitions())
+                    {
+                    E partKey = getIndexContents(nPart).higherKey(key);
+                    if (partKey != null && (higherKey == null || f_comparator.compare(partKey, higherKey) < 0))
+                        {
+                        higherKey = partKey;
+                        }
+                    }
+
+                return higherKey;
+                }
+
+            @Override
+            public Map.Entry<E, Set<K>> firstEntry()
+                {
+                E firstKey = null;
+                for (int nPart : getPartitions())
+                    {
+                    Optional<E> partKey = Optional.ofNullable(getIndexContents(nPart).firstEntry()).map(Map.Entry::getKey);
+                    if (partKey.isPresent() && (firstKey == null || f_comparator.compare(partKey.get(), firstKey) < 0))
+                        {
+                        firstKey = partKey.get();
+                        }
+                    }
+
+                return instantiateEntry(firstKey);
+                }
+
+            @Override
+            public Map.Entry<E, Set<K>> lastEntry()
+                {
+                E lastKey = null;
+                for (int nPart : getPartitions())
+                    {
+                    Optional<E> partKey = Optional.ofNullable(getIndexContents(nPart).lastEntry()).map(Map.Entry::getKey);
+                    if (partKey.isPresent() && (lastKey == null || f_comparator.compare(partKey.get(), lastKey) > 0))
+                        {
+                        lastKey = partKey.get();
+                        }
+                    }
+
+                return instantiateEntry(lastKey);
+                }
+
+            @Override
+            public Map.Entry<E, Set<K>> pollFirstEntry()
+                {
+                throw new UnsupportedOperationException();
+                }
+
+            @Override
+            public Map.Entry<E, Set<K>> pollLastEntry()
+                {
+                throw new UnsupportedOperationException();
+                }
+
+            @Override
+            public NavigableMap<E, Set<K>> descendingMap()
+                {
+                throw new UnsupportedOperationException();
+                }
+
+            @Override
+            public NavigableSet<E> navigableKeySet()
+                {
+                return (NavigableSet<E>) keySet();
+                }
+
+            @Override
+            public NavigableSet<E> descendingKeySet()
+                {
+                return navigableKeySet().descendingSet();
+                }
+
+            @Override
+            public NavigableMap<E, Set<K>> subMap(E fromKey, boolean fFromInclusive, E toKey, boolean fToInclusive)
+                {
+                NullableSortedMap mapSorted = new NullableSortedMap(f_comparator);
+
+                for (int nPart : getPartitions())
+                    {
+                    Map<E, Set<K>> subMap = getIndexContents(nPart).subMap(fromKey, fFromInclusive, toKey, fToInclusive);
+                    subMap.forEach((k, v) -> mapSorted.merge(k, v, (v1, v2) -> chainSets((Set<K>) v1, (Set<K>) v2)));
+                    }
+
+                return mapSorted;
+                }
+
+            @Override
+            public NavigableMap<E, Set<K>> headMap(E toKey, boolean fInclusive)
+                {
+                NullableSortedMap mapSorted = new NullableSortedMap(f_comparator);
+
+                for (int nPart : getPartitions())
+                    {
+                    Map<E, Set<K>> headMap = getIndexContents(nPart).headMap(toKey, fInclusive);
+                    headMap.forEach((k, v) -> mapSorted.merge(k, v, (v1, v2) -> chainSets((Set<K>) v1, (Set<K>) v2)));
+                    }
+
+                return mapSorted;
+                }
+
+            @Override
+            public NavigableMap<E, Set<K>> tailMap(E fromKey, boolean fInclusive)
+                {
+                NullableSortedMap mapSorted = new NullableSortedMap(f_comparator);
+
+                for (int nPart : getPartitions())
+                    {
+                    Map<E, Set<K>> tailMap = getIndexContents(nPart).tailMap(fromKey, fInclusive);
+                    tailMap.forEach((k, v) -> mapSorted.merge(k, v, (v1, v2) -> chainSets((Set<K>) v1, (Set<K>) v2)));
+                    }
+
+                return mapSorted;
+                }
+
             // ---- SortedMap interface -------------------------------------
 
             @Override
@@ -578,43 +785,19 @@ public class PartitionedIndexMap<K, V>
             @Override
             public SortedMap<E, Set<K>> subMap(E fromKey, E toKey)
                 {
-                NullableSortedMap mapSorted = new NullableSortedMap(f_comparator);
-
-                for (int nPart : getPartitions())
-                    {
-                    Map<E, Set<K>> subMap = getIndexContents(nPart).subMap(fromKey, toKey);
-                    subMap.forEach((k, v) -> mapSorted.merge(k, v, (v1, v2) -> chainSets((Set<K>) v1, (Set<K>) v2)));
-                    }
-
-                return mapSorted;
+                return subMap(fromKey, true, toKey, false);
                 }
 
             @Override
             public SortedMap<E, Set<K>> headMap(E toKey)
                 {
-                NullableSortedMap mapSorted = new NullableSortedMap(f_comparator);
-
-                for (int nPart : getPartitions())
-                    {
-                    Map<E, Set<K>> headMap = getIndexContents(nPart).headMap(toKey);
-                    headMap.forEach((k, v) -> mapSorted.merge(k, v, (v1, v2) -> chainSets((Set<K>) v1, (Set<K>) v2)));
-                    }
-
-                return mapSorted;
+                return headMap(toKey, false);
                 }
 
             @Override
             public SortedMap<E, Set<K>> tailMap(E fromKey)
                 {
-                NullableSortedMap mapSorted = new NullableSortedMap(f_comparator);
-
-                for (int nPart : getPartitions())
-                    {
-                    Map<E, Set<K>> tailMap = getIndexContents(nPart).tailMap(fromKey);
-                    tailMap.forEach((k, v) -> mapSorted.merge(k, v, (v1, v2) -> chainSets((Set<K>) v1, (Set<K>) v2)));
-                    }
-
-                return mapSorted;
+                return tailMap(fromKey, true);
                 }
 
             @Override
@@ -626,13 +809,43 @@ public class PartitionedIndexMap<K, V>
             @Override
             public E firstKey()
                 {
-                return keySet().first();
+                E firstKey = null;
+                for (int nPart : getPartitions())
+                    {
+                    Optional<E> partKey = Optional.ofNullable(getIndexContents(nPart).firstEntry()).map(Map.Entry::getKey);
+                    if (partKey.isPresent() && (firstKey == null || f_comparator.compare(partKey.get(), firstKey) < 0))
+                        {
+                        firstKey = partKey.get();
+                        }
+                    }
+
+                if (firstKey == null)
+                    {
+                    throw new NoSuchElementException();
+                    }
+
+                return firstKey;
                 }
 
             @Override
             public E lastKey()
                 {
-                return keySet().last();
+                E lastKey = null;
+                for (int nPart : getPartitions())
+                    {
+                    Optional<E> partKey = Optional.ofNullable(getIndexContents(nPart).lastEntry()).map(Map.Entry::getKey);
+                    if (partKey.isPresent() && (lastKey == null || f_comparator.compare(partKey.get(), lastKey) > 0))
+                        {
+                        lastKey = partKey.get();
+                        }
+                    }
+
+                if (lastKey == null)
+                    {
+                    throw new NoSuchElementException();
+                    }
+
+                return lastKey;
                 }
 
             // ---- helpers -------------------------------------------------
@@ -650,9 +863,9 @@ public class PartitionedIndexMap<K, V>
                 }
 
             @Override
-            protected SortedMap<E, Set<K>> getIndexContents(int nPart)
+            protected NavigableMap<E, Set<K>> getIndexContents(int nPart)
                 {
-                return (SortedMap<E, Set<K>>) super.getIndexContents(nPart);
+                return (NavigableMap<E, Set<K>>) super.getIndexContents(nPart);
                 }
 
             /**

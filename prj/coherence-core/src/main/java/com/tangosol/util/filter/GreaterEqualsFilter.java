@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,20 +7,7 @@
 
 package com.tangosol.util.filter;
 
-
-import com.tangosol.util.ConditionalIndex;
-import com.tangosol.util.Filter;
-import com.tangosol.util.MapIndex;
 import com.tangosol.util.ValueExtractor;
-import com.tangosol.util.SafeSortedMap;
-
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.SortedMap;
-
 
 /**
 * Filter which compares the result of a method invocation with a value for
@@ -94,15 +81,8 @@ public class GreaterEqualsFilter<T, E extends Comparable<? super E>>
     // ---- helpers ---------------------------------------------------------
 
     @Override
-    protected int subtractEqualKeys(SortedMap<E, Set<?>> mapContents, int cMatch)
+    protected boolean includeEquals()
         {
-        // equal keys should be included; simply return current match count
-        return cMatch;
-        }
-
-    @Override
-    protected void removeEqualKeys(SortedMap<E, Set<?>> mapContents, Set setKeys)
-        {
-        // equal keys should be included; do nothing
+        return true;
         }
     }
