@@ -23,8 +23,16 @@ public class LoomProfile
     /**
      * Create a {@link LoomProfile}.
      */
-    @OptionsByType.Default
     public LoomProfile()
+        {
+        this("");
+        }
+
+    /**
+     * Create a {@link LoomProfile}.
+     */
+    @OptionsByType.Default
+    public LoomProfile(String ignored)
         {
         this(Config.getBoolean(PROPERTY_ENABLED));
         }

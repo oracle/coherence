@@ -135,8 +135,12 @@
         <module>filter</module>
         <module>graal</module>
         <module>grpc</module>
-        <module>grpc-proxy</module>
-        <module>grpc-client</module>
+        <module>grpc-proxy-tck</module>
+        <module>grpc-proxy-helidon</module>
+        <module>grpc-proxy-netty</module>
+        <module>grpc-client-tck</module>
+        <module>grpc-client-helidon</module>
+        <module>grpc-client-netty</module>
         <module>guardian</module>
         <module>health</module>
         <module>http</module>
@@ -293,6 +297,14 @@
     <!-- profile>
       <id>stage8</id>
       <modules>
+        <module>grpc</module>
+        <module>grpc-proxy-tck</module>
+        <module>grpc-proxy-helidon</module>
+        <module>grpc-proxy-netty</module>
+        <module>grpc-proxy-gar</module>
+        <module>grpc-client-tck</module>
+        <module>grpc-client-helidon</module>
+        <module>grpc-client-netty</module>
         <module>processor</module>
         <module>quorum</module>
         <module>reporter</module>
@@ -323,9 +335,6 @@
         <module>cdi-server</module>
         <module>concurrent</module>
         <module>concurrent-cdi</module>
-        <module>grpc</module>
-        <module>grpc-proxy</module>
-        <module>grpc-client</module>
         <module>health</module>
         <module>session</module>
         <module>ssl</module>

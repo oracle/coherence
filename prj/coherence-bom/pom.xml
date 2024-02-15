@@ -148,6 +148,16 @@
       </dependency>
       <dependency>
         <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-grpc-proxy-common</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-grpc-proxy-helidon</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
         <artifactId>coherence-grpc-proxy</artifactId>
         <version>${project.version}</version>
       </dependency>

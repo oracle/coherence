@@ -17,7 +17,7 @@
   </parent>
 
   <artifactId>coherence-grpc-proxy</artifactId>
-  <name>Coherence gRPC Proxy</name>
+  <name>Coherence Netty based gRPC Proxy</name>
 
   <properties>
     <module.name>com.oracle.coherence.grpc.proxy</module.name>
@@ -29,33 +29,30 @@
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-grpc</artifactId>
+      <artifactId>coherence-grpc-proxy-common</artifactId>
       <version>${project.version}</version>
     </dependency>
 
+    <!--
+    Add Netty dependencies here to eliminate older version of Netty
+    pulled in by grpc version
+    -->
     <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence</artifactId>
-      <version>${project.version}</version>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-codec-http2</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-handler-proxy</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-transport-native-unix-common</artifactId>
     </dependency>
 
     <dependency>
       <groupId>io.grpc</groupId>
-      <artifactId>grpc-services</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.google.errorprone</groupId>
-          <artifactId>error_prone_annotations</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-inprocess</artifactId>
+      <artifactId>grpc-netty</artifactId>
     </dependency>
   </dependencies>
 
@@ -69,6 +66,7 @@
 
       <!-- maven-jar-plugin with configuration to package generated MANIFEST.MF to project jar -->
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <configuration>
           <archive>

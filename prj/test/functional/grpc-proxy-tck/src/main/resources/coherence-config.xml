@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+    <defaults>
+        <serializer>pof</serializer>
+    </defaults>
+
+    <caching-scheme-mapping>
+        <cache-mapping>
+            <cache-name>store-*</cache-name>
+            <scheme-name>store-scheme</scheme-name>
+        </cache-mapping>
+
+        <cache-mapping>
+            <cache-name>*</cache-name>
+            <scheme-name>server</scheme-name>
+        </cache-mapping>
+    </caching-scheme-mapping>
+
+    <caching-schemes>
+        <distributed-scheme>
+            <scheme-name>store-scheme</scheme-name>
+            <scheme-ref>server</scheme-ref>
+            <backing-map-scheme>
+                <read-write-backing-map-scheme>
+                    <internal-cache-scheme>
+                        <local-scheme/>
+                    </internal-cache-scheme>
+                    <cachestore-scheme>
+                        <class-scheme>
+                            <class-name>grpc.proxy.TestCacheStore</class-name>
+                        </class-scheme>
+                    </cachestore-scheme>
+                </read-write-backing-map-scheme>
+            </backing-map-scheme>
+        </distributed-scheme>
+
+        <distributed-scheme>
+            <scheme-name>server</scheme-name>
+            <service-name>TestCacheService</service-name>
+            <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
+            <partition-count system-property="coherence.partition.count">13</partition-count>
+            <backing-map-scheme>
+                <local-scheme/>
+            </backing-map-scheme>
+            <persistence>
+                <environment system-property="coherence.persistence.environment">default-on-demand</environment>
+            </persistence>
+            <autostart>true</autostart>
+        </distributed-scheme>
+    </caching-schemes>
+</cache-config>

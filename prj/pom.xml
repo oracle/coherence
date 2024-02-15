@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2024, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ https://oss.oracle.com/licenses/upl.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -403,6 +403,8 @@
         <module>coherence-cdi-server</module>
         <module>coherence-mp</module>
         <module>coherence-grpc</module>
+        <module>coherence-grpc-proxy-common</module>
+        <module>coherence-grpc-proxy-helidon</module>
         <module>coherence-grpc-proxy</module>
         <module>coherence-java-client</module>
         <module>coherence-concurrent</module>
@@ -465,6 +467,8 @@
         <module>coherence-cdi-server</module>
         <module>coherence-mp</module>
         <module>coherence-grpc</module>
+        <module>coherence-grpc-proxy-common</module>
+        <module>coherence-grpc-proxy-helidon</module>
         <module>coherence-grpc-proxy</module>
         <module>coherence-java-client</module>
         <module>coherence-concurrent</module>
@@ -840,6 +844,8 @@
                   <bedrock.profile.illegalaccess.classname>com.oracle.coherence.testing.bedrock.IllegalaccessProfile</bedrock.profile.illegalaccess.classname>
                   <bedrock.profile.loom/>
                   <bedrock.profile.loom.classname>com.oracle.bedrock.runtime.coherence.profiles.LoomProfile</bedrock.profile.loom.classname>
+                  <bedrock.profile.targetdirectory/>
+                  <bedrock.profile.targetdirectory.classname>com.oracle.bedrock.runtime.coherence.profiles.TargetProfile</bedrock.profile.targetdirectory.classname>
                   <coherence.virtualthreads.enabled>${coherence.virtualthreads.enabled}</coherence.virtualthreads.enabled>
                 </systemPropertyVariables>
                 <excludes>

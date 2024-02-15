@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2024, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ https://oss.oracle.com/licenses/upl.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -208,9 +208,9 @@
     parrson-media.version ??
     This is not always possible if we need to bump versions for CVE's
     -->
-    <helidon.version>4.0.4</helidon.version>
+    <helidon.version>4.0.5</helidon.version>
     <!-- When running tests with Java 17 we will use Helidon 3 (this will be set using the helidon3 profile) -->
-    <helidon.version.java17>3.2.5</helidon.version.java17>
+    <helidon.version.java17>3.2.6</helidon.version.java17>
 
     <helidon.sitegen.version>2.3.7</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
@@ -285,7 +285,7 @@
     <mockito.version>3.12.4</mockito.version>
     <mock.server.version>5.14.0</mock.server.version>
     <objenesis.version>2.2</objenesis.version>
-    <oracle.bedrock.version>7.0.2</oracle.bedrock.version>
+    <oracle.bedrock.version>7.0.3-SNAPSHOT</oracle.bedrock.version>
     <testcontainers.version>1.19.3</testcontainers.version>
 
     <!-- commercial test dependency versions -->
@@ -1252,6 +1252,7 @@
               <TESTCONTAINERS_CHECKS_DISABLE>true</TESTCONTAINERS_CHECKS_DISABLE>
             </environmentVariables>
             <systemPropertyVariables>
+              <project.build.directory>${project.build.directory}</project.build.directory>
               <java.awt.headless>true</java.awt.headless>
               <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
               <oracle.coherence.lib>${projects.path}/coherence/target</oracle.coherence.lib>
@@ -1272,6 +1273,8 @@
               <bedrock.profile.illegalaccess.classname>com.oracle.coherence.testing.bedrock.IllegalaccessProfile</bedrock.profile.illegalaccess.classname>
               <bedrock.profile.loom/>
               <bedrock.profile.loom.classname>com.oracle.bedrock.runtime.coherence.profiles.LoomProfile</bedrock.profile.loom.classname>
+              <bedrock.profile.target/>
+              <bedrock.profile.target.classname>com.oracle.bedrock.runtime.coherence.profiles.TargetProfile</bedrock.profile.target.classname>
               <coherence.virtualthreads.enabled>${coherence.virtualthreads.enabled}</coherence.virtualthreads.enabled>
             </systemPropertyVariables>
             <useSystemClassLoader>true</useSystemClassLoader>

@@ -13,6 +13,8 @@ import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -20,9 +22,16 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class LoomProfileIT
     {
+    @BeforeEach
+    public void cleanup()
+        {
+        System.clearProperty(LoomProfile.PROPERTY_ENABLED);
+        }
+
     @Test
     public void shouldEnableLoom()
         {
+        System.setProperty(LoomProfile.PROPERTY_ENABLED, "true");
         LoomProfile profile = new LoomProfile(true);
 
         try (CoherenceClusterMember member = LocalPlatform.get().launch(CoherenceClusterMember.class,
@@ -52,6 +61,4 @@ public class LoomProfileIT
             assertThat(member.invoke(() -> System.getProperty(LoomProfile.PROPERTY_ENABLED)), is("false"));
             }
         }
-
-
     }

@@ -147,6 +147,16 @@
     <!-- grpc -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-grpc-proxy-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-grpc-proxy-helidon</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-grpc-proxy</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -434,6 +444,14 @@
 
                     <resource>
                       <directory>../coherence-grpc/src/main/java</directory>
+                    </resource>
+
+                    <resource>
+                      <directory>../coherence-grpc-proxy-common/src/main/java</directory>
+                    </resource>
+
+                    <resource>
+                      <directory>../coherence-grpc-proxy-helidon/src/main/java</directory>
                     </resource>
 
                     <resource>

@@ -38,23 +38,6 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!--
-    Add Netty dependencies here to eliminate older version of Netty
-    pulled in by grpc version
-    -->
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-codec-http2</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-handler-proxy</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-transport-native-unix-common</artifactId>
-    </dependency>
-
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-api</artifactId>
@@ -62,10 +45,6 @@
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-netty</artifactId>
     </dependency>
     <dependency>
       <groupId>io.grpc</groupId>
