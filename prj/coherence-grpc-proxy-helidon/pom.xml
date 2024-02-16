@@ -17,7 +17,7 @@
   </parent>
 
   <artifactId>coherence-grpc-proxy-helidon</artifactId>
-  <name>Coherence Helidon based gRPC Proxy</name>
+  <name>Coherence Helidon gRPC Proxy</name>
 
   <properties>
     <module.name>com.oracle.coherence.grpc.proxy.helidon</module.name>
