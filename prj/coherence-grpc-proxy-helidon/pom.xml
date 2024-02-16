@@ -21,6 +21,9 @@
 
   <properties>
     <module.name>com.oracle.coherence.grpc.proxy.helidon</module.name>
+
+    <!--  this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
 
   <dependencyManagement>
