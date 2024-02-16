@@ -1033,7 +1033,7 @@
         <jdk>(,20]</jdk>
       </activation>
       <properties>
-        <helidon.version>${helidon.version.java17}</helidon.version>
+        <helidon.version>${helidon.version.3}</helidon.version>
       </properties>
     </profile>
 

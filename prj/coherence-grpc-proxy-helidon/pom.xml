@@ -23,6 +23,19 @@
     <module.name>com.oracle.coherence.grpc.proxy.helidon</module.name>
   </properties>
 
+  <dependencyManagement>
+    <dependencies>
+      <!-- This module always uses Helidon 4 -->
+      <dependency>
+        <groupId>io.helidon</groupId>
+        <artifactId>helidon-bom</artifactId>
+        <version>${helidon.version.4}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>

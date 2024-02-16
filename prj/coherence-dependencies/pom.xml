@@ -208,9 +208,12 @@
     parrson-media.version ??
     This is not always possible if we need to bump versions for CVE's
     -->
-    <helidon.version>4.0.5</helidon.version>
+    <!-- When running tests with Java 21 we will use Helidon 4 -->
+    <helidon.version.4>4.0.5</helidon.version.4>
     <!-- When running tests with Java 17 we will use Helidon 3 (this will be set using the helidon3 profile) -->
-    <helidon.version.java17>3.2.6</helidon.version.java17>
+    <helidon.version.3>3.2.6</helidon.version.3>
+    <!-- This is the property that sets the version used by other modules (we default to Helidon 4) -->
+    <helidon.version>${helidon.version.4}</helidon.version>
 
     <helidon.sitegen.version>2.3.7</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
