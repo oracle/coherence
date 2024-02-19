@@ -10,7 +10,6 @@ package com.oracle.coherence.grpc.proxy.helidon;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.grpc.proxy.common.BindableGrpcProxyService;
 import com.oracle.coherence.grpc.proxy.common.GrpcMetricsInterceptor;
-import com.oracle.coherence.grpc.proxy.common.GrpcServerConfiguration;
 import com.oracle.coherence.grpc.proxy.common.GrpcServiceDependencies;
 import com.oracle.coherence.grpc.proxy.common.NamedCacheService;
 import com.oracle.coherence.grpc.proxy.common.NamedCacheServiceGrpcImpl;
@@ -20,11 +19,9 @@ import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
 import com.tangosol.internal.util.DaemonPool;
 import com.tangosol.net.grpc.GrpcAcceptorController;
 import com.tangosol.net.grpc.GrpcDependencies;
-import io.grpc.ServerBuilder;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.health.v1.HealthCheckResponse;
-import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.protobuf.services.ChannelzService;
 import io.grpc.protobuf.services.HealthStatusManager;
 import io.helidon.webserver.WebServer;
@@ -33,7 +30,6 @@ import io.helidon.webserver.grpc.GrpcRouting;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ServiceLoader;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -214,21 +210,6 @@ public class HelidonGrpcAcceptorController
 //
 //        return List.of(cacheService, topicService);
         return List.of(cacheService);
-        }
-
-    protected void configure(ServerBuilder<?> serverBuilder, InProcessServerBuilder inProcessServerBuilder)
-        {
-        for (GrpcServerConfiguration cfg : ServiceLoader.load(GrpcServerConfiguration.class))
-            {
-            try
-                {
-                cfg.configure(serverBuilder, inProcessServerBuilder);
-                }
-            catch (Throwable t)
-                {
-                Logger.err("Caught exception calling GrpcServerConfiguration " + cfg, t);
-                }
-            }
         }
 
     private void stopServer(WebServer server, String sName)

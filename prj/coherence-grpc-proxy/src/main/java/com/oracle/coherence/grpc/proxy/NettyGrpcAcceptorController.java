@@ -12,7 +12,6 @@ import com.oracle.coherence.grpc.internal.GrpcTracingInterceptors;
 import com.oracle.coherence.grpc.proxy.common.BindableGrpcProxyService;
 import com.oracle.coherence.grpc.proxy.common.DaemonPoolExecutor;
 import com.oracle.coherence.grpc.proxy.common.GrpcMetricsInterceptor;
-import com.oracle.coherence.grpc.proxy.common.GrpcServerConfiguration;
 import com.oracle.coherence.grpc.proxy.common.GrpcServiceDependencies;
 import com.oracle.coherence.grpc.proxy.common.NamedCacheService;
 import com.oracle.coherence.grpc.proxy.common.NamedCacheServiceGrpcImpl;
