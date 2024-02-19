@@ -24,24 +24,34 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
 
 import com.oracle.coherence.client.GrpcRemoteCacheService;
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.concurrent.atomic.Atomics;
 import com.oracle.coherence.concurrent.atomic.RemoteAtomicInteger;
 import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
 
+import com.oracle.coherence.grpc.proxy.NettyGrpcAcceptorController;
+import com.oracle.coherence.grpc.proxy.helidon.HelidonGrpcAcceptorController;
 import com.oracle.coherence.io.json.genson.GensonBuilder;
 
 import com.tangosol.coherence.component.net.extend.remoteService.RemoteCacheService;
 import com.tangosol.coherence.component.util.SafeService;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.GrpcAcceptor;
 import com.tangosol.internal.net.management.HttpHelper;
 
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 
+import com.tangosol.net.Cluster;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Service;
 import com.tangosol.net.Session;
 
+import com.tangosol.net.grpc.GrpcAcceptorController;
+import com.tangosol.net.messaging.ConnectionAcceptor;
+import io.grpc.Status;
+import org.junit.Assume;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -51,7 +61,6 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.containers.wait.strategy.WaitStrategy;
 import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
@@ -74,6 +83,8 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
+import static org.junit.jupiter.api.Assertions.fail;
 
 
 /**
@@ -130,11 +141,35 @@ public class DockerImageTests
     @MethodSource("getImageNames")
     void shouldStartGrpcServerAndConnectWithGrpc(String sImageName)
         {
-        assertCoherenceClient(sImageName, "grpc-fixed", new CheckGrpcCacheAccess());
+        assertCoherenceClient(sImageName, "grpc-fixed",
+                new CheckGrpcCacheAccess(),
+                new CheckGrpcControllerType(NettyGrpcAcceptorController.class));
+        }
+
+    @ParameterizedTest(name = "[{index}] {0}")
+    @MethodSource("getImageNames")
+    void shouldStartGrpcServerAndConnectWithHelidonGrpc(String sImageName)
+        {
+        String sJavaVersion = ImageNames.imageLabel(sImageName, "com.oracle.coherence.java.vm.specification.version");
+        assertThat(sJavaVersion, is(notNullValue()));
+        int nVersion = Integer.parseInt(sJavaVersion);
+        Assume.assumeThat(nVersion, is(greaterThanOrEqualTo(21)));
+
+        String   sCP   = "/coherence/ext/conf:/coherence/ext/lib/*:/app/resources:/app/classes:/app/libs/*:app/libs/helidon-grpc/*";
+        String[] asCmd = {"-cp", sCP, Coherence.class.getName()};
+        assertCoherenceClient(sImageName, "grpc-fixed", asCmd,
+                new CheckGrpcCacheAccess(),
+                new CheckGrpcControllerType(HelidonGrpcAcceptorController.class));
         }
 
     @SuppressWarnings("unchecked")
     void assertCoherenceClient(String sImageName, String sClient, RemoteCallable<Void>... assertions)
+        {
+        assertCoherenceClient(sImageName, sClient, null, assertions);
+        }
+
+    @SuppressWarnings("unchecked")
+    void assertCoherenceClient(String sImageName, String sClient, String[] asCmd, RemoteCallable<Void>... assertions)
         {
         ImageNames.verifyTestAssumptions();
 
@@ -142,7 +177,7 @@ public class DockerImageTests
                 .withImagePullPolicy(NeverPull.INSTANCE)
                 .waitingFor(Wait.forHealthcheck())
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
-                .withExposedPorts(EXTEND_PORT, GRPC_PORT, CONCURRENT_EXTEND_PORT)))
+                .withExposedPorts(EXTEND_PORT, GRPC_PORT, CONCURRENT_EXTEND_PORT), asCmd))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
 
@@ -468,6 +503,68 @@ public class DockerImageTests
 
             return null;
             }
+        }
+
+    // ----- inner class: CheckGrpcControllerType ---------------------------
+
+    /**
+     * A {@link RemoteCallable} to verify that Coherence gRPC has a specific controller.
+     */
+    protected static class CheckGrpcControllerType
+            implements RemoteCallable<Void>
+        {
+        protected CheckGrpcControllerType(Class<? extends GrpcAcceptorController> clzExpected)
+            {
+            m_sClzExpected = clzExpected.getName();
+            }
+
+        @Override
+        public Void call()
+            {
+            Session                    session = Coherence.getInstance().getSession();
+            NamedCache<String, String> cache   = session.getCache("foo");
+            String                     sClz    = m_sClzExpected;
+
+            try
+                {
+            cache.invoke("foo", entry ->
+                    {
+                    Coherence coherence = Coherence.getInstance();
+                    Cluster   cluster   = coherence.getCluster();
+                    Service   service   = cluster.getService("$GRPC:GrpcProxy");
+                    if (service instanceof SafeService)
+                        {
+                        service = ((SafeService) service).getService();
+                        }
+                    ProxyService           proxyService = (ProxyService) service;
+                    ConnectionAcceptor     acceptor     = proxyService.getAcceptor();
+                    GrpcAcceptor           grpcAcceptor = (GrpcAcceptor) acceptor;
+                    GrpcAcceptorController controller   = grpcAcceptor.getController();
+                    if (controller == null)
+                        {
+                        throw Status.FAILED_PRECONDITION
+                                .withDescription("Controller is null")
+                                .asRuntimeException();
+                        }
+                    if (!controller.getClass().getName().equals(sClz))
+                        {
+                        throw Status.FAILED_PRECONDITION
+                                .withDescription("Controller type: expected " + sClz
+                                        + " but was " + controller.getClass().getName())
+                                .asRuntimeException();
+                        }
+                    return null;
+                    });
+                }
+            catch (Exception e)
+                {
+                Logger.err(e);
+                fail("Assertion failed: " + e.getMessage());
+                }
+            return null;
+            }
+
+        private final String m_sClzExpected;
         }
 
     // ----- data members ---------------------------------------------------

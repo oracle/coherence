@@ -59,7 +59,10 @@ else
   fi
 fi
 
-chmod +x "${SCRIPT_NAME}"
+if [ "${SCRIPT_NAME}" != "" ]
+then
+  chmod +x "${SCRIPT_NAME}"
+fi
 
 BUILDAH=""
 if [ "${LOCAL_BUILDAH}" == "true" ]
@@ -94,11 +97,15 @@ else
   then
     docker volume create "${BUILDAH_VOLUME}"
   fi
+  if [ "${MY_DOCKER_HOST}" == "" ]
+  then
+    DOCKER_HOST="${MY_DOCKER_HOST}"
+  fi
 
   if [ "${DOCKER_HOST}" == "" ]
   then
     PDM=$(which podman || true)
-    if [ "${PDM}" != "" ]
+    if [ "${USE_PODMAN}" != "false" && "${PDM}" != "" ]
     then
 #     we're using Podman
       MY_UID=$(id -u)

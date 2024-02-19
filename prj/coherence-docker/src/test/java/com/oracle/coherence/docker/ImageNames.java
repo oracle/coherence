@@ -18,6 +18,9 @@ import com.oracle.bedrock.runtime.options.Argument;
 import com.oracle.bedrock.runtime.options.Console;
 import org.junit.jupiter.api.Assumptions;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 /**
  * Test Docker image names utils.
  *
@@ -206,6 +209,34 @@ public class ImageNames
             {
             int exitCode = app.waitFor();
             return exitCode == 0;
+            }
+        }
+
+    /**
+     * Verify that the image being tested is already present.
+     *
+     * @param sImage  the name of the image
+     *
+     * @return {@code true} if the image being tested is present.
+     */
+    public static String imageLabel(String sImage, String sLabel)
+        {
+        Platform platform = LocalPlatform.get();
+
+        try (CapturingApplicationConsole console = new CapturingApplicationConsole())
+            {
+            try (Application app = platform.launch("docker",
+                    Argument.of("inspect"),
+                    Argument.of("-f"),
+                    Argument.of("{{index .Config.Labels \"" + sLabel + "\"}}"),
+                    Argument.of(sImage),
+                    LaunchLogging.disabled(),
+                    Console.of(console)))
+                {
+                int exitCode = app.waitFor();
+                assertThat(exitCode, is(0));
+                }
+            return console.getCapturedOutputLines().poll();
             }
         }
 

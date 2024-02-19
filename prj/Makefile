@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------------------------------------------------
-# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
@@ -45,6 +45,10 @@ modules: ## Build Coherence modules
 .PHONY: docker
 docker: ## Build the Coherence image (does not rebuild Coherence jars)
 	mvn clean install -Pmodules,-coherence,docker -pl coherence-docker/ -nsu $(ARGS)
+
+.PHONY: buildah
+buildah: ## Run Buildah (does not rebuild Coherence jars)
+	mvn clean install -Pmodules,-coherence,buildah -pl coherence-docker/ -nsu $(ARGS)
 
 .PHONY: docker-no-graal
 docker-no-graal: ## Build the Coherence image (does not rebuild Coherence jars)

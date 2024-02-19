@@ -111,6 +111,10 @@ ENTRY_POINT="java"
 
 CLASSPATH="/coherence/ext/conf:/coherence/ext/lib/*:/app/resources:/app/classes:/app/libs/*"
 
+IMAGE_PATH=""
+LABEL_JAVA_VERSION=""
+LABEL_JAVA_SPEC_VERSION=""
+
 # The command line
 CMD=""
 CMD="${CMD} -cp ${CLASSPATH}"
@@ -228,9 +232,21 @@ fi
 #   Argument ${5} is set, so copy the Java home we downloaded into the new container
     IMAGE_PATH=$(buildah run --tty -- "container-${1}" printenv PATH) || IMAGE_PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
     buildah config --env PATH="${IMAGE_JAVA_HOME}/bin:${IMAGE_PATH}" "container-${1}"
-    buildmnt=$(buildah mount "builder-${1}")
-    buildah copy "container-${1}" "${buildmnt}${IMAGE_JAVA_HOME}" "${IMAGE_JAVA_HOME}"
+    BUILD_MOUNT=$(buildah mount "builder-${1}")
+    buildah copy "container-${1}" "${BUILD_MOUNT}${IMAGE_JAVA_HOME}" "${IMAGE_JAVA_HOME}"
   fi
+
+# copy the GetJavaProperty into the container so that we can use it to obtain Java system properties
+# that we then use as image labels, for example the Java version
+  GET_PROPERTY_CLASS="com.oracle.coherence.docker.GetJavaProperty"
+  GET_PROPERTY_CLASS_FILE="${GET_PROPERTY_CLASS//./\/}.class"
+  CLASSES_SOURCE="${BASEDIR}/target/classes"
+  CLASSES_TARGET="/coherence/temp/classes/"
+  buildah copy "container-${1}" "${CLASSES_SOURCE}/${GET_PROPERTY_CLASS_FILE}" "${CLASSES_TARGET}/${GET_PROPERTY_CLASS_FILE}"
+# Get the Java version to use for a label
+  LABEL_JAVA_VERSION=$(buildah run --tty -- "container-${1}" java -cp ${CLASSES_TARGET} ${GET_PROPERTY_CLASS} java.vm.version) || true
+# Get the Java spec version to use for a label
+  LABEL_JAVA_SPEC_VERSION=$(buildah run --tty -- "container-${1}" java -cp ${CLASSES_TARGET} ${GET_PROPERTY_CLASS} java.vm.specification.version) || true
 
   # Add the configuration, entrypoint, ports, env-vars etc...
   buildah config --healthcheck-start-period 10s --healthcheck-interval 10s --healthcheck "CMD ${ENTRY_POINT} ${HEALTH_CMD}" "container-${1}"
@@ -238,12 +254,17 @@ fi
   buildah config --arch "${1}" --os "${2}" \
       --entrypoint "[\"${ENTRY_POINT}\"]" --cmd "${CMD} ${MAIN_CLASS}" \
       ${ENV_VARS} ${ENV_VARS_JAVA_HOME} ${PORT_LIST} \
+      --annotation "com.oracle.coherence.java.vm.version=${LABEL_JAVA_VERSION}" \
+      --annotation "com.oracle.coherence.java.vm.specification.version=${LABEL_JAVA_SPEC_VERSION}" \
       --annotation "org.opencontainers.image.created=${CREATED}" \
       --annotation "org.opencontainers.image.url=https://github.com/oracle/coherence/pkgs/container/coherence-ce" \
       --annotation "org.opencontainers.image.version=${COHERENCE_VERSION}" \
       --annotation "org.opencontainers.image.source=http://github.com/oracle/coherence" \
       --annotation "org.opencontainers.image.vendor=${PROJECT_VENDOR}" \
       --annotation "org.opencontainers.image.title=${PROJECT_DESCRIPTION} ${COHERENCE_VERSION}" \
+      --label "com.oracle.coherence.java.vm.version=${LABEL_JAVA_VERSION}" \
+      --label "com.oracle.coherence.java.vm.specification.version=${LABEL_JAVA_SPEC_VERSION}" \
+      --label "org.opencontainers.image.created=${CREATED}" \
       --label "org.opencontainers.image.url=https://github.com/oracle/coherence/pkgs/container/coherence-ce" \
       --label "org.opencontainers.image.version=${COHERENCE_VERSION}" \
       --label "org.opencontainers.image.source=http://github.com/oracle/coherence" \
