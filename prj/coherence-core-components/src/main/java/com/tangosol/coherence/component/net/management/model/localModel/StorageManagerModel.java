@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,9 +18,13 @@ import com.tangosol.internal.util.VersionHelper;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.events.internal.StorageDispatcher;
 
+import com.tangosol.net.internal.PartitionSize;
+import com.tangosol.net.internal.PartitionSizeAggregator;
+
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.MapIndex;
+import com.tangosol.util.filter.AlwaysFilter;
 
 import java.lang.ref.WeakReference;
 
@@ -30,6 +34,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * Model components implement the JMX-managed functionality of the
@@ -790,6 +796,60 @@ public class StorageManagerModel
                 }
             }
         return 0;
+        }
+
+    /**
+     * Reports the partition stats in the format specified.
+     *
+     * @param sFormat specified the format of the data required. Valid values are "json", "csv" or "native".
+     *                The "native" format is for use internally by the REST API only.
+     * @return
+     */
+    public Object reportPartitionStats(String sFormat)
+        {
+        Storage storage = get_Storage();
+        if (storage != null)
+            {
+            PartitionedCache service = storage.getService();
+            if (service != null)
+                {
+                NamedCache cache = service.ensureCache(storage.getCacheName(), null);
+                
+                Set<PartitionSize> setResults = (Set<PartitionSize>) cache.aggregate(AlwaysFilter.INSTANCE(), new PartitionSizeAggregator());
+
+                if ("native".equals(sFormat))
+                    {
+                    // Return PartitionSize[] as called from REST API
+                    return setResults.toArray();
+                    }
+
+                // default format to "json". Use an AtomicInteger, so we can use in the lambda as final
+                final String[]      asFormats = new String[]{"{\"partitionId\":%d, \"count\": %d, \"totalSize\": %d, \"maxEntrySize\": %d, \"memberId\": %d}", "%d,%d,%d,%d,%d"};
+                final AtomicInteger index     = new AtomicInteger(0);
+                String              sJoin     = ",\n";
+                String              sFinal    = "]";
+                StringBuilder       sb        = new StringBuilder();
+
+                if ("csv".equals(sFormat))
+                    {
+                    index.set(1);
+                    sJoin  = "\n";
+                    sFinal = "";
+                    }
+                else
+                    {
+                    sb.append("[");
+                    }
+                
+                String sResult = setResults.stream().map(v -> String.format(asFormats[index.intValue()], v.getPartitionId(), v.getCount(), v.getTotalSize(), v.getMaxEntrySize(), v.getMemberId()))
+                                           .collect(Collectors.joining(sJoin));
+                sb.append(sResult);
+
+                return sb.append(sFinal).toString();
+                }
+            }
+
+        return "[]]";
         }
 
     // Accessor for the property "_Storage"

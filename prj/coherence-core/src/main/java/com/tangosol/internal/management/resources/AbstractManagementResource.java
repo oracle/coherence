@@ -2312,6 +2312,7 @@ public abstract class AbstractManagementResource
     public static final String PARTITION          = "partition";
     public static final String FEDERATION         = "federation";
     public static final String RESET_STATS        = "resetStatistics";
+    public static final String PARTITION_STATS    = "reportPartitionStats";
     public static final String CHILDREN           = "children";
     public static final String NAME               = "name";
     public static final String TYPE               = "type";
