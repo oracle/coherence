@@ -47,6 +47,7 @@ class CoherenceBootstrapTests
         {
         System.setProperty("coherence.wka", "127.0.0.1");
         System.setProperty("coherence.localhost", "127.0.0.1");
+        System.setProperty("test.unicast.port", "0");
         System.setProperty("coherence.ttl", "0");
         System.setProperty("coherence.cacheconfig", Resources.DEFAULT_RESOURCE_PACKAGE + "/coherence-cache-config.xml");
         }
