@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package com.tangosol.internal.management.resources;
 import com.tangosol.internal.http.HttpRequest;
 import com.tangosol.internal.http.RequestRouter;
 import com.tangosol.internal.http.Response;
+
 import com.tangosol.internal.management.Converter;
 import com.tangosol.internal.management.EntityMBeanResponse;
 
@@ -45,6 +46,7 @@ public class StorageManagerResource
         router.addPost(sPathRoot + "/" + CLEAR, this::clearCache);
         router.addPost(sPathRoot + "/" + TRUNCATE, this::truncateCache);
         router.addPost(sPathRoot + "/" + RESET_STATS, this::resetStatistics);
+        router.addGet(sPathRoot  + "/" + PARTITION_STATS, this::reportPartitionStats);
         }
 
     // ----- GET API ---------------------------------------------------------
@@ -97,6 +99,27 @@ public class StorageManagerResource
         QueryBuilder queryBuilder = getQuery(request, sCacheName, sServiceName);
 
         return executeMBeanOperation(request, queryBuilder, RESET_STATS, null, null);
+        }
+
+    // ----- GET API(reportPartitionStats) --------------------------------------------
+
+    /**
+     * Call "reportPartitionStats" operation on StorageManagerMBean for all members.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response reportPartitionStats(HttpRequest request)
+        {
+        String       sCacheName   = request.getFirstPathParameter(CACHE_NAME);
+        String       sServiceName = request.getPathParameters().getFirst(SERVICE_NAME);
+        QueryBuilder queryBuilder = getQuery(request, sCacheName, sServiceName);
+        String[] asSignature      = {String.class.getName()};
+        Object[] aoArguments      = {"native"}; // this forces the Mbean operation to return Set<PartitionSize>
+
+        return response(getResponseFromMBeanOperation(request, queryBuilder,
+                PARTITION_STATS, PARTITION_STATS, aoArguments, asSignature));
         }
 
     // ----- POST API(Clear) -------------------------------------------------

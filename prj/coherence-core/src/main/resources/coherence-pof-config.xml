@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -918,6 +918,16 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.net.internal.RemoveEntryProcessor</class-name>
     </user-type>
 
+    <user-type>
+      <type-id>308</type-id>
+      <class-name>com.tangosol.net.internal.PartitionSize</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>309</type-id>
+      <class-name>com.tangosol.net.internal.PartitionSizeAggregator</class-name>
+    </user-type>
+
     <!-- com.tangosol.net.security package (350-359) -->
 
     <user-type>
@@ -1822,7 +1832,6 @@ descriptor: pof-config.xsd.
     </user-type>
 
     <!-- external (executor): internal types              (270 - 299, 821-829, 870-899) -->
-
   </user-type-list>
 
   <allow-interfaces>true</allow-interfaces>

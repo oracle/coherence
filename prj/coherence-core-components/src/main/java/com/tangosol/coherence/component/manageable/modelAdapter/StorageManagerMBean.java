@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -495,6 +495,18 @@ public class StorageManagerMBean
                 null,
                 });
             }
+        // behavior reportPartitionStats()
+            {
+            mapInfo.put("reportPartitionStats()", new Object[]
+                {
+                "Reports the size and count of entries for this cache across partitions. Format can be 'json' or 'csv'. For 'csv' the columns are partition, count, totalSize, maxEntrySize and memberId.",
+                "reportPartitionStats",
+                "Ljava/lang/Object;",
+                new String[] {"sFormat", },
+                new String[] {"Ljava/lang/String;"},
+                null,
+                });
+            }
 
         return mapInfo;
         }
@@ -870,6 +882,18 @@ public class StorageManagerMBean
     public int size()
         {
         return 0;
+        }
+
+    /**
+     * Reports the size and count of entries for this cache across partitions.
+     *
+     * @param sFormat if "native" then the underlying return type is an array of PartitionSize[] is returned. This is
+     *                only used for the REST API.
+     *                if format is "json" then Json text is returned otherwise "csv" returns a csv list.
+     */
+    public Object reportPartitionStats(String sFormat)
+        {
+        return null;
         }
 
     // Accessor for the property "MaxQueryThresholdMillis"
