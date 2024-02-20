@@ -4968,6 +4968,32 @@
         }
       }
     },
+    "/management/coherence/cluster/services/{serviceName}/storage/{cacheName}/reportPartitionStats": {
+      "get": {
+        "tags": [
+          "Storage Managers"
+        ],
+        "summary": "Report Partition Stats",
+        "description": "Use this endpoint to report the size and count of entries for this cache across partitions.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/storage/{cacheName}/reportPartitionStats GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/cacheName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/webApplications": {
       "get": {
         "tags": [

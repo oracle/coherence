@@ -3743,6 +3743,47 @@ public abstract class BaseManagementInfoResourceTests
         assertTrue(sResponse.startsWith("<cluster-config"));
         }
 
+    @Test
+    public void testReportPartitionStats()
+        {
+        final String CACHE_NAME = CLEAR_CACHE_NAME;
+
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            // fill a cache
+            NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
+            Binary     binValue = Binary.getRandomBinary(1024, 1024);
+            cache.clear();
+            for (int i = 0; i < 10; ++i)
+                {
+                cache.put(i, binValue);
+                }
+            return null;
+            });
+        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
+
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path(STORAGE)
+                            .path(CLEAR_CACHE_NAME).path("reportPartitionStats");
+        Response  response = target.request().get();
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+        Map mapResponse = readEntity(target, response);
+
+        assertThat(mapResponse, notNullValue());
+        List<Map<String, Object>> listPartitionSize = (List<Map<String, Object>>) mapResponse.get("reportPartitionStats");
+        assertThat(listPartitionSize, notNullValue());
+
+        for (Map<String, Object> partitionSize : listPartitionSize)
+            {
+            assertThat(partitionSize.get("partitionId"), is(notNullValue()));
+            assertThat(partitionSize.get("memberId"), is(notNullValue()));
+            assertThat(partitionSize.get("totalSize"), is(notNullValue()));
+            assertThat(partitionSize.get("maxEntrySize"), is(notNullValue()));
+            assertThat(partitionSize.get("count"), is(notNullValue()));
+            }
+        }
+
     // ----- utility methods----------------------------------------------------
 
     /**

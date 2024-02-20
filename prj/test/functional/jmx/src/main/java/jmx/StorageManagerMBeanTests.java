@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@ package jmx;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.internal.PartitionSize;
 import com.tangosol.net.management.MBeanHelper;
 
 import com.tangosol.util.Base;
@@ -43,7 +44,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
-
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
@@ -175,6 +176,38 @@ public class StorageManagerMBeanTests
         Eventually.assertDeferred(atomicDelete::get, is(100));
         Long ClearCount = (Long) server.getAttribute(name, "ClearCount");
         assertEquals("expected ClearCount to be 1", Long.valueOf(1), ClearCount);
+        }
+
+    /**
+     * Test reportPartitionStats operation.
+     *
+     * @throws Exception which could be ReflectionException, InstanceNotFoundException or MBeanException.
+     */
+    @Test
+    public void testReportPartitionStats()
+            throws Exception
+        {
+        NamedCache<Integer, Integer> cache = getNamedCache("dist-stats");
+        MBeanServer server = MBeanHelper.findMBeanServer();
+
+        for (int i = 0; i < 100; i++)
+            {
+            cache.put(i, i + 1);
+            }
+        
+        ObjectName name = getQueryName(cache);
+        String sJson = (String) server.invoke(name, "reportPartitionStats", new Object[]{"json"}, new String[]{"java.lang.String"});
+        assertNotNull(sJson);
+        assertEquals(sJson.substring(0,1), "[");
+
+        String sCSV = (String) server.invoke(name, "reportPartitionStats", new Object[]{"csv"}, new String[]{"java.lang.String"});
+        assertNotNull(sCSV);
+        String[] asLines = sCSV.split("\n");
+        assertTrue(asLines.length > 0);
+        for (String asLine : asLines)
+            {
+            assertTrue(asLine.contains(","));
+            }
         }
 
     /**
