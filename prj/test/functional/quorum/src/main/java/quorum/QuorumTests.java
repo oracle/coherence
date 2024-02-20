@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -77,6 +77,7 @@ import com.oracle.coherence.testing.TestInfrastructureHelper;
 
 import data.Trade;
 
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -102,6 +103,7 @@ import java.util.Set;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 import static org.junit.Assert.assertEquals;
@@ -134,7 +136,7 @@ public class QuorumTests
     protected QuorumTests(String sCacheConfig)
         {
         super(sCacheConfig);
-        System.setProperty("coherence.service.startup.timeout", "15000");
+        System.setProperty("coherence.service.startup.timeout", Long.toString(SERVICE_STARTUP_TIMEOUT_MS));
         }
 
 
@@ -937,7 +939,11 @@ public class QuorumTests
                 }
             Eventually.assertDeferred(() -> clusterSafe.getMemberSet().size(), is(cMembers));
 
-            com.tangosol.coherence.component.net.Cluster clusterReal = clusterSafe.getCluster();
+            com.tangosol.coherence.component.net.Cluster clusterReal       = clusterSafe.getCluster();
+            long                                         ldtStartupTimeout = clusterReal.getClusterService().getStartupTimeout();
+
+            assertThat("verify cluster service startupTimeout=" + ldtStartupTimeout + " is not  packet delivery timeout of 5 seconds",
+                       ldtStartupTimeout, Matchers.is(SERVICE_STARTUP_TIMEOUT_MS));
 
             // turn off the publisher over unicast
             clusterReal.getPublisher().getUdpSocketUnicast().setTxDebugDropRate(100000);
@@ -2343,6 +2349,11 @@ public class QuorumTests
     * Constant for the operational override under test.
     */
     public static final String FILE_OPERATIONAL_CONFIG = "quorum-coherence-override.xml";
+
+    /**
+     * Override default service startup timeout.
+     */
+    public static final Long SERVICE_STARTUP_TIMEOUT_MS = 15000L;
 
     /**
      * A {@link TestInfrastructureHelper} instance that we can pass to Bedrock on an invoking().
