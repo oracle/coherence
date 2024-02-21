@@ -316,15 +316,12 @@ public class GrpcServerController
         @Override
         public void preStop(Context ctx)
             {
-Logger.info("***** Entered preStop name=" + ctx.getApplicationName());
             f_lock.lock();
             try
                 {
-Logger.info("***** In preStop - acquired lock" + ctx.getApplicationName());
                 ContainerContext     containerContext = ctx.getContainerContext();
                 String               sScopePrefix     = ServiceScheme.getScopePrefix(ctx.getApplicationName(), containerContext);
                 GrpcServerController controller       = f_mapDomainController.get(sScopePrefix);
-Logger.info("***** In preStop - controller=" + controller + " match=" + (controller != null && Objects.equals(ctx, controller.f_context)));
                 if (controller != null && Objects.equals(ctx, controller.f_context))
                     {
                     f_mapDomainController.remove(sScopePrefix);
@@ -335,7 +332,6 @@ Logger.info("***** In preStop - controller=" + controller + " match=" + (control
                 {
                 f_lock.unlock();
                 }
-Logger.info("***** Leaving preStop name=" + ctx.getApplicationName());
             }
 
         @Override
