@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1040,7 +1040,7 @@ public class Logger
             output.configure(deps);
         
             output.log(getInteger(LEVEL_ERROR), e,
-                    "Error configuring logger; using default settings.");
+                    "Error configuring logger '" + sDest + "'; using default settings instead.");
             }
         
         setDestination(deps.getDestination());
@@ -1048,6 +1048,12 @@ public class Logger
         setLevel(deps.getSeverityLevel());
         setLimit(deps.getCharacterLimit());
         setLogOutput(output);
+
+        if (this.isEnabled(getInteger(LEVEL_D6)))
+            {
+            System.out.println(String.format("Logger configured with destination '%s', severity level '%s' and a character limit of '%s'.",
+                    deps.getDestination(), deps.getSeverityLevel(), deps.getCharacterLimit()));
+            }
         }
     
     // Declared at the super level
