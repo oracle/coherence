@@ -9,6 +9,7 @@
 
 package com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService;
 
+import com.oracle.coherence.common.util.Duration;
 import com.oracle.coherence.common.util.MemorySize;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.Storage;
@@ -44,6 +45,7 @@ import com.oracle.coherence.persistence.PersistentStore;
 import com.tangosol.application.ContainerHelper;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.config.ResolvableParameterList;
+import com.tangosol.coherence.config.unit.Millis;
 import com.tangosol.config.expression.Parameter;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 import com.tangosol.internal.net.service.grid.DefaultPartitionedCacheDependencies;
@@ -306,7 +308,14 @@ public class PartitionedCache
      *
      */
     private PartitionedCache.EventsHelper __m_EventsHelper;
-    
+
+    /**
+     * Property OldestEventResendNextMillis
+     *
+     * Interval between resends of potentially "stuck" oldest event.
+     */
+    private transient long __m_EventResendInterval;
+
     /**
      * Property IndexingStartTime
      *
@@ -375,7 +384,15 @@ public class PartitionedCache
      * Initial value is Long.MAX_VALUE.
      */
     private transient long __m_LockingNextMillis;
-    
+
+    /**
+     * Property OldestEventResendNextMillis
+     *
+     * The time at which the oldest event should be resent if it is determined
+     * to be "old enough", or far enough behind the current event.
+     */
+    private transient long __m_OldestEventResendNextMillis;
+
     /**
      * Property PendingEvents
      *
@@ -1511,7 +1528,7 @@ public class PartitionedCache
         // import java.util.Map;
         // import java.util.Map$Entry as java.util.Map.Entry;
         // import java.util.Set;
-        
+
         Storage storage = getKnownStorage(lCacheId);
         _assert(storage != null);
         
@@ -1607,7 +1624,7 @@ public class PartitionedCache
                         mapResults.put(binKey, Storage.decompressResult(binResult, binValueOld, binValue));
                         }
                     }
-        
+
                 registerEvent(PartitionedCache.MapEvent.decompressEventHolder(
                     oEvent, lCacheId, binKey, binValueOld, binValue), memberOwner);
                 }
@@ -2792,7 +2809,18 @@ public class PartitionedCache
         {
         return __m_EventsHelper;
         }
-    
+
+    /**
+     * Getter for property EventResendInterval
+     *
+     * Interval between resends of potentially "stuck" oldest event.
+     */
+    public long getEventResendInterval()
+        {
+        return __m_EventResendInterval;
+        }
+
+
     // Accessor for the property "IndexingStartTime"
     /**
      * Getter for property IndexingStartTime.<p>
@@ -2922,7 +2950,18 @@ public class PartitionedCache
         {
         return __m_LockingNextMillis;
         }
-    
+
+    /**
+     * Getter for property OldestEventResendNextMillis
+     *
+     * The time at which the oldest event should be resent if it is determined
+     * to be "old enough", or far enough behind the current event.
+     */
+    public long getOldestEventResendNextMillis()
+        {
+        return __m_OldestEventResendNextMillis;
+        }
+
     // Accessor for the property "OldestPendingEventSUID"
     /**
      * Getter for property OldestPendingEventSUID.<p>
@@ -3941,7 +3980,7 @@ public class PartitionedCache
             com.tangosol.coherence.component.net.Member  memberOwner  = msgRequest.getOriginatingMember();
             com.tangosol.coherence.component.net.RequestContext ctx          = msgRequest.getRequestContext();
             Map     mapGraveYard = getStorageGraveyard();
-        
+
             if (lCacheId == -1L)
                 {
                 // The BackupAllRequest spans multiple caches.
@@ -5014,8 +5053,9 @@ public class PartitionedCache
         setTaskSplitThreshold(Integer.parseInt(Config.getProperty("coherence.distributed.tasksplitthreshold", "1")));
         setScheduledBackupsThreshold(Integer.parseInt(Config.getProperty("coherence.distributed.scheduledbackupsthreshold", "60")));
         setMaxPartialResponseSize(Config.getMemorySize("coherence.distributed.max.response.size", "1m"));
+        setEventResendInterval(Config.getDuration("coherence.distributed.event.resend.interval", new Duration("30s")).as(Duration.Magnitude.MILLI));
         }
-    
+
     // Declared at the super level
     /**
      * Event notification for performing low frequency periodic maintenance
@@ -5030,9 +5070,44 @@ public class PartitionedCache
     protected void onInterval()
         {
         super.onInterval();
-        
+
         getRequestCoordinator().onInterval();
+
+        // on some environments the "NotifyDelivery" ack may become lost or be
+        // held up (e.g.: hundreds of ViewCache clients with heavy writes)
+        // the following attempts to get stuck events "unstuck" by re-sending
+        // the oldest and hopefully cause a chain of events to clear the
+        // pending events long array which can become clogged on backup members
+        // due to said clean-up being solely based on oldest ack'ed event.
+        LongArray laPending = getPendingEvents();
+        if (laPending == null) // used in getOldestPendingEventSUID
+            {
+            return;
+            }
+
+        long ldtNow      = Base.getSafeTimeMillis();
+        long lOldestSUID = getOldestPendingEventSUID();
+
+        if (ldtNow > getOldestEventResendNextMillis())
+            {
+            if (lOldestSUID > 0 &&
+                m_lOldestSUIDtemp == lOldestSUID &&
+                getSUIDCounter(PartitionedCache.SUID_EVENT).get() - lOldestSUID > 100) // 100+ events behind for a cycle
+                {
+                PartitionedCache.MapEvent msgEvent = (PartitionedCache.MapEvent) laPending.get(lOldestSUID);
+
+                if (msgEvent != null && !msgEvent.isDelivered())
+                    {
+                    msgEvent.setNotifyDelivery(true);
+                    post(msgEvent);
+                    }
+                }
+            m_lOldestSUIDtemp = lOldestSUID; // keep track of movement
+            setOldestEventResendNextMillis(ldtNow + getEventResendInterval());
+            }
         }
+
+    private long m_lOldestSUIDtemp = -1;
     
     /**
      * Called on the service thread only.
@@ -6412,14 +6487,14 @@ public class PartitionedCache
         {
         // import com.tangosol.util.Base;
         // import com.tangosol.util.LongArray;
-        
+
         LongArray laProcessed    = getProcessedEvents();
         long      lEventSUID     = msgEvent.getEventSUID();
         long      lOldestPending = msgEvent.getOldestPendingEventSUID();
         int       nSender        = msgEvent.getFromMember().getId();
         int       nOriginator    = getMemberId(lEventSUID);
         long      lOldestKnown   = calculateOldestSUID(laProcessed, nOriginator);
-        
+
         // Event is considered duplicate if the event SUID exists in processedArray
         // and its value is null. A non-null value implies a not-yet-received event.
         boolean fSkip = laProcessed.exists(lEventSUID) && laProcessed.get(lEventSUID) == null;
@@ -8729,7 +8804,7 @@ public class PartitionedCache
                 {
                 // first iteration
                 lCacheId        = lCacheIdCur;
-                mapCacheData    = mapData    = new HashMap(cStatus + cStatus / 3); // prevent growth/excesive collisions
+                mapCacheData    = mapData    = new HashMap(cStatus + cStatus / 3); // prevent growth/excessive collisions
                 mapCacheEvents  = mapEvents  = mapEmpty;
                 mapVersions     = new LiteMap();
                 
@@ -8806,11 +8881,13 @@ public class PartitionedCache
                     else
                         {
                         mapCacheEvents = new HashMap(cStatus + cStatus / 3); // see above
+                        // ensure that we back up events as part of BackupAllRequest
+                        mapEvents      = mapCacheEvents;
                         }
                     }
                 mapCacheEvents.put(binKey, oHolder);
                 }
-        
+
             Binary binResult = status.getResult();
             if (ctx != null && binResult != null)
                 {
@@ -11029,7 +11106,17 @@ public class PartitionedCache
         {
         __m_EventsHelper = evtHelper;
         }
-    
+
+    /**
+     * Setter for property EventResendInterval
+     *
+     * Interval between resends of potentially "stuck" oldest event.
+     */
+    public void setEventResendInterval(long ltMillis)
+        {
+        __m_EventResendInterval = ltMillis;
+        }
+
     // Accessor for the property "IndexingStartTime"
     /**
      * Setter for property IndexingStartTime.<p>
@@ -11119,7 +11206,18 @@ public class PartitionedCache
         {
         __m_LockingNextMillis = ltMillis;
         }
-    
+
+    /**
+     * Setter for property OldestEventResendNextMillis
+     *
+     * The time at which the oldest event should be resent if it is determined
+     * to be "old enough", or far enough behind the current event.
+     */
+    public void setOldestEventResendNextMillis(long ltMillis)
+        {
+        __m_OldestEventResendNextMillis = ltMillis;
+        }
+
     // Accessor for the property "PendingEvents"
     /**
      * Setter for property PendingEvents.<p>
@@ -11769,7 +11867,7 @@ public class PartitionedCache
         
         getResourceCoordinator().unlock(storage, new Binary());
         }
-    
+
     /**
      * Unregister an event after a confirmed delivery. Called on the service
     * thread.
@@ -29545,7 +29643,7 @@ public class PartitionedCache
             {
             return -1;
             }
-        
+
         // Declared at the super level
         /**
          * This is the event that occurs when a Message with NotifySent set to
