@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7589,17 +7589,18 @@ public class Storage
         PartitionedCache   service   = getService();
         LongArray laPending = service.getPendingEvents();
 
+        PartitionedCache.MapEvent msg = (PartitionedCache.MapEvent) service.instantiateMessage("MapEvent");
+
         // create the EventSUID, register it and get OldestPendingEventSUID atomically
         long lEventSUID;
         long lOldestEventSUID;
         synchronized (laPending)
             {
             lEventSUID = service.getSUID(PartitionedCache.SUID_EVENT);
-            laPending.set(lEventSUID, null);
+            laPending.set(lEventSUID, msg); // store event for possible re-send see PartitionedCache.onInterval
             lOldestEventSUID = service.getOldestPendingEventSUID(); // cannot be -1
             }
 
-        PartitionedCache.MapEvent msg = (PartitionedCache.MapEvent) service.instantiateMessage("MapEvent");
         msg.setEventSUID(lEventSUID);
         msg.setOldestPendingEventSUID(lOldestEventSUID);
         msg.setToMemberSet(setMembers);
