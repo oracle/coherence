@@ -45,7 +45,7 @@
     dependencies into a separate directory.
     -->
     <dependencySet>
-      <outputDirectory>app/libs/helidon-grpc</outputDirectory>
+      <outputDirectory>app/helidon-grpc/libs</outputDirectory>
       <directoryMode>755</directoryMode>
       <fileMode>755</fileMode>
       <unpack>false</unpack>

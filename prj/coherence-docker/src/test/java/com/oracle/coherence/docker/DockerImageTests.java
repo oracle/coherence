@@ -155,7 +155,7 @@ public class DockerImageTests
         int nVersion = Integer.parseInt(sJavaVersion);
         Assume.assumeThat(nVersion, is(greaterThanOrEqualTo(21)));
 
-        String   sCP   = "/coherence/ext/conf:/coherence/ext/lib/*:/app/resources:/app/classes:/app/libs/*:app/libs/helidon-grpc/*";
+        String   sCP   = "/coherence/ext/conf:/coherence/ext/lib/*:/app/resources:/app/classes:/app/libs/*:app/helidon-grpc/libs/*";
         String[] asCmd = {"-cp", sCP, Coherence.class.getName()};
         assertCoherenceClient(sImageName, "grpc-fixed", asCmd,
                 new CheckGrpcCacheAccess(),
