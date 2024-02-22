@@ -1,22 +1,23 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.testing.tests.map;
 
 import com.tangosol.net.cache.WrapperNamedCache;
+
 import com.tangosol.util.QueryMap;
 import com.tangosol.util.comparator.InverseComparator;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.filter.GreaterFilter;
-import org.junit.Test;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+
+import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -56,10 +57,10 @@ public abstract class AbstractQueryMapTest
         map.put("2", 2);
         map.put("3", 3);
 
-        List<Integer> values = (List<Integer>) map.values(GREATER_THAN_1, null);
+        Collection<Integer> values = map.values(GREATER_THAN_1, null);
         assertEquals(2, values.size());
-        assertEquals(2, (int) values.get(0));
-        assertEquals(3, (int) values.get(1));
+        assertTrue(values.contains(2));
+        assertTrue(values.contains(3));
         }
 
     @Test
@@ -70,10 +71,10 @@ public abstract class AbstractQueryMapTest
         map.put("2", 2);
         map.put("3", 3);
 
-        List<Integer> values = (List<Integer>) map.values(GREATER_THAN_1, new InverseComparator());
+        Collection<Integer> values = map.values(GREATER_THAN_1, new InverseComparator());
         assertEquals(2, values.size());
-        assertEquals(3, (int) values.get(0));
-        assertEquals(2, (int) values.get(1));
+        assertTrue(values.contains(2));
+        assertTrue(values.contains(3));
         }
 
     @Test

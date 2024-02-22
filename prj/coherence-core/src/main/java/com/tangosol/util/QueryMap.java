@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package com.tangosol.util;
 import com.tangosol.util.extractor.KeyExtractor;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
@@ -95,7 +96,7 @@ public interface QueryMap<K, V>
     public Set<Map.Entry<K, V>> entrySet(Filter filter, Comparator comparator);
 
    /**
-     * Return a collection of the values contained in this map that satisfy the
+     * Return an immutable collection of the values contained in this map that satisfy the
      * criteria expressed by the filter.
      * <p>
      * Unlike the {@link #values()} method, the collection returned by this
@@ -113,15 +114,12 @@ public interface QueryMap<K, V>
      */
     public default Collection<V> values(Filter filter)
         {
-        return entrySet(filter)
-                .stream()
-                .map(Map.Entry::getValue)
-                .collect(Collectors.toList());
+        return Collections.unmodifiableCollection(
+            ConverterCollections.getCollection(entrySet(filter), Map.Entry::getValue, NullImplementation.getConverter()));
         }
 
-
     /**
-     * Return a collection of the values contained in this map that satisfy the
+     * Return an immutable collection of the values contained in this map that satisfy the
      * criteria expressed by the filter.
      * <p>
      * Unlike the {@link #values()} method, the collection returned by this
@@ -144,10 +142,8 @@ public interface QueryMap<K, V>
      */
     public default Collection<V> values(Filter filter, Comparator comparator)
         {
-        return entrySet(filter, comparator)
-                .stream()
-                .map(Map.Entry::getValue)
-                .collect(Collectors.toList());
+        return Collections.unmodifiableCollection(
+            ConverterCollections.getCollection(entrySet(filter, comparator), Map.Entry::getValue, NullImplementation.getConverter()));
         }
 
     /**

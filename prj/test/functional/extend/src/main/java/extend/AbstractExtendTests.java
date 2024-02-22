@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -29,7 +29,9 @@ import com.tangosol.net.cache.ContinuousQueryCache;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ConcurrentMap;
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.Extractors;
 import com.tangosol.util.Filter;
+import com.tangosol.util.Filters;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMap.EntryAggregator;
 import com.tangosol.util.InvocableMap.EntryProcessor;
@@ -109,6 +111,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -2673,6 +2676,132 @@ public abstract class AbstractExtendTests
         }
 
     /**
+     * Verify that call to {@link NamedCache#values(Filter filter)} uses ConverterCollections to lazily deserialize results returned by the server.
+     *
+     * {@link NamedCache#values(Filter, Comparator)} will return collection of already deserialized values
+     */
+    @Test
+    public void valuesLazyDeserialization()
+        {
+        NamedCache<String, MyObject> cache = getNamedCache();
+
+        Set<MyObject> setOne   = new HashSet();
+        Set<MyObject> setTwo   = new HashSet();
+        MyObject      valueOne = new MyObject(1);
+        setOne.add(valueOne);
+        setTwo.add(new MyObject(2));
+        setTwo.add(new MyObject(3));
+
+        for (int i = 1; i < 4; i++)
+            {
+            cache.put("key-" + i, new MyObject(i));
+            }
+
+        Filter<Integer>      filter = Filters.less(Extractors.extract("value"), 2);
+        Collection<MyObject> colVal = cache.values(filter);
+
+        assertThat(getDeserializationCount(), is(0));
+        assertThat(colVal.contains(valueOne), is(true));
+        assertThat(getDeserializationCount(), is(1));
+        assertThat(colVal.size(), is(setOne.size()));
+        assertThat(colVal.containsAll(setOne), is(true));
+        assertThat(getDeserializationCount(), is(2));
+
+        setDeserializationCount(0);
+
+        filter = Filters.greater(Extractors.extract("value"), 1);
+        colVal = cache.values(filter);
+
+        assertThat(getDeserializationCount(), is(0));
+        assertThat(colVal.size(), is(setTwo.size()));
+        assertThat(colVal.containsAll(setTwo), is(true));
+        assertThat(getDeserializationCount(), is(3));
+
+        setDeserializationCount(0);
+        }
+
+    /**
+     * Test the behavior of {@link NamedCache#values(Filter)}.
+     */
+    @Test
+    public void valuesFilter()
+        {
+        NamedCache<String, Integer> cache = getNamedCache();
+
+        Set<Integer> setOne = new HashSet();
+        Set<Integer> setTwo = new HashSet();
+        setOne.add(1);
+        setTwo.add(2);
+        setTwo.add(3);
+
+        for (int i = 1; i < 4; i++)
+            {
+            cache.put("key-" + i, i);
+            }
+
+        Filter<Integer>     filter = Filters.less(Extractors.identity(), 2);
+        Collection<Integer> colVal = cache.values(filter);
+
+        assertThat(colVal.size(), is(setOne.size()));
+        assertThat(colVal.contains(1), is(true));
+        assertThat(colVal.containsAll(setOne), is(true));
+
+        filter = Filters.greater(Extractors.identity(), 1);
+        colVal = cache.values(filter);
+
+        assertThat(colVal.size(), is(setTwo.size()));
+        assertThat(colVal.contains(2), is(true));
+        assertThat(colVal.contains(3), is(true));
+        assertThat(colVal.containsAll(setTwo), is(true));
+
+        filter = Filters.less(Extractors.identity(), 1);
+        colVal = cache.values(filter);
+
+        assertThat(colVal.isEmpty(), is(true));
+        }
+
+    /**
+     * Test the behavior of {@link NamedCache#values(Filter, Comparator)}.
+     */
+    @Test
+    public void valuesFilterComparator()
+        {
+        NamedCache<String, Integer> cache = getNamedCache();
+
+        Set<Integer> setOne = new HashSet();
+        Set<Integer> setTwo = new HashSet();
+        setOne.add(1);
+        setTwo.add(2);
+        setTwo.add(3);
+
+        for (int i = 1; i < 4; i++)
+            {
+            cache.put("key-" + i, i);
+            }
+
+        Comparator<Integer>  comparator = new IntegerComparator();
+        Filter<Integer>      filter     = Filters.less(Extractors.identity(), 2);
+        Collection<Integer>  colVal     = cache.values(filter, comparator);
+
+        assertThat(colVal.size(), is(setOne.size()));
+        assertThat(colVal.contains(1), is(true));
+        assertThat(colVal.containsAll(setOne), is(true));
+
+        filter = Filters.greater(Extractors.identity(), 1);
+        colVal = cache.values(filter, comparator);
+
+        assertThat(colVal.size(), is(setTwo.size()));
+        assertThat(colVal.contains(2), is(true));
+        assertThat(colVal.contains(3), is(true));
+        assertThat(colVal.containsAll(setTwo), is(true));
+
+        filter = Filters.less(Extractors.identity(), 1);
+        colVal = cache.values(filter, comparator);
+
+        assertThat(colVal.isEmpty(), is(true));
+        }
+
+    /**
     * Test the behavior of {@link ContinuousQueryCache} when used with
     * Coherence*Extend.
     */
@@ -3301,107 +3430,33 @@ public abstract class AbstractExtendTests
             }
         }
 
-    // ----- constants ------------------------------------------------------
+    /**
+     * Total number of times a MyObject is deserialized.
+     *
+     * @return number of times MyObject is deserialized
+     */
+    public int getDeserializationCount()
+        {
+        return s_cDeserializationCount;
+        }
 
     /**
-    * The file name of the default cache configuration file used by this test.
-    */
-    public static String FILE_CLIENT_CFG_CACHE             = "client-cache-config.xml";
-
-    /**
-    * The file name of the default cache configuration file used by cache
-    * servers launched by this test.
-    */
-    public static String FILE_SERVER_CFG_CACHE             = "server-cache-config.xml";
-
-    /**
-    * Cache name: "local-extend-direct"
-    */
-    public static String CACHE_LOCAL_EXTEND_DIRECT         = "local-extend-direct";
-
-    /**
-    * Cache name: "dist-extend-direct-bundling"
-    */
-    public static String CACHE_DIST_EXTEND_DIRECT_BUNDLING = "dist-extend-direct-bundling";
-
-    /**
-    * Cache name: "dist-extend-client-key"
-    */
-    public static String CACHE_DIST_EXTEND_CLIENT_KEY      = "dist-extend-client-key";
-
-    /**
-    * Cache name: "dist-extend-direct"
-    */
-    public static String CACHE_DIST_EXTEND_DIRECT          = "dist-extend-direct";
-
-    /**
-    * Cache name: "dist-extend-direct-java"
-    */
-    public static String CACHE_DIST_EXTEND_DIRECT_JAVA     = "dist-extend-direct-java";
-
-    /**
-    * Cache name: "dist-extend-local"
-    */
-    public static String CACHE_DIST_EXTEND_LOCAL           = "dist-extend-local";
-
-    /**
-    * Cache name: "dist-extend-near-all"
-    */
-    public static String CACHE_DIST_EXTEND_NEAR_ALL        = "dist-extend-near-all";
-
-    /**
-    * Cache name: "dist-extend-near-present"
-    */
-    public static String CACHE_DIST_EXTEND_NEAR_PRESENT    = "dist-extend-near-present";
-
-    /**
-    * Cache name: "repl-extend-direct"
-    */
-    public static String CACHE_REPL_EXTEND_DIRECT          = "repl-extend-direct";
-
-    /**
-    * Cache name: "repl-extend-direct-java"
-    */
-    public static String CACHE_REPL_EXTEND_DIRECT_JAVA     = "repl-extend-direct-java";
-
-    /**
-    * Cache name: "repl-extend-local"
-    */
-    public static String CACHE_REPL_EXTEND_LOCAL           = "repl-extend-local";
-
-    /**
-    * Cache name: "repl-extend-near-all"
-    */
-    public static String CACHE_REPL_EXTEND_NEAR_ALL        = "repl-extend-near-all";
-
-    /**
-    * Cache name: "repl-extend-near-present"
-    */
-    public static String CACHE_REPL_EXTEND_NEAR_PRESENT    = "repl-extend-near-present";
-
-    /**
-    * Cache name: "near-extend-direct"
-    */
-    public static String CACHE_NEAR_EXTEND_DIRECT          = "near-extend-direct";
-
-    /**
-    * Cache name: "view-extend-direct".
-    */
-    public static final String VIEW_EXTEND_DIRECT = "view-extend-direct";
-
-    /**
-    * Cache name: "view-extend-near".
-    */
-    public static final String VIEW_EXTEND_NEAR = "view-extend-near";
-
+     * Reset the number of times a MyObject is deserialized
+     *
+     * @param cDeserializationCount  the deserialization count
+     */
+    public void setDeserializationCount(int cDeserializationCount)
+        {
+        s_cDeserializationCount = cDeserializationCount;
+        }
 
     // ----- inner class: IntegerComparator ---------------------------------
 
-     /**
-      * Simple comparator to order integers from highest to lowest.
-      */
-     public static class IntegerComparator
-             implements Comparator, PortableObject, ExternalizableLite
+    /**
+     * Simple comparator to order integers from highest to lowest.
+     */
+    public static class IntegerComparator
+            implements Comparator, PortableObject, ExternalizableLite
         {
         // ----- constructors -----------------------------------------------
 
@@ -3598,4 +3653,194 @@ public abstract class AbstractExtendTests
         // data members
         protected final boolean f_fRemoveSynthetic;
         }
+    // ----- inner class: MyObject ---------------------------------------
+
+    public static class MyObject
+            implements ExternalizableLite, PortableObject, Comparable
+        {
+
+        public MyObject()
+            {
+            }
+
+        public MyObject(int value)
+            {
+            m_nValue = value;
+            }
+
+        // ----- ExternalizableLite interface -------------------------------------
+
+        public void readExternal(DataInput in) throws IOException
+            {
+            m_nValue = in.readInt();
+            s_cDeserializationCount++;
+            }
+
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            out.writeInt(m_nValue);
+            }
+
+        // ----- PortableObject interface -----------------------------------------
+
+        public void readExternal(PofReader in) throws IOException
+            {
+            m_nValue = in.readInt(0);
+            s_cDeserializationCount++;
+            }
+
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            out.writeInt(0, m_nValue);
+            }
+
+        // ----- Comparable interface ----------------------------------------------
+
+        public int compareTo(Object o)
+            {
+            MyObject that = (MyObject) o;
+
+            if (m_nValue != that.m_nValue)
+                {
+                return m_nValue < that.m_nValue ? -1 : 1;
+                }
+            return 0;
+            }
+
+        // ----- Object methods ----------------------------------------------------
+
+        @Override
+        public boolean equals(Object o)
+            {
+            if (this == o)
+                {
+                return true;
+                }
+            if (o == null || getClass() != o.getClass())
+                {
+                return false;
+                }
+            MyObject that = (MyObject) o;
+            return m_nValue == that.m_nValue;
+            }
+
+        @Override
+        public int hashCode()
+            {
+            return Objects.hash(m_nValue);
+            }
+
+        // ----- helpers ----------------------------------------------------------
+
+        public int getValue()
+            {
+            return m_nValue;
+            }
+
+        public void setValue(int value)
+            {
+            m_nValue = value;
+            }
+
+        // ----- data members ----------------------------------------------------
+
+        protected int m_nValue;
+        }
+
+    // ----- data members --------------------------------------------------
+
+    protected static int s_cDeserializationCount;
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+    * The file name of the default cache configuration file used by this test.
+    */
+    public static String FILE_CLIENT_CFG_CACHE             = "client-cache-config.xml";
+
+    /**
+    * The file name of the default cache configuration file used by cache
+    * servers launched by this test.
+    */
+    public static String FILE_SERVER_CFG_CACHE             = "server-cache-config.xml";
+
+    /**
+    * Cache name: "local-extend-direct"
+    */
+    public static String CACHE_LOCAL_EXTEND_DIRECT         = "local-extend-direct";
+
+    /**
+    * Cache name: "dist-extend-direct-bundling"
+    */
+    public static String CACHE_DIST_EXTEND_DIRECT_BUNDLING = "dist-extend-direct-bundling";
+
+    /**
+    * Cache name: "dist-extend-client-key"
+    */
+    public static String CACHE_DIST_EXTEND_CLIENT_KEY      = "dist-extend-client-key";
+
+    /**
+    * Cache name: "dist-extend-direct"
+    */
+    public static String CACHE_DIST_EXTEND_DIRECT          = "dist-extend-direct";
+
+    /**
+    * Cache name: "dist-extend-direct-java"
+    */
+    public static String CACHE_DIST_EXTEND_DIRECT_JAVA     = "dist-extend-direct-java";
+
+    /**
+    * Cache name: "dist-extend-local"
+    */
+    public static String CACHE_DIST_EXTEND_LOCAL           = "dist-extend-local";
+
+    /**
+    * Cache name: "dist-extend-near-all"
+    */
+    public static String CACHE_DIST_EXTEND_NEAR_ALL        = "dist-extend-near-all";
+
+    /**
+    * Cache name: "dist-extend-near-present"
+    */
+    public static String CACHE_DIST_EXTEND_NEAR_PRESENT    = "dist-extend-near-present";
+
+    /**
+    * Cache name: "repl-extend-direct"
+    */
+    public static String CACHE_REPL_EXTEND_DIRECT          = "repl-extend-direct";
+
+    /**
+    * Cache name: "repl-extend-direct-java"
+    */
+    public static String CACHE_REPL_EXTEND_DIRECT_JAVA     = "repl-extend-direct-java";
+
+    /**
+    * Cache name: "repl-extend-local"
+    */
+    public static String CACHE_REPL_EXTEND_LOCAL           = "repl-extend-local";
+
+    /**
+    * Cache name: "repl-extend-near-all"
+    */
+    public static String CACHE_REPL_EXTEND_NEAR_ALL        = "repl-extend-near-all";
+
+    /**
+    * Cache name: "repl-extend-near-present"
+    */
+    public static String CACHE_REPL_EXTEND_NEAR_PRESENT    = "repl-extend-near-present";
+
+    /**
+    * Cache name: "near-extend-direct"
+    */
+    public static String CACHE_NEAR_EXTEND_DIRECT          = "near-extend-direct";
+
+    /**
+    * Cache name: "view-extend-direct".
+    */
+    public static final String VIEW_EXTEND_DIRECT          = "view-extend-direct";
+
+    /**
+    * Cache name: "view-extend-near".
+    */
+    public static final String VIEW_EXTEND_NEAR            = "view-extend-near";
     }

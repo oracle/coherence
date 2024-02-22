@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -821,7 +822,22 @@ public abstract class ConverterCollections
         @Override
         public boolean contains(Object o)
             {
-            return getCollection().contains(getConverterDown().convert((T) o));
+            Converter<T, F> converterDown = getConverterDown();
+            if (converterDown == NullImplementation.NullConverter.INSTANCE)
+                {
+                for (F value : getCollection())
+                    {
+                    if (Objects.equals(o, getConverterUp().convert(value)))
+                        {
+                        return true;
+                        }
+                    }
+                return false;
+                }
+            else
+                {
+                return getCollection().contains(converterDown.convert((T) o));
+                }
             }
 
         /**
@@ -881,10 +897,25 @@ public abstract class ConverterCollections
         @Override
         public boolean containsAll(Collection<?> col)
             {
-            return getCollection().containsAll(
-                    instantiateCollection((Collection<T>) col,
-                    getConverterDown(),
-                    getConverterUp()));
+            Converter<T, F> converterDown = getConverterDown();
+            if (converterDown == NullImplementation.NullConverter.INSTANCE)
+                {
+                for (Object oValue : col)
+                    {
+                    if (!contains(oValue))
+                        {
+                        return false;
+                        }
+                    }
+                return true;
+                }
+            else
+                {
+                return getCollection().containsAll(
+                        instantiateCollection((Collection<T>) col,
+                                              getConverterDown(),
+                                              getConverterUp()));
+                }
             }
 
         /**
