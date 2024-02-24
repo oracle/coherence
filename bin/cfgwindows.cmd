@@ -1,8 +1,8 @@
 @echo off
-rem  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+rem  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
 rem  Licensed under the Universal Permissive License v 1.0 as shown at
-rem  http://oss.oracle.com/licenses/upl.
+rem  https://oss.oracle.com/licenses/upl.
 
 rem
 rem This script sets all environment variables necessary to build Coherence.
@@ -14,11 +14,9 @@ rem This script is responsible for the following environment variables:
 rem
 rem     DEV_ROOT     e.g. c:\dev
 rem     MAVEN_HOME   e.g. c:\dev\tools\maven
-rem     TDE_HOME     e.g. c:\dev\tools\tde
 rem     CLASSPATH    e.g.
 rem     PATH         e.g. %ANT_HOME%\bin;%MAVEN_HOME%\bin;%PATH%
 rem
-rem     _TDE_HOME    saved TDE_HOME
 rem     _CLASSPATH   saved CLASSPATH
 rem     _PATH        saved PATH
 rem
@@ -33,13 +31,11 @@ if "%1"=="-reset" (
   )
 
   set MAVEN_HOME=%_MAVEN_HOME%
-  set TDE_HOME=%_TDE_HOME%
   set CLASSPATH=%_CLASSPATH%
   set PATH=%_PATH%
 
   set DEV_ROOT=
   set _MAVEN_HOME=
-  set _TDE_HOME=
   set _CLASSPATH=
   set _PATH=
 
@@ -80,13 +76,6 @@ if exist %DEV_ROOT%\tools\maven (
 )
 
 rem
-rem Set the TDE_HOME environment variable
-rem
-set _TDE_HOME=%TDE_HOME%
-set TDE_HOME=%DEV_ROOT%\tools\tde
-echo TDE_HOME   = %TDE_HOME%
-
-rem
 rem Set the CLASSPATH environment variable
 rem
 set _CLASSPATH=%CLASSPATH%
@@ -97,7 +86,6 @@ rem
 rem Set the PATH environment variable
 rem
 set _PATH=%PATH%
-set PATH=%TDE_HOME%\bin;%PATH%
 echo PATH      = %PATH%
 
 echo Build environment set.
