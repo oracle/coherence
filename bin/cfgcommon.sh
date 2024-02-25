@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
-# http://oss.oracle.com/licenses/upl.
+# https://oss.oracle.com/licenses/upl.
 
 # This script sets all environment variables necessary to build Coherence,
 # however should be sourced by other scripts. These scripts should define
@@ -16,11 +16,9 @@
 #     JAVA_HOME    e.g. /usr/java/jdk1.6
 #     MAVEN_HOME   e.g. /dev/tools/maven
 #     P4IGNORE     e.g. /dev/.p4ignore
-#     TDE_HOME     e.g. /dev/tools/tde
 #     CLASSPATH    e.g.
 #
 #     _P4IGNORE    saved P4IGNORE
-#     _TDE_HOME    saved TDE_HOME
 #     _CLASSPATH   saved CLASSPATH
 #     _PATH        saved PATH
 #
@@ -53,12 +51,6 @@ function reset
     export P4IGNORE=$_P4IGNORE
   fi
 
-  if [ -z $_TDE_HOME ]; then
-    unset TDE_HOME
-  else
-    export TDE_HOME=$_TDE_HOME
-  fi
-
   if [ -z $_CLASSPATH ]; then
     unset CLASSPATH
   else
@@ -75,7 +67,6 @@ function reset
   unset _JAVA_HOME
   unset _MAVEN_HOME
   unset _P4IGNORE
-  unset _TDE_HOME
   unset _CLASSPATH
   unset _PATH
 
@@ -172,15 +163,6 @@ function setup
     export P4IGNORE
     echo P4IGNORE = $P4IGNORE
   fi
-
-  #
-  # Set the TDE_HOME environment variable
-  #
-  _TDE_HOME=$TDE_HOME
-  TDE_HOME=$DEV_ROOT/tools/tde
-  PATH=$TDE_HOME/bin:$PATH
-  export TDE_HOME
-  echo TDE_HOME = $TDE_HOME
 
   #
   # Add the RQ executables to the PATH environment variable
