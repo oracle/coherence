@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
-import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.util.SafeClock;
 
 import com.tangosol.internal.net.topic.ChannelAllocationStrategy;
@@ -170,7 +169,6 @@ public class PagedTopicSubscription
             m_mapSubscriberChannels.putAll(subscription.m_mapSubscriberChannels);
             m_mapSubscriberTimestamp.keySet().retainAll(subscription.m_mapSubscriberTimestamp.keySet());
             m_mapSubscriberTimestamp.putAll(subscription.m_mapSubscriberTimestamp);
-            Logger.finest("Updated " + this);
             }
         finally
             {
