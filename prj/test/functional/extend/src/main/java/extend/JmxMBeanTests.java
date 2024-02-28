@@ -1,15 +1,18 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package extend;
 
+import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
+import com.oracle.coherence.common.base.Exceptions;
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
@@ -32,10 +35,10 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.management.Attribute;
 import javax.management.MBeanServer;
@@ -43,22 +46,26 @@ import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static com.oracle.bedrock.testsupport.deferred.Eventually.assertThat;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.fail;
 
 /**
-* A collection of JMX MBean functional tests for Coherence*Extend.
-*
-* @author lh  2011.01.20
-*/
+ * A collection of JMX MBean functional tests for Coherence*Extend.
+ *
+ * @author lh  2011.01.20
+ */
 public class JmxMBeanTests
         extends AbstractFunctionalTest
     {
     // ----- constructors ---------------------------------------------------
 
     /**
-    * Default constructor.
-    */
+     * Default constructor.
+     */
     public JmxMBeanTests()
         {
         super(AbstractExtendTests.FILE_CLIENT_CFG_CACHE);
@@ -68,8 +75,8 @@ public class JmxMBeanTests
     // ----- test lifecycle -------------------------------------------------
 
     /**
-    * Initialize the test class.
-    */
+     * Initialize the test class.
+     */
     @BeforeClass
     public static void startup()
         {
@@ -79,13 +86,13 @@ public class JmxMBeanTests
         System.getProperties().putAll(propsMain);
 
         CoherenceClusterMember memberProxy = startCacheServer("JmxMBeanTests", "extend",
-                                                AbstractExtendTests.FILE_SERVER_CFG_CACHE);
-        Eventually.assertThat(invoking(memberProxy).isServiceRunning("ExtendTcpProxyService"), is(true));
+                AbstractExtendTests.FILE_SERVER_CFG_CACHE);
+        assertThat(invoking(memberProxy).isServiceRunning("ExtendTcpProxyService"), is(true));
         }
 
     /**
-    * Shutdown the test class.
-    */
+     * Shutdown the test class.
+     */
     @AfterClass
     public static void shutdown()
         {
@@ -116,42 +123,43 @@ public class JmxMBeanTests
     /**
      * Run the {@link MessagingDebugInvocable} to set the attribute on the specified MBean.
      *
-     * @param sMBeanType  the type of MBean to examine (e.g. ConnectionManager and Connection)
+     * @param sMBeanType the type of MBean to examine (e.g. ConnectionManager and Connection)
      */
     public void testMessagingDebug(String sMBeanType)
         {
         InvocationService service = (InvocationService)
-            getFactory().ensureService(INVOCATION_SERVICE_NAME);
+                getFactory().ensureService(INVOCATION_SERVICE_NAME);
+        Eventually.assertDeferred(service::isRunning, is(true));
 
         try
             {
             // initially should be false
             MessagingDebugInvocable task = new MessagingDebugInvocable(sMBeanType, false);
-            Map                     map  = service.query(task, null);
+            Map<?, ?>               map  = service.query(task, null);
 
-            assertTrue(map != null);
-            assertTrue(map.size() == 1);
+            assertThat(map, is(notNullValue()));
+            assertThat(map.size(), is(1));
 
             Object oMember = map.keySet().iterator().next();
-            assertTrue(equals(oMember, service.getCluster().getLocalMember()));
+            assertThat(service.getCluster().getLocalMember(), is(oMember));
 
             Object oResult = map.values().iterator().next();
-            assertTrue(oResult instanceof Boolean);
-            assertTrue(oResult.equals(false));
+            assertThat(oResult, is(instanceOf(Boolean.class)));
+            assertThat(oResult, is(Boolean.FALSE));
 
             // make sure the attribute value can be changed
             task = new MessagingDebugInvocable(sMBeanType, true);
             map  = service.query(task, null);
 
-            assertTrue(map != null);
-            assertTrue(map.size() == 1);
+            assertThat(map, is(notNullValue()));
+            assertThat(map.size(), is(1));
 
             oMember = map.keySet().iterator().next();
-            assertTrue(equals(oMember, service.getCluster().getLocalMember()));
+            assertThat(service.getCluster().getLocalMember(), is(oMember));
 
             oResult = map.values().iterator().next();
-            assertTrue(oResult instanceof Boolean);
-            assertTrue(oResult.equals(true));
+            assertThat(oResult, is(instanceOf(Boolean.class)));
+            assertThat(oResult, is(Boolean.TRUE));
             }
         finally
             {
@@ -160,71 +168,77 @@ public class JmxMBeanTests
         }
 
     /**
-    * Query MBean attribute on the server using
-    * {@link InvocationService#query(Invocable, Set)}.
-    */
+     * Query MBean attribute on the server using
+     * {@link InvocationService#query(Invocable, Set)}.
+     */
     @Test
     public void queryMBean()
         {
         InvocationService service = (InvocationService)
                 getFactory().ensureService(INVOCATION_SERVICE_NAME);
+        Eventually.assertDeferred(service::isRunning, is(true));
 
         try
             {
             MBeanInvocable task = new MBeanInvocable();
-            Map            map  = service.query(task, null);
+            Map<?, ?>      map  = service.query(task, null);
 
-            assertTrue(map != null);
-            assertTrue(map.size() == 1);
+            assertThat(map, is(notNullValue()));
+            assertThat(map.size(), is(1));
 
             Object oMember = map.keySet().iterator().next();
             Object oResult = map.values().iterator().next();
-            assertTrue(equals(oMember, service.getCluster().getLocalMember()));
+            assertThat(service.getCluster().getLocalMember(), is(oMember));
 
-            assertTrue("Expected String but got " + oResult, oResult instanceof String);
-            assertTrue("oResult != oMember, oResult=" + oResult, oResult.equals(oMember.toString()));
+            assertThat(oResult, is(instanceOf(String.class)));
+            assertThat(oResult, is(oMember.toString()));
             }
         finally
             {
             service.shutdown();
             }
         }
+
     /**
-    * Query MBean attribute on the server using
-    * {@link InvocationService#query(Invocable, Set)}.
-    */
+     * Query MBean attribute on the server using
+     * {@link InvocationService#query(Invocable, Set)}.
+     */
     @Test
     public void queryHostIPMBean()
         {
         InvocationService service = (InvocationService)
                 getFactory().ensureService(INVOCATION_SERVICE_NAME);
+        Eventually.assertDeferred(service::isRunning, is(true));
 
         try
             {
             MBeanHostIPInvocable task = new MBeanHostIPInvocable();
-            Map            map  = service.query(task, null);
+            Map<?, ?>            map  = service.query(task, null);
 
-            assertTrue(map != null);
-            assertTrue(map.size() == 1);
+            assertThat(map, is(notNullValue()));
+            assertThat(map.size(), is(1));
 
             Object oMember = map.keySet().iterator().next();
-            assertTrue(equals(oMember, service.getCluster().getLocalMember()));
+            assertThat(service.getCluster().getLocalMember(), is(oMember));
 
             Object oResult = map.values().iterator().next();
-            assertTrue(oResult instanceof String);
+            assertThat(oResult, is(instanceOf(String.class)));
+
             String sResult = (String) oResult;
-            int dotIdx = sResult.lastIndexOf('.');
-            assertTrue(dotIdx != -1);
+            int    dotIdx  = sResult.lastIndexOf('.');
+            assertThat(dotIdx, is(not(-1)));
+
             String subPort = null;
             try
                 {
-                subPort = sResult.substring(dotIdx+1);
+                subPort = sResult.substring(dotIdx + 1);
                 }
             catch (IndexOutOfBoundsException e)
                 {
-                fail("No subport when expected");
+                fail("No sub-port when expected");
                 }
-            assertTrue(subPort.length() != 0);
+            assertThat(subPort, is(notNullValue()));
+            assertThat(subPort.length(), is(not(0)));
             }
         finally
             {
@@ -239,13 +253,14 @@ public class JmxMBeanTests
      * an MBean.
      */
     public static class MessagingDebugInvocable
-        implements Invocable, PortableObject
+            implements Invocable, PortableObject
         {
         // ----- constructors ---------------------------------------------
 
         /**
          * Default constructor.
          */
+        @SuppressWarnings("unused")
         public MessagingDebugInvocable()
             {
             }
@@ -261,38 +276,32 @@ public class JmxMBeanTests
 
         // ----- Invocable interface --------------------------------------
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void init(InvocationService service)
             {
-            assertTrue(service.getInfo().getServiceType()
-                .equals(InvocationService.TYPE_REMOTE));
+            assertThat(service.getInfo().getServiceType(), is(InvocationService.TYPE_REMOTE));
             m_service = service;
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void run()
             {
             if (m_service != null)
                 {
-                Cluster cluster   = CacheFactory.getCluster();
+                Cluster  cluster  = CacheFactory.getCluster();
                 Registry registry = cluster.getManagement();
-                assertTrue("JMX is disabled", registry != null);
+                assertThat("JMX is disabled", registry, is(notNullValue()));
 
                 MBeanServer server = MBeanHelper.findMBeanServer();
                 try
                     {
-                    Set set = server.queryMBeans(new ObjectName("Coherence:*"), null);
-                    for (Iterator iter = set.iterator(); iter.hasNext();)
+                    Set<ObjectInstance> set = server.queryMBeans(new ObjectName("Coherence:*"), null);
+                    for (ObjectInstance instance : set)
                         {
-                        ObjectInstance instance   = (ObjectInstance) iter.next();
-                        ObjectName     objectName = instance.getObjectName();
+                        ObjectName objectName = instance.getObjectName();
                         if (objectName.toString().indexOf("type=" + m_sMBeanType + ',') > 0)
                             {
-                            server.setAttribute(objectName, new Attribute("MessagingDebug", Boolean.valueOf(m_fEnableDebug)));
+                            server.setAttribute(objectName, new Attribute("MessagingDebug", m_fEnableDebug));
 
                             setValue((Boolean) server.getAttribute(objectName, "MessagingDebug"));
                             break;
@@ -301,36 +310,31 @@ public class JmxMBeanTests
                     }
                 catch (Exception e)
                     {
+                    Base.log("JmxMBeanTests.MessagingDebugInvocable.run() got an exception: " + e);
                     throw ensureRuntimeException(e);
                     }
                 }
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public Object getResult()
             {
-            return Boolean.valueOf(m_fValue);
+            return m_fValue;
             }
 
         // ----- PortableObject interface ---------------------------------
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void readExternal(PofReader in)
-            throws IOException
+                throws IOException
             {
             m_fEnableDebug = in.readBoolean(0);
             m_sMBeanType   = in.readString(1);
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void writeExternal(PofWriter out)
-            throws IOException
+                throws IOException
             {
             out.writeBoolean(0, m_fEnableDebug);
             out.writeString(1, m_sMBeanType);
@@ -341,7 +345,7 @@ public class JmxMBeanTests
         /**
          * Set the boolean value.
          *
-         * @param fValue  the value of the attribute
+         * @param fValue the value of the attribute
          */
         public void setValue(boolean fValue)
             {
@@ -374,85 +378,73 @@ public class JmxMBeanTests
     // ----- inner class: MBeanInvocable --------------------------------------
 
     /**
-    * Invocable implementation that queries the Member attribute of the
-    * ConnectionMBean and returns the string value.
-    */
+     * Invocable implementation that queries the Member attribute of the
+     * ConnectionMBean and returns the string value.
+     */
     public static class MBeanInvocable
             implements Invocable, PortableObject
         {
         // ----- constructors ---------------------------------------------
 
         /**
-        * Default constructor.
-        */
+         * Default constructor.
+         */
         public MBeanInvocable()
             {
             }
 
         // ----- Invocable interface --------------------------------------
 
-        /**
-        * {@inheritDoc}
-        */
+        @Override
         public void init(InvocationService service)
             {
-            assertTrue(service.getInfo().getServiceType()
-                    .equals(InvocationService.TYPE_REMOTE));
+            assertThat(service.getInfo().getServiceType(), is(InvocationService.TYPE_REMOTE));
             m_service = service;
             }
 
-        /**
-        * {@inheritDoc}
-        */
+        @Override
         public void run()
             {
             if (m_service != null)
                 {
-                Cluster cluster   = CacheFactory.getCluster();
+                Cluster  cluster  = CacheFactory.getCluster();
                 Registry registry = cluster.getManagement();
-                assertTrue("JMX is disabled", registry != null);
+                assertThat("JMX is disabled", registry, is(notNullValue()));
 
                 MBeanServer server = MBeanHelper.findMBeanServer();
-                try
-                    {
-                    int cRetry = 0;
-                    do
-                        {
-                        Set set = server.queryMBeans(new ObjectName("Coherence:*"), null);
-                        for (Iterator iter = set.iterator(); iter.hasNext(); )
-                            {
-                            ObjectInstance instance   = (ObjectInstance) iter.next();
-                            ObjectName     objectName = instance.getObjectName();
-                            if (objectName.toString().indexOf("type=Connection,") > 0)
-                                {
-                                setValue(server.getAttribute(objectName, "Member").toString());
-                                break;
-                                }
-                            }
-                        cRetry++;
-                        }
-                    while (m_sValue == null && cRetry < 10);
-                    
-                    if (m_sValue == null)
-                        {
-                        // temp debug: if we get here then we didn't find the MBean after cRetry + 1 tries
-                        setValue("Didn't find MBean in " + (cRetry + 1) + " goes");
-                        }
-                    }
-                catch (Exception e)
-                    {
-                    throw ensureRuntimeException(e);
-                    }
+
+                Eventually.assertDeferred("Didn't find Connection MBean within timeout",
+                        () -> findConnectionMBean(server), is(true), Timeout.after(1, TimeUnit.MINUTES));
                 }
             else
                 {
-                CacheFactory.log("MBeanInvocable.run(), m_service is not initialized.", Base.LOG_WARN);
+                Logger.warn("MBeanInvocable.run(), m_service is not initialized.");
                 }
             }
 
-        /**
-        * {@inheritDoc}
-        */
+        protected boolean findConnectionMBean(MBeanServer server)
+            {
+            try
+                {
+                Set<ObjectInstance> set = server.queryMBeans(new ObjectName("Coherence:*"), null);
+                for (ObjectInstance instance : set)
+                    {
+                    ObjectName objectName = instance.getObjectName();
+                    if (objectName.toString().indexOf("type=Connection,") > 0)
+                        {
+                        setValue(server.getAttribute(objectName, "Member").toString());
+                        return true;
+                        }
+                    }
+                return false;
+                }
+            catch (Exception e)
+                {
+                throw Exceptions.ensureRuntimeException(e);
+                }
+            }
+
+        @Override
         public Object getResult()
             {
             return m_sValue;
@@ -460,18 +452,14 @@ public class JmxMBeanTests
 
         // ----- PortableObject interface ---------------------------------
 
-        /**
-        * {@inheritDoc}
-        */
+        @Override
         public void readExternal(PofReader in)
                 throws IOException
             {
             m_sValue = in.readString(0);
             }
 
-        /**
-        * {@inheritDoc}
-        */
+        @Override
         public void writeExternal(PofWriter out)
                 throws IOException
             {
@@ -481,10 +469,10 @@ public class JmxMBeanTests
         // ----- accessors ------------------------------------------------
 
         /**
-        * Set the string value.
-        *
-        * @param sValue  the value of the attribute
-        */
+         * Set the string value.
+         *
+         * @param sValue the value of the attribute
+         */
         public void setValue(String sValue)
             {
             m_sValue = sValue;
@@ -493,65 +481,59 @@ public class JmxMBeanTests
         // ----- data members ---------------------------------------------
 
         /**
-        * The string value of the attribute.
-        */
+         * The string value of the attribute.
+         */
         private String m_sValue;
 
         /**
-        * The InvocationService that is executing this Invocable.
-        */
+         * The InvocationService that is executing this Invocable.
+         */
         private transient InvocationService m_service;
         }
 
     // ----- inner class: MBeanHostIPInvocable --------------------------------------
 
     /**
-    * Invocable implementation that queries the Member attribute of the
-    * ConnectionMBean and returns the string value.
-    */
+     * Invocable implementation that queries the Member attribute of the
+     * ConnectionMBean and returns the string value.
+     */
     public static class MBeanHostIPInvocable
             implements Invocable, PortableObject
         {
         // ----- constructors ---------------------------------------------
 
         /**
-        * Default constructor.
-        */
+         * Default constructor.
+         */
         public MBeanHostIPInvocable()
             {
             }
 
         // ----- Invocable interface --------------------------------------
 
-        /**
-        * {@inheritDoc}
-        */
+        @Override
         public void init(InvocationService service)
             {
-            assertTrue(service.getInfo().getServiceType()
-                    .equals(InvocationService.TYPE_REMOTE));
+            assertThat(service.getInfo().getServiceType(), is(InvocationService.TYPE_REMOTE));
             m_service = service;
             }
 
-        /**
-        * {@inheritDoc}
-        */
+        @Override
         public void run()
             {
             if (m_service != null)
                 {
-                Cluster cluster   = CacheFactory.getCluster();
+                Cluster  cluster  = CacheFactory.getCluster();
                 Registry registry = cluster.getManagement();
-                assertTrue("JMX is disabled", registry != null);
+                assertThat("JMX is disabled", registry, is(notNullValue()));
 
                 MBeanServer server = MBeanHelper.findMBeanServer();
                 try
                     {
-                    Set set = server.queryMBeans(new ObjectName("Coherence:*"), null);
-                    for (Iterator iter = set.iterator(); iter.hasNext();)
+                    Set<ObjectInstance> set = server.queryMBeans(new ObjectName("Coherence:*"), null);
+                    for (ObjectInstance instance : set)
                         {
-                        ObjectInstance instance   = (ObjectInstance) iter.next();
-                        ObjectName     objectName = instance.getObjectName();
+                        ObjectName objectName = instance.getObjectName();
                         if (objectName.toString().indexOf("type=ConnectionManager,name=ExtendTcpProxyServiceJMX,") > 0)
                             {
                             setValue(server.getAttribute(objectName, "HostIP").toString());
@@ -566,9 +548,7 @@ public class JmxMBeanTests
                 }
             }
 
-        /**
-        * {@inheritDoc}
-        */
+        @Override
         public Object getResult()
             {
             return m_sValue;
@@ -576,18 +556,14 @@ public class JmxMBeanTests
 
         // ----- PortableObject interface ---------------------------------
 
-        /**
-        * {@inheritDoc}
-        */
+        @Override
         public void readExternal(PofReader in)
                 throws IOException
             {
             m_sValue = in.readString(0);
             }
 
-        /**
-        * {@inheritDoc}
-        */
+        @Override
         public void writeExternal(PofWriter out)
                 throws IOException
             {
@@ -597,10 +573,10 @@ public class JmxMBeanTests
         // ----- accessors ------------------------------------------------
 
         /**
-        * Set the string value.
-        *
-        * @param sValue  the value of the attribute
-        */
+         * Set the string value.
+         *
+         * @param sValue the value of the attribute
+         */
         public void setValue(String sValue)
             {
             m_sValue = sValue;
@@ -609,20 +585,20 @@ public class JmxMBeanTests
         // ----- data members ---------------------------------------------
 
         /**
-        * The string value of the attribute.
-        */
+         * The string value of the attribute.
+         */
         private String m_sValue;
 
         /**
-        * The InvocationService that is executing this Invocable.
-        */
+         * The InvocationService that is executing this Invocable.
+         */
         private transient InvocationService m_service;
         }
 
     // ----- constants ------------------------------------------------------
 
     /**
-    * The name of the InvocationService used by all test methods.
-    */
+     * The name of the InvocationService used by all test methods.
+     */
     public static String INVOCATION_SERVICE_NAME = "ExtendTcpInvocationService";
     }
