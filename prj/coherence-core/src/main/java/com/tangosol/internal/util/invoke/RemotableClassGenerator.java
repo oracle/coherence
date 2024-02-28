@@ -1,16 +1,17 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util.invoke;
 
 import com.tangosol.dev.assembler.Field;
 
+import com.tangosol.internal.asm.ClassReaderInternal;
+
 import java.lang.invoke.MethodHandleInfo;
 
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -55,7 +56,7 @@ public class RemotableClassGenerator
         ClassWriter   writer   = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         ClassRemapper remapper = new ClassRemapper(writer, new SimpleRemapper(sClassNameOld, sClassNameNew));
 
-        new ClassReader(abClass).accept(remapper, ClassReader.EXPAND_FRAMES);
+        new ClassReaderInternal(abClass).accept(remapper, org.objectweb.asm.ClassReader.EXPAND_FRAMES);
 
         return writer.toByteArray();
         }

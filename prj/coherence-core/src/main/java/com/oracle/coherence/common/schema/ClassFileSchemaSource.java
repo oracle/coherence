@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.common.schema;
@@ -12,6 +12,8 @@ import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.schema.lang.java.JavaTypeDescriptor;
 import com.oracle.coherence.common.schema.util.NameTransformer;
 import com.oracle.coherence.common.schema.util.NameTransformerChain;
+
+import com.tangosol.internal.asm.ClassReaderInternal;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,7 +31,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -458,8 +459,8 @@ public class ClassFileSchemaSource
     protected void populateSchema(Schema schema, InputStream in)
             throws IOException
         {
-        ClassReader reader = new ClassReader(in);
-        ClassNode source = new ClassNode();
+        ClassReaderInternal reader = new ClassReaderInternal(in);
+        ClassNode           source = new ClassNode();
         reader.accept(source, 0);
 
         if (m_typeFilter.test(source))

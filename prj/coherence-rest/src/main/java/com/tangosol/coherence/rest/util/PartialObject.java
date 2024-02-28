@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.util;
+
+import com.tangosol.util.asm.BaseClassReaderInternal;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.CopyOnWriteMap;
@@ -23,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
 
@@ -511,7 +514,7 @@ public class PartialObject
             classStream = getPartialClassLoader().getResourceAsStream(
                     clz.getName().replace('.', '/') + ".class");
 
-            ClassReader cr = new ClassReader(classStream);
+            ClassReaderInternal cr = new ClassReaderInternal(classStream);
             cr.accept(cn, 0);
             return cn;
             }
@@ -692,6 +695,57 @@ public class PartialObject
          * Package containing partial classes.
          */
         private Package m_package;
+        }
+
+    // ----- inner class: ClassReaderInternal -------------------------------
+
+    /**
+     * This class wraps ASM's ClassReader allowing Coherence to bypass the class
+     * version checks performed by ASM when reading a class.
+     *
+     * @since 15.1.1.0
+     */
+    /*
+     * Internal NOTE:  This class is also duplicated in coherence-core and
+     *                 coherence-rest.  This is done because each module shades
+     *                 ASM within a unique package into the produced JAR and
+     *                 thus having to create copes to deal with those package
+     *                 differences.
+     */
+    protected static final class ClassReaderInternal
+            extends BaseClassReaderInternal<ClassReader, ClassVisitor>
+        {
+        // ----- constructors ---------------------------------------------------
+
+        /**
+         * @see BaseClassReaderInternal#BaseClassReaderInternal(InputStream)
+         */
+        public ClassReaderInternal(InputStream streamIn) throws IOException
+            {
+            super(streamIn);
+            }
+
+        /**
+         * @see BaseClassReaderInternal#BaseClassReaderInternal(byte[])
+         */
+        public ClassReaderInternal(byte[] abBytes)
+            {
+            super(abBytes);
+            }
+
+        // ----- BaseClassReaderInternal methods --------------------------------
+
+        @Override
+        protected ClassReader createReader(byte[] abBytes)
+            {
+            return new ClassReader(abBytes);
+            }
+
+        @Override
+        protected void accept(ClassReader classReader, ClassVisitor classVisitor, int nParsingOptions)
+            {
+            classReader.accept(classVisitor, nParsingOptions);
+            }
         }
 
     // ----- data members ---------------------------------------------------
