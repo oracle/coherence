@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,6 +20,7 @@ import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 
+import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.DisplayName;
 
 import com.tangosol.net.Coherence;
@@ -32,9 +33,13 @@ import org.junit.jupiter.api.extension.RegisterExtension;
  * @author rl   7.12.2021
  * @since 21.12
  */
-public class RemoteExecutorTestIT
+public class RemoteExecutorIT
         extends AbstractRemoteExecutorTest
     {
+    static
+        {
+        System.setProperty("coherence.concurrent.serializer", "pof");
+        }
     // ----- AbstractRemoteExecutorTest methods -----------------------------
 
     @Override
@@ -58,6 +63,7 @@ public class RemoteExecutorTestIT
                           LocalHost.only(),
                           Multicast.ttl(0),
                           IPv4Preferred.yes(),
+                          SystemProperty.of("coherence.concurrent.serializer", "pof"),
                           ClusterPort.automatic())
                     .include(1,
                              DisplayName.of("storage"),
