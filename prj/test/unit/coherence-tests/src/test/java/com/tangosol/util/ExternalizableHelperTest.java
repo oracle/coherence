@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -25,6 +25,10 @@ import com.tangosol.io.pof.SimplePofContext;
 import data.Person;
 
 import java.lang.reflect.InvocationTargetException;
+
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -63,6 +67,37 @@ import static org.junit.Assert.*;
 public class ExternalizableHelperTest extends ExternalizableHelper
     {
     // ----- unit tests -----------------------------------------------------
+
+    /**
+     * Test UTF-8 conversion.
+     */
+    @Test
+    public void testUtfConversion() throws IOException
+        {
+        assertUtfConversion("Aleksandar");
+        assertUtfConversion("Александар");
+        assertUtfConversion("ⅯⅭⅯⅬⅩⅩⅠⅤ");
+        assertUtfConversion(toBytes(new int[] {0xf0938080, 0xf09f8ebf, 0xf09f8f80, 0xf09f8e89, 0xf09f9294}));
+
+        // make sure we can still handle our proprietary (broken) encoding
+        String sUtf = new String(toBytes(new int[] {0xf0938080, 0xf09f8ebf, 0xf09f8f80, 0xf09f8e89, 0xf09f9294}), StandardCharsets.UTF_8);
+        Binary bin = ExternalizableHelper.toBinary(sUtf);
+        assertEquals(32, bin.length());
+        assertEquals(sUtf, ExternalizableHelper.fromBinary(bin));
+        }
+
+    private void assertUtfConversion(String s) throws IOException
+        {
+        assertUtfConversion(s.getBytes(StandardCharsets.UTF_8));
+        }
+
+    private void assertUtfConversion(byte[] abUtf8) throws IOException
+        {
+        String sExpected = new String(abUtf8, StandardCharsets.UTF_8);
+        String sActual   = ExternalizableHelper.convertUTF(abUtf8, 0, abUtf8.length, new char[sExpected.length()]);
+        System.out.printf("\n%12s = %-12s : utf8 bytes = %d; string length = %d", sExpected, sActual, abUtf8.length, sActual.length());
+        assertEquals(sExpected, sActual);
+        }
 
     /**
     * Test POF serialization/deserialization of a java.util.Map.
@@ -847,6 +882,16 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         }
 
     // ----- helper methods -------------------------------------------------
+
+    private static byte[] toBytes(int[] ai)
+        {
+        ByteBuffer buf = ByteBuffer.allocate(4 * ai.length);
+        for (int n : ai)
+            {
+            buf.putInt(n);
+            }
+        return buf.array();
+        }
 
     private long doTest(int[] aData)
         {
