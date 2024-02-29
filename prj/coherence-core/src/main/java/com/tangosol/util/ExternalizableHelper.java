@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -101,6 +101,7 @@ import java.math.BigInteger;
 import java.net.URL;
 
 import java.nio.BufferOverflowException;
+import java.nio.charset.StandardCharsets;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -1403,8 +1404,8 @@ public abstract class ExternalizableHelper
         int     ofEnd  = of + cb;
         for ( ; ofAsc < ofEnd; ++ofAsc)
             {
-            int n = ab[ofAsc] & 0xFF;
-            if (n >= 0x80)
+            int n = ab[ofAsc];
+            if (n < 0)
                 {
                 // it's not all "ascii" data
                 fAscii = false;
@@ -1456,6 +1457,32 @@ public abstract class ExternalizableHelper
                         break;
                         }
 
+                    case 0xF:
+                        {
+                        // 4-byte format:  1111 xxxx, 10xx xxxx, 10xx xxxx, 10xx xxxx (supplemental plane)
+                        int ch2 = ab[++ofAsc] & 0xFF;
+                        int ch3 = ab[++ofAsc] & 0xFF;
+                        int ch4 = ab[++ofAsc] & 0xFF;
+                        if ((ch2 & 0xC0) != 0x80 || (ch3 & 0xC0) != 0x80 || (ch4 & 0xC0) != 0x80)
+                            {
+                            throw new UTFDataFormatException();
+                            }
+
+                        int cp = (ch  & 0x07) << 18 |
+                                 (ch2 & 0x3F) << 12 |
+                                 (ch3 & 0x3F) <<  6 |
+                                 (ch4 & 0x3F);
+
+                        cp = cp - 0x10000;
+
+                        char high = (char) (0xD800 + ((cp >> 10) & 0x3FF));
+                        char low  = (char) (0xDC00 + (cp & 0x3FF));
+                        ach[ofch++] = high;
+                        ach[ofch++] = low;
+
+                        break;
+                        }
+
                     default:
                         throw new UTFDataFormatException(
                                 "illegal leading UTF byte: " + ch);
@@ -1463,7 +1490,9 @@ public abstract class ExternalizableHelper
                 }
             }
 
-        return new String(ach, 0, ofch);
+        return fAscii   // all characters can be represented by a single byte, use Latin1
+               ? new String(ab, of, cb, StandardCharsets.ISO_8859_1)
+               : new String(ach, 0, ofch);
         }
 
     /**
