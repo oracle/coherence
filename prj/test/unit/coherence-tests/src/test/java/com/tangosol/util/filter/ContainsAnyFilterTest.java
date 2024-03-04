@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
@@ -39,7 +39,7 @@ public class ContainsAnyFilterTest
         m_fPartial = fPartial;
         }
 
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name ="ordered={0} partial={1}")
     public static Collection data() {
        Object[][] data = new Object[][]
             { new Object[] {Boolean.FALSE, Boolean.FALSE},
@@ -94,6 +94,8 @@ public class ContainsAnyFilterTest
         when(index.getIndexContents()).thenReturn(mapInverse);
 
         // begin test
+        assertEquals(6, filter.calculateEffectiveness(mapIndexes, setKeys));
+
         filter.applyIndex(mapIndexes, setKeys);
 
         assertEquals(4, setKeys.size());

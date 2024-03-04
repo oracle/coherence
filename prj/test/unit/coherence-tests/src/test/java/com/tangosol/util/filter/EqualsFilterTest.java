@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -47,7 +47,7 @@ public class EqualsFilterTest
         m_fPartial = fPartial;
         }
 
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name ="ordered={0} partial={1}")
     public static Collection data() {
        Object[][] data = new Object[][]
             { new Object[] {Boolean.FALSE, Boolean.FALSE},
@@ -99,6 +99,8 @@ public class EqualsFilterTest
         when(index.getIndexContents()).thenReturn(mapInverse);
 
         // begin test
+        assertEquals(1, filter.calculateEffectiveness(mapIndexes, setKeys));
+
         filter.applyIndex(mapIndexes, setKeys);
 
         assertEquals("One key should remain in the set of keys.",
