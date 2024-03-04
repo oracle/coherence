@@ -106,8 +106,33 @@ public class InFilter<T, E>
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
-        return index == null ? calculateIteratorEffectiveness(setKeys.size())
-                             : ((Collection) getValue()).size();
+        if (index == null)
+            {
+            // there is no relevant index
+            return -1;
+            }
+        else
+            {
+            // calculating the exact number of keys retained is too expensive;
+            // ignore the fact that there may be duplicates and simply return
+            // the worst possible number of keys retained, as if they were unique
+
+            Collection colValues   = getValue();
+            Map        mapContents = index.getIndexContents();
+            int        cMatch      = 0;
+
+            for (Object oValue : colValues)
+                {
+                Set setEQ = (Set) mapContents.get(oValue);
+
+                if (setEQ != null)
+                    {
+                    cMatch += setEQ.size();
+                    }
+                }
+
+            return Math.min(cMatch, setKeys.size());
+            }
         }
 
     /**
