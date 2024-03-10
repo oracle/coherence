@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.config.builders;
 
 import com.oracle.coherence.concurrent.config.NamedExecutorService;
 
+import com.oracle.coherence.concurrent.executor.util.NamedThreadFactory;
 import com.tangosol.coherence.config.ParameterList;
 
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
@@ -36,9 +37,8 @@ public class SingleBuilder
     public NamedExecutorService realize(ParameterResolver resolver, ClassLoader loader, ParameterList listParameters)
         {
         String                    sName    = m_name.evaluate(resolver);
-        ThreadFactory             factory  = m_bldr == null
-                                                 ? null
-                                                 : m_bldr.realize(resolver, loader, listParameters);
+        ThreadFactory             factory  = instantiateThreadFactory(sName, resolver,
+                                                 loader, listParameters);
         Supplier<ExecutorService> supplier = factory == null
                                                  ? Executors::newSingleThreadExecutor
                                                  : () -> Executors.newSingleThreadExecutor(factory);
@@ -60,7 +60,9 @@ public class SingleBuilder
      */
     protected String description(ThreadFactory factory)
         {
-        String sFactory = factory == null ? "default" : factory.getClass().getName();
+        String sFactory = factory == null || NamedThreadFactory.class.equals(factory.getClass())
+                          ? "default"
+                          : factory.getClass().getName();
 
         return String.format("SingleThreaded(ThreadFactory=%s)", sFactory);
         }
