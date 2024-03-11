@@ -175,6 +175,7 @@ common_image(){
 # clear the JAVA_HOME env var configuration as we only set it
 # for images where we download a JDK
   ENV_VARS_JAVA_HOME=""
+  ADD_JAVA21_DEPS="false"
 
   if [ "${5}" != "" ]
   then
@@ -211,6 +212,7 @@ common_image(){
     rm -rf "/tmp${IMAGE_JAVA_HOME}"
 #   Set the JAVA_HOME env var to the downloaded JDK
     ENV_VARS_JAVA_HOME="-e JAVA_HOME=${IMAGE_JAVA_HOME}"
+    ADD_JAVA21_DEPS="true"
 fi
 
   # Create the container from the base image, setting the architecture and O/S
@@ -273,8 +275,14 @@ fi
       "container-${1}"
 
   # Copy files into the container
-  buildah copy "container-${1}" "${BASEDIR}/target/docker" /
-  buildah copy "container-${1}" "${BASEDIR}/target/*.jar"  /app/libs
+  buildah copy "container-${1}" "${BASEDIR}/target/docker/app"  /app
+  buildah copy "container-${1}" "${BASEDIR}/target/docker/args" /args
+  buildah copy "container-${1}" "${BASEDIR}/target/*.jar"       /app/libs
+
+  if [ "${ADD_JAVA21_DEPS}" == "true" ]
+  then
+    buildah copy "container-${1}" "${BASEDIR}/target/docker/java21/app"  /app
+  fi
 
   # Commit the container to an image
   buildah commit "container-${1}" "coherence:${1}"
