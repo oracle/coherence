@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -54,6 +54,14 @@ public class MasterMemberSet
      * absolute maximum is 255 * 32 = 8160.)
      */
     public static final int MAX_MEMBERS = 8160;
+
+    /**
+     * Property TRANSPORT_COMPATIBILITY
+     *
+     * Denotes that a Member's VERSION is not actual version, but transport compatibility version in Coherence log.
+     * @see #appendVersion(StringBuilder, int)
+     */
+    public static final String TRANSPORT_COMPATIBILITY = "Compat[";
     
     /**
      * Property MaximumPacketLength
@@ -265,8 +273,18 @@ public class MasterMemberSet
     // Declared at the super level
     protected void appendVersion(StringBuilder sb, int nMember)
         {
-        sb.append('|')
-          .append(getServiceVersionExternal(nMember));
+        int     nState   = getState(nMember);
+
+        sb.append('|');
+        if (nState <= MEMBER_JOINING)
+            {
+            sb.append(TRANSPORT_COMPATIBILITY);
+            }
+        sb.append(getServiceVersionExternal(nMember));
+        if (nState <= MEMBER_JOINING)
+            {
+            sb.append("]");
+            }
         }
     
     // Declared at the super level
