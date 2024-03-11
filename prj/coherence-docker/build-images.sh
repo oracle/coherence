@@ -281,7 +281,9 @@ fi
 
   if [ "${ADD_JAVA21_DEPS}" == "true" ]
   then
-    buildah copy "container-${1}" "${BASEDIR}/target/docker/java21/app"  /app
+    if [ -d "${BASEDIR}/target/docker/java21/app" ]; then
+      buildah copy "container-${1}" "${BASEDIR}/target/docker/java21/app"  /app
+    fi
   fi
 
   # Commit the container to an image
