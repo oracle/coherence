@@ -15,10 +15,10 @@
 # Oracle Coherence Community Edition
 
 ## Contents
-1. [Introduction](#intro)
-1. [How to Get Coherence Community Edition](#acquire)
+1. [Introduction](#introduction)
+1. [Downloading Coherence Community Edition](#acquire)
 1. [Coherence Overview](#overview)
-1. [Hello Coherence](#get-started)
+1. [Getting Started](#getting-started)
    1. [Install the Coherence CLI](#install)
    1. [Create a Cluster](#create)
    1. [CohQL Console](#cohql)
@@ -26,9 +26,11 @@
    1. [Code Example](#hello-coh)
 1. [Building](#build)
 1. [Documentation](#documentation)
-1. [Contributing](#contrib)
+1. [Examples](#examples)
+1. [Contributing](#contributing)
+1. [License](#license)
 
-## <a name="intro"></a>Introduction
+## Introduction
 
 [Coherence](http://coherence.community/) is a scalable, fault-tolerant, cloud-ready,
 distributed platform for building grid-based applications and reliably storing data.
@@ -64,15 +66,13 @@ the natural place to consume this dependency is from Maven:
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>22.06.5</version>
+        <version>22.06.7</version>
     </dependency>
 </dependencies>
 ```
 
-You can also get Coherence from the official [GitHub Packages site](https://github.com/oracle/coherence/pkgs/container/coherence-ce).
-For other language clients, use [C++](https://github.com/oracle/coherence-cpp-extend-client) and
-[.NET](https://github.com/oracle/coherence-dotnet-extend-client) and for the non-community
-edition, see [Oracle Technology Network](https://www.oracle.com/middleware/technologies/coherence-downloads.html).
+You can also get Coherence container images from the official [GitHub Packages site](https://github.com/oracle/coherence/pkgs/container/coherence-ce).
+For other language clients, follow the links to [C++](https://github.com/oracle/coherence-cpp-extend-client), [.NET](https://github.com/oracle/coherence-dotnet-extend-client), [JavaScript](https://github.com/oracle/coherence-js-client), [Go](https://github.com/oracle/coherence-go-client) and [Python](https://github.com/oracle/coherence-py-client). For commercial offerings, go to [Oracle Technology Network](https://www.oracle.com/middleware/technologies/coherence-downloads.html).
 
 ## <a name="overview"></a>Overview
 
@@ -155,7 +155,7 @@ for distant (high latency) clients and for non-java languages such as C++ and .N
 * **Kubernetes friendly** - Enables seamless and safe deployment of applications to k8s with
 our own [operator](https://github.com/oracle/coherence-operator).
 
-## <a name="get-started"></a>Hello Coherence
+## Getting Started
 
 ### Prerequisites
 
@@ -184,13 +184,13 @@ For **Windows**, see [here](https://oracle.github.io/coherence-cli/docs/latest/#
 
 #### <a name="create"></a>Create and start a Cluster
 
-Use the following command to create a 3 node Coherence cluster called `my-cluster`, scoped to your local machine using the default of Coherence CE 22.06.5.
+Use the following command to create a 3 node Coherence cluster called `my-cluster`, scoped to your local machine using the default of Coherence CE 22.06.7.
 
 ```shell
 $ cohctl create cluster my-cluster
 
 Cluster name:         my-cluster
-Cluster version:      22.06.5
+Cluster version:      22.06.7
 Cluster port:         7574
 Management port:      30000
 Replica count:        3
@@ -203,8 +203,8 @@ Dependency Tool:      mvn
 Are you sure you want to create the cluster with the above details? (y/n) y
 
 Checking 3 Maven dependencies...
-- com.oracle.coherence.ce:coherence:22.06.5
-- com.oracle.coherence.ce:coherence-json:22.06.5
+- com.oracle.coherence.ce:coherence:22.06.7
+- com.oracle.coherence.ce:coherence-json:22.06.7
 - org.jline:jline:3.20.0
 Starting 3 cluster members for cluster my-cluster
 Starting cluster member storage-0...
@@ -322,7 +322,7 @@ inserts and retrieves data from the Coherence server.
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>22.06.5</version>
+        <version>22.06.7</version>
     </dependency>
 ```
 3. Copy and paste the following source to a file named src/main/java/HelloCoherence.java:
@@ -432,10 +432,17 @@ Please refer to <a href="https://docs.oracle.com/en/middleware/fusion-middleware
 
 Examples related to Coherence features are located under [examples](./prj/examples) directory of this repository.
 
-## <a name="contrib"></a>Contribute
+## Contributing
 
 Interested in contributing?  See our contribution [guidelines](CONTRIBUTING.md) for details.
 
 ## Security
 
 Please consult the [security guide](./SECURITY.md) for our responsible security vulnerability disclosure process
+
+## License
+
+Copyright (c) 2000, 2024 Oracle and/or its affiliates.
+
+Released under the Universal Permissive License v1.0 as shown at
+<https://oss.oracle.com/licenses/upl/>.
