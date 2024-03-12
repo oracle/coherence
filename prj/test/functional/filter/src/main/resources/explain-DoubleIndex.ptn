@@ -5,7 +5,7 @@ Filter Name                                                         Index   Cost
 AllFilter\s+\| ----  \| 0
   LikeFilter\(filter\.nestinglevel1\.nestinglevel2\.nestinglev\.\.\. \(0\) \| 0     \| 11
   AndFilter\s+\| ----  \| 0
-    BetweenFilter\(filter\.nestinglevel1\.nestinglevel2\.nesti\.\.\. \(1\) \| 1     \| (66/67)
+    BetweenFilter\(filter\.nestinglevel1\.nestinglevel2\.nesti\.\.\. \(1\) \| 1     \| (66|67)
     EqualsFilter\(\.getFirstName\(\), Hector\)\s+\| 2     \| 100000
   LessEqualsFilter\(\.getAge\(\), 98\)\s+\| 3     \| 100000
 
