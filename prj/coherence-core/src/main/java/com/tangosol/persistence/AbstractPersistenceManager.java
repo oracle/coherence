@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1506,7 +1506,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                 catch (Throwable e)
                     {
                     // guard against any unexpected throwable
-                    Logger.fine("Caught an exception while aborting transaction for token \"" + oToken + "\":", e);
+                    Logger.finer("Caught an exception while aborting transaction for token \"" + oToken + "\":", e);
                     }
                 }
             }
