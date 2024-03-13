@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1710,8 +1710,11 @@ public class DaemonPool
     
     // From interface: com.tangosol.internal.util.DaemonPool
     /**
-     * Return true iff no progress was made by one or more WorkSlot since the
-    * last time this method was called.
+     * Always returns false.
+     * <p>
+     * COH-29179: Even if no tasks may have been taken from the backlog since the last call, the guardian
+     * will eventually interrupt or abandon stuck worker threads. New replacement worker
+     * threads will be created and new work will be taken from the backlog queue.
      */
     public boolean isStuck()
         {
@@ -1733,27 +1736,8 @@ public class DaemonPool
             setStatsLastBacklog(cBacklog);
             setStatsLastTaskAddCount(cAdd);
             }
-        
-        boolean fStuck;
-        if (cDeltaAdd == 0)
-            {
-            // No new work was added to the pool since the last call. If the backlog
-            // has stayed the same (and is not zero), we must be stuck.
-            fStuck = cDeltaBacklog == 0 && cBacklog > 0;
-            }
-        else if (cDeltaAdd > 0)
-            {
-            // New work was added to the pool since the last call. If the backlog
-            // increased by the same amount, we must be stuck.
-            fStuck = cDeltaBacklog == cDeltaAdd;
-            }
-        else // cDeltaAdd < 0
-            {
-            // should never happen...
-            fStuck = false;
-            }
-        
-        return fStuck;
+
+        return false;
         }
     
     /**
