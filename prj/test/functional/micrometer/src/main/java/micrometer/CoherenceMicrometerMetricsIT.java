@@ -7,6 +7,8 @@
 
 package micrometer;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.micrometer.CoherenceMicrometerMetrics;
 
 import com.tangosol.net.CacheFactory;
@@ -43,6 +45,12 @@ public class CoherenceMicrometerMetricsIT
     static void startCoherence()
         {
         s_prometheusRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+
+        s_prometheusRegistry.config().onMeterRegistrationFailed((id, err) ->
+            {
+            Logger.err("Registration of " + id + " failed with registry " + s_prometheusRegistry + ": " + err);
+            });
+
         CoherenceMicrometerMetrics.INSTANCE.bindTo(s_prometheusRegistry);
 
         DefaultCacheServer.startServerDaemon()
