@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2021, 2023 Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2024, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ https://oss.oracle.com/licenses/upl.
@@ -265,6 +265,9 @@
       <type-id>829</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredAssignment$AssignmentProcessor</class-name>
     </user-type>
+
+    <!-- Queues (840 - 849) -->
+
     <user-type>
       <type-id>870</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredAssignment$SetStateProcessor</class-name>

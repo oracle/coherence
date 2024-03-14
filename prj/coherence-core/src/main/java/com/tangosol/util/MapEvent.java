@@ -44,7 +44,7 @@ import static com.tangosol.net.cache.ReadWriteBackingMap.BIN_ERASE_PENDING;
 */
 public class MapEvent<K, V>
         extends EventObject
-        implements PortableObject
+        implements PortableObject, CollectionEvent<V>
     {
     /**
      * Default constructor for serialization.

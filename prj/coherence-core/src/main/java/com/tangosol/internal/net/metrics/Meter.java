@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.internal.net.metrics;
+
+import com.tangosol.net.metrics.Rates;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +27,7 @@ import java.util.concurrent.atomic.LongAdder;
  * exponentially-weighted moving average throughputs.
  */
 public class Meter
+        implements Rates
     {
     public Meter()
         {
@@ -52,23 +55,27 @@ public class Meter
         m15Rate.update(n);
         }
 
+    @Override
     public long getCount()
         {
         return count.sum();
         }
 
+    @Override
     public double getFifteenMinuteRate()
         {
         tickIfNecessary();
         return m15Rate.getRate(TimeUnit.SECONDS);
         }
 
+    @Override
     public double getFiveMinuteRate()
         {
         tickIfNecessary();
         return m5Rate.getRate(TimeUnit.SECONDS);
         }
 
+    @Override
     public double getMeanRate()
         {
         if (getCount() == 0)
@@ -82,6 +89,7 @@ public class Meter
             }
         }
 
+    @Override
     public double getOneMinuteRate()
         {
         tickIfNecessary();

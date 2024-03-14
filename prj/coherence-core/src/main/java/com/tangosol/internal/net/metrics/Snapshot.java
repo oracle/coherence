@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.metrics;
 
@@ -14,6 +14,7 @@ import java.io.OutputStream;
  * @author Jonathan Knight  2020.10.16
  */
 public abstract class Snapshot
+        implements com.tangosol.net.metrics.Snapshot
     {
     /**
      * Returns the value at the given quantile.
@@ -21,6 +22,7 @@ public abstract class Snapshot
      * @param quantile    a given quantile, in {@code [0..1]}
      * @return the value in the distribution at {@code quantile}
      */
+    @Override
     public abstract double getValue(double quantile);
 
     /**
@@ -28,6 +30,7 @@ public abstract class Snapshot
      *
      * @return the entire set of values
      */
+    @Override
     public abstract long[] getValues();
 
     /**
@@ -35,6 +38,7 @@ public abstract class Snapshot
      *
      * @return the number of values
      */
+    @Override
     public abstract int size();
 
     /**
@@ -42,6 +46,7 @@ public abstract class Snapshot
      *
      * @return the median value
      */
+    @Override
     public double getMedian() {
         return getValue(0.5);
     }
@@ -51,6 +56,7 @@ public abstract class Snapshot
      *
      * @return the value at the 75th percentile
      */
+    @Override
     public double get75thPercentile() {
         return getValue(0.75);
     }
@@ -60,6 +66,7 @@ public abstract class Snapshot
      *
      * @return the value at the 95th percentile
      */
+    @Override
     public double get95thPercentile() {
         return getValue(0.95);
     }
@@ -69,6 +76,7 @@ public abstract class Snapshot
      *
      * @return the value at the 98th percentile
      */
+    @Override
     public double get98thPercentile() {
         return getValue(0.98);
     }
@@ -78,6 +86,7 @@ public abstract class Snapshot
      *
      * @return the value at the 99th percentile
      */
+    @Override
     public double get99thPercentile() {
         return getValue(0.99);
     }
@@ -87,6 +96,7 @@ public abstract class Snapshot
      *
      * @return the value at the 99.9th percentile
      */
+    @Override
     public double get999thPercentile() {
         return getValue(0.999);
     }
@@ -96,6 +106,7 @@ public abstract class Snapshot
      *
      * @return the highest value
      */
+    @Override
     public abstract long getMax();
 
     /**
@@ -103,6 +114,7 @@ public abstract class Snapshot
      *
      * @return the arithmetic mean
      */
+    @Override
     public abstract double getMean();
 
     /**
@@ -110,6 +122,7 @@ public abstract class Snapshot
      *
      * @return the lowest value
      */
+    @Override
     public abstract long getMin();
 
     /**
@@ -117,6 +130,7 @@ public abstract class Snapshot
      *
      * @return the standard value
      */
+    @Override
     public abstract double getStdDev();
 
     /**
@@ -124,5 +138,6 @@ public abstract class Snapshot
      *
      * @param output an output stream
      */
+    @Override
     public abstract void dump(OutputStream output);
     }

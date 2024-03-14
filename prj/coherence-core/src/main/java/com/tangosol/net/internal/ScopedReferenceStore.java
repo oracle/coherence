@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -499,7 +499,7 @@ public class ScopedReferenceStore<R>
     /**
      * The {@link Class} of the references that this store holds.
      */
-    private final Class<R> f_clsType;
+    protected final Class<R> f_clsType;
 
     /**
      * The {@link Function} that can return the active state of a referenced value.

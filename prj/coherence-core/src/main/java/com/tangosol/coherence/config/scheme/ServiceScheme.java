@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,9 +8,12 @@ package com.tangosol.coherence.config.scheme;
 
 import java.util.List;
 
+import com.oracle.coherence.common.util.Options;
 import com.tangosol.application.ContainerContext;
+import com.tangosol.coherence.config.builder.NamedCollectionBuilder;
 import com.tangosol.coherence.config.builder.NamedEventInterceptorBuilder;
 import com.tangosol.coherence.config.builder.ServiceBuilder;
+import com.tangosol.net.NamedCollection;
 
 /**
  * This interface exposes service related scheme information.  Other schemes,
@@ -73,6 +76,12 @@ public interface ServiceScheme
      * @return an {@link List} over {@link NamedEventInterceptorBuilder}s
      */
     public List<NamedEventInterceptorBuilder> getEventInterceptorBuilders();
+
+    @SuppressWarnings("rawtypes")
+    default NamedCollectionBuilder getNamedCollectionBuilder(Class<? extends NamedCollection> clz, Options<NamedCollection.Option> options)
+        {
+        throw new UnsupportedOperationException();
+        }
 
     /**
      * Return a scope name prefixed with any tenancy name.

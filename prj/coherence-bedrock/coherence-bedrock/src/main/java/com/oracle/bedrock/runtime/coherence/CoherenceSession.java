@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.bedrock.runtime.coherence;
@@ -15,7 +15,9 @@ import com.oracle.bedrock.runtime.concurrent.callable.RemoteMethodInvocation;
 import com.oracle.bedrock.util.ReflectionHelper;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedCollection;
+import com.tangosol.net.NamedDeque;
 import com.tangosol.net.NamedMap;
+import com.tangosol.net.NamedQueue;
 import com.tangosol.net.Service;
 import com.tangosol.net.Session;
 import com.tangosol.net.events.InterceptorRegistry;
@@ -227,6 +229,42 @@ public class CoherenceSession
     public <V> NamedTopic<V> getTopic(String sName, NamedCollection.Option... options)
         {
         throw new UnsupportedOperationException();
+        }
+
+    @Override
+    public <E> NamedQueue<E> getQueue(String sName)
+        {
+        throw new UnsupportedOperationException();
+        }
+
+    @Override
+    public <E> NamedQueue<E> getQueue(String sName, NamedQueue.Option... options)
+        {
+        throw new UnsupportedOperationException();
+        }
+
+    @Override
+    public <E> NamedDeque<E> getDeque(String sName)
+        {
+        throw new UnsupportedOperationException();
+        }
+
+    @Override
+    public <E> NamedDeque<E> getDeque(String sName, NamedQueue.Option... options)
+        {
+        throw new UnsupportedOperationException();
+        }
+
+    @Override
+    public void close(NamedCollection col)
+        {
+        col.close();
+        }
+
+    @Override
+    public void destroy(NamedCollection col)
+        {
+        col.destroy();
         }
 
     @Override
