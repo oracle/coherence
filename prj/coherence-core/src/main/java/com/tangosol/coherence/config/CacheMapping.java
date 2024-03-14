@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config;
 
@@ -39,13 +39,14 @@ import com.tangosol.util.ClassHelper;
  * @author bo  2011.06.25
  * @since Coherence 12.1.2
  */
+@SuppressWarnings("rawtypes")
 public class CacheMapping
-        extends ResourceMapping
+        extends TypedResourceMapping<NamedCache>
     {
     // ----- constructors ---------------------------------------------------
 
     /**
-     * Construct a {@link CacheMapping} for caches that will use rawtypes by default.
+     * Construct a {@link CacheMapping} for caches that will use raw types by default.
      *
      * @param sCacheNamePattern             the pattern that maps cache names to caching schemes
      * @param sCachingSchemeName            the name of the caching scheme to which caches matching this
@@ -55,8 +56,7 @@ public class CacheMapping
         {
         super(sCacheNamePattern, sCachingSchemeName);
 
-        m_sKeyClassName                = null;
-        m_sValueClassName              = null;
+        m_sKeyClassName = null;
         }
 
     // ----- ResourceMapping methods --------------------------------------------
@@ -151,27 +151,6 @@ public class CacheMapping
         }
 
     /**
-     * Obtains the name of the value class for {@link NamedCache}s using this {@link CacheMapping}.
-     *
-     * @return the name of the value class or <code>null</code> if rawtypes are being used
-     */
-    public String getValueClassName()
-        {
-        return m_sValueClassName;
-        }
-
-    /**
-     * Determines if the {@link CacheMapping} is configured to use raw-types
-     * (ie: no type checking or constraints)
-     *
-     * @return <code>true</code> if using rawtypes, <code>false</code> otherwise
-     */
-    public boolean usesRawTypes()
-        {
-        return m_sKeyClassName == null || m_sValueClassName == null;
-        }
-
-    /**
      * Sets the name of the key class for {@link NamedCache}s using this {@link CacheMapping}.
      *
      * @param sKeyClassName the name of the key class or <code>null</code> if rawtypes are being used
@@ -187,10 +166,11 @@ public class CacheMapping
      *
      * @param sValueClassName the name of the value class or <code>null</code> if rawtypes are being used
      */
+    @Override
     @Injectable("value-type")
     public void setValueClassName(String sValueClassName)
         {
-        m_sValueClassName = ClassHelper.getFullyQualifiedClassNameOf(sValueClassName);
+        super.setValueClassName(sValueClassName);
         }
 
     // ----- data members ---------------------------------------------------
@@ -204,9 +184,4 @@ public class CacheMapping
      * The name of the key class or <code>null</code> if rawtypes are being used (the default).
      */
     private String m_sKeyClassName;
-
-    /**
-     * The name of the value class or <code>null</code> if rawtypes are being used (the default).
-     */
-    private String m_sValueClassName;
     }

@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
-
-  Licensed under the Universal Permissive License v 1.0 as shown at
-  https://oss.oracle.com/licenses/upl.
+  ~ Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
   -->
 
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -74,6 +74,11 @@
       <cache-name>semaphores</cache-name>
       <scheme-name>transient-concurrent</scheme-name>
     </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>Queue$*</cache-name>
+      <scheme-name>queue-concurrent</scheme-name>
+    </cache-mapping>
   </caching-scheme-mapping>
 
   <caching-schemes>
@@ -113,6 +118,18 @@
           </instance>
         </interceptor>
       </interceptors>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>queue-concurrent</scheme-name>
+      <service-name>ConcurrentQueue</service-name>
+      <backing-map-scheme>
+        <partitioned>true</partitioned>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
     </distributed-scheme>
 
     <proxy-scheme>

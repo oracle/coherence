@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,7 @@ import com.oracle.coherence.common.util.Options;
 import com.tangosol.coherence.config.ResourceMapping;
 import com.tangosol.coherence.config.TopicMapping;
 
+import com.tangosol.coherence.config.TypedResourceMapping;
 import com.tangosol.net.topic.NamedTopic;
 
 /**
@@ -25,6 +26,7 @@ import com.tangosol.net.topic.NamedTopic;
  *
  * @since Coherence 14.1.1
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public interface ValueTypeAssertion<V> extends NamedTopic.Option
     {
     /**
@@ -37,7 +39,7 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
      * @throws IllegalArgumentException when type used with the {@link ValueTypeAssertion} are illegal according to the
      *                                  configuration
      */
-    public void assertTypeSafety(String sName, TopicMapping mapping)
+    public void assertTypeSafety(String sName, TypedResourceMapping mapping)
             throws IllegalArgumentException;
 
     // ----- Helper methods ---------------------------------------------
@@ -86,6 +88,7 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
      *
      * @param <V>  the type of the topic values
      */
+    @SuppressWarnings("PatternVariableCanBeUsed")
     static class WithValueTypeAssertion<V>
             implements ValueTypeAssertion<V>
         {
@@ -100,8 +103,7 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
             {
             if (clsValue == null)
                 {
-                throw new IllegalArgumentException(clsValue == null
-                        ? "valueClass" : " valueClass" + " parameter must be non-null" );
+                throw new IllegalArgumentException(" valueClass parameter must be non-null" );
                 }
 
             m_sValueClassName   = clsValue.getName();
@@ -113,7 +115,7 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
          * {@inheritDoc}
          */
         @Override
-        public void assertTypeSafety(String sTopicName, TopicMapping mapping)
+        public void assertTypeSafety(String sTopicName, TypedResourceMapping mapping)
                 throws IllegalArgumentException
             {
             if (mapping.usesRawTypes())
@@ -205,7 +207,7 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
     final ValueTypeAssertion WITHOUT_TYPE_CHECKING = new ValueTypeAssertion()
         {
         @Override
-        public void assertTypeSafety(String sTopicName, TopicMapping topicMapping)
+        public void assertTypeSafety(String sTopicName, TypedResourceMapping topicMapping)
                 throws IllegalArgumentException
             {
             // NOTE: completely by-passes all type-checking and warnings
@@ -225,7 +227,7 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
     final ValueTypeAssertion WITH_RAW_TYPES = new ValueTypeAssertion()
         {
         @Override
-        public void assertTypeSafety(String sTopicName, TopicMapping topicMapping)
+        public void assertTypeSafety(String sTopicName, TypedResourceMapping topicMapping)
                 throws IllegalArgumentException
             {
             if (!topicMapping.usesRawTypes())

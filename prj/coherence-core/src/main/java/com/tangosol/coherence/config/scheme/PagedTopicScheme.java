@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.oracle.coherence.common.net.InetAddresses;
 import com.oracle.coherence.common.util.Duration;
 import com.oracle.coherence.common.util.MemorySize;
 
+import com.oracle.coherence.common.util.Options;
 import com.tangosol.coherence.config.builder.ElementCalculatorBuilder;
 import com.tangosol.coherence.config.builder.MapBuilder;
 import com.tangosol.coherence.config.builder.NamedEventInterceptorBuilder;
@@ -34,7 +35,6 @@ import com.tangosol.internal.net.service.grid.PartitionedCacheDependencies;
 import com.tangosol.internal.net.topic.impl.paged.DefaultPagedTopicDependencies;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 
@@ -60,7 +60,6 @@ import com.tangosol.net.topic.FixedElementCalculator;
 import com.tangosol.net.topic.NamedTopic;
 
 import com.tangosol.util.RegistrationBehavior;
-import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.ResourceResolver;
 import com.tangosol.util.ResourceResolverHelper;
 
@@ -120,6 +119,16 @@ public class PagedTopicScheme
     public <T extends NamedCollection> boolean realizes(Class<T> type)
         {
         return NamedTopic.class.equals(type);
+        }
+
+    @Override
+    public PagedTopicScheme getNamedCollectionBuilder(Class<? extends NamedCollection> clz, Options<NamedCollection.Option> options)
+        {
+        if (clz.isAssignableFrom(NamedTopic.class))
+            {
+            return this;
+            }
+        return null;
         }
 
     /**

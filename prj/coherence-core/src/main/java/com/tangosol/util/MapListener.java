@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -117,16 +117,16 @@ public interface MapListener<K, V>
     /**
      * A flag that indicates this MapListener can be fired asynchronously.
      */
-    public static final int ASYNCHRONOUS   = 0x00000000;
+    public static final int ASYNCHRONOUS   = CollectionListener.ASYNCHRONOUS;
 
     /**
      * A flag that indicates this MapListener should be fired synchronously.
      */
-    public static final int SYNCHRONOUS    = 0x00000001;
+    public static final int SYNCHRONOUS    = CollectionListener.SYNCHRONOUS;
 
     /**
      * A flag that indicates this MapListener should track versions thus allow
      * missed versions to be replayed if supported by the source of events.
      */
-    public static final int VERSION_AWARE  = 0x00000002;
+    public static final int VERSION_AWARE  = CollectionListener.VERSION_AWARE;
     }

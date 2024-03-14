@@ -1,27 +1,36 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.scheme;
 
+import com.oracle.coherence.common.util.Options;
+import com.tangosol.coherence.config.builder.NamedCollectionBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 
 import com.tangosol.config.annotation.Injectable;
 import com.tangosol.config.expression.NullParameterResolver;
+import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
+import com.tangosol.config.expression.Value;
 import com.tangosol.config.injection.Injector;
 import com.tangosol.config.injection.SimpleInjector;
 
+import com.tangosol.internal.net.queue.NamedCacheDeque;
+import com.tangosol.internal.net.queue.NamedCacheDequeBuilder;
 import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedCollection;
+import com.tangosol.net.NamedDeque;
 import com.tangosol.net.Service;
 
 import com.tangosol.net.ServiceDependencies;
+import com.tangosol.net.ValueTypeAssertion;
 import com.tangosol.net.cache.BundlingNamedCache;
 import com.tangosol.util.Base;
 import com.tangosol.util.MapListener;
@@ -38,6 +47,7 @@ import java.util.Map;
  * @author pfm  2011.12.28
  * @since Coherence 12.1.2
  */
+@SuppressWarnings("rawtypes")
 public abstract class AbstractCachingScheme<D extends ServiceDependencies>
         extends AbstractServiceScheme<D>
         implements ObservableCachingScheme
@@ -167,6 +177,16 @@ public abstract class AbstractCachingScheme<D extends ServiceDependencies>
             }
         }
 
+    @Override
+    public NamedCollectionBuilder getNamedCollectionBuilder(Class<? extends NamedCollection> clz, Options<NamedCollection.Option> options)
+        {
+        if (NamedDeque.class.isAssignableFrom(clz))
+            {
+            return new CacheDequeBuilder();
+            }
+        return null;
+        }
+
     // ----- internal -------------------------------------------------------
 
     /**
@@ -201,6 +221,39 @@ public abstract class AbstractCachingScheme<D extends ServiceDependencies>
         super.validate();
 
         Base.checkNotNull(resolver, "ParameterResolver");
+        }
+
+    // ----- inner class: NamedCacheDequeBuilder ----------------------------
+
+    public class CacheDequeBuilder
+            implements NamedCollectionBuilder<NamedCacheDeque>
+        {
+        @Override
+        @SuppressWarnings("unchecked")
+        public <E> NamedCacheDeque realize(ValueTypeAssertion<E> typeConstraint, ParameterResolver resolver, Dependencies dependencies)
+            {
+            NamedCacheDequeBuilder builder   = NamedCacheDequeBuilder.DEFAULT;
+            Parameter              parameter = resolver.resolve("options");
+            if (parameter != null)
+                {
+                Value value = parameter.evaluate(resolver);
+                if (value != null)
+                    {
+                    Options<NamedCollection.Option> options = (Options<NamedCollection.Option>) value.get();
+                    builder = options.get(NamedCacheDequeBuilder.class, builder);
+                    }
+                }
+
+            NamedCache cache      = realizeCache(resolver, dependencies);
+            String     sQueueName = builder.getCollectionName(cache.getCacheName());
+            return builder.build(sQueueName, cache);
+            }
+
+        @Override
+        public <T extends NamedCollection> boolean realizes(Class<T> type)
+            {
+            return type.isAssignableFrom(NamedCacheDeque.class);
+            }
         }
 
     // ----- data members  --------------------------------------------------

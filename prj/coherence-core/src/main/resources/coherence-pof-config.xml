@@ -1580,7 +1580,7 @@ descriptor: pof-config.xsd.
 
     <!-- external (executor): internal types 821-829 -->
 
-    <!-- com.tangosol.coherence.memcached package (830-849) -->
+    <!-- com.tangosol.coherence.memcached package (830-839) -->
     <user-type>
       <type-id>830</type-id>
       <class-name>com.tangosol.coherence.memcached.processor.AddReplaceProcessor</class-name>
@@ -1627,6 +1627,48 @@ descriptor: pof-config.xsd.
       <serializer>
          <class-name>com.tangosol.io.pof.EnumPofSerializer</class-name>
       </serializer>
+    </user-type>
+
+    <!-- com.tangosol.internal.net.queue package (840-849) -->
+    <user-type>
+      <type-id>840</type-id>
+      <class-name>com.tangosol.internal.net.queue.model.QueueKey</class-name>
+    </user-type>
+    <user-type>
+      <type-id>841</type-id>
+      <class-name>com.tangosol.internal.net.queue.model.QueueOfferResult</class-name>
+    </user-type>
+    <user-type>
+      <type-id>842</type-id>
+      <class-name>com.tangosol.internal.net.queue.model.QueuePollResult</class-name>
+    </user-type>
+    <user-type>
+      <type-id>843</type-id>
+      <class-name>com.tangosol.internal.net.queue.extractor.QueueKeyExtractor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>844</type-id>
+      <class-name>com.tangosol.internal.net.queue.processor.QueuePoll</class-name>
+    </user-type>
+    <user-type>
+      <type-id>845</type-id>
+      <class-name>com.tangosol.internal.net.queue.processor.QueueOffer</class-name>
+    </user-type>
+    <user-type>
+      <type-id>846</type-id>
+      <class-name>com.tangosol.internal.net.queue.processor.QueuePeek</class-name>
+    </user-type>
+    <user-type>
+      <type-id>847</type-id>
+      <class-name>com.tangosol.internal.net.queue.processor.QueueRemove</class-name>
+    </user-type>
+    <user-type>
+      <type-id>848</type-id>
+      <class-name>com.tangosol.internal.net.queue.processor.QueuePage</class-name>
+    </user-type>
+    <user-type>
+      <type-id>849</type-id>
+      <class-name>com.tangosol.internal.net.queue.model.QueuePageResult</class-name>
     </user-type>
 
     <!-- type id reservations for Coherence types not in coherence-pof-config.xml -->

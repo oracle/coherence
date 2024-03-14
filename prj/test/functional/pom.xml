@@ -155,6 +155,7 @@
         <module>mp-config</module>
         <module>mp-health</module>
         <module>mp-metrics</module>
+        <module>queues</module>
         <module>wls-management</module>
         <module>memcached</module>
         <module>metrics</module>

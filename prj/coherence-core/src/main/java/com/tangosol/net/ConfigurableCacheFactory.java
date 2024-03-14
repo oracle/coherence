@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -205,6 +205,87 @@ public interface ConfigurableCacheFactory
     * @since Coherence 14.1.1
     */
     public void destroyTopic(NamedTopic<?> topic);
+
+
+    /**
+    * Ensure an Object-based queue for the given name.
+    *
+    * @param sName    the queue name
+    * @param options  the {@link NamedQueue.Option}s to control any optional
+    *                  queue configuration
+    *
+    * @return  a NamedQueue created
+    */
+    public default  <V> NamedQueue<V> ensureQueue(String sName, NamedQueue.Option... options)
+        {
+        return ensureQueue(sName, (ClassLoader)null, options);
+        }
+
+    /**
+    * Ensure an Object-based queue for the given name.
+    *
+    * @param sName    the queue name
+    * @param loader   ClassLoader that should be used to deserialize
+    *                 objects in the cache
+    * @param options  the {@link NamedQueue.Option}s to control any optional
+    *                 queue configuration
+    *
+    * @return  a NamedQueue created
+    */
+    public <V> NamedQueue<V> ensureQueue(String sName, ClassLoader loader, NamedQueue.Option... options);
+
+
+    /**
+    * Ensure an Object-based queue for the given name.
+    *
+    * @param sName    the queue name
+    * @param options  the {@link NamedQueue.Option}s to control any optional
+    *                  queue configuration
+    *
+    * @return  a NamedQueue created
+    */
+    public default  <V> NamedDeque<V> ensureDeque(String sName, NamedQueue.Option... options)
+        {
+        return ensureDeque(sName, (ClassLoader)null, options);
+        }
+
+    /**
+    * Ensure an Object-based queue for the given name.
+    *
+    * @param sName    the queue name
+    * @param loader   ClassLoader that should be used to deserialize
+    *                 objects in the cache
+    * @param options  the {@link NamedQueue.Option}s to control any optional
+    *                 queue configuration
+    *
+    * @return  a NamedQueue created
+    */
+    public <V> NamedDeque<V> ensureDeque(String sName, ClassLoader loader, NamedQueue.Option... options);
+
+    /**
+    * Release a {@link NamedQueue} and its associated resources.
+    * <p>
+    * Releasing a queue makes it no longer usable, but does not affect the
+    * queue itself. In other words, all other references to the queue will still
+    * be valid, and the queue data is not affected by releasing the reference.
+    * Any attempt to use the released queue reference afterword will result in
+    * an exception.
+    *
+    * @param queue  the queue to release
+    */
+    public void releaseQueue(NamedQueue<?> queue);
+
+    /**
+    * Release and destroy this instance of {@link NamedQueue}.
+    * <p>
+    * <b>Warning:</b> This method is used to completely destroy the specified
+    * queue across the cluster. All references in the entire cluster to this
+    * queue will be invalidated, the queue data will be cleared, and all
+    * internal and associated resources will be released.
+    *
+    * @param queue  the queue to release
+    */
+    public void destroyQueue(NamedQueue<?> queue);
 
     /**
     * Ensure a service for the given name.

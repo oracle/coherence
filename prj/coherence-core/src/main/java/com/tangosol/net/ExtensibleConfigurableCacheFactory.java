@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
+import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Disposable;
 
 import com.oracle.coherence.common.base.Lockable;
@@ -24,12 +25,12 @@ import com.tangosol.coherence.config.ResolvableParameterList;
 import com.tangosol.coherence.config.ServiceSchemeRegistry;
 import com.tangosol.coherence.config.TopicMapping;
 
+import com.tangosol.coherence.config.TypedResourceMapping;
 import com.tangosol.coherence.config.builder.MapBuilder;
 import com.tangosol.coherence.config.builder.NamedCacheBuilder;
 import com.tangosol.coherence.config.builder.NamedCollectionBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilderRegistry;
-import com.tangosol.coherence.config.builder.ReadLocatorBuilder;
 import com.tangosol.coherence.config.builder.ServiceBuilder;
 import com.tangosol.coherence.config.builder.SubscriberGroupBuilder;
 
@@ -63,6 +64,8 @@ import com.tangosol.config.expression.SystemPropertyParameterResolver;
 
 import com.tangosol.config.xml.DocumentProcessor;
 
+import com.tangosol.internal.net.queue.NamedCacheDeque;
+import com.tangosol.internal.net.queue.model.QueueKey;
 import com.tangosol.io.BinaryStore;
 import com.tangosol.io.ClassLoaderAware;
 
@@ -109,6 +112,7 @@ import com.tangosol.run.xml.XmlHelper;
 import com.tangosol.run.xml.XmlValue;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.ChainedResourceResolver;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.MapSet;
@@ -118,8 +122,7 @@ import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.Resources;
 import com.tangosol.util.SafeHashMap;
 import com.tangosol.util.SimpleResourceRegistry;
-
-import static com.tangosol.util.Base.ensureRuntimeException;
+import com.tangosol.util.SimpleResourceResolver;
 
 import java.io.File;
 
@@ -175,6 +178,7 @@ import java.util.function.BiFunction;
  *
  * @since Coherence 12.1.2
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ExtensibleConfigurableCacheFactory
         extends Base
         implements ConfigurableCacheFactory
@@ -199,6 +203,9 @@ public class ExtensibleConfigurableCacheFactory
 
         f_storeTopics   = new ScopedReferenceStore<>(NamedTopic.class, NamedTopic::isActive,
                                                    NamedTopic::getName, NamedTopic::getService);
+
+        f_storeQueues   = new ScopedReferenceStore<>(NamedDeque.class, NamedDeque::isActive,
+                                                   NamedDeque::getName, NamedDeque::getService);
 
         m_fActivated    = false;
         m_fDisposed     = false;
@@ -404,47 +411,54 @@ public class ExtensibleConfigurableCacheFactory
         Base.checkNotEmpty(sName, "name");
 
         PrivilegedAction<NamedTopic> action =
-            () -> ensureCollectionInternal(sName, NamedTopic.class, loader, f_storeTopics, options);
+            () -> ensureCollectionInternal(sName, NamedTopic.class, loader, f_storeTopics, TopicMapping.class, options);
 
         return AccessController.doPrivileged(new DoAsAction<>(action));
         }
 
-    /**
-     * Ensure an Object-based collection for the given name.
-     *
-     * @param sName          the name of the collection
-     * @param clsCollection  the type of the values in the collection
-     * @param loader         the {@link ClassLoader} to use
-     * @param store          the {@link ScopedReferenceStore} that holds collection references
-     * @param options        the options to use to configure the collection
-     *
-     * @param <C>  the type of the collection
-     * @param <V>  the type of the values in the collection
-     *
-     * @return  an Object-based collection for the given name
-     */
-    private <C extends NamedCollection, V> C ensureCollectionInternal(String sName, Class<C> clsCollection,
-        ClassLoader loader, ScopedReferenceStore<C> store, NamedCollection.Option... options)
+    @Override
+    public <E> NamedQueue<E> ensureQueue(String sName, ClassLoader loader, NamedQueue.Option... options)
         {
-        Options<NamedTopic.Option> optsNamedTopic = Options.from(NamedTopic.Option.class, options);
-        ValueTypeAssertion<V>      constraint     = optsNamedTopic.get(ValueTypeAssertion.class);
-        C                          collection;
-        ParameterResolver          resolver;
-        MapBuilder.Dependencies    dependencies;
+        return ensureDeque(sName, loader, options);
+        }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <E> NamedDeque<E> ensureDeque(String sName, ClassLoader loader, NamedCollection.Option... options)
+        {
+        assertNotDisposed();
+
+        Base.checkNotEmpty(sName, "name");
+
+        PrivilegedAction<NamedDeque<E>> action =
+            () -> ensureCollectionInternal(sName, NamedDeque.class, loader, f_storeQueues, CacheMapping.class, options);
+
+        return AccessController.doPrivileged(new DoAsAction<>(action));
+        }
+
+    <C extends NamedCollection, M extends TypedResourceMapping, V>
+    C ensureCollectionInternal(String sName, Class<C> clsCollection, ClassLoader loader, ScopedReferenceStore<C> store,
+                          Class<M> clzMapping, NamedCollection.Option... aOption)
+        {
+        Options<NamedCollection.Option> options      = Options.from(NamedCollection.Option.class, aOption);
+        ValueTypeAssertion<V>           constraint   = options.get(ValueTypeAssertion.class);
+        C                               collection;
+        ParameterResolver               resolver;
+        MapBuilder.Dependencies         dependencies;
 
         if (loader == null)
             {
             // No ClassLoader specified so check whether there is an option specifying one
             // If there was no ClassLoader option the default will be the context classloader
-            loader = optsNamedTopic.get(WithClassLoader.class, WithClassLoader.autoDetect()).getClassLoader();
+            loader = options.get(WithClassLoader.class, WithClassLoader.autoDetect()).getClassLoader();
             }
 
-        loader = Base.ensureClassLoader(loader);
+        loader = Classes.ensureClassLoader(loader);
 
         while (true)
             {
-            // find the topic mapping for the collection
-            TopicMapping mapping = f_cacheConfig.getMappingRegistry().findMapping(sName, TopicMapping.class);
+            // find the collection mapping for the collection
+            TypedResourceMapping<C> mapping = f_cacheConfig.getMappingRegistry().findMapping(sName, clzMapping);
 
             if (mapping == null)
                 {
@@ -484,13 +498,6 @@ public class ExtensibleConfigurableCacheFactory
 
                 throw new IllegalArgumentException(sMsg);
                 }
-            else if (!(serviceScheme instanceof NamedCollectionBuilder))
-                {
-                String sMsg = String.format("The scheme %s for collection %s cannot build a %s",
-                                            mapping.getSchemeName(), sName, clsCollection);
-
-                throw new IllegalArgumentException(sMsg);
-                }
 
             // there are instances of sibling caches for different
             // class loaders; check for and clear invalid references
@@ -505,7 +512,7 @@ public class ExtensibleConfigurableCacheFactory
                 }
 
             // create (realize) the collection
-            NamedCollectionBuilder<C> bldrCollection = (NamedCollectionBuilder<C>) serviceScheme;
+            NamedCollectionBuilder<C> bldrCollection = serviceScheme.getNamedCollectionBuilder(clsCollection, options);
 
             Base.checkNotNull(bldrCollection, "NamedCollectionBuilder");
 
@@ -518,16 +525,18 @@ public class ExtensibleConfigurableCacheFactory
                 throw new IllegalStateException(sMsg);
                 }
 
-            resolver      = getParameterResolver(sName, TopicMapping.class, loader, null);
+            ParameterResolver paramResolver = getParameterResolver(sName, clzMapping, loader, null);
+            ParameterResolver resolverOpts  = new ResolvableParameterList(Collections.singletonMap("options", options));
+
+            resolver      = new ChainedParameterResolver(paramResolver, resolverOpts);
             dependencies  = new MapBuilder.Dependencies(this, null, loader, sName,
                                                         serviceScheme.getServiceType());
 
-            collection    = bldrCollection.realize(constraint, resolver, dependencies);
+            mapping.preConstruct(null, resolver, dependencies);
 
-            for (SubscriberGroupBuilder builder : mapping.getSubscriberGroupBuilders())
-                {
-                builder.realize((NamedTopic) collection, resolver);
-                }
+            collection = bldrCollection.realize(constraint, resolver, dependencies);
+
+            mapping.postConstruct(null, collection, resolver, dependencies);
 
             if (store.putIfAbsent(collection, loader) == null)
                 {
@@ -1266,8 +1275,8 @@ public class ExtensibleConfigurableCacheFactory
      * @param collection  the collection to release
      * @param fDestroy     true to destroy the collection as well
      */
-    private  <C extends NamedCollection> void releaseCollection(C collection, boolean fDestroy,
-            ScopedReferenceStore<C> store)
+    private  void releaseCollection(NamedCollection collection, boolean fDestroy,
+            ScopedReferenceStore store)
         {
         String      sName   = collection.getName();
         ClassLoader loader  = collection instanceof ClassLoaderAware
@@ -1292,6 +1301,18 @@ public class ExtensibleConfigurableCacheFactory
                 + " was created using a different factory; that same"
                 + " factory should be used to release the collection.");
             }
+        }
+
+    @Override
+    public void releaseQueue(NamedQueue<?> queue)
+        {
+        releaseCollection(queue, false, f_storeQueues);
+        }
+
+    @Override
+    public void destroyQueue(NamedQueue<?> queue)
+        {
+        releaseCollection(queue, true, f_storeQueues);
         }
 
     /**
@@ -2685,6 +2706,13 @@ public class ExtensibleConfigurableCacheFactory
      * if configured, Subject.
      */
     protected final ScopedReferenceStore<NamedTopic> f_storeTopics;
+
+    /**
+     * Store of queue references with subject scoping if configured.
+     */
+    @SuppressWarnings({"rawtypes"})
+    private final ScopedReferenceStore<NamedDeque> f_storeQueues;
+
 
     /**
      * ConfigurableCacheFactoryDispatcher linked to this cache factory.

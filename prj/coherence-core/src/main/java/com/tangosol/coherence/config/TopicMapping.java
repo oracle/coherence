@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config;
 
+import com.tangosol.application.ContainerContext;
+import com.tangosol.coherence.config.builder.MapBuilder;
 import com.tangosol.coherence.config.builder.SubscriberGroupBuilder;
 import com.tangosol.coherence.config.scheme.Scheme;
 import com.tangosol.coherence.config.scheme.TopicScheme;
@@ -42,8 +44,9 @@ import java.util.LinkedList;
  * @author jk  2015.05.28
  * @since Coherence 14.1.1
  */
-public class TopicMapping
-        extends ResourceMapping
+@SuppressWarnings("rawtypes")
+public class TopicMapping<R extends NamedTopic>
+        extends TypedResourceMapping<R>
     {
     // ----- constructors ---------------------------------------------------
 
@@ -60,7 +63,6 @@ public class TopicMapping
         super(sTopicNamePattern, sCachingSchemeName);
 
         f_clsSchemeType   = clsScheme;
-        m_sNameValueClass = null;
         }
 
     // ----- ResourceMapping methods --------------------------------------------
@@ -90,36 +92,11 @@ public class TopicMapping
 
     // ----- TopicMapping methods -------------------------------------------
 
-    /**
-     * Obtains the name of the value class for {@link NamedTopic}s using this {@link TopicMapping}.
-     *
-     * @return the name of the value class or <code>null</code> if rawtypes are being used
-     */
-    public String getValueClassName()
-        {
-        return m_sNameValueClass;
-        }
-
-    /**
-     * Sets the name of the value class for {@link NamedTopic}s using this {@link TopicMapping}.
-     *
-     * @param sElementClassName the name of the value class or <code>null</code> if rawtypes are being used
-     */
+    @Override
     @Injectable("value-type")
     public void setValueClassName(String sElementClassName)
         {
-        m_sNameValueClass = ClassHelper.getFullyQualifiedClassNameOf(sElementClassName);
-        }
-
-    /**
-     * Determines if the {@link TopicMapping} is configured to use raw-types
-     * (ie: no type checking or constraints)
-     *
-     * @return <code>true</code> if using raw types, <code>false</code> otherwise
-     */
-    public boolean usesRawTypes()
-        {
-        return m_sNameValueClass == null;
+        super.setValueClassName(sElementClassName);
         }
 
     /**
@@ -143,12 +120,17 @@ public class TopicMapping
         return m_colSubscriberGroupBuilder;
         }
 
-    // ----- data members ---------------------------------------------------
+    @Override
+    @SuppressWarnings("unchecked")
+    public void postConstruct(ContainerContext context, R topic, ParameterResolver resolver, MapBuilder.Dependencies dependencies)
+        {
+        for (SubscriberGroupBuilder builder : getSubscriberGroupBuilders())
+            {
+            builder.realize((NamedTopic) topic, resolver);
+            }
+        }
 
-    /**
-     * The name of the value class or <code>null</code> if rawtypes are being used (the default).
-     */
-    private String m_sNameValueClass;
+    // ----- data members ---------------------------------------------------
 
     /**
      * The type of scheme that this mapping should map to
