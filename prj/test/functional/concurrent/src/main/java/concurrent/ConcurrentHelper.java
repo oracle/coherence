@@ -1,10 +1,14 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package concurrent;
+
+import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
+
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.common.base.Exceptions;
 
@@ -18,6 +22,8 @@ import com.oracle.coherence.concurrent.internal.LatchCounter;
 import com.tangosol.net.NamedMap;
 
 import java.lang.reflect.Method;
+
+import org.hamcrest.core.Is;
 
 /**
  * Utilities to access protected methods in Coherence Concurrent.
@@ -78,5 +84,18 @@ public class ConcurrentHelper
             {
             return Latches.latchesMap();
             }
+        }
+
+    /**
+     * Ensure the concurrent service is available throughout the cluster.
+     *
+     * @param cluster  the {@link CoherenceCluster}
+     */
+    public static void ensureConcurrentServiceRunning(CoherenceCluster cluster)
+        {
+        cluster.stream()
+                .forEach(member ->
+                                 Eventually.assertDeferred(
+                                         () -> member.isServiceRunning("$SYS:Concurrent"), Is.is(true)));
         }
     }
