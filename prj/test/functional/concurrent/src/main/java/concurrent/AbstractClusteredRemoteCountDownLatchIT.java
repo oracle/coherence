@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -254,6 +254,8 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
 
         m_coherenceResource.getCluster().filter(member -> member.getLocalMemberUID().equals(member1.getLocalMemberUID())).relaunch();
         CoherenceClusterMember newMember1 = m_coherenceResource.getCluster().get("storage-1");
+
+        ConcurrentHelper.ensureConcurrentServiceRunning(m_coherenceResource.getCluster());
 
         futureAcquire = newMember1.submit(new AbstractClusteredRemoteCountDownLatchIT.AcquireLatch(sName, count));
         listener1.awaitAcquired(Duration.ofSeconds(10));
