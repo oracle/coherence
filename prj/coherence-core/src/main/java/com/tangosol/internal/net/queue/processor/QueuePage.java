@@ -21,6 +21,7 @@ import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.Converter;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.ObservableMap;
+import jakarta.json.bind.annotation.JsonbProperty;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -34,6 +35,9 @@ public class QueuePage<E>
         extends AbstractQueueProcessor<QueueKey, E, QueuePageResult<E>>
         implements EvolvablePortableObject, ExternalizableLite
     {
+    /**
+     * Default constructor required for serialization.
+     */
     public QueuePage()
         {
         }
@@ -145,11 +149,15 @@ public class QueuePage<E>
      */
     public static final int IMPL_VERSION = 1;
 
+    @JsonbProperty("head")
     private boolean m_fHead;
 
+    @JsonbProperty("size")
     private long m_nPageSize;
 
+    @JsonbProperty("lastId")
     private long m_nLastId;
 
+    @JsonbProperty("isPoll")
     private boolean m_fPoll;
     }

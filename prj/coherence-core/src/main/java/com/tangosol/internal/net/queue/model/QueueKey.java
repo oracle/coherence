@@ -13,22 +13,34 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 import com.tangosol.net.cache.KeyAssociation;
+import jakarta.json.bind.annotation.JsonbProperty;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * The key for an entry in a queue.
+ */
 public class QueueKey
         implements PortableObject, ExternalizableLite, KeyAssociation<Integer>, Comparable<QueueKey>
     {
+    /**
+     * Default constructor for serialization.
+     */
     public QueueKey()
         {
         }
 
+    /**
+     * Create a {@link QueueKey}.
+     *
+     * @param nHash  the hash to identify the queue
+     * @param nId    the position of the entry in the queue
+     */
     public QueueKey(int nHash, long nId)
         {
         m_nHash = nHash;
@@ -37,32 +49,62 @@ public class QueueKey
 
     // ----- accessors ------------------------------------------------------
 
+    /**
+     * Obtain the hash used to identify the queue.
+     *
+     * @return the hash used to identify the queue
+     */
     public int getHash()
         {
         return m_nHash;
         }
 
+    /**
+     * Return the position of the entry in the queue.
+     *
+     * @return the position of the entry in the queue
+     */
     public long getId()
         {
         return m_nId;
         }
 
+    /**
+     * Return the key of the next entry in the queue.
+     *
+     * @return  the key of the next entry in the queue
+     */
     public QueueKey next()
         {
         return new QueueKey(m_nHash, m_nId + 1);
         }
 
+    /**
+     * Return the key of the previous entry in the queue.
+     *
+     * @return  the key of the previous entry in the queue
+     */
     public QueueKey prev()
         {
         return new QueueKey(m_nHash, m_nId - 1);
         }
 
+    /**
+     * Return a random head entry key.
+     *
+     * @return a random head entry key
+     */
     public QueueKey randomHead()
         {
         int n = Math.min(-1, -Math.abs(ThreadLocalRandom.current().nextInt()));
         return new QueueKey(m_nHash, n);
         }
 
+    /**
+     * Return a random tail entry key.
+     *
+     * @return a random tail entry key
+     */
     public QueueKey randomTail()
         {
         int n = Math.max(1, Math.abs(ThreadLocalRandom.current().nextInt()));
@@ -199,7 +241,9 @@ public class QueueKey
 
     // ----- data members ---------------------------------------------------
 
+    @JsonbProperty("hash")
     private int m_nHash;
 
+    @JsonbProperty("id")
     private long m_nId;
     }

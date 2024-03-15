@@ -145,15 +145,13 @@ public abstract class AbstractQueueProcessor<K, V, R>
             return new QueueOfferResult(entry.getKey().getId(), QueueOfferResult.RESULT_FAILED_CAPACITY);
             }
 
-        QueueIndex                index       = assertQueueIndex(entry);
-//        long                      nTail       = index.tail(QueueKey.EMPTY_ID);
-//        QueueKey                  keyNext     = new QueueKey(entry.getKey().getHash(), nTail + 1);
-        long                      nTail       = index.nextTailOffer();
-        QueueKey                  keyNext     = new QueueKey(entry.getKey().getHash(), nTail);
-        BackingMapManagerContext  mgrContext  = context.getManagerContext();
-        Converter                 converter   = mgrContext.getKeyToInternalConverter();
-        Binary                    binKeyNext  = (Binary) converter.convert(keyNext);
-        BinaryEntry<Long, Object> entryTail   = (BinaryEntry<Long, Object>) context.getBackingMapEntry(binKeyNext);
+        QueueIndex                index      = assertQueueIndex(entry);
+        long                      nTail      = index.nextTailOffer();
+        QueueKey                  keyNext    = new QueueKey(entry.getKey().getHash(), nTail);
+        BackingMapManagerContext  mgrContext = context.getManagerContext();
+        Converter                 converter  = mgrContext.getKeyToInternalConverter();
+        Binary                    binKeyNext = (Binary) converter.convert(keyNext);
+        BinaryEntry<Long, Object> entryTail  = (BinaryEntry<Long, Object>) context.getBackingMapEntry(binKeyNext);
 
         while (entryTail.isPresent())
             {
@@ -187,15 +185,13 @@ public abstract class AbstractQueueProcessor<K, V, R>
             return new QueueOfferResult(entry.getKey().getId(), QueueOfferResult.RESULT_FAILED_CAPACITY);
             }
 
-        QueueIndex                index       = assertQueueIndex(entry);
-//        long                      nHead       = index.head(QueueKey.EMPTY_ID);
-//        QueueKey                  keyPrev     = new QueueKey(entry.getKey().getHash(), nHead - 1);
-        long                      nHead       = index.nextHeadOffer();
-        QueueKey                  keyPrev     = new QueueKey(entry.getKey().getHash(), nHead);
-        BackingMapManagerContext  mgrContext  = context.getManagerContext();
-        Converter                 converter   = mgrContext.getKeyToInternalConverter();
-        Binary                    binKeyPrev  = (Binary) converter.convert(keyPrev);
-        BinaryEntry<Long, Object> entryHead   = (BinaryEntry<Long, Object>) context.getBackingMapEntry(binKeyPrev);
+        QueueIndex                index      = assertQueueIndex(entry);
+        long                      nHead      = index.nextHeadOffer();
+        QueueKey                  keyPrev    = new QueueKey(entry.getKey().getHash(), nHead);
+        BackingMapManagerContext  mgrContext = context.getManagerContext();
+        Converter                 converter  = mgrContext.getKeyToInternalConverter();
+        Binary                    binKeyPrev = (Binary) converter.convert(keyPrev);
+        BinaryEntry<Long, Object> entryHead  = (BinaryEntry<Long, Object>) context.getBackingMapEntry(binKeyPrev);
 
         while (entryHead.isPresent())
             {
