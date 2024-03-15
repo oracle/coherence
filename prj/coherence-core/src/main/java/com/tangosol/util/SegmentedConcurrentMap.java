@@ -997,7 +997,7 @@ public class SegmentedConcurrentMap
 
                     Logger.info("SegmentedConcurrentMap.dump: " + "LockableEntry@" + Integer.toHexString(System.identityHashCode(entry)) +
                                 " key=" + entry.getKey() + " lock count=" + entry.m_cLock +
-                                " owner: [" + thread + "] contend:" + entry.m_cContend + " isThreadAlive: " + SegmentedConcurrentMap.LockableEntry.isAlive(thread));
+                                " owner: [" + thread + "] contend:" + entry.m_cContend + " isThreadAlive: " + isAlive(thread));
                     return Boolean.TRUE;
                     }
                 catch (Throwable t)
@@ -1216,35 +1216,6 @@ public class SegmentedConcurrentMap
             }
 
         /**
-         * For diagnostic use only, detect Daemon pool thread is no longer active.
-         * This method is only used in dumpHeldLocks() to automate checking if a LockableEntry is pointing
-         * to a DaemonThread pool that is in waiting state.  This method does not account
-         * for any other ThreadPool implementation except Coherences.
-         *
-         * @param t  the thread
-         * @return true iff the stack trace does not include Daemon.wait().
-         *
-         * @since 12.2.1.4.21
-         */
-         static boolean isAlive(Thread t)
-            {
-            if (!t.isAlive())
-                {
-                return false;
-                }
-
-            StackTraceElement[] arElement = t.getStackTrace();
-
-            if (!stream(arElement).anyMatch((e)-> e.getClassName().endsWith(".Daemon") && e.getMethodName().compareTo("run") == 0))
-                {
-                // not a Daemon Thread
-                return true;
-                }
-
-            return !stream(arElement).anyMatch((e)-> e.getClassName().endsWith(".Daemon") && e.getMethodName().compareTo("onWait") == 0);
-            }
-
-        /**
         * Lock this entry for the specified lock holder.
         * <p>
         * Note: caller of this method is expected to have locked the segment
@@ -1374,6 +1345,34 @@ public class SegmentedConcurrentMap
         public void onUncontend(Object oContender, LockableEntry entry);
         }
 
+    /**
+     * For diagnostic use only, detect Daemon pool thread is no longer active.
+     * This method is only used in dumpHeldLocks() to automate checking if a LockableEntry is pointing
+     * to a DaemonThread pool that is in waiting state.  This method does not account
+     * for any other ThreadPool implementation except Coherences.
+     *
+     * @param t  the thread
+     * @return true iff the stack trace does not include Daemon.wait().
+     *
+     * @since 12.2.1.4.21
+     */
+    static public boolean isAlive(Thread t)
+        {
+        if (!t.isAlive())
+            {
+            return false;
+            }
+
+        StackTraceElement[] arElement = t.getStackTrace();
+
+        if (!stream(arElement).anyMatch((e)-> e.getClassName().endsWith(".Daemon") && e.getMethodName().compareTo("run") == 0))
+            {
+            // not a Daemon Thread
+            return true;
+            }
+
+        return !stream(arElement).anyMatch((e)-> e.getClassName().endsWith(".Daemon") && e.getMethodName().compareTo("onWait") == 0);
+        }
 
     // ----- data members ---------------------------------------------------
 
