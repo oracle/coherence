@@ -17,6 +17,7 @@ import com.tangosol.util.Binary;
 import com.tangosol.util.Converter;
 import com.tangosol.util.ConverterCollections;
 import com.tangosol.util.ExternalizableHelper;
+import jakarta.json.bind.annotation.JsonbProperty;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -155,17 +156,21 @@ public class QueuePageResult<E>
      */
     public static final int IMPL_VERSION = 1;
 
+    @JsonbProperty("key")
     private long m_nKey;
 
+    @JsonbProperty("isBinary")
     private boolean m_fBinary;
 
     private transient boolean m_fPOF;
 
+    @JsonbProperty("list")
     private List<E> m_list;
 
+    @JsonbProperty("binaryList")
     private List<Binary> m_listBinary;
 
-    private Converter<Binary, E> m_converterFromBinary;
+    private transient Converter<Binary, E> m_converterFromBinary;
 
-    private Converter<E, Binary> m_converterToBinary;
+    private transient Converter<E, Binary> m_converterToBinary;
     }

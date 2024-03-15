@@ -26,6 +26,15 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+/**
+ * An entry processor to offer values to a queue.
+ * <p>
+ * An offer processor is invoked against a random {@link QueueKey} for a queue.
+ * The {@link QueueKey#getId()} should be positive to offer to the tail and
+ * negative to offer to the head, it should not be zero.
+ *
+ * @param <E>  the type of element in the queue
+ */
 public class QueueOffer<E>
         extends AbstractQueueProcessor<QueueKey, E, QueueOfferResult>
         implements EvolvablePortableObject, ExternalizableLite

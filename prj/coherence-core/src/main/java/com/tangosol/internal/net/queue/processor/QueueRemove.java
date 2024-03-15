@@ -14,6 +14,7 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.LiteMap;
+import jakarta.json.bind.annotation.JsonbProperty;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -22,13 +23,26 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+/**
+ * An entry processor to remove entries from a queue.
+ *
+ * @param <E>  the type of element in the queue
+ */
 public class QueueRemove<E>
         extends AbstractQueueProcessor<QueueKey, E, Boolean>
     {
+    /**
+     * Default constructor required for serialization.
+     */
     public QueueRemove()
         {
         }
 
+    /**
+     * Create a {@link QueueRemove} processor.
+     *
+     * @param m_nTarget  the target of the remove operation
+     */
     private QueueRemove(int m_nTarget)
         {
         this.m_nTarget = m_nTarget;
@@ -199,5 +213,6 @@ public class QueueRemove<E>
 
     // ----- data members ---------------------------------------------------
 
+    @JsonbProperty("target")
     private int m_nTarget;
     }

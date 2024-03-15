@@ -19,6 +19,15 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+/**
+ * An entry processor to poll values from a queue.
+ * <p>
+ * A poll processor is invoked against a specific {@link QueueKey} for a queue.
+ * The {@link QueueKey#getId()} should be {@link Long#MAX_VALUE} to poll from
+ * the head and {@link Long#MIN_VALUE} to poll from the tail.
+ *
+ * @param <E>  the type of element in the queue
+ */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class QueuePoll<E>
         extends AbstractQueueProcessor<QueueKey, E, QueuePollResult>
