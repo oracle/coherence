@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,6 +14,7 @@ import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.AbstractMapListener;
@@ -595,10 +596,20 @@ public class CachingMap<K, V>
                                 {
                                 if (setUnregister != null)
                                     {
+                                    try
+                                        {
                                     unregisterListeners(setUnregister);
+                                        }
+                                    catch (UnsupportedOperationException e)
+                                        {
+                                        // ignore.  can only happen if back map truncated during this call.
+                                        }
+                                    finally
+                                        {
                                     removeKeyHolder();
                                     }
                                 }
+                            }
                             }
                         else
                             {
@@ -807,11 +818,22 @@ public class CachingMap<K, V>
                             {
                             if (setUnregister != null)
                                 {
+                                try
+                                    {
                                 unregisterListeners(setUnregister);
+                                    }
+                                catch (UnsupportedOperationException e)
+                                    {
+                                    // ignore.  can only happen if back map truncated during this call.
+                                    }
+                                finally
+                                    {
+                                    // ensure key holder is removed
                                 removeKeyHolder();
                                 }
                             }
                         }
+                    }
                     }
 
                 m_stats.registerMisses(cMisses, ldtStart);
@@ -1603,7 +1625,6 @@ public class CachingMap<K, V>
             Map mapFront = getFrontMap();
             Map mapBack  = getBackMap();
 
-            String[] asStrategy = {"NONE", "PRESENT", "ALL", "AUTO", "LOGICAL"};
             sb.append("{FrontMap{class=")
               .append(mapFront.getClass().getName())
               .append(", size=")
@@ -1613,7 +1634,7 @@ public class CachingMap<K, V>
               .append(", size=")
               .append(mapBack.size())
               .append("}, strategy=")
-              .append(asStrategy[getInvalidationStrategy()])
+              .append(getInvalidationStrategy(getInvalidationStrategy()))
               .append(", CacheStatistics=")
               .append(getCacheStatistics())
               .append(", invalidation hits=")
@@ -1997,7 +2018,7 @@ public class CachingMap<K, V>
         public void entryUpdated(MapEvent evt)
             {
             // "truncate" event
-            resetFrontMap();
+            onTruncate();
             }
         }
 
@@ -2014,6 +2035,86 @@ public class CachingMap<K, V>
         catch (RuntimeException e) {}
 
         resetInvalidationStrategy();
+        }
+
+    // ----- helper ---------------------------------------------------------
+
+    /**
+     * Reset front map and control map when back map is truncated.
+     * Post condition is front map is reset, current invalidationStrategy reset to NONE (will be ensured from target invalidation strategy)
+     * and control map must not contain any non-synthetic lockable entries for keys.
+     */
+    private void onTruncate()
+        {
+        if (m_nStrategyTarget == LISTEN_NONE)
+            {
+            resetFrontMap();
+            return;
+            }
+
+        long                   ldtStartTime = Base.getSafeTimeMillis();
+        SegmentedConcurrentMap mapControl   = (SegmentedConcurrentMap) getControlMap();
+
+        // block any getAll/putAll starting
+        mapControl.put(GLOBAL_KEY, IGNORE_LIST);
+
+        // Note: we cannot do a blocking LOCK_ALL as any event which came
+        // in while the ThreadGate is in the closing state would cause the
+        // service thread to spin.  Try for up ~3s before giving up acquiring
+        // LOCK_ALL and just complete reset of front map and truncate of its control map.
+        // We don't even risk a timed LOCK_ALL as whatever
+        // time value we choose would risk a useless spin for that duration
+        final long ldtDurationMs     = 3000;
+        final long ldtWaitDeadlineMs = ldtStartTime + ldtDurationMs;
+
+        while (!mapControl.lock(ConcurrentMap.LOCK_ALL, 0) && Base.getSafeTimeMillis() < ldtWaitDeadlineMs)
+            {
+            try
+                {
+                Blocking.sleep(10);
+                }
+            catch (InterruptedException e)
+                {
+                Thread.currentThread().interrupt();
+                throw Base.ensureRuntimeException(e);
+                }
+            }
+        try
+            {
+            // All entries and registered key listeners have been truncated from backing map.
+            // Perform truncate on near cache front and control map.
+            // No entries should be in front and control map after exiting synchronize block.
+            synchronized (GLOBAL_KEY)
+                {
+                resetFrontMap();
+                mapControl.truncate();
+                }
+            }
+        catch (RuntimeException e)
+            {
+            CacheFactory.log("CachingMap.onTruncate: unexpected exception " + e + " \nStack trace: " + Base.printStackTrace(e), Base.LOG_DEBUG);
+            CacheFactory.log("CachingMap.onTruncate: unexpected held key locks", Base.LOG_DEBUG);
+            mapControl.dumpHeldLocks();
+            }
+        finally
+            {
+            mapControl.remove(GLOBAL_KEY);
+            mapControl.unlock(ConcurrentMap.LOCK_ALL);
+            }
+        }
+
+    /**
+     * Return string representation for invalidation strategy {@code value}.
+     *
+     * @param value  one of LISTEN_*
+     *
+     * @return string for invalidation strategy
+     *
+     * @since 12.2.1.4.21
+     */
+    public String getInvalidationStrategy(int value)
+        {
+        return value >= 0 && value < INVALIDATION_STRATEGY.length ? INVALIDATION_STRATEGY[value] : "<unknown invalidation strategy:" + value + ">";
         }
 
     /**
@@ -2172,6 +2273,13 @@ public class CachingMap<K, V>
     * map to be invalidated).
     */
     public static final int LISTEN_LOGICAL = 4;
+
+    /**
+     * String representation for {@link #LISTEN_NONE}, {@link #LISTEN_PRESENT}, {@link #LISTEN_ALL}, {@link #LISTEN_AUTO}, {@link #LISTEN_LOGICAL}.
+     *
+     * @since 12.2.1.4.21
+     */
+    public static final String[] INVALIDATION_STRATEGY = {"NONE", "PRESENT", "ALL", "AUTO", "LOGICAL"};
 
     /**
     * Specifies whether the back map listener strictly adheres to the
