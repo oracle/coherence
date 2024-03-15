@@ -9,8 +9,11 @@ package com.tangosol.util;
 
 
 import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Logger;
+
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
+import static java.util.Arrays.stream;
 
 /**
 * An implementation of SegmentedHashMap that also implements the ConcurrentMap
@@ -171,6 +174,30 @@ public class SegmentedConcurrentMap
     protected void setConditionalRemoveAction(ConditionalRemoveAction action)
         {
         m_actionConditionalRemove = action;
+        }
+
+    /**
+     * Specify the action for truncate.
+     *
+     * @param action  the action for truncate
+     *
+     * @since 12.2.1.4.21
+     */
+    protected void setTruncateAction(TruncateAction action)
+        {
+        m_actionTruncate = action;
+        }
+
+    /**
+     * Specify the action for dump held locks.
+     *
+     * @param action  the action for dump held locks
+     *
+     * @since 12.2.1.4.21
+     */
+    protected void setDumpHeldLocksAction(DumpHeldLocksAction action)
+        {
+        m_actionDumpHeldLocks = action;
         }
 
     /**
@@ -432,8 +459,39 @@ public class SegmentedConcurrentMap
 
         /* conditional remove action */
         setConditionalRemoveAction(instantiateConditionalRemoveAction());
+
+        /* truncate action */
+        setTruncateAction(instantiateTruncateAction());
+
+        /* dumpHeldLocks action */
+        setDumpHeldLocksAction(instantiateDumpHeldLocksAction());
         }
 
+    /**
+     * Truncate operation for control map.
+     *
+     * @since 12.2.1.4.21
+     */
+    public void truncate()
+        {
+        // invoke the truncate action over all LockableEntries, interrupt each thread that is owned by a lock and unlock the lock.
+        // no locking is used by invokeOnALlKeys since this is reacting to an asynchronous truncate of backing map,
+        // all pending operations need to be interrupted immediately.
+        invokeOnAllKeys(/*oContext*/ null, /*fLock*/ false, new TruncateAction());
+
+        // reset map. Only synthetic contended, unlocked LockableEntries left after clear.
+        clear();
+        }
+
+    /**
+     * Debug aid to dump threads holding locks.
+     *
+     * @since 12.2.1.4.21
+     */
+    public void dumpHeldLocks()
+        {
+        invokeOnAllKeys(/*oContext*/ null, /*fLock*/ false, new DumpHeldLocksAction());
+        }
 
     // ----- inner class: RemoveAction --------------------------------------
 
@@ -818,6 +876,147 @@ public class SegmentedConcurrentMap
             }
         }
 
+    // ----- inner class: TruncateAction -------------------------------------
+
+    /**
+     * Factory for TruncateAction
+     *
+     * @return a TruncateAction
+     *
+     * @since 12.2.1.4.21
+     */
+    protected TruncateAction instantiateTruncateAction()
+        {
+        return new TruncateAction();
+        }
+
+    /**
+     * Action support for truncate() for a NearCache key/events control map.
+     * This operation supports interrupting {@link LockableEntry#getLockHolder() lock holder thread} and unlocking {@link LockableEntry} <code>entryCur</code>.
+     *
+     * @since 12.2.1.4.21
+     */
+    protected class TruncateAction
+            extends EntryActionAdapter
+        {
+        @Override
+        public Object invokeFound(Object oKey,
+                                  Object oContext,
+                                  SegmentedHashMap.Entry[] aeBucket,
+                                  int nBucket,
+                                  SegmentedHashMap.Entry entryPrev,
+                                  SegmentedHashMap.Entry entryCur)
+            {
+            LockableEntry entry      = (LockableEntry) entryCur;
+            Object        lockHolder = entry.getLockHolder();
+
+            if (lockHolder != null && lockHolder instanceof Thread)
+                {
+                try
+                    {
+                    Thread thread = (Thread) lockHolder;
+
+                    thread.interrupt();
+                    Logger.fine("TruncateAction: interrupted lock holder thread: " + thread.getName() + " holding lock on key: " + entry.getKey() +
+                                " LockableEntry@" + Integer.toHexString(System.identityHashCode(entry)));
+
+                    // the lock holder is interrupted - release the lock
+                    //
+                    // Note: the order is important; once we clear the lockholder,
+                    //       concurrent threads may proceed to lock as we do not
+                    //       hold the segment lock here
+                    entry.m_cLock       = 0;
+                    entry.m_oLockHolder = null;
+
+                    synchronized (entry)
+                        {
+                        if (entry.isContended())
+                            {
+                            // notify a contending thread
+                            entry.notify();
+                            }
+                        }
+                    return Boolean.TRUE;
+                    }
+                catch (Throwable t)
+                    {
+                    // ignore
+                    }
+                }
+            return Boolean.FALSE;
+            }
+
+        @Override
+        public Object invokeNotFound(Object oKey,
+                                     Object oContext,
+                                     SegmentedHashMap.Entry[] aeBucket,
+                                     int nBucket)
+            {
+            return Boolean.FALSE;
+            }
+        }
+
+    // ----- inner class: LocksDumpAction ------------------------------
+
+    /**
+     * Factory for LocksDumpAction
+     *
+     * @return a LocksDumpAction
+     *
+     * @since 12.2.1.4.21
+     */
+    protected DumpHeldLocksAction instantiateDumpHeldLocksAction()
+        {
+        return new DumpHeldLocksAction();
+        }
+
+    /**
+     * Action support for dumping held locks for a NearCache key/events control map.
+     *
+     * @since 12.2.1.4.21
+     */
+    protected class DumpHeldLocksAction
+            extends EntryActionAdapter
+        {
+        @Override
+        public Object invokeFound(Object oKey,
+                                  Object oContext,
+                                  SegmentedHashMap.Entry[] aeBucket,
+                                  int nBucket,
+                                  SegmentedHashMap.Entry entryPrev,
+                                  SegmentedHashMap.Entry entryCur)
+            {
+            LockableEntry entry = (LockableEntry) entryCur;
+            Object lockHolder = entry.getLockHolder();
+
+            if (lockHolder != null && lockHolder instanceof Thread)
+                {
+                try
+                    {
+                    Thread thread = (Thread) lockHolder;
+
+                    Logger.info("SegmentedConcurrentMap.dump: " + "LockableEntry@" + Integer.toHexString(System.identityHashCode(entry)) +
+                                " key=" + entry.getKey() + " lock count=" + entry.m_cLock +
+                                " owner: [" + thread + "] contend:" + entry.m_cContend + " isThreadAlive: " + isAlive(thread));
+                    return Boolean.TRUE;
+                    }
+                catch (Throwable t)
+                    {
+                    // ignore
+                    }
+                }
+            return Boolean.FALSE;
+            }
+
+        @Override
+        public Object invokeNotFound(Object oKey,
+                                     Object oContext,
+                                     SegmentedHashMap.Entry[] aeBucket,
+                                     int nBucket)
+            {
+            return Boolean.FALSE;
+            }
+        }
 
     // ----- inner class: LockableEntry -------------------------------------
 
@@ -983,7 +1182,7 @@ public class SegmentedConcurrentMap
                 // and this thread needs to then wake up and take the lock
                 long cMaxWait = 1000L;
                 long cMillis =
-                    (cWait <= 0L || cWait > cMaxWait) ? cMaxWait : cWait;
+                        (cWait <= 0L || cWait > cMaxWait) ? cMaxWait : cWait;
 
                 Blocking.wait(this, cMillis);
                 }
@@ -1146,6 +1345,34 @@ public class SegmentedConcurrentMap
         public void onUncontend(Object oContender, LockableEntry entry);
         }
 
+    /**
+     * For diagnostic use only, detect Daemon pool thread is no longer active.
+     * This method is only used in dumpHeldLocks() to automate checking if a LockableEntry is pointing
+     * to a DaemonThread pool that is in waiting state.  This method does not account
+     * for any other ThreadPool implementation except Coherences.
+     *
+     * @param t  the thread
+     * @return true iff the stack trace does not include Daemon.wait().
+     *
+     * @since 12.2.1.4.21
+     */
+    static public boolean isAlive(Thread t)
+        {
+        if (!t.isAlive())
+            {
+            return false;
+            }
+
+        StackTraceElement[] arElement = t.getStackTrace();
+
+        if (!stream(arElement).anyMatch((e)-> e.getClassName().endsWith(".Daemon") && e.getMethodName().compareTo("run") == 0))
+            {
+            // not a Daemon Thread
+            return true;
+            }
+
+        return !stream(arElement).anyMatch((e)-> e.getClassName().endsWith(".Daemon") && e.getMethodName().compareTo("onWait") == 0);
+        }
 
     // ----- data members ---------------------------------------------------
 
@@ -1178,6 +1405,20 @@ public class SegmentedConcurrentMap
     * The singleton action for conditional remove.
     */
     protected ConditionalRemoveAction m_actionConditionalRemove;
+
+    /**
+     * The singleton action for truncate.
+     *
+     * @since 12.2.1.4.21
+     */
+    protected TruncateAction m_actionTruncate;
+
+    /**
+     * The singleton action dump held locks.
+     *
+     * @since 12.2.1.4.21
+     */
+    protected DumpHeldLocksAction m_actionDumpHeldLocks;
 
     /**
     * The ContentionObserver; may be null.
