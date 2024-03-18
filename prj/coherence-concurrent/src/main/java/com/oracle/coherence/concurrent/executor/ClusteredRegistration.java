@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -488,7 +488,7 @@ public class ClusteredRegistration
             m_task       = null;
             m_cYield     = 0;
             m_properties = null;
-            f_fRecovered = fRecovered;
+            m_fRecovered = fRecovered;
             }
 
         // ----- public methods  --------------------------------------------
@@ -569,7 +569,7 @@ public class ClusteredRegistration
                 boolean fIsCompleted;
 
                 // when resuming locally, just determine if we've completed the task
-                if (isResuming() && (!f_fRecovered || m_task instanceof CronTask))
+                if (isResuming() && (!m_fRecovered || m_task instanceof CronTask))
                     {
                     // when resuming, only extract the necessary information (like isCompleted)
                     List listExtracted = (List) tasksCache.invoke(f_sTaskId,
@@ -579,7 +579,7 @@ public class ClusteredRegistration
                     // ensure the TaskExecutor still exists
                     // (if it doesn't, the executor has been removed, thus we can skip execution)
                     Object oIsCompleted =
-                            listExtracted == null || listExtracted.size() < 1 ? null : listExtracted.get(0);
+                            listExtracted == null || listExtracted.isEmpty() ? null : listExtracted.get(0);
 
                     if (oIsCompleted == null)
                         {
@@ -709,6 +709,9 @@ public class ClusteredRegistration
                                 // increase the yield count (to indicate that we've yielded)
                                 m_cYield++;
 
+                                // if we're here, reset the recovered flag, recovery has already been done
+                                m_fRecovered = false;
+
                                 ExecutorTrace.log(() -> String.format("Executor [%s] scheduling Task [%s] to resume in %s",
                                                                       f_sExecutorId, f_sTaskId, yield.getDuration()));
 
@@ -720,7 +723,7 @@ public class ClusteredRegistration
                                                   yield.getDuration().toNanos(), TimeUnit.NANOSECONDS);
 
                                 // we've yielded, so we're not finished
-                                fUpdateExecutionStatus         = false;
+                                fUpdateExecutionStatus          = false;
                                 fCleanupLocalExecutionResources = false;
                                 }
                             catch (Throwable throwable)
@@ -839,7 +842,7 @@ public class ClusteredRegistration
         @Override
         public boolean isResuming()
             {
-            return m_cYield > 0 || f_fRecovered;
+            return m_cYield > 0 || m_fRecovered;
             }
 
         @Override
@@ -887,7 +890,7 @@ public class ClusteredRegistration
                    "taskId='" + f_sTaskId + '\'' +
                    ", task=" + m_task +
                    ", yieldCount=" + m_cYield +
-                   ", recovered=" + f_fRecovered +
+                   ", recovered=" + m_fRecovered +
                    ", current-thread=" + m_executionThread +
                    '}';
             }
@@ -912,7 +915,7 @@ public class ClusteredRegistration
         /**
          * Indicates if the {@link Task} was previously assigned to a different {@link Executor}.
          */
-        protected final boolean f_fRecovered;
+        protected boolean m_fRecovered;
 
         /**
          * The task {@link Task.Properties}.
