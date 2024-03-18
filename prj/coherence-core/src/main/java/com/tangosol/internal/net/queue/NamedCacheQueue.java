@@ -136,15 +136,11 @@ public class NamedCacheQueue<E>
     public E element()
         {
         QueuePollResult result = peekAtHeadInternal();
-        Binary          binary = result.getElement();
-        if (binary != null)
+        E element = result.getElement();
+        if (element != null)
             {
-            E element = ExternalizableHelper.fromBinary(binary, m_service.getSerializer());
-            if (element != null)
-                {
-                m_statistics.registerHit();
-                return element;
-                }
+            m_statistics.registerHit();
+            return element;
             }
         m_statistics.registerMiss();
         throw new NoSuchElementException();
@@ -171,8 +167,7 @@ public class NamedCacheQueue<E>
     public E peek()
         {
         QueuePollResult result = peekAtHeadInternal();
-        Binary          binary = result.getElement();
-        E               oValue = binary == null ? null : ExternalizableHelper.fromBinary(binary, m_service.getSerializer());
+        E               oValue = result.getElement();
         if (oValue == null)
             {
             m_statistics.registerMiss();
@@ -188,8 +183,7 @@ public class NamedCacheQueue<E>
     public E poll()
         {
         QueuePollResult result = pollFromHeadInternal();
-        Binary          binary = result.getElement();
-        E               oValue = binary == null ? null : ExternalizableHelper.fromBinary(binary, m_service.getSerializer());
+        E               oValue = result.getElement();
         if (oValue == null)
             {
             m_statistics.registerMiss();
@@ -204,16 +198,12 @@ public class NamedCacheQueue<E>
     @Override
     public E remove()
         {
-        QueuePollResult result = pollFromHeadInternal();
-        Binary          binary = result.getElement();
-        if (binary != null)
+        QueuePollResult result  = pollFromHeadInternal();
+        E               element = result.getElement();
+        if (element != null)
             {
-            E element = ExternalizableHelper.fromBinary(binary, m_service.getSerializer());
-            if (element != null)
-                {
-                m_statistics.registerHit();
-                return element;
-                }
+            m_statistics.registerHit();
+            return element;
             }
         m_statistics.registerMiss();
         throw new NoSuchElementException();
