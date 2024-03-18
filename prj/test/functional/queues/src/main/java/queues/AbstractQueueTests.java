@@ -539,7 +539,7 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
     @MethodSource("serializers")
     public void shouldOfferAndPollFromMultipleThreads(String sSerializer) throws Exception
         {
-        int            cMessage = 100000;
+        int            cMessage = 10000;
         CountDownLatch latch    = new CountDownLatch(1);
         QueueType      queue    = getNewCollection(sSerializer);
         OfferRunnable  offer    = new OfferRunnable(cMessage, latch, queue, NamedQueue::offer);

@@ -9,20 +9,27 @@ package com.tangosol.internal.net.queue.model;
 
 import com.tangosol.io.AbstractEvolvable;
 import com.tangosol.io.ExternalizableLite;
+import com.tangosol.io.SerializationSupport;
+import com.tangosol.io.Serializer;
+import com.tangosol.io.SerializerAware;
 import com.tangosol.io.pof.EvolvablePortableObject;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
+import jakarta.json.bind.annotation.JsonbCreator;
+import jakarta.json.bind.annotation.JsonbNillable;
 import jakarta.json.bind.annotation.JsonbProperty;
+import jakarta.json.bind.annotation.JsonbTransient;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.io.ObjectStreamException;
 
 public class QueuePollResult
         extends AbstractEvolvable
-        implements ExternalizableLite, EvolvablePortableObject
+        implements ExternalizableLite, EvolvablePortableObject, SerializerAware
     {
     public QueuePollResult()
         {
@@ -34,14 +41,35 @@ public class QueuePollResult
         m_binElement = binElement;
         }
 
+    /**
+     * Return the id of the polled element.
+     *
+     * @return the id of the polled element
+     */
     public long getId()
         {
         return m_id;
         }
 
-    public Binary getElement()
+    /**
+     * Return the serialized binary value of the polled element.
+     *
+     * @return the serialized binary value of the polled element
+     */
+    public Binary getBinaryElement()
         {
         return m_binElement;
+        }
+
+    /**
+     * Return the deserialized object form of the polled element.
+     *
+     * @return the deserialized object form of the polled element
+     */
+    @SuppressWarnings("unchecked")
+    public <E> E getElement()
+        {
+        return (E) m_oElement;
         }
 
     // ----- EvolvablePortableObject methods --------------------------------
@@ -82,13 +110,56 @@ public class QueuePollResult
         ExternalizableHelper.writeObject(out, m_binElement);
         }
 
-    // ----- data members ---------------------------------------------------
+    // ----- SerializerAware methods ----------------------------------------
+
+    @Override
+    public Serializer getContextSerializer()
+        {
+        return m_serializer;
+        }
+
+    @Override
+    public void setContextSerializer(Serializer serializer)
+        {
+        m_serializer = serializer;
+        if (m_binElement != null)
+            {
+            m_oElement = ExternalizableHelper.fromBinary(m_binElement, m_serializer);
+            }
+        }
+
+    // ----- constants ------------------------------------------------------
 
     public static final int IMPL_VERSION = 1;
 
-    @JsonbProperty("element")
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * The serialized binary polled element.
+     */
+    @JsonbTransient
     private Binary m_binElement;
 
+    /**
+     * The id of the polled element.
+     */
     @JsonbProperty("id")
     private long m_id;
+
+    /**
+     * The serializer used to serialize or deserialize this instance.
+     */
+    private transient Serializer m_serializer;
+
+    /**
+     * A flag to indicate the {@link #m_oElement} field was deserialized from the binary value.
+     */
+    private transient boolean m_fHasObjectValue;
+
+    /**
+     * The Object version of the element;
+     */
+    @JsonbProperty("element")
+    @JsonbNillable
+    private transient Object m_oElement;
     }

@@ -18,6 +18,7 @@ import com.tangosol.util.Converter;
 import com.tangosol.util.ConverterCollections;
 import com.tangosol.util.ExternalizableHelper;
 import jakarta.json.bind.annotation.JsonbProperty;
+import jakarta.json.bind.annotation.JsonbTransient;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -149,12 +150,14 @@ public class QueuePageResult<E>
             }
         }
 
-    // ----- data members ---------------------------------------------------
+    // ----- constants ---------------------------------------------------000
 
     /**
      * The {@link EvolvablePortableObject} implementation version.
      */
     public static final int IMPL_VERSION = 1;
+
+    // ----- data members ---------------------------------------------------
 
     @JsonbProperty("key")
     private long m_nKey;
@@ -167,10 +170,12 @@ public class QueuePageResult<E>
     @JsonbProperty("list")
     private List<E> m_list;
 
-    @JsonbProperty("binaryList")
+    @JsonbTransient
     private List<Binary> m_listBinary;
 
+    @JsonbTransient
     private transient Converter<Binary, E> m_converterFromBinary;
 
+    @JsonbTransient
     private transient Converter<E, Binary> m_converterToBinary;
     }

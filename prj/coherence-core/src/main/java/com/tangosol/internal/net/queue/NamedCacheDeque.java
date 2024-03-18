@@ -135,8 +135,7 @@ public class NamedCacheDeque<E>
     public E pollLast()
         {
         QueuePollResult result = pollFromTailInternal();
-        Binary          binary = result.getElement();
-        E               oValue = binary == null ? null : ExternalizableHelper.fromBinary(binary, m_service.getSerializer());
+        E               oValue = result.getElement();
         if (oValue == null)
             {
             m_statistics.registerMiss();
@@ -180,8 +179,7 @@ public class NamedCacheDeque<E>
     public E peekLast()
         {
         QueuePollResult result = peekAtTailInternal();
-        Binary          binary = result.getElement();
-        E               oValue = binary == null ? null : ExternalizableHelper.fromBinary(binary, m_service.getSerializer());
+        E               oValue = result.getElement();
         if (oValue == null)
             {
             m_statistics.registerMiss();
