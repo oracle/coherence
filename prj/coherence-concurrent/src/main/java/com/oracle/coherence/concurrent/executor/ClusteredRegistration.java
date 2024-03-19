@@ -1050,7 +1050,11 @@ public class ClusteredRegistration
     @SuppressWarnings("unchecked")
     protected void executingTask(TaskExecutor taskExecutor, String sExecId, String sTaskId)
         {
-        m_cTasksInProgressCount++;
+        // only increment for fresh tasks
+        if (taskExecutor.m_cYield == 0)
+            {
+            m_cTasksInProgressCount++;
+            }
 
         // submit the TaskExecutor for execution using the ExecutionService
         try
