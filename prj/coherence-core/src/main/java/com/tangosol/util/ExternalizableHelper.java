@@ -8,9 +8,11 @@
 package com.tangosol.util;
 
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.common.io.BufferManagers;
 
 import com.tangosol.coherence.config.Config;
 
+import com.tangosol.internal.io.BufferManagerWriteBufferPool;
 import com.tangosol.internal.util.invoke.Lambdas;
 import com.tangosol.internal.util.invoke.RemotableSupport;
 
@@ -6539,20 +6541,21 @@ public abstract class ExternalizableHelper
     protected static byte[] readLargeByteArray(DataInput in, int cb)
             throws IOException
         {
-        int    cBatchMax = CHUNK_SIZE;
-        int    cBatch    = cb / cBatchMax + 1;
-        byte[] ab        = new byte[cBatchMax];
-        byte[] aMerged   = null;
-        int    cbRead    = 0;
-        for (int i = 0; i < cBatch && cbRead < cb; i++)
-            {
-            in.readFully(ab);
-            aMerged = mergeByteArray(aMerged, ab);
-            cbRead += ab.length;
-            ab      = new byte[Math.min(cb - cbRead, cBatchMax)];
-            }
+        int    cbBatchMax = CHUNK_SIZE;
+        int    cBatch     = cb / cbBatchMax + 1;
 
-        return aMerged;
+        try (MultiBufferWriteBuffer buf  = new MultiBufferWriteBuffer(new BufferManagerWriteBufferPool(BufferManagers.getHeapManager()), cbBatchMax))
+            {
+            InputStreaming input = new WrapperDataInputStream(in);
+            int cbRead = 0;
+            for (int i = 0; i < cBatch && cbRead < cb; i++)
+                {
+                int cbBatch = Math.min(cb - cbRead, cbBatchMax);
+                buf.write(cbRead, input, cbBatch);
+                cbRead += cbBatch;
+                }
+            return buf.toByteArray();
+            }
         }
 
     /**
