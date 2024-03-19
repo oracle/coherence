@@ -434,7 +434,7 @@ Examples related to Coherence features are located under [examples](./prj/exampl
 
 ## Contributing
 
-Interested in contributing?  See our contribution [guidelines](CONTRIBUTING.md) for details.
+This project welcomes contributions from the community. Before submitting a pull request, please [review our contribution guide](./CONTRIBUTING.md)
 
 ## Security
 
