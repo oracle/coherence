@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -48,6 +48,7 @@ import com.oracle.coherence.grpc.RemoveMappingRequest;
 import com.oracle.coherence.grpc.RemoveRequest;
 import com.oracle.coherence.grpc.ReplaceMappingRequest;
 import com.oracle.coherence.grpc.ReplaceRequest;
+import com.oracle.coherence.grpc.SafeStreamObserver;
 import com.oracle.coherence.grpc.SizeRequest;
 import com.oracle.coherence.grpc.TruncateRequest;
 import com.oracle.coherence.grpc.ValuesRequest;
@@ -99,6 +100,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static com.oracle.coherence.grpc.proxy.ResponseHandlers.handleUnary;
 import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryContainsValueProcessor;
 import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryRemoveProcessor;
 import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryReplaceMappingProcessor;
@@ -422,8 +424,32 @@ public class NamedCacheServiceImpl
     @Override
     public CompletionStage<Empty> destroy(DestroyRequest request)
         {
-        return getAsyncCache(request.getScope(), request.getCache())
-                .thenApplyAsync(cache -> this.execute(() -> cache.getNamedCache().destroy()), f_executor);
+        return CompletableFuture.supplyAsync(() ->
+            {
+            String sCacheName = request.getCache();
+            if (sCacheName == null || sCacheName.trim().isEmpty())
+                {
+                throw Status.INVALID_ARGUMENT
+                        .withDescription("invalid request, cache name cannot be null or empty")
+                        .asRuntimeException();
+                }
+
+            ConfigurableCacheFactory   ccf           = getCCF(request.getScope());
+            NamedCache<Binary, Binary> cachePassThru = ccf.ensureCache(sCacheName, NullImplementation.getClassLoader());
+            NamedCache<Binary, Binary> cache         = ccf.ensureCache(sCacheName, Classes.getContextClassLoader());
+            // we get caches via the CCF, so we must destroy them that way too
+            ccf.destroyCache(cachePassThru);
+            try
+                {
+                ccf.destroyCache(cache);
+                }
+            catch (Exception ignored)
+                {
+                // We may get an exception if destroying the first pass-thru cache also destroys the plain cache.
+                // We can just ignore it.
+                }
+            return Empty.getDefaultInstance();
+            });
         }
 
     // ----- entrySet -------------------------------------------------------

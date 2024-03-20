@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -688,8 +688,7 @@ class NamedCacheServiceImplTest
     @Test
     public void shouldHandleDestroyError()
         {
-        NamedCache cache = m_testAsyncCache.getNamedCache();
-        doThrow(ERROR).when(cache).destroy();
+        doThrow(ERROR).when(m_testCCF).destroyCache(any(NamedCache.class));
 
         NamedCacheServiceImpl    service   = new NamedCacheServiceImpl(m_dependencies);
         CompletionStage<Empty>   stage     = service.destroy(Requests.destroy(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME));
