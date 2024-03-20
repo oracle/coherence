@@ -727,7 +727,7 @@ public class ClusteredTaskInterceptor
      * The maximum tasks allowed to be run.
      */
     protected final int f_cMaxAllowedTasks =
-            Config.getInteger("coherence.executor.concurrent.tasks.max",100);
+            Config.getInteger("coherence.executor.concurrent.tasks.max", Integer.MAX_VALUE);
 
     /**
      * The number of orchestrated tasks.
