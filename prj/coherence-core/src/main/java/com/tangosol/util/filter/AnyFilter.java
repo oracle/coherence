@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -149,7 +149,7 @@ public class AnyFilter
     protected Filter applyIndex(Map mapIndexes, Set setKeys, QueryContext ctx,
             QueryRecord.PartialResult.TraceStep step)
         {
-        //optimizeFilterOrder(mapIndexes, setKeys);
+        optimizeFilterOrder(mapIndexes, setKeys);
 
         Filter[] aFilter    = m_aFilter;
         int      cFilters   = aFilter.length;

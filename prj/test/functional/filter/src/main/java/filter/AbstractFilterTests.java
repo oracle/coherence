@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -76,8 +76,6 @@ import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collections;
 import org.junit.Test;
 
@@ -297,7 +295,7 @@ public abstract class AbstractFilterTests
             }
 
         // 2) fill the cache and just execute all the queries
-        if (!loadData(cacheTest, "people-" + cItems + ".bin"))
+        if (!loadData(cacheTest, "people-" + cItems + ".bin", fDebug))
             {
             Person.fillRandom(cacheTest, cItems);
             saveData(cacheTest, "people-" + cItems + ".bin");
@@ -388,9 +386,9 @@ public abstract class AbstractFilterTests
                 }
             }
 
-        // the default is 4, which will test 64 random combinations of filters
+        // the default is 10, which will test 1,000 random combinations of filters
         // specify 0 to run all possible combinations (all 64 thousand of them...)
-        int cIterations = Config.getInteger("test.filters.iterations", 4);
+        int cIterations = Config.getInteger("test.filters.iterations", 10);
         boolean fRandom = true;
 
         if (cIterations == 0)
@@ -583,7 +581,7 @@ public abstract class AbstractFilterTests
             }
         }
 
-    private boolean loadData(NamedCache cache, String sFileName)
+    private boolean loadData(NamedCache cache, String sFileName, boolean fDebug)
         {
         try (FileInputStream inFile = new FileInputStream(sFileName))
             {
@@ -591,7 +589,10 @@ public abstract class AbstractFilterTests
             DataInput in   = new DataInputStream(inFile);
             ExternalizableHelper.readMap(in, data, getClass().getClassLoader());
             cache.putAll(data);
-            System.out.printf("\nLoaded %d cache entries from %s", cache.size(), sFileName);
+            if (fDebug)
+                {
+                System.out.printf("Loaded %d cache entries from %s\n", cache.size(), sFileName);
+                }
             return true;
             }
         catch (IOException e)
