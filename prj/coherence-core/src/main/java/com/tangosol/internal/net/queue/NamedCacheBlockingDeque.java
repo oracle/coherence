@@ -47,6 +47,34 @@ public class NamedCacheBlockingDeque<E>
         cache.addMapListener(this, AlwaysFilter.INSTANCE(), true);
         }
 
+    // ----- factory methods ------------------------------------------------
+
+    /**
+     * Create a {@link Builder} option.
+     * <p>
+     * The {@link Builder} can be passed as an option to the
+     * {@link Session#getDeque(String, Option...)} method to return
+     * a {@link NamedBlockingDeque} instead of a {@link NamedDeque}.
+     */
+    public Builder builder()
+        {
+        return builder("");
+        }
+
+    /**
+     * Create a {@link Builder} option.
+     * <p>
+     * The {@link Builder} can be passed as an option to the
+     * {@link Session#getDeque(String, Option...)} method to return
+     * a {@link NamedBlockingDeque} instead of a {@link NamedDeque}.
+     *
+     * @param sNamePrefix  the prefix to add to queue cache names
+     */
+    public Builder builder(String sNamePrefix)
+        {
+        return new Builder(sNamePrefix);
+        }
+
     // ----- BlockingDeque methods ------------------------------------------
 
     @Override
@@ -377,6 +405,13 @@ public class NamedCacheBlockingDeque<E>
             NamedBlockingDeque<E> blockingDeque = (NamedBlockingDeque<E>) deque;
             return new SessionNamedBlockingDeque<>(session, blockingDeque, loader, typeAssertion);
             }
+
+        // -----constants -------------------------------------------------------
+
+        /**
+         * The singleton instance of the default {@link Builder}.
+         */
+        public static Builder DEFAULT = new Builder("");
 
         // ----- data members ---------------------------------------------------
 
