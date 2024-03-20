@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,7 @@ import com.oracle.bedrock.junit.CoherenceClusterExtension;
 
 import com.oracle.bedrock.runtime.LocalPlatform;
 
+import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 import com.oracle.bedrock.runtime.coherence.options.ClusterPort;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
@@ -23,6 +24,7 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
 
+import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.tangosol.net.Coherence;
@@ -61,7 +63,7 @@ public class ConcurrentCacheConfigOverrideTest
     // ----- data members ---------------------------------------------------
 
     /**
-     * Override file for concuurent cacheconfig xml.
+     * Override file for concurrent cacheconfig xml.
      */
     public final static String FILE_CFG_CACHE_OVERRIDE = "concurrent-cache-config-override.xml";
 
@@ -80,7 +82,8 @@ public class ConcurrentCacheConfigOverrideTest
                           LocalHost.only(),
                           Multicast.ttl(0),
                           IPv4Preferred.yes(),
-                          ClusterPort.automatic())
+                          ClusterPort.automatic(),
+                          StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()))
                     .include(1,
                              DisplayName.of("storage"),
                              RoleName.of("storage"),
