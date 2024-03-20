@@ -224,8 +224,28 @@ public abstract class BaseNamedCacheServiceImpl
         StreamObserver<Empty> safeObserver = SafeStreamObserver.ensureSafeObserver(observer);
         try
             {
-            NamedCache<Binary, Binary> cache = getPassThroughCache(request.getScope(), request.getCache());
-            cache.destroy();
+            String sCacheName = request.getCache();
+            if (sCacheName == null || sCacheName.trim().isEmpty())
+                {
+                throw Status.INVALID_ARGUMENT
+                        .withDescription(INVALID_CACHE_NAME_MESSAGE)
+                        .asRuntimeException();
+                }
+
+            ConfigurableCacheFactory   ccf           = getCCF(request.getScope());
+            NamedCache<Binary, Binary> cachePassThru = ccf.ensureCache(sCacheName, NullImplementation.getClassLoader());
+            NamedCache<Binary, Binary> cache         = ccf.ensureCache(sCacheName, Classes.getContextClassLoader());
+            // we get caches via the CCF, so we must destroy them that way too
+            ccf.destroyCache(cachePassThru);
+            try
+                {
+                ccf.destroyCache(cache);
+                }
+            catch (Exception ignored)
+                {
+                // We may get an exception if destroying the first pass-thru cache also destroys the plain cache.
+                // We can just ignore it.
+                }
             handleUnary(Empty.getDefaultInstance(), null, safeObserver);
             }
         catch (Throwable t)

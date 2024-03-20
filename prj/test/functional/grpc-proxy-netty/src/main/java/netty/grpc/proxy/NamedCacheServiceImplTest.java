@@ -758,8 +758,7 @@ class NamedCacheServiceImplTest
     @Test
     public void shouldHandleDestroyError() throws Exception
         {
-        NamedCache cache = m_testAsyncCache.getNamedCache();
-        doThrow(ERROR).when(cache).destroy();
+        doThrow(ERROR).when(m_testCCF).destroyCache(any(NamedCache.class));
 
         TestStreamObserver<Empty>  observer = new TestStreamObserver<>();
         NamedCacheService service = s_serviceProvider.getService(m_dependencies);
