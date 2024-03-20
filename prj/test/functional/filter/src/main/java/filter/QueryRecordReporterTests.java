@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,15 +10,18 @@ package filter;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceCacheServer;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.partition.PartitionSet;
+
 import com.tangosol.util.Filter;
 import com.tangosol.util.Resources;
 import com.tangosol.util.SimpleQueryRecord;
 import com.tangosol.util.SimpleQueryRecordReporter;
 import com.tangosol.util.aggregator.QueryRecorder;
+
 import com.tangosol.util.filter.AllFilter;
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.AndFilter;
@@ -27,12 +30,14 @@ import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.filter.LessEqualsFilter;
 import com.tangosol.util.filter.LikeFilter;
 import com.tangosol.util.filter.PartitionedFilter;
+
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import data.pof.Address;
 
 import filter.nestinglevel1.nestinglevel2.nestinglevel3.IntegerToStringPersonKeyExtractor;
 import filter.nestinglevel1.nestinglevel2.nestinglevel3.StringToIntegerPersonAddressZipExtractor;
+
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -43,7 +48,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+
 import java.net.URL;
+
 import java.util.Calendar;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -145,7 +152,7 @@ public class QueryRecordReporterTests
 
         out(" * * * * * * * Double-Index Query * * * * * * * * * * * * * * (testReporterDoubleIndex)");
         testReporter(cache, filterAll, QueryRecorder.RecordType.EXPLAIN, "explain-DoubleIndex.ptn");
-        //testReporter(cache, filterAll, QueryRecorder.RecordType.TRACE, "trace-DoubleIndex.ptn");
+        testReporter(cache, filterAll, QueryRecorder.RecordType.TRACE, "trace-DoubleIndex.ptn");
 
         cache.removeIndex(IntegerToStringPersonKeyExtractor.INSTANCE);
         cache.removeIndex(StringToIntegerPersonAddressZipExtractor.INSTANCE);

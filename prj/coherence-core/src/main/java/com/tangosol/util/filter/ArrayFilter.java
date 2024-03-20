@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,7 +21,6 @@ import com.tangosol.util.QueryRecord;
 import com.tangosol.util.QueryContext;
 
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -254,7 +253,7 @@ public abstract class ArrayFilter
             return;
             }
 
-        Set<Filter>      setFilter = new LinkedHashSet<>(Arrays.asList(m_aFilter));
+        Set<Filter<?>>   setFilter = simplifyFilters();
         int              cFilters  = setFilter.size();
         WeightedFilter[] aWeighted = new WeightedFilter[cFilters];
         Filter<?>[]      aFilter   = new Filter[cFilters];
