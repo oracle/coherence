@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -56,7 +56,7 @@ public class XorFilter
     */
     public boolean evaluate(Object o)
         {
-        Filter[] afilter = m_aFilter;
+        Filter[] afilter = getFilters();
         return afilter[0].evaluate(o) ^ afilter[1].evaluate(o);
         }
 
@@ -89,19 +89,10 @@ public class XorFilter
     * {@inheritDoc}
     */
     @Override
-    protected Set<Filter<?>> simplifyFilters()
-        {
-        return Set.of(m_aFilter);
-        }
-
-    /**
-    * {@inheritDoc}
-    */
-    @Override
     protected boolean evaluateEntry(Map.Entry entry, QueryContext context,
             QueryRecord.PartialResult.TraceStep step)
         {
-        Filter[] afilter = m_aFilter;
+        Filter[] afilter = getFilters();
         return InvocableMapHelper.evaluateEntry(afilter[0], entry)
              ^ InvocableMapHelper.evaluateEntry(afilter[1], entry);
         }
