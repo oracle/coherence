@@ -10,6 +10,7 @@ import com.oracle.bedrock.junit.CoherenceClusterExtension;
 
 import com.oracle.bedrock.runtime.LocalPlatform;
 
+import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 import com.oracle.bedrock.runtime.coherence.options.ClusterPort;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
@@ -23,6 +24,7 @@ import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.DisplayName;
 
+import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.tangosol.net.Coherence;
 
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -64,7 +66,8 @@ public class RemoteExecutorIT
                           Multicast.ttl(0),
                           IPv4Preferred.yes(),
                           SystemProperty.of("coherence.concurrent.serializer", "pof"),
-                          ClusterPort.automatic())
+                          ClusterPort.automatic(),
+                          StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()))
                     .include(1,
                              DisplayName.of("storage"),
                              RoleName.of("storage"),
