@@ -238,13 +238,6 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
         }
 
     @Override
-    protected Set<Filter<?>> simplifyFilters()
-        {
-        // return this filter, as we don't want to change internal structure
-        return Set.of(this);
-        }
-
-    @Override
     protected void optimizeFilterOrder(Map mapIndexes, Set setKeys)
         {
         // no-op; order is important here

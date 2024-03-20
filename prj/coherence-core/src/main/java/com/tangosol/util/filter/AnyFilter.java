@@ -15,6 +15,7 @@ import com.tangosol.util.SubSet;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,7 +59,7 @@ public class AnyFilter
     */
     public boolean evaluate(Object o)
         {
-        Filter[] afilter = m_aFilter;
+        Filter[] afilter = getFilters();
         for (int i = 0, c = afilter.length; i < c; i++)
             {
             if (afilter[i].evaluate(o))
@@ -79,7 +80,7 @@ public class AnyFilter
         {
         optimizeFilterOrder(mapIndexes, setKeys);
 
-        Filter[] aFilter  = m_aFilter;
+        Filter[] aFilter  = getFilters();
         int      cFilters = aFilter.length;
 
         if (cFilters > 0)
@@ -105,7 +106,7 @@ public class AnyFilter
     protected boolean evaluateEntry(Map.Entry entry, QueryContext ctx,
                                     QueryRecord.PartialResult.TraceStep step)
         {
-        Filter[] afilter = m_aFilter;
+        Filter[] afilter = getFilters();
         for (int i = 0, c = afilter.length; i < c; i++)
             {
             Filter filter = afilter[i];
@@ -123,15 +124,15 @@ public class AnyFilter
     * {@inheritDoc}
     */
     @Override
-    protected Set<Filter<?>> simplifyFilters()
+    protected Filter<?>[] simplifyFilters(Filter<?>[] aFilter)
         {
-        Set<Filter<?>> setFilters = new HashSet<>();
-        for (Filter<?> filter : m_aFilter)
+        Set<Filter<?>> setFilters = new LinkedHashSet<>();
+        for (Filter<?> filter : aFilter)
             {
             if (filter instanceof AnyFilter)
                 {
                 // pull nested OR/ANY filters to top level
-                setFilters.addAll(((AnyFilter) filter).simplifyFilters());
+                setFilters.addAll(List.of(((AnyFilter) filter).getFilters()));
                 }
             else
                 {
@@ -139,7 +140,7 @@ public class AnyFilter
                 setFilters.add(filter);
                 }
             }
-        return setFilters;
+        return setFilters.toArray(Filter[]::new);
         }
 
     /**
@@ -151,7 +152,7 @@ public class AnyFilter
         {
         optimizeFilterOrder(mapIndexes, setKeys);
 
-        Filter[] aFilter    = m_aFilter;
+        Filter[] aFilter    = getFilters();
         int      cFilters   = aFilter.length;
         List     listFilter = new ArrayList(cFilters);
         Set      setMatch   = new HashSet(setKeys.size());
@@ -249,10 +250,10 @@ public class AnyFilter
 
     protected String getName()
         {
-        switch (m_aFilter.length)
+        switch (getFilters().length)
             {
             case 1:
-                return m_aFilter[0].getClass().getSimpleName();
+                return getFilters()[0].getClass().getSimpleName();
             case 2:
                 return "OrFilter";
             default:
