@@ -8,12 +8,14 @@
 package com.tangosol.util.filter;
 
 
+import com.tangosol.util.ChainedCollection;
 import com.tangosol.util.Filter;
 import com.tangosol.util.QueryContext;
 import com.tangosol.util.QueryRecord;
 import com.tangosol.util.SubSet;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -26,6 +28,7 @@ import java.util.Set;
 *
 * @author cp/gg 2002.11.01
 */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class AnyFilter
         extends ArrayFilter
     {
@@ -152,35 +155,41 @@ public class AnyFilter
         {
         optimizeFilterOrder(mapIndexes, setKeys);
 
-        Filter[] aFilter    = getFilters();
-        int      cFilters   = aFilter.length;
-        List     listFilter = new ArrayList(cFilters);
-        Set      setMatch   = new HashSet(setKeys.size());
+        Filter[]        aFilter    = getFilters();
+        int             cFilters   = aFilter.length;
 
-        // listFilter is an array of filters that will have to be re-applied
-        // setMatch   is an accumulating set of already matching keys
+        // a list of filters that will have to be re-applied
+        List<Filter<?>> listFilter = new ArrayList<>(cFilters);
 
-        SubSet setRemain = new SubSet(setKeys);
-        for (int i = cFilters - 1; i >= 0; i--)    // iterate backwards, to reduce the set of remaining keys as quickly as possible
+        // a list of sets of matching keys, which will be subsequently merged
+        // into a set of keys that should be retained; doing it this way, instead
+        // of simply creating a set and calling addAll on it for each filter
+        // avoids set resizing and rehashing of the keys
+        List<Set<?>>    listMatch  = new ArrayList<>(cFilters);
+
+        // iterate backwards, from the least selective filter to the most selective one,
+        // to ensure that the largest sets of matching keys are at the beginning
+        // of a ChainedCollection, making subsequent retainAll call faster
+        for (int i = cFilters - 1; i >= 0; i--)
             {
             Filter filter = aFilter[i];
             if (filter instanceof IndexAwareFilter)
                 {
+                SubSet setRemain   = new SubSet(setKeys);
                 Filter filterDefer = applyFilter(filter, i, mapIndexes, setRemain, ctx, step);
-                Set    setRemoved  = setRemain.getRemoved();
                 Set    setRetained = setRemain.getRetained();
                 
                 if (filterDefer == null)
                     {
-                    // these are definitely "in"
-                    setMatch.addAll(setRetained);
-                    
-                    // reset setRemain to contain only the keys that were removed
-                    setRemain = new SubSet(setRemoved);
+                    if (!setRetained.isEmpty())
+                        {
+                        // these are definitely "in"
+                        listMatch.add(setRetained);
+                        }
                     }
                 else
                     {
-                    if (!setRemoved.isEmpty())
+                    if (!setRemain.getRemoved().isEmpty())
                         {
                         // some keys are definitely "out" for this filter;
                         // we need to incorporate this knowledge into a deferred
@@ -201,11 +210,6 @@ public class AnyFilter
                         {
                         listFilter.add(filterDefer);
                         }
-
-                    // we have to reset setRemain it to contain all the keys
-                    // that are not definite matches
-                    setRemain = new SubSet(setKeys);
-                    setRemain.removeAll(setMatch);
                     }
                 }
             else if (filter != null)
@@ -214,37 +218,38 @@ public class AnyFilter
                 }
             }
 
-        int cMatches = setMatch.size();
+        // create a set containing all the matches identified by individual filters
+        Set<?> setMatches = new HashSet<>(new ChainedCollection<>(listMatch.toArray(Set[]::new)));
 
         cFilters = listFilter.size();
         if (cFilters == 0)
             {
-            if (cMatches > 0)
-                {
-                setKeys.retainAll(setMatch);
-                }
-            else
+            if (setMatches.isEmpty())
                 {
                 setKeys.clear();
                 }
+            else
+                {
+                setKeys.retainAll(setMatches);
+                }
             return null;
             }
-        else if (cFilters == 1 && cMatches == 0)
+        else if (cFilters == 1 && setMatches.isEmpty())
             {
-            return (Filter) listFilter.get(0);
+            return listFilter.get(0);
             }
         else
             {
-            if (cMatches > 0)
+            if (!setMatches.isEmpty())
                 {
                 // the keys that have been matched are definitely "in";
                 // the remaining keys each need to be evaluated later
-                KeyFilter filterKey = new KeyFilter(setMatch);
+                KeyFilter filterKey = new KeyFilter(setMatches);
                 listFilter.add(0, filterKey);
                 cFilters++;
                 }
 
-            return new AnyFilter((Filter[]) listFilter.toArray(new Filter[cFilters]));
+            return new AnyFilter(listFilter.toArray(new Filter[cFilters]));
             }
         }
 

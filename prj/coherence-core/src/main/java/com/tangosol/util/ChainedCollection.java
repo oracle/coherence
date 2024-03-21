@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,6 +21,7 @@ import java.util.function.IntFunction;
  * @author hr  2014.02.19
  * @since Coherence 12.1.2
  */
+@SuppressWarnings("unchecked")
 public class ChainedCollection<E>
         extends AbstractCollection<E>
     {
@@ -34,7 +35,7 @@ public class ChainedCollection<E>
      */
     public ChainedCollection(Collection<Collection<E>> col)
         {
-        this(col.toArray(new Collection[col.size()]));
+        this(col.toArray(Collection[]::new));
         }
 
     /**
@@ -70,8 +71,7 @@ public class ChainedCollection<E>
      *
      * @param aCol  an array of Collection objects
      */
-    @SafeVarargs
-    public ChainedCollection(Collection<E>... aCol)
+    public ChainedCollection(Collection<E>[] aCol)
         {
         f_aCol = aCol;
         }

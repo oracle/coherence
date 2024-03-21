@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -24,13 +24,13 @@ public class ChainedCollectionTest
     @SuppressWarnings("unchecked")
     protected Collection<Integer> collection()
         {
-        return new ChainedCollection<>(List.of(1, 2, 3), Set.of(7, 8, 9));
+        return new ChainedCollection<>(new Collection[] {List.of(1, 2, 3), Set.of(7, 8, 9)});
         }
 
     @SuppressWarnings("unchecked")
     protected Collection<Integer> emptyCollection()
         {
-        return new ChainedCollection<>(Collections.emptyList(), Collections.emptySet());
+        return new ChainedCollection<>(new Collection[] {Collections.emptyList(), Collections.emptySet()});
         }
 
     @Test

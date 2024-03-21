@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 
 package com.tangosol.internal.util;
 
+import com.tangosol.util.Base;
 import com.tangosol.util.SubSet;
 
 import com.tangosol.net.BackingMapManagerContext;
@@ -16,7 +17,6 @@ import com.tangosol.util.WrapperCollections;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -244,7 +244,7 @@ public class UnsafeSubSet<E>
         // partitions requested (parts) and the service owned partitions equals
         // each other. However, since there might be a transfer in-flight, the
         // collection could contain keys from "unowned" partitions
-        Set<E> set = new HashSet<E>(col.size());
+        Set<E> set = Base.newHashSet(col.size());
         for (E key : col)
             {
             if (parts.contains(ctx.getKeyPartition(key)))
