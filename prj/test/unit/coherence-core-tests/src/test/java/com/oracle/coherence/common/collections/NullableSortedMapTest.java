@@ -7,7 +7,7 @@
 
 package com.oracle.coherence.common.collections;
 
-import com.google.common.collect.testing.NavigableMapTestSuiteBuilder;
+import com.google.common.collect.testing.ConcurrentNavigableMapTestSuiteBuilder;
 import com.google.common.collect.testing.TestStringSortedMapGenerator;
 import com.google.common.collect.testing.features.CollectionFeature;
 import com.google.common.collect.testing.features.CollectionSize;
@@ -28,7 +28,7 @@ public final class NullableSortedMapTest
     {
     public static TestSuite suite() throws NoSuchMethodException
         {
-        return NavigableMapTestSuiteBuilder
+        return ConcurrentNavigableMapTestSuiteBuilder
                 .using(generator())
                 .named("NullableSortedMap")
                 .withFeatures(

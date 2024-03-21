@@ -11,6 +11,7 @@ import com.tangosol.coherence.component.util.safeService.safeCacheService.SafeDi
 
 import com.tangosol.io.ExternalizableLite;
 
+import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.cache.SimpleMemoryCalculator;
 
@@ -110,14 +111,15 @@ public class IndexTests
         final NamedCache cache = getNamedCache("index-size");
         cache.clear();
 
+        int    cKeys  = 500;
         Random random = new Random();
-        Map map   = new HashMap();
+        Map map       = new HashMap();
 
         for (int i = 0; i < 10; i++)
             {
             for (int j = 1; j <= 100000; j++)
                 {
-                map.put(Integer.toString(i * 100000 + j), random.nextInt(4));
+                map.put(Integer.toString(i * 100000 + j), random.nextInt(cKeys));
                 }
 
             cache.putAll(map);
@@ -149,12 +151,14 @@ public class IndexTests
 
         long keySizes = 0L;
 
-        for (int k = 0; k < 4; k++)
+        SimpleMemoryCalculator calc = new SimpleMemoryCalculator();
+
+        for (int k = 0; k < cKeys; k++)
             {
-            for (int i = 0; i < 257; i++)
+            for (int i = 0; i < ((DistributedCacheService) cache.getCacheService()).getPartitionCount(); i++)
                 {
                 Set<Binary> setKeys = (Set<Binary>) getPartitionedIndexMap(cache, i).get(extractor).getIndexContents().get(k);
-                keySizes += setKeys == null ? 0 : setKeys.stream().mapToLong(Binary::length).sum();
+                keySizes += setKeys == null ? 0 : setKeys.stream().mapToLong(calc::sizeOf).sum();
                 }
             }
 
