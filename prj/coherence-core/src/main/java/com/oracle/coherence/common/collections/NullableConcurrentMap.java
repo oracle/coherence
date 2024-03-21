@@ -8,7 +8,9 @@
 package com.oracle.coherence.common.collections;
 
 import com.oracle.coherence.common.base.Nullable;
+
 import com.tangosol.util.SimpleMapEntry;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,11 +20,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+
 import java.util.stream.Collectors;
 
 /**
@@ -54,29 +59,29 @@ public class NullableConcurrentMap<K, V>
      * accommodating the specified number of elements without the need
      * to dynamically resize.
      *
-     * @param initialCapacity  the initial capacity
+     * @param cInitialCapacity  the initial capacity
      *
      * @throws IllegalArgumentException if the initial capacity is negative
      */
-    public NullableConcurrentMap(int initialCapacity)
+    public NullableConcurrentMap(int cInitialCapacity)
         {
-        this(new ConcurrentHashMap<>(initialCapacity));
+        this(new ConcurrentHashMap<>(cInitialCapacity));
         }
 
     /**
      * Construct a new, empty map with an initial table size based on
-     * the given number of elements ({@code initialCapacity}) and
-     * initial table density ({@code loadFactor}).
+     * the given number of elements ({@code cInitialCapacity}) and
+     * initial table density ({@code flLoadFactor}).
      *
-     * @param initialCapacity  the initial capacity
-     * @param loadFactor       the load factor (table density)
+     * @param cInitialCapacity  the initial capacity
+     * @param flLoadFactor      the load factor (table density)
      *
      * @throws IllegalArgumentException  if the initial capacity is negative
      *                                   or the load factor is non-positive
      */
-    public NullableConcurrentMap(int initialCapacity, float loadFactor)
+    public NullableConcurrentMap(int cInitialCapacity, float flLoadFactor)
         {
-        this(new ConcurrentHashMap<>(initialCapacity, loadFactor));
+        this(new ConcurrentHashMap<>(cInitialCapacity, flLoadFactor));
         }
 
     /**
