@@ -7,13 +7,14 @@
 
 package com.tangosol.util.filter;
 
+import com.tangosol.util.ChainedCollection;
 import com.tangosol.util.Filter;
 import com.tangosol.util.MapIndex;
 import com.tangosol.util.ValueExtractor;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.NavigableMap;
 
@@ -192,14 +193,14 @@ public class LessFilter<T, E extends Comparable<? super E>>
                 }
             else
                 {
-                Set setLT = new HashSet();
+                List<Set<?>> listLT = new ArrayList<>(mapHead.size());
                 for (Object o : mapHead.values())
                     {
                     Set set = (Set) o;
-                    setLT.addAll(ensureSafeSet(set));
+                    listLT.add(ensureSafeSet(set));
                     }
 
-                setKeys.retainAll(setLT);
+                setKeys.retainAll(new ChainedCollection<>(listLT.toArray(Set[]::new)));
                 }
             }
         else
@@ -208,15 +209,15 @@ public class LessFilter<T, E extends Comparable<? super E>>
 
             if (index.isPartial())
                 {
-                Set setLT = new HashSet();
+                List<Set<?>> listLT = new ArrayList<>(mapContents.size());
                 for (Map.Entry<E, Set<?>> entry : mapContents.entrySet())
                     {
                     if (evaluateExtracted(entry.getKey()))
                         {
-                        setLT.addAll(ensureSafeSet(entry.getValue()));
+                        listLT.add(ensureSafeSet(entry.getValue()));
                         }
                     }
-                setKeys.retainAll(setLT);
+                setKeys.retainAll(new ChainedCollection<>(listLT.toArray(Set[]::new)));
                 }
             else
                 {

@@ -7,14 +7,15 @@
 
 package com.tangosol.util.filter;
 
+import com.tangosol.util.ChainedCollection;
 import com.tangosol.util.Filter;
 import com.tangosol.util.MapIndex;
 import com.tangosol.util.ValueExtractor;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
-import java.util.NoSuchElementException;
 import java.util.Set;
 
 /**
@@ -181,13 +182,13 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
 
             if (fHeadHeavy || index.isPartial())
                 {
-                Set setGT = new HashSet();
+                List<Set<?>> listGT = new ArrayList<>(mapTail.size());
                 for (Object o : mapTail.values())
                     {
                     Set set = (Set) o;
-                    setGT.addAll(ensureSafeSet(set));
+                    listGT.add(ensureSafeSet(set));
                     }
-                setKeys.retainAll(setGT);
+                setKeys.retainAll(new ChainedCollection<>(listGT.toArray(Set[]::new)));
                 }
             else
                 {
@@ -205,15 +206,15 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
 
             if (index.isPartial())
                 {
-                Set setGT = new HashSet();
+                List<Set<?>> listGT = new ArrayList(mapContents.size());
                 for (Map.Entry<E, Set<?>> entry : mapContents.entrySet())
                     {
                     if (evaluateExtracted(entry.getKey()))
                         {
-                        setGT.addAll(ensureSafeSet(entry.getValue()));
+                        listGT.add(ensureSafeSet(entry.getValue()));
                         }
                     }
-                setKeys.retainAll(setGT);
+                setKeys.retainAll(new ChainedCollection<>(listGT.toArray(Set[]::new)));
                 }
             else
                 {

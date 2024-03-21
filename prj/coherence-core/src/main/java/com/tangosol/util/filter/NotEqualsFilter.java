@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,14 +8,15 @@
 package com.tangosol.util.filter;
 
 
+import com.tangosol.util.ChainedCollection;
 import com.tangosol.util.Filter;
 import com.tangosol.util.MapIndex;
 import com.tangosol.util.ValueExtractor;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Iterator;
-import java.util.HashSet;
 
 
 /**
@@ -119,16 +120,16 @@ public class NotEqualsFilter<T, E>
 
             if (index.isPartial())
                 {
-                Set setNE = new HashSet();
+                List<Set<?>> listNE = new ArrayList<>(mapContents.size());
                 for (Object o : mapContents.entrySet())
                     {
                     Map.Entry entry = (Map.Entry) o;
                     if (!entry.getKey().equals(oValue))
                         {
-                        setNE.addAll(ensureSafeSet((Set) entry.getValue()));
+                        listNE.add(ensureSafeSet((Set) entry.getValue()));
                         }
                     }
-                setKeys.retainAll(setNE);
+                setKeys.retainAll(new ChainedCollection<>(listNE.toArray(Set[]::new)));
                 }
             else
                 {

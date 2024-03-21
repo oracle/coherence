@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ package com.tangosol.util.filter;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 
+import com.tangosol.util.ChainedCollection;
 import com.tangosol.util.Filter;
 import com.tangosol.util.MapIndex;
 import com.tangosol.util.ValueExtractor;
@@ -22,9 +23,6 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,6 +47,7 @@ import jakarta.json.bind.annotation.JsonbProperty;
 *
 * @author cp/gg 2002.10.27
 */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class LikeFilter<T, E>
         extends    ComparisonFilter<T, E, String>
         implements IndexAwareFilter<Object, T>
@@ -203,7 +202,7 @@ public class LikeFilter<T, E>
                 return mapContents.values().stream().mapToInt(Set::size).sum();
 
             case EXACT_MATCH:
-                return mapContents.getOrDefault(m_sPart, Collections.emptySet()).size();
+                return ensureSafeSet(mapContents.get(m_sPart)).size();
 
             case STARTS_WITH_CHAR:
             case STARTS_WITH_STRING:
@@ -218,10 +217,9 @@ public class LikeFilter<T, E>
 
                         SortedMap<?, Set<?>> mapTail = ((SortedMap) mapContents).tailMap(sPrefix);
                         int cMatch = 0;
-                        for (Iterator iter = mapTail.entrySet().iterator(); iter.hasNext(); )
+                        for (Map.Entry<?, Set<?>> entry : mapTail.entrySet())
                             {
-                            Map.Entry<?, Set<?>> entry  = (Map.Entry<?, Set<?>>) iter.next();
-                            String               sValue = (String) entry.getKey();
+                            String sValue = (String) entry.getKey();
 
                             if (sValue != null && sValue.startsWith(sPrefix))
                                 {
@@ -246,15 +244,16 @@ public class LikeFilter<T, E>
             default:
                 {
                 int cMatch = 0;
-                for (Iterator iter = mapContents.entrySet().iterator(); iter.hasNext();)
+                for (Map.Entry<E, Set<?>> entry : mapContents.entrySet())
                     {
-                    Map.Entry entry  = (Map.Entry) iter.next();
-                    Object    oValue = entry.getKey();
+                    E value = entry.getKey();
 
-                    String sValue = oValue == null ? null : String.valueOf(oValue);
+                    String sValue = value == null
+                                    ? null
+                                    : String.valueOf(value);
                     if (isMatch(sValue))
                         {
-                        cMatch += ensureSafeSet((Set) entry.getValue()).size();
+                        cMatch += ensureSafeSet(entry.getValue()).size();
                         }
                     }
 
@@ -306,32 +305,30 @@ public class LikeFilter<T, E>
             return null;
             }
 
-        Map mapContents = index.getIndexContents();
+        Map<E, Set<?>> mapContents = index.getIndexContents();
 
         if ((nPlan == STARTS_WITH_STRING || nPlan == STARTS_WITH_CHAR) && index.isOrdered())
             {
             try
                 {
-                String sPrefix = nPlan == STARTS_WITH_STRING ?
-                    m_sPart : String.valueOf(m_chPart);
+                String sPrefix = nPlan == STARTS_WITH_STRING ? m_sPart : String.valueOf(m_chPart);
 
-                SortedMap mapTail  = ((SortedMap) mapContents).tailMap(sPrefix);
-                Set       setMatch = new HashSet();
-                for (Iterator iter = mapTail.entrySet().iterator(); iter.hasNext();)
+                SortedMap<String, Set<?>> mapTail   = ((SortedMap<String, Set<?>>) mapContents).tailMap(sPrefix);
+                List<Set<?>>              listMatch = new ArrayList<>(mapTail.size());
+                for (Map.Entry<String, Set<?>> entry : mapTail.entrySet())
                     {
-                    Map.Entry entry  = (Map.Entry) iter.next();
-                    String    sValue = (String) entry.getKey();
+                    String sValue = entry.getKey();
 
                     if (sValue != null && sValue.startsWith(sPrefix))
                         {
-                        setMatch.addAll(ensureSafeSet((Set) entry.getValue()));
+                        listMatch.add(ensureSafeSet(entry.getValue()));
                         }
                     else
                         {
                         break;
                         }
                     }
-                setKeys.retainAll(setMatch);
+                setKeys.retainAll(new ChainedCollection<>(listMatch.toArray(Set[]::new)));
                 return null;
                 }
             catch (ClassCastException e)
@@ -340,19 +337,18 @@ public class LikeFilter<T, E>
                 }
             }
 
-        Set setMatch = new HashSet();
-        for (Iterator iter = mapContents.entrySet().iterator(); iter.hasNext();)
+        List<Set<?>> listMatch = new ArrayList<>(mapContents.size());
+        for (Map.Entry<E, Set<?>> entry : mapContents.entrySet())
             {
-            Map.Entry entry  = (Map.Entry) iter.next();
-            Object    oValue = entry.getKey();
+            E value = entry.getKey();
 
-            String sValue = oValue == null ? null : String.valueOf(oValue);
+            String sValue = value == null ? null : String.valueOf(value);
             if (isMatch(sValue))
                 {
-                setMatch.addAll(ensureSafeSet((Set) entry.getValue()));
+                listMatch.add(ensureSafeSet(entry.getValue()));
                 }
             }
-        setKeys.retainAll(setMatch);
+        setKeys.retainAll(new ChainedCollection<>(listMatch.toArray(Set[]::new)));
 
         return null;
         }
