@@ -13,6 +13,7 @@ import com.tangosol.util.SimpleMapEntry;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -105,6 +106,20 @@ public class NullableConcurrentMap<K, V>
     ConcurrentHashMap<Nullable<K>, Nullable<V>> getMap()
         {
         return f_map;
+        }
+
+    /**
+     * Get entry for the specified key.
+     *
+     * @param key  the key to get the entry for
+     *
+     * @return the entry for the specified key, or {@code null} if the entry doesn't exist
+     */
+    public Entry<K, V> getEntry(K key)
+        {
+        Nullable<K> nullableKey = Nullable.of(key);
+        Nullable<V> value = f_map.get(nullableKey);
+        return value == null ? null : new NullableEntry(new SimpleMapEntry<>(nullableKey, value));
         }
 
     // ---- Map interface ---------------------------------------------------
@@ -784,6 +799,13 @@ public class NullableConcurrentMap<K, V>
 
         private final Collection<Nullable<T>> f_col;
         }
+
+    // ---- constants -------------------------------------------------------
+
+    /**
+     * An empty, immutable NullableConcurrentMap instance.
+     */
+    public static final Map<?, ?> EMPTY = Collections.unmodifiableMap(new NullableConcurrentMap<>(1, 1.0f));
 
     // ---- data members ----------------------------------------------------
 

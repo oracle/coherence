@@ -9,6 +9,10 @@ package com.tangosol.util;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.oracle.coherence.common.collections.ConcurrentHashMap;
+import com.oracle.coherence.common.collections.NullableConcurrentMap;
+import com.oracle.coherence.common.collections.NullableSortedMap;
+
 import com.tangosol.net.BackingMapContext;
 
 import com.tangosol.net.cache.ConfigurableCacheMap;
@@ -290,7 +294,7 @@ public class SimpleMapIndex
     */
     protected Map.Entry getForwardEntry(Object oKey)
         {
-        return m_mapForward == null ? null : ((SegmentedHashMap) m_mapForward).getEntry(oKey);
+        return m_mapForward == null ? null : ((NullableConcurrentMap) m_mapForward).getEntry(oKey);
         }
 
     /**
@@ -308,6 +312,21 @@ public class SimpleMapIndex
 
             // add the overhead of creating a new map entry
             onMappingAdded();
+            }
+        }
+
+    /**
+    * Update a mapping in the forward index map.
+    *
+    * @param oKey         the key to update
+    * @param oIxValueNew  the new value for the mapping
+    */
+    protected void updateForwardEntry(Object oKey, Object oIxValueNew)
+        {
+        Map mapForward = m_mapForward;
+        if (mapForward != null)
+            {
+            mapForward.put(oKey, oIxValueNew);
             }
         }
 
@@ -412,7 +431,7 @@ public class SimpleMapIndex
         // add the overhead of creating a new map
         setUnits(getUnits() + IndexCalculator.MAP_OVERHEAD);
 
-        return new SegmentedHashMap();
+        return new NullableConcurrentMap();
         }
 
     /**
@@ -438,9 +457,9 @@ public class SimpleMapIndex
                 {
                 comparator = new SafeComparator(comparator);
                 }
-            return new SafeSortedMap(comparator);
+            return new NullableSortedMap(comparator);
             }
-        return new SegmentedHashMap();
+        return new NullableConcurrentMap();
         }
 
     /**
@@ -552,7 +571,7 @@ public class SimpleMapIndex
                         }
                     else
                         {
-                        entryFwd.setValue(oIxValueNew);
+                        updateForwardEntry(oKey, oIxValueNew);
                         }
 
                     // entry was successfully updated, ensure that the key is not excluded
@@ -645,30 +664,31 @@ public class SimpleMapIndex
     * @return an already existing reference that is "equal" to the specified
     *         value (if available)
     */
-    protected Object addInverseMapping(Map mapIndex, Object oIxValue, Object oKey)
+    protected Object addInverseMapping(Map<Object, Set<Object>> mapIndex, Object oIxValue, Object oKey)
         {
-        Map.Entry entry = m_fOrdered ?
-            ((SafeSortedMap) mapIndex).getEntry(oIxValue) :
-            ((SegmentedHashMap) mapIndex).getEntry(oIxValue);
+        SimpleHolder holder = new SimpleHolder(oIxValue);
 
-        Object oExtracted = null;
-        Set    setKeys;
-        if (entry == null)
+        mapIndex.compute(oIxValue, (key, setKeys) ->
             {
-            oExtracted = oIxValue;
-            setKeys    = instantiateSet();
-            mapIndex.put(oExtracted, setKeys);
-            }
-        else
-            {
-            setKeys  = (Set) entry.getValue();
-            oIxValue = entry.getKey();
-            }
+            Object oExtracted = null;
+            if (setKeys == null)
+                {
+                oExtracted = key;
+                setKeys = instantiateSet();
+                }
+            else
+                {
+                // update holder with the existing key reference
+                holder.set(key);
+                }
 
-        setKeys.add(oKey);
-        onMappingAdded(oExtracted, setKeys.size());
+            setKeys.add(oKey);
+            onMappingAdded(oExtracted, setKeys.size());
 
-        return oIxValue;
+            return setKeys;
+            });
+
+        return holder.get();
         }
 
     /**
@@ -1294,7 +1314,7 @@ public class SimpleMapIndex
         */
         protected int getEntrySize()
             {
-            return ENTRY_OVERHEAD;
+            return m_index.isOrdered() ? SORTED_ENTRY_OVERHEAD : ENTRY_OVERHEAD;
             }
 
         /**
@@ -1407,17 +1427,23 @@ public class SimpleMapIndex
         protected final UnitCalculator m_calculator;
 
         /**
-        * The memory cost of a SegmentedHashMap used as the Forward Index.
+        * The memory cost of a NullableConcurrentMap used as the Forward Index.
         */
-        protected static final int MAP_OVERHEAD = calculateShallowSize(SegmentedHashMap.class) +
+        protected static final int MAP_OVERHEAD = calculateShallowSize(NullableConcurrentMap.class) +
+                                                  calculateShallowSize(ConcurrentHashMap.class) +
                                                   padMemorySize(SIZE_BASIC_OBJECT + 4);
 
         /**
-        * The average memory cost of creating SegmentedHashMap$Entry or SafeHashMap$Entry.
+        * The memory cost of creating NullableConcurrentMap.Entry.
         */
         protected static final int ENTRY_OVERHEAD = padMemorySize(SIZE_OBJECT_REF + 4) +
-                                                    (calculateShallowSize(SegmentedHashMap.Entry.class) +
-                                                    calculateShallowSize(SafeHashMap.Entry.class)) / 2;
+                                                    40; // ConcurrentSkipListMap$Node
+
+        /**
+        * The memory cost of creating NullableSortedMap.Entry.
+        */
+        protected static final int SORTED_ENTRY_OVERHEAD = padMemorySize(SIZE_OBJECT_REF + 4) +
+                                                           40; // ConcurrentSkipListMap$Node
 
         /**
         * The memory cost of creating an InflatableSet.
