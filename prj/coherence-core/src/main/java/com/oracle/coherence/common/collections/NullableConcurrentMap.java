@@ -406,6 +406,8 @@ public class NullableConcurrentMap<K, V>
          */
         NullableEntry(Entry<Nullable<K>, Nullable<V>> entry)
             {
+            Objects.requireNonNull(entry);
+
             this.entry = entry;
             }
 

@@ -345,22 +345,26 @@ public class NullableSortedMap<K, V>
 
     public Entry<K, V> firstEntry()
         {
-        return isEmpty() ? null : new NullableEntry(f_map.firstEntry());
+        Entry<Nullable<K>, Nullable<V>> entry = f_map.firstEntry();
+        return entry == null ? null : new NullableEntry(entry);
         }
 
     public Entry<K, V> lastEntry()
         {
-        return isEmpty() ? null : new NullableEntry(f_map.lastEntry());
+        Entry<Nullable<K>, Nullable<V>> entry = f_map.lastEntry();
+        return entry == null ? null : new NullableEntry(entry);
         }
 
     public Entry<K, V> pollFirstEntry()
         {
-        return isEmpty() ? null : new NullableEntry(f_map.pollFirstEntry());
+        Entry<Nullable<K>, Nullable<V>> entry = f_map.pollFirstEntry();
+        return entry == null ? null : new NullableEntry(entry);
         }
 
     public Entry<K, V> pollLastEntry()
         {
-        return isEmpty() ? null : new NullableEntry(f_map.pollLastEntry());
+        Entry<Nullable<K>, Nullable<V>> entry = f_map.pollLastEntry();
+        return entry == null ? null : new NullableEntry(entry);
         }
 
     // ---- ConcurrentNavigableMap interface --------------------------------
@@ -602,6 +606,8 @@ public class NullableSortedMap<K, V>
          */
         NullableEntry(Entry<Nullable<K>, Nullable<V>> entry)
             {
+            Objects.requireNonNull(entry);
+
             this.entry = entry;
             }
 
