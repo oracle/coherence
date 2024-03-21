@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -46,6 +46,8 @@ import java.security.PrivilegedAction;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -59,6 +61,86 @@ import java.util.TimeZone;
 @SuppressWarnings({"unused", "deprecation"})
 public abstract class Base
     {
+    // ----- factory methods for hashing collections ------------------------
+
+    /**
+     * Construct an instance of {@link HashSet} with a desired number of elements
+     * and a load factor.
+     *
+     * @param cElements     the desired number of elements
+     * @param flLoadFactor  the load factor
+     *
+     * @return an instance of a {@code HashSet}
+     *
+     * @param <E> the type of set elements
+     */
+    public static <E> HashSet<E> newHashSet(int cElements, float flLoadFactor)
+        {
+        return new HashSet<>(calculateCapacity(cElements, flLoadFactor), flLoadFactor);
+        }
+
+    /**
+     * Construct an instance of {@link HashSet} with a desired number of elements
+     * and a default load factor.
+     *
+     * @param cElements  the desired number of elements
+     *
+     * @return an instance of a {@code HashSet}
+     *
+     * @param <E> the type of set elements
+     */
+    public static <E> HashSet<E> newHashSet(int cElements)
+        {
+        return newHashSet(cElements, DEFAULT_LOAD_FACTOR);
+        }
+
+    /**
+     * Construct an instance of {@link HashMap} with a desired number of entries
+     * and a load factor.
+     *
+     * @param cEntries      the desired number of entries
+     * @param flLoadFactor  the load factor
+     *
+     * @return an instance of a {@code HashMap}
+     *
+     * @param <K> the type of map keys
+     * @param <V> the type of map values
+     */
+    public static <K, V> HashMap<K, V> newHashMap(int cEntries, float flLoadFactor)
+        {
+        return new HashMap<>(calculateCapacity(cEntries, flLoadFactor), flLoadFactor);
+        }
+
+    /**
+     * Construct an instance of {@link HashMap} with a desired number of entries
+     * and a default load factor (0.75).
+     *
+     * @param cEntries  the desired number of entries
+     *
+     * @return an instance of a {@code HashMap}
+     *
+     * @param <K> the type of map keys
+     * @param <V> the type of map values
+     */
+    public static <K, V> HashMap<K, V> newHashMap(int cEntries)
+        {
+        return newHashMap(cEntries, DEFAULT_LOAD_FACTOR);
+        }
+
+    /**
+     * Calculate capacity of a HashSet or HashMap that will require no rehashing
+     * unless the specified maximum number of elements/entries is exceeded.
+     *
+     * @param cMaxElements   the maximum expected number of elements/entries
+     * @param dblLoadFactor  the desired load factor
+     *
+     * @return a capacity to create a HashSet or a HashMap with
+     */
+    private static int calculateCapacity(int cMaxElements, double dblLoadFactor)
+        {
+        return (int) Math.ceil(cMaxElements / dblLoadFactor);
+        }
+
     // ----- debugging support:  expression evaluation ----------------------
 
     /**
@@ -2880,6 +2962,11 @@ public abstract class Base
      * up in the logs unless the configured logging level is increased.
      */
     public static final int LOG_QUIET = 6;
+
+    /**
+     * Default load factor for hashing collections.
+     */
+    public static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
     // ----- data members ---------------------------------------------------
 

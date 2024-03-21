@@ -33,6 +33,7 @@ import java.util.Set;
 *
 * @author cp/gg/hr 2002.11.08
 */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class InFilter<T, E>
         extends    ComparisonFilter<T, E, Set<? extends E>>
         implements IndexAwareFilter<Object, T>
@@ -82,7 +83,7 @@ public class InFilter<T, E>
     */
     protected boolean evaluateExtracted(E extracted)
         {
-        return ((Collection) getValue()).contains(extracted);
+        return getValue().contains(extracted);
         }
 
 
@@ -94,7 +95,7 @@ public class InFilter<T, E>
     @Override
     public String toStringValue()
         {
-        return Base.truncateString((Collection) getValue(), 255);
+        return Base.truncateString(getValue(), 255);
         }
 
 
@@ -117,13 +118,13 @@ public class InFilter<T, E>
             // ignore the fact that there may be duplicates and simply return
             // the worst possible number of keys retained, as if they were unique
 
-            Collection colValues   = getValue();
-            Map        mapContents = index.getIndexContents();
-            int        cMatch      = 0;
+            Set<? extends E> colValues   = getValue();
+            Map<E, Set<?>>   mapContents = index.getIndexContents();
+            int              cMatch      = 0;
 
-            for (Object oValue : colValues)
+            for (E value : colValues)
                 {
-                Set setEQ = (Set) mapContents.get(oValue);
+                Set<?> setEQ = mapContents.get(value);
 
                 if (setEQ != null)
                     {
@@ -154,10 +155,10 @@ public class InFilter<T, E>
             }
         else
             {
-            Map        mapContents = index.getIndexContents();
-            Collection colValues   = getValue();
-            int        cValues     = colValues.size();
-            int        cKeys       = setKeys.size();
+            Map<E, Set<?>>   mapContents = index.getIndexContents();
+            Set<? extends E> colValues   = getValue();
+            int              cValues     = colValues.size();
+            int              cKeys       = setKeys.size();
 
             // an empirically chosen factor that suits 90% of the data sets
             // tested; the aim is to accommodate for common use cases in which
@@ -188,11 +189,10 @@ public class InFilter<T, E>
                 return null;
                 }
 
-            List listInverseKeys = new ArrayList(colValues.size());
-            for (Iterator iter = colValues.iterator(); iter.hasNext(); )
+            List<Set<?>> listInverseKeys = new ArrayList<>(colValues.size());
+            for (E value : colValues)
                 {
-                Object oValue = iter.next();
-                Set    setEQ  = (Set) mapContents.get(oValue);
+                Set<?> setEQ = mapContents.get(value);
 
                 if (setEQ != null && !setEQ.isEmpty())
                     {
@@ -206,7 +206,7 @@ public class InFilter<T, E>
                 }
             else
                 {
-                setKeys.retainAll(new ChainedCollection(listInverseKeys));
+                setKeys.retainAll(new ChainedCollection<>(listInverseKeys.toArray(Set[]::new)));
                 }
             return null;
             }
