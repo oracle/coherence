@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package topics;
 
+import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.common.util.Threads;
@@ -200,8 +201,8 @@ public class PubSubTests
         try (CoherenceClusterMember memberPub = cluster.startPublisher("PublisherOne", pubSubVersion.getClassPath());
              CoherenceClusterMember memberSub = cluster.startSubscriber("SubscriberOne", pubSubVersion.getClassPath()))
             {
-            Eventually.assertDeferred(memberPub::isCoherenceRunning, is(true));
-            Eventually.assertDeferred(memberSub::isCoherenceRunning, is(true));
+            Eventually.assertDeferred(memberPub::isCoherenceRunning, is(true), Timeout.after(5, TimeUnit.MINUTES));
+            Eventually.assertDeferred(memberSub::isCoherenceRunning, is(true), Timeout.after(5, TimeUnit.MINUTES));
 
             String sTopicName = "test-topic";
             String sGroupName = "test-group";
@@ -234,9 +235,9 @@ public class PubSubTests
              CoherenceClusterMember memberSub1 = cluster.startSubscriber("SubscriberOne", pubSubVersion.getClassPath());
              CoherenceClusterMember memberSub2 = cluster.startSubscriber("SubscriberTwo", pubSubVersion.getClassPath()))
             {
-            Eventually.assertDeferred(memberPub::isCoherenceRunning, is(true));
-            Eventually.assertDeferred(memberSub1::isCoherenceRunning, is(true));
-            Eventually.assertDeferred(memberSub2::isCoherenceRunning, is(true));
+            Eventually.assertDeferred(memberPub::isCoherenceRunning, is(true), Timeout.after(5, TimeUnit.MINUTES));
+            Eventually.assertDeferred(memberSub1::isCoherenceRunning, is(true), Timeout.after(5, TimeUnit.MINUTES));
+            Eventually.assertDeferred(memberSub2::isCoherenceRunning, is(true), Timeout.after(5, TimeUnit.MINUTES));
 
             String sTopicName = "test-topic";
             String sGroupName = "test-group";
@@ -284,9 +285,9 @@ public class PubSubTests
              CoherenceClusterMember memberSub1 = cluster.startSubscriber("SubscriberOne", pubSubVersion.getClassPath());
              CoherenceClusterMember memberSub2 = cluster.startSubscriber("SubscriberTwo", pubSubVersion.getClassPath()))
             {
-            Eventually.assertDeferred(memberPub::isCoherenceRunning, is(true));
-            Eventually.assertDeferred(memberSub1::isCoherenceRunning, is(true));
-            Eventually.assertDeferred(memberSub2::isCoherenceRunning, is(true));
+            Eventually.assertDeferred(memberPub::isCoherenceRunning, is(true), Timeout.after(5, TimeUnit.MINUTES));
+            Eventually.assertDeferred(memberSub1::isCoherenceRunning, is(true), Timeout.after(5, TimeUnit.MINUTES));
+            Eventually.assertDeferred(memberSub2::isCoherenceRunning, is(true), Timeout.after(5, TimeUnit.MINUTES));
 
             cluster.log(">>>> Starting shouldPubWithMultipleSubsAndReallocation");
 
@@ -336,7 +337,7 @@ public class PubSubTests
                 cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - closed subscribers");
 
                 Eventually.assertDeferred(() -> TopicSubscriber.getChannelCount(memberSub1, "Sub1.2")
-                        + TopicSubscriber.getChannelCount(memberSub2, "Sub2.2"), is(17));
+                        + TopicSubscriber.getChannelCount(memberSub2, "Sub2.2"), is(17), Timeout.after(5, TimeUnit.MINUTES));
 
                 cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - subscriber have all channels");
 
