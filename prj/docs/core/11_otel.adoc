@@ -1,0 +1,106 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2024, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= OpenTelemetry Support
+:description: OpenTelemetry Support
+:keywords: coherence, java, distrbuted-tracing, opentelemetry, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== OpenTelemetry Support
+
+This version of Coherence adds support for `OpenTelemetry` in addition to `OpenTracing`
+as an option for distributed tracing within a Coherence cluster.
+
+Coherence does not include any tracing implementation libraries. Therefore, the
+developer will need to provide the desired tracing runtime.  As OpenTracing is no
+longer maintained, it is recommended that OpenTelemetry be used instead.
+A minimum of OpenTelemetry for Java version 1.29 or later is recommended.  OpenTracing,
+while now deprecated in Coherence, is still a supported option using the latest
+OpenTracing 0.33.0.
+
+== Dependencies
+
+At a minimum, the following OpenTelemetry dependencies (version 1.29 or later) are required in order
+to enable support in Coherence:
+
+* opentelemetry-api
+* opentelemetry-context
+* opentelemetry-sdk
+
+== Configuration
+
+If it's desirable for Coherence to manage the initialization and lifecycle
+of the tracing runtime, the following dependency is also required:
+
+* opentelemetry-sdk-extension-autoconfigure
+
+Refer to the https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure[documentation] for this library for details on how to configure
+the tracing runtime.
+
+This will also require setting the following system property `-Dotel.java.global-autoconfigure.enabled=true` when starting Coherence
+(in addition to any other telemetry related properties that may be used)
+
+In order for Coherence to generate tracing spans, edit the operational override tangosol-coherence-override.xml file
+and add a <tracing-config> element with a child <sampling-ratio> element.
+
+For example:
+```xml
+<tracing-config>
+  <sampling-ratio>0</sampling-ratio> <!-- user-initiated tracing -->
+</tracing-config>
+```
+
+The `coherence.tracing.ratio` system property is used to specify the tracing sampling ratio instead
+of using the operational override file. For example:
+
+```bash
+-Dcoherence.tracing.ratio=0
+```
+
+Tracing operates in three modes:
+
+* `-1` - This value disables tracing.
+* `0` - This value enables user-initiated tracing. This means that Coherence will not initiate tracing on its own and the application should start an outer tracing span, from which Coherence will collect the inner tracing spans. If the outer tracing span is not started, the tracing activity will not be performed.
+* `0.01-1.0` - This range indicates the tracing span being collected. For example, a value of 1.0 will result in all spans being collected, while a value of 0.1 will result in roughly 1 out of every 10 spans being collected.
+
+=== Externally Managed Tracer
+
+It is possible to use a Tracer that has already been created with Coherence
+by simply ensuring that the Tracer is available via the `GlobalOpenTelemtry` API included
+with the OpenTelemetry. When this is the case, Coherence will use the available Tracer,
+but will not attempt to configure or close the tracer when the cluster member is terminated.
+
+== Traced Operations
+
+The following Coherence traced operations may be captured:
+
+* All operations exposed by the NamedCache API when using partitioned caches.
+* Events processed by event listeners (such as EventInterceptor or MapListener).
+* Persistence operations.
+* CacheStore operations.
+* ExecutorService operations.
+
+== User Initiated Tracing
+
+When the sampling ratio is set to `0`, the application will be required to start a tracing
+span prior to invoking a Coherence operation.
+
+```java
+Tracer     tracer    = GlobalOpenTelemetry.getTracer("your-tracer");
+Span       span      = tracer.spanBuilder("test").startSpan();
+NamedCache cache     = CacheFactory.get("some-cache");
+
+try (Scope scope = span.makeCurrent())
+    {
+    cache.put("a", "b");
+    cache.get("a");
+    }
+finally
+    {
+    span.end();
+    }
+```
