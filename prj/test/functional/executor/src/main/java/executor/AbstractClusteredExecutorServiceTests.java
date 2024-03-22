@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -124,7 +124,7 @@ import static org.junit.Assert.fail;
  * @author lh
  * @since 21.12
  */
-@SuppressWarnings({"rawtypes", "unchecked", "resource"})
+@SuppressWarnings({"rawtypes", "resource"})
 public abstract class AbstractClusteredExecutorServiceTests
         extends AbstractTaskExecutorServiceTests
     {
@@ -976,14 +976,28 @@ public abstract class AbstractClusteredExecutorServiceTests
         cluster.filter(member -> member.getRoleName().equals(STORAGE_ENABLED_MEMBER_ROLE)).clone(2);
         server.close(SystemExit.withExitCode(-1));
 
+        Logger.info("Storage member terminated ...");
+
         // Verify that the task is recovered from failover and is executed at lease 1 time in the 2 minutes interval
         int cReceived1 = subscriber1.size();
-        int cReceived2 = subscriber2.size();
-        int cReceived3 = subscriber3.size();
+        Logger.info(String.format("Subscriber1 [%s] size=%s", coordinator1.getTaskId(), cReceived1));
 
+        int cReceived2 = subscriber2.size();
+        Logger.info(String.format("Subscriber2 [%s] size=%s", coordinator2.getTaskId(), cReceived2));
+
+        int cReceived3 = subscriber3.size();
+        Logger.info(String.format("Subscriber3 [%s] size=%s", coordinator3.getTaskId(), cReceived3));
+
+        Logger.info("Begin wait for two minutes to ensure task doesn't complete");
         Repetitively.assertThat(invoking(subscriber1).isCompleted(), Matchers.is(false), Timeout.of(2, TimeUnit.MINUTES));
+
+        Logger.info("Checking subscriber1 ...");
         MatcherAssert.assertThat(subscriber1.size(), Matchers.greaterThan(cReceived1));
+
+        Logger.info("Checking subscriber2 ...");
         MatcherAssert.assertThat(subscriber2.size(), Matchers.greaterThan(cReceived2));
+
+        Logger.info("Checking subscriber3 ...");
         MatcherAssert.assertThat(subscriber3.size(), Matchers.greaterThan(cReceived3));
 
         MatcherAssert.assertThat(coordinator1.cancel(true), Matchers.is(true));
