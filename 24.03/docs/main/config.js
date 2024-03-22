@@ -208,6 +208,19 @@ function createRoutes(){
             component: loadPage('docs-core-10_grpc', '/docs/core/10_grpc', {})
         },
         {
+            path: '/docs/core/11_otel',
+            meta: {
+                h1: 'OpenTelemetry Support',
+                title: 'OpenTelemetry Support',
+                h1Prefix: null,
+                description: 'OpenTelemetry Support',
+                keywords: 'coherence, java, distrbuted-tracing, opentelemetry, documentation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-core-11_otel', '/docs/core/11_otel', {})
+        },
+        {
             path: '/coherence-docker/README',
             meta: {
                 h1: 'Coherence OCI Image',
@@ -814,7 +827,8 @@ function createNav(){
                                 { href: '/docs/core/07_sorted_views', title: 'Sorted Views' },
                                 { href: '/docs/core/08_secured_production', title: 'Secured Production Mode' },
                                 { href: '/docs/core/09_queues', title: 'Queues' },
-                                { href: '/docs/core/10_grpc', title: 'Coherence gRPC Server' }
+                                { href: '/docs/core/10_grpc', title: 'Coherence gRPC Server' },
+                                { href: '/docs/core/11_otel', title: 'OpenTelemetry Support' }
                             ]
                         },
                         {
