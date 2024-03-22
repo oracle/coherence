@@ -513,7 +513,7 @@ public class NullableConcurrentMap<K, V>
 
         public <T> T[] toArray(T[] a)
             {
-            return f_setEntries.stream().map(NullableEntry::new).toList().toArray(a);
+            return f_setEntries.stream().map(NullableEntry::new).collect(Collectors.toList()).toArray(a);
             }
 
         public boolean add(Entry<K, V> entry)
@@ -731,7 +731,7 @@ public class NullableConcurrentMap<K, V>
 
         public <T> T[] toArray(T[] a)
             {
-            return f_col.stream().map(k -> Nullable.get(k)).toList().toArray(a);
+            return f_col.stream().map(k -> Nullable.get(k)).collect(Collectors.toList()).toArray(a);
             }
 
         public boolean add(T key)
@@ -746,7 +746,7 @@ public class NullableConcurrentMap<K, V>
 
         public boolean containsAll(Collection<?> c)
             {
-            return f_col.containsAll(c.stream().map(Nullable::of).toList());
+            return f_col.containsAll(c.stream().map(Nullable::of).collect(Collectors.toList()));
             }
 
         public boolean addAll(Collection<? extends T> c)
@@ -758,12 +758,12 @@ public class NullableConcurrentMap<K, V>
 
         public boolean retainAll(Collection<?> c)
             {
-            return f_col.retainAll(c.stream().map(Nullable::of).toList());
+            return f_col.retainAll(c.stream().map(Nullable::of).collect(Collectors.toList()));
             }
 
         public boolean removeAll(Collection<?> c)
             {
-            return f_col.removeAll(c.stream().map(Nullable::of).toList());
+            return f_col.removeAll(c.stream().map(Nullable::of).collect(Collectors.toList()));
             }
 
         public void clear()
@@ -784,7 +784,7 @@ public class NullableConcurrentMap<K, V>
                 return false;
                 }
             Collection<?> that = (Collection<?>) o;
-            return Objects.equals(f_col, that.stream().map(Nullable::of).toList());
+            return Objects.equals(f_col, that.stream().map(Nullable::of).collect(Collectors.toList()));
             }
 
         public int hashCode()
