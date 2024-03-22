@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 package com.tangosol.coherence.dslquery;
 
 import com.oracle.coherence.common.util.Duration;
+
 import com.tangosol.coherence.dslquery.queryplus.AbstractQueryPlusStatementBuilder;
 import com.tangosol.coherence.dslquery.queryplus.CommandsStatementBuilder;
 import com.tangosol.coherence.dslquery.queryplus.ExtendedLanguageStatementBuilder;
@@ -44,6 +45,12 @@ import java.util.List;
 /**
  * QueryPlus implements a simple command line processor for a sql like
  * language.
+ * <p>
+ * QueryPlus can use JLine for enhanced command-line editing capabilities,
+ * such as having the up and down arrows move through the command history.
+ * However, JLine is not required. QueryPlus supports JLine when the JLine 3.x library
+ * is included in the QueryPlus JVM classpath. If JLine is not found,
+ * a message displays and QueryPlus starts without JLine capabilities.
  *
  * @author djl  2009.08.31
  * @author jk   2014.01.02
