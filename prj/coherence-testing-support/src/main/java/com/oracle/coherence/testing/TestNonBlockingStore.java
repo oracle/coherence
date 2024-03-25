@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.testing;
@@ -295,6 +295,7 @@ public class TestNonBlockingStore<K, V>
                 delay(getDurationStore());
                 getStorageMap().put(oKey, oValue);
                 getProcessor().process(binEntry);
+                delay(200);
                 observer.onNext(binEntry);
                 });
         }
