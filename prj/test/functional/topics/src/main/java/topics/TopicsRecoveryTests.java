@@ -40,6 +40,7 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.DistributedCacheService;
+import com.tangosol.net.InetAddressHelper;
 import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.Service;
 import com.tangosol.net.Session;
@@ -68,6 +69,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -89,11 +91,14 @@ public class TopicsRecoveryTests
     @BeforeClass
     public static void setup() throws Exception
         {
+        InetAddress localHost = InetAddressHelper.getLocalHost();
         System.setProperty(Logging.PROPERTY_LEVEL, "8");
         System.setProperty(CacheConfig.PROPERTY, CACHE_CONFIG);
         System.setProperty(LocalStorage.PROPERTY, "false");
-        System.setProperty("coherence.wka", "127.0.0.1");
-        System.setProperty("coherence.localhost", "127.0.0.1");
+        System.setProperty("coherence.wka", localHost.getHostAddress());
+        System.setProperty("coherence.localhost", localHost.getHostAddress());
+        System.setProperty("test.unicast.address", localHost.getHostAddress());
+        System.setProperty("test.unicast.port", "0");
         System.setProperty("coherence.ttl", "0");
         }
 
