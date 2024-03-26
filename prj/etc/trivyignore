@@ -1,0 +1,6 @@
+# Also reported by dependency scan. From Jaeger thru OKHttp
+CVE-2023-3635
+
+# Also reported by dependency scan. Kotlin libraries pulled in via Jaeger from OKHttp
+CVE-2020-29582
+CVE-2022-24329
