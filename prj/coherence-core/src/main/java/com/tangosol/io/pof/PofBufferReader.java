@@ -1,14 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io.pof;
 
 import com.tangosol.io.ReadBuffer;
-import com.tangosol.io.SerializationSupport;
-import com.tangosol.io.SerializerAware;
 
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
@@ -46,6 +44,7 @@ import java.util.function.IntFunction;
 *
 * @since Coherence 3.2
 */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class PofBufferReader
         extends PofHelper
         implements PofReader
@@ -126,7 +125,7 @@ public class PofBufferReader
                     {
                     int nId = in.readPackedInt();
                     n = readInt(iProp);
-                    registerIdentity(nId, Integer.valueOf(n));
+                    registerIdentity(nId, n);
                     }
                     break;
 
@@ -170,7 +169,7 @@ public class PofBufferReader
                     {
                     int nId = in.readPackedInt();
                     n = readLong(iProp);
-                    registerIdentity(nId, Long.valueOf(n));
+                    registerIdentity(nId, n);
                     }
                     break;
 
@@ -214,7 +213,7 @@ public class PofBufferReader
                     {
                     int nId = in.readPackedInt();
                     fl = readFloat(iProp);
-                    registerIdentity(nId, Float.valueOf(fl));
+                    registerIdentity(nId, fl);
                     }
                     break;
 
@@ -258,7 +257,7 @@ public class PofBufferReader
                     {
                     int nId = in.readPackedInt();
                     dfl = readDouble(iProp);
-                    registerIdentity(nId, Double.valueOf(dfl));
+                    registerIdentity(nId, dfl);
                     }
                     break;
 
@@ -395,7 +394,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
             }
@@ -519,7 +519,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
             }
@@ -650,7 +651,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
             }
@@ -789,7 +791,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
             }
@@ -928,7 +931,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
             }
@@ -1067,7 +1071,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
             }
@@ -1174,7 +1179,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
             }
@@ -1281,7 +1287,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
             }
@@ -1546,7 +1553,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a Binary type");
                 }
             }
@@ -1691,7 +1699,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a String type");
                 }
             }
@@ -1742,7 +1751,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a Java Date type");
                 }
             }
@@ -1782,7 +1792,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a Java LocalDate type");
                 }
             }
@@ -1822,7 +1833,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a Java LocalDateTime type");
                 }
             }
@@ -1862,7 +1874,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a Java LocalTime type");
                 }
             }
@@ -1902,7 +1915,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a Java OffsetDateTime type");
                 }
             }
@@ -1942,7 +1956,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a Java OffsetTime type");
                 }
             }
@@ -2019,7 +2034,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a RawDate type");
                 }
             }
@@ -2087,7 +2103,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a RawTime type");
                 }
             }
@@ -2160,7 +2177,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a RawDateTime type");
                 }
             }
@@ -2207,7 +2225,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a RawYearMonthInterval type");
                 }
             }
@@ -2254,7 +2273,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a RawTimeInterval type");
                 }
             }
@@ -2303,7 +2323,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a RawDayTimeInterval type");
                 }
             }
@@ -2380,7 +2401,7 @@ public class PofBufferReader
                     break;
 
                 default:
-                    aoResult = readAsObjectArray(nType, ao);
+                    aoResult = readAsObjectArray(iProp, nType, ao);
                     break;
                 }
             }
@@ -2458,7 +2479,7 @@ public class PofBufferReader
                     break;
 
                 default:
-                    aoResult = readAsTypedObjectArray(nType, supplier);
+                    aoResult = readAsTypedObjectArray(iProp, nType, supplier);
                     break;
                 }
             }
@@ -2594,7 +2615,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
             }
@@ -2659,7 +2681,7 @@ public class PofBufferReader
                     {
                     if (coll == null)
                         {
-                        Object[] ao = readAsObjectArray(nType, null);
+                        Object[] ao = readAsObjectArray(iProp, nType, null);
                         coll = (C) new ImmutableArrayList(ao).getList();
                         }
                     else
@@ -2678,7 +2700,7 @@ public class PofBufferReader
                     {
                     if (coll == null)
                         {
-                        Object[] ao = readAsObjectArray(nType, null);
+                        Object[] ao = readAsObjectArray(iProp, nType, null);
                         coll = (C) new ImmutableArrayList(ao).getList();
                         }
                     else
@@ -2737,7 +2759,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a Collection type");
                 }
             }
@@ -2833,7 +2856,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a Map type");
                 }
             }
@@ -3080,7 +3104,7 @@ public class PofBufferReader
         switch (nType)
             {
             case T_INT16:
-                o = Short.valueOf((short) in.readPackedInt());
+                o = (short) in.readPackedInt();
                 break;
 
             case T_INT32:
@@ -3108,11 +3132,11 @@ public class PofBufferReader
             case V_INT_20:
             case V_INT_21:
             case V_INT_22:
-                o = Integer.valueOf(readAsInt(in, nType));
+                o = readAsInt(in, nType);
                 break;
 
             case T_INT64:
-                o = Long.valueOf(in.readPackedLong());
+                o = in.readPackedLong();
                 break;
 
             case T_INT128:
@@ -3120,11 +3144,11 @@ public class PofBufferReader
                 break;
 
             case T_FLOAT32:
-                o = Float.valueOf(in.readFloat());
+                o = in.readFloat();
                 break;
 
             case T_FLOAT64:
-                o = Double.valueOf(in.readDouble());
+                o = in.readDouble();
                 break;
 
             case T_FLOAT128:
@@ -3160,7 +3184,7 @@ public class PofBufferReader
                 break;
 
             case T_OCTET:
-                o = Byte.valueOf(in.readByte());
+                o = in.readByte();
                 break;
 
             case T_OCTET_STRING:
@@ -3168,7 +3192,7 @@ public class PofBufferReader
                 break;
 
             case T_CHAR:
-                o = Character.valueOf(readChar(in));
+                o = readChar(in);
                 break;
 
             case T_CHAR_STRING:
@@ -3234,11 +3258,11 @@ public class PofBufferReader
 
             case T_COLLECTION:
             case T_UNIFORM_COLLECTION:
-                o = new ImmutableArrayList(readAsObjectArray(nType, null)).getList();
+                o = new ImmutableArrayList(readAsObjectArray(-1, nType, null)).getList();
                 break;
 
             case T_ARRAY:
-                o = readAsObjectArray(nType, null);
+                o = readAsObjectArray(-1, nType, null);
                 break;
 
             case T_UNIFORM_ARRAY:
@@ -3606,7 +3630,8 @@ public class PofBufferReader
                 {
                 if (nType < 0)
                     {
-                    throw new StreamCorruptedException("illegal type " + nType);
+                    throw new StreamCorruptedException("illegal type " 
+                            + PofConstants.getTypeName(nType));
                     }
 
                 PofContext    ctx = getPofContext();
@@ -3702,7 +3727,7 @@ public class PofBufferReader
     *
     * @throws IOException  if an I/O error occurs
     */
-    protected Object[] readAsObjectArray(int nType, Object[] ao)
+    protected Object[] readAsObjectArray(int iProp, int nType, Object[] ao)
             throws IOException
         {
         Object[] aoResult = null;
@@ -3779,7 +3804,14 @@ public class PofBufferReader
                 break;
 
             default:
-                throw new IOException("unable to convert type " + nType
+                if (iProp != -1)
+                    {
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
+                                          + " to an array type");
+                    }
+                throw new IOException("unable to convert type " 
+                            + PofConstants.getTypeName(nType)
                                       + " to an array type");
             }
 
@@ -3790,6 +3822,7 @@ public class PofBufferReader
     * Read a POF value as an Object array.
     *
     * @param <T>      the identifier type
+    * @param iProp    the property index to read
     * @param nType    the type identifier of the value
     * @param factory  the optional factory to use to initialize the array
     *
@@ -3797,7 +3830,7 @@ public class PofBufferReader
     *
     * @throws IOException  if an I/O error occurs
     */
-    protected <T> T[] readAsTypedObjectArray(int nType, IntFunction<T[]> factory)
+    protected <T> T[] readAsTypedObjectArray(int iProp, int nType, IntFunction<T[]> factory)
             throws IOException
         {
         T[] aoResult = null;
@@ -3874,7 +3907,8 @@ public class PofBufferReader
                 break;
 
             default:
-                throw new IOException("unable to convert type " + nType
+                throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                       + " to an array type");
             }
 
@@ -4365,7 +4399,7 @@ public class PofBufferReader
         public static void set(PofBufferReader reader, int nId)
             {
             Map mapId = (Map) s_mapId.get();
-            mapId.put(reader, Integer.valueOf(nId));
+            mapId.put(reader, nId);
             }
 
         public static void reset(PofBufferReader reader, int nId, Object o)
@@ -4378,7 +4412,7 @@ public class PofBufferReader
                     Object oValue = mapId.get(reader);
                     if (oValue != null)
                         {
-                        int nValue = ((Integer) oValue).intValue();
+                        int nValue = (Integer) oValue;
                         if (nId == -1 || nValue == nId)
                             {
                             reader.registerIdentity(nValue, o);

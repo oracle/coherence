@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io.pof;
@@ -193,4 +193,92 @@ public interface PofConstants
     * Maximum unscaled value for the IEEE-754r 128-bit decimal format.
     */
     public static final BigInteger MAX_DECIMAL128_UNSCALED  = new BigInteger(Base.dup('9', 34));
+
+    public static String getTypeName(int nType)
+        {
+        if (nType >= V_INT_22 && nType <= V_INT_0)
+            {
+            return nType + " (int)";
+            }
+
+        switch (nType)
+            {
+            case T_INT16:
+                return nType + " (int16)";
+            case T_INT32:
+                return nType + " (int32)";
+            case T_INT64:
+                return nType + " (int64)";
+            case T_INT128:
+                return nType + " (int128)";
+            case V_FP_POS_INFINITY:
+            case V_FP_NEG_INFINITY:
+            case V_FP_NAN:
+            case T_FLOAT32:
+                return nType + " (float32)";
+            case T_FLOAT64:
+                return nType + " (float64)";
+            case T_FLOAT128:
+                return nType + " (float128)";
+            case T_DECIMAL32:
+                return nType + " (decimal32)";
+            case T_DECIMAL64:
+                return nType + " (decimal64)";
+            case T_DECIMAL128:
+                return nType + " (decimal128)";
+            case V_BOOLEAN_FALSE:
+            case V_BOOLEAN_TRUE:
+            case T_BOOLEAN:
+                return nType + " (boolean)";
+            case T_OCTET:
+                return nType + " (octet)";
+            case T_OCTET_STRING:
+                return nType + " (octet string)";
+            case T_CHAR:
+                return nType + " (char)";
+            case V_STRING_ZERO_LENGTH:
+            case T_CHAR_STRING:
+                return nType + " (string)";
+            case T_DATE:
+                return nType + " (date)";
+            case T_YEAR_MONTH_INTERVAL:
+                return nType + " (year month interval)";
+            case T_TIME:
+                return nType + " (time)";
+            case T_TIME_INTERVAL:
+                return nType + " (time interval)";
+            case T_DATETIME:
+                return nType + " (datetime)";
+            case T_DAY_TIME_INTERVAL:
+                return nType + " (day time interval)";
+            case V_COLLECTION_EMPTY:
+            case T_COLLECTION:
+                return nType + " (collection)";
+            case T_UNIFORM_COLLECTION:
+                return nType + " (uniform collection)";
+            case T_ARRAY:
+                return nType + " (array)";
+            case T_UNIFORM_ARRAY:
+                return nType + " (uniform array)";
+            case T_SPARSE_ARRAY:
+                return nType + " (sparse array)";
+            case T_UNIFORM_SPARSE_ARRAY:
+                return nType + " (uniform sparse array)";
+            case T_MAP:
+                return nType + " (map)";
+            case T_UNIFORM_KEYS_MAP:
+                return nType + " (uniform keys map)";
+            case T_UNIFORM_MAP:
+                return nType + " (uniform map)";
+            case T_IDENTITY:
+                return nType + " (identity)";
+            case V_REFERENCE_NULL:
+            case T_REFERENCE:
+                return nType + " (reference)";
+            case T_UNKNOWN:
+                return nType + " (unknown)";
+            default:
+                return String.valueOf(nType);
+            }
+        }
     }
