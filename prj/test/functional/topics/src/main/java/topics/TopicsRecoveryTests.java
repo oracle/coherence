@@ -18,6 +18,7 @@ import com.oracle.bedrock.runtime.coherence.options.Logging;
 
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
+import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.DisplayName;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -111,6 +112,9 @@ public class TopicsRecoveryTests
     @Before
     public void setupTest() throws Exception
         {
+        m_clusterPort.incrementAndGet();
+
+        System.setProperty("test.multicast.port", String.valueOf(m_clusterPort.get()));
         m_sClusterName = "TopicsRecoveryTests-" + m_cCluster.getAndIncrement();
         System.setProperty("coherence.cluster", m_sClusterName);
 
@@ -128,6 +132,7 @@ public class TopicsRecoveryTests
     public void cleanupTest()
         {
         Coherence.closeAll();
+        CacheFactory.shutdown();
         }
 
     @Test
@@ -149,14 +154,15 @@ public class TopicsRecoveryTests
 
 
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                                                                 ClusterName.of(m_sClusterName),
-                                                                 WellKnownAddress.loopback(),
-                                                                 LocalHost.only(),
-                                                                 LocalStorage.enabled(),
-                                                                 CacheConfig.of(CACHE_CONFIG),
-                                                                 IPv4Preferred.autoDetect(),
-                                                                 s_testLogs.builder(),
-                                                                 DisplayName.of(m_testName.getMethodName())))
+                    ClusterName.of(m_sClusterName),
+                    WellKnownAddress.loopback(),
+                    LocalHost.only(),
+                    SystemProperty.of("test.multicast.port", m_clusterPort.get()),
+                    LocalStorage.enabled(),
+                    CacheConfig.of(CACHE_CONFIG),
+                    IPv4Preferred.autoDetect(),
+                    s_testLogs.builder(),
+                    DisplayName.of(m_testName.getMethodName())))
                 {
                 Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
                 Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
@@ -219,14 +225,15 @@ public class TopicsRecoveryTests
             String              sMsg         = "foo";
 
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                                                                 ClusterName.of(m_sClusterName),
-                                                                 WellKnownAddress.loopback(),
-                                                                 LocalHost.only(),
-                                                                 LocalStorage.enabled(),
-                                                                 CacheConfig.of(CACHE_CONFIG),
-                                                                 IPv4Preferred.autoDetect(),
-                                                                 s_testLogs.builder(),
-                                                                 DisplayName.of(m_testName.getMethodName())))
+                    ClusterName.of(m_sClusterName),
+                    WellKnownAddress.loopback(),
+                    LocalHost.only(),
+                    LocalStorage.enabled(),
+                    SystemProperty.of("test.multicast.port", m_clusterPort.get()),
+                    CacheConfig.of(CACHE_CONFIG),
+                    IPv4Preferred.autoDetect(),
+                    s_testLogs.builder(),
+                    DisplayName.of(m_testName.getMethodName())))
                 {
                 Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
                 Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
@@ -307,15 +314,16 @@ public class TopicsRecoveryTests
             String                      sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
 
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                                                                 ClusterName.of(m_sClusterName),
-                                                                 WellKnownAddress.loopback(),
-                                                                 LocalHost.only(),
-                                                                 LocalStorage.enabled(),
-                                                                 CacheConfig.of(CACHE_CONFIG),
-                                                                 IPv4Preferred.autoDetect(),
-                                                                 s_testLogs.builder(),
-                                                                 LaunchLogging.disabled(),
-                                                                 DisplayName.of(m_testName.getMethodName())))
+                    ClusterName.of(m_sClusterName),
+                    WellKnownAddress.loopback(),
+                    LocalHost.only(),
+                    LocalStorage.enabled(),
+                    SystemProperty.of("test.multicast.port", m_clusterPort.get()),
+                    CacheConfig.of(CACHE_CONFIG),
+                    IPv4Preferred.autoDetect(),
+                    s_testLogs.builder(),
+                    LaunchLogging.disabled(),
+                    DisplayName.of(m_testName.getMethodName())))
                 {
                 Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
                 Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
@@ -396,14 +404,15 @@ public class TopicsRecoveryTests
             String                      sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
 
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                                                                 ClusterName.of(m_sClusterName),
-                                                                 WellKnownAddress.loopback(),
-                                                                 LocalHost.only(),
-                                                                 LocalStorage.enabled(),
-                                                                 CacheConfig.of(CACHE_CONFIG),
-                                                                 s_testLogs.builder(),
-                                                                 LaunchLogging.disabled(),
-                                                                 DisplayName.of(m_testName.getMethodName())))
+                    ClusterName.of(m_sClusterName),
+                    WellKnownAddress.loopback(),
+                    LocalHost.only(),
+                    SystemProperty.of("test.multicast.port", m_clusterPort.get()),
+                    LocalStorage.enabled(),
+                    CacheConfig.of(CACHE_CONFIG),
+                    s_testLogs.builder(),
+                    LaunchLogging.disabled(),
+                    DisplayName.of(m_testName.getMethodName())))
                 {
                 Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
                 Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
@@ -478,14 +487,15 @@ public class TopicsRecoveryTests
             TaskDaemon          daemon   = new TaskDaemon("test-daemon");
 
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                                                                 ClusterName.of(m_sClusterName),
-                                                                 WellKnownAddress.loopback(),
-                                                                 LocalHost.only(),
-                                                                 LocalStorage.enabled(),
-                                                                 CacheConfig.of(CACHE_CONFIG),
-                                                                 LaunchLogging.disabled(),
-                                                                 s_testLogs.builder(),
-                                                                 DisplayName.of(m_testName.getMethodName())))
+                    ClusterName.of(m_sClusterName),
+                    WellKnownAddress.loopback(),
+                    LocalHost.only(),
+                    LocalStorage.enabled(),
+                    SystemProperty.of("test.multicast.port", m_clusterPort.get()),
+                    CacheConfig.of(CACHE_CONFIG),
+                    LaunchLogging.disabled(),
+                    s_testLogs.builder(),
+                    DisplayName.of(m_testName.getMethodName())))
                 {
                 Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
                 Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
@@ -532,14 +542,15 @@ public class TopicsRecoveryTests
             TaskDaemon          daemon     = new TaskDaemon("test-daemon");
 
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                                                                 ClusterName.of(m_sClusterName),
-                                                                 WellKnownAddress.loopback(),
-                                                                 LocalHost.only(),
-                                                                 LocalStorage.enabled(),
-                                                                 CacheConfig.of(CACHE_CONFIG),
-                                                                 LaunchLogging.disabled(),
-                                                                 s_testLogs.builder(),
-                                                                 DisplayName.of(m_testName.getMethodName())))
+                        ClusterName.of(m_sClusterName),
+                        WellKnownAddress.loopback(),
+                        LocalHost.only(),
+                        LocalStorage.enabled(),
+                        SystemProperty.of("test.multicast.port", m_clusterPort.get()),
+                        CacheConfig.of(CACHE_CONFIG),
+                        LaunchLogging.disabled(),
+                        s_testLogs.builder(),
+                        DisplayName.of(m_testName.getMethodName())))
                 {
                 Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
                 Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
@@ -900,6 +911,8 @@ public class TopicsRecoveryTests
     private static Session s_session;
 
     private final AtomicInteger m_cCluster = new AtomicInteger();
+
+    public static final AtomicInteger m_clusterPort = new AtomicInteger(7574);
 
     private String m_sClusterName;
     }
