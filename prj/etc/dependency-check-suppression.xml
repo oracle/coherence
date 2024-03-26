@@ -54,15 +54,4 @@
     <cve>CVE-2023-3635</cve>
   </suppress>
 
-  <!-- COH-29196 	Update sshd-core-2.11.0.jar when new version available
-  -->
-  <suppress>
-    <notes><![CDATA[
-    file name: sshd-core-2.11.0.jar
-    file name: sshd-sftp-2.11.0.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.apache\.sshd/sshd-.*@.*$</packageUrl>
-    <cpe>cpe:2.3:a:apache:sshd</cpe>
-    <cve>CVE-2023-48795</cve>
-  </suppress>
 </suppressions>
