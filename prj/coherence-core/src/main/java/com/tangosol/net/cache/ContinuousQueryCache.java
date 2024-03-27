@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -636,7 +636,7 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
                 break;
 
             case STATE_CONFIGURING:
-                synchronized (this)
+                synchronized (m_nState)
                     {
                     int nStatePrev = m_nState;
                     azzert(nStatePrev == STATE_DISCONNECTED ||
@@ -648,7 +648,7 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
                 break;
 
             case STATE_CONFIGURED:
-                synchronized (this)
+                synchronized (m_nState)
                     {
                     if (m_nState == STATE_CONFIGURING)
                         {
@@ -663,7 +663,7 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
                 break;
 
             case STATE_SYNCHRONIZED:
-                synchronized (this)
+                synchronized (m_nState)
                     {
                     if (m_nState == STATE_CONFIGURED)
                         {
@@ -1892,30 +1892,33 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
         Map mapSyncReq = m_mapSyncReq;
         if (mapSyncReq != null)
             {
-            if (getState() <= STATE_CONFIGURING)
+            synchronized (m_nState)
                 {
-                // handle a truncation event being received during configuration
-                // clear any currently pending events.
-                if (DeactivationListener.class.getName().equals(oKey))
+                if (getState() <= STATE_CONFIGURING)
                     {
-                    mapSyncReq.clear();
+                    // handle a truncation event being received during configuration
+                    // clear any currently pending events.
+                    if (DeactivationListener.class.getName().equals(oKey))
+                        {
+                        mapSyncReq.clear();
+                        }
+                    else
+                        {
+                        // since the listeners are being configured and the local
+                        // cache is being populated, assume that the event is
+                        // being processed out-of-order and requires a subsequent
+                        // synchronization of the corresponding value
+                        mapSyncReq.put(oKey, null);
+                        }
+                    fDeferred = true;
                     }
                 else
                     {
-                    // since the listeners are being configured and the local
-                    // cache is being populated, assume that the event is
-                    // being processed out-of-order and requires a subsequent
-                    // synchronization of the corresponding value
-                    mapSyncReq.put(oKey, null);
+                    // since an event has arrived after the configuration
+                    // completed, the event automatically resolves the sync
+                    // requirement
+                    mapSyncReq.keySet().remove(oKey);
                     }
-                fDeferred = true;
-                }
-            else
-                {
-                // since an event has arrived after the configuration
-                // completed, the event automatically resolves the sync
-                // requirement
-                mapSyncReq.keySet().remove(oKey);
                 }
             }
         return fDeferred;
@@ -3054,7 +3057,7 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
     /**
      * State of the {@code ContinuousQueryCache}. One of the {@code STATE_*} enums.
      */
-    protected volatile int m_nState;
+    protected volatile Integer m_nState;
 
     /**
      * While the {@code ContinuousQueryCache} is configuring or re-configuring its
