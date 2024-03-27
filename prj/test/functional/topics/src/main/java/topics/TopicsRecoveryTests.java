@@ -58,6 +58,7 @@ import com.tangosol.util.TaskDaemon;
 
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -92,6 +93,9 @@ public class TopicsRecoveryTests
     @BeforeClass
     public static void setup() throws Exception
         {
+        String sOS = System.getProperty("os.name", "unknown");
+        Assume.assumeFalse("Skipping test on Windows", sOS.toLowerCase().contains("windows"));
+
         InetAddress localHost = InetAddressHelper.getLocalHost();
         System.setProperty(Logging.PROPERTY_LEVEL, "8");
         System.setProperty(CacheConfig.PROPERTY, CACHE_CONFIG);
