@@ -224,7 +224,7 @@
     <micrometer.version>1.11.3</micrometer.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
-    <netty.version>4.1.100.Final</netty.version>
+    <netty.version>4.1.108.Final</netty.version>
     <opentelemetry.version>1.29.0</opentelemetry.version>
     <opentelemetry.proto.version>1.0.0-alpha</opentelemetry.proto.version>
     <opentracing.grpc.version>0.2.3</opentracing.grpc.version>
