@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -245,8 +245,9 @@ Elements" page on the Coherence Wiki (http://wiki.tangosol.com).
 
       <cachestore-scheme></cachestore-scheme>
 
-      <read-only system-property="tangosol.coherence.readonly">true</read-only>
-      <write-delay system-property="tangosol.coherence.writedelays">0s</write-delay>
+      <read-only system-property="coherence.readonly">true</read-only>
+      <write-delay system-property="coherence.writedelays">0s</write-delay>
+      <write-behind-remove system-property="coherence.writebehind.remove">true</write-behind-remove>
     </read-write-backing-map-scheme>
 
     <!--
