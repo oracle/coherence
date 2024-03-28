@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,10 +8,14 @@ package concurrent.config;
 
 import com.oracle.coherence.concurrent.config.NamedExecutorService;
 import com.oracle.coherence.concurrent.config.NamespaceHandler;
+
+import com.oracle.coherence.concurrent.config.processors.AbstractExecutorProcessor;
 import com.oracle.coherence.concurrent.config.processors.CachedProcessor;
 import com.oracle.coherence.concurrent.config.processors.FixedProcessor;
 import com.oracle.coherence.concurrent.config.processors.SingleProcessor;
 import com.oracle.coherence.concurrent.config.processors.WorkStealingProcessor;
+
+import com.oracle.coherence.testing.CheckJDK;
 
 import com.tangosol.coherence.config.ParameterMacroExpressionParser;
 
@@ -28,6 +32,7 @@ import com.tangosol.run.xml.XmlHelper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 
@@ -246,6 +251,31 @@ public class NamespaceHandlerTest
         assertThat(result.getExecutorService(), is(notNullValue()));
         assertThat(result.getDescription(), is("WorkStealingThreadPool(Parallelism=5)"));
         }
+
+    @Test
+    void testVirtualThreadPerTask()
+        {
+        CheckJDK.assumeJDKVersionEqualOrGreater(21);
+
+        String sXml = "<e:virtual-per-task>\n"
+                      + "  <e:name>test8</e:name>\n"
+                      + "</e:virtual-per-task>";
+
+        XmlElement          xml       = XmlHelper.loadXml(sXml).getRoot();
+        NamespaceHandler    handler   = new NamespaceHandler();
+        ElementProcessor<?> processor = handler.getElementProcessor(xml);
+
+        assertThat(processor.getClass().getName(), endsWith("VirtualPerTaskProcessor"));
+
+        NamedExecutorService result = ((AbstractExecutorProcessor<?>) processor).process(context, xml);
+
+        assertThat(result,                      is(notNullValue()));
+        assertThat(result.getName(),            is("test8"));
+        assertThat(result.getExecutorService(), is(notNullValue()));
+        assertThat(result.getExecutorService().getClass().getName(), is("java.util.concurrent.ThreadPerTaskExecutor"));
+        assertThat(result.getDescription(), is("VirtualThreadPerTask(ThreadFactory=default)"));
+        }
+
 
     // ----- data members ---------------------------------------------------
 
