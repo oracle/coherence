@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -138,7 +138,7 @@ public abstract class AbstractAsynchronousProcessor<K, V, R, T>
      * <p>
      * If two consecutive "invoke" calls are made using {@link AsynchronousProcessor
      * AsynchronousProcessors} with the same order id and the same partition set,
-     * then the the corresponding {@link InvocableMap.EntryProcessor#process execution} and
+     * then the corresponding {@link InvocableMap.EntryProcessor#process execution} and
      * calls to {@link #onComplete} are going to happen in the exact same order.
      * <p>
      * Note 1: The ordering guarantee is respected between {@link AsynchronousProcessor

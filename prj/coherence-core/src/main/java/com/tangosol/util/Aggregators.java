@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1004,7 +1004,7 @@ public class Aggregators
         }
 
     /**
-     * Return an aggregator that calculates the the combined set of results from a number of aggregators.
+     * Return an aggregator that calculates the combined set of results from a number of aggregators.
      *
      * @param aAggregator  an array of EntryAggregator objects; may not be null
      *

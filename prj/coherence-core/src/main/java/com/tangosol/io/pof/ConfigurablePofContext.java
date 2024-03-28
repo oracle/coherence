@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -147,7 +147,7 @@ import java.util.stream.Collectors;
 * that specifies the location of the target PofContext configuration file.
 * The <tt>user-type</tt> elements of the target file are imported verbatum;
 * therefore, if the included elements contain explicit type identifiers, each
-* identifier must be unique with respect to the the user type identifiers
+* identifier must be unique with respect to the user type identifiers
 * (either explicit or generated) defined within the including file. If the
 * included user types do not contain explicit type identifiers, then the type
 * identifiers will be based on the order in which the user types appear in

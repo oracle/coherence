@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util.graal;
 
@@ -102,7 +102,7 @@ public class ScriptManager
     /**
      * Lookup the object that is implemented in the specified {@code language}
      * that is bound to the {@link Context} using the specified name and execute
-     * it using the the specified {@code args}.
+     * it using the specified {@code args}.
      *
      * If the result of the evaluation is a {@code Value} can be instantiated
      * it is instantiated and the resulting instance is returned. For example,

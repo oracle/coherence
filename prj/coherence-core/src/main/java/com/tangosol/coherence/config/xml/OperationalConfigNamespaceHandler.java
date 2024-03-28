@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -146,7 +146,7 @@ public class OperationalConfigNamespaceHandler
      * before it is used.
      * <p>
      * Instances of {@link Extension} are discovered using the {@link ServiceLoader}. If multiple
-     * instances are on the class pathe there is no guaranteed order in which they will be applied.
+     * instances are on the class path there is no guaranteed order in which they will be applied.
      */
     public interface Extension
         {

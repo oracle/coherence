@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000-2021 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.application;
@@ -25,7 +25,7 @@ public interface ContainerContext
     /**
      * Obtain the Domain Partition name associated with this ContainerContext.
      * <p>
-     * Note, that to get the name of the the GLOBAL DomainPartition, the caller
+     * Note, that to get the name of the GLOBAL DomainPartition, the caller
      * should do the following:
      * <pre>
      *    getGlobalContext().getDomainPartition();

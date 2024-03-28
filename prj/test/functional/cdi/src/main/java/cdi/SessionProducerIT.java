@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -80,21 +80,21 @@ class SessionProducerIT
     private Session defaultSession;
 
     /**
-     * Should inject the the default Session.
+     * Should inject the default Session.
      */
     @Inject
     @Name(Coherence.DEFAULT_NAME)
     private Session qualifiedDefaultSession;
 
     /**
-     * Should inject the the default Session.
+     * Should inject the default Session.
      */
     @Inject
     @Name(" ")
     private Session namedDefaultSession;
 
     /**
-     * Should inject the the system Session.
+     * Should inject the system Session.
      */
     @Inject
     @Name(Coherence.SYSTEM_SESSION)

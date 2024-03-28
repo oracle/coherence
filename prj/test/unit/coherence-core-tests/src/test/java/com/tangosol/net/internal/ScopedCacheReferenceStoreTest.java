@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.internal;
 
@@ -50,7 +50,7 @@ public class ScopedCacheReferenceStoreTest
         when(cacheTwo.getCacheName()).thenReturn(sName);
         when(cacheTwo.getCacheService()).thenAnswer((Answer<CacheService>) i -> {
             // This allows us to block on the call to getCacheService and so control the
-            // race condition the the test is checking
+            // race condition the test is checking
             // Release latchOne to signal that we're now blocking
             latchOne.countDown();
             // Block until latchTwo is released
@@ -105,7 +105,7 @@ public class ScopedCacheReferenceStoreTest
         when(cacheTwo.getCacheName()).thenReturn(sName);
         when(cacheTwo.getCacheService()).thenAnswer((Answer<CacheService>) i -> {
             // This allows us to block on the call to getCacheService and so control the
-            // race condition the the test is checking
+            // race condition the test is checking
             // Release latchOne to signal that we're now blocking
             latchOne.countDown();
             // Block until latchTwo is released
@@ -163,7 +163,7 @@ public class ScopedCacheReferenceStoreTest
         when(cacheTwo.getCacheName()).thenReturn(sName);
         when(cacheTwo.getCacheService()).thenAnswer((Answer<CacheService>) i -> {
         // This allows us to block on the call to getCacheService and so control the
-        // race condition the the test is checking
+        // race condition the test is checking
         // Release latchOne to signal that we're now blocking
         latchOne.countDown();
         // Block until latchTwo is released

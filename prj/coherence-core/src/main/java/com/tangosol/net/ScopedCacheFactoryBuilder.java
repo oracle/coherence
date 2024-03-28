@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -230,7 +230,7 @@ public class ScopedCacheFactoryBuilder
     /**
      * Instantiate the default {@link ScopeResolver}.
      * <p>
-     * If the the {@code scope-resolver} element of the {@code cache-factory-builder}
+     * If the {@code scope-resolver} element of the {@code cache-factory-builder}
      * element of the operational configuration has been specified this will be used
      * to determine the {@link ScopeResolver} implementation to use otherwise the
      * {@link ScopeResolver#INSTANCE NullImplementation} resolver will be

@@ -258,7 +258,7 @@ public class ConditionalIndexTest
 
         assertEquals(MapIndex.NO_VALUE, mapIndex.get(oKey3));
 
-        // assert the the inverse map does not contain an entry for the extracted values
+        // assert the inverse map does not contain an entry for the extracted values
         assertFalse(mapIndex.getIndexContents().containsKey(oExtracted));
         assertFalse(mapIndex.getIndexContents().containsKey(oExtracted2));
 
@@ -516,7 +516,7 @@ public class ConditionalIndexTest
         // get the inverse map
         NullableSortedMap mapInverse = (NullableSortedMap) mapIndex.getIndexContents();
 
-        // assert the the inverse map does contain an entry for the
+        // assert the inverse map does contain an entry for the
         // extracted values for key
         assertTrue(mapInverse.containsKey(oExtracted));
 
@@ -526,7 +526,7 @@ public class ConditionalIndexTest
         assertTrue("The index's inverse map should contain the key.",
                 set.contains(oKey));
 
-        // assert the the inverse map does contain an entry for the
+        // assert the inverse map does contain an entry for the
         // extracted values for key2
         assertTrue(mapInverse.containsKey(oExtracted2));
 
@@ -536,7 +536,7 @@ public class ConditionalIndexTest
         assertTrue("The index's inverse map should contain the key2.",
                 set.contains(oKey2));
 
-        // assert the the inverse map does not contain an entry for the
+        // assert the inverse map does not contain an entry for the
         // extracted value for key3
         assertFalse(mapInverse.containsKey(oExtracted3));
 
@@ -544,7 +544,7 @@ public class ConditionalIndexTest
         mapIndex.update(entryNew);   // key  (extracted value : 11)
         mapIndex.update(entryNew2);  // key2 (extracted value : 30)
 
-        // assert the the index now contains the updated value for key
+        // assert the index now contains the updated value for key
         oIndexValue = mapIndex.get(oKey);
         assertEquals("The index should contain the updated value for key.",
                 oExtractedNew, oIndexValue);
@@ -561,7 +561,7 @@ public class ConditionalIndexTest
         assertEquals("The index should not contain the extracted value for key2.",
                 MapIndex.NO_VALUE, oIndexValue2);
 
-        // assert the the inverse map does contain an entry for the
+        // assert the inverse map does contain an entry for the
         // extracted value for key
         mapInverse = (NullableSortedMap) mapIndex.getIndexContents();
         assertTrue(mapInverse.containsKey(oExtractedNew));
@@ -584,7 +584,7 @@ public class ConditionalIndexTest
         assertTrue("The index's inverse map should not contain key2.",
                 set == null || !set.contains(oKey2));
 
-        // assert the the inverse map does not contain an entry for the new
+        // assert the inverse map does not contain an entry for the new
         // extracted value for key2... fails filter check
         set = (Set) mapInverse.get(oExtractedNew2);
         assertTrue("The index's inverse map should not contain key2.",
@@ -822,13 +822,13 @@ public class ConditionalIndexTest
 
         // begin test
 
-        // assert the the inverse map does not contain an entry for the extracted value
+        // assert the inverse map does not contain an entry for the extracted value
         assertFalse(mapIndex.getIndexContents().containsKey(oExtracted));
 
         // insert into the index
         mapIndex.insert(entry);
 
-        // assert the the inverse map does contain an entry for the extracted value
+        // assert the inverse map does contain an entry for the extracted value
         assertTrue(mapIndex.getIndexContents().containsKey(oExtracted));
 
         mapIndex.delete(delEntry);

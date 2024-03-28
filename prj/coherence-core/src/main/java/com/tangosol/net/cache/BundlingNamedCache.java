@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.cache;
@@ -234,7 +234,7 @@ public class BundlingNamedCache
             extends AbstractKeyBundler
         {
         /**
-        * A pass through the the underlying getAll operation.
+        * A pass through the underlying getAll operation.
         */
         protected Map bundle(Collection colKeys)
             {
@@ -242,7 +242,7 @@ public class BundlingNamedCache
             }
 
         /**
-        * A pass through the the underlying get operation.
+        * A pass through the underlying get operation.
         */
         protected Object unbundle(Object oKey)
             {
@@ -254,7 +254,7 @@ public class BundlingNamedCache
             extends AbstractEntryBundler
         {
         /**
-        * A pass through the the underlying putAll() operation.
+        * A pass through the underlying putAll() operation.
         */
         protected void bundle(Map map)
             {
@@ -266,7 +266,7 @@ public class BundlingNamedCache
             extends AbstractKeyBundler
         {
         /**
-        * A pass through the the underlying keySet().removeAll() operation.
+        * A pass through the underlying keySet().removeAll() operation.
         */
         protected Map bundle(Collection colKeys)
             {
@@ -275,7 +275,7 @@ public class BundlingNamedCache
             }
 
         /**
-        * A pass through the the underlying remove() operation.
+        * A pass through the underlying remove() operation.
         */
         protected Object unbundle(Object oKey)
             {

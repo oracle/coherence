@@ -1975,7 +1975,7 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
         }
 
     /**
-     * Release the the entire index map.
+     * Release the entire index map.
      */
     protected void releaseIndexMap()
         {
@@ -2273,7 +2273,7 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
     // ----- inner class: InternalMapListener -------------------------------
 
     /**
-     * This listener allows interception of all events triggered by the the internal
+     * This listener allows interception of all events triggered by the internal
      * {@link ObservableMap} of the {@code ContinuousQueryCache}.
      *
      * @since 12.2.1.4

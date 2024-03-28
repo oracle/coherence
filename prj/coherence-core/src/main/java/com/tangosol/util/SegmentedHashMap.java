@@ -1140,7 +1140,7 @@ public class SegmentedHashMap
         }
 
     /**
-    * Calculate the segment index for the the specified bucket.
+    * Calculate the segment index for the specified bucket.
     *
     * @param nBucket  the bucket number
     *

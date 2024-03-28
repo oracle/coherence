@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -111,7 +111,7 @@ import java.util.concurrent.ExecutionException;
  * correct position.
  * A Subscriber can {@link Element#commit() commit an element} or {@link Subscriber#commit(int, Position) commit a
  * position in a channel}. After a successful commit, then on reconnection the first message received from a channel
- * will be <i>the the next message <b>after</b> the committed position</i>.
+ * will be <i>the next message <b>after</b> the committed position</i>.
  * <p>
  * When a position is committed, this will also commit any earlier positions in the channel. For example, if
  * five elements are received and commit is called only on the last element, this effectively also commits the previous

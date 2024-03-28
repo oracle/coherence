@@ -1676,7 +1676,7 @@ public class ProxyService
     // Declared at the super level
     /**
      * Called to complete the "service-left" processing for the specified
-    * member.  This notification is processed only after the the associated
+    * member.  This notification is processed only after the associated
     * endpoint has been released by the message handler.  See
     * $NotifyServiceLeft#onReceived/#proceed.
     * Called on the service thread only.

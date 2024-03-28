@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.guides.aggregations;
@@ -66,7 +66,7 @@ public class WordCount<K extends String, V extends Document>
         Document document = entry.getValue();
 
         for (String word : setWords) {
-            // count how many times the word exists in the the documents and accumulate
+            // count how many times the word exists in the documents and accumulate
             int count = document.getContents().split("\\b" + word + "\\b", -1).length - 1;  // <1>
             this.mapResults.compute(word, (k, v) -> v == null ? count : v + count);  // <2>
         }

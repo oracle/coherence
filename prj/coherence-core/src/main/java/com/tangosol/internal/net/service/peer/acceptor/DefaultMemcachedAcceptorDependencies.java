@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -156,7 +156,7 @@ public class DefaultMemcachedAcceptorDependencies
         }
 
     /**
-     * Set the the SocketProviderBuilder that may be used by the MemcachedServer to create
+     * Set the SocketProviderBuilder that may be used by the MemcachedServer to create
      * a SocketProvider to open ServerSocketChannels.
      *
      * @param builder  the socket provider builder

@@ -1,18 +1,15 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.repository;
-
-import com.oracle.coherence.common.base.Exceptions;
-import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.net.NamedMap;
 
 import com.tangosol.util.Aggregators;
-import com.tangosol.util.ClassHelper;
+
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.Fragment;
@@ -21,8 +18,6 @@ import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.ValueUpdater;
 
 import com.tangosol.util.comparator.ExtractorComparator;
-
-import com.tangosol.util.extractor.DeserializationAccelerator;
 
 import com.tangosol.util.function.Remote;
 
@@ -35,7 +30,6 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -1453,7 +1447,7 @@ public abstract class AbstractRepository<ID, T>
      *                   such as {@code Person::getGender}
      * @param <K>        the type of extracted grouping keys
      *
-     * @return the the grouping of entities by the specified extractor; the keys
+     * @return the grouping of entities by the specified extractor; the keys
      *         in the returned map will be distinct values extracted by the
      *         specified {@code extractor}, and the values will be sets of entities
      *         that match each extracted key
@@ -1474,7 +1468,7 @@ public abstract class AbstractRepository<ID, T>
      *                   within each group by
      * @param <K>        the type of extracted grouping keys
      *
-     * @return the the grouping of entities by the specified extractor; the keys
+     * @return the grouping of entities by the specified extractor; the keys
      *         in the returned map will be distinct values extracted by the
      *         specified {@code extractor}, and the values will be sorted sets
      *         of entities that match each extracted key
@@ -1494,7 +1488,7 @@ public abstract class AbstractRepository<ID, T>
      *                   such as {@code Person::getGender}
      * @param <K>        the type of extracted grouping keys
      *
-     * @return the the grouping of entities by the specified extractor; the keys
+     * @return the grouping of entities by the specified extractor; the keys
      *         in the returned map will be distinct values extracted by the
      *         specified {@code extractor}, and the values will be sets of entities
      *         that match each extracted key
@@ -1516,7 +1510,7 @@ public abstract class AbstractRepository<ID, T>
      *                   within each group by
      * @param <K>        the type of extracted grouping keys
      *
-     * @return the the grouping of entities by the specified extractor; the keys
+     * @return the grouping of entities by the specified extractor; the keys
      *         in the returned map will be distinct values extracted by the
      *         specified {@code extractor}, and the values will be sorted sets
      *         of entities that match each extracted key
@@ -1539,7 +1533,7 @@ public abstract class AbstractRepository<ID, T>
      * @param <A>        the type of collector's accumulator
      * @param <R>        the type of collector's result
      *
-     * @return the the grouping of entities by the specified extractor; the keys
+     * @return the grouping of entities by the specified extractor; the keys
      *         in the returned map will be distinct values extracted by the
      *         specified {@code extractor}, and the values will be results of
      *         the specified {@code collector} for each group
@@ -1564,7 +1558,7 @@ public abstract class AbstractRepository<ID, T>
      * @param <A>        the type of collector's accumulator
      * @param <R>        the type of collector's result
      *
-     * @return the the grouping of entities by the specified extractor; the keys
+     * @return the grouping of entities by the specified extractor; the keys
      *         in the returned map will be distinct values extracted by the
      *         specified {@code extractor}, and the values will be results of
      *         the specified {@code collector} for each group
@@ -1591,7 +1585,7 @@ public abstract class AbstractRepository<ID, T>
      * @param <R>         the type of collector's result
      * @param <M>         the type of result {@code Map}
      *
-     * @return the the grouping of entities by the specified extractor; the keys
+     * @return the grouping of entities by the specified extractor; the keys
      *         in the returned map will be distinct values extracted by the
      *         specified {@code extractor}, and the values will be results of
      *         the specified {@code collector} for each group
@@ -1619,7 +1613,7 @@ public abstract class AbstractRepository<ID, T>
      * @param <R>         the type of collector's result
      * @param <M>         the type of result {@code Map}
      *
-     * @return the the grouping of entities by the specified extractor; the keys
+     * @return the grouping of entities by the specified extractor; the keys
      *         in the returned map will be distinct values extracted by the
      *         specified {@code extractor}, and the values will be results of
      *         the specified {@code collector} for each group

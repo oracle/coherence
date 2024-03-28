@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -448,7 +448,7 @@ public class StringMap
     * primary strings are mapped to either the same strings or nulls.
     *
     * @param fInit  if set to true, the primary strings are initialized
-    *               equal to the the same strings, nulls otherwise
+    *               equal to the same strings, nulls otherwise
     * @return  StringMap that is "trivial"
     */
     public synchronized StringMap cloneTrivial(boolean fInit)
