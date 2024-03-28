@@ -7,13 +7,16 @@
 package com.oracle.coherence.concurrent.config.builders;
 
 import com.oracle.coherence.concurrent.executor.util.NamedThreadFactory;
+
 import com.tangosol.coherence.config.ParameterList;
+
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 
 import com.tangosol.config.annotation.Injectable;
 
 import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
+
 import java.util.concurrent.ThreadFactory;
 
 /**
@@ -66,9 +69,22 @@ public abstract class AbstractExecutorWithFactoryBuilder<T>
             ParameterResolver resolver, ClassLoader loader, ParameterList listParameters)
         {
         return m_bldr == null
-                ? new NamedThreadFactory(sName)
+                ? instantiateNamedThreadFactory(sName)
                 : m_bldr.realize(resolver, loader, listParameters);
 
+        }
+
+    /**
+     * Creates a new {@link NamedThreadFactory}
+     *
+     * @param sName  the name to use if no user-defined ThreadFactory
+     *               is defined
+     *
+     * @return the {@link NamedThreadFactory}
+     */
+    protected ThreadFactory instantiateNamedThreadFactory(String sName)
+        {
+        return new NamedThreadFactory(sName);
         }
 
     // ----- data members ---------------------------------------------------

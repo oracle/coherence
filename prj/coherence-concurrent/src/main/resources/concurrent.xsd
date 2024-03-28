@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2021, Oracle and/or its affiliates.
+  Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns="class://com.oracle.coherence.concurrent.config.NamespaceHandler"
@@ -96,6 +96,24 @@
 
         See: java.util.concurrent.Executors.newCachedThreadPool()
              java.util.concurrent.Executors.newCachedThreadPool(ThreadFactory)
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="name"/>
+        <xsd:element minOccurs="0" ref="thread-factory"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="virtual-per-task">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines a virtual-per-task executor.
+        This requires JDK 21 or later.
+
+        See: newVirtualThreadPerTaskExecutor()
       </xsd:documentation>
     </xsd:annotation>
 

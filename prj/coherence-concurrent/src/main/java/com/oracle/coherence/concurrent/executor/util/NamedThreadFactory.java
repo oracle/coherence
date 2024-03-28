@@ -7,8 +7,8 @@
 package com.oracle.coherence.concurrent.executor.util;
 
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A {@link ThreadFactory} implementation for used with {@code named}
@@ -45,12 +45,33 @@ public class NamedThreadFactory
     @Override
     public Thread newThread(Runnable r)
         {
-        return new Thread(r, "CES:" + f_sName + '-' + f_counter.incrementAndGet());
+        return newThread(r, "CES:" + f_sName + '-' + f_counter.incrementAndGet());
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Creates a new thread for the given runnable and using the given name.
+     *
+     * @param r      the {@link Runnable}
+     * @param sName  the name of the thread
+     *
+     * @return a new thread for the given runnable and using the given name
+     */
+    public Thread newThread(Runnable r, String sName)
+        {
+        return new Thread(r, sName);
         }
 
     // ----- data members ---------------------------------------------------
 
+    /**
+     * The thread counter.
+     */
     protected final AtomicInteger f_counter = new AtomicInteger();
 
+    /**
+     * The thread name.
+     */
     protected final String f_sName;
     }
