@@ -1,0 +1,14 @@
+# Ignore - erroneously flagging org.apache.maven.shared:maven-shared-utils version 3.1.0
+# we are using version 3.3.4 where this issue has been fixed
+CVE-2022-29599
+
+# Also reported by dependency scan. From Jaeger thru OKHttp
+CVE-2023-3635
+
+# Also reported by dependency scan. Kotlin libraries pulled in via Jaeger from OKHttp
+CVE-2020-29582
+CVE-2022-24329
+
+# Also reported by dependency scan. Commons IO pulled in by Maven Plugin API
+# not shipped by us and no later version available
+CVE-2021-29425
