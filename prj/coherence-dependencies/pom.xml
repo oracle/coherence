@@ -189,7 +189,7 @@
     grpc.version ???
     This is not always possible if we need to bump versions for CVE's
     -->
-    <helidon.version>2.6.5</helidon.version>
+    <helidon.version>2.6.7</helidon.version>
     <helidon.sitegen.version>2.1.2</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
     <jackson.version>2.14.1</jackson.version>
@@ -217,7 +217,7 @@
     <jaxb-impl.version>2.3.5</jaxb-impl.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
-    <jersey.version>2.40</jersey.version>
+    <jersey.version>2.41</jersey.version>
     <jettison.version>1.5.4</jettison.version>
     <jline.version>3.25.0</jline.version>
     <log4j2.version>2.18.0</log4j2.version>
