@@ -70,6 +70,10 @@
                     <exclude>**/com/tangosol/run/jca/*.*</exclude>
                     <exclude>**/com/tangosol/net/management/jmx/*.*</exclude>
 
+                    <!-- excluding duplicate class from coherence-concurrent mrjar;
+                         class is uninteresting from a coverage point of view. -->
+                    <exclude>**/com/oracle/coherence/concurrent/config/NamespaceHandler.*</exclude>
+
                     <!-- exclude unused classes -->
                     <!-- pof -->
                     <exclude>**/com/tangosol/io/pof/AbstractPofHandler.class</exclude>
