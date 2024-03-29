@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -23,7 +23,9 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>topics-14.1.1.2206.3</module>
+    <!-- commenting out since there is no Coherence rolling upgrade compatibility from 14.1.1.2206 to 14.1.2.0/15.1.1.0.0 -->
+    <!-- this module could be resurrected when new versions of this test are needed in future. -->
+    <!--module>topics-14.1.1.2206.3</module-->
   </modules>
 
   <properties>
