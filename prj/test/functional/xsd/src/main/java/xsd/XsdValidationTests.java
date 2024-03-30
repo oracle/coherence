@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -106,6 +106,10 @@ public class XsdValidationTests
         XmlValidator.validate("../../../coherence-core/src/main/resources/com/oracle/coherence/defaults/tangosol-coherence-override-eval.xml");
         XmlValidator.validate("../../../coherence-core/src/main/resources/com/oracle/coherence/defaults/tangosol-coherence-override-prod.xml");
         XmlValidator.validate("../../../coherence-core/src/main/resources/tangosol-coherence.xml");
+        XmlValidator.validate("../../../coherence-core/src/main/resources/com/oracle/coherence/defaults/grpc-proxy-cache-config.xml");
+
+        XmlValidator.validate("../../../coherence-concurrent/src/main/resources/coherence-concurrent-config.xml");
+        XmlValidator.validate("../../../coherence-concurrent/src/main/resources/coherence-concurrent-client-config.xml");
         }
 
    /**

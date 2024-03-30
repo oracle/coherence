@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -54,13 +54,18 @@ public class IllegalaccessProfile
         if (jdk.getVersion() > 8)
             {
             // options introduced in jdk 9
-            Freeforms jvmOptions = JvmOptions.include(
-                        "--add-opens=java.base/java.lang=ALL-UNNAMED");
+            Freeforms jvmOptions = JvmOptions.include();
 
             // Support was removed in JDK 17 so avoid warning message by not including in JDK 17 and greater
             if (jdk.getVersion() <= 16)
                 {
                 jvmOptions = jvmOptions.with(new Freeform("--illegal-access=" + m_sValue));
+                }
+
+            if (jdk.getVersion() >= 22 && m_sValue.equals("strict"))
+                {
+                jvmOptions = JvmOptions.include("-Djavax.xml.catalog.resolve=strict",
+                                                "-Djdk.xml.jdkcatalog.resolve=strict");
                 }
 
             Freeforms freeforms = optionsByType.get(Freeforms.class);
