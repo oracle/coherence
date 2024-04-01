@@ -8,6 +8,7 @@ package com.tangosol.internal.tracing.opentelemetry;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.tracing.TracingShim;
 import com.tangosol.internal.tracing.TracingShimLoader;
 
@@ -40,7 +41,14 @@ public class OpenTelemetryShimLoader
     @Override
     public TracingShim loadTracingShim()
         {
-        return ensureDependenciesPresent() ? new OpenTelemetryShim() : TracingShim.Noop.INSTANCE;
+        if (ENABLED)
+            {
+            return ensureDependenciesPresent()
+                   ? new OpenTelemetryShim()
+                   : TracingShim.Noop.INSTANCE;
+            }
+
+        return null;
         }
 
     // ----- helper methods -------------------------------------------------
@@ -112,6 +120,12 @@ public class OpenTelemetryShimLoader
             "io.opentelemetry.api.OpenTelemetry",    "opentelemetry-api",
             "io.opentelemetry.context.Context",      "opentelemetry-context",
             "io.opentelemetry.sdk.OpenTelemetrySdk", "opentracing-util");
+
+    /**
+     * A flag that allows the explicit disabling of OpenTelemetry.
+     */
+    protected static final boolean ENABLED =
+            Config.getBoolean("com.oracle.coherence.opentelemetry.enabled", true);
 
     // ----- inner class: Noops ---------------------------------------------
     /**
