@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2012, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import com.tangosol.io.pof.generator.data.FinalFieldValue;
 import com.tangosol.io.pof.generator.data.Simple;
 import org.hamcrest.MatcherAssert;
 import org.junit.Before;
@@ -45,6 +46,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+
 
 /**
  * @author as  2012.05.27
@@ -296,6 +299,27 @@ public class PortableTypeGeneratorTest
         MatcherAssert.assertThat(instrumentedClass.isAnnotationPresent(Instrumented.class), is(true));
         MatcherAssert.assertThat(PortableObject.class.isAssignableFrom(instrumentedClass), is(true));
         MatcherAssert.assertThat(EvolvableObject.class.isAssignableFrom(instrumentedClass), is(true));
+        }
+
+    @Test
+    public void shouldThrowErrorForFinalField() throws Exception
+        {
+        String         sClassName   = FinalFieldValue.class.getName();
+        URL            url          = getClass().getResource("/" + sClassName.replaceAll("\\.", "/") + ".class");
+        File           fileClass    = new File(url.toURI());
+        byte[]         abBytes      = Files.readAllBytes(fileClass.toPath());
+        Properties     properties   = new Properties();
+        Map<String, ?> env          = new HashMap<>();
+
+        try
+            {
+            PortableTypeGenerator.instrumentClass(fileClass, abBytes, 0, abBytes.length, properties, env);
+            fail("IllegalStateException should have been thrown");
+            }
+        catch (IllegalStateException ise)
+            {
+            // Expected
+            }
         }
 
     // ----- inner class: ByteArrayClassLoader ------------------------------

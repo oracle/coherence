@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2013, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2013, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io.pof.schema.handler;
 
@@ -34,12 +34,14 @@ import com.tangosol.io.pof.schema.annotation.PortableMap;
 import com.tangosol.io.pof.schema.annotation.PortableSet;
 import com.tangosol.io.pof.schema.annotation.PortableType;
 
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 
 import static com.oracle.coherence.common.schema.util.AsmUtils.getAnnotationAttribute;
+
 
 /**
  * Reads {@link PofType} metadata from a class file.
@@ -99,6 +101,12 @@ public class ClassFileHandler
             AnnotationNode an = AsmUtils.getAnnotation(source, PORTABLE_ANNOTATIONS);
             if (an != null)
                 {
+                if ((source.access & Opcodes.ACC_FINAL) == Opcodes.ACC_FINAL)
+                    {
+                    throw new IllegalStateException(String.format("Field '%s' annotated with '@%s' cannot be final",
+                            source.name, an.desc.substring(1, an.desc.length() - 1).replace('/', '.')));
+                    }
+
                 property.setSince((Integer) getAnnotationAttribute(an, "since"));
                 property.setOrder((Integer) getAnnotationAttribute(an, "order"));
 
