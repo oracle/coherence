@@ -8,6 +8,7 @@ package com.tangosol.internal.tracing.opentracing;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.tracing.TracingShim;
 import com.tangosol.internal.tracing.TracingShimLoader;
 
@@ -35,7 +36,14 @@ public class OpenTracingShimLoader
     @Override
     public TracingShim loadTracingShim()
         {
-        return ensureDependenciesPresent() ? new OpenTracingShim() : TracingShim.Noop.INSTANCE;
+        if (ENABLED)
+            {
+            return ensureDependenciesPresent()
+                   ? new OpenTracingShim()
+                   : TracingShim.Noop.INSTANCE;
+            }
+
+        return null;
         }
 
     // ----- helper methods -------------------------------------------------
@@ -129,4 +137,10 @@ public class OpenTracingShimLoader
                     put("io.opentracing.contrib.tracerresolver.TracerResolver", "opentracing-tracerresolver");
                     }
                 });
+
+    /**
+     * A flag that allows the explicit disabling of OpenTracing.
+     */
+    protected static final boolean ENABLED =
+            Config.getBoolean("com.oracle.coherence.opentracing.enabled", true);
     }
