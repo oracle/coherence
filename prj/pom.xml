@@ -665,8 +665,6 @@
         <module>coherence-java-client</module>
         <module>coherence-concurrent</module>
         <module>coherence-bom</module>
-        <module>coherence-helidon-grpc</module>
-        <module>coherence-helidon-grpc-proxy</module>
         <module>plugins</module>
       </modules>
 
