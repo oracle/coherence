@@ -689,7 +689,7 @@ public class ClassFileSchemaSource
     // ---- Constants -------------------------------------------------------
 
     private static final int EXCLUDED_FIELDS =
-            Opcodes.ACC_STATIC | Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT;
+            Opcodes.ACC_STATIC | Opcodes.ACC_TRANSIENT;
 
     // ---- Data members ----------------------------------------------------
 
