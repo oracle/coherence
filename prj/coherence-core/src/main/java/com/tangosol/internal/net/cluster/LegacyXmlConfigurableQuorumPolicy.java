@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.cluster;
 
@@ -36,7 +36,7 @@ import java.util.Map;
 
 /**
  * LegacyXmlConfigurableQuorumPolicy parses the Quorum policy XML, <cluster-quorum-policy>
- * and injects dependencies in the the Quorum related classes.
+ * and injects dependencies in the Quorum related classes.
  *
  * NOTE: This code will eventually be replaced by CODI.
  *

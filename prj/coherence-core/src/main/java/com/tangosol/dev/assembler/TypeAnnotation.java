@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 
@@ -523,7 +523,7 @@ public class TypeAnnotation
             }
 
         /**
-         * Set the super type index for the the relevant class or interface.
+         * Set the super type index for the relevant class or interface.
          * The index must be in the range 0-65535.
          *
          * @param iSuperType  the super type index of the relevant class or interface
@@ -851,7 +851,7 @@ public class TypeAnnotation
             }
 
         /**
-         * Set the throws clause index for the the relevant method or constructor.
+         * Set the throws clause index for the relevant method or constructor.
          * The index must be in the range 0-65535.
          *
          * @param iThrowsClause  the throws clause index of the relevant method

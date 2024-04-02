@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -42,7 +42,7 @@ public class DeltaMap
     /**
      * Property DeleteMap
      *
-     * Map containing the the removed items
+     * Map containing the removed items
      */
     private java.util.Map __m_DeleteMap;
     
@@ -560,7 +560,7 @@ public class DeltaMap
     // Accessor for the property "DeleteMap"
     /**
      * Getter for property DeleteMap.<p>
-    * Map containing the the removed items
+    * Map containing the removed items
      */
     protected java.util.Map getDeleteMap()
         {
@@ -1158,7 +1158,7 @@ public class DeltaMap
     // Accessor for the property "DeleteMap"
     /**
      * Setter for property DeleteMap.<p>
-    * Map containing the the removed items
+    * Map containing the removed items
      */
     protected void setDeleteMap(java.util.Map map)
         {

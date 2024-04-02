@@ -14989,7 +14989,7 @@ public class ClusterService
                     }
             
                 // we succeeded in disconnecting the convicted members;
-                // close the the roll-call poll if we have one open, as we
+                // close the roll-call poll if we have one open, as we
                 // don't care about any of the other replies
                 onIncidentClosed();
                 return true;

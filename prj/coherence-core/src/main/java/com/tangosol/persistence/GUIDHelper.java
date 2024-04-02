@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.persistence;
 
@@ -313,7 +313,7 @@ public class GUIDHelper
             mapGUIDMembers.put(listGUIDs, listMembers.toArray(new Integer[listMembers.size()]));
             }
 
-        // sort in a such a way the the least 'visible' GUIDs are assigned first
+        // sort in a such a way the least 'visible' GUIDs are assigned first
         //noinspection unchecked
         List<String>[] alistGUIDs = mapGUIDMembers.keySet().toArray(new List[mapGUIDMembers.size()]);
         Arrays.sort(alistGUIDs, (listThis, listThat) -> listThis.size() - listThat.size());

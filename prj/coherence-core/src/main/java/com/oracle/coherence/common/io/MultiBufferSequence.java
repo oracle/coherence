@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.io;
 
@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * For BufferSequences of just a few elements it is recommended to either directly
  * instantate a {@link SingleBufferSequence}, {@link DoubleBufferSequence},
- * {@link TripleBufferSequence}, or to use the the
+ * {@link TripleBufferSequence}, or to use the
  * {@link Buffers#createBufferSequence} method, as these will produce more space optimized
  * alternatives to the MultiBufferSequence.
  * </p>

@@ -1639,7 +1639,7 @@ public class ReadWriteBackingMap
         }
 
     /**
-    * Get the the value for a given key. If the entry is present in the
+    * Get the value for a given key. If the entry is present in the
     * internal cache and refresh-ahead is configured, check if a reload
     * operation needs to be scheduled. If the entry is missing, check for a
     * potentially pending refresh-ahead operation and potentially pending
@@ -6624,7 +6624,7 @@ public class ReadWriteBackingMap
             return new AbstractKeyBundler()
                 {
                 /**
-                * A pass through the the underlying loadAll operation.
+                * A pass through the underlying loadAll operation.
                 */
                 protected Map bundle(Collection colKeys)
                     {
@@ -6632,7 +6632,7 @@ public class ReadWriteBackingMap
                     }
 
                 /**
-                * A pass through the the underlying load operation.
+                * A pass through the underlying load operation.
                 */
                 protected Object unbundle(Object oKey)
                     {
@@ -6649,7 +6649,7 @@ public class ReadWriteBackingMap
             return new AbstractEntryBundler()
                 {
                 /**
-                * A pass through the the underlying storeAll() operation.
+                * A pass through the underlying storeAll() operation.
                 */
                 protected void bundle(Map map)
                     {
@@ -6666,7 +6666,7 @@ public class ReadWriteBackingMap
             return new AbstractKeyBundler()
                 {
                 /**
-                * A pass through the the underlying eraseAll() operation.
+                * A pass through the underlying eraseAll() operation.
                 */
                 protected Map bundle(Collection colKeys)
                     {
@@ -6675,7 +6675,7 @@ public class ReadWriteBackingMap
                     }
 
                 /**
-                * A pass through the the underlying remove() operation.
+                * A pass through the underlying remove() operation.
                 */
                 protected Object unbundle(Object oKey)
                     {
@@ -7796,7 +7796,7 @@ public class ReadWriteBackingMap
             return new AbstractBinaryEntryBundler()
                 {
                 /**
-                * A pass through the the underlying loadAll operation.
+                * A pass through the underlying loadAll operation.
                 */
                 protected void bundle(Set setEntries)
                     {
@@ -7804,7 +7804,7 @@ public class ReadWriteBackingMap
                     }
 
                 /**
-                * A pass through the the underlying load operation.
+                * A pass through the underlying load operation.
                 */
                 protected void unbundle(BinaryEntry binEntry)
                     {
@@ -7821,7 +7821,7 @@ public class ReadWriteBackingMap
             return new AbstractBinaryEntryBundler()
                 {
                 /**
-                * A pass through the the underlying storeAll operation.
+                * A pass through the underlying storeAll operation.
                 */
                 protected void bundle(Set setEntries)
                     {
@@ -7829,7 +7829,7 @@ public class ReadWriteBackingMap
                     }
 
                 /**
-                * A pass through the the underlying store operation.
+                * A pass through the underlying store operation.
                 */
                 protected void unbundle(BinaryEntry binEntry)
                     {
@@ -7846,7 +7846,7 @@ public class ReadWriteBackingMap
             return new AbstractBinaryEntryBundler()
                 {
                 /**
-                * A pass through the the underlying eraseAll operation.
+                * A pass through the underlying eraseAll operation.
                 */
                 protected void bundle(Set setEntries)
                     {
@@ -7854,7 +7854,7 @@ public class ReadWriteBackingMap
                     }
 
                 /**
-                * A pass through the the underlying erase operation.
+                * A pass through the underlying erase operation.
                 */
                 protected void unbundle(BinaryEntry binEntry)
                     {

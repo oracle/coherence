@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1146,7 +1146,7 @@ public abstract class AbstractSocketBus
          * pursue a connection with the peer. Once all IO required for this
          * phase is completed the channel will be closed.
          *
-         * This can happen because it already is the the process of opening
+         * This can happen because it already is the process of opening
          * the same, and it is of higher priority. Rather then rejecting the
          * connection by closing it, it simply waits for the peer, to also
          * realize the collision, and to accept the higher priority EndPoint's
@@ -1910,7 +1910,7 @@ public abstract class AbstractSocketBus
                             {
                             cbWrite += cb = chan.write(srcs, i, c);
 
-                            // According the the JRockit team the underlying
+                            // According the JRockit team the underlying
                             // OS will generally only support a maximum number
                             // of gather buffers (they said 16). So it is
                             // possible that an incomplete write was not do to
@@ -3204,7 +3204,7 @@ public abstract class AbstractSocketBus
                             {
                             if (connection.f_lIdentity != lIdThisRx)
                                 {
-                                // but we've been recycled, i.e. not the the same logical connection
+                                // but we've been recycled, i.e. not the same logical connection
                                 connection.scheduleDisconnect(new IOException(
                                         "connection migration failed; mismatch on local identity " +
                                         connection.f_lIdentity + "/" + lIdThisRx));

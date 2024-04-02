@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -137,7 +137,7 @@ public class Listeners
         }
 
     /**
-    * Return an array containing the union of the the specified lists.
+    * Return an array containing the union of the specified lists.
     *
     * @param aListener1  array of listeners
     * @param aListener2  array of listeners

@@ -644,7 +644,7 @@ public class SSLSocketChannel
 
 
     /**
-    * Called to terminate or accept termination of the the connection.
+    * Called to terminate or accept termination of the connection.
     *
     * If the caller passes <code>true</code> to this method, it is the caller's responsibility
     * to wrap this call within a {@link Timer} block.

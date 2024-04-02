@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,7 +12,7 @@ package com.tangosol.coherence.component.manageable.modelAdapter;
 
 /**
  * The TransactionManagerMBean contains statistics for all transaction related
- * information managed for the the local member.
+ * information managed for the local member.
  */
 @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
 public class TransactionManagerMBean
@@ -104,7 +104,7 @@ public class TransactionManagerMBean
         {
         return new Object[]
             {
-            "The TransactionManagerMBean contains statistics for all transaction related information managed for the the local member.",
+            "The TransactionManagerMBean contains statistics for all transaction related information managed for the local member.",
             null,
             };
         }

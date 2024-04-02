@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.messaging;
@@ -19,7 +19,7 @@ package com.tangosol.net.messaging;
 * {@link ConnectionManager}. During Connection establishment, the client's
 * {@link ConnectionInitiator} sends information about each registered
 * Protocol. A compatable set of Protocol objects (or superset) must be
-* registered with server's ConnectionManager in order for the the Connection
+* registered with server's ConnectionManager in order for the Connection
 * to be accepted.
 * <p>
 * All Channel implementations must be fully thread-safe.

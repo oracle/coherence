@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -574,7 +574,7 @@ public abstract class Service
     * configuration.
     * 
     * @param xmlConfig the parent XML configuration element
-    * @param sName the name of the the child XML configuration element
+    * @param sName the name of the child XML configuration element
     * @param sDefault the default value to return if the child element is
     * missing or empty
     * 

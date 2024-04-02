@@ -6587,7 +6587,7 @@ public class PartitionedCache
     // Declared at the super level
     /**
      * Called to complete the "service-left" processing for the specified
-    * member.  This notification is processed only after the the associated
+    * member.  This notification is processed only after the associated
     * endpoint has been released by the message handler.  See
     * $NotifyServiceLeft#onReceived/#proceed.
     * Called on the service thread only.
@@ -9902,7 +9902,7 @@ public class PartitionedCache
         // 1) no sync backup messages were sent (due to missing backup, no change
         //    or all async) and no persistence operations
         // 2) we are completing a partial job execution. Client response/events
-        //    are not posted until the the backup and persistence operations for
+        //    are not posted until the backup and persistence operations for
         //    the entire batch has completed. However, there is a possibility
         //    that all backups polls as well as all persistence operations have
         //    been completed/closed by this point (before this job has been removed
