@@ -29,7 +29,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import javax.xml.XMLConstants;
-
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.validation.SchemaFactory;
 
@@ -101,7 +100,7 @@ public class XsdValidationTests
         XmlValidator.validate("../../../coherence-core/src/main/resources/com/oracle/coherence/defaults/coherence-cache-config.xml");
         XmlValidator.validate("../../../coherence-core/src/main/resources/com/oracle/coherence/defaults/grpc-proxy-cache-config.xml");
         XmlValidator.validate("../../../coherence-core/src/main/resources/coherence-pof-config.xml");
-        XmlValidator.validate("../../../coherence-core/src/main/resources/management-config.xml");
+        XmlValidator.validate("../../../coherence-core/src/main/resources/com/oracle/coherence/defaults/management-config.xml");
         XmlValidator.validate("../../../coherence-core/src/main/resources/com/oracle/coherence/defaults/tangosol-coherence-override-dev.xml");
         XmlValidator.validate("../../../coherence-core/src/main/resources/com/oracle/coherence/defaults/tangosol-coherence-override-eval.xml");
         XmlValidator.validate("../../../coherence-core/src/main/resources/com/oracle/coherence/defaults/tangosol-coherence-override-prod.xml");
