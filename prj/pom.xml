@@ -388,6 +388,7 @@
         <module>coherence-testing-support</module>
 
         <!-- distributed modules -->
+        <module>coherence-ai</module>
         <module>coherence-bedrock</module>
         <module>coherence-bom</module>
         <module>coherence-docker</module>
@@ -453,6 +454,7 @@
         <module>coherence-testing-support</module>
 
         <!-- distributed modules -->
+        <module>coherence-ai</module>
         <module>coherence-bedrock</module>
         <module>coherence-bom</module>
         <module>coherence-docker</module>

@@ -113,6 +113,7 @@
 
       <!-- the following modules are buildable by this profile -->
       <modules>
+        <module>ai</module>
         <module>aggregator</module>
         <module>bootstrap</module>
         <module>bundler</module>

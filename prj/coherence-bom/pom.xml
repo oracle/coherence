@@ -123,6 +123,11 @@
       </dependency>
       <dependency>
         <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-ai</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
         <artifactId>coherence-cdi</artifactId>
         <version>${project.version}</version>
       </dependency>

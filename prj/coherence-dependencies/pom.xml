@@ -219,6 +219,7 @@
          This is not always possible if we need to bump versions for CVE's -->
     <jersey.version>3.1.5</jersey.version>
     <jettison.version>1.5.4</jettison.version>
+    <jhdf.version>0.7.0-alpha</jhdf.version>
     <jline.version>3.25.0</jline.version>
     <log4j2.version>2.18.0</log4j2.version>
     <micrometer.version>1.11.3</micrometer.version>
@@ -359,6 +360,12 @@
         <groupId>io.jaegertracing</groupId>
         <artifactId>jaeger-client</artifactId>
         <version>${jaeger.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.jhdf</groupId>
+        <artifactId>jhdf</artifactId>
+        <version>${jhdf.version}</version>
       </dependency>
 
       <!-- Eclipse MicroProfile -->
