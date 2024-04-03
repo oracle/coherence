@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+<!--
+Service configuration descriptor for the Management invocation service used by the
+Coherence JMX framework.
+-->
+<config>
+  <!--
+  Use standard Java serialization regardless of the global settings specified
+  in the ExternalizableHelper.xml descriptor.
+  -->
+  <scheme-name>JMXManagementScheme</scheme-name>
+  <service-name>JMXManagementService</service-name>
+  <serializer>
+    <class-name>com.tangosol.io.DefaultSerializer</class-name>
+  </serializer>
+  <thread-count-max>2</thread-count-max>
+  <thread-count-min>2</thread-count-min>
+  <task-timeout>30m</task-timeout>
+  <request-timeout>123456</request-timeout>
+  <guardian-timeout>300000</guardian-timeout>
+  <service-failure-policy>exit-process</service-failure-policy>
+  <autostart>true</autostart>
+</config>
