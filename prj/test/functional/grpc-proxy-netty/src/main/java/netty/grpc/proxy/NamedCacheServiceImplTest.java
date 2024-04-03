@@ -170,6 +170,7 @@ class NamedCacheServiceImplTest
         m_testAsyncCache = testCache.async();
 
         m_testCCF = mock(ConfigurableCacheFactory.class);
+        when(m_testCCF.ensureCache(eq(TEST_CACHE_NAME), any())).thenReturn(testCache);
         when(m_testCCF.ensureCache(eq(TEST_CACHE_NAME), any(ClassLoader.class))).thenReturn(testCache);
         when(m_testCCF.getScopeName()).thenReturn(GrpcDependencies.DEFAULT_SCOPE);
 
@@ -758,7 +759,10 @@ class NamedCacheServiceImplTest
     @Test
     public void shouldHandleDestroyError() throws Exception
         {
+        NamedCache cache = mock(NamedCache.class);
+        when(m_testAsyncCache.getNamedCache()).thenReturn(cache);
         doThrow(ERROR).when(m_testCCF).destroyCache(any(NamedCache.class));
+        doThrow(ERROR).when(cache).destroy();
 
         TestStreamObserver<Empty>  observer = new TestStreamObserver<>();
         NamedCacheService service = s_serviceProvider.getService(m_dependencies);

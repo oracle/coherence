@@ -7,6 +7,7 @@
 
 package queues;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.pof.ConfigurablePofContext;
@@ -147,7 +148,9 @@ public abstract class AbstractCollectionTests<NC extends NamedCollection, C exte
         {
         String sName = getNewName();
         NC     col1  = getNamedCollection(sName);
-        col1.destroy();
+        assertThat(col1.isActive(), is(true));
+        getSession().destroy(col1);
+        assertThat(col1.isDestroyed(), is(true));
         NC col2 = getNamedCollection(sName);
         assertThat(col2, is(not(sameInstance(col1))));
         }
