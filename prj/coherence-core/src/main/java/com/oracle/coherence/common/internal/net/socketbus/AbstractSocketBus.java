@@ -215,8 +215,8 @@ public abstract class AbstractSocketBus
                             }
                         });
                     }
+                    }
                 }
-            }
         catch (IOException e)
             {
             throw new IllegalStateException(e);
@@ -1816,24 +1816,24 @@ public abstract class AbstractSocketBus
          * @param runnable  the runnable to invoke
          */
         protected synchronized void invoke(Runnable runnable)
-            {
-            Queue<Runnable> queueDeferred = m_queueDeferred;
-            if (queueDeferred == null)
                 {
-                try
+                Queue<Runnable> queueDeferred = m_queueDeferred;
+                if (queueDeferred == null)
                     {
-                    getSelectionService().invoke(m_channel, runnable, /*cMillisDelay*/ 0);
+                    try
+                        {
+                        getSelectionService().invoke(m_channel, runnable, /*cMillisDelay*/ 0);
+                        }
+                    catch (IOException e)
+                        {
+                        throw new RuntimeException(e);
+                        }
                     }
-                catch (IOException e)
+                else
                     {
-                    throw new RuntimeException(e);
+                    queueDeferred.add(runnable);
                     }
                 }
-            else
-                {
-                queueDeferred.add(runnable);
-                }
-            }
 
         // ----- Channel interface ------------------------------------------
 
@@ -2090,69 +2090,70 @@ public abstract class AbstractSocketBus
          */
         public synchronized void migrate(Throwable eReason)
             {
-            SocketBusDriver.Dependencies depsDriver            = f_driver.getDependencies();
-            int                          cSocketReconnectLimit = depsDriver.getSocketReconnectLimit();
+                SocketBusDriver.Dependencies depsDriver = f_driver.getDependencies();
+                int cSocketReconnectLimit = depsDriver.getSocketReconnectLimit();
 
-            // COH-24389 - a reconnect limit of < 0 indicates that migrations are disabled
-            if (getProtocolVersion() == 0 || cSocketReconnectLimit < 0)
-                {
-                scheduleDisconnect(eReason);
-                }
-            else // protocol not yet negotiated or >= 1, in either case we can attempt a migration
-                {
-                if (eReason instanceof ConnectException && ++m_cReconnectAttempts > cSocketReconnectLimit)
+                // COH-24389 - a reconnect limit of < 0 indicates that migrations are disabled
+                if (getProtocolVersion() == 0 || cSocketReconnectLimit < 0)
                     {
-                    // we've exhausted our reconnect attempts, disconnect
                     scheduleDisconnect(eReason);
-                    return;
                     }
-
-                // delay reconnect on initial connect and to also help avoid an endless conflict
-                // if both sides were to keep trying to simultaneously reconnect and in doing so invalidate the other
-                // side's reconnect attempt.
-                long cMillisDelay = eReason instanceof ConnectException ||
-                        getLocalEndPoint().getCanonicalName().compareTo(getPeer().getCanonicalName()) > 0
-                        ? depsDriver.getSocketReconnectDelayMillis()
-                        : 0;
-
-                SocketChannel chan  = m_channel;
-                String        sChan = chan.toString(); // to preserve port info for subsequent logging
-
-                closeChannel(chan);
-
-                scheduleUnsafeTask(chan, new Runnable()
+                else // protocol not yet negotiated or >= 1, in either case we can attempt a migration
                     {
-                    @Override
-                    public void run()
+                    if (eReason instanceof ConnectException && ++m_cReconnectAttempts > cSocketReconnectLimit)
                         {
-                        synchronized (Connection.this)
+                        // we've exhausted our reconnect attempts, disconnect
+                        scheduleDisconnect(eReason);
+                        return;
+                        }
+
+                    // delay reconnect on initial connect and to also help avoid an endless conflict
+                    // if both sides were to keep trying to simultaneously reconnect and in doing so invalidate the other
+                    // side's reconnect attempt.
+                    long cMillisDelay = eReason instanceof ConnectException ||
+                                        getLocalEndPoint().getCanonicalName().compareTo(getPeer().getCanonicalName()) > 0
+                                        ? depsDriver.getSocketReconnectDelayMillis()
+                                        : 0;
+
+                    SocketChannel chan = m_channel;
+                    String sChan = chan.toString(); // to preserve port info for subsequent logging
+
+                    closeChannel(chan);
+
+                    scheduleUnsafeTask(chan, new Runnable()
+                        {
+                        @Override
+                        public void run()
                             {
-                            if (m_state.ordinal() < ConnectionState.DEFUNCT.ordinal() && chan == m_channel)
+                        synchronized (Connection.this)
                                 {
-                                getLogger().log(makeExceptionRecord(Level.FINER, eReason,
-                                        "{0} migrating connection with {1} off of {2} on {3}",
-                                        getLocalEndPoint(), getPeer(), sChan, Connection.this));
-
-                                m_eMigrationCause = eReason;
-                                onMigration();
-
-                                // we're sync'd on the connection so nothing new can be scheduled
-                                try
+                                if (m_state.ordinal() < ConnectionState.DEFUNCT.ordinal() && chan == m_channel)
                                     {
-                                    getSelectionService().register(chan, null);
-                                    m_handler = null;
-                                    }
+                                    // COH-24703 - not adding the exception to the LogRecord because logging the stack trace is not useful in this case
+                                    getLogger().log(makeRecord(Level.FINER,
+                                                                        "{0} migrating connection with {1} off of {2} on {3}: {4}",
+                                                                        getLocalEndPoint(), getPeer(), sChan, Connection.this, eReason));
+
+                                    m_eMigrationCause = eReason;
+                                    onMigration();
+
+                                    // we're sync'd on the connection so nothing new can be scheduled
+                                    try
+                                        {
+                                        getSelectionService().register(chan, null);
+                                        m_handler = null;
+                                        }
                                 catch (IOException e) {}
 
-                                // replaces m_channel, so any subsequent exceptions on the old channel won't make it into this if block
-                                // schedule task to ensure register and connect are processed sequentially
-                                scheduleUnsafeTask(chan, ()-> connect(), cMillisDelay);
+                                    // replaces m_channel, so any subsequent exceptions on the old channel won't make it into this if block
+                                    // schedule task to ensure register and connect are processed sequentially
+                                    scheduleUnsafeTask(chan, () -> connect(), cMillisDelay);
+                                    }
                                 }
                             }
-                        }
-                    }, cMillisDelay);
+                        }, cMillisDelay);
+                    }
                 }
-            }
 
         /**
          * Called when the channel has been selected.
@@ -3114,11 +3115,11 @@ public abstract class AbstractSocketBus
                                         throw new IllegalStateException("state = " + connOld.m_state);
                                     }
                                 }
+                                }
                             }
                         }
-                    }
-                finally
-                    {
+                    finally
+                        {
                     if (m_connection != connNew)
                         {
                         connNew.dispose();
