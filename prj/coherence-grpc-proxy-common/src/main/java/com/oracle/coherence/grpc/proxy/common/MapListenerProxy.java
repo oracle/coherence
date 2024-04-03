@@ -93,9 +93,21 @@ public class MapListenerProxy
     @Override
     public void onNext(MapListenerRequest request)
         {
+        if (m_fCompleted)
+            {
+            throw Status.FAILED_PRECONDITION
+                    .withDescription("Received message after completion")
+                    .asRuntimeException();
+            }
         f_lock.lock();
         try
             {
+            if (m_fCompleted)
+                {
+                throw Status.FAILED_PRECONDITION
+                        .withDescription("Received message after completion")
+                        .asRuntimeException();
+                }
             if (m_holder == null)
                 {
                 m_holder = f_service.createRequestHolder(request,
@@ -189,6 +201,8 @@ public class MapListenerProxy
                 {
                 // ignored - we already have errors.
                 }
+            m_fCompleted = true;
+            m_holder     = null;
             }
         finally
             {

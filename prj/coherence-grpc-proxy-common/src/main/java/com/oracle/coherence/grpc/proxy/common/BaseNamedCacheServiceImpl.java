@@ -13,6 +13,7 @@ import com.google.protobuf.BytesValue;
 import com.google.protobuf.Empty;
 import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Exceptions;
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.grpc.AddIndexRequest;
 import com.oracle.coherence.grpc.AggregateRequest;
 import com.oracle.coherence.grpc.BinaryHelper;
@@ -232,24 +233,14 @@ public abstract class BaseNamedCacheServiceImpl
                         .asRuntimeException();
                 }
 
-            ConfigurableCacheFactory   ccf           = getCCF(request.getScope());
-            NamedCache<Binary, Binary> cachePassThru = ccf.ensureCache(sCacheName, NullImplementation.getClassLoader());
-            NamedCache<Binary, Binary> cache         = ccf.ensureCache(sCacheName, Classes.getContextClassLoader());
-            // we get caches via the CCF, so we must destroy them that way too
-            ccf.destroyCache(cachePassThru);
-            try
-                {
-                ccf.destroyCache(cache);
-                }
-            catch (Exception ignored)
-                {
-                // We may get an exception if destroying the first pass-thru cache also destroys the plain cache.
-                // We can just ignore it.
-                }
+            ConfigurableCacheFactory   ccf   = getCCF(request.getScope());
+            NamedCache<Binary, Binary> cache = ccf.ensureCache(sCacheName, null);
+            cache.destroy();
             handleUnary(Empty.getDefaultInstance(), null, safeObserver);
             }
         catch (Throwable t)
             {
+            Logger.err(t);
             handleUnary(Empty.getDefaultInstance(), t, safeObserver);
             }
         }
