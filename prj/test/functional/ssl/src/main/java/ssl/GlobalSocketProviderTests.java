@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -79,6 +79,7 @@ import java.net.URL;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.tangosol.internal.net.metrics.MetricsHttpHelper.PROP_METRICS_ENABLED;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -101,7 +102,7 @@ public class GlobalSocketProviderTests
         System.setProperty("coherence.localhost", "127.0.0.1");
         System.setProperty("coherence.wka", "127.0.0.1");
         System.setProperty("coherence.role", "client");
-        System.setProperty(MetricsHttpHelper.PROP_METRICS_ENABLED, "true");
+        System.setProperty(MetricsHttpHelper.PROP_METRICS_ENABLED, "false");
 
         m_ports = LocalPlatform.get().getAvailablePorts();
         }
@@ -235,6 +236,7 @@ public class GlobalSocketProviderTests
                 assertThat(member.invoke(new IsSecureProxy()), is(true));
                 }
 
+            System.setProperty(PROP_METRICS_ENABLED, "false");
             System.setProperty("coherence.extend.address", "127.0.0.1");
             System.setProperty("coherence.extend.port", String.valueOf(extendPort.get()));
 
@@ -265,7 +267,7 @@ public class GlobalSocketProviderTests
         OptionsByType optionsByType = OptionsByType.of(
                 OperationalOverride.of("global-ssl-test-override.xml"),
                 SystemProperty.of(SocketProviderFactory.PROP_GLOBAL_PROVIDER, "one"),
-                SystemProperty.of(MetricsHttpHelper.PROP_METRICS_ENABLED, true),
+                SystemProperty.of(PROP_METRICS_ENABLED, true),
                 SystemProperty.of("coherence.metrics.http.port", metricsPort),
                 ClusterName.of(m_sClusterName),
                 ClusterPort.of(m_nClusterPort),
