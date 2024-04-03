@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -291,6 +291,8 @@ public class PersistenceResourceTests
 
     private void testSnapshotNotPresent()
         {
+        Eventually.assertDeferred(() -> this.isPersistenceManagerIdle(m_client), is(true));
+
         Response response = getBaseTarget().path("services").path(SERVICE_NAME).path("persistence")
                 .path("snapshots").request().get();
 
