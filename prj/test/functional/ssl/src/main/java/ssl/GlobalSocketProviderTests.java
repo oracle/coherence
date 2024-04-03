@@ -79,6 +79,7 @@ import java.net.URL;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.tangosol.internal.net.metrics.MetricsHttpHelper.PROP_METRICS_ENABLED;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -101,7 +102,7 @@ public class GlobalSocketProviderTests
         System.setProperty("coherence.localhost", "127.0.0.1");
         System.setProperty("coherence.wka", "127.0.0.1");
         System.setProperty("coherence.role", "client");
-        System.setProperty(MetricsHttpHelper.PROP_METRICS_ENABLED, "true");
+        System.setProperty(MetricsHttpHelper.PROP_METRICS_ENABLED, "false");
 
         m_ports = LocalPlatform.get().getAvailablePorts();
         }
@@ -235,6 +236,7 @@ public class GlobalSocketProviderTests
                 assertThat(member.invoke(new IsSecureProxy()), is(true));
                 }
 
+            System.setProperty(PROP_METRICS_ENABLED, "false");
             System.setProperty("coherence.extend.address", "127.0.0.1");
             System.setProperty("coherence.extend.port", String.valueOf(extendPort.get()));
 
