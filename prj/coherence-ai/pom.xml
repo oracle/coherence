@@ -197,10 +197,13 @@
         </configuration>
       </plugin>
 
-      <!-- flatten POM to remove build-specific content -->
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>flatten-maven-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${maven.javadoc.plugin.version}</version>
+        <configuration>
+          <sourcepath>src/main/java;target/generated-sources/protobuf/grpc-java;target/generated-sources/protobuf/java</sourcepath>
+        </configuration>
       </plugin>
     </plugins>
   </build>
