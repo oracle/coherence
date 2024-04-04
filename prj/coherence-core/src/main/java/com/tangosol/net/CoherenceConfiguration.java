@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -36,7 +36,7 @@ public interface CoherenceConfiguration
      */
     static Builder builder()
         {
-        return new Builder();
+        return new Builder().discoverSessions();
         }
 
     /**
@@ -116,6 +116,14 @@ public interface CoherenceConfiguration
     class Builder
         {
         /**
+         * Create a {@link Builder}.
+         */
+        public Builder()
+            {
+            m_fDiscoverSessions = true;
+            }
+
+        /**
          * Set the name of the {@link Coherence} instance.
          * <p>
          * If the name is set ot {@code null} or empty/blank string
@@ -166,7 +174,18 @@ public interface CoherenceConfiguration
          */
         public Builder discoverSessions()
             {
-            withSessions(ServiceLoader.load(SessionConfiguration.class));
+            return discoverSessions(true);
+            }
+
+        /**
+         * Add all of the {@link SessionConfiguration} instances discovered
+         * using the {@link ServiceLoader}.
+         *
+         * @return  this {@link Builder}
+         */
+        public Builder discoverSessions(boolean f)
+            {
+            m_fDiscoverSessions = f;
             return this;
             }
 
@@ -189,6 +208,12 @@ public interface CoherenceConfiguration
          */
         public Builder withSession(SessionConfiguration config)
             {
+            withSession(config, f_mapConfig);
+            return this;
+            }
+
+        private void withSession(SessionConfiguration config, Map<String, SessionConfiguration> map)
+            {
             if (config != null && config.isEnabled())
                 {
                 String sName = config.getName();
@@ -196,9 +221,8 @@ public interface CoherenceConfiguration
                     {
                     throw new IllegalArgumentException("A session configuration must provide a non-null name");
                     }
-                f_mapConfig.put(sName, config);
+                map.put(sName, config);
                 }
-            return this;
             }
 
         /**
@@ -320,12 +344,15 @@ public interface CoherenceConfiguration
          */
         public CoherenceConfiguration build()
             {
-            if (Coherence.getInstance(m_sName) != null)
+            Map<String, SessionConfiguration> mapConfig = new HashMap<>();
+            if (m_fDiscoverSessions)
                 {
-                throw new IllegalStateException("A Coherence instance already exists with the name " + m_sName);
+                for (SessionConfiguration configuration : ServiceLoader.load(SessionConfiguration.class))
+                    {
+                    withSession(configuration, mapConfig);
+                    }
                 }
-
-            Map<String, SessionConfiguration> mapConfig = new HashMap<>(f_mapConfig);
+            mapConfig.putAll(f_mapConfig);
 
             if (mapConfig.isEmpty())
                 {
@@ -348,6 +375,11 @@ public interface CoherenceConfiguration
          * The name of the default {@link Session}
          */
         private String m_sDefaultSession = Coherence.DEFAULT_NAME;
+
+        /**
+         * A flag to determine whether to automatically discover session configurations.
+         */
+        private boolean m_fDiscoverSessions;
 
         /**
          * A map of named {@link SessionConfiguration} instances.
