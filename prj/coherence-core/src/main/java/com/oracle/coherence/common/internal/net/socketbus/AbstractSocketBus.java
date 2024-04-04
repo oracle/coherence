@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -2129,9 +2129,10 @@ public abstract class AbstractSocketBus
                             {
                             if (m_state.ordinal() < ConnectionState.DEFUNCT.ordinal() && chan == m_channel)
                                 {
-                                getLogger().log(makeExceptionRecord(Level.FINER, eReason,
-                                        "{0} migrating connection with {1} off of {2} on {3}",
-                                        getLocalEndPoint(), getPeer(), sChan, Connection.this));
+                                // COH-24703 - not adding the exception to the LogRecord because logging the stack trace is not useful in this case
+                                getLogger().log(makeRecord(Level.FINER,
+                                                                    "{0} migrating connection with {1} off of {2} on {3}: {4}",
+                                                                    getLocalEndPoint(), getPeer(), sChan, Connection.this, eReason));
 
                                 m_eMigrationCause = eReason;
                                 onMigration();
