@@ -8,9 +8,10 @@
 package com.oracle.coherence.ai.stores;
 
 import com.oracle.coherence.ai.KeylessVectorStore;
+
 import com.oracle.coherence.ai.Vector;
-import com.tangosol.net.NamedMap;
-import com.tangosol.util.Binary;
+
+import com.tangosol.net.Session;
 
 /**
  * A keyless vector store for {@code short} vectors.
@@ -24,11 +25,12 @@ public class ShortKeylessVectorStore<M>
     /**
      * Create a {@link ShortKeylessVectorStore}.
      *
-     * @param map  the {@link NamedMap} containing the vector data.
+     * @param session  the {@link Session} managing the underlying caches
+     * @param sName    the name of the vector store
      */
-    public ShortKeylessVectorStore(NamedMap<Binary, Binary> map)
+    public ShortKeylessVectorStore(Session session, String sName)
         {
-        super(map);
+        super(session, sName);
         }
 
     @Override

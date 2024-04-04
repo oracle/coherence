@@ -8,28 +8,39 @@
 package com.oracle.coherence.grpc.proxy.helidon;
 
 import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.grpc.proxy.common.BindableGrpcProxyService;
 import com.oracle.coherence.grpc.proxy.common.GrpcMetricsInterceptor;
 import com.oracle.coherence.grpc.proxy.common.GrpcServiceDependencies;
-import com.oracle.coherence.grpc.proxy.common.NamedCacheService;
-import com.oracle.coherence.grpc.proxy.common.NamedCacheServiceGrpcImpl;
+
 import com.tangosol.application.Context;
+
 import com.tangosol.internal.net.service.peer.acceptor.DefaultGrpcAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
+
 import com.tangosol.internal.util.DaemonPool;
+
+import com.oracle.coherence.grpc.proxy.common.BindableServiceFactory;
+
 import com.tangosol.net.grpc.GrpcAcceptorController;
 import com.tangosol.net.grpc.GrpcDependencies;
+
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
+
 import io.grpc.health.v1.HealthCheckResponse;
+
 import io.grpc.protobuf.services.ChannelzService;
 import io.grpc.protobuf.services.HealthStatusManager;
+
 import io.helidon.webserver.WebServer;
 import io.helidon.webserver.WebServerConfig;
+
 import io.helidon.webserver.grpc.GrpcRouting;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -86,18 +97,18 @@ public class HelidonGrpcAcceptorController
             WebServerConfig.Builder  serverBuilder = WebServerConfig.builder();
             Context                  context       = deps.getContext();
 
-            GrpcServiceDependencies.DefaultDependencies serviceDeps = new GrpcServiceDependencies.DefaultDependencies();
+            GrpcServiceDependencies.DefaultDependencies serviceDeps
+                    = new GrpcServiceDependencies.DefaultDependencies(GrpcDependencies.ServerType.Synchronous);
 
             serviceDeps.setContext(context);
             serviceDeps.setExecutor(Runnable::run);
 
-            m_listServices = createGrpcServices(serviceDeps);
-
+            m_listServices = BindableServiceFactory.discoverServices(serviceDeps);
             List<String>        listServiceNames = new ArrayList<>();
             GrpcRouting.Builder routingBuilder   = GrpcRouting.builder();
             for (BindableGrpcProxyService service : m_listServices)
                 {
-                GrpcMetricsInterceptor  interceptor = new GrpcMetricsInterceptor(service.getMetrics());
+                GrpcMetricsInterceptor interceptor  = new GrpcMetricsInterceptor(service.getMetrics());
                 ServerServiceDefinition definition  = ServerInterceptors.intercept(service, interceptor);
                 routingBuilder.service(definition).build();
                 listServiceNames.add(definition.getServiceDescriptor().getName());
@@ -110,13 +121,12 @@ public class HelidonGrpcAcceptorController
             HelidonCredentialsHelper.createTlsConfig(deps.getSocketProviderBuilder())
                     .ifPresent(serverBuilder::tls);
 
-            WebServer server = serverBuilder
+            m_server = serverBuilder
                     .port(deps.getLocalPort())
                     .addRouting(routingBuilder)
                     .build()
                     .start();
 
-            m_server = server;
             m_healthStatusManager.setStatus(GrpcDependencies.SCOPED_PROXY_SERVICE_NAME, HealthCheckResponse.ServingStatus.SERVING);
             listServiceNames.forEach(s -> m_healthStatusManager.setStatus(s, HealthCheckResponse.ServingStatus.SERVING));
             m_fRunning = true;
@@ -140,7 +150,7 @@ public class HelidonGrpcAcceptorController
                     m_fRunning = false;
                     m_healthStatusManager.enterTerminalState();
                     m_healthStatusManager = null;
-                    stopServer(m_server, "server");
+                    stopServer(m_server);
                     m_server = null;
                     m_listServices = null;
                     }
@@ -185,41 +195,28 @@ public class HelidonGrpcAcceptorController
      *
      * @return the list of services this controller is serving
      */
+    @Override
     public List<BindableGrpcProxyService> getBindableServices()
         {
         return m_listServices;
         }
 
-    // ----- helper methods -------------------------------------------------
-
-    /**
-     * Obtain the list of gRPC proxy services to bind to a gRPC server.
-     *
-     * @param depsService  the {@link GrpcServiceDependencies} to use
-     *
-     * @return  the list of gRPC proxy services to bind to a gRPC server
-     */
-    public static List<BindableGrpcProxyService> createGrpcServices(GrpcServiceDependencies depsService)
+    @Override
+    public GrpcDependencies.ServerType getServerType()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(depsService);
-        deps.setExecutor(Runnable::run);
-
-        BindableGrpcProxyService cacheService = new NamedCacheServiceGrpcImpl(HelidonNamedCacheService.newInstance(deps));
-//        BindableGrpcProxyService topicService
-//                = new RemoteTopicServiceGrpcImpl(new RemoteTopicService.DefaultDependencies(deps), true);
-//
-//        return List.of(cacheService, topicService);
-        return List.of(cacheService);
+        return GrpcDependencies.ServerType.Synchronous;
         }
 
-    private void stopServer(WebServer server, String sName)
+    // ----- helper methods -------------------------------------------------
+
+    private void stopServer(WebServer server)
         {
         if (server == null)
             {
             return;
             }
         server.stop();
-        Logger.fine("Stopped Coherence gRPC proxy " + sName);
+        Logger.fine("Stopped Coherence gRPC proxy");
         }
 
     // ----- data members ---------------------------------------------------

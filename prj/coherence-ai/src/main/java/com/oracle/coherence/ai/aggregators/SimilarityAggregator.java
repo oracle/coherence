@@ -7,11 +7,12 @@
 
 package com.oracle.coherence.ai.aggregators;
 
+import com.oracle.coherence.ai.Converters;
 import com.oracle.coherence.ai.VectorOp;
 
+import com.oracle.coherence.ai.internal.BinaryVector;
 import com.oracle.coherence.ai.results.BinaryQueryResult;
 
-import com.oracle.coherence.ai.stores.BaseVectorStore;
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.ReadBuffer;
 
@@ -23,6 +24,8 @@ import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
+
+import jakarta.json.bind.annotation.JsonbProperty;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -39,8 +42,8 @@ import java.util.TreeSet;
  * An {@link com.tangosol.util.InvocableMap.EntryAggregator} to execute a
  * similarity query.
  */
-public class SimilarityAggregator
-        implements InvocableMap.StreamingAggregator<Binary, Binary, SortedSet<BinaryQueryResult>, List<BinaryQueryResult>>,
+public class SimilarityAggregator<KeyType>
+        implements InvocableMap.StreamingAggregator<KeyType, BinaryVector, SortedSet<BinaryQueryResult>, List<BinaryQueryResult>>,
                 ExternalizableLite, PortableObject
     {
     /**
@@ -70,45 +73,20 @@ public class SimilarityAggregator
         m_results         = naturalOrder ? new TreeSet<>() : new TreeSet<>(Comparator.reverseOrder());
         }
 
-    public int getMaxResults()
+    @Override
+    public InvocableMap.StreamingAggregator<KeyType, BinaryVector, SortedSet<BinaryQueryResult>, List<BinaryQueryResult>> supply()
         {
-        return m_maxResults;
-        }
-
-    public VectorOp<Float> getOperation()
-        {
-        return m_operation;
-        }
-
-    public boolean isNaturalOrder()
-        {
-        return m_naturalOrder;
-        }
-
-    public boolean isIncludeVector()
-        {
-        return m_includeVector;
-        }
-
-    public boolean isIncludeMetadata()
-        {
-        return m_includeMetadata;
+        return new SimilarityAggregator<>(m_operation, m_maxResults, m_naturalOrder, m_includeVector, m_includeMetadata);
         }
 
     @Override
-    public InvocableMap.StreamingAggregator<Binary, Binary, SortedSet<BinaryQueryResult>, List<BinaryQueryResult>> supply()
-        {
-        return new SimilarityAggregator(m_operation, m_maxResults, m_naturalOrder, m_includeVector, m_includeMetadata);
-        }
-
-    @Override
-    public boolean accumulate(InvocableMap.Entry<? extends Binary, ? extends Binary> entry)
+    public boolean accumulate(InvocableMap.Entry<? extends KeyType, ? extends BinaryVector> entry)
         {
         BinaryEntry<?, ?> binaryEntry     = entry.asBinaryEntry();
         Binary            binaryKey       = binaryEntry.getBinaryKey();
         Binary            binaryValue     = binaryEntry.getBinaryValue();
-        ReadBuffer        bufVector       = ExternalizableHelper.getUndecorated((ReadBuffer) binaryValue);
-        Binary            binMetadata     = m_includeMetadata ? BaseVectorStore.getMetadata(binaryValue) : null;
+        ReadBuffer        bufVector       = Converters.extractVector(binaryValue);
+        ReadBuffer        binMetadata     = Converters.extractMetadata(binaryValue);
         ReadBuffer        bufResultVector = m_includeVector ? bufVector : null;
         Float             similarity      = m_operation.apply(bufVector);
         BinaryQueryResult result          = new BinaryQueryResult(similarity, binaryKey, bufResultVector, binMetadata);
@@ -190,22 +168,37 @@ public class SimilarityAggregator
 
     // ----- data members ---------------------------------------------------
 
+    /**
+     * The maximum number of results to return.
+     */
+    @JsonbProperty("maxResults")
     private int m_maxResults;
 
     private transient SortedSet<BinaryQueryResult> m_results;
 
+    /**
+     * The {@link VectorOp} to execute.
+     */
+    @JsonbProperty("operation")
     private VectorOp<Float> m_operation;
 
+    /**
+     * A flag to determine whether results are sorted in natural
+     * order or in reverse order.
+     */
+    @JsonbProperty("naturalOrder")
     private boolean m_naturalOrder;
 
 
     /**
      * {@code true} if the result should contain the corresponding vector.
      */
+    @JsonbProperty("includeVector")
     private boolean m_includeVector;
 
     /**
      * {@code true} if the result should contain the corresponding vector metadata.
      */
+    @JsonbProperty("includeMetadata")
     private boolean m_includeMetadata;
     }

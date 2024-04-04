@@ -10,10 +10,11 @@ package com.oracle.coherence.grpc.proxy.common;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
+
 import com.google.protobuf.Empty;
-import com.oracle.coherence.common.base.Classes;
-import com.oracle.coherence.common.base.Exceptions;
+
 import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.grpc.AddIndexRequest;
 import com.oracle.coherence.grpc.AggregateRequest;
 import com.oracle.coherence.grpc.BinaryHelper;
@@ -28,44 +29,40 @@ import com.oracle.coherence.grpc.MapListenerResponse;
 import com.oracle.coherence.grpc.PutAllRequest;
 import com.oracle.coherence.grpc.RemoveIndexRequest;
 import com.oracle.coherence.grpc.SafeStreamObserver;
-import com.tangosol.application.ContainerContext;
-import com.tangosol.application.Context;
-import com.tangosol.coherence.config.scheme.ServiceScheme;
-import com.tangosol.internal.net.ConfigurableCacheFactorySession;
-import com.tangosol.internal.util.collection.ConvertingNamedCache;
+
 import com.tangosol.internal.util.processor.BinaryProcessors;
+
 import com.tangosol.io.Serializer;
+
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.CacheService;
-import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
-import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.PartitionedService;
-import com.tangosol.net.cache.NearCache;
+
 import com.tangosol.util.Binary;
-import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMap.EntryProcessor;
-import com.tangosol.util.NullImplementation;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.filter.AlwaysFilter;
+
 import io.grpc.Status;
+
 import io.grpc.stub.StreamObserver;
 
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
+
 import java.util.stream.Collectors;
 
 import static com.oracle.coherence.grpc.proxy.common.ResponseHandlers.handleUnary;
@@ -76,6 +73,7 @@ import static com.oracle.coherence.grpc.proxy.common.ResponseHandlers.handleUnar
  *
  * @author Jonathan Knight  2024.02.08
  */
+@SuppressWarnings({"resource", "ConstantValue"})
 public abstract class BaseNamedCacheServiceImpl
         extends BaseGrpcServiceImpl
         implements NamedCacheService
@@ -521,176 +519,6 @@ public abstract class BaseNamedCacheServiceImpl
         }
 
     /**
-     * Obtain an {@link NamedCache}.
-     *
-     * @param scope      the scope name to use to obtain the CCF to get the cache from
-     * @param cacheName  the name of the cache
-     *
-     * @return the {@link NamedCache} with the specified name
-     */
-    protected NamedCache<Binary, Binary> getPassThroughCache(String scope, String cacheName)
-        {
-        return getCache(scope, cacheName, true);
-        }
-
-    @SuppressWarnings("resource")
-    protected ConfigurableCacheFactory getCCF(String sScope)
-        {
-        Optional<Context> optional         = f_dependencies.getContext();
-        ContainerContext  containerContext = null;
-        Context           context;
-        String            sMTName;
-        String            sScopeFinal;
-
-        if (optional.isPresent())
-            {
-            context = optional.get();
-            String sAppName = context.getApplicationName();
-
-            containerContext = context.getContainerContext();
-            sMTName          = ServiceScheme.getScopePrefix(sAppName, containerContext);
-
-            if (sScope.isEmpty() || Objects.equals(sAppName, sScope) || Objects.equals(sMTName, sScope))
-                {
-                sScopeFinal = sAppName;
-                }
-            else
-                {
-                sScopeFinal = sAppName + sScope;
-                }
-            }
-        else
-            {
-            sScopeFinal = sScope;
-            sMTName     = null;
-            context     = null;
-            }
-
-        if (containerContext != null)
-            {
-            ClassLoader loader = context.getClassLoader();
-            Coherence coherence = Coherence.getInstances(loader)
-                    .stream()
-                    .filter(c -> c.getName().equals(sMTName))
-                    .filter(c -> Objects.equals(context, c.getConfiguration().getApplicationContext().orElse(null)))
-                    .findFirst()
-                    .orElse(null);
-
-            if (coherence == null)
-                {
-                String sNames = Coherence.getInstances(loader)
-                        .stream()
-                        .map(Coherence::getName)
-                        .map(s -> Coherence.DEFAULT_NAME.equals(s) ? "<default>" : s)
-                        .collect(Collectors.joining(","));
-
-                throw new IllegalStateException("No Coherence instance exists with name " + sMTName + " scopeFinal=" + sScopeFinal + " [" + sNames + "]" );
-                }
-
-            String sScopes = coherence.getSessionScopeNames().stream()
-                    .map(s -> Coherence.DEFAULT_NAME.equals(s) ? "<default>" : s)
-                    .collect(Collectors.joining(","));
-
-            return coherence.getSessionsWithScope(sScopeFinal)
-                    .stream()
-                    .findFirst()
-                    .filter(s -> s instanceof ConfigurableCacheFactorySession)
-                    .map(ConfigurableCacheFactorySession.class::cast)
-                    .map(ConfigurableCacheFactorySession::getConfigurableCacheFactory)
-                    .orElseThrow(() -> new IllegalStateException("cannot locate a session with scope " + sScopeFinal
-                            + " Coherence instance '" + sMTName + "' contains [" + sScopes + "]"));
-            }
-        else
-            {
-            try
-                {
-                return f_cacheFactorySupplier.apply(sScopeFinal);
-                }
-            catch (Exception e)
-                {
-                throw Exceptions.ensureRuntimeException(e);
-                }
-            }
-        }
-
-    /**
-     * Obtain an {@link NamedCache}.
-     *
-     * @param sScope      the scope name to use to obtain the CCF to get the cache from
-     * @param sCacheName  the name of the cache
-     * @param fPassThru   {@code true} to use a binary pass-thru cache
-     *
-     * @return the {@link NamedCache} with the specified name
-     */
-    protected NamedCache<Binary, Binary> getCache(String sScope, String sCacheName, boolean fPassThru)
-        {
-        if (sCacheName == null || sCacheName.trim().isEmpty())
-            {
-            throw Status.INVALID_ARGUMENT
-                    .withDescription(INVALID_CACHE_NAME_MESSAGE)
-                    .asRuntimeException();
-            }
-
-        Context                  context          = f_dependencies.getContext().orElse(null);
-        ContainerContext         containerContext = context == null ? null : context.getContainerContext();
-        ConfigurableCacheFactory ccf              = getCCF(sScope);
-
-        if (containerContext != null)
-            {
-            return containerContext.runInDomainPartitionContext(createCallable(ccf, sCacheName, fPassThru));
-            }
-        else
-            {
-            try
-                {
-                return createCallable(ccf, sCacheName, fPassThru).call();
-                }
-            catch (Exception e)
-                {
-                throw Exceptions.ensureRuntimeException(e);
-                }
-            }
-        }
-
-    @SuppressWarnings("unchecked")
-    private Callable<NamedCache<Binary, Binary>> createCallable(ConfigurableCacheFactory ccf,
-                String sCacheName, boolean fPassThru)
-        {
-        return () ->
-            {
-            ClassLoader                loader = fPassThru ? NullImplementation.getClassLoader()
-                                                          : Classes.getContextClassLoader();
-            NamedCache<Binary, Binary> cache  = ccf.ensureCache(sCacheName, loader);
-
-            // optimize front-cache out of storage enabled proxies
-            boolean near = cache instanceof NearCache;
-            if (near)
-                {
-                CacheService service = cache.getCacheService();
-                if (service instanceof DistributedCacheService
-                        && ((DistributedCacheService) service).isLocalStorageEnabled())
-                    {
-                    cache = ((NearCache<Binary, Binary>) cache).getBackCache();
-                    near = false;
-                    }
-                }
-
-            if (near)
-                {
-                return new ConvertingNamedCache(cache,
-                        NullImplementation.getConverter(),
-                        ExternalizableHelper.CONVERTER_STRIP_INTDECO,
-                        NullImplementation.getConverter(),
-                        NullImplementation.getConverter());
-                }
-            else
-                {
-                return cache;
-                }
-            };
-        }
-
-    /**
      * Cast an {@link EntryProcessor} to an
      * {@link EntryProcessor} that returns a
      * {@link Binary} result.
@@ -774,8 +602,6 @@ public abstract class BaseNamedCacheServiceImpl
     public static final String MBEAN_NAME = "type=GrpcNamedCacheProxy";
 
     public static final String INVALID_REQUEST_MESSAGE = "invalid request, the request cannot be null";
-
-    public static final String INVALID_CACHE_NAME_MESSAGE = "invalid request, cache name cannot be null or empty";
 
     public static final String MISSING_PROCESSOR_MESSAGE = "the request does not contain a serialized entry processor";
 

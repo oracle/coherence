@@ -7,9 +7,10 @@
 package com.tangosol.net.grpc;
 
 import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
+
 import com.tangosol.internal.util.DaemonPool;
-import jakarta.annotation.Priority;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -140,6 +141,8 @@ public interface GrpcAcceptorController
             }
         }
 
+    GrpcDependencies.ServerType getServerType();
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -202,6 +205,12 @@ public interface GrpcAcceptorController
         public List<?> getBindableServices()
             {
             return Collections.emptyList();
+            }
+
+        @Override
+        public GrpcDependencies.ServerType getServerType()
+            {
+            return GrpcDependencies.ServerType.Asynchronous;
             }
 
         /**

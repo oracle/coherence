@@ -25,11 +25,11 @@ metadata type.
 
 ```java
 /**
- * @param <V>  the type of the store (this will always be a primitive array type)
- * @param <K>  the type of the key
- * @param <M>  the type of the metadata
+ * @param <VectorType>    the type of the store (this will always be a primitive array type)
+ * @param <KeyType>       the type of the key
+ * @param <MetadataType>  the type of the metadata
  */
-public interface VectorStore<V, K, M>
+public interface VectorStore<VectorType, KeyType, MetadataType>
     {
     }
 ```

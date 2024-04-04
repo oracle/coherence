@@ -16,9 +16,9 @@ import com.tangosol.util.Filter;
  * The configuration for executing a similarity query
  * on a {@link VectorStore}.
  *
- * @param <R>  the type of the vector to be queried
+ * @param <VectorType>  the type of the vector to be queried
  */
-public interface SimilarityQuery<R>
+public interface SimilarityQuery<VectorType>
     {
     /**
      * Return the {@link Filter} that will be applied to the vector
@@ -54,9 +54,9 @@ public interface SimilarityQuery<R>
     /**
      * A builder that builds a {@link SimilarityQuery}.
      *
-     * @param <R>  the type of the vector to be queried
+     * @param <VectorType>  the type of the vector to be queried
      */
-    interface Builder<R>
+    interface Builder<VectorType>
         {
         /**
          * Set whether the query should return the matching vector metadata.
@@ -65,7 +65,7 @@ public interface SimilarityQuery<R>
          *
          * @return this {@link Builder}
          */
-        Builder<R> includeMetadata(boolean f);
+        Builder<VectorType> includeMetadata(boolean f);
 
         /**
          * Set whether the query should return the matching vector data.
@@ -74,7 +74,7 @@ public interface SimilarityQuery<R>
          *
          * @return this {@link Builder}
          */
-        Builder<R> includeVector(boolean f);
+        Builder<VectorType> includeVector(boolean f);
 
         /**
          * Set the maximum number of results to return.
@@ -83,7 +83,7 @@ public interface SimilarityQuery<R>
          *
          * @return this {@link Builder}
          */
-        Builder<R> withMaxResults(int max);
+        Builder<VectorType> withMaxResults(int max);
 
         /**
          * Set the {@link Filter} to apply to the vector metadata to restrict the vectors
@@ -94,13 +94,13 @@ public interface SimilarityQuery<R>
          *
          * @return this {@link Builder}
          */
-        Builder<R> withFilter(Filter<?> filter);
+        Builder<VectorType> withFilter(Filter<?> filter);
 
         /**
          * Build the {@link SimilarityQuery}.
          *
          * @return  a {@link SimilarityQuery} built from the state in this builder
          */
-        SimilarityQuery<R> build();
+        SimilarityQuery<VectorType> build();
         }
     }

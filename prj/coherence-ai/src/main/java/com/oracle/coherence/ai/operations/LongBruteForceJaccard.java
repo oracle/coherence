@@ -63,7 +63,7 @@ public class LongBruteForceJaccard
         // a⋃b
         float union  = unionCount(buffer);
         // a⋂b
-        float inter  = length + target.length - union;
+        float inter  = length + m_target.length - union;
         return inter / union;
         }
 
@@ -80,7 +80,7 @@ public class LongBruteForceJaccard
     public float unionCount(LongBuffer buffer)
         {
         int                 lengthA = buffer.limit();
-        int                 lengthB = target.length;
+        int                 lengthB = m_target.length;
         HashMap<Long, Void> map     = new HashMap<>();
         for (int i = 0; i < lengthA; i++)
             {
@@ -88,7 +88,7 @@ public class LongBruteForceJaccard
             }
         for (int i = 0; i < lengthB; i++)
             {
-            map.put(target[i], null);
+            map.put(m_target[i], null);
             }
         return map.size();
         }

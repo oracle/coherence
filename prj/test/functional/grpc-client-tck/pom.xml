@@ -49,15 +49,9 @@
     </dependency>
 
     <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-testing-support</artifactId>
+      <groupId>${coherence.group.id}.tests</groupId>
+      <artifactId>ai</artifactId>
       <version>${project.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>junit</groupId>
-          <artifactId>junit</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>

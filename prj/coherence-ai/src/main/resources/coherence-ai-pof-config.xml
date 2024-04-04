@@ -39,5 +39,13 @@
       <type-id>951</type-id>
       <class-name>com.oracle.coherence.ai.results.BinaryQueryResult</class-name>
     </user-type>
+    <user-type>
+      <type-id>952</type-id>
+      <class-name>com.oracle.coherence.ai.internal.BinaryVector</class-name>
+    </user-type>
+    <user-type>
+      <type-id>953</type-id>
+      <class-name>com.oracle.coherence.ai.Vector$Key</class-name>
+    </user-type>
   </user-type-list>
 </pof-config>

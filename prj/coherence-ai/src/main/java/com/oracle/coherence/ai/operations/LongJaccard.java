@@ -11,6 +11,7 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 
 import com.tangosol.util.ExternalizableHelper;
+import jakarta.json.bind.annotation.JsonbProperty;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -34,7 +35,7 @@ public abstract class LongJaccard
      */
     public LongJaccard(long[] target)
         {
-        this.target = target == null ? EMPTY : target;
+        this.m_target = target == null ? EMPTY : target;
         }
 
     @Override
@@ -52,25 +53,25 @@ public abstract class LongJaccard
     @Override
     public void readExternal(PofReader in) throws IOException
         {
-        target = in.readLongArray(0);
+        m_target = in.readLongArray(0);
         }
 
     @Override
     public void writeExternal(PofWriter out) throws IOException
         {
-        out.writeLongArray(0, target);
+        out.writeLongArray(0, m_target);
         }
 
     @Override
     public void readExternal(DataInput in) throws IOException
         {
-        target = ExternalizableHelper.readObject(in);
+        m_target = ExternalizableHelper.readObject(in);
         }
 
     @Override
     public void writeExternal(DataOutput out) throws IOException
         {
-        ExternalizableHelper.writeObject(out, target);
+        ExternalizableHelper.writeObject(out, m_target);
         }
 
     // ----- constants ------------------------------------------------------
@@ -83,5 +84,6 @@ public abstract class LongJaccard
 
     // ----- data members ---------------------------------------------------
 
-    protected long[] target = EMPTY;
+    @JsonbProperty("target")
+    protected long[] m_target = EMPTY;
     }

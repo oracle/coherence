@@ -7,20 +7,21 @@
 
 package com.oracle.coherence.ai;
 
+import com.oracle.coherence.ai.config.VectorStoreSessionConfig;
+
 import com.oracle.coherence.ai.stores.DoubleVectorStore;
 import com.oracle.coherence.ai.stores.FloatVectorStore;
 import com.oracle.coherence.ai.stores.IntVectorStore;
 import com.oracle.coherence.ai.stores.LongVectorStore;
 import com.oracle.coherence.ai.stores.ShortVectorStore;
 
+import com.tangosol.net.Coherence;
+import com.tangosol.net.Service;
 import com.tangosol.net.Session;
-
-import com.tangosol.net.options.WithClassLoader;
-
-import com.tangosol.util.NullImplementation;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -45,18 +46,18 @@ import java.util.stream.Stream;
  * Any {@code double} value larger than a {@code float} would be downcast
  * to the wrong value.
  *
- * @param <V>  the type of the store (this will always be a primitive array type)
- * @param <K>  the type of the key
- * @param <M>  the type of the metadata
+ * @param <VectorType>    the type of the store (this will always be a primitive array type)
+ * @param <KeyType>       the type of the key
+ * @param <MetadataType>  the type of the metadata
  */
-public interface VectorStore<V, K, M>
+public interface VectorStore<VectorType, KeyType, MetadataType>
     {
     /**
      * Add all the vector to this store.
      *
      * @param vectors  the vectors to add
      */
-    default void addAll(Iterable<? extends Vector<?, K, M>> vectors)
+    default void addAll(Iterable<? extends Vector<?, KeyType, MetadataType>> vectors)
         {
         addAll(vectors, DEFAULT_BATCH);
         }
@@ -67,14 +68,14 @@ public interface VectorStore<V, K, M>
      * @param vectors  the vectors to add
      * @param batch    the size of the batches of vectors to store at one time
      */
-    void addAll(Iterable<? extends Vector<?, K, M>> vectors, int batch);
+    void addAll(Iterable<? extends Vector<?, KeyType, MetadataType>> vectors, int batch);
 
     /**
      * Add all the vector to this store.
      *
      * @param vectors  the vectors to add
      */
-    default void addAll(Stream<? extends Vector<?, K, M>> vectors)
+    default void addAll(Stream<? extends Vector<?, KeyType, MetadataType>> vectors)
         {
         addAll(vectors, DEFAULT_BATCH);
         }
@@ -85,7 +86,7 @@ public interface VectorStore<V, K, M>
      * @param vectors  the vectors to add
      * @param batch    the size of the batches of vectors to store at one time
      */
-    void addAll(Stream<? extends Vector<?, K, M>> vectors, int batch);
+    void addAll(Stream<? extends Vector<?, KeyType, MetadataType>> vectors, int batch);
 
     /**
      * Add a vector of {@code V} values to this store.
@@ -94,7 +95,7 @@ public interface VectorStore<V, K, M>
      * @param vector    the vector of values to add
      * @param metadata  optional metadata for the vector
      */
-    void add(K key, V vector, M metadata);
+    void add(KeyType key, VectorType vector, MetadataType metadata);
 
     /**
      * Add a vector of {@code V} values to this store.
@@ -102,7 +103,7 @@ public interface VectorStore<V, K, M>
      * @param key     the key of the vector
      * @param vector  the vector of values to add
      */
-    default void add(K key, V vector)
+    default void add(KeyType key, VectorType vector)
         {
         add(key, vector, null);
         }
@@ -113,7 +114,7 @@ public interface VectorStore<V, K, M>
      * @param vectors   the vectors of values to add
      * @param sequence  the key generator to use
      */
-    default void add(V[] vectors, Vector.KeySequence<K> sequence)
+    default void add(VectorType[] vectors, Vector.KeySequence<KeyType> sequence)
         {
         add(vectors, sequence, DEFAULT_BATCH);
         }
@@ -125,14 +126,14 @@ public interface VectorStore<V, K, M>
      * @param sequence  the key generator to use
      * @param batch     the size of the batches of vectors to store at one time
      */
-    void add(V[] vectors, Vector.KeySequence<K> sequence, int batch);
+    void add(VectorType[] vectors, Vector.KeySequence<KeyType> sequence, int batch);
 
     /**
      * Add a {@code double} vector to this store.
      *
      * @param vector  the vector to add
      */
-    void add(Vector<V, K, M> vector);
+    void add(Vector<VectorType, KeyType, MetadataType> vector);
 
     /**
      * Add a vector of {@code double} values to this store.
@@ -149,7 +150,7 @@ public interface VectorStore<V, K, M>
      * @param vector    the vector of double values to add
      * @param metadata  optional metadata for the vector
      */
-    default void addDoubles(K key, double[] vector, M metadata)
+    default void addDoubles(KeyType key, double[] vector, MetadataType metadata)
         {
         addDoubles(Vector.ofDoubles(vector, key, metadata));
         }
@@ -160,7 +161,7 @@ public interface VectorStore<V, K, M>
      * @param key     the key of the vector
      * @param vector  the vector of double values to add
      */
-    default void addDoubles(K key, double[] vector)
+    default void addDoubles(KeyType key, double[] vector)
         {
         addDoubles(key, vector, null);
         }
@@ -179,7 +180,7 @@ public interface VectorStore<V, K, M>
      * @param vectors   the vectors of double values to add
      * @param sequence  the key generator to use
      */
-    default void addDoubles(double[][] vectors, Vector.KeySequence<K> sequence)
+    default void addDoubles(double[][] vectors, Vector.KeySequence<KeyType> sequence)
         {
         addDoubles(vectors, sequence, DEFAULT_BATCH);
         }
@@ -199,7 +200,7 @@ public interface VectorStore<V, K, M>
      * @param sequence  the key generator to use
      * @param batch     the size of the batches of vectors to store at one time
      */
-    default void addDoubles(double[][] vectors, Vector.KeySequence<K> sequence, int batch)
+    default void addDoubles(double[][] vectors, Vector.KeySequence<KeyType> sequence, int batch)
         {
         addAll(Arrays.stream(vectors).map(v -> Vector.ofDoubles(v, sequence.next())), batch);
         }
@@ -217,7 +218,7 @@ public interface VectorStore<V, K, M>
      *
      * @param vector  the vector to add
      */
-    void addDoubles(Vector<double[], K, M> vector);
+    void addDoubles(Vector<double[], KeyType, MetadataType> vector);
 
     /**
      * Add a vector of {@code float} values to this store.
@@ -234,7 +235,7 @@ public interface VectorStore<V, K, M>
      * @param vector    the vector of float values to add
      * @param metadata  optional metadata for the vector
      */
-    default void addFloats(K key, float[] vector, M metadata)
+    default void addFloats(KeyType key, float[] vector, MetadataType metadata)
         {
         addFloats(Vector.ofFloats(vector, key, metadata));
         }
@@ -253,7 +254,7 @@ public interface VectorStore<V, K, M>
      * @param key     the key of the vector
      * @param vector  the vector of float values to add
      */
-    default void addFloats(K key, float[] vector)
+    default void addFloats(KeyType key, float[] vector)
         {
         addFloats(key, vector, null);
         }
@@ -272,7 +273,7 @@ public interface VectorStore<V, K, M>
      * @param vectors   the vectors of double values to add
      * @param sequence  the key generator to use
      */
-    default void addFloats(float[][] vectors, Vector.KeySequence<K> sequence)
+    default void addFloats(float[][] vectors, Vector.KeySequence<KeyType> sequence)
         {
         addFloats(vectors, sequence, DEFAULT_BATCH);
         }
@@ -292,7 +293,7 @@ public interface VectorStore<V, K, M>
      * @param sequence  the key generator to use
      * @param batch     the size of the batches of vectors to store at one time
      */
-    default void addFloats(float[][] vectors, Vector.KeySequence<K> sequence, int batch)
+    default void addFloats(float[][] vectors, Vector.KeySequence<KeyType> sequence, int batch)
         {
         addAll(Arrays.stream(vectors).map(v -> Vector.ofFloats(v, sequence.next())), batch);
         }
@@ -310,7 +311,7 @@ public interface VectorStore<V, K, M>
      *
      * @param vector  the vector to add
      */
-    void addFloats(Vector<float[], K, M> vector);
+    void addFloats(Vector<float[], KeyType, MetadataType> vector);
 
     /**
      * Add a vector of {@code int} values to this store.
@@ -327,7 +328,7 @@ public interface VectorStore<V, K, M>
      * @param vector    the vector of int values to add
      * @param metadata  optional metadata for the vector
      */
-    default void addInts(K key, int[] vector, M metadata)
+    default void addInts(KeyType key, int[] vector, MetadataType metadata)
         {
         addInts(Vector.ofInts(vector, key, metadata));
         }
@@ -346,7 +347,7 @@ public interface VectorStore<V, K, M>
      * @param key     the key of the vector
      * @param vector  the vector of int values to add
      */
-    default void addInts(K key, int[] vector)
+    default void addInts(KeyType key, int[] vector)
         {
         addInts(key, vector, null);
         }
@@ -365,7 +366,7 @@ public interface VectorStore<V, K, M>
      * @param vectors   the vectors of double values to add
      * @param sequence  the key generator to use
      */
-    default void addInts(int[][] vectors, Vector.KeySequence<K> sequence)
+    default void addInts(int[][] vectors, Vector.KeySequence<KeyType> sequence)
         {
         addInts(vectors, sequence, DEFAULT_BATCH);
         }
@@ -385,7 +386,7 @@ public interface VectorStore<V, K, M>
      * @param sequence  the key generator to use
      * @param batch     the size of the batches of vectors to store at one time
      */
-    default void addInts(int[][] vectors, Vector.KeySequence<K> sequence, int batch)
+    default void addInts(int[][] vectors, Vector.KeySequence<KeyType> sequence, int batch)
         {
         addAll(Arrays.stream(vectors).map(v -> Vector.ofInts(v, sequence.next())), batch);
         }
@@ -403,7 +404,7 @@ public interface VectorStore<V, K, M>
      *
      * @param vector  the vector to add
      */
-    void addInts(Vector<int[], K, M> vector);
+    void addInts(Vector<int[], KeyType, MetadataType> vector);
 
     /**
      * Add a vector of {@code long} values to this store.
@@ -420,7 +421,7 @@ public interface VectorStore<V, K, M>
      * @param vector    the vector of long values to add
      * @param metadata  optional metadata for the vector
      */
-    default void addLongs(K key, long[] vector, M metadata)
+    default void addLongs(KeyType key, long[] vector, MetadataType metadata)
         {
         addLongs(Vector.ofLongs(vector, key, metadata));
         }
@@ -439,7 +440,7 @@ public interface VectorStore<V, K, M>
      * @param key       the key of the vector
      * @param vector    the vector of long values to add
      */
-    default void addLongs(K key, long[] vector)
+    default void addLongs(KeyType key, long[] vector)
         {
         addLongs(key, vector, null);
         }
@@ -458,7 +459,7 @@ public interface VectorStore<V, K, M>
      * @param vectors   the vectors of double values to add
      * @param sequence  the key generator to use
      */
-    default void addLongs(long[][] vectors, Vector.KeySequence<K> sequence)
+    default void addLongs(long[][] vectors, Vector.KeySequence<KeyType> sequence)
         {
         addLongs(vectors, sequence, DEFAULT_BATCH);
         }
@@ -478,7 +479,7 @@ public interface VectorStore<V, K, M>
      * @param sequence  the key generator to use
      * @param batch     the size of the batches of vectors to store at one time
      */
-    default void addLongs(long[][] vectors, Vector.KeySequence<K> sequence, int batch)
+    default void addLongs(long[][] vectors, Vector.KeySequence<KeyType> sequence, int batch)
         {
         addAll(Arrays.stream(vectors).map(v -> Vector.ofLongs(v, sequence.next())), batch);
         }
@@ -496,7 +497,7 @@ public interface VectorStore<V, K, M>
      *
      * @param vector  the vector to add
      */
-    void addLongs(Vector<long[], K, M> vector);
+    void addLongs(Vector<long[], KeyType, MetadataType> vector);
 
     /**
      * Add a vector of {@code short} values to this store.
@@ -505,7 +506,7 @@ public interface VectorStore<V, K, M>
      * @param vector    the vector of short values to add
      * @param metadata  optional metadata for the vector
      */
-    default void addShorts(K key, short[] vector, M metadata)
+    default void addShorts(KeyType key, short[] vector, MetadataType metadata)
         {
         addShorts(Vector.ofShorts(vector, key, metadata));
         }
@@ -516,7 +517,7 @@ public interface VectorStore<V, K, M>
      * @param key       the key of the vector
      * @param vector    the vector of short values to add
      */
-    default void addShorts(K key, short[] vector)
+    default void addShorts(KeyType key, short[] vector)
         {
         addShorts(key, vector, null);
         }
@@ -527,7 +528,7 @@ public interface VectorStore<V, K, M>
      * @param vectors   the vectors of double values to add
      * @param sequence  the key generator to use
      */
-    default void addShorts(short[][] vectors, Vector.KeySequence<K> sequence)
+    default void addShorts(short[][] vectors, Vector.KeySequence<KeyType> sequence)
         {
         addShorts(vectors, sequence, DEFAULT_BATCH);
         }
@@ -539,7 +540,7 @@ public interface VectorStore<V, K, M>
      * @param sequence  the key generator to use
      * @param batch     the size of the batches of vectors to store at one time
      */
-    default void addShorts(short[][] vectors, Vector.KeySequence<K> sequence, int batch)
+    default void addShorts(short[][] vectors, Vector.KeySequence<KeyType> sequence, int batch)
         {
         addAll(Arrays.stream(vectors).map(v -> Vector.ofShorts(v, sequence.next())), batch);
         }
@@ -549,7 +550,7 @@ public interface VectorStore<V, K, M>
      *
      * @param vector  the vector to add
      */
-    void addShorts(Vector<short[], K, M> vector);
+    void addShorts(Vector<short[], KeyType, MetadataType> vector);
 
     /**
      * Query this vector store.
@@ -558,7 +559,40 @@ public interface VectorStore<V, K, M>
      *
      * @return  the results of executing the query as a {@link List} of {@link QueryResult} instances
      */
-    List<QueryResult<V, K, M>> query(SimilarityQuery<V> query);
+    List<QueryResult<VectorType, KeyType, MetadataType>> query(SimilarityQuery<VectorType> query);
+
+    /**
+     * Return the {@link Vector} with the specified key.
+     *
+     * @param key  the key of the {@link Vector} to obtain
+     *
+     * @return an {@link Optional} containing the {@link Vector}, or an
+     *         empty {@link Optional} if the store does not contain a
+     *         {@link Vector} mapped to the key
+     */
+    Optional<Vector<VectorType, KeyType, MetadataType>> getVector(KeyType key);
+
+    /**
+     * Clear the contents of the store.
+     */
+    void clear();
+
+    /**
+     * Destroy the store.
+     */
+    void destroy();
+
+    /**
+     * Release local references to the store.
+     */
+    void release();
+
+    /**
+     * Return the service managing the underlying vector storage.
+     *
+     * @return  the service managing the underlying vector storage
+     */
+    Service getService();
 
     // ----- factory methods ------------------------------------------------
 
@@ -569,12 +603,12 @@ public interface VectorStore<V, K, M>
      *
      * @return a {@link VectorStore} for vectors of {@code double} instances
      *
-     * @param <K>  the type of the keys for the vectors
-     * @param <M>  the type of the optional metadata
+     * @param <KeyType>       the type of the keys for the vectors
+     * @param <MetadataType>  the type of the optional metadata
      */
-    static <K, M> VectorStore<double[], K, M> ofDoubles(String name)
+    static <KeyType, MetadataType> VectorStore<double[], KeyType, MetadataType> ofDoubles(String name)
         {
-        return ofDoubles(name, Session.create());
+        return ofDoubles(name, session());
         }
 
     /**
@@ -585,13 +619,12 @@ public interface VectorStore<V, K, M>
      *
      * @return a {@link VectorStore} for vectors of {@code double} instances
      *
-     * @param <K>  the type of the keys for the vectors
-     * @param <M>  the type of the optional metadata
+     * @param <KeyType>       the type of the keys for the vectors
+     * @param <MetadataType>  the type of the optional metadata
      */
-    static <K, M> VectorStore<double[], K, M> ofDoubles(String name, Session session)
+    static <KeyType, MetadataType> VectorStore<double[], KeyType, MetadataType> ofDoubles(String name, Session session)
         {
-        return new DoubleVectorStore<>(session.getCache(name,
-                WithClassLoader.using(NullImplementation.getClassLoader())));
+        return new DoubleVectorStore<>(session, name);
         }
 
     /**
@@ -601,12 +634,12 @@ public interface VectorStore<V, K, M>
      *
      * @return a {@link VectorStore} for vectors of {@code float} instances
      *
-     * @param <K>  the type of the keys for the vectors
-     * @param <M>  the type of the optional metadata
+     * @param <KeyType>       the type of the keys for the vectors
+     * @param <MetadataType>  the type of the optional metadata
      */
-    static <K, M> VectorStore<float[], K, M> ofFloats(String name)
+    static <KeyType, MetadataType> VectorStore<float[], KeyType, MetadataType> ofFloats(String name)
         {
-        return ofFloats(name, Session.create());
+        return ofFloats(name, session());
         }
 
     /**
@@ -617,13 +650,12 @@ public interface VectorStore<V, K, M>
      *
      * @return a {@link VectorStore} for vectors of {@code float} instances
      *
-     * @param <K>  the type of the keys for the vectors
-     * @param <M>  the type of the optional metadata
+     * @param <KeyType>       the type of the keys for the vectors
+     * @param <MetadataType>  the type of the optional metadata
      */
-    static <K, M> VectorStore<float[], K, M> ofFloats(String name, Session session)
+    static <KeyType, MetadataType> VectorStore<float[], KeyType, MetadataType> ofFloats(String name, Session session)
         {
-        return new FloatVectorStore<>(session.getCache(name,
-                WithClassLoader.using(NullImplementation.getClassLoader())));
+        return new FloatVectorStore<>(session, name);
         }
 
     /**
@@ -633,12 +665,12 @@ public interface VectorStore<V, K, M>
      *
      * @return a {@link VectorStore} for vectors of {@code int} instances
      *
-     * @param <K>  the type of the keys for the vectors
-     * @param <M>  the type of the optional metadata
+     * @param <KeyType>       the type of the keys for the vectors
+     * @param <MetadataType>  the type of the optional metadata
      */
-    static <K, M> VectorStore<int[], K, M> ofInts(String name)
+    static <KeyType, MetadataType> VectorStore<int[], KeyType, MetadataType> ofInts(String name)
         {
-        return ofInts(name, Session.create());
+        return ofInts(name, session());
         }
 
     /**
@@ -649,13 +681,12 @@ public interface VectorStore<V, K, M>
      *
      * @return a {@link VectorStore} for vectors of {@code int} instances
      *
-     * @param <K>  the type of the keys for the vectors
-     * @param <M>  the type of the optional metadata
+     * @param <KeyType>       the type of the keys for the vectors
+     * @param <MetadataType>  the type of the optional metadata
      */
-    static <K, M> VectorStore<int[], K, M> ofInts(String name, Session session)
+    static <KeyType, MetadataType> VectorStore<int[], KeyType, MetadataType> ofInts(String name, Session session)
         {
-        return new IntVectorStore<>(session.getCache(name,
-                WithClassLoader.using(NullImplementation.getClassLoader())));
+        return new IntVectorStore<>(session, name);
         }
 
     /**
@@ -665,12 +696,12 @@ public interface VectorStore<V, K, M>
      *
      * @return a {@link VectorStore} for vectors of {@code long} instances
      *
-     * @param <K>  the type of the keys for the vectors
-     * @param <M>  the type of the optional metadata
+     * @param <KeyType>       the type of the keys for the vectors
+     * @param <MetadataType>  the type of the optional metadata
      */
-    static <K, M> VectorStore<long[], K, M> ofLongs(String name)
+    static <KeyType, MetadataType> VectorStore<long[], KeyType, MetadataType> ofLongs(String name)
         {
-        return ofLongs(name, Session.create());
+        return ofLongs(name, session());
         }
 
     /**
@@ -681,13 +712,12 @@ public interface VectorStore<V, K, M>
      *
      * @return a {@link VectorStore} for vectors of {@code long} instances
      *
-     * @param <K>  the type of the keys for the vectors
-     * @param <M>  the type of the optional metadata
+     * @param <KeyType>       the type of the keys for the vectors
+     * @param <MetadataType>  the type of the optional metadata
      */
-    static <K, M> VectorStore<long[], K, M> ofLongs(String name, Session session)
+    static <KeyType, MetadataType> VectorStore<long[], KeyType, MetadataType> ofLongs(String name, Session session)
         {
-        return new LongVectorStore<>(session.getCache(name,
-                WithClassLoader.using(NullImplementation.getClassLoader())));
+        return new LongVectorStore<>(session, name);
         }
 
     /**
@@ -697,12 +727,12 @@ public interface VectorStore<V, K, M>
      *
      * @return a {@link VectorStore} for vectors of {@code short} instances
      *
-     * @param <K>  the type of the keys for the vectors
-     * @param <M>  the type of the optional metadata
+     * @param <KeyType>       the type of the keys for the vectors
+     * @param <MetadataType>  the type of the optional metadata
      */
-    static <K, M> VectorStore<short[], K, M> ofShorts(String name)
+    static <KeyType, MetadataType> VectorStore<short[], KeyType, MetadataType> ofShorts(String name)
         {
-        return ofShorts(name, Session.create());
+        return ofShorts(name, session());
         }
 
     /**
@@ -713,17 +743,30 @@ public interface VectorStore<V, K, M>
      *
      * @return a {@link VectorStore} for vectors of {@code short} instances
      *
-     * @param <K>  the type of the keys for the vectors
-     * @param <M>  the type of the optional metadata
+     * @param <KeyType>       the type of the keys for the vectors
+     * @param <MetadataType>  the type of the optional metadata
      */
-    static <K, M> VectorStore<short[], K, M> ofShorts(String name, Session session)
+    static <KeyType, MetadataType> VectorStore<short[], KeyType, MetadataType> ofShorts(String name, Session session)
         {
-        return new ShortVectorStore<>(session.getCache(name,
-                WithClassLoader.using(NullImplementation.getClassLoader())));
+        return new ShortVectorStore<>(session, name);
         }
 
+    /**
+     * Obtain the Coherence AI {@link Session}.
+     * 
+     * @return the Coherence AI {@link Session}
+     */
+    static Session session()
+        {
+        return Coherence.findSession(VectorStoreSessionConfig.SCOPE_NAME)
+                .orElseThrow(() -> new IllegalStateException(String.format(
+                    "The session '%s' has not been initialized, Coherence should be started using the boostrap API" +
+                            " or by running Coherence.main()",
+                            VectorStoreSessionConfig.SCOPE_NAME)));
+        }
+    
     /**
      * The default batch size for batch operations.
-      */
+     */
     int DEFAULT_BATCH = 100;
     }

@@ -179,7 +179,7 @@ class NamedCacheServiceImplTest
         Registry registry = mock(Registry.class);
         when(registry.ensureGlobalName(anyString())).thenReturn("foo");
 
-        m_dependencies = new NamedCacheService.DefaultDependencies();
+        m_dependencies = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         m_dependencies.setSerializerFactory(s_serializerProducer);
         m_dependencies.setRegistry(registry);
         m_dependencies.setExecutor(ForkJoinPool.commonPool());

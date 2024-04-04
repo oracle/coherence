@@ -7,6 +7,7 @@
 
 package com.oracle.coherence.ai.stores;
 
+import com.oracle.coherence.ai.Converters;
 import com.oracle.coherence.ai.QueryResult;
 import com.oracle.coherence.ai.SimilarityQuery;
 import com.oracle.coherence.ai.Vector;
@@ -14,9 +15,9 @@ import com.oracle.coherence.ai.Vector;
 import com.oracle.coherence.ai.results.BinaryQueryResult;
 import com.oracle.coherence.ai.results.ConverterResult;
 
-import com.tangosol.net.NamedMap;
+import com.tangosol.io.ReadBuffer;
 
-import com.tangosol.util.Binary;
+import com.tangosol.net.Session;
 
 import java.util.List;
 
@@ -31,20 +32,17 @@ import java.util.stream.StreamSupport;
  * @param <M>  the type of the metadata
  */
 public class ShortVectorStore<K, M>
-        extends BaseVectorStore<short[], K, M>
+        extends PrimitiveVectorStore<short[], K, M>
     {
     /**
      * Create a {@link ShortVectorStore}.
-     * <p>
-     * <b>Note</b> the {@link NamedMap} must be a binary pass-thru instance as the code
-     * in this store relies on the fact that {@link Binary} keys and values can be
-     * passed-thru to the map unchanged.
      *
-     * @param map  the {@link NamedMap} that holds the {@code short} vectors.
+     * @param session  the {@link Session} managing the underlying caches
+     * @param sName    the name of the vector store
      */
-    public ShortVectorStore(NamedMap<Binary, Binary> map)
+    public ShortVectorStore(Session session, String sName)
         {
-        super(map);
+        super(session, sName);
         }
 
     @Override
@@ -52,6 +50,12 @@ public class ShortVectorStore<K, M>
         {
         List<BinaryQueryResult> list = queryInternal(query);
         return ConverterResult.listOfShortResults(list, f_converterValueFromBinary);
+        }
+
+    @Override
+    protected Vector<short[], K, M> createVector(K key, ReadBuffer vector, M metadata)
+        {
+        return Vector.ofShorts(Converters.shortsFromReadBuffer(vector), key, metadata);
         }
 
     @Override

@@ -8,6 +8,9 @@
 package com.oracle.coherence.ai;
 
 import com.tangosol.io.ReadBuffer;
+import com.tangosol.io.nio.ByteBufferReadBuffer;
+import com.tangosol.util.Binary;
+import com.tangosol.util.ExternalizableHelper;
 
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
@@ -15,6 +18,9 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
+
+import static com.tangosol.util.ExternalizableHelper.DECO_VECTOR;
+
 
 /**
  * Utility methods to convert from various binary representations of
@@ -248,6 +254,20 @@ public interface Converters
         }
 
     /**
+     * Create a {@link ReadBuffer} that contains the specified
+     * vector of {@code double} values.
+     *
+     * @param vector  the vector of {@code double} values
+     *
+     * @return a {@link ReadBuffer} that contains the specified
+     *         vector of {@code double} values
+     */
+    static ReadBuffer readBufferFromDoubles(double... vector)
+        {
+        return new ByteBufferReadBuffer(bufferFromDoubles(vector));
+        }
+
+    /**
      * Create a {@link ByteBuffer} that contains the specified
      * vector of {@code double} values.
      *
@@ -256,11 +276,25 @@ public interface Converters
      * @return a {@link ByteBuffer} that contains the specified
      *         vector of {@code double} values
      */
-    static ByteBuffer bufferFromDoubles(double[] vector)
+    static ByteBuffer bufferFromDoubles(double... vector)
         {
         ByteBuffer buffer = ByteBuffer.allocate(vector.length * Double.BYTES);
         buffer.asDoubleBuffer().put(vector);
         return buffer;
+        }
+
+    /**
+     * Create a {@link ReadBuffer} that contains the specified
+     * vector of {@code float} values.
+     *
+     * @param vector  the vector of {@code float} values
+     *
+     * @return a {@link ReadBuffer} that contains the specified
+     *         vector of {@code float} values
+     */
+    static ReadBuffer readBufferFromFloats(float... vector)
+        {
+        return new ByteBufferReadBuffer(bufferFromFloats(vector));
         }
 
     /**
@@ -272,11 +306,25 @@ public interface Converters
      * @return a {@link ByteBuffer} that contains the specified
      *         vector of {@code float} values
      */
-    static ByteBuffer bufferFromFloats(float[] vector)
+    static ByteBuffer bufferFromFloats(float... vector)
         {
         ByteBuffer buffer = ByteBuffer.allocate(vector.length * Float.BYTES);
         buffer.asFloatBuffer().put(vector);
         return buffer;
+        }
+
+    /**
+     * Create a {@link ReadBuffer} that contains the specified
+     * vector of {@code int} values.
+     *
+     * @param vector  the vector of {@code int} values
+     *
+     * @return a {@link ReadBuffer} that contains the specified
+     *         vector of {@code int} values
+     */
+    static ReadBuffer readBufferFromInts(int... vector)
+        {
+        return new ByteBufferReadBuffer(bufferFromInts(vector));
         }
 
     /**
@@ -288,11 +336,25 @@ public interface Converters
      * @return a {@link ByteBuffer} that contains the specified
      *         vector of {@code int} values
      */
-    static ByteBuffer bufferFromInts(int[] vector)
+    static ByteBuffer bufferFromInts(int... vector)
         {
         ByteBuffer buffer = ByteBuffer.allocate(vector.length * Integer.BYTES);
         buffer.asIntBuffer().put(vector);
         return buffer;
+        }
+
+    /**
+     * Create a {@link ReadBuffer} that contains the specified
+     * vector of {@code long} values.
+     *
+     * @param vector  the vector of {@code long} values
+     *
+     * @return a {@link ReadBuffer} that contains the specified
+     *         vector of {@code long} values
+     */
+    static ReadBuffer readBufferFromLongs(long... vector)
+        {
+        return new ByteBufferReadBuffer(bufferFromLongs(vector));
         }
 
     /**
@@ -304,11 +366,25 @@ public interface Converters
      * @return a {@link ByteBuffer} that contains the specified
      *         vector of {@code long} values
      */
-    static ByteBuffer bufferFromLongs(long[] vector)
+    static ByteBuffer bufferFromLongs(long... vector)
         {
         ByteBuffer buffer = ByteBuffer.allocate(vector.length * Long.BYTES);
         buffer.asLongBuffer().put(vector);
         return buffer;
+        }
+
+    /**
+     * Create a {@link ReadBuffer} that contains the specified
+     * vector of {@code short} values.
+     *
+     * @param vector  the vector of {@code short} values
+     *
+     * @return a {@link ReadBuffer} that contains the specified
+     *         vector of {@code short} values
+     */
+    static ReadBuffer readBufferFromShorts(short... vector)
+        {
+        return new ByteBufferReadBuffer(bufferFromShorts(vector));
         }
 
     /**
@@ -320,10 +396,45 @@ public interface Converters
      * @return a {@link ByteBuffer} that contains the specified
      *         vector of {@code short} values
      */
-    static ByteBuffer bufferFromShorts(short[] vector)
+    static ByteBuffer bufferFromShorts(short... vector)
         {
         ByteBuffer buffer = ByteBuffer.allocate(vector.length * Short.BYTES);
         buffer.asShortBuffer().put(vector);
         return buffer;
+        }
+
+    /**
+     * Decorate a binary value with its binary metadata.
+     *
+     * @param binVector    a {@link ReadBuffer} containing the vector data
+     * @param binMetadata  a {@link ReadBuffer} containing the metadata
+     *
+     * @return a decorated binary containing both the vector and metadata
+     */
+    static ReadBuffer combineMetadata(ReadBuffer binVector, ReadBuffer binMetadata)
+        {
+        if (binMetadata == null)
+            {
+            binMetadata = Binary.NO_BINARY;
+            }
+        return ExternalizableHelper.decorate(binMetadata, DECO_VECTOR, binVector);
+        }
+
+    /**
+     * Extract the metadata from a decorated binary vector.
+     *
+     * @param binaryValue  the decorated binary vector data
+     *
+     * @return  the binary metadata or {@code null} if there was no metadata
+     */
+    static Binary extractVector(Binary binaryValue)
+        {
+        ReadBuffer buffer = ExternalizableHelper.getDecoration((ReadBuffer) binaryValue, DECO_VECTOR);
+        return buffer == null ? null : buffer.toBinary();
+        }
+
+    static ReadBuffer extractMetadata(Binary binary)
+        {
+        return ExternalizableHelper.getUndecorated((ReadBuffer) binary);
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,11 +17,6 @@ import com.tangosol.net.Coherence;
 public interface GrpcDependencies
     {
     /**
-     * The default gRPC port.
-     */
-    int DEFAULT_PORT = 1408;
-
-    /**
      * The default scope value.
      */
     String DEFAULT_SCOPE = Coherence.DEFAULT_SCOPE;
@@ -37,19 +32,9 @@ public interface GrpcDependencies
     String DEFAULT_IN_PROCESS_NAME = "default";
 
     /**
-     * The system property that sets the gRPC proxy bind address.
-     */
-    String PROP_ADDRESS = "coherence.grpc.server.address";
-
-    /**
      * The system property that sets the gRPC proxy port.
      */
     String PROP_PORT = "coherence.grpc.server.port";
-
-    /**
-     * The system property that sets the name of the in-process gRPC server.
-     */
-    String PROP_IN_PROCESS_NAME = "coherence.grpc.inprocess.name";
 
     /**
      * The System property to enable or disable the gRPC proxy server.
@@ -91,4 +76,25 @@ public interface GrpcDependencies
      * The default rpc deadline used for gRPC client requests.
      */
     long DEFAULT_DEADLINE_MILLIS = 30000;
+    // ----- inner enum: ServerType -----------------------------------------
+
+    /**
+     * An enum representing different types of server the service
+     * can be deployed into.
+     */
+    enum ServerType
+        {
+        /**
+         * The server is a standard asynchronous gRPC server, e.g. the Java Netty
+         * server, where requests are handed off to a daemon pool to free up the
+         * gRPC request threads as soon as possible.
+         */
+        Asynchronous,
+        /**
+         * The server is a synchronous gRPC server, e.g. a Helidon 4 gRPC server,
+         * where gRPC request threads are virtual threads, so there is no need
+         * to hand off work to another thread.
+         */
+        Synchronous
+        }
     }

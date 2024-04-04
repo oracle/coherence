@@ -10,6 +10,7 @@ import com.tangosol.application.Context;
 import com.tangosol.internal.util.DaemonPool;
 import com.tangosol.io.NamedSerializerFactory;
 import com.tangosol.io.Serializer;
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.net.management.Registry;
 
 import java.util.Optional;
@@ -67,6 +68,13 @@ public interface GrpcServiceDependencies
      */
     Optional<Context> getContext();
 
+    /**
+     * Return the type of the gRPC server.
+     *
+     * @return  the type of the gRPC server
+     */
+    GrpcDependencies.ServerType getServerType();
+
     // ----- inner class: DefaultDependencies -------------------------------
 
     /**
@@ -75,21 +83,30 @@ public interface GrpcServiceDependencies
     class DefaultDependencies
             implements GrpcServiceDependencies
         {
-        public DefaultDependencies()
+        /**
+         * Create a {@link DefaultDependencies}.
+         *
+         * @param serverType  the type of the gRPC server
+         */
+        public DefaultDependencies(GrpcDependencies.ServerType serverType)
             {
+            m_serverType = serverType;
             }
 
+        /**
+         * Create a {@link DefaultDependencies}.
+         *
+         * @param deps  the dependencies to copy
+         */
         public DefaultDependencies(GrpcServiceDependencies deps)
             {
-            if (deps !=  null)
-                {
-                deps.getExecutor().ifPresent(this::setExecutor);
-                deps.getRegistry().ifPresent(this::setRegistry);
-                deps.getNamedSerializerFactory().ifPresent(this::setSerializerFactory);
-                deps.getTransferThreshold().ifPresent(this::setTransferThreshold);
-                deps.getContext().ifPresent(this::setContext);
-                deps.getDaemonPool().ifPresent(this::setDaemonPool);
-                }
+            m_serverType = deps.getServerType();
+            deps.getExecutor().ifPresent(this::setExecutor);
+            deps.getRegistry().ifPresent(this::setRegistry);
+            deps.getNamedSerializerFactory().ifPresent(this::setSerializerFactory);
+            deps.getTransferThreshold().ifPresent(this::setTransferThreshold);
+            deps.getContext().ifPresent(this::setContext);
+            deps.getDaemonPool().ifPresent(this::setDaemonPool);
             }
 
         @Override
@@ -189,6 +206,12 @@ public interface GrpcServiceDependencies
             m_context = context;
             }
 
+        @Override
+        public GrpcDependencies.ServerType getServerType()
+            {
+            return m_serverType;
+            }
+
         // ----- data members -----------------------------------------------
 
         /**
@@ -220,5 +243,10 @@ public interface GrpcServiceDependencies
          * The {@link Context}.
          */
         private Context m_context;
+
+        /**
+         * The type of gRPC server the service will be deployed into.
+         */
+        private final GrpcDependencies.ServerType m_serverType;
         }
     }

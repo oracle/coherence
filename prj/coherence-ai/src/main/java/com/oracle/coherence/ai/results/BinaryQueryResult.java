@@ -8,6 +8,7 @@
 package com.oracle.coherence.ai.results;
 
 import com.tangosol.io.ReadBuffer;
+
 import com.tangosol.util.Binary;
 
 import java.util.Optional;
@@ -17,7 +18,7 @@ import java.util.Optional;
  * in serialized binary format.
  */
 public class BinaryQueryResult
-        extends BaseQueryResult<Binary, Binary, ReadBuffer>
+        extends BaseQueryResult<Binary, ReadBuffer, ReadBuffer>
         implements Comparable<BinaryQueryResult>
     {
     /**
@@ -35,7 +36,7 @@ public class BinaryQueryResult
      * @param vector    the vector data in binary format
      * @param metadata  the metadata in binary format
      */
-    public BinaryQueryResult(float result, Binary key, ReadBuffer vector, Binary metadata)
+    public BinaryQueryResult(float result, Binary key, ReadBuffer vector, ReadBuffer metadata)
         {
         super(result, key, vector, metadata);
         }

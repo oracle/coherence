@@ -7,6 +7,7 @@
 
 package com.oracle.coherence.ai.stores;
 
+import com.oracle.coherence.ai.Converters;
 import com.oracle.coherence.ai.QueryResult;
 import com.oracle.coherence.ai.SimilarityQuery;
 import com.oracle.coherence.ai.Vector;
@@ -14,9 +15,9 @@ import com.oracle.coherence.ai.Vector;
 import com.oracle.coherence.ai.results.BinaryQueryResult;
 import com.oracle.coherence.ai.results.ConverterResult;
 
-import com.tangosol.net.NamedMap;
+import com.tangosol.io.ReadBuffer;
 
-import com.tangosol.util.Binary;
+import com.tangosol.net.Session;
 
 import java.util.List;
 
@@ -27,90 +28,93 @@ import java.util.stream.StreamSupport;
  * A {@link com.oracle.coherence.ai.VectorStore} that stores vectors
  * of {@code long} values.
  *
- * @param <K>  the type of the key
- * @param <M>  the type of the metadata
+ * @param <KeyType>       the type of the key
+ * @param <MetadataType>  the type of the metadata
  */
-public class LongVectorStore<K, M>
-        extends BaseVectorStore<long[], K, M>
+public class LongVectorStore<KeyType, MetadataType>
+        extends PrimitiveVectorStore<long[], KeyType, MetadataType>
     {
     /**
      * Create a {@link LongVectorStore}.
-     * <p>
-     * <b>Note</b> the {@link NamedMap} must be a binary pass-thru instance as the code
-     * in this store relies on the fact that {@link Binary} keys and values can be
-     * passed-thru to the map unchanged.
      *
-     * @param map  the {@link NamedMap} that holds the {@code long} vectors.
+     * @param session  the {@link Session} managing the underlying caches
+     * @param sName    the name of the vector store
      */
-    public LongVectorStore(NamedMap<Binary, Binary> map)
+    public LongVectorStore(Session session, String sName)
         {
-        super(map);
+        super(session, sName);
         }
 
     @Override
-    public List<QueryResult<long[], K, M>> query(SimilarityQuery<long[]> query)
+    public List<QueryResult<long[], KeyType, MetadataType>> query(SimilarityQuery<long[]> query)
         {
         List<BinaryQueryResult> list = queryInternal(query);
         return ConverterResult.listOfLongResults(list, f_converterValueFromBinary);
         }
 
     @Override
-    public void add(K key, long[] vector, M metadata)
+    protected Vector<long[], KeyType, MetadataType> createVector(KeyType key, ReadBuffer vector, MetadataType metadata)
+        {
+        return Vector.ofLongs(Converters.longsFromReadBuffer(vector), key, metadata);
+        }
+
+    @Override
+    public void add(KeyType key, long[] vector, MetadataType metadata)
         {
         addLongs(key, vector, metadata);
         }
 
     @Override
-    public void add(long[][] vectors, Vector.KeySequence<K> sequence, int batch)
+    public void add(long[][] vectors, Vector.KeySequence<KeyType> sequence, int batch)
         {
         addLongs(vectors, sequence, batch);
         }
 
     @Override
-    public void add(Vector<long[], K, M> vector)
+    public void add(Vector<long[], KeyType, MetadataType> vector)
         {
         addLongs(vector);
         }
 
     @Override
-    public void addDoubles(Vector<double[], K, M> vector)
+    public void addDoubles(Vector<double[], KeyType, MetadataType> vector)
         {
         addInternal(vector.asLongs());
         }
 
     @Override
-    public void addFloats(Vector<float[], K, M> vector)
+    public void addFloats(Vector<float[], KeyType, MetadataType> vector)
         {
         addInternal(vector.asLongs());
         }
 
     @Override
-    public void addInts(Vector<int[], K, M> vector)
+    public void addInts(Vector<int[], KeyType, MetadataType> vector)
         {
         addInternal(vector.asLongs());
         }
 
     @Override
-    public void addLongs(Vector<long[], K, M> vector)
+    public void addLongs(Vector<long[], KeyType, MetadataType> vector)
         {
         addInternal(vector.asLongs());
         }
 
     @Override
-    public void addShorts(Vector<short[], K, M> vector)
+    public void addShorts(Vector<short[], KeyType, MetadataType> vector)
         {
         addInternal(vector.asLongs());
         }
 
     @Override
-    public void addAll(Iterable<? extends Vector<?, K, M>> vectors, int batch)
+    public void addAll(Iterable<? extends Vector<?, KeyType, MetadataType>> vectors, int batch)
         {
         addAllInternal(StreamSupport.stream(vectors.spliterator(), false)
                 .map(Vector::asLongs), batch);
         }
 
     @Override
-    public void addAll(Stream<? extends Vector<?, K, M>> vectors, int batch)
+    public void addAll(Stream<? extends Vector<?, KeyType, MetadataType>> vectors, int batch)
         {
         addAllInternal(vectors.map(Vector::asLongs), batch);
         }

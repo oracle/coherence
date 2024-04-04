@@ -14,11 +14,11 @@ import java.util.Optional;
 /**
  * The result of executing a query on a vector store.
  *
- * @param <V>  the type of the vector
- * @param <K>  the type of the keys used to identify vectors
- * @param <M>  the type of the vector's metadata
+ * @param <VectorType>    the type of the vector
+ * @param <KeyType>       the type of the keys used to identify vectors
+ * @param <MetadataType>  the type of the vector's metadata
  */
-public interface QueryResult<V, K, M>
+public interface QueryResult<VectorType, KeyType, MetadataType>
     {
     /**
      * The result value obtained by executing the query on the vector.
@@ -32,7 +32,7 @@ public interface QueryResult<V, K, M>
      *
      * @return the key for the vector this result matches
      */
-    Optional<K> getKey();
+    Optional<KeyType> getKey();
 
     /**
      * The result vector as bytes wrapped in a {@link ReadBuffer}.
@@ -46,12 +46,12 @@ public interface QueryResult<V, K, M>
      *
      * @return  the actual result vector
      */
-    Optional<V> getVector();
+    Optional<VectorType> getVector();
 
     /**
      * Return the result vector's metadata.
      *
      * @return the result vector's metadata
      */
-    Optional<M> getMetadata();
+    Optional<MetadataType> getMetadata();
     }

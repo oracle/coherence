@@ -30,6 +30,10 @@
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-ai</artifactId>
     </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-grpc-proxy-common</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>io.jhdf</groupId>
@@ -51,6 +55,10 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
     </dependency>
   </dependencies>
 

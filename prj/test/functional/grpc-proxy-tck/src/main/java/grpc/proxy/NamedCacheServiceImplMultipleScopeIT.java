@@ -8,26 +8,36 @@
 package grpc.proxy;
 
 import com.google.protobuf.ByteString;
+
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.OptionalValue;
 import com.oracle.coherence.grpc.Requests;
+
 import com.oracle.coherence.grpc.proxy.common.NamedCacheService;
+
 import com.tangosol.io.pof.ConfigurablePofContext;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
+
+import com.tangosol.net.grpc.GrpcAcceptorController;
 import com.tangosol.net.grpc.GrpcDependencies;
+
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
+
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 import java.util.Optional;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -60,7 +70,8 @@ public class NamedCacheServiceImplMultipleScopeIT
 
         s_serializer = new ConfigurablePofContext("test-pof-config.xml");
 
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        GrpcAcceptorController                controller = GrpcAcceptorController.discoverController();
+        NamedCacheService.DefaultDependencies deps       = new NamedCacheService.DefaultDependencies(controller.getServerType());
         deps.setConfigurableCacheFactorySupplier(NamedCacheServiceImplMultipleScopeIT::ensureCCF);
 
         Optional<TestNamedCacheServiceProvider> optional = TestNamedCacheServiceProvider.getProvider();

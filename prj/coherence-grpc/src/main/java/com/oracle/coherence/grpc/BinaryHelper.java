@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -137,7 +137,7 @@ public final class BinaryHelper
      * Convert a {@link Binary} to a {@link BytesValue}.
      * <p>
      * We need to create a {@link ByteString} as efficiently as possible from
-     * the undecorated {@link Binary} so we use the {@link UnsafeByteOperations} to
+     * the {@link Binary} so we use the {@link UnsafeByteOperations} to
      * avoid copying byte arrays.
      *
      * @param binary  the {@link Binary} to convert
@@ -158,7 +158,7 @@ public final class BinaryHelper
      * Convert a {@link Binary} to a {@link ByteString}.
      * <p>
      * We need to create a {@link ByteString} as efficiently as possible from
-     * the undecorated {@link Binary} so we use the {@link UnsafeByteOperations} to
+     * the {@link Binary} so we use the {@link UnsafeByteOperations} to
      * avoid copying byte arrays.
      *
      * @param binary  the {@link Binary} to convert
@@ -170,8 +170,7 @@ public final class BinaryHelper
         {
         if (binary != null)
             {
-            Binary undecorated = ExternalizableHelper.getUndecorated((ReadBuffer) binary).toBinary();
-            return UnsafeByteOperations.unsafeWrap(undecorated.toByteBuffer());
+            return UnsafeByteOperations.unsafeWrap(binary.toByteBuffer());
             }
         else
             {

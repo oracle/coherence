@@ -15,6 +15,7 @@ import com.oracle.coherence.grpc.Requests;
 
 import com.oracle.coherence.grpc.proxy.common.ConfigurableCacheFactorySuppliers;
 import com.oracle.coherence.grpc.proxy.common.NamedCacheService;
+
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;
 
@@ -26,6 +27,7 @@ import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.OperationalContext;
 
+import com.tangosol.net.grpc.GrpcAcceptorController;
 import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
@@ -59,6 +61,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author Jonathan Knight  2019.11.08
  * @since 20.06
  */
+@SuppressWarnings({"resource", "unused"})
 class KeySetIT
     {
     // ----- test lifecycle -------------------------------------------------
@@ -73,7 +76,10 @@ class KeySetIT
         String sConfigURI = "coherence-config.xml";
 
         s_ccf = CacheFactory.getCacheFactoryBuilder().getConfigurableCacheFactory(sConfigURI, null);
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+
+        GrpcAcceptorController                controller = GrpcAcceptorController.discoverController();
+        NamedCacheService.DefaultDependencies deps       = new NamedCacheService.DefaultDependencies(controller.getServerType());
+
         deps.setConfigurableCacheFactorySupplier(ConfigurableCacheFactorySuppliers.fixed(s_ccf));
         // set the transfer threshold small so that all of the cache data does not fit into one page
         deps.setTransferThreshold(100L);

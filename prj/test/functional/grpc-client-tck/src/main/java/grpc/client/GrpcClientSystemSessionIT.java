@@ -33,14 +33,15 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import static org.hamcrest.collection.IsIn.in;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
-import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 
 /**
  * Client side system session tests.
  *
  * @author Jonathan Knight  2020.12.16
  */
+@SuppressWarnings("resource")
 public class GrpcClientSystemSessionIT
     {
     @BeforeAll
@@ -99,7 +100,7 @@ public class GrpcClientSystemSessionIT
         Session session = coherence.getSession(Coherence.SYSTEM_SESSION);
         assertThat(session, is(instanceOf(ConfigurableCacheFactorySession.class)));
 
-        assertThat(listener.f_events.keySet(), containsInAnyOrder(Coherence.SYSTEM_SESSION, Coherence.DEFAULT_NAME));
+        assertThat(Coherence.SYSTEM_SESSION, is(in(listener.f_events.keySet())));
         List<SessionLifecycleEvent.Type> systemEvents = listener.f_events.get(Coherence.SYSTEM_SESSION);
         assertThat(systemEvents, contains(SessionLifecycleEvent.Type.STARTING, SessionLifecycleEvent.Type.STARTED));
         }

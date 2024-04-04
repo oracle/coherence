@@ -15,6 +15,8 @@ import com.tangosol.util.MapTrigger;
 
 import com.tangosol.util.extractor.EntryExtractor;
 
+import jakarta.json.bind.annotation.JsonbProperty;
+
 import java.util.Map;
 import java.util.Objects;
 
@@ -24,6 +26,7 @@ import java.util.Objects;
  *
  * @param <R>  the type of vector this extractor applies to
  */
+@SuppressWarnings("rawtypes")
 public class VectorOpExtractor<R>
         extends EntryExtractor
     {
@@ -41,7 +44,7 @@ public class VectorOpExtractor<R>
      */
     public VectorOpExtractor(VectorOp<R> op)
         {
-        this.op = op;
+        this.m_op = op;
         }
 
     @Override
@@ -77,7 +80,7 @@ public class VectorOpExtractor<R>
      */
     protected Object extractFromBinary(Binary binary)
         {
-        return op.apply(binary);
+        return m_op.apply(binary);
         }
 
     @Override
@@ -87,13 +90,13 @@ public class VectorOpExtractor<R>
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         VectorOpExtractor<?> that = (VectorOpExtractor<?>) o;
-        return Objects.equals(op, that.op);
+        return Objects.equals(m_op, that.m_op);
         }
 
     @Override
     public int hashCode()
         {
-        return Objects.hash(super.hashCode(), op);
+        return Objects.hash(super.hashCode(), m_op);
         }
 
     // ----- data members ---------------------------------------------------
@@ -101,5 +104,6 @@ public class VectorOpExtractor<R>
     /**
      * The {@link VectorOp} to use to extract values from a vector.
      */
-    private VectorOp<R> op;
+    @JsonbProperty("operation")
+    private VectorOp<R> m_op;
     }

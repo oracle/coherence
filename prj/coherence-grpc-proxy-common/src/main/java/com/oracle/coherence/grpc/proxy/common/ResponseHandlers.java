@@ -39,6 +39,20 @@ public class ResponseHandlers
      * Handle an unary request.
      *
      * @param result    the result
+     * @param observer  the {@link StreamObserver} to send the result to
+     * @param <R>       the type of the result
+     *
+     * @return always returns {@link Void}
+     */
+    public static <R> Void handleUnary(R result, StreamObserver<R> observer)
+        {
+        return handleUnary(result, null, observer);
+        }
+
+    /**
+     * Handle an unary request.
+     *
+     * @param result    the result
      * @param err       any error that may have occurred
      * @param observer  the {@link StreamObserver} to send the result to
      * @param <R>       the type of the result

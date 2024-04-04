@@ -49,6 +49,8 @@ import com.oracle.coherence.grpc.ValuesRequest;
 
 import com.tangosol.io.Serializer;
 
+import com.tangosol.net.grpc.GrpcDependencies;
+
 import com.tangosol.util.Filter;
 
 import com.tangosol.util.filter.AlwaysFilter;
@@ -433,8 +435,9 @@ public interface NamedCacheService
             extends BaseGrpcServiceImpl.DefaultDependencies
             implements NamedCacheService.Dependencies
         {
-        public DefaultDependencies()
+        public DefaultDependencies(GrpcDependencies.ServerType serverType)
             {
+            super(serverType);
             }
 
         public DefaultDependencies(GrpcServiceDependencies deps)

@@ -6,20 +6,53 @@
  */
 package com.oracle.coherence.grpc.proxy.common;
 
+import com.oracle.coherence.common.base.Classes;
+import com.oracle.coherence.common.base.Exceptions;
+
+import com.tangosol.application.ContainerContext;
+import com.tangosol.application.Context;
+
+import com.tangosol.coherence.config.scheme.ServiceScheme;
+
+import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+
 import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
+import com.tangosol.internal.util.collection.ConvertingNamedCache;
+
 import com.tangosol.io.NamedSerializerFactory;
 import com.tangosol.io.Serializer;
+
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.CacheService;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
+import com.tangosol.net.DistributedCacheService;
+import com.tangosol.net.NamedCache;
+
+import com.tangosol.net.cache.NearCache;
+import com.tangosol.net.grpc.GrpcDependencies;
+
 import com.tangosol.net.internal.ScopedReferenceStore;
+
 import com.tangosol.net.management.Registry;
+
+import com.tangosol.util.Binary;
+import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.NullImplementation;
+
 import io.grpc.Status;
 
+import java.util.Objects;
 import java.util.Optional;
+
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
+
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import java.util.stream.Collectors;
 
 /**
  * A base class for gRPC services.
@@ -104,6 +137,184 @@ public class BaseGrpcServiceImpl
     // ----- helper methods -------------------------------------------------
 
     /**
+     * Return the {@link ConfigurableCacheFactory} for the specified scope name.
+     *
+     * @param sScope  the scope name for the {@link ConfigurableCacheFactory} to find
+     *
+     * @return  the {@link ConfigurableCacheFactory} with the specified scope name
+     */
+    @SuppressWarnings("resource")
+    protected ConfigurableCacheFactory getCCF(String sScope)
+        {
+        Optional<Context> optional         = f_dependencies.getContext();
+        ContainerContext  containerContext = null;
+        Context           context;
+        String            sMTName;
+        String            sScopeFinal;
+
+        if (optional.isPresent())
+            {
+            context = optional.get();
+            String sAppName = context.getApplicationName();
+
+            containerContext = context.getContainerContext();
+            sMTName          = ServiceScheme.getScopePrefix(sAppName, containerContext);
+
+            if (sScope.isEmpty() || Objects.equals(sAppName, sScope) || Objects.equals(sMTName, sScope))
+                {
+                sScopeFinal = sAppName;
+                }
+            else
+                {
+                sScopeFinal = sAppName + sScope;
+                }
+            }
+        else
+            {
+            sScopeFinal = sScope;
+            sMTName     = null;
+            context     = null;
+            }
+
+        if (containerContext != null)
+            {
+            ClassLoader loader = context.getClassLoader();
+            Coherence coherence = Coherence.getInstances(loader)
+                    .stream()
+                    .filter(c -> c.getName().equals(sMTName))
+                    .filter(c -> Objects.equals(context, c.getConfiguration().getApplicationContext().orElse(null)))
+                    .findFirst()
+                    .orElse(null);
+
+            if (coherence == null)
+                {
+                String sNames = Coherence.getInstances(loader)
+                        .stream()
+                        .map(Coherence::getName)
+                        .map(s -> Coherence.DEFAULT_NAME.equals(s) ? "<default>" : s)
+                        .collect(Collectors.joining(","));
+
+                throw new IllegalStateException("No Coherence instance exists with name " + sMTName + " scopeFinal=" + sScopeFinal + " [" + sNames + "]" );
+                }
+
+            String sScopes = coherence.getSessionScopeNames().stream()
+                    .map(s -> Coherence.DEFAULT_NAME.equals(s) ? "<default>" : s)
+                    .collect(Collectors.joining(","));
+
+            return coherence.getSessionsWithScope(sScopeFinal)
+                    .stream()
+                    .findFirst()
+                    .filter(s -> s instanceof ConfigurableCacheFactorySession)
+                    .map(ConfigurableCacheFactorySession.class::cast)
+                    .map(ConfigurableCacheFactorySession::getConfigurableCacheFactory)
+                    .orElseThrow(() -> new IllegalStateException("cannot locate a session with scope " + sScopeFinal
+                            + " Coherence instance '" + sMTName + "' contains [" + sScopes + "]"));
+            }
+        else
+            {
+            try
+                {
+                return f_cacheFactorySupplier.apply(sScopeFinal);
+                }
+            catch (Exception e)
+                {
+                throw Exceptions.ensureRuntimeException(e);
+                }
+            }
+        }
+
+
+    /**
+     * Obtain an {@link NamedCache}.
+     *
+     * @param scope      the scope name to use to obtain the CCF to get the cache from
+     * @param cacheName  the name of the cache
+     *
+     * @return the {@link NamedCache} with the specified name
+     */
+    protected NamedCache<Binary, Binary> getPassThroughCache(String scope, String cacheName)
+        {
+        return getCache(scope, cacheName, true);
+        }
+
+    /**
+     * Obtain an {@link NamedCache}.
+     *
+     * @param sScope      the scope name to use to obtain the CCF to get the cache from
+     * @param sCacheName  the name of the cache
+     * @param fPassThru   {@code true} to use a binary pass-thru cache
+     *
+     * @return the {@link NamedCache} with the specified name
+     */
+    protected NamedCache<Binary, Binary> getCache(String sScope, String sCacheName, boolean fPassThru)
+        {
+        if (sCacheName == null || sCacheName.trim().isEmpty())
+            {
+            throw Status.INVALID_ARGUMENT
+                    .withDescription(INVALID_CACHE_NAME_MESSAGE)
+                    .asRuntimeException();
+            }
+
+        Context                  context          = f_dependencies.getContext().orElse(null);
+        ContainerContext         containerContext = context == null ? null : context.getContainerContext();
+        ConfigurableCacheFactory ccf              = getCCF(sScope);
+
+        if (containerContext != null)
+            {
+            return containerContext.runInDomainPartitionContext(createCallable(ccf, sCacheName, fPassThru));
+            }
+        else
+            {
+            try
+                {
+                return createCallable(ccf, sCacheName, fPassThru).call();
+                }
+            catch (Exception e)
+                {
+                throw Exceptions.ensureRuntimeException(e);
+                }
+            }
+        }
+
+    @SuppressWarnings("unchecked")
+    private Callable<NamedCache<Binary, Binary>> createCallable(ConfigurableCacheFactory ccf,
+                                                                String sCacheName, boolean fPassThru)
+        {
+        return () ->
+            {
+            ClassLoader                loader = fPassThru ? NullImplementation.getClassLoader()
+                                                          : Classes.getContextClassLoader();
+            NamedCache<Binary, Binary> cache  = ccf.ensureCache(sCacheName, loader);
+
+            // optimize front-cache out of storage enabled proxies
+            boolean near = cache instanceof NearCache;
+            if (near)
+                {
+                CacheService service = cache.getCacheService();
+                if (service instanceof DistributedCacheService
+                        && ((DistributedCacheService) service).isLocalStorageEnabled())
+                    {
+                    cache = ((NearCache<Binary, Binary>) cache).getBackCache();
+                    near = false;
+                    }
+                }
+
+            if (near)
+                {
+                return new ConvertingNamedCache(cache,
+                        NullImplementation.getConverter(),
+                        ExternalizableHelper.CONVERTER_STRIP_INTDECO,
+                        NullImplementation.getConverter(),
+                        NullImplementation.getConverter());
+                }
+            else
+                {
+                return cache;
+                }
+            };
+        }
+
+    /**
      * Create the default {@link Executor}.
      *
      * @return  the default {@link Executor}
@@ -131,22 +342,7 @@ public class BaseGrpcServiceImpl
         else
             {
             ClassLoader loader = supplierLoader.get();
-            serializer = f_storeSerializer.get(sFormatRequest, loader);
-
-            if (serializer == null)
-                {
-                serializer = f_dependencies.getContext()
-                        .map(c -> c.getNamedSerializer(sFormatRequest))
-                        .orElse(null);
-                }
-            if (serializer == null)
-                {
-                serializer = f_serializerProducer.getNamedSerializer(sFormatRequest, loader);
-                }
-            if (serializer != null)
-                {
-                f_storeSerializer.put(serializer, loader);
-                }
+            serializer = getSerializer(sFormatRequest, loader);
             }
 
         if (serializer == null)
@@ -155,6 +351,45 @@ public class BaseGrpcServiceImpl
                     .withDescription("invalid request format, cannot find serializer with name '" + sFormatRequest + "'")
                     .asRuntimeException();
             }
+        return serializer;
+        }
+
+    /**
+     * Return a named serializer.
+     *
+     * @param sFormat  the name of the serializer
+     * @param loader   the class loader to use to create the serializer
+     *
+     * @return a named serializer
+     *
+     * @throws io.grpc.StatusRuntimeException if no serializer is configured with the specified name
+     */
+    protected Serializer getSerializer(String sFormat, ClassLoader loader)
+        {
+        Serializer serializer = f_storeSerializer.get(sFormat, loader);
+
+        if (serializer == null)
+            {
+            serializer = f_dependencies.getContext()
+                    .map(c -> c.getNamedSerializer(sFormat))
+                    .orElse(null);
+            }
+        if (serializer == null)
+            {
+            serializer = f_serializerProducer.getNamedSerializer(sFormat, loader);
+            }
+        if (serializer != null)
+            {
+            f_storeSerializer.put(serializer, loader);
+            }
+
+        if (serializer == null)
+            {
+            throw Status.INVALID_ARGUMENT
+                    .withDescription("invalid request format, cannot find serializer with name '" + sFormat + "'")
+                    .asRuntimeException();
+            }
+
         return serializer;
         }
 
@@ -183,8 +418,9 @@ public class BaseGrpcServiceImpl
             extends GrpcServiceDependencies.DefaultDependencies
             implements Dependencies
         {
-        public DefaultDependencies()
+        public DefaultDependencies(GrpcDependencies.ServerType serverType)
             {
+            super(serverType);
             }
 
         public DefaultDependencies(GrpcServiceDependencies deps)
@@ -195,10 +431,7 @@ public class BaseGrpcServiceImpl
         public DefaultDependencies(Dependencies deps)
             {
             super(deps);
-            if (deps != null)
-                {
-                m_ccfSupplier = deps.getCacheFactorySupplier().orElse(null);
-                }
+            m_ccfSupplier = deps.getCacheFactorySupplier().orElse(null);
             }
 
         @Override
@@ -236,6 +469,11 @@ public class BaseGrpcServiceImpl
      * The default transfer threshold.
      */
     public static final long DEFAULT_TRANSFER_THRESHOLD = 524288L;
+
+    /**
+     * Error message used when the cache name is missing for a request.
+     */
+    public static final String INVALID_CACHE_NAME_MESSAGE = "invalid request, cache name cannot be null or empty";
 
     // ----- data members -----------------------------------------------
 

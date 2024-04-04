@@ -19,6 +19,8 @@ import com.tangosol.io.pof.PofWriter;
 
 import com.tangosol.util.ExternalizableHelper;
 
+import jakarta.json.bind.annotation.JsonbProperty;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -162,20 +164,24 @@ public abstract class BaseQueryResult<K, M, R>
     /**
      * The result of the query.
      */
+    @JsonbProperty("result")
     protected float m_result;
 
     /**
      * The optional key of the vector the result applies to.
      */
+    @JsonbProperty("key")
     protected K m_key;
 
     /**
      * The optional vector the result applies to.
      */
+    @JsonbProperty("vector")
     protected ReadBuffer m_vector;
 
     /**
      * The optional metadata the result applies to.
      */
+    @JsonbProperty("metadata")
     protected M m_metadata;
     }

@@ -7,11 +7,12 @@
 
 package com.oracle.coherence.ai.filters;
 
-import com.oracle.coherence.ai.stores.BaseVectorStore;
-
+import com.oracle.coherence.ai.Converters;
+import com.oracle.coherence.ai.internal.BinaryVector;
 import com.tangosol.io.AbstractEvolvable;
 import com.tangosol.io.ExternalizableLite;
 
+import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
@@ -24,6 +25,8 @@ import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMapHelper;
 import com.tangosol.util.filter.EntryFilter;
+
+import jakarta.json.bind.annotation.JsonbProperty;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -39,7 +42,7 @@ import java.util.Map;
  */
 public class MetadataFilter<T>
         extends AbstractEvolvable
-        implements EntryFilter<Object, T>, ExternalizableLite, PortableObject
+        implements EntryFilter<BinaryVector, T>, ExternalizableLite, PortableObject
     {
     /**
      * Default constructor for serialization.
@@ -69,10 +72,11 @@ public class MetadataFilter<T>
     public boolean evaluateEntry(Map.Entry entry)
         {
         BinaryEntry binaryEntry = (BinaryEntry) entry;
-        Binary      binMetadata   = BaseVectorStore.getMetadata(binaryEntry.getBinaryValue());
+        ReadBuffer  bufMetadata = Converters.extractMetadata(binaryEntry.getBinaryValue());
 
-        if (binMetadata != null)
+        if (bufMetadata != null)
             {
+            Binary      binMetadata   = bufMetadata.toBinary();
             BinaryEntry entryMetadata = new BackingMapBinaryEntry(binaryEntry.getBinaryKey(), binMetadata,
                                                     binMetadata, binaryEntry.getContext());
             return InvocableMapHelper.evaluateEntry(m_wrapped, entryMetadata);
@@ -115,5 +119,6 @@ public class MetadataFilter<T>
     /**
      * The actual {@link Filter} that will be applied to the metadata.
      */
+    @JsonbProperty("wrapped")
     private Filter<?> m_wrapped;
     }

@@ -8,33 +8,33 @@
 package com.oracle.coherence.ai.stores;
 
 import com.oracle.coherence.ai.KeylessVectorStore;
+
 import com.oracle.coherence.ai.Vector;
 
-import com.tangosol.net.NamedMap;
-
-import com.tangosol.util.Binary;
+import com.tangosol.net.Session;
 
 /**
  * A keyless vector store for {@code int} vectors.
  *
- * @param <M>  the type of the vector metadata
+ * @param <MetadataType>  the type of the vector metadata
  */
-public class IntKeylessVectorStore<M>
-        extends IntVectorStore<Vector.Key, M>
-        implements KeylessVectorStore<int[], M>
+public class IntKeylessVectorStore<MetadataType>
+        extends IntVectorStore<Vector.Key, MetadataType>
+        implements KeylessVectorStore<int[], MetadataType>
     {
     /**
      * Create a {@link IntKeylessVectorStore}.
      *
-     * @param map  the {@link NamedMap} containing the vector data.
+     * @param session  the {@link Session} managing the underlying caches
+     * @param sName    the name of the vector store
      */
-    public IntKeylessVectorStore(NamedMap<Binary, Binary> map)
+    public IntKeylessVectorStore(Session session, String sName)
         {
-        super(map);
+        super(session, sName);
         }
 
     @Override
-    public void addVector(int[] vector, M metadata)
+    public void addVector(int[] vector, MetadataType metadata)
         {
         addInts(vector, metadata);
         }

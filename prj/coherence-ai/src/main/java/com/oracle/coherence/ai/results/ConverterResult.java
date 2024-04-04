@@ -82,7 +82,7 @@ public abstract class ConverterResult<K, M, R>
     @Override
     public Optional<M> getMetadata()
         {
-        return wrapped.getMetadata().map(binary -> (M) converter.convert(binary));
+        return wrapped.getMetadata().map(binary -> (M) converter.convert(binary.toBinary()));
         }
 
 

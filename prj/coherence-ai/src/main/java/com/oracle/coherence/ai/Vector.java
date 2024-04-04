@@ -7,9 +7,23 @@
 
 package com.oracle.coherence.ai;
 
+import com.tangosol.io.ExternalizableLite;
+
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
+
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.UUID;
 
+import jakarta.json.bind.annotation.JsonbProperty;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+
 import java.nio.ByteBuffer;
+
 import java.util.Objects;
 import java.util.Optional;
 
@@ -18,33 +32,12 @@ import java.util.Optional;
  * <p>
  * Supplying metadata for a vector is optional.
  *
- * @param <V>  the type of the vector (this will be a primitive array type)
- * @param <K>  the type of the vector key
- * @param <M>  the type of the optional metadata
+ * @param <VectorType>    the type of the vector (this will be a primitive array type)
+ * @param <KeyType>       the type of the vector key
+ * @param <MetadataType>  the type of the optional metadata
  */
-public abstract class Vector<V,K,M>
+public interface Vector<VectorType, KeyType, MetadataType>
     {
-    /**
-     * Create a {@link Vector}.
-     * <p>
-     * This constructor is package private as this is the only real way
-     * to enforce the data types allowed for a {@link Vector}.
-     * The only way to create a {@link Vector} is to use one
-     * of the factory methods.
-     *
-     * @param vector    the vector primitive array
-     * @param key       the vector's key
-     * @param metadata  the vector's optional metadata
-     *
-     * @throws NullPointerException if either the {@code vector} or {@code key} are {@code null}
-     */
-    private Vector(V vector, K key, M metadata)
-        {
-        m_vector   = Objects.requireNonNull(vector);
-        m_key      = Objects.requireNonNull(key);
-        m_metadata = metadata;
-        }
-
     /**
      * Return the vector value.
      * <p>
@@ -52,10 +45,7 @@ public abstract class Vector<V,K,M>
      *
      * @return the vector value
      */
-    public V getVector()
-        {
-        return m_vector;
-        }
+    VectorType getVector();
 
     /**
      * Return the vector key.
@@ -64,20 +54,14 @@ public abstract class Vector<V,K,M>
      *
      * @return the vector key
      */
-    public K getKey()
-        {
-        return m_key;
-        }
+    KeyType getKey();
 
     /**
      * Return the optional vector metadata.
      *
      * @return the optional vector metadata
      */
-    public Optional<M> getMetadata()
-        {
-        return Optional.ofNullable(m_metadata);
-        }
+    Optional<MetadataType> getMetadata();
 
     // ----- converter methods ----------------------------------------------
 
@@ -86,42 +70,42 @@ public abstract class Vector<V,K,M>
      *
      * @return the contents of this vector as a read-only {@link ByteBuffer}
      */
-    public abstract ByteBuffer asBuffer();
+    ByteBuffer asBuffer();
 
     /**
      * Convert this {@link Vector} to a vector of {@code double} values.
      *
      * @return this {@link Vector} converted to a vector of {@code double} values
      */
-    public abstract Vector<double[], K, M> asDoubles();
+    Vector<double[], KeyType, MetadataType> asDoubles();
 
     /**
      * Convert this {@link Vector} to a vector of {@code float} values.
      *
      * @return this {@link Vector} converted to a vector of {@code float} values
      */
-    public abstract Vector<float[], K, M> asFloats();
+    Vector<float[], KeyType, MetadataType> asFloats();
 
     /**
      * Convert this {@link Vector} to a vector of {@code int} values.
      *
      * @return this {@link Vector} converted to a vector of {@code int} values
      */
-    public abstract Vector<int[], K, M> asInts();
+    Vector<int[], KeyType, MetadataType> asInts();
 
     /**
      * Convert this {@link Vector} to a vector of {@code long} values.
      *
      * @return this {@link Vector} converted to a vector of {@code long} values
      */
-    public abstract Vector<long[], K, M> asLongs();
+    Vector<long[], KeyType, MetadataType> asLongs();
 
     /**
      * Convert this {@link Vector} to a vector of {@code short} values.
      *
      * @return this {@link Vector} converted to a vector of {@code short} values
      */
-    public abstract Vector<short[], K, M> asShorts();
+    Vector<short[], KeyType, MetadataType> asShorts();
 
     // ----- factory methods ------------------------------------------------
 
@@ -134,14 +118,14 @@ public abstract class Vector<V,K,M>
      * @param vector    the {@link double} array vector data
      * @param key       the vector's key
      * @param metadata  the optional vector's metadata
-     * @param <K>       the type of the vector key
+     * @param <KeyType>       the type of the vector key
      * @param <M>       the type of the optional metadata
      *
      * @return a vector created from the {@code double} array
      *
      * @throws NullPointerException if either the {@code vector} or {@code key} are {@code null}
      */
-    public static <K, M> Vector<double[], K, M> ofDoubles(double[] vector, K key, M metadata)
+    static <KeyType, M> Vector<double[], KeyType, M> ofDoubles(double[] vector, KeyType key, M metadata)
         {
         return new DoubleVector<>(vector, key, metadata);
         }
@@ -154,13 +138,13 @@ public abstract class Vector<V,K,M>
      *
      * @param vector  the {@link double} array vector data
      * @param key     the vector's key
-     * @param <K>     the type of the vector key
+     * @param <KeyType>     the type of the vector key
      *
      * @return a vector created from the {@code double} array
      *
      * @throws NullPointerException if either the {@code vector} or {@code key} are {@code null}
      */
-    public static <K, M> Vector<double[], K, M> ofDoubles(double[] vector, K key)
+    static <KeyType, M> Vector<double[], KeyType, M> ofDoubles(double[] vector, KeyType key)
         {
         return ofDoubles(vector, key, null);
         }
@@ -174,14 +158,14 @@ public abstract class Vector<V,K,M>
      * @param vector    the {@link float} array vector data
      * @param key       the vector's key
      * @param metadata  the optional vector's metadata
-     * @param <K>       the type of the vector key
+     * @param <KeyType>       the type of the vector key
      * @param <M>       the type of the optional metadata
      *
      * @return a vector created from the {@code float} array
      *
      * @throws NullPointerException if either the {@code vector} or {@code key} are {@code null}
      */
-    public static <K, M> Vector<float[], K, M> ofFloats(float[] vector, K key, M metadata)
+    static <KeyType, M> Vector<float[], KeyType, M> ofFloats(float[] vector, KeyType key, M metadata)
         {
         return new FloatVector<>(vector, key, metadata);
         }
@@ -194,13 +178,13 @@ public abstract class Vector<V,K,M>
      *
      * @param vector  the {@link float} array vector data
      * @param key     the vector's key
-     * @param <K>     the type of the vector key
+     * @param <KeyType>     the type of the vector key
      *
      * @return a vector created from the {@code float} array
      *
      * @throws NullPointerException if either the {@code vector} or {@code key} are {@code null}
      */
-    public static <K, M> Vector<float[], K, M> ofFloats(float[] vector, K key)
+    static <KeyType, M> Vector<float[], KeyType, M> ofFloats(float[] vector, KeyType key)
         {
         return ofFloats(vector, key, null);
         }
@@ -214,14 +198,14 @@ public abstract class Vector<V,K,M>
      * @param vector    the {@link int} array vector data
      * @param key       the vector's key
      * @param metadata  the optional vector's metadata
-     * @param <K>       the type of the vector key
+     * @param <KeyType>       the type of the vector key
      * @param <M>       the type of the optional metadata
      *
      * @return a vector created from the {@code int} array
      *
      * @throws NullPointerException if either the {@code vector} or {@code key} are {@code null}
      */
-    public static <K, M> Vector<int[], K, M> ofInts(int[] vector, K key, M metadata)
+    static <KeyType, M> Vector<int[], KeyType, M> ofInts(int[] vector, KeyType key, M metadata)
         {
         return new IntVector<>(vector, key, metadata);
         }
@@ -234,13 +218,13 @@ public abstract class Vector<V,K,M>
      *
      * @param vector  the {@link int} array vector data
      * @param key     the vector's key
-     * @param <K>     the type of the vector key
+     * @param <KeyType>     the type of the vector key
      *
      * @return a vector created from the {@code int} array
      *
      * @throws NullPointerException if either the {@code vector} or {@code key} are {@code null}
      */
-    public static <K, M> Vector<int[], K, M> ofInts(int[] vector, K key)
+    static <KeyType, M> Vector<int[], KeyType, M> ofInts(int[] vector, KeyType key)
         {
         return ofInts(vector, key, null);
         }
@@ -254,14 +238,14 @@ public abstract class Vector<V,K,M>
      * @param vector    the {@link long} array vector data
      * @param key       the vector's key
      * @param metadata  the optional vector's metadata
-     * @param <K>       the type of the vector key
+     * @param <KeyType>       the type of the vector key
      * @param <M>       the type of the optional metadata
      *
      * @return a vector created from the {@code long} array
      *
      * @throws NullPointerException if either the {@code vector} or {@code key} are {@code null}
      */
-    public static <K, M> Vector<long[], K, M> ofLongs(long[] vector, K key, M metadata)
+    static <KeyType, M> Vector<long[], KeyType, M> ofLongs(long[] vector, KeyType key, M metadata)
         {
         return new LongVector<>(vector, key, metadata);
         }
@@ -274,13 +258,13 @@ public abstract class Vector<V,K,M>
      *
      * @param vector  the {@link long} array vector data
      * @param key     the vector's key
-     * @param <K>     the type of the vector key
+     * @param <KeyType>     the type of the vector key
      *
      * @return a vector created from the {@code long} array
      *
      * @throws NullPointerException if either the {@code vector} or {@code key} are {@code null}
      */
-    public static <K, M> Vector<long[], K, M> ofLongs(long[] vector, K key)
+    static <KeyType, M> Vector<long[], KeyType, M> ofLongs(long[] vector, KeyType key)
         {
         return ofLongs(vector, key, null);
         }
@@ -294,14 +278,14 @@ public abstract class Vector<V,K,M>
      * @param vector    the {@link short} array vector data
      * @param key       the vector's key
      * @param metadata  the optional vector's metadata
-     * @param <K>       the type of the vector key
+     * @param <KeyType>       the type of the vector key
      * @param <M>       the type of the optional metadata
      *
      * @return a vector created from the {@code short} array
      *
      * @throws NullPointerException if either the {@code vector} or {@code key} are {@code null}
      */
-    public static <K, M> Vector<short[], K, M> ofShorts(short[] vector, K key, M metadata)
+    static <KeyType, M> Vector<short[], KeyType, M> ofShorts(short[] vector, KeyType key, M metadata)
         {
         return new ShortVector<>(vector, key, metadata);
         }
@@ -314,15 +298,99 @@ public abstract class Vector<V,K,M>
      *
      * @param vector  the {@link short} array vector data
      * @param key     the vector's key
-     * @param <K>     the type of the vector key
+     * @param <KeyType>     the type of the vector key
      *
      * @return a vector created from the {@code short} array
      *
      * @throws NullPointerException if either the {@code vector} or {@code key} are {@code null}
      */
-    public static <K, M> Vector<short[], K, M> ofShorts(short[] vector, K key)
+    static <KeyType, M> Vector<short[], KeyType, M> ofShorts(short[] vector, KeyType key)
         {
         return ofShorts(vector, key, null);
+        }
+
+    // ----- inner class: BaseVector ----------------------------------------
+
+    abstract class BaseVector<VectorType, KeyType, MetadataType>
+            implements Vector<VectorType, KeyType, MetadataType>
+        {
+        /**
+         * Create a {@link Vector}.
+         * <p>
+         * This constructor is package private as this is the only real way
+         * to enforce the data types allowed for a {@link Vector}.
+         * The only way to create a {@link Vector} is to use one
+         * of the factory methods.
+         *
+         * @param vector    the vector primitive array
+         * @param key       the vector's key
+         * @param metadata  the vector's optional metadata
+         *
+         * @throws NullPointerException if either the {@code vector} or {@code key} are {@code null}
+         */
+        protected BaseVector(VectorType vector, KeyType key, MetadataType metadata)
+            {
+            m_vector   = Objects.requireNonNull(vector);
+            m_key      = Objects.requireNonNull(key);
+            m_metadata = metadata;
+            }
+
+        /**
+         * Return the vector value.
+         * <p>
+         * The vector will never be {@code null}.
+         *
+         * @return the vector value
+         */
+        @Override
+        public VectorType getVector()
+            {
+            return m_vector;
+            }
+
+        /**
+         * Return the vector key.
+         * <p>
+         * The vector key will never be {@code null}.
+         *
+         * @return the vector key
+         */
+        @Override
+        public KeyType getKey()
+            {
+            return m_key;
+            }
+
+        /**
+         * Return the optional vector metadata.
+         *
+         * @return the optional vector metadata
+         */
+        @Override
+        public Optional<MetadataType> getMetadata()
+            {
+            return Optional.ofNullable(m_metadata);
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The vector values.
+         */
+        @JsonbProperty("vector")
+        protected final VectorType m_vector;
+
+        /**
+         * The vector key.
+         */
+        @JsonbProperty("key")
+        protected final KeyType m_key;
+
+        /**
+         * The vector metadata.
+         */
+        @JsonbProperty("metadata")
+        protected final MetadataType m_metadata;
         }
 
     // ----- inner class: DoubleVector --------------------------------------
@@ -330,11 +398,11 @@ public abstract class Vector<V,K,M>
     /**
      * A vector of {@code double} values
      *
-     * @param <K>  the type of the vector key
-     * @param <M>  the type of the optional metadata
+     * @param <KeyType>       the type of the vector key
+     * @param <MetadataType>  the type of the optional metadata
      */
-    public static class DoubleVector<K, M>
-            extends Vector<double[], K, M>
+    class DoubleVector<KeyType, MetadataType>
+            extends BaseVector<double[], KeyType, MetadataType>
         {
         /**
          * Create a {@link DoubleVector}.
@@ -350,7 +418,7 @@ public abstract class Vector<V,K,M>
          *
          * @throws NullPointerException if either the {@code vector} or {@code key} are {@code null}
          */
-        private DoubleVector(double[] vector, K key, M metadata)
+        private DoubleVector(double[] vector, KeyType key, MetadataType metadata)
             {
             super(vector, key, metadata);
             }
@@ -362,13 +430,13 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<double[], K, M> asDoubles()
+        public Vector<double[], KeyType, MetadataType> asDoubles()
             {
             return this;
             }
 
         @Override
-        public Vector<float[], K, M> asFloats()
+        public Vector<float[], KeyType, MetadataType> asFloats()
             {
             double[] vector = m_vector;
             int      size   = vector.length;
@@ -381,7 +449,7 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<int[], K, M> asInts()
+        public Vector<int[], KeyType, MetadataType> asInts()
             {
             double[] vector = m_vector;
             int      size   = vector.length;
@@ -394,7 +462,7 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<long[], K, M> asLongs()
+        public Vector<long[], KeyType, MetadataType> asLongs()
             {
             double[] vector = m_vector;
             int      size   = vector.length;
@@ -407,7 +475,7 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<short[], K, M> asShorts()
+        public Vector<short[], KeyType, MetadataType> asShorts()
             {
             double[] vector = m_vector;
             int      size   = vector.length;
@@ -425,11 +493,11 @@ public abstract class Vector<V,K,M>
     /**
      * A vector of {@code float} values
      *
-     * @param <K>  the type of the vector key
-     * @param <M>  the type of the optional metadata
+     * @param <KeyType>       the type of the vector key
+     * @param <MetadataType>  the type of the optional metadata
      */
-    public static class FloatVector<K, M>
-            extends Vector<float[], K, M>
+    class FloatVector<KeyType, MetadataType >
+            extends BaseVector<float[], KeyType, MetadataType>
         {
         /**
          * Create a {@link FloatVector}.
@@ -445,7 +513,7 @@ public abstract class Vector<V,K,M>
          *
          * @throws NullPointerException if either the {@code vector} or {@code key} are {@code null}
          */
-        private FloatVector(float[] vector, K key, M metadata)
+        private FloatVector(float[] vector, KeyType key, MetadataType metadata)
             {
             super(vector, key, metadata);
             }
@@ -457,7 +525,7 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<double[], K, M> asDoubles()
+        public Vector<double[], KeyType, MetadataType> asDoubles()
             {
             float[]  vector = m_vector;
             int      size   = vector.length;
@@ -470,13 +538,13 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<float[], K, M> asFloats()
+        public Vector<float[], KeyType, MetadataType> asFloats()
             {
             return this;
             }
 
         @Override
-        public Vector<int[], K, M> asInts()
+        public Vector<int[], KeyType, MetadataType> asInts()
             {
             float[] vector = m_vector;
             int     size   = vector.length;
@@ -489,7 +557,7 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<long[], K, M> asLongs()
+        public Vector<long[], KeyType, MetadataType> asLongs()
             {
             float[] vector = m_vector;
             int     size   = vector.length;
@@ -502,7 +570,7 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<short[], K, M> asShorts()
+        public Vector<short[], KeyType, MetadataType> asShorts()
             {
             float[] vector = m_vector;
             int     size   = vector.length;
@@ -520,11 +588,11 @@ public abstract class Vector<V,K,M>
     /**
      * A vector of {@code int} values
      *
-     * @param <K>  the type of the vector key
-     * @param <M>  the type of the optional metadata
+     * @param <KeyType>       the type of the vector key
+     * @param <MetadataType>  the type of the optional metadata
      */
-    public static class IntVector<K, M>
-            extends Vector<int[], K, M>
+    class IntVector<KeyType, MetadataType>
+            extends BaseVector<int[], KeyType, MetadataType>
         {
         /**
          * Create a {@link IntVector}.
@@ -540,7 +608,7 @@ public abstract class Vector<V,K,M>
          *
          * @throws NullPointerException if either the {@code vector} or {@code key} are {@code null}
          */
-        public IntVector(int[] vector, K key, M metadata)
+        public IntVector(int[] vector, KeyType key, MetadataType metadata)
             {
             super(vector, key, metadata);
             }
@@ -552,7 +620,7 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<double[], K, M> asDoubles()
+        public Vector<double[], KeyType, MetadataType> asDoubles()
             {
             int[]    vector = m_vector;
             int      size   = vector.length;
@@ -565,7 +633,7 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<float[], K, M> asFloats()
+        public Vector<float[], KeyType, MetadataType> asFloats()
             {
             int[]    vector = m_vector;
             int      size   = vector.length;
@@ -578,13 +646,13 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<int[], K, M> asInts()
+        public Vector<int[], KeyType, MetadataType> asInts()
             {
             return this;
             }
 
         @Override
-        public Vector<long[], K, M> asLongs()
+        public Vector<long[], KeyType, MetadataType> asLongs()
             {
             int[]  vector = m_vector;
             int    size   = vector.length;
@@ -597,7 +665,7 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<short[], K, M> asShorts()
+        public Vector<short[], KeyType, MetadataType> asShorts()
             {
             int[]   vector = m_vector;
             int     size   = vector.length;
@@ -615,11 +683,11 @@ public abstract class Vector<V,K,M>
     /**
      * A vector of {@code long} values
      *
-     * @param <K>  the type of the vector key
-     * @param <M>  the type of the optional metadata
+     * @param <KeyType>       the type of the vector key
+     * @param <MetadataType>  the type of the optional metadata
      */
-    public static class LongVector<K, M>
-            extends Vector<long[], K, M>
+    class LongVector<KeyType, MetadataType>
+            extends BaseVector<long[], KeyType, MetadataType>
         {
         /**
          * Create a {@link LongVector}.
@@ -635,7 +703,7 @@ public abstract class Vector<V,K,M>
          *
          * @throws NullPointerException if either the {@code vector} or {@code key} are {@code null}
          */
-        private LongVector(long[] vector, K key, M metadata)
+        private LongVector(long[] vector, KeyType key, MetadataType metadata)
             {
             super(vector, key, metadata);
             }
@@ -647,7 +715,7 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<double[], K, M> asDoubles()
+        public Vector<double[], KeyType, MetadataType> asDoubles()
             {
             long[]   vector = m_vector;
             int      size   = vector.length;
@@ -660,7 +728,7 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<float[], K, M> asFloats()
+        public Vector<float[], KeyType, MetadataType> asFloats()
             {
             long[]  vector = m_vector;
             int     size   = vector.length;
@@ -673,7 +741,7 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<int[], K, M> asInts()
+        public Vector<int[], KeyType, MetadataType> asInts()
             {
             long[] vector = m_vector;
             int    size   = vector.length;
@@ -686,13 +754,13 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<long[], K, M> asLongs()
+        public Vector<long[], KeyType, MetadataType> asLongs()
             {
             return this;
             }
 
         @Override
-        public Vector<short[], K, M> asShorts()
+        public Vector<short[], KeyType, MetadataType> asShorts()
             {
             long[]  vector = m_vector;
             int     size   = vector.length;
@@ -710,11 +778,11 @@ public abstract class Vector<V,K,M>
     /**
      * A vector of {@code short} values
      *
-     * @param <K>  the type of the vector key
-     * @param <M>  the type of the optional metadata
+     * @param <KeyType>  the type of the vector key
+     * @param <MetadataType>  the type of the optional metadata
      */
-    public static class ShortVector<K, M>
-            extends Vector<short[], K, M>
+    class ShortVector<KeyType, MetadataType>
+            extends BaseVector<short[], KeyType, MetadataType>
         {
         /**
          * Create a {@link ShortVector}.
@@ -730,7 +798,7 @@ public abstract class Vector<V,K,M>
          *
          * @throws NullPointerException if either the {@code vector} or {@code key} are {@code null}
          */
-        private ShortVector(short[] vector, K key, M metadata)
+        private ShortVector(short[] vector, KeyType key, MetadataType metadata)
             {
             super(vector, key, metadata);
             }
@@ -742,7 +810,7 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<double[], K, M> asDoubles()
+        public Vector<double[], KeyType, MetadataType> asDoubles()
             {
             short[]  vector = m_vector;
             int       size   = vector.length;
@@ -755,7 +823,7 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<float[], K, M> asFloats()
+        public Vector<float[], KeyType, MetadataType> asFloats()
             {
             short[] vector = m_vector;
             int      size   = vector.length;
@@ -768,7 +836,7 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<int[], K, M> asInts()
+        public Vector<int[], KeyType, MetadataType> asInts()
             {
             short[] vector = m_vector;
             int      size   = vector.length;
@@ -781,7 +849,7 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<long[], K, M> asLongs()
+        public Vector<long[], KeyType, MetadataType> asLongs()
             {
             short[] vector = m_vector;
             int      size   = vector.length;
@@ -794,7 +862,7 @@ public abstract class Vector<V,K,M>
             }
 
         @Override
-        public Vector<short[], K, M> asShorts()
+        public Vector<short[], KeyType, MetadataType> asShorts()
             {
             return this;
             }
@@ -804,33 +872,137 @@ public abstract class Vector<V,K,M>
 
     /**
      * A unique key for a vector.
-     *
-     * @param uuid  the unique {@link UUID} for the vector
-     * @param id    a numeric identifier for the vector
      */
-    public record Key(UUID uuid, long id)
+    class Key
+            implements ExternalizableLite, PortableObject
         {
+        /**
+         * Default constructor for serialization.
+         */
+        public Key()
+            {
+            }
+
+        /**
+         * @param uuid the unique {@link UUID} for the vector
+         * @param id   a numeric identifier for the vector
+         */
+        public Key(UUID uuid, long id)
+            {
+            this.m_uuid = uuid;
+            this.m_id   = id;
+            }
+
         /**
          * Create a unique {@link Key}.
          *
-         * @param id  the identifier for the key
-         *
+         * @param id the identifier for the key
          * @return a unique {@link Key}
          */
-        static Key withId(long id)
+        public static Key withId(long id)
             {
             return new Key(new UUID(), id);
             }
 
-        static KeySequence<Key> newSequence()
+        /**
+         * Create a new key sequence generator.
+         *
+         * @return a new key sequence generator
+         */
+        public static KeySequence<Key> newSequence()
             {
             return new SimpleKeySequence(0L);
             }
 
-        static KeySequence<Key> newSequenceFrom(long start)
+        /**
+         * Create a new key sequence generator.
+         *
+         * @param start   the identifier to start the sequence from
+         *
+         * @return a new key sequence generator
+         */
+        public static KeySequence<Key> newSequenceFrom(long start)
             {
             return new SimpleKeySequence(start);
             }
+
+        /**
+         * Return the {@link UUID} used by this key.
+         *
+         * @return the {@link UUID} used by this key
+         */
+        public UUID uuid()
+            {
+            return m_uuid;
+            }
+
+        /**
+         * Return the identifier for this key.
+         *
+         * @return the identifier for this key
+         */
+        public long id()
+            {
+            return m_id;
+            }
+
+        @Override
+        public void readExternal(DataInput in) throws IOException
+            {
+            m_uuid = ExternalizableHelper.readObject(in);
+            m_id   = ExternalizableHelper.readLong(in);
+            }
+
+        @Override
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            ExternalizableHelper.writeObject(out, m_uuid);
+            ExternalizableHelper.writeLong(out, m_id);
+            }
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            m_uuid = in.readObject(0);
+            m_id   = in.readLong(1);
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            out.writeObject(0, m_uuid);
+            out.writeLong(1, m_id);
+            }
+
+        @Override
+        public boolean equals(Object obj)
+            {
+            if (obj == this) return true;
+            if (obj == null || obj.getClass() != this.getClass()) return false;
+            var that = (Key) obj;
+            return Objects.equals(this.m_uuid, that.m_uuid) &&
+                    this.m_id == that.m_id;
+            }
+
+        @Override
+        public int hashCode()
+            {
+            return Objects.hash(m_uuid, m_id);
+            }
+
+        @Override
+        public String toString()
+            {
+            return "Vector.Key(" +
+                    "uuid=" + m_uuid + ", " +
+                    "id=" + m_id + ')';
+            }
+
+        // ----- data members ---------------------------------------------------
+
+        private UUID m_uuid;
+
+        private long m_id;
         }
 
     // ----- inner interface: KeySequence -----------------------------------
@@ -838,14 +1010,14 @@ public abstract class Vector<V,K,M>
     /**
      * A generator of vector keys.
      */
-    public interface KeySequence<K>
+    interface KeySequence<KeyType>
         {
         /**
          * Return the next {@link Key}.
          *
          * @return the next {@link Key}
          */
-        K next();
+        KeyType next();
 
         /**
          * Return a key sequence of integer values.
@@ -897,18 +1069,26 @@ public abstract class Vector<V,K,M>
     /**
      * A simple vector key sequence.
      */
-    public static class SimpleKeySequence
+    class SimpleKeySequence
             implements KeySequence<Key>
         {
         public SimpleKeySequence(long id)
             {
-            m_id = id;
+            f_uuid = new UUID();
+            m_id   = id;
             }
 
         public Key next()
             {
-            return new Key(new UUID(), m_id++);
+            return new Key(f_uuid, m_id++);
             }
+
+        public UUID uuid()
+            {
+            return f_uuid;
+            }
+
+        private final UUID f_uuid;
 
         private long m_id;
         }
@@ -918,7 +1098,7 @@ public abstract class Vector<V,K,M>
     /**
      * A simple vector integer key sequence.
      */
-    public static class IntKeySequence
+    class IntKeySequence
             implements KeySequence<Integer>
         {
         public IntKeySequence(int id)
@@ -954,21 +1134,4 @@ public abstract class Vector<V,K,M>
 
         private long m_id;
         }
-
-    // ----- data members ---------------------------------------------------
-
-    /**
-     * The vector values.
-     */
-    protected final V m_vector;
-
-    /**
-     * The vector key.
-     */
-    protected final K m_key;
-
-    /**
-     * The vector metadata.
-     */
-    protected final M m_metadata;
     }

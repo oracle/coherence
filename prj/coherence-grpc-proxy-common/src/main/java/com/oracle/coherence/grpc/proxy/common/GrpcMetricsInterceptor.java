@@ -31,11 +31,11 @@ public class GrpcMetricsInterceptor
     /**
      * Create a {@link GrpcMetricsInterceptor}.
      *
-     * @param metrics the {@link GrpcProxyMetrics} that tracks requests
+     * @param metrics the {@link GrpcProxyServiceMetrics} that tracks requests
      *
      * @throws NullPointerException if the metrics parameter is null
      */
-    public GrpcMetricsInterceptor(GrpcProxyMetrics metrics)
+    public GrpcMetricsInterceptor(GrpcProxyServiceMetrics metrics)
         {
         this(metrics, GrpcConnectionMetrics.getInstance());
         }
@@ -43,12 +43,12 @@ public class GrpcMetricsInterceptor
     /**
      * Create a {@link GrpcMetricsInterceptor}.
      *
-     * @param metrics            the {@link GrpcProxyMetrics} that tracks requests
+     * @param metrics            the {@link GrpcProxyServiceMetrics} that tracks requests
      * @param connectionMetrics  the gRPC connection metrics.
      *
      * @throws NullPointerException if the either parameter is null
      */
-    GrpcMetricsInterceptor(GrpcProxyMetrics metrics, GrpcConnectionMetrics connectionMetrics)
+    GrpcMetricsInterceptor(GrpcProxyServiceMetrics metrics, GrpcConnectionMetrics connectionMetrics)
         {
         f_metrics           = Objects.requireNonNull(metrics);
         f_connectionMetrics = Objects.requireNonNull(connectionMetrics);
@@ -125,7 +125,7 @@ public class GrpcMetricsInterceptor
          * @param delegate the call to time
          * @param metrics  the gRPC metrics to update
          */
-        ResponseCountingServerCall(GrpcProxyMetrics metrics, ServerCall<ReqT, RespT> delegate)
+        ResponseCountingServerCall(GrpcProxyServiceMetrics metrics, ServerCall<ReqT, RespT> delegate)
             {
             super(delegate);
             f_metrics = metrics;
@@ -157,9 +157,9 @@ public class GrpcMetricsInterceptor
         // ----- data members -----------------------------------------------
 
         /**
-         * The {@link GrpcProxyMetrics} to update with the call times.
+         * The {@link GrpcProxyServiceMetrics} to update with the call times.
          */
-        protected final GrpcProxyMetrics f_metrics;
+        protected final GrpcProxyServiceMetrics f_metrics;
         }
 
     // ----- inner class: MessageTimingCallListener -------------------------
@@ -173,7 +173,7 @@ public class GrpcMetricsInterceptor
     private static class MessageTimingCallListener<ReqT>
             extends ForwardingServerCallListener.SimpleForwardingServerCallListener<ReqT>
         {
-        public MessageTimingCallListener(ServerCall.Listener<ReqT> delegate, GrpcProxyMetrics metrics)
+        public MessageTimingCallListener(ServerCall.Listener<ReqT> delegate, GrpcProxyServiceMetrics metrics)
             {
             super(delegate);
             f_metrics = metrics;
@@ -194,9 +194,9 @@ public class GrpcMetricsInterceptor
         // ----- data members -----------------------------------------------
 
         /**
-         * The {@link GrpcProxyMetrics} to update with the call times.
+         * The {@link GrpcProxyServiceMetrics} to update with the call times.
          */
-        protected final GrpcProxyMetrics f_metrics;
+        protected final GrpcProxyServiceMetrics f_metrics;
         }
 
     // ----- inner class: RequestTimingCallListener -------------------------
@@ -210,7 +210,7 @@ public class GrpcMetricsInterceptor
     private static class RequestTimingCallListener<ReqT>
             extends MessageTimingCallListener<ReqT>
         {
-        public RequestTimingCallListener(ServerCall.Listener<ReqT> delegate, GrpcProxyMetrics metrics)
+        public RequestTimingCallListener(ServerCall.Listener<ReqT> delegate, GrpcProxyServiceMetrics metrics)
             {
             super(delegate, metrics);
             m_nStartNanos = System.nanoTime();
@@ -260,7 +260,7 @@ public class GrpcMetricsInterceptor
     private static class StreamingTimingCallListener<ReqT>
             extends MessageTimingCallListener<ReqT>
         {
-        public StreamingTimingCallListener(ServerCall.Listener<ReqT> delegate, GrpcProxyMetrics metrics)
+        public StreamingTimingCallListener(ServerCall.Listener<ReqT> delegate, GrpcProxyServiceMetrics metrics)
             {
             super(delegate, metrics);
             }
@@ -280,9 +280,9 @@ public class GrpcMetricsInterceptor
     // ----- data members ---------------------------------------------------
 
     /**
-     * The {@link GrpcProxyMetrics} to update with request metrics.
+     * The {@link GrpcProxyServiceMetrics} to update with request metrics.
      */
-    private final GrpcProxyMetrics f_metrics;
+    private final GrpcProxyServiceMetrics f_metrics;
 
     /**
      * The gRPC connection metrics.

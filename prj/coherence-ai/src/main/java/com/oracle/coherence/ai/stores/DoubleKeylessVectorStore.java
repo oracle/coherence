@@ -10,31 +10,31 @@ package com.oracle.coherence.ai.stores;
 import com.oracle.coherence.ai.KeylessVectorStore;
 import com.oracle.coherence.ai.Vector;
 
-import com.tangosol.net.NamedMap;
 
-import com.tangosol.util.Binary;
+import com.tangosol.net.Session;
 
 /**
  * A keyless vector store for {@code double} vectors.
  *
- * @param <M>  the type of the vector metadata
+ * @param <MetadataType>  the type of the vector metadata
  */
-public class DoubleKeylessVectorStore<M>
-        extends DoubleVectorStore<Vector.Key, M>
-        implements KeylessVectorStore<double[], M>
+public class DoubleKeylessVectorStore<MetadataType>
+        extends DoubleVectorStore<Vector.Key, MetadataType>
+        implements KeylessVectorStore<double[], MetadataType>
     {
     /**
      * Create a {@link DoubleKeylessVectorStore}.
      *
-     * @param map  the {@link NamedMap} containing the vector data.
+     * @param session  the {@link Session} managing the underlying caches
+     * @param sName    the name of the vector store
      */
-    public DoubleKeylessVectorStore(NamedMap<Binary, Binary> map)
+    public DoubleKeylessVectorStore(Session session, String sName)
         {
-        super(map);
+        super(session, sName);
         }
 
     @Override
-    public void addVector(double[] vector, M metadata)
+    public void addVector(double[] vector, MetadataType metadata)
         {
         addDoubles(vector, metadata);
         }

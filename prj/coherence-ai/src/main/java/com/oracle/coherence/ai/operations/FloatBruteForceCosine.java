@@ -10,7 +10,6 @@ package com.oracle.coherence.ai.operations;
 import com.tangosol.io.ReadBuffer;
 
 import java.nio.FloatBuffer;
-import java.util.HashMap;
 
 /**
  * A {@link com.oracle.coherence.ai.VectorOp} that executes a Cosine
@@ -70,11 +69,11 @@ public class FloatBruteForceCosine
 
     protected double calculateDotProduct(FloatBuffer buffer)
         {
-        int    size  = target.length;
+        int    size  = m_target.length;
         double total = 0.0d;
         for (int i = 0; i < size; i++)
             {
-            total += (target[i] * buffer.get(i));
+            total += (m_target[i] * buffer.get(i));
             }
         return total;
         }
@@ -96,7 +95,7 @@ public class FloatBruteForceCosine
         double m = magnitude;
         if (Double.isNaN(m))
             {
-            m = magnitude = calculateMagnitude(FloatBuffer.wrap(target));
+            m = magnitude = calculateMagnitude(FloatBuffer.wrap(m_target));
             }
         return m;
         }

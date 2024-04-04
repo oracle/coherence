@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
  * @author Jonathan Knight  2020.10.14
  */
 public class GrpcProxyMetrics
-        implements GrpcProxyMetricsMBean
+        implements GrpcProxyMetricsMBean, GrpcProxyServiceMetrics
     {
     // ----- constructors ---------------------------------------------------
 
@@ -61,6 +61,7 @@ public class GrpcProxyMetrics
      *
      * @param nanos  the request time in nanos.
      */
+    @Override
     public void addRequestDuration(long nanos)
         {
         // convert the time to millis
@@ -72,6 +73,7 @@ public class GrpcProxyMetrics
      *
      * @param nanos  the request time in nanos.
      */
+    @Override
     public void addMessageDuration(long nanos)
         {
         // convert the time to millis
@@ -81,6 +83,7 @@ public class GrpcProxyMetrics
     /**
      * Update the successful request meter.
      */
+    @Override
     public void markSuccess()
         {
         f_meterSuccess.mark();
@@ -89,6 +92,7 @@ public class GrpcProxyMetrics
     /**
      * Update the failed request meter.
      */
+    @Override
     public void markError()
         {
         f_meterError.mark();
@@ -97,6 +101,7 @@ public class GrpcProxyMetrics
     /**
      * Update the messages sent meter.
      */
+    @Override
     public void markSent()
         {
         f_meterSent.mark();
@@ -105,6 +110,7 @@ public class GrpcProxyMetrics
     /**
      * Update the messages received meter.
      */
+    @Override
     public void markReceived()
         {
         f_meterReceived.mark();

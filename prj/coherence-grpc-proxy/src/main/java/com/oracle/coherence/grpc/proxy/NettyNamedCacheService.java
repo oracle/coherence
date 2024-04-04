@@ -49,12 +49,15 @@ import com.oracle.coherence.grpc.ValuesRequest;
 import com.oracle.coherence.grpc.proxy.common.BaseNamedCacheServiceImpl;
 import com.oracle.coherence.grpc.proxy.common.NamedCacheService;
 import com.oracle.coherence.grpc.proxy.common.PagedQueryHelper;
+
 import com.tangosol.internal.util.processor.BinaryProcessors;
 
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.PartitionedService;
+
+import com.tangosol.net.grpc.GrpcDependencies;
 
 import com.tangosol.util.Aggregators;
 import com.tangosol.util.Binary;
@@ -81,6 +84,7 @@ import static com.oracle.coherence.grpc.proxy.common.ResponseHandlers.handleErro
 import static com.oracle.coherence.grpc.proxy.common.ResponseHandlers.handleSetOfEntries;
 import static com.oracle.coherence.grpc.proxy.common.ResponseHandlers.handleStream;
 import static com.oracle.coherence.grpc.proxy.common.ResponseHandlers.handleUnary;
+
 import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryContainsValueProcessor;
 import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryRemoveProcessor;
 import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryReplaceMappingProcessor;
@@ -141,7 +145,7 @@ public class NettyNamedCacheService
      */
     public static NettyNamedCacheService newInstance()
         {
-        return newInstance(new NamedCacheService.DefaultDependencies());
+        return newInstance(new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous));
         }
 
     // ----- NamedCacheClient implementation --------------------------------

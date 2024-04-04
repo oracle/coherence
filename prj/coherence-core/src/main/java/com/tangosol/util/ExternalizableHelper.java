@@ -107,9 +107,6 @@ import java.net.URL;
 import java.nio.BufferOverflowException;
 import java.nio.charset.StandardCharsets;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -129,6 +126,7 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.WeakHashMap;
 
+import java.util.concurrent.Callable;
 import java.util.function.BinaryOperator;
 
 /**
@@ -143,7 +141,7 @@ import java.util.function.BinaryOperator;
 *
 * @author cp 2003.03.28
 */
-@SuppressWarnings("Duplicates")
+@SuppressWarnings({"Duplicates", "unchecked", "unused", "PatternVariableCanBeUsed", "rawtypes", "ForLoopReplaceableByForEach", "resource", "TryWithIdenticalCatches", "CatchMayIgnoreException"})
 public abstract class ExternalizableHelper
         extends BitHelper
     {
@@ -2420,7 +2418,8 @@ public abstract class ExternalizableHelper
             String sClass = readUTF(in);
             try
                 {
-                value = (XmlSerializable) loadClass(sClass, loader, null).newInstance();
+                value = (XmlSerializable) loadClass(sClass, loader, null)
+                        .getDeclaredConstructor().newInstance();
                 }
             catch (Exception e)
                 {
@@ -2530,7 +2529,7 @@ public abstract class ExternalizableHelper
                 type = clz.getAnnotation(ExternalizableType.class);
                 if (type == null || type.serializer() == null)
                     {
-                    value = (ExternalizableLite) clz.newInstance();
+                    value = (ExternalizableLite) clz.getDeclaredConstructor().newInstance();
                     }
                 else
                     {
@@ -2579,7 +2578,8 @@ public abstract class ExternalizableHelper
                 {
                 try
                     {
-                    value = (ExternalizableLite) type.serializer().newInstance().deserialize(in);
+                    value = (ExternalizableLite) type.serializer().getDeclaredConstructor()
+                            .newInstance().deserialize(in);
                     if (value != null && value.getClass() != clz)
                         {
                         // deserialize returned an instance that is not same as previously validated load class.
@@ -2685,11 +2685,7 @@ public abstract class ExternalizableHelper
                     {
                     type.serializer().newInstance().serialize(out, o);
                     }
-                catch (InstantiationException e)
-                    {
-                    throw new IOException(e);
-                    }
-                catch (IllegalAccessException e)
+                catch (InstantiationException | IllegalAccessException e)
                     {
                     throw new IOException(e);
                     }
@@ -2730,7 +2726,7 @@ public abstract class ExternalizableHelper
                     {
                     Class clz = XMLBEAN_CLASS_CACHE.getClass(nBeanId, loader);
                     validateLoadClass(clz, in);
-                    bean = (XmlBean) clz.newInstance();
+                    bean = (XmlBean) clz.getDeclaredConstructor().newInstance();
                     }
                 catch (Exception e)
                     {
@@ -3084,11 +3080,11 @@ public abstract class ExternalizableHelper
                     break;
 
                 case FMT_INT:
-                    writeInt(out, ((Integer) o).intValue());
+                    writeInt(out, (Integer) o);
                     break;
 
                 case FMT_LONG:
-                    writeLong(out, ((Long) o).longValue());
+                    writeLong(out, (Long) o);
                     break;
 
                 case FMT_STRING:
@@ -3096,7 +3092,7 @@ public abstract class ExternalizableHelper
                     break;
 
                 case FMT_DOUBLE:
-                    out.writeDouble(((Double) o).doubleValue());
+                    out.writeDouble((Double) o);
                     break;
 
                 case FMT_INTEGER:
@@ -3180,19 +3176,19 @@ public abstract class ExternalizableHelper
                     break;
 
                 case FMT_FLOAT:
-                    out.writeFloat(((Float) o).floatValue());
+                    out.writeFloat((Float) o);
                     break;
 
                 case FMT_SHORT:
-                    out.writeShort(((Short) o).shortValue());
+                    out.writeShort((Short) o);
                     break;
 
                 case FMT_BYTE:
-                    out.writeByte(((Byte) o).byteValue());
+                    out.writeByte((Byte) o);
                     break;
 
                 case FMT_BOOLEAN:
-                    out.writeBoolean(((Boolean) o).booleanValue());
+                    out.writeBoolean((Boolean) o);
                     break;
 
                 default:
@@ -3371,6 +3367,16 @@ public abstract class ExternalizableHelper
             updateStats(o, stats, buf.length());
             }
 
+        // Allow decoration aware values the chance to return a decorated binary
+        if (o instanceof DecorationAware)
+            {
+            DecorationAware decoAware    = (DecorationAware) o;
+            ReadBuffer      bufDecorated = decoAware.applyDecorations(buf.getReadBuffer());
+            int             cbDecorated  = bufDecorated.length();
+            buf = fBinary ? new BinaryWriteBuffer(cbDecorated) : new ByteArrayWriteBuffer(cbDecorated);
+            bufDecorated.writeTo(buf.getBufferOutput());
+            }
+
         return buf;
         }
 
@@ -3527,7 +3533,8 @@ public abstract class ExternalizableHelper
     private static <T> T deserializeInternal(Serializer serializer, ReadBuffer buf, Remote.Function<BufferInput, BufferInput> supplierBufferIn, Class<T> clazz)
             throws IOException
         {
-        BufferInput in = buf.getBufferInput();
+        BufferInput in    = buf.getBufferInput();
+        boolean     fDeco = false;
 
         int nType = in.readUnsignedByte();
         switch (nType)
@@ -3537,6 +3544,7 @@ public abstract class ExternalizableHelper
                 // it returns the decorated value itself!
                 readInt(in); // skip the decoration
                 nType = in.readUnsignedByte();
+                fDeco = true;
                 break;
 
             case FMT_BIN_DECO:
@@ -3550,8 +3558,9 @@ public abstract class ExternalizableHelper
                 // get a BufferInput that corresponds just to the portion of
                 // the value within the decorated binary
                 int cb = in.readPackedInt();
-                in = buf.getReadBuffer(in.getOffset(), cb).getBufferInput();
+                in    = buf.getReadBuffer(in.getOffset(), cb).getBufferInput();
                 nType = in.readUnsignedByte();
+                fDeco = true;
                 break;
             }
 
@@ -3565,7 +3574,12 @@ public abstract class ExternalizableHelper
                    : readObjectInternal(in, nType,
                                         ((ClassLoaderAware) serializer).getContextClassLoader());
 
-        return safeRealize(o, serializer, in);
+        T oFinal = safeRealize(o, serializer, in);
+        if (fDeco && oFinal instanceof DecorationAware)
+            {
+            ((DecorationAware) oFinal).storeDecorations(buf);
+            }
+        return oFinal;
         }
 
 
@@ -5627,9 +5641,9 @@ public abstract class ExternalizableHelper
     public static final int DECO_JCACHE_SYNTHETIC = 15;
 
     /**
-     * Decoration: Information about a queue element
+     * Decoration: Information about a vector
      */
-    public static final int DECO_QUEUE_METADATA = 16;
+    public static final int DECO_VECTOR = 16;
 
     /**
      * The maximum number of bytes the header of the binary-decorated value
@@ -6914,7 +6928,7 @@ public abstract class ExternalizableHelper
     /**
      * Integer decorated object.
      */
-    protected static final class IntDecoratedObject
+    public static final class IntDecoratedObject
             extends    ExternalizableHelper
             implements Serializable
         {
@@ -6981,14 +6995,38 @@ public abstract class ExternalizableHelper
         /**
          * The decorated (original) object value.
          */
-        private Object m_oValue;
+        private final Object m_oValue;
 
         /**
          * The decoration integer value.
          */
-        private int    m_nDecoration;
+        private final int    m_nDecoration;
         }
 
+
+    /**
+     * Binary decorated object.
+     */
+    public interface DecorationAware
+            extends Serializable
+        {
+        /**
+         * Store any decorations that can then be re-applied if
+         * this value is re-serialized.
+         *
+         * @param buffer  the possibly decorated {@link ReadBuffer}
+         */
+        void storeDecorations(ReadBuffer buffer);
+
+        /**
+         * Apply any decorations to the specified {@link ReadBuffer}.
+         *
+         * @param buffer  the {@link ReadBuffer} to decorate
+         *
+         * @return  the decorated {@link ReadBuffer}
+         */
+        ReadBuffer applyDecorations(ReadBuffer buffer);
+        }
 
     // ----- XmlBean class caching ------------------------------------------
 
@@ -7050,7 +7088,7 @@ public abstract class ExternalizableHelper
                 String     sClass       = xmlClassName.getString(null);
                 list.add(sClass == null ? null : sClass.intern());
                 }
-            m_asBeans = (String[]) list.toArray(new String[list.size()]);
+            m_asBeans = (String[]) list.toArray(new String[0]);
 
             // determine whether or not this implementation needs to be
             // ClassLoader-aware
@@ -7199,7 +7237,7 @@ public abstract class ExternalizableHelper
                 {
                 String sBean = asBeans[i];
 
-                if (sBean != null && sBean.length() > 0)
+                if (sBean != null && !sBean.isEmpty())
                     {
                     try
                         {
@@ -7427,14 +7465,14 @@ public abstract class ExternalizableHelper
 
         try
             {
-            XmlDocument xml = AccessController.doPrivileged(new PrivilegedAction<XmlDocument>()
+            XmlDocument xml = new Callable<XmlDocument>()
                 {
-                public XmlDocument run()
+                public XmlDocument call()
                     {
                     String sConfig = Config.getProperty(PROPERTY_CONFIG);
                     XmlDocument xml = null;
 
-                    if (sConfig != null && sConfig.length() > 0)
+                    if (sConfig != null && !sConfig.isEmpty())
                         {
                         URL url = Resources.findResource(sConfig, null);
                         Throwable e = null;
@@ -7467,14 +7505,13 @@ public abstract class ExternalizableHelper
                     XmlHelper.replaceSystemProperties(xml, "system-property");
                     return xml;
                     }
-                });
-
+                }.call();
 
             final XmlElement xmlFactory = xml.getSafeElement("object-stream-factory");
 
-            factory = AccessController.doPrivileged(new PrivilegedAction<ObjectStreamFactory>()
+            factory = new Callable<ObjectStreamFactory>()
                 {
-                public ObjectStreamFactory run()
+                public ObjectStreamFactory call()
                     {
                     try
                         {
@@ -7491,7 +7528,7 @@ public abstract class ExternalizableHelper
                         }
                     return new DefaultObjectStreamFactory();
                     }
-                });
+                }.call();
 
             fResolve = xml.getSafeElement("force-classloader-resolving").getBoolean(fResolve);
             fCache   = xml.getSafeElement("enable-xmlbean-class-cache").getBoolean(fCache);
@@ -7510,7 +7547,7 @@ public abstract class ExternalizableHelper
                             }
                         else
                             {
-                            cache = (XmlBeanClassCache) Class.forName(sImpl).newInstance();
+                            cache = (XmlBeanClassCache) Class.forName(sImpl).getDeclaredConstructor().newInstance();
                             }
                         cache.init(xmlCfg);
                         }

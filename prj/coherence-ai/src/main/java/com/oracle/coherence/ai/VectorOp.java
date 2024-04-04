@@ -15,9 +15,9 @@ import com.tangosol.io.pof.EvolvablePortableObject;
 /**
  * An operation that can be performed on a vector.
  *
- * @param <R>  the return type of the operation
+ * @param <VectorType>  the return type of the operation
  */
-public interface VectorOp<R>
+public interface VectorOp<VectorType>
         extends ExternalizableLite, EvolvablePortableObject
     {
     /**
@@ -26,7 +26,7 @@ public interface VectorOp<R>
      *
      * @return  the result of applying the operation
      */
-    R apply(ReadBuffer buffer);
+    VectorType apply(ReadBuffer buffer);
 
     /**
      * Return an identifier for this operation.

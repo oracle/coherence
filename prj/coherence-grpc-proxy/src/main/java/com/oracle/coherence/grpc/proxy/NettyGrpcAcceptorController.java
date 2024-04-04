@@ -8,22 +8,30 @@ package com.oracle.coherence.grpc.proxy;
 
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.grpc.internal.GrpcTracingInterceptors;
+
 import com.oracle.coherence.grpc.proxy.common.BindableGrpcProxyService;
+import com.oracle.coherence.grpc.proxy.common.BindableServiceFactory;
 import com.oracle.coherence.grpc.proxy.common.DaemonPoolExecutor;
 import com.oracle.coherence.grpc.proxy.common.GrpcMetricsInterceptor;
 import com.oracle.coherence.grpc.proxy.common.GrpcServiceDependencies;
-import com.oracle.coherence.grpc.proxy.common.NamedCacheService;
-import com.oracle.coherence.grpc.proxy.common.NamedCacheServiceGrpcImpl;
+
 import com.tangosol.application.ContainerContext;
 import com.tangosol.application.Context;
+
 import com.tangosol.coherence.config.scheme.ServiceScheme;
+
 import com.tangosol.internal.net.service.peer.acceptor.DefaultGrpcAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
+
 import com.tangosol.internal.util.DaemonPool;
+
 import com.tangosol.net.Coherence;
+
 import com.tangosol.net.grpc.GrpcAcceptorController;
 import com.tangosol.net.grpc.GrpcDependencies;
+
 import io.grpc.Grpc;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -31,18 +39,25 @@ import io.grpc.ServerCredentials;
 import io.grpc.ServerInterceptor;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
+
 import io.grpc.health.v1.HealthCheckResponse;
+
 import io.grpc.inprocess.InProcessServerBuilder;
+
 import io.grpc.protobuf.services.ChannelzService;
 import io.grpc.protobuf.services.HealthStatusManager;
 
 import java.io.IOException;
+
 import java.net.SocketAddress;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.ServiceLoader;
+
 import java.util.concurrent.TimeUnit;
+
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -105,7 +120,8 @@ public class NettyGrpcAcceptorController
             InProcessServerBuilder   inProcessBuilder = createInProcessServerBuilder(deps);
             Context                  context          = deps.getContext();
 
-            GrpcServiceDependencies.DefaultDependencies serviceDeps = new GrpcServiceDependencies.DefaultDependencies();
+            GrpcServiceDependencies.DefaultDependencies serviceDeps
+                    = new GrpcServiceDependencies.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
 
             serviceDeps.setContext(context);
 
@@ -114,7 +130,7 @@ public class NettyGrpcAcceptorController
                 serviceDeps.setExecutor(new DaemonPoolExecutor(m_daemonPool));
                 }
 
-            m_listServices = createGrpcServices(serviceDeps);
+            m_listServices = BindableServiceFactory.discoverServices(serviceDeps);
             List<String> listServiceNames = new ArrayList<>();
             for (BindableGrpcProxyService service : m_listServices)
                 {
@@ -242,6 +258,12 @@ public class NettyGrpcAcceptorController
         return m_listServices;
         }
 
+    @Override
+    public GrpcDependencies.ServerType getServerType()
+        {
+        return GrpcDependencies.ServerType.Asynchronous;
+        }
+
     // ----- helper methods -------------------------------------------------
 
     protected ServerBuilder<?> createServerBuilder(GrpcAcceptorDependencies deps)
@@ -258,34 +280,6 @@ public class NettyGrpcAcceptorController
         String           sScope       = ServiceScheme.getScopePrefix(sPrefix + GrpcDependencies.PROXY_SERVICE_SCOPE_NAME, ctxContainer);
         String           sName        = ServiceScheme.getScopedServiceName(sScope, deps.getInProcessName());
         return InProcessServerBuilder.forName(sName);
-        }
-
-    /**
-     * Obtain the list of gRPC proxy services to bind to a gRPC server.
-     *
-     * @return  the list of gRPC proxy services to bind to a gRPC server
-     */
-    public static List<BindableGrpcProxyService> createGrpcServices()
-        {
-        return createGrpcServices(null);
-        }
-
-    /**
-     * Obtain the list of gRPC proxy services to bind to a gRPC server.
-     *
-     * @param depsService  the {@link GrpcServiceDependencies} to use
-     *
-     * @return  the list of gRPC proxy services to bind to a gRPC server
-     */
-    public static List<BindableGrpcProxyService> createGrpcServices(GrpcServiceDependencies depsService)
-        {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(depsService);
-        BindableGrpcProxyService cacheService = new NamedCacheServiceGrpcImpl(NettyNamedCacheService.newInstance(deps));
-//        BindableGrpcProxyService topicService
-//                = new RemoteTopicServiceGrpcImpl(new RemoteTopicService.DefaultDependencies(deps), true);
-//
-//        return List.of(cacheService, topicService);
-        return List.of(cacheService);
         }
 
     protected void configure(ServerBuilder<?> serverBuilder, InProcessServerBuilder inProcessServerBuilder)
