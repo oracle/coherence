@@ -37,6 +37,7 @@ import com.oracle.coherence.grpc.Requests;
 
 import com.oracle.coherence.grpc.proxy.common.NamedCacheService;
 
+import com.oracle.coherence.testing.CheckJDK;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.Serializer;
 
@@ -52,6 +53,8 @@ import grpc.proxy.TestVectorStoreServiceProvider;
 
 import io.grpc.stub.StreamObserver;
 
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -75,6 +78,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class VectorServiceIT
         extends BaseGrpcIT
     {
+    @BeforeAll
+    static void checkJavaVersion()
+        {
+        Assumptions.assumeTrue(CheckJDK.computeVersion(System.getProperty("java.version")) >= 21,
+                "Test skipped as the Java version is less than 21");
+        }
+
     @BeforeEach
     void setupTestInfo(TestInfo info)
         {

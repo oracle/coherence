@@ -207,4 +207,18 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <!-- We do not run tests if the JVM is not 21 or higher -->
+    <profile>
+      <id>NotJava21</id>
+      <activation>
+        <jdk>(,20]</jdk>
+      </activation>
+      <properties>
+        <is.not.java.21>true</is.not.java.21>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+  </profiles>
 </project>
