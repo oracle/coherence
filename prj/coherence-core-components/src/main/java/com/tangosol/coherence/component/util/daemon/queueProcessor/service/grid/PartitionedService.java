@@ -633,6 +633,11 @@ public abstract class PartitionedService
     private int __m_TransferThreshold;
     private static com.tangosol.util.ListMap __mapChildren;
     
+    /**
+     * The interval (in milliseconds) between scheduling two maintenance tasks.
+     */
+    protected static final int MAINTENANCE_INTERVAL = 120000;
+
     // Static initializer
     static
         {
@@ -2297,6 +2302,14 @@ public abstract class PartitionedService
         if (ctrlPart != null)
             {
             ctrlPart.exit();
+            }
+        }
+
+    protected void scheduleEnvironmentMaintenance()
+        {
+        if (isRunning())
+            {
+            getDaemonPool().schedule(new MaintenanceTask(), MAINTENANCE_INTERVAL);
             }
         }
     
@@ -7100,6 +7113,10 @@ public abstract class PartitionedService
         setPartitionEvents(new LocalCache(LocalCache.DEFAULT_UNITS, 3600000));
         
         finalizeStartup();
+        if (isActivePersistence())
+            {
+            scheduleEnvironmentMaintenance();
+            }
         }
     
     // Declared at the super level
@@ -33777,6 +33794,32 @@ public abstract class PartitionedService
                         aControl[iPart].enableTransfer();
                         }
                     }
+                }
+            }
+        }
+
+    // ----- inner class: MaintenanceTask -------------------------------
+
+    /**
+     * Task used to perform necessary maintenance of the underlying environment.
+     */
+    public class MaintenanceTask implements Runnable
+        {
+        // ----- Runnable interface -----------------------------------------
+
+        public void run()
+            {
+            try
+                {
+                PersistenceManager manager = getPersistenceManager();
+                if (manager != null)
+                    {
+                    manager.maintainEnvironment();
+                    }
+                }
+            finally
+                {
+                scheduleEnvironmentMaintenance();
                 }
             }
         }
