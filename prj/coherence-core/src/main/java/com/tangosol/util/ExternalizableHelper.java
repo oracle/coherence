@@ -107,6 +107,9 @@ import java.net.URL;
 import java.nio.BufferOverflowException;
 import java.nio.charset.StandardCharsets;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -2683,9 +2686,9 @@ public abstract class ExternalizableHelper
                 {
                 try
                     {
-                    type.serializer().newInstance().serialize(out, o);
+                    type.serializer().getDeclaredConstructor().newInstance().serialize(out, o);
                     }
-                catch (InstantiationException | IllegalAccessException e)
+                catch (InstantiationException | InvocationTargetException| NoSuchMethodException | IllegalAccessException e)
                     {
                     throw new IOException(e);
                     }
@@ -7465,9 +7468,9 @@ public abstract class ExternalizableHelper
 
         try
             {
-            XmlDocument xml = new Callable<XmlDocument>()
+            XmlDocument xml = AccessController.doPrivileged(new PrivilegedAction<XmlDocument>()
                 {
-                public XmlDocument call()
+                public XmlDocument run()
                     {
                     String sConfig = Config.getProperty(PROPERTY_CONFIG);
                     XmlDocument xml = null;
@@ -7505,13 +7508,14 @@ public abstract class ExternalizableHelper
                     XmlHelper.replaceSystemProperties(xml, "system-property");
                     return xml;
                     }
-                }.call();
+                });
+
 
             final XmlElement xmlFactory = xml.getSafeElement("object-stream-factory");
 
-            factory = new Callable<ObjectStreamFactory>()
+            factory = AccessController.doPrivileged(new PrivilegedAction<ObjectStreamFactory>()
                 {
-                public ObjectStreamFactory call()
+                public ObjectStreamFactory run()
                     {
                     try
                         {
@@ -7528,7 +7532,7 @@ public abstract class ExternalizableHelper
                         }
                     return new DefaultObjectStreamFactory();
                     }
-                }.call();
+                });
 
             fResolve = xml.getSafeElement("force-classloader-resolving").getBoolean(fResolve);
             fCache   = xml.getSafeElement("enable-xmlbean-class-cache").getBoolean(fCache);
