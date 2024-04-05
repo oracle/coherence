@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -122,6 +122,7 @@ public class JmxMBeanTests
         {
         InvocationService service = (InvocationService)
             getFactory().ensureService(INVOCATION_SERVICE_NAME);
+        Eventually.assertThat(service.isRunning(), is(true));
 
         try
             {
@@ -301,6 +302,7 @@ public class JmxMBeanTests
                     }
                 catch (Exception e)
                     {
+                    Base.log("JmxMBeanTests.MessagingDebugInvocable.run() got an exception: " + e);
                     throw ensureRuntimeException(e);
                     }
                 }
