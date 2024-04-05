@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.persistence.bdb;
 
@@ -150,6 +150,16 @@ public class BerkeleyDBManager
     protected String getStorageFormat()
         {
         return "BDB";
+        }
+
+    @Override
+    public synchronized void maintainEnvironment()
+        {
+        Map<String, BerkeleyDBStore> map = getPersistentStoreMap();
+        for (BerkeleyDBStore store : map.values())
+            {
+            store.maintainEnvironment();
+            }
         }
 
     /**
@@ -688,6 +698,7 @@ public class BerkeleyDBManager
         protected void truncateExtentInternal(long lExtentId)
             {
             truncateDatabase(lExtentId);
+            m_ltdLastErase = getSafeTimeMillis();
             }
 
         /**
@@ -1151,6 +1162,10 @@ public class BerkeleyDBManager
                 // calculate the approximate number of bytes written to the environment
                 // by the current operation and update the running count
                 f_cbWritten.getAndAdd(bufKey.length() + (bufValue == null ? 0 : bufValue.length()));
+                if (bufValue == null)
+                    {
+                    m_ltdLastErase = getSafeTimeMillis();
+                    }
                 }
             }
 
@@ -1183,6 +1198,12 @@ public class BerkeleyDBManager
                 // determine if it's time to update statistics
                 boolean fStatsRequired = f_cChecks.incrementAndGet() == STATS_CHECK_COUNT ||
                                          cbWritten >= STATS_CHECK_BYTES;
+
+                if (m_ltdLastErase != 0 && (getSafeTimeMillis() > m_ltdLastErase + 60000))
+                    {
+                    fCheckpointRequired = true;
+                    fCleanRequired = true;
+                    }
 
                 if (fCheckpointRequired || fCleanRequired || fCompressRequired || fStatsRequired)
                     {
@@ -1344,6 +1365,10 @@ public class BerkeleyDBManager
             protected void reset()
                 {
                 BerkeleyDBStore store = BerkeleyDBStore.this;
+                if (f_fCheckpoint && f_fClean)
+                    {
+                    store.m_ltdLastErase = 0;
+                    }
                 store.f_cChecks.set(0);
                 store.f_cbWritten.set(0L);
                 store.m_fMaintenanceScheduled = false;
@@ -1425,6 +1450,11 @@ public class BerkeleyDBManager
          * BerkeleyDB environment since statistics were last updated.
          */
         protected final AtomicLong f_cbWritten = new AtomicLong();
+
+        /**
+         * The last time a key was erased.
+         */
+        protected volatile long m_ltdLastErase;
         }
 
 
@@ -1465,7 +1495,7 @@ public class BerkeleyDBManager
 
     /**
      * True if BerkeleyDBStore instances should collect statistics about BDB
-     * performance and maintenance. This option is only recommended for for use
+     * performance and maintenance. This option is only recommended for use
      * as directed by Oracle Support. (Disabled by default)
      */
     protected static final boolean STATS_ENABLED =
@@ -1473,7 +1503,7 @@ public class BerkeleyDBManager
 
     /**
      * True if debug information should be displayed for BDB maintenance operations.
-     * This option is only recommended for for use as directed by Oracle Support.
+     * This option is only recommended for use as directed by Oracle Support.
      * (Disabled by default)
      */
     protected static final boolean MAINTENANCE_DEBUG_ENABLED =
