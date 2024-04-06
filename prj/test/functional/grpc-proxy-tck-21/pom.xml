@@ -11,19 +11,22 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.oracle.coherence.ce.tests</groupId>
+    <groupId>com.oracle.coherence.tests</groupId>
     <artifactId>coherence-functional-tests</artifactId>
     <version>${revision}</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>grpc-proxy-tck</artifactId>
-  <name>Coherence gRPC Proxy Tests (TCK)</name>
+  <artifactId>grpc-proxy-tck-java21</artifactId>
+  <name>Coherence gRPC Proxy Java 21+ Tests (TCK)</name>
 
   <properties>
-    <module.name>grpc.proxy.testing</module.name>
+    <module.name>grpc.proxy.java21.testing</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
     <test.server.classpath>${project.build.directory}/server</test.server.classpath>
+
+    <java.version>21</java.version>
+    <java.version.release>21</java.version.release>
   </properties>
 
   <dependencies>
@@ -33,6 +36,18 @@
       <version>${project.version}</version>
       <scope>provided</scope>
       <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-ai</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}.tests</groupId>
+      <artifactId>grpc-proxy-tck</artifactId>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>
@@ -73,60 +88,7 @@
   </dependencies>
 
   <build>
-    <extensions>
-      <extension>
-        <groupId>kr.motd.maven</groupId>
-        <artifactId>os-maven-plugin</artifactId>
-        <version>1.6.0</version>
-      </extension>
-    </extensions>
-
     <plugins>
-      <plugin>
-        <groupId>org.xolstice.maven.plugins</groupId>
-        <artifactId>protobuf-maven-plugin</artifactId>
-        <version>${maven.protobuf.plugin.version}</version>
-        <executions>
-          <execution>
-            <id>compile</id>
-            <goals>
-              <goal>compile</goal>
-              <goal>compile-custom</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
-          <pluginId>grpc-java</pluginId>
-          <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>com.google.code.maven-replacer-plugin</groupId>
-        <artifactId>maven-replacer-plugin</artifactId>
-        <version>1.4.1</version>
-        <executions>
-          <execution>
-            <id>filter-javax</id>
-            <phase>process-sources</phase>
-            <goals>
-              <goal>replace</goal>
-            </goals>
-            <configuration>
-              <file>target/generated-sources/protobuf/grpc-java/grpc/proxy/routeguide/RouteGuideGrpc.java</file>
-              <replacements>
-                <replacement>
-                  <token>javax.annotation</token>
-                  <value>jakarta.annotation</value>
-                </replacement>
-              </replacements>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-
       <plugin>
         <groupId>com.oracle.coherence.moditect</groupId>
         <artifactId>moditect-maven-plugin</artifactId>

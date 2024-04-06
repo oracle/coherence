@@ -5,4 +5,4 @@
 # https://oss.oracle.com/licenses/upl.
 #
 
-netty.grpc.proxy.TestVectorStoreServiceProviderImpl
+netty.grpc.proxy.java21.TestVectorStoreServiceProviderImpl

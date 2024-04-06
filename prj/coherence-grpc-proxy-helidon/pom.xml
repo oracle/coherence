@@ -22,6 +22,8 @@
   <properties>
     <module.name>com.oracle.coherence.grpc.proxy.helidon</module.name>
 
+    <java.version>21</java.version>
+    <java.version.release>21</java.version.release>
     <!--  this module should be published -->
     <maven.deploy.skip>false</maven.deploy.skip>
   </properties>

@@ -5,7 +5,7 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
-package grpc.proxy.ai;
+package grpc.proxy.java21;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
@@ -49,10 +49,10 @@ import com.tangosol.net.grpc.GrpcAcceptorController;
 
 import grpc.proxy.BaseGrpcIT;
 import grpc.proxy.TestStreamObserver;
-import grpc.proxy.TestVectorStoreServiceProvider;
 
 import io.grpc.stub.StreamObserver;
 
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,7 +114,7 @@ public class VectorServiceIT
 
         service.put(requestPut, observerPut);
 
-        assertThat(observerPut.await(1, TimeUnit.MINUTES), is(true));
+        MatcherAssert.assertThat(observerPut.await(1, TimeUnit.MINUTES), is(true));
         observerPut.assertComplete()
                 .assertNoErrors()
                 .assertValueCount(1);
@@ -124,7 +124,7 @@ public class VectorServiceIT
 
         service.get(requestGet, observerGet);
 
-        assertThat(observerGet.await(1, TimeUnit.MINUTES), is(true));
+        MatcherAssert.assertThat(observerGet.await(1, TimeUnit.MINUTES), is(true));
         observerGet.assertComplete()
                 .assertNoErrors()
                 .assertValueCount(1);
@@ -154,7 +154,7 @@ public class VectorServiceIT
 
         service.add(request, observer);
 
-        assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
+        MatcherAssert.assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
                 .assertNoErrors()
                 .assertValueCount(1);
@@ -185,7 +185,7 @@ public class VectorServiceIT
 
         service.add(request, observer);
 
-        assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
+        MatcherAssert.assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
                 .assertNoErrors()
                 .assertValueCount(1);
@@ -218,7 +218,7 @@ public class VectorServiceIT
         upload.onNext(createUploadVector(createRawVector(vector, key, null)));
         upload.onCompleted();
         
-        assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
+        MatcherAssert.assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
                 .assertNoErrors()
                 .assertValueCount(1);
@@ -250,7 +250,7 @@ public class VectorServiceIT
         upload.onNext(createUploadVector(createRawVector(vector, key, metadata)));
         upload.onCompleted();
 
-        assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
+        MatcherAssert.assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
                 .assertNoErrors()
                 .assertValueCount(1);
@@ -293,7 +293,7 @@ public class VectorServiceIT
 
         service.get(request, observer);
 
-        assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
+        MatcherAssert.assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
                 .assertNoErrors()
                 .assertValueCount(1);
@@ -341,7 +341,7 @@ public class VectorServiceIT
 
         service.get(request, observer);
 
-        assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
+        MatcherAssert.assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
                 .assertNoErrors()
                 .assertValueCount(1);

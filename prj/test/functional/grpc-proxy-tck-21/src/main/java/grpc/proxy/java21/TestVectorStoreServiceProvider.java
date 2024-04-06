@@ -5,7 +5,7 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
-package grpc.proxy;
+package grpc.proxy.java21;
 
 import com.oracle.coherence.ai.grpc.VectorStoreService;
 

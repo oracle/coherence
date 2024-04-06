@@ -5,13 +5,13 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
-package netty.grpc.proxy;
+package netty.grpc.proxy.java21;
 
 
 import com.oracle.coherence.ai.grpc.AsyncVectorStoreService;
 import com.oracle.coherence.ai.grpc.VectorStoreService;
 
-import grpc.proxy.TestVectorStoreServiceProvider;
+import grpc.proxy.java21.TestVectorStoreServiceProvider;
 
 public class TestVectorStoreServiceProviderImpl
         implements TestVectorStoreServiceProvider

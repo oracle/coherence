@@ -137,8 +137,10 @@
         <module>graal</module>
         <module>grpc</module>
         <module>grpc-proxy-tck</module>
+        <module>grpc-proxy-tck-21</module>
         <module>grpc-proxy-helidon</module>
         <module>grpc-proxy-netty</module>
+        <module>grpc-proxy-netty-21</module>
         <module>grpc-client-tck</module>
         <module>grpc-client-helidon</module>
         <module>grpc-client-netty</module>

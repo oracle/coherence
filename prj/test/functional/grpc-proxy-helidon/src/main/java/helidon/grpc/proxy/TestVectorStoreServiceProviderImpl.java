@@ -8,10 +8,10 @@
 package helidon.grpc.proxy;
 
 import com.oracle.coherence.ai.grpc.SyncVectorStoreService;
-
 import com.oracle.coherence.ai.grpc.VectorStoreService;
 
-import grpc.proxy.TestVectorStoreServiceProvider;
+import grpc.proxy.java21.TestVectorStoreServiceProvider;
+
 
 public class TestVectorStoreServiceProviderImpl
         implements TestVectorStoreServiceProvider
