@@ -49,9 +49,15 @@
     </dependency>
 
     <dependency>
-      <groupId>${coherence.group.id}.tests</groupId>
-      <artifactId>ai</artifactId>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-support</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -102,6 +108,22 @@
       <plugin>
         <groupId>com.oracle.coherence.moditect</groupId>
         <artifactId>moditect-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!--
+          Tests are run by other modules
+          grpc-proxy-helidon
+          grpc-proxy-netty
+           -->
+          <skip>true</skip>
+          <systemProperties>
+            <test.server.classpath>${test.server.classpath}</test.server.classpath>
+          </systemProperties>
+        </configuration>
       </plugin>
 
       <plugin>

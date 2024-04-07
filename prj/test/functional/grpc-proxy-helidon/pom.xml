@@ -48,7 +48,7 @@
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}.tests</groupId>
-      <artifactId>grpc-proxy-tck-java21</artifactId>
+      <artifactId>grpc-proxy-tck-21</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -71,7 +71,7 @@
         <configuration>
           <dependenciesToScan>
             <dependency>com.oracle.coherence.tests:grpc-proxy-tck</dependency>
-            <dependency>com.oracle.coherence.tests:grpc-proxy-tck-java21</dependency>
+            <dependency>com.oracle.coherence.tests:grpc-proxy-tck-21</dependency>
           </dependenciesToScan>
           <systemPropertyVariables>
             <test.server.classpath>${test.server.classpath},${project.build.directory}</test.server.classpath>

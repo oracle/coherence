@@ -50,6 +50,11 @@
       <artifactId>grpc-client-tck</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.oracle.coherence.ce.tests</groupId>
+      <artifactId>grpc-client-tck-21</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -85,6 +90,7 @@
           <skip>true</skip>
           <dependenciesToScan>
             <dependency>com.oracle.coherence.tests:grpc-client-tck</dependency>
+            <dependency>com.oracle.coherence.tests:grpc-client-tck-21</dependency>
           </dependenciesToScan>
           <systemPropertyVariables>
             <test.server.classpath>${test.server.classpath},${project.build.directory}</test.server.classpath>
@@ -116,7 +122,7 @@
     <profile>
       <id>stage8</id>
       <properties>
-        <skipTests>false</skipTests>
+        <skipTests>${is.not.java.21}</skipTests>
       </properties>
     </profile>
 

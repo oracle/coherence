@@ -5,7 +5,7 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
-package grpc.client.ai;
+package grpc.client.java21;
 
 import ai_tests.BaseVectorStoreIT;
 

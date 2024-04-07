@@ -17,7 +17,7 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>grpc-proxy-tck-java21</artifactId>
+  <artifactId>grpc-proxy-tck-21</artifactId>
   <name>Coherence gRPC Proxy Java 21+ Tests (TCK)</name>
 
   <properties>

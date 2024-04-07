@@ -17,14 +17,13 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>grpc-proxy-netty-21</artifactId>
-  <name>Coherence gRPC Proxy Java 21+ Tests (Netty)</name>
+  <artifactId>grpc-client-tck-21</artifactId>
+  <name>Coherence gRPC Java 21+ Client Tests (TCK)</name>
 
   <properties>
-    <module.name>netty.grpc.proxy.java21.testing</module.name>
+    <module.name>grpc.client.java21.testing</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
     <test.server.classpath>${project.build.directory}/server</test.server.classpath>
-    <is.not.java.21>false</is.not.java.21>
 
     <java.version>21</java.version>
     <java.version.release>21</java.version.release>
@@ -33,23 +32,34 @@
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence</artifactId>
+      <artifactId>coherence-java-client</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-grpc-proxy</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-json</artifactId>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>
       <groupId>${coherence.group.id}.tests</groupId>
-      <artifactId>grpc-proxy-netty</artifactId>
+      <artifactId>grpc-client-tck</artifactId>
       <version>${project.version}</version>
     </dependency>
+
     <dependency>
       <groupId>${coherence.group.id}.tests</groupId>
-      <artifactId>grpc-proxy-tck-21</artifactId>
+      <artifactId>ai</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -57,10 +67,47 @@
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.reactivex.rxjava3</groupId>
+      <artifactId>rxjava</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
+    <extensions>
+      <extension>
+        <groupId>kr.motd.maven</groupId>
+        <artifactId>os-maven-plugin</artifactId>
+        <version>1.6.0</version>
+      </extension>
+    </extensions>
+
     <plugins>
+      <plugin>
+        <groupId>org.xolstice.maven.plugins</groupId>
+        <artifactId>protobuf-maven-plugin</artifactId>
+        <version>${maven.protobuf.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>compile</id>
+            <goals>
+              <goal>compile</goal>
+              <goal>compile-custom</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
+          <pluginId>grpc-java</pluginId>
+          <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>com.oracle.coherence.moditect</groupId>
         <artifactId>moditect-maven-plugin</artifactId>
@@ -68,14 +115,33 @@
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!--
+          Tests are run by other modules
+          grpc-proxy-helidon
+          grpc-proxy-netty
+           -->
+          <skip>true</skip>
+          <systemProperties>
+            <test.server.classpath>${test.server.classpath}</test.server.classpath>
+          </systemProperties>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
-          <dependenciesToScan>
-            <dependency>com.oracle.coherence.tests:grpc-proxy-tck-21</dependency>
-          </dependenciesToScan>
-          <systemPropertyVariables>
-            <test.server.classpath>${test.server.classpath},${project.build.directory}</test.server.classpath>
-          </systemPropertyVariables>
+          <!--
+          Tests are run by other modules
+          grpc-client-helidon
+          grpc-client-netty
+           -->
+          <skip>true</skip>
+          <systemProperties>
+            <test.server.classpath>${test.server.classpath}</test.server.classpath>
+          </systemProperties>
         </configuration>
       </plugin>
 
@@ -91,31 +157,10 @@
             <phase>prepare-package</phase>
             <configuration>
               <outputDirectory>${test.server.classpath}</outputDirectory>
-              <excludeScope>provided</excludeScope>
             </configuration>
           </execution>
         </executions>
       </plugin>
     </plugins>
   </build>
-
-  <profiles>
-    <profile>
-      <id>stage8</id>
-      <properties>
-        <skipTests>${is.not.java.21}</skipTests>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>NotJava21</id>
-      <activation>
-        <jdk>(,20]</jdk>
-      </activation>
-      <properties>
-        <is.not.java.21>true</is.not.java.21>
-        <skipTests>true</skipTests>
-      </properties>
-    </profile>
-  </profiles>
 </project>
