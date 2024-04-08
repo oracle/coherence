@@ -14,10 +14,10 @@
 
     <xsd:annotation>
         <xsd:documentation>
-            Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+            Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
             Licensed under the Universal Permissive License v 1.0 as shown at
-            http://oss.oracle.com/licenses/upl.
+            https://oss.oracle.com/licenses/upl.
         </xsd:documentation>
     </xsd:annotation>
 
@@ -4024,7 +4024,7 @@
       <xsd:documentation>
         The page-size element specifies the desired page size, pages may
         exceed this size because elements are accepted into a page until
-        the the actual size >= the desired page size. For example, if the
+        the actual size >= the desired page size. For example, if the
         page size is 1MB and the page has a number of elements already added
         so that only 100 bytes remain. The next element offered will still be
         accepted even if it exceeds 100 bytes in size, causing the total page
