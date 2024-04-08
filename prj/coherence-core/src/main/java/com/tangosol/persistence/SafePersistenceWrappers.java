@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.persistence;
 
@@ -631,6 +631,21 @@ public class SafePersistenceWrappers
             try
                 {
                 getManager().release();
+                }
+            catch (Throwable t)
+                {
+                onException((T) t);
+                }
+            }
+
+        /**
+         * {@inheritDoc}
+         */
+        public void maintainEnvironment()
+            {
+            try
+                {
+                getManager().maintainEnvironment();
                 }
             catch (Throwable t)
                 {

@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>simple-persistent*</cache-name>
+      <scheme-name>simple-persistence</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>simple-persistence</scheme-name>
+      <service-name>DistributedCachePersistence</service-name>
+      <thread-count-min system-property="test.threads">1</thread-count-min>
+      <partition-count system-property="coherence.distributed.partitions">3</partition-count>
+      <backup-count system-property="test.backupcount">1</backup-count>
+      <backing-map-scheme>
+          <transient>{transient false}</transient>
+          <local-scheme/>
+      </backing-map-scheme>
+      <persistence>
+          <environment system-property="test.persistent-environment">simple-bdb-environment</environment>
+      </persistence>
+      <partitioned-quorum-policy-scheme>
+          <class-name>persistence.AbstractSimplePersistenceTests$QuorumPolicy</class-name>
+      </partitioned-quorum-policy-scheme>
+      <autostart>true</autostart>
+      <async-backup system-property="test.asyncbackup">false</async-backup>
+  </distributed-scheme>
+
+    <invocation-scheme>
+      <scheme-name>InvocationService</scheme-name>
+      <service-name>InvocationService</service-name>
+      <thread-count>5</thread-count>
+      <guardian-timeout>500000</guardian-timeout>
+      <autostart>true</autostart>
+    </invocation-scheme>
+  </caching-schemes>
+</cache-config>
