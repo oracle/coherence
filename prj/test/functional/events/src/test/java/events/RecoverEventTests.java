@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package events;
 
@@ -307,13 +307,14 @@ public class RecoverEventTests
             {
             Eventually.assertThat(invoking(proxy).isMBeanRegistered(sPersistenceMBean), is(true));
             }
-        catch (RuntimeException e)
+        catch (AssertionError | RuntimeException e)
             {
             CacheFactory.log("Could not find MBean (" + sPersistenceMBean + "); following has been registered:\n" +
                     proxy.queryNames("type=Persistence,*", null), CacheFactory.LOG_INFO);
 
             String sOut = HeapDump.dumpHeap();
             CacheFactory.log("Dumping heap for analysis here :\n" + sOut, CacheFactory.LOG_INFO);
+            throw e;
             }
         }
 
