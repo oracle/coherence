@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,8 +10,6 @@ package com.tangosol.util.extractor;
 import com.oracle.coherence.common.internal.util.CanonicalNames;
 
 import com.tangosol.internal.util.extractor.TargetReflectionDescriptor;
-
-import com.tangosol.internal.util.invoke.Lambdas;
 
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.pof.PofReader;
@@ -413,12 +411,20 @@ public class UniversalExtractor<T, E>
         // check for javabean accessors
         if (fProperty)
             {
-            String sBeanAttribute = Character.toUpperCase(sCName.charAt(0)) + sCName.substring(1);
+            // lookup method/property with the exact name first
+            // this will work for Java records, or any other class that may choose to use the same property naming conventions
+            method = ClassHelper.findMethod(clzTarget, sCName, clzParam, false);
 
-            for (int cchPrefix = 0; cchPrefix < BEAN_ACCESSOR_PREFIXES.length && method == null; cchPrefix++)
+            if (method == null)
                 {
-                method = ClassHelper.findMethod(clzTarget,
-                        BEAN_ACCESSOR_PREFIXES[cchPrefix] + sBeanAttribute, clzParam, false);
+                // didn't find matching method; let's try JavaBean naming conventions next
+                String sBeanAttribute = Character.toUpperCase(sCName.charAt(0)) + sCName.substring(1);
+
+                for (int cchPrefix = 0; cchPrefix < BEAN_ACCESSOR_PREFIXES.length && method == null; cchPrefix++)
+                    {
+                    method = ClassHelper.findMethod(clzTarget,
+                                                    BEAN_ACCESSOR_PREFIXES[cchPrefix] + sBeanAttribute, clzParam, false);
+                    }
                 }
             }
         else

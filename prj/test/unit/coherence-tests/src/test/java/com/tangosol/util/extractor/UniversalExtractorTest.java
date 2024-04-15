@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.extractor;
@@ -21,6 +21,7 @@ import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryWriteBuffer;
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.WrapperException;
 
 import data.extractor.InvokeTestClass;
@@ -336,6 +337,22 @@ public class UniversalExtractorTest
         }
 
     @Test
+    public void testJavaRecord()
+        {
+        record TestRecord(String foo, int bar) {}
+
+        TestRecord rec = new TestRecord("foo", 42);
+
+        UniversalExtractor<Object, Object> ex = new UniversalExtractor<>("foo");
+        assertEquals("foo", ex.extract(rec));
+        assertEquals("foo", ex.getCanonicalName());
+
+        ex = new UniversalExtractor<>("bar");
+        assertEquals(42, ex.extract(rec));
+        assertEquals("bar", ex.getCanonicalName());
+        }
+
+    @Test
     public void testJavaBean()
         {
         TestJavaBean bean = new TestJavaBean();
@@ -367,6 +384,11 @@ public class UniversalExtractorTest
         UniversalExtractor extractor4 = new UniversalExtractor("boo()");
         assertEquals("boo", extractor4.extract(bean));
         assertEquals("boo()", extractor4.getCanonicalName());
+
+        // direct access to non JavaBean property (Java records convention)
+        UniversalExtractor extractor5 = new UniversalExtractor("boo");
+        assertEquals("boo", extractor5.extract(bean));
+        assertEquals("boo", extractor5.getCanonicalName());
         }
 
     class ReflectionExtractorWithStatistics<T, E> extends UniversalExtractor<T,E>
