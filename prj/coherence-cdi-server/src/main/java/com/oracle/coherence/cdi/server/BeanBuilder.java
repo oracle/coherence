@@ -1,18 +1,18 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.cdi.server;
 
 import com.tangosol.coherence.config.ParameterList;
+import com.tangosol.coherence.config.ParameterMacroExpression;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 
 import com.tangosol.config.ConfigurationException;
 
 import com.tangosol.config.expression.Expression;
-import com.tangosol.config.expression.LiteralExpression;
 import com.tangosol.config.expression.ParameterResolver;
 
 import javax.enterprise.inject.Instance;
@@ -42,7 +42,7 @@ public class BeanBuilder
     BeanBuilder(CDI<Object> cdi, String exprBeanName)
         {
         f_cdi          = Objects.requireNonNull(cdi);
-        f_exprBeanName = new LiteralExpression<>(exprBeanName);
+        f_exprBeanName = new ParameterMacroExpression<>(exprBeanName, String.class);
         }
 
     // ---- ParameterizedBuilder interface ----------------------------------

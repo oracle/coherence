@@ -1,15 +1,19 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.cdi.server;
 
 import com.oracle.coherence.inject.Injectable;
 
+import com.tangosol.coherence.config.ResolvableParameterList;
+import com.tangosol.config.expression.Parameter;
+
 import javax.enterprise.inject.Instance;
+import javax.enterprise.inject.literal.NamedLiteral;
 import javax.enterprise.inject.spi.CDI;
 
 import com.tangosol.config.ConfigurationException;
@@ -53,6 +57,27 @@ class BeanBuilderTest
 
         BeanBuilder builder = new BeanBuilder(cdi, "beanX");
         Object      result  = builder.realize(new SystemPropertyParameterResolver(), null, null);
+        assertThat(result, notNullValue());
+        assertThat(result, is(sameInstance(bean)));
+        }
+
+    @Test
+    void testRealizeMacroExpressionSuccess()
+        {
+        Object           bean     = new BeanX();
+        CDI<Object>      cdi      = mock(CDI.class);
+        Instance<Object> instance = mock(Instance.class);
+
+        when(cdi.select(NamedLiteral.of("fooStore"))).thenReturn(instance);
+        when(instance.isResolvable()).thenReturn(true);
+        when(instance.get()).thenReturn(bean);
+
+        ResolvableParameterList resolver = new ResolvableParameterList();
+
+        resolver.add(new Parameter("cache-name", "foo"));
+
+        BeanBuilder builder = new BeanBuilder(cdi, "{cache-name}Store");
+        Object      result  = builder.realize(resolver, null, null);
         assertThat(result, notNullValue());
         assertThat(result, is(sameInstance(bean)));
         }
