@@ -15,8 +15,8 @@ import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
-
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
+
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.DisplayName;
@@ -41,7 +41,6 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.DistributedCacheService;
-import com.tangosol.net.InetAddressHelper;
 import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.Service;
 import com.tangosol.net.Session;
@@ -58,7 +57,6 @@ import com.tangosol.util.TaskDaemon;
 
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -71,7 +69,6 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -93,16 +90,14 @@ public class TopicsRecoveryTests
     @BeforeClass
     public static void setup() throws Exception
         {
-        String sOS = System.getProperty("os.name", "unknown");
-        Assume.assumeFalse("Skipping test on Windows", sOS.toLowerCase().contains("windows"));
+        String sAddress = LocalPlatform.get().getLoopbackAddress().getHostAddress();
 
-        InetAddress localHost = InetAddressHelper.getLocalHost();
         System.setProperty(Logging.PROPERTY_LEVEL, "8");
         System.setProperty(CacheConfig.PROPERTY, CACHE_CONFIG);
         System.setProperty(LocalStorage.PROPERTY, "false");
-        System.setProperty("coherence.wka", localHost.getHostAddress());
-        System.setProperty("coherence.localhost", localHost.getHostAddress());
-        System.setProperty("test.unicast.address", localHost.getHostAddress());
+        System.setProperty("coherence.wka", sAddress);
+        System.setProperty("coherence.localhost", sAddress);
+        System.setProperty("test.unicast.address", sAddress);
         System.setProperty("test.unicast.port", "0");
         System.setProperty("coherence.ttl", "0");
         }
@@ -116,9 +111,9 @@ public class TopicsRecoveryTests
     @Before
     public void setupTest() throws Exception
         {
-        m_clusterPort.incrementAndGet();
+        m_nClusterPort = LocalPlatform.get().getAvailablePorts().next();
 
-        System.setProperty("test.multicast.port", String.valueOf(m_clusterPort.get()));
+        System.setProperty("test.multicast.port", String.valueOf(m_nClusterPort));
         m_sClusterName = "TopicsRecoveryTests-" + m_cCluster.getAndIncrement();
         System.setProperty("coherence.cluster", m_sClusterName);
 
@@ -160,8 +155,8 @@ public class TopicsRecoveryTests
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
                     ClusterName.of(m_sClusterName),
                     WellKnownAddress.loopback(),
-                    LocalHost.only(),
-                    SystemProperty.of("test.multicast.port", m_clusterPort.get()),
+                    LocalHost.loopback(),
+                    SystemProperty.of("test.multicast.port", m_nClusterPort),
                     LocalStorage.enabled(),
                     CacheConfig.of(CACHE_CONFIG),
                     IPv4Preferred.autoDetect(),
@@ -231,9 +226,9 @@ public class TopicsRecoveryTests
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
                     ClusterName.of(m_sClusterName),
                     WellKnownAddress.loopback(),
-                    LocalHost.only(),
+                    LocalHost.loopback(),
                     LocalStorage.enabled(),
-                    SystemProperty.of("test.multicast.port", m_clusterPort.get()),
+                    SystemProperty.of("test.multicast.port", m_nClusterPort),
                     CacheConfig.of(CACHE_CONFIG),
                     IPv4Preferred.autoDetect(),
                     s_testLogs.builder(),
@@ -320,9 +315,9 @@ public class TopicsRecoveryTests
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
                     ClusterName.of(m_sClusterName),
                     WellKnownAddress.loopback(),
-                    LocalHost.only(),
+                    LocalHost.loopback(),
                     LocalStorage.enabled(),
-                    SystemProperty.of("test.multicast.port", m_clusterPort.get()),
+                    SystemProperty.of("test.multicast.port", m_nClusterPort),
                     CacheConfig.of(CACHE_CONFIG),
                     IPv4Preferred.autoDetect(),
                     s_testLogs.builder(),
@@ -410,8 +405,8 @@ public class TopicsRecoveryTests
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
                     ClusterName.of(m_sClusterName),
                     WellKnownAddress.loopback(),
-                    LocalHost.only(),
-                    SystemProperty.of("test.multicast.port", m_clusterPort.get()),
+                    LocalHost.loopback(),
+                    SystemProperty.of("test.multicast.port", m_nClusterPort),
                     LocalStorage.enabled(),
                     CacheConfig.of(CACHE_CONFIG),
                     s_testLogs.builder(),
@@ -493,9 +488,9 @@ public class TopicsRecoveryTests
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
                     ClusterName.of(m_sClusterName),
                     WellKnownAddress.loopback(),
-                    LocalHost.only(),
+                    LocalHost.loopback(),
                     LocalStorage.enabled(),
-                    SystemProperty.of("test.multicast.port", m_clusterPort.get()),
+                    SystemProperty.of("test.multicast.port", m_nClusterPort),
                     CacheConfig.of(CACHE_CONFIG),
                     LaunchLogging.disabled(),
                     s_testLogs.builder(),
@@ -548,9 +543,9 @@ public class TopicsRecoveryTests
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
                         ClusterName.of(m_sClusterName),
                         WellKnownAddress.loopback(),
-                        LocalHost.only(),
+                        LocalHost.loopback(),
                         LocalStorage.enabled(),
-                        SystemProperty.of("test.multicast.port", m_clusterPort.get()),
+                        SystemProperty.of("test.multicast.port", m_nClusterPort),
                         CacheConfig.of(CACHE_CONFIG),
                         LaunchLogging.disabled(),
                         s_testLogs.builder(),
@@ -916,7 +911,7 @@ public class TopicsRecoveryTests
 
     private final AtomicInteger m_cCluster = new AtomicInteger();
 
-    public static final AtomicInteger m_clusterPort = new AtomicInteger(7574);
+    public static int m_nClusterPort;
 
     private String m_sClusterName;
     }
