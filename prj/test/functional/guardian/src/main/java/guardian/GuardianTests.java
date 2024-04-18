@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -497,9 +497,9 @@ public class GuardianTests
                 }
 
             assertNotNull(policy);
-            assertEquals(1, policy.m_cRecover);
-            assertEquals(1, policy.m_cTerminate);
-            assertEquals(1, policy.m_cServiceFailed);
+            Eventually.assertThat(invoking(policy).getRecoverCount(), is(1));
+            Eventually.assertThat(invoking(policy).getTerminateCount(), is(1));
+            Eventually.assertThat(invoking(policy).getServiceFailedCount(), is(1));
             assertFalse("Service was not terminated", service.isRunning());
             }
         finally
@@ -850,6 +850,23 @@ public class GuardianTests
         public void onServiceFailed(Cluster cluster)
             {
             ++m_cServiceFailed;
+            }
+
+        // ----- accessors ------------------------------------------------
+
+        public int getRecoverCount()
+            {
+            return m_cRecover;
+            }
+
+        public int getTerminateCount()
+            {
+            return m_cTerminate;
+            }
+
+        public int getServiceFailedCount()
+            {
+            return m_cServiceFailed;
             }
 
         // ----- constants and data members ------------------------------
