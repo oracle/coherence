@@ -233,7 +233,7 @@ public abstract class BaseNamedCacheServiceImpl
 
             ConfigurableCacheFactory   ccf   = getCCF(request.getScope());
             NamedCache<Binary, Binary> cache = ccf.ensureCache(sCacheName, null);
-            cache.destroy();
+            ccf.destroyCache(cache);
             handleUnary(Empty.getDefaultInstance(), null, safeObserver);
             }
         catch (Throwable t)
