@@ -7,6 +7,7 @@
 package com.tangosol.io.pof.schema.handler;
 
 import com.oracle.coherence.common.base.Formatting;
+
 import com.oracle.coherence.common.schema.AbstractPropertyHandler;
 import com.oracle.coherence.common.schema.AbstractTypeHandler;
 import com.oracle.coherence.common.schema.ExtensibleProperty;
@@ -36,14 +37,13 @@ import com.tangosol.io.pof.schema.annotation.PortableSet;
 import com.tangosol.io.pof.schema.annotation.PortableType;
 
 import java.nio.charset.StandardCharsets;
-import org.objectweb.asm.Opcodes;
+
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 
 import static com.oracle.coherence.common.schema.util.AsmUtils.getAnnotationAttribute;
-
 
 /**
  * Reads {@link PofType} metadata from a class file.

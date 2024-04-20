@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,8 +7,6 @@
 
 package com.tangosol.io;
 
-
-import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryWriteBuffer;
 import com.tangosol.util.ByteSequence;
@@ -31,7 +29,6 @@ import static com.oracle.coherence.common.base.Exceptions.ensureRuntimeException
 * @author cp  2006.04.17
 */
 public abstract class AbstractReadBuffer
-        //extends Base
         implements ReadBuffer, HashEncoded
     {
     /**

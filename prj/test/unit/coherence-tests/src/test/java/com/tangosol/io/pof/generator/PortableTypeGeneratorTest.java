@@ -123,9 +123,6 @@ public class PortableTypeGeneratorTest
         Binary    binObj   = ExternalizableHelper.toBinary(expected, ctx);
         DateTypes actual   = ExternalizableHelper.fromBinary(binObj, ctx);
 
-        System.out.println("Expected: " + expected);
-        System.out.println("Actual:   " + actual);
-
         assertEquals(expected, actual);
         assertDateEquals(expected.getDate(), actual.getDate());
         assertTimeEquals(expected.getTime(), actual.getTime());
