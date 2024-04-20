@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import java.util.function.IntFunction;
@@ -4118,10 +4119,23 @@ public class PofBufferReader
                 throws IOException
             {
             UserTypeReader reader;
-            if (advanceTo(iProp))
+            PropertyInfo prop = m_propertyMap == null ? null : m_propertyMap.get(iProp);
+            if (prop != null)
                 {
-                reader = new PofBufferReader.UserTypeReader(this, m_in,
-                        getPofContext());
+                // ensure that the existing nested stream is closed before creating one for a skipped property
+                closeNested();
+
+                // create new buffer to read skipped property from
+                ReadBuffer.BufferInput in = m_in.getBuffer().getReadBuffer(prop.offset(), prop.length()).getBufferInput();
+
+                reader = new PofBufferReader.UserTypeReader(this, in, getPofContext());
+                
+                // note: there is no complete() call at this point, since the
+                //       property has yet to be read
+                }
+            else if (advanceTo(iProp))
+                {
+                reader = new PofBufferReader.UserTypeReader(this, m_in, getPofContext());
 
                 // note: there is no complete() call at this point, since the
                 //       property has yet to be read
@@ -4132,8 +4146,7 @@ public class PofBufferReader
                 complete(iProp);
 
                 // return a "fake" reader that contains no data
-                reader = new PofBufferReader.UserTypeReader(this, m_in,
-                        getPofContext(), getUserTypeId());
+                reader = new PofBufferReader.UserTypeReader(this, m_in, getPofContext(), iProp);
                 }
 
             m_readerNested = reader;
@@ -4257,12 +4270,18 @@ public class PofBufferReader
 
             ReadBuffer.BufferInput in = m_in;
             int ofNextProp = m_ofNextProp;
-            while (iNextProp != EOPS && iNextProp < iProp)
+            while (iNextProp < iProp)
                 {
+                int ofCurrentProp = in.getOffset();
+                int iCurrentProp  = iNextProp;
+
                 skipValue(in);
 
                 ofNextProp = in.getOffset();
                 iNextProp  = in.readPackedInt();
+
+                ensurePropertyMap().put(iCurrentProp, new PropertyInfo(ofCurrentProp, in.getOffset() - ofCurrentProp));
+
                 if (iNextProp < 0)
                     {
                     iNextProp = EOPS;
@@ -4330,6 +4349,23 @@ public class PofBufferReader
             return m_parent;
             }
 
+        /**
+         * Lazily creates a map of skipped properties, if necessary.
+         *
+         * @return a map of skipped properties
+         */
+        private Map<Integer, PropertyInfo> ensurePropertyMap()
+            {
+            Map<Integer, PropertyInfo> map = m_propertyMap;
+            if (map == null)
+                {
+                map = m_propertyMap = new LinkedHashMap<>();
+                }
+            return map;
+            }
+
+        private record PropertyInfo(int offset, int length) {}
+
         // ----- constants ----------------------------------------------
 
         /**
@@ -4381,6 +4417,11 @@ public class PofBufferReader
         * nested reader is reading from.
         */
         private int m_iNestedProp;
+
+        /**
+         * Map of property indexes to their offset and length.
+         */
+        private Map<Integer, PropertyInfo> m_propertyMap;
         }
 
 

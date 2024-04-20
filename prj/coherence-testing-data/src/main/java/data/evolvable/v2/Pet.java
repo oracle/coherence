@@ -1,17 +1,16 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package data.evolvable.v2;
 
 import com.tangosol.io.Evolvable;
+import com.tangosol.io.SimpleEvolvable;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
-import com.tangosol.io.SimpleEvolvable;
-
 import com.tangosol.io.pof.schema.annotation.PortableType;
 
 import java.io.IOException;
@@ -20,31 +19,38 @@ import java.io.IOException;
 public class Pet
         extends Animal
     {
-    private Evolvable evolvable = new SimpleEvolvable(2);
+    private final transient Evolvable evolvable = new SimpleEvolvable(2);
 
-    protected String name;
+    protected final String name;
 
     protected int age;
-
-    public Pet()
-        {
-        }
 
     public Pet(String species, String name, int age)
         {
         super(species);
+
         this.name = name;
-        this.age = age;
+        this.age  = age;
+        }
+
+    public Pet(PofReader reader) throws IOException
+        {
+        super(reader);
+
+        PofReader in = reader.createNestedPofReader(1) ;
+
+        PofReader v1 = in.version(1);
+        name = v1.readString(0);
+
+        PofReader v2 = in.version(2);
+        age  = v2.readInt(1);
+
+        readEvolvable(in);
         }
 
     public String getName()
         {
         return name;
-        }
-
-    public void setName(String name)
-        {
-        this.name = name;
         }
 
     public int getAge()
@@ -55,24 +61,6 @@ public class Pet
     public void setAge(int age)
         {
         this.age = age;
-        }
-
-    @Override
-    public void readExternal(PofReader in)
-            throws IOException
-        {
-        if (in.getUserTypeId() == 1)
-            {
-            name = in.readString(0);
-            if (in.getVersionId() > 1)
-                {
-                age = in.readInt(1);
-                }
-            }
-        else
-            {
-            super.readExternal(in);
-            }
         }
 
     @Override

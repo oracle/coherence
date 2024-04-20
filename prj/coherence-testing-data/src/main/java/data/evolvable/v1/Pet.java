@@ -1,19 +1,18 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package data.evolvable.v1;
 
 import com.tangosol.io.Evolvable;
+import com.tangosol.io.SimpleEvolvable;
 
 import com.tangosol.io.pof.EvolvableHolder;
 import com.tangosol.io.pof.EvolvableObject;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
-import com.tangosol.io.pof.PortableObject;
-import com.tangosol.io.SimpleEvolvable;
 
 import com.tangosol.io.pof.schema.annotation.PortableType;
 
@@ -21,40 +20,31 @@ import java.io.IOException;
 
 @PortableType(id = 1, version = 1)
 public class Pet
-        implements PortableObject, EvolvableObject
+        implements EvolvableObject
     {
-    private Evolvable evolvable = new SimpleEvolvable(1);
-    private EvolvableHolder m_evolvableHolder = new EvolvableHolder();
+    private final transient Evolvable evolvable = new SimpleEvolvable(1);
+    private final transient EvolvableHolder m_evolvableHolder = new EvolvableHolder();
 
-    protected String name;
-
-    public Pet()
-        {
-        }
+    protected final String name;
 
     public Pet(String name)
         {
         this.name = name;
         }
 
+    public Pet(PofReader reader) throws IOException
+        {
+        PofReader in = reader.createNestedPofReader(1);
+
+        PofReader v1 = in.version(1);
+        name = v1.readString(0);
+
+        readEvolvable(in);
+        }
+
     public String getName()
         {
         return name;
-        }
-
-    public void setName(String name)
-        {
-        this.name = name;
-        }
-
-    @Override
-    public void readExternal(PofReader in)
-            throws IOException
-        {
-        if (in.getUserTypeId() == 1)
-            {
-            name = in.readString(0);
-            }
         }
 
     @Override

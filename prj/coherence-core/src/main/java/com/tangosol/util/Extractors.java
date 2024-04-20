@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
 
-import com.tangosol.internal.util.invoke.Lambdas;
 import com.tangosol.io.pof.generator.PortableTypeGenerator;
 
 import com.tangosol.io.pof.reflect.PofNavigator;
@@ -299,9 +298,9 @@ public class Extractors
      * @throws  IllegalArgumentException  if the specified class isn't a portable
      *          type, or the specified property path doesn't exist
      */
-    public static <T, E> ValueExtractor<T, E> fromPof(Class<E> cls, String sPath)
+    public static <T, E> ValueExtractor<T, E> fromPof(Class<T> clsFrom, String sPath)
         {
-        return fromPof(cls, PofReflectionHelper.getPofNavigator(cls, sPath));
+        return fromPof(null, PofReflectionHelper.getPofNavigator(clsFrom, sPath));
         }
 
     /**

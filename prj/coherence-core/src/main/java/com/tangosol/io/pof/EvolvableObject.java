@@ -1,12 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io.pof;
 
 import com.tangosol.io.Evolvable;
+
+import java.io.IOException;
 
 /**
  * Defines an interface that should be implemented by the classes that want to
@@ -16,6 +18,7 @@ import com.tangosol.io.Evolvable;
  * @since  12.2.1
  */
 public interface EvolvableObject
+        extends PortableObject
     {
     /**
      * Return {@link Evolvable} object for the specified type id.
@@ -57,4 +60,26 @@ public interface EvolvableObject
      * @return  EvolvableHolder instance
      */
     EvolvableHolder getEvolvableHolder();
+
+    /**
+     * Reads data version and the remainder from the specified {@link PofReader},
+     * and updates this object's {@link Evolvable}.
+     *
+     * @param in  the reader to read the data version and remainder from
+     *
+     * @throws IOException  if an I/O error occurs
+     */
+    default void readEvolvable(PofReader in)
+                throws IOException
+        {
+        Evolvable e = getEvolvable(in.getUserTypeId());
+        e.setDataVersion(in.getVersionId());
+        e.setFutureData(in.readRemainder());
+        }
+
+    @Override
+    default void readExternal(PofReader in) throws IOException
+        {
+        throw new UnsupportedOperationException();
+        }
     }

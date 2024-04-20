@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,7 +14,7 @@ import com.tangosol.io.pof.schema.annotation.PortableType;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.LongArray;
-import com.tangosol.util.SimpleLongArray;
+import com.tangosol.util.SparseArray;
 
 import jakarta.inject.Named;
 
@@ -339,14 +339,14 @@ public class SimplePofContext
         // add type identifier-to-class mapping
         if (laClass == null)
             {
-            m_laClass = laClass = new SimpleLongArray();
+            m_laClass = laClass = new SparseArray();
             }
         laClass.set(nTypeId, clz);
 
         // add type identifier-to-serializer mapping
         if (laSerializer == null)
             {
-            m_laSerializer = laSerializer = new SimpleLongArray();
+            m_laSerializer = laSerializer = new SparseArray();
             }
         laSerializer.set(nTypeId, serializer);
         }

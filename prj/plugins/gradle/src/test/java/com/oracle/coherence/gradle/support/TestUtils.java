@@ -214,7 +214,7 @@ public class TestUtils
 
         assertThat(String.format("Class '%s' should have 2 annotations,", pofClass.getName()), annotations.length, is(2));
         assertThat(pofClass.getAnnotation(Instrumented.class), is(notNullValue()));
-        assertThat(pofClass.getInterfaces().length, is(2));
+        assertThat(pofClass.getInterfaces().length, is(1));
         }
 
     // ----- constants ------------------------------------------------------

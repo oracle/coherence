@@ -7,19 +7,30 @@
 package com.tangosol.io.pof.generator;
 
 import com.oracle.coherence.common.schema.Schema;
+
 import com.tangosol.io.pof.EnumPofSerializer;
 import com.tangosol.io.pof.EvolvableObject;
 import com.tangosol.io.pof.PortableObject;
 import com.tangosol.io.pof.PortableTypeSerializer;
 import com.tangosol.io.pof.SimplePofContext;
+
+import com.tangosol.io.pof.generator.data.Simple;
 import com.tangosol.io.pof.generator.data.TestClassWithNoId;
+
 import com.tangosol.io.pof.reflect.PofValue;
 import com.tangosol.io.pof.reflect.PofValueParser;
 
+import com.tangosol.io.pof.schema.annotation.PortableType;
 import com.tangosol.io.pof.schema.annotation.internal.Instrumented;
+
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
+import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ExternalizableHelper;
+
+import com.tangosol.util.Extractors;
+import com.tangosol.util.extractor.PofExtractor;
+import com.tangosol.util.extractor.PofExtractorTest;
 import data.evolvable.Color;
 import data.evolvable.DateTypes;
 
@@ -35,18 +46,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import com.tangosol.io.pof.generator.data.FinalFieldValue;
-import com.tangosol.io.pof.generator.data.Simple;
 import org.hamcrest.MatcherAssert;
 import org.junit.Before;
 import org.junit.Test;
 
 import static com.tangosol.io.pof.reflect.PofReflectionHelper.getPofNavigator;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 
 /**
@@ -80,7 +89,7 @@ public class PortableTypeGeneratorTest
         ctx.registerUserType(200, terrier, new PortableTypeSerializer(200, terrier));
         ctx.registerUserType(3, loader.loadClass("data.evolvable.v3.Animal"),
                              new PortableTypeSerializer(3, loader.loadClass("data.evolvable.v3.Animal")));
-        ctx.registerUserType(5, Color.class, new EnumPofSerializer());
+        ctx.registerUserType(5, Color.class, new EnumPofSerializer<>());
         ctx.registerUserType(1000, allTypes, new PortableTypeSerializer(1000, allTypes));
         }
 
@@ -91,7 +100,7 @@ public class PortableTypeGeneratorTest
         SimplePofContext pofContext = new SimplePofContext();
 
         pofContext.registerUserType(2, clzDogV4, new PortableTypeSerializer(2, clzDogV4));
-        pofContext.registerUserType(5, Color.class, new EnumPofSerializer());
+        pofContext.registerUserType(5, Color.class, new EnumPofSerializer<>());
         pofContext.registerUserType(1, loader.loadClass("data.evolvable.v3.Pet"),
                              new PortableTypeSerializer(1, loader.loadClass("data.evolvable.v3.Pet")));
         pofContext.registerUserType(3, loader.loadClass("data.evolvable.v3.Animal"),
@@ -140,23 +149,28 @@ public class PortableTypeGeneratorTest
                 .navigate(pofDog).getValue());
         }
 
-//    @Test
-//    public void testPofExtractor()
-//    throws Exception
-//        {
-//        Object      dog      = dogCtor.newInstance("Nadia", 10, "Boxer", Color.BRINDLE);
-//        Binary      binDog   = ExternalizableHelper.toBinary(dog, ctx);
-//        BinaryEntry binEntry = new TestBinaryEntry(null, binDog, ctx);
-//
-//        assertEquals("Nadia", getPofExtractor(dog.getClass(), "name")
-//                .extractFromEntry(binEntry));
-//        assertEquals("Boxer", getPofExtractor(dog.getClass(), "breed")
-//                .extractFromEntry(binEntry));
-//        assertEquals(10, getPofExtractor(dog.getClass(), "age")
-//                .extractFromEntry(binEntry));
-//        assertEquals(Color.BRINDLE, getPofExtractor(dog.getClass(), "color")
-//                .extractFromEntry(binEntry));
-//        }
+    @Test
+    public void testPofExtractor()
+    throws Exception
+        {
+        Object      dog      = dogCtor.newInstance("Nadia", 10, "Boxer", Color.BRINDLE);
+        Binary      binDog   = ExternalizableHelper.toBinary(dog, ctx);
+        BinaryEntry binEntry = new PofExtractorTest.TestBinaryEntry(null, binDog, ctx);
+
+        assertEquals("Nadia", getPofExtractor(dog.getClass(), "name")
+                .extractFromEntry(binEntry));
+        assertEquals("Boxer", getPofExtractor(dog.getClass(), "breed")
+                .extractFromEntry(binEntry));
+        assertEquals(10, getPofExtractor(dog.getClass(), "age")
+                .extractFromEntry(binEntry));
+        assertEquals(Color.BRINDLE, getPofExtractor(dog.getClass(), "color")
+                .extractFromEntry(binEntry));
+        }
+
+    private <T> PofExtractor<T, ?> getPofExtractor(Class<? extends T> aClass, String sPropertyName)
+        {
+        return (PofExtractor<T, ?>) Extractors.fromPof(aClass, sPropertyName);
+        }
 
     @Test
     public void testEmptySubClass() throws Exception
@@ -245,14 +259,15 @@ public class PortableTypeGeneratorTest
 
         ByteArrayClassLoader loader = new ByteArrayClassLoader(Collections.singletonMap(sClassName, instrumented));
         Class<?> instrumentedClass = loader.findClass(TestClassWithNoId.class.getName());
+        int nTypeId = instrumentedClass.getAnnotation(PortableType.class).id();
 
-        ctx.registerUserType(1, instrumentedClass, new PortableTypeSerializer(1, instrumentedClass));
+        ctx.registerUserType(nTypeId, instrumentedClass, new PortableTypeSerializer(nTypeId, instrumentedClass));
 
         Object testClass = instrumentedClass.getDeclaredConstructor(String.class).newInstance("value");
 
         Binary            binTestClass  = ExternalizableHelper.toBinary(testClass, ctx);
         Object            result        = ExternalizableHelper.fromBinary(binTestClass, ctx);
-        MatcherAssert.assertThat(result.equals(testClass), is(true));
+        MatcherAssert.assertThat(result, is(equalTo(testClass)));
         }
 
     @Test
@@ -271,13 +286,14 @@ public class PortableTypeGeneratorTest
 
         ByteArrayClassLoader loader = new ByteArrayClassLoader(Collections.singletonMap(sClassName, instrumented));
         Class<?> instrumentedClass = loader.findClass(sClassName);
+        int nTypeId = instrumentedClass.getAnnotation(PortableType.class).id();
 
-        ctx.registerUserType(1, instrumentedClass, new PortableTypeSerializer(1, instrumentedClass));
+        ctx.registerUserType(nTypeId, instrumentedClass, new PortableTypeSerializer(nTypeId, instrumentedClass));
 
         Object testClass = instrumentedClass.getDeclaredConstructor(String.class, Integer.TYPE).newInstance("name", 10);
         Binary            binTestClass  = ExternalizableHelper.toBinary(testClass, ctx);
         Object            result        = ExternalizableHelper.fromBinary(binTestClass, ctx);
-        MatcherAssert.assertThat(result.equals(testClass), is(true));
+        MatcherAssert.assertThat(result, is(equalTo(testClass)));
         }
 
     @Test
@@ -299,27 +315,6 @@ public class PortableTypeGeneratorTest
         MatcherAssert.assertThat(instrumentedClass.isAnnotationPresent(Instrumented.class), is(true));
         MatcherAssert.assertThat(PortableObject.class.isAssignableFrom(instrumentedClass), is(true));
         MatcherAssert.assertThat(EvolvableObject.class.isAssignableFrom(instrumentedClass), is(true));
-        }
-
-    @Test
-    public void shouldThrowErrorForFinalField() throws Exception
-        {
-        String         sClassName   = FinalFieldValue.class.getName();
-        URL            url          = getClass().getResource("/" + sClassName.replaceAll("\\.", "/") + ".class");
-        File           fileClass    = new File(url.toURI());
-        byte[]         abBytes      = Files.readAllBytes(fileClass.toPath());
-        Properties     properties   = new Properties();
-        Map<String, ?> env          = new HashMap<>();
-
-        try
-            {
-            PortableTypeGenerator.instrumentClass(fileClass, abBytes, 0, abBytes.length, properties, env);
-            fail("IllegalStateException should have been thrown");
-            }
-        catch (IllegalStateException ise)
-            {
-            // Expected
-            }
         }
 
     // ----- inner class: ByteArrayClassLoader ------------------------------

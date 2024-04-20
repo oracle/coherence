@@ -1109,7 +1109,7 @@ public class ConfigurablePofContext
                 if (clz.isAnnotationPresent(PortableType.class))
                     {
                     serializer = clz.isEnum()
-                                 ? new EnumPofSerializer()
+                                 ? new EnumPofSerializer<>()
                                  : instantiateSerializer(clz.getAnnotation(PortableType.class).serializer(), nTypeId, clz);
                     }
                 else if (PortableObject.class.isAssignableFrom(clz))
@@ -1207,9 +1207,9 @@ public class ConfigurablePofContext
             mapTypeIdByClass.put(clz, ITypeId);
             mapTypeIdByClassName.put(sClass, ITypeId);
             mapClassNameByTypeId.put(ITypeId, sClass);
-            aClzByTypeId[nTypeId] = new WeakReference(clz);
+            aClzByTypeId[nTypeId] = new WeakReference<>(clz);
             PofSerializer serializer = clz.isEnum()
-                                 ? new EnumPofSerializer()
+                                 ? new EnumPofSerializer<>()
                                  : instantiateSerializer(clz.getAnnotation(PortableType.class).serializer(), nTypeId, clz);
             aSerByTypeId[nTypeId] = serializer;
             }

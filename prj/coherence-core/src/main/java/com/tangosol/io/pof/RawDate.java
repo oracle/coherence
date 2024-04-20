@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io.pof;
@@ -174,13 +174,7 @@ public class RawDate
     */
     public Date toJavaDate()
         {
-        Calendar calendar = Calendar.getInstance();
-
-        calendar.set(Calendar.YEAR, getYear());
-        calendar.set(Calendar.MONTH, getMonth() - 1);
-        calendar.set(Calendar.DAY_OF_MONTH, getDay());
-
-        return calendar.getTime();
+        return new Date(getYear() - 1900, getMonth() - 1, getDay());
         }
 
 

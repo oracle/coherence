@@ -23,13 +23,15 @@ import java.io.UTFDataFormatException;
 
 import java.util.function.BinaryOperator;
 
+import static com.oracle.coherence.common.base.Exceptions.ensureRuntimeException;
+
 /**
 * Abstract base implementation of the ReadBuffer interface.
 *
 * @author cp  2006.04.17
 */
 public abstract class AbstractReadBuffer
-        extends Base
+        //extends Base
         implements ReadBuffer, HashEncoded
     {
     /**

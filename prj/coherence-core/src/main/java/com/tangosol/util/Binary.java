@@ -35,6 +35,12 @@ import java.nio.channels.FileChannel;
 
 import java.util.Arrays;
 
+import static com.oracle.coherence.common.base.Assertions.azzert;
+import static com.oracle.coherence.common.base.Exceptions.ensureRuntimeException;
+import static com.oracle.coherence.common.base.Formatting.toCrc;
+import static com.oracle.coherence.common.base.Formatting.toHexEscape;
+import static com.oracle.coherence.common.base.Reads.read;
+
 /**
 * A thread-safe immutable binary object.
 *

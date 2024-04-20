@@ -41,6 +41,7 @@ import com.oracle.bedrock.testsupport.junit.TestLogs;
 
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.common.base.Randoms;
 import com.oracle.coherence.common.base.Reads;
 
 import com.tangosol.coherence.management.internal.MapProvider;
@@ -2111,7 +2112,7 @@ public abstract class BaseManagementInfoResourceTests
             {
             // fill a cache
             NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
-            Binary     binValue = Binary.getRandomBinary(1024, 1024);
+            Binary     binValue = Randoms.getRandomBinary(1024, 1024);
             cache.put(1, binValue);
             return null;
             });
@@ -2135,7 +2136,7 @@ public abstract class BaseManagementInfoResourceTests
             {
             // fill a cache
             NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
-            Binary     binValue = Binary.getRandomBinary(1024, 1024);
+            Binary     binValue = Randoms.getRandomBinary(1024, 1024);
             cache.put(1, binValue);
             cache.clear();
             for (int i = 0; i < 10; ++i)
@@ -2210,7 +2211,7 @@ public abstract class BaseManagementInfoResourceTests
             {
             // fill a cache
             NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
-            Binary     binValue = Binary.getRandomBinary(1024, 1024);
+            Binary     binValue = Randoms.getRandomBinary(1024, 1024);
             for (int i = 0; i < nSize; i++)
                 {
                 cache.put(i, binValue);
@@ -2531,7 +2532,7 @@ public abstract class BaseManagementInfoResourceTests
             {
             // fill a cache
             NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
-            Binary     binValue = Binary.getRandomBinary(1024, 1024);
+            Binary     binValue = Randoms.getRandomBinary(1024, 1024);
             cache.put(1, binValue);
             return null;
             });
@@ -3623,7 +3624,7 @@ public abstract class BaseManagementInfoResourceTests
             {
             // fill a cache
             NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
-            Binary     binValue = Binary.getRandomBinary(1024, 1024);
+            Binary     binValue = Randoms.getRandomBinary(1024, 1024);
             cache.clear();
             for (int i = 0; i < 10; ++i)
                 {
@@ -3680,7 +3681,7 @@ public abstract class BaseManagementInfoResourceTests
             {
             // fill a cache
             NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
-            Binary     binValue = Binary.getRandomBinary(1024, 1024);
+            Binary     binValue = Randoms.getRandomBinary(1024, 1024);
             cache.clear();
             for (int i = 0; i < 10; ++i)
                 {
@@ -3751,7 +3752,7 @@ public abstract class BaseManagementInfoResourceTests
             {
             // fill a cache
             NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
-            Binary     binValue = Binary.getRandomBinary(1024, 1024);
+            Binary     binValue = Randoms.getRandomBinary(1024, 1024);
             cache.clear();
             for (int i = 0; i < 10; ++i)
                 {
@@ -4693,7 +4694,7 @@ public abstract class BaseManagementInfoResourceTests
     protected static Void popluateCaches()
         {
         NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
-        Binary     binValue = Binary.getRandomBinary(1024, 1024);
+        Binary     binValue = Randoms.getRandomBinary(1024, 1024);
 
         cache.put(1, binValue);
 

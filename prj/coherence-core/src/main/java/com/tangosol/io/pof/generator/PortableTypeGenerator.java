@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2013, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,7 @@ import com.tangosol.io.pof.RawQuad;
 import com.tangosol.io.pof.RawTime;
 import com.tangosol.io.pof.RawTimeInterval;
 import com.tangosol.io.pof.RawYearMonthInterval;
+
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
@@ -82,8 +83,10 @@ import java.util.TreeSet;
 import static com.oracle.coherence.common.schema.ClassFileSchemaSource.Filters.hasAnnotation;
 
 import static com.oracle.coherence.common.schema.util.AsmUtils.addAnnotation;
+import static com.oracle.coherence.common.schema.util.AsmUtils.getAnnotation;
 import static com.oracle.coherence.common.schema.util.AsmUtils.internalName;
 import static com.oracle.coherence.common.schema.util.AsmUtils.javaName;
+
 import static org.objectweb.asm.Opcodes.ACC_ENUM;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
@@ -91,6 +94,7 @@ import static org.objectweb.asm.Opcodes.ACC_TRANSIENT;
 import static org.objectweb.asm.Opcodes.ALOAD;
 import static org.objectweb.asm.Opcodes.ANEWARRAY;
 import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.ASTORE;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.DUP;
 import static org.objectweb.asm.Opcodes.F_SAME;
@@ -101,7 +105,6 @@ import static org.objectweb.asm.Opcodes.ICONST_0;
 import static org.objectweb.asm.Opcodes.IFEQ;
 import static org.objectweb.asm.Opcodes.IFNONNULL;
 import static org.objectweb.asm.Opcodes.IF_ICMPEQ;
-import static org.objectweb.asm.Opcodes.IF_ICMPLT;
 import static org.objectweb.asm.Opcodes.IF_ICMPNE;
 import static org.objectweb.asm.Opcodes.ILOAD;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
@@ -225,10 +228,10 @@ public class PortableTypeGenerator
             {
             m_log.info("Instrumenting type " + fullName);
 
+            ensureTypeId();
             populatePropertyMap();
             populateFieldMap();
-            implementDefaultConstructor();
-            implementPortableObject();
+            implementDeserializationConstructor();
             implementEvolvableObject();
 
             // mark as instrumented
@@ -276,16 +279,6 @@ public class PortableTypeGenerator
         }
 
     /**
-     * Ensure that the instrumented class implements {@link PortableObject}.
-     */
-    private void implementPortableObject()
-        {
-        m_classNode.interfaces.add("com/tangosol/io/pof/PortableObject");
-        implementReadExternal();
-        implementWriteExternal();
-        }
-
-    /**
      * Ensure that the instrumented class implements {@link EvolvableObject}.
      */
     private void implementEvolvableObject()
@@ -306,30 +299,115 @@ public class PortableTypeGenerator
             {
             implementGetEvolvableHolder(holder);
             }
+
+        implementWriteExternal();
         }
 
     /**
-     * Ensure that the instrumented class has a default no-arg constructor.
+     * Ensure that the instrumented class has a deserialization constructor.
      */
-    private void implementDefaultConstructor()
+    private void implementDeserializationConstructor()
         {
-        MethodNode ctor = findMethod("<init>", "()V");
+        MethodNode ctor = findMethod("<init>", "(Lcom/tangosol/io/pof/PofReader;)V");
         if (ctor == null)
             {
-            ctor = new MethodNode(ACC_PUBLIC, "<init>", "()V", null, null);
+            ctor = new MethodNode(ACC_PUBLIC, "<init>", "(Lcom/tangosol/io/pof/PofReader;)V", null, new String[] {"java/io/IOException"});
+            boolean fDelegateToSuper = isPofType(m_classNode.superName);
 
             ctor.visitCode();
             ctor.visitVarInsn(ALOAD, 0);
-            ctor.visitMethodInsn(INVOKESPECIAL, m_classNode.superName, "<init>", "()V", false);
+            if (fDelegateToSuper)
+                {
+                ctor.visitVarInsn(ALOAD, 1);
+                ctor.visitMethodInsn(INVOKESPECIAL, m_classNode.superName, "<init>", "(Lcom/tangosol/io/pof/PofReader;)V", false);
+                }
+            else
+                {
+                ctor.visitMethodInsn(INVOKESPECIAL, m_classNode.superName, "<init>", "()V", false);
+                }
+            
+            // create nested reader for this type
+            ctor.visitVarInsn(ALOAD, 1);
+            ctor.visitLdcInsn(m_type.getId());
+            ctor.visitMethodInsn(INVOKEINTERFACE, "com/tangosol/io/pof/PofReader",
+                               "createNestedPofReader", "(I)Lcom/tangosol/io/pof/PofReader;", true);
+            ctor.visitVarInsn(ASTORE, 2);
+
+            int cPofFields = 0;
+
+            // create versioned reader for each version and read its properties
+            for (int version : m_mapProperties.keySet())
+                {
+                ctor.visitVarInsn(ALOAD, 2);
+                ctor.visitLdcInsn(version);
+                ctor.visitMethodInsn(INVOKEINTERFACE, "com/tangosol/io/pof/PofReader",
+                                   "version", "(I)Lcom/tangosol/io/pof/PofReader;", true);
+                ctor.visitVarInsn(ASTORE, 3);
+
+                SortedSet<PofProperty> properties = m_mapProperties.get(version);
+                for (PofProperty property : properties)
+                    {
+                    FieldNode field = field(property);
+
+                    if (field == null)
+                        {
+                        m_log.debug("Field for property " + property.getName() + " was not found");
+                        continue;
+                        }
+
+                    if ((field.access & Opcodes.ACC_STATIC) != 0 || (field.access & Opcodes.ACC_TRANSIENT) != 0)
+                        {
+                        // skip static or transient fields
+                        continue;
+                        }
+
+                    // set the POF index only after we know we are processing this field
+                    int nPofIndex = cPofFields++;
+
+                    Type type = Type.getType(field.desc);
+
+                    if (isDebugEnabled())
+                        {
+                        ctor.visitLdcInsn(
+                                "reading attribute " + nPofIndex +
+                                " (" + property.getName() + ") from the POF stream");
+                        ctor.visitMethodInsn(INVOKESTATIC,
+                                           "com/tangosol/io/pof/generator/DebugLogger", "log",
+                                           "(Ljava/lang/String;)V", false);
+                        }
+                    ctor.visitVarInsn(ALOAD, 0);
+                    ctor.visitVarInsn(ALOAD, 3);
+                    ctor.visitLdcInsn(nPofIndex);
+
+                    ReadMethod readMethod = getReadMethod(property, type);
+                    readMethod.createTemplate(ctor, property, type);
+                    ctor.visitMethodInsn(INVOKEINTERFACE,
+                                       "com/tangosol/io/pof/PofReader",
+                                       readMethod.getName(),
+                                       readMethod.getDescriptor(), true);
+                    if (type.getSort() == Type.OBJECT || "readObjectArray".equals(readMethod.getName()))
+                        {
+                        ctor.visitTypeInsn(CHECKCAST, type.getInternalName());
+                        }
+                    ctor.visitFieldInsn(PUTFIELD, m_classNode.name, field.name, field.desc);
+                    }
+                }
+
+            ctor.visitVarInsn(ALOAD, 0);
+            ctor.visitVarInsn(ALOAD, 2);
+            ctor.visitMethodInsn(INVOKEVIRTUAL, m_classNode.name,
+                               "readEvolvable", "(Lcom/tangosol/io/pof/PofReader;)V", false);
+
             ctor.visitInsn(RETURN);
-            ctor.visitMaxs(1, 1);
+            ctor.visitMaxs(0, 0);
             ctor.visitEnd();
 
             m_classNode.methods.add(ctor);
+            m_log.debug("Implemented deserialization constructor");
             }
         else if ((ctor.access & ACC_PUBLIC) == 0)
             {
-            m_log.debug("Class " + m_classNode.name + " has a non-public default constructor. Making it public.");
+            m_log.debug("Class " + m_classNode.name + " has a non-public deserialization constructor. Making it public.");
             ctor.access = ACC_PUBLIC;
             }
         }
@@ -450,126 +528,6 @@ public class PortableTypeGenerator
         }
 
     /**
-     * Ensure that the instrumented class has a {@link PortableObject#readExternal(PofReader)} method.
-     */
-    @SuppressWarnings("Duplicates")
-    private void implementReadExternal()
-        {
-        MethodNode mn = new MethodNode(ACC_PUBLIC, "readExternal",
-                                       "(Lcom/tangosol/io/pof/PofReader;)V",
-                                       null,
-                                       new String[] {"java/io/IOException"});
-        mn.visitCode();
-
-        Label l0 = new Label();
-        Label l1 = new Label();
-
-        boolean fDelegateToSuper = isPofType(m_classNode.superName);
-
-        // -1 suggests the type-id is generated at runtime and therefore it is unnecessary to verify 'id'
-        // value in the annotation is used by the PofConfig
-        if (m_type.getId() != -1)
-            {
-            mn.visitVarInsn(ALOAD, 1);
-            mn.visitMethodInsn(INVOKEINTERFACE, "com/tangosol/io/pof/PofReader",
-                               "getUserTypeId", "()I", true);
-            mn.visitLdcInsn(m_type.getId());
-            mn.visitJumpInsn(IF_ICMPNE, l0);
-            }
-
-        int cPofFields = 0;
-
-        for (int version : m_mapProperties.keySet())
-            {
-            Label l2 = new Label();
-
-            mn.visitVarInsn(ALOAD, 1);
-            mn.visitMethodInsn(INVOKEINTERFACE, "com/tangosol/io/pof/PofReader",
-                               "getVersionId", "()I", true);
-            mn.visitLdcInsn(version);
-            mn.visitJumpInsn(IF_ICMPLT, l2);
-
-            SortedSet<PofProperty> properties = m_mapProperties.get(version);
-            for (PofProperty property : properties)
-                {
-                FieldNode field = field(property);
-
-                if (field == null)
-                    {
-                    m_log.debug("Field for property " + property.getName() + " was not found");
-                    continue;
-                    }
-
-                if ((field.access & Opcodes.ACC_STATIC) != 0 || (field.access & Opcodes.ACC_TRANSIENT) != 0)
-                    {
-                    // skip static or transient fields
-                    continue;
-                    }
-
-                // set the POF index only after we know we are processing this field
-                int nPofIndex = cPofFields++;
-
-                Type type = Type.getType(field.desc);
-
-                if (isDebugEnabled())
-                    {
-                    mn.visitLdcInsn(
-                            "reading attribute " + nPofIndex +
-                            " (" + property.getName() + ") from the POF stream");
-                    mn.visitMethodInsn(INVOKESTATIC,
-                                       "com/tangosol/io/pof/generator/DebugLogger", "log",
-                                       "(Ljava/lang/String;)V", false);
-                    }
-                mn.visitVarInsn(ALOAD, 0);
-                mn.visitVarInsn(ALOAD, 1);
-                mn.visitLdcInsn(nPofIndex);
-
-                ReadMethod readMethod = getReadMethod(property, type);
-                readMethod.createTemplate(mn, property, type);
-                mn.visitMethodInsn(INVOKEINTERFACE,
-                                   "com/tangosol/io/pof/PofReader",
-                                   readMethod.getName(),
-                                   readMethod.getDescriptor(), true);
-                if (type.getSort() == Type.OBJECT || "readObjectArray".equals(readMethod.getName()))
-                    {
-                    mn.visitTypeInsn(CHECKCAST, type.getInternalName());
-                    }
-                mn.visitFieldInsn(PUTFIELD, m_classNode.name, field.name, field.desc);
-                }
-
-            mn.visitLabel(l2);
-            mn.visitFrame(F_SAME, 0, null, 0, null);
-            }
-
-        if (fDelegateToSuper)
-            {
-            mn.visitJumpInsn(GOTO, l1);
-            }
-        mn.visitLabel(l0);
-        mn.visitFrame(F_SAME, 0, null, 0, null);
-
-        if (fDelegateToSuper)
-            {
-            mn.visitVarInsn(ALOAD, 0);
-            mn.visitVarInsn(ALOAD, 1);
-            mn.visitMethodInsn(INVOKESPECIAL, m_classNode.superName, "readExternal",
-                               "(Lcom/tangosol/io/pof/PofReader;)V", false);
-            mn.visitLabel(l1);
-            mn.visitFrame(F_SAME, 0, null, 0, null);
-            }
-
-        mn.visitInsn(RETURN);
-        mn.visitMaxs(0, 0);
-        mn.visitEnd();
-
-        if (!hasMethod(mn))
-            {
-            m_classNode.methods.add(mn);
-            }
-        m_log.debug("Implemented method: " + mn.name);
-        }
-
-    /**
      * Ensure that the instrumented class has a {@link PortableObject#writeExternal(PofWriter)} method.
      */
     @SuppressWarnings("Duplicates")
@@ -586,17 +544,12 @@ public class PortableTypeGenerator
 
         boolean fDelegateToSuper = isPofType(m_classNode.superName);
 
-        // -1 suggests the type-id is generated at runtime and therefore it is unnecessary to verify 'id'
-        // value in the annotation is used by the PofConfig
-        if (m_type.getId() != -1)
-            {
-            mn.visitVarInsn(ALOAD, 1);
-            mn.visitMethodInsn(INVOKEINTERFACE, "com/tangosol/io/pof/PofWriter",
-                               "getUserTypeId", "()I", true);
-            
-            mn.visitLdcInsn(m_type.getId());
-            mn.visitJumpInsn(IF_ICMPNE, l0);
-            }
+        mn.visitVarInsn(ALOAD, 1);
+        mn.visitMethodInsn(INVOKEINTERFACE, "com/tangosol/io/pof/PofWriter",
+                           "getUserTypeId", "()I", true);
+
+        mn.visitLdcInsn(m_type.getId());
+        mn.visitJumpInsn(IF_ICMPNE, l0);
 
         int cPofFields = 0;
 
@@ -1250,6 +1203,24 @@ public class PortableTypeGenerator
         }
 
     // ---- helpers ---------------------------------------------------------
+
+    /**
+     * Add calculated type ID to @PortableType annotation if not present.
+     */
+    private void ensureTypeId()
+        {
+        AnnotationNode pt = getAnnotation(m_classNode, PortableType.class);
+        if (pt.values == null)
+            {
+            pt.values = new ArrayList<>();
+            }
+        int nIdxId = pt.values.indexOf("id");
+        if (nIdxId == -1)
+            {
+            pt.values.add("id");
+            pt.values.add(m_type.getId());
+            }
+        }
 
     /**
      * Populate map of fields, keyed by name.
