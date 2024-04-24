@@ -590,7 +590,7 @@ public class HelidonNamedCacheService
 
             Binary key    = holder.convertKeyDown(request.getKey());
             Binary value  = holder.convertDown(request.getValue());
-            Binary binary = holder.getCache().put(key, value);
+            Binary binary = holder.getCache().put(key, value,request.getTtl());
             result = holder.toBytesValue(binary);
             }
         catch (Throwable e)
