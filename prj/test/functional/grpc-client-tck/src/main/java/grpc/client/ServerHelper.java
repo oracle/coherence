@@ -9,10 +9,10 @@ package grpc.client;
 
 import com.oracle.bedrock.runtime.coherence.callables.FindGrpcProxyPort;
 
-import com.oracle.coherence.client.AsyncNamedCacheClient;
-import com.oracle.coherence.client.NamedCacheClient;
 import com.oracle.coherence.common.base.Exceptions;
 
+import com.oracle.coherence.grpc.client.common.AsyncNamedCacheClient;
+import com.oracle.coherence.grpc.client.common.NamedCacheClient;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.Coherence;
@@ -21,9 +21,8 @@ import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.grpc.GrpcDependencies;
-import io.grpc.ChannelCredentials;
-import io.grpc.Grpc;
-import io.grpc.InsecureChannelCredentials;
+
+import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 
 import org.junit.jupiter.api.extension.AfterAllCallback;
@@ -53,6 +52,7 @@ import java.util.concurrent.TimeUnit;
  * @author Jonathan Knight  2019.11.29
  * @since 20.06
  */
+@SuppressWarnings({"resource", "CallToPrintStackTrace"})
 public final class ServerHelper
         implements BeforeAllCallback, AfterAllCallback
     {
@@ -184,9 +184,7 @@ public final class ServerHelper
             m_session = coherence.getSession(m_sScope);
 
             int nPort = FindGrpcProxyPort.local();
-            ChannelCredentials credentials = InsecureChannelCredentials.create();
-            m_channel = Grpc.newChannelBuilderForAddress("127.0.0.1", nPort, credentials)
-                    .build();
+            m_channel = ServerHelperChannelProvider.getChannel("127.0.0.1", nPort);
 
             m_fRunning = true;
             }
@@ -222,17 +220,21 @@ public final class ServerHelper
 
         if (m_channel != null)
             {
-            ManagedChannel managedChannel = m_channel;
-            managedChannel.shutdown();
-            try
+            Channel channel = m_channel;
+            if (channel instanceof ManagedChannel)
                 {
-                if (!managedChannel.awaitTermination(20, TimeUnit.SECONDS))
+                ManagedChannel managedChannel = (ManagedChannel) channel;
+                managedChannel.shutdown();
+                try
                     {
-                    managedChannel.shutdownNow();
+                    if (!managedChannel.awaitTermination(20, TimeUnit.SECONDS))
+                        {
+                        managedChannel.shutdownNow();
+                        }
                     }
-                }
-            catch (InterruptedException ignored)
-                {
+                catch (InterruptedException ignored)
+                    {
+                    }
                 }
             }
         Coherence.closeAll();
@@ -264,7 +266,7 @@ public final class ServerHelper
 
     private Session m_session;
 
-    private ManagedChannel m_channel;
+    private Channel m_channel;
 
     private final Properties m_properties;
 

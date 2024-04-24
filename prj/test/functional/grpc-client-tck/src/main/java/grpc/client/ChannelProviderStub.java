@@ -6,7 +6,7 @@
  */
 package grpc.client;
 
-import com.oracle.coherence.client.ChannelProvider;
+import com.oracle.coherence.grpc.client.common.ChannelProvider;
 import io.grpc.Channel;
 
 import java.util.Optional;

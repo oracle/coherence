@@ -127,6 +127,16 @@
         </dependency>
         <dependency>
           <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-grpc-client-common</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-grpc-client-helidon</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
           <artifactId>coherence-java-client</artifactId>
           <version>${project.version}</version>
         </dependency>

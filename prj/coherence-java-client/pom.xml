@@ -30,14 +30,7 @@
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-grpc</artifactId>
-      <version>${project.version}</version>
+      <artifactId>coherence-grpc-client-common</artifactId>
     </dependency>
 
     <dependency>

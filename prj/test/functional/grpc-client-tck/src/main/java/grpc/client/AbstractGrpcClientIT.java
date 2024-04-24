@@ -9,10 +9,9 @@ package grpc.client;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
-import com.oracle.coherence.client.AsyncNamedCacheClient;
-import com.oracle.coherence.client.DeactivationListener;
-
-import com.oracle.coherence.client.GrpcRemoteCacheService;
+import com.oracle.coherence.grpc.client.common.AsyncNamedCacheClient;
+import com.oracle.coherence.grpc.client.common.DeactivationListener;
+import com.oracle.coherence.grpc.client.common.GrpcRemoteCacheService;
 import com.oracle.coherence.io.json.JsonSerializer;
 
 import com.tangosol.coherence.component.net.extend.remoteService.RemoteCacheService;

@@ -30,8 +30,7 @@ import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
 
 import com.oracle.coherence.ai.VectorStore;
 
-import com.oracle.coherence.client.GrpcRemoteService;
-
+import com.oracle.coherence.grpc.client.common.GrpcRemoteService;
 import com.tangosol.coherence.component.util.SafeService;
 
 import com.tangosol.net.Coherence;

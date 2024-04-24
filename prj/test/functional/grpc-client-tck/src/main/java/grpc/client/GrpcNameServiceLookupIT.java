@@ -25,7 +25,7 @@ import com.oracle.bedrock.runtime.options.Ports;
 import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
-import com.oracle.coherence.client.GrpcRemoteCacheService;
+import com.oracle.coherence.grpc.client.common.GrpcRemoteCacheService;
 import com.tangosol.coherence.component.util.safeService.SafeCacheService;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;

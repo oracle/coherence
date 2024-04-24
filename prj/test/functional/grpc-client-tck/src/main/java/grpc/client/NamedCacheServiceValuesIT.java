@@ -7,9 +7,6 @@
 
 package grpc.client;
 
-import com.oracle.coherence.client.NamedCacheGrpcClient;
-import com.oracle.coherence.grpc.Requests;
-
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;
@@ -47,12 +44,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
-/**
- * Integration tests for {@link NamedCacheGrpcClient} values() methods.
- *
- * @author Jonathan Knight  2019.11.12
- * @since 20.06
- */
 class NamedCacheServiceValuesIT
     {
     // ----- test lifecycle -------------------------------------------------

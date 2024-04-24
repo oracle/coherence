@@ -165,7 +165,7 @@ public class HelidonNamedCacheService
                     {
                     // aggregate with filter
                     aggregateWithFilter(request, f_executor)
-                        .handleAsync((result, err) -> handleUnary(result, err, safeObserver), f_executor)
+                        .handle((result, err) -> handleUnary(result, err, safeObserver))
                         .toCompletableFuture().join();
                     }
                 }

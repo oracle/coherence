@@ -63,7 +63,7 @@ public class ResponseHandlers
         {
         if (err != null)
             {
-            observer.onError(err);
+            observer.onError(ErrorsHelper.ensureStatusRuntimeException(err));
             }
         else
             {

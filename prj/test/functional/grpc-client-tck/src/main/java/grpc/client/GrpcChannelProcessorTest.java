@@ -6,8 +6,8 @@
  */
 package grpc.client;
 
-import com.oracle.coherence.client.ChannelProvider;
-import com.oracle.coherence.client.config.GrpcChannelProcessor;
+import com.oracle.coherence.grpc.client.common.ChannelProvider;
+import com.oracle.coherence.grpc.client.common.config.GrpcChannelProcessor;
 import com.tangosol.coherence.config.ParameterMacroExpressionParser;
 import com.tangosol.coherence.config.xml.CacheConfigNamespaceHandler;
 import com.tangosol.config.xml.DefaultProcessingContext;

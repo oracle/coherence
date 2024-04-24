@@ -23,12 +23,12 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
 
-import com.oracle.coherence.client.GrpcRemoteCacheService;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.concurrent.atomic.Atomics;
 import com.oracle.coherence.concurrent.atomic.RemoteAtomicInteger;
 import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
 
+import com.oracle.coherence.grpc.client.common.GrpcRemoteCacheService;
 import com.oracle.coherence.grpc.proxy.NettyGrpcAcceptorController;
 import com.oracle.coherence.grpc.proxy.helidon.HelidonGrpcAcceptorController;
 import com.oracle.coherence.io.json.genson.GensonBuilder;

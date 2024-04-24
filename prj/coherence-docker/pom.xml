@@ -42,6 +42,18 @@
       <artifactId>coherence-grpc-proxy</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-json</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>jakarta.json</artifactId>
+      <classifier>module</classifier>
+    </dependency>
+
     <!--
     Helidon gRPC is marked as provided so that it is not
     on the class path by default
@@ -54,14 +66,9 @@
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-json</artifactId>
+      <artifactId>coherence-grpc-client-helidon</artifactId>
       <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.glassfish</groupId>
-      <artifactId>jakarta.json</artifactId>
-      <classifier>module</classifier>
+      <scope>provided</scope>
     </dependency>
 
     <!-- tracing dependencies -->

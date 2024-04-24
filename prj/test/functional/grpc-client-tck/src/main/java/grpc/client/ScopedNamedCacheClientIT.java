@@ -7,16 +7,8 @@
 
 package grpc.client;
 
-import com.oracle.coherence.client.NamedCacheClient;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-/**
- * An integration test for {@link NamedCacheClient} that uses scoped
- * instances of {@link NamedCacheClient}.
- *
- * @author Jonathan Knight  2019.11.07
- * @since 20.06
- */
 class ScopedNamedCacheClientIT
         extends BaseNamedCacheClientIT
     {

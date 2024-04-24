@@ -6,7 +6,7 @@
  */
 package grpc.client;
 
-import com.oracle.coherence.client.GrpcChannelConfigurer;
+import com.oracle.coherence.grpc.client.common.GrpcChannelConfigurer;
 import io.grpc.ManagedChannelBuilder;
 
 public class GrpcChannelConfigurerStub
