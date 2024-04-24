@@ -142,11 +142,6 @@ public class PortableTypeSerializer<T>
                 {
                 // try to find constructor that accepts PofReader (24.09 or later)
                 Constructor<?> ctor = clazz.getDeclaredConstructor(PofReader.class);
-                if (clazz.isRecord())
-                    {
-                    reader = reader.createNestedPofReader(reader.getUserTypeId());
-                    }
-                
                 PortableObject po   = (PortableObject) ctor.newInstance(reader);
 
                 if (po instanceof EvolvableObject)
