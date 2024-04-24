@@ -6,6 +6,8 @@
  */
 package bootstrap;
 
+import com.oracle.bedrock.runtime.LocalPlatform;
+import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 import com.tangosol.coherence.config.CacheConfig;
 import com.tangosol.coherence.config.CacheMapping;
 
@@ -15,6 +17,7 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
+import com.tangosol.net.InetAddressHelper;
 import com.tangosol.net.Session;
 
 import com.tangosol.net.SessionConfiguration;
@@ -43,10 +46,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class CoherenceBootstrapTests
     {
     @BeforeAll
-    static void setup()
+    static void setup() throws Exception
         {
-        System.setProperty("coherence.wka", "127.0.0.1");
-        System.setProperty("coherence.localhost", "127.0.0.1");
+        s_availablePorts = LocalPlatform.get().getAvailablePorts();
+
+        String sAddress = InetAddressHelper.getLocalHost().getHostAddress();
+
+        System.setProperty("coherence.wka", sAddress);
+        System.setProperty("coherence.localhost", sAddress);
+        System.setProperty("test.unicast.address", sAddress);
         System.setProperty("test.unicast.port", "0");
         System.setProperty("coherence.ttl", "0");
         System.setProperty("coherence.cacheconfig", Resources.DEFAULT_RESOURCE_PACKAGE + "/coherence-cache-config.xml");
@@ -55,6 +63,8 @@ class CoherenceBootstrapTests
     @BeforeEach
     void before(TestInfo info)
         {
+        System.setProperty("test.multicast.port", String.valueOf(s_availablePorts.next()));
+
         System.err.println(">>>> Starting test " + info.getDisplayName());
         System.setProperty("coherence.cluster", "CoherenceBootstrapTests-" + m_nCluster.incrementAndGet());
         }
@@ -340,4 +350,6 @@ class CoherenceBootstrapTests
         }
 
     private static final AtomicInteger m_nCluster = new AtomicInteger();
+
+    private static AvailablePortIterator s_availablePorts;
     }
