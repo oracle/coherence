@@ -30,22 +30,22 @@
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
-      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-ai</artifactId>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-concurrent</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-grpc-proxy</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-json</artifactId>
-      <version>${project.version}</version>
     </dependency>
 
     <dependency>
@@ -61,15 +61,13 @@
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-grpc-proxy-helidon</artifactId>
-      <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-grpc-client-helidon</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>${coherence.group.id}</groupId>-->
+<!--      <artifactId>coherence-grpc-client-helidon</artifactId>-->
+<!--      <scope>provided</scope>-->
+<!--    </dependency>-->
 
     <!-- tracing dependencies -->
     <dependency>
