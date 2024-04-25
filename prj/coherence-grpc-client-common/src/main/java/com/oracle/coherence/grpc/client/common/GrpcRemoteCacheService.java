@@ -234,8 +234,11 @@ public class GrpcRemoteCacheService
         deps.setScope(sScopeName);
         deps.setSerializer(m_serializer, m_serializer.getName());
         deps.setExecutor(m_executor);
-        deps.setDeadline(dependencies.getDeadline());
         deps.setDeferKeyAssociationCheck(dependencies.isDeferKeyAssociationCheck());
+        long nDeadline  = dependencies.getDeadline();
+        long nHeartbeat = dependencies.getEventsHeartbeat();
+        deps.setDeadline(nDeadline);
+        deps.setEventsHeartbeat(nHeartbeat == 0L ? (nDeadline / 2) : nHeartbeat);
 
         AsyncNamedCacheClient<?, ?> client = new AsyncNamedCacheClient<>(deps);
 

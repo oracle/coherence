@@ -74,7 +74,6 @@ import java.util.EventListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -97,6 +96,8 @@ import java.util.function.Supplier;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.tangosol.internal.net.grpc.RemoteGrpcCacheServiceDependencies.NO_EVENTS_HEARTBEAT;
 
 /**
  * Implementation of a {@link NamedCache}.
@@ -2001,6 +2002,16 @@ public class AsyncNamedCacheClient<K, V>
         return (GrpcCacheLifecycleEventDispatcher) f_dispatcher;
         }
 
+    /**
+     * Return this client's dependencies.
+     *
+     * @return this client's dependencies
+     */
+    protected Dependencies getDependencies()
+        {
+        return (Dependencies) f_dependencies;
+        }
+
     // ----- inner class: EventTask -----------------------------------------
 
     /**
@@ -2132,6 +2143,7 @@ public class AsyncNamedCacheClient<K, V>
                     .setSubscribe(true)
                     .setFormat(f_sFormat)
                     .setType(MapListenerRequest.RequestType.INIT)
+                    .setHeartbeatMillis(getDependencies().getEventsHeartbeat())
                     .build();
 
             observer.onNext(request);
@@ -2173,6 +2185,8 @@ public class AsyncNamedCacheClient<K, V>
                     break;
                 case TRUNCATED:
                     onTruncated(response);
+                    break;
+                case HEARTBEAT:
                     break;
                 case RESPONSETYPE_NOT_SET:
                     Logger.info("Received unexpected event without a response type!");
@@ -2447,6 +2461,15 @@ public class AsyncNamedCacheClient<K, V>
          * @return the optional {@link NamedCacheGrpcClient} to use
          */
         Optional<NamedCacheGrpcClient> getClient();
+
+        /**
+         * Returns the frequency in millis that heartbeats should be sent by the
+         * proxy to the client bidirectional events channel.
+         *
+         * @return the frequency in millis that heartbeats should be sent by the
+         *         proxy to the client bidirectional events channel
+         */
+        long getEventsHeartbeat();
         }
         // ----- DefaultDependencies ----------------------------------------
 
@@ -2480,6 +2503,12 @@ public class AsyncNamedCacheClient<K, V>
             return Optional.ofNullable(m_client);
             }
 
+        @Override
+        public long getEventsHeartbeat()
+            {
+            return m_nEventsHeartbeat;
+            }
+
         // ----- setters ----------------------------------------------------
 
         /**
@@ -2492,12 +2521,31 @@ public class AsyncNamedCacheClient<K, V>
             m_client = client;
             }
 
+        /**
+         * Set the frequency in millis that heartbeats should be sent by the
+         * proxy to the client bidirectional events channel.
+         * <p/>
+         * If the frequency is set to zero or less, then no heartbeats will be sent.
+         *
+         * @param nEventsHeartbeat the heartbeat frequency in millis
+         */
+        public void setEventsHeartbeat(long nEventsHeartbeat)
+            {
+            m_nEventsHeartbeat = Math.max(NO_EVENTS_HEARTBEAT, nEventsHeartbeat);
+            }
+
         // ----- data members -----------------------------------------------
 
         /**
          * An optional {@link NamedCacheGrpcClient} to use
          */
         private NamedCacheGrpcClient m_client;
+
+        /**
+         * The frequency in millis that heartbeats should be sent by the
+         * proxy to the client bidirectional events channel
+         */
+        private long m_nEventsHeartbeat = NO_EVENTS_HEARTBEAT;
         }
 
     // ----- helper methods ---------------------------------------------

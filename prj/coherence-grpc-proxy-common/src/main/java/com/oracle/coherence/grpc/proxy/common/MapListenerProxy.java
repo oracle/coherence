@@ -14,6 +14,7 @@ import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.CacheDestroyedResponse;
 import com.oracle.coherence.grpc.CacheRequestHolder;
 import com.oracle.coherence.grpc.CacheTruncatedResponse;
+import com.oracle.coherence.grpc.HeartbeatMessage;
 import com.oracle.coherence.grpc.MapEventResponse;
 import com.oracle.coherence.grpc.MapListenerErrorResponse;
 import com.oracle.coherence.grpc.MapListenerRequest;
@@ -26,6 +27,7 @@ import com.tangosol.coherence.component.net.message.MapEventMessage;
 
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.NamedCache;
@@ -63,7 +65,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Jonathan Knight  2019.12.03
  * @since 20.06
  */
-@SuppressWarnings({"PatternVariableCanBeUsed", "EnhancedSwitchMigration"})
+@SuppressWarnings({"EnhancedSwitchMigration", "PatternVariableCanBeUsed"})
 public class MapListenerProxy
         implements StreamObserver<MapListenerRequest>, MapListener<Object, Object>
     {
@@ -77,8 +79,21 @@ public class MapListenerProxy
      * @param observer  the {@link StreamObserver} to stream {@link com.tangosol.util.MapEvent}
      *                  instances to
      */
-    @SuppressWarnings("unchecked")
     public MapListenerProxy(NamedCacheService service, StreamObserver<MapListenerResponse> observer)
+        {
+        this (service, observer, NamedCacheService.Dependencies.NO_EVENTS_HEARTBEAT);
+        }
+
+    /**
+     * Create a {@link MapListenerProxy} to handle a{@link com.tangosol.util.MapListener}
+     * subscription to a cache.
+     *
+     * @param service   the {@link NamedCacheService} to proxy
+     * @param observer  the {@link StreamObserver} to stream {@link com.tangosol.util.MapEvent}
+     *                  instances to
+     */
+    @SuppressWarnings("unchecked")
+    public MapListenerProxy(NamedCacheService service, StreamObserver<MapListenerResponse> observer, long nHeartbeatMillis)
         {
         f_service              = service;
         f_observer             = (SafeStreamObserver<MapListenerResponse>) SafeStreamObserver.ensureSafeObserver(observer);
@@ -86,9 +101,22 @@ public class MapListenerProxy
         f_mapKeys              = new SegmentedConcurrentMap();
         f_setKeys              = new HashSet<>();
         f_listenerDeactivation = new DeactivationListener(this);
+        m_nHeartbeatMillis     = nHeartbeatMillis;
         }
 
     // ----- StreamObserver methods -----------------------------------------
+
+    /**
+     * Send a heart beat to the client and reschedule another heartbeat request.
+     */
+    public void heartbeat()
+        {
+        if (m_nHeartbeatMillis > NamedCacheService.Dependencies.NO_EVENTS_HEARTBEAT && !f_observer.isDone())
+            {
+            f_observer.onNext(MapListenerResponse.newBuilder().setHeartbeat(HeartbeatMessage.newBuilder().build()).build());
+            Daemons.commonPool().schedule(this::heartbeat, m_nHeartbeatMillis);
+            }
+        }
 
     @Override
     public void onNext(MapListenerRequest request)
@@ -141,6 +169,8 @@ public class MapListenerProxy
                     onFilterRequest(request, trigger);
                     break;
                 case INIT:
+                    m_nHeartbeatMillis = Math.max(m_nHeartbeatMillis, request.getHeartbeatMillis());
+                    heartbeat();
                     subscribe = true;
                     break;
                 case UNRECOGNIZED:
@@ -1110,5 +1140,13 @@ public class MapListenerProxy
      */
     protected volatile WrapperPrimingListener m_primingListener;
 
+    /**
+     * The lock to control thread safety.
+     */
     private final Lock f_lock = new ReentrantLock();
+
+    /**
+     * The frequency in millis to send heartbeats to the client.
+     */
+    protected long m_nHeartbeatMillis;
     }

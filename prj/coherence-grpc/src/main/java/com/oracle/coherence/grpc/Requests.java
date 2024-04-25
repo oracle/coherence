@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -110,6 +110,25 @@ public final class Requests
      */
     public static MapListenerRequest initListenerChannel(String scope, String cacheName, String format)
         {
+        return initListenerChannel(scope, cacheName, format, 0L);
+        }
+
+    /**
+     * Create a {@link MapListenerRequest} that will initialise the bidirectional channel.
+     * <p>
+     * After this request has been sent the response observer will receive responses if the
+     * underlying cache is released on the proxy, destroyed or truncated.
+     *
+     * @param scope             the scope name to use to obtain the cache from.
+     * @param cacheName         the name of the cache
+     * @param format            the serialization format used
+     * @param nHeartbeatMillis  the frequency to send heartbeats to the client
+     *
+     * @return an {@link MapListenerRequest} that will subscribe to {@link com.tangosol.util.MapEvent MapEvents}
+     * for all entries in a cache
+     */
+    public static MapListenerRequest initListenerChannel(String scope, String cacheName, String format, long nHeartbeatMillis)
+        {
         validateRequest(cacheName);
 
         return MapListenerRequest.newBuilder()
@@ -119,6 +138,7 @@ public final class Requests
                 .setSubscribe(true)
                 .setFormat(format)
                 .setType(MapListenerRequest.RequestType.INIT)
+                .setHeartbeatMillis(nHeartbeatMillis)
                 .build();
         }
 

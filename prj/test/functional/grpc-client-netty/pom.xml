@@ -70,7 +70,7 @@
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
           <dependenciesToScan>
-            <dependency>com.oracle.coherence.tests:grpc-client-tck</dependency>
+            <dependency>${coherence.group.id}.tests:grpc-client-tck</dependency>
           </dependenciesToScan>
           <systemPropertyVariables>
             <test.server.classpath>${test.server.classpath},${project.build.directory}</test.server.classpath>

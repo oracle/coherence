@@ -68,11 +68,6 @@ public interface NamedCacheService
         extends GrpcProxyService
     {
     /**
-     * The name of the gRPC service.
-     */
-    String SERVICE_NAME = "coherence.NamedCacheService";
-
-    /**
      * Add an index to a cache.
      *
      * @param request   the {@link AddIndexRequest} containing the name of the cache to add the index
@@ -424,6 +419,19 @@ public interface NamedCacheService
     interface Dependencies
             extends BaseGrpcServiceImpl.Dependencies
         {
+        /**
+         * Returns the frequency in millis that heartbeats should be sent by the
+         * proxy to the client bidirectional events channel.
+         *
+         * @return the frequency in millis that heartbeats should be sent by the
+         *         proxy to the client bidirectional events channel
+         */
+        long getEventsHeartbeat();
+
+        /**
+         * The default heartbeat frequency value representing no heartbeats to be sent.
+         */
+        long NO_EVENTS_HEARTBEAT = 0L;
         }
 
     // ----- inner class: DefaultDependencies -------------------------------
@@ -449,5 +457,32 @@ public interface NamedCacheService
             {
             super(deps);
             }
+
+        @Override
+        public long getEventsHeartbeat()
+            {
+            return m_nEventsHeartbeat;
+            }
+
+        /**
+         * Set the frequency in millis that heartbeats should be sent by the
+         * proxy to the client bidirectional events channel.
+         * <p/>
+         * If the frequency is set to zero or less, then no heartbeats will be sent.
+         *
+         * @param nEventsHeartbeat the heartbeat frequency in millis
+         */
+        public void setEventsHeartbeat(long nEventsHeartbeat)
+            {
+            m_nEventsHeartbeat = Math.max(NO_EVENTS_HEARTBEAT, nEventsHeartbeat);
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The frequency in millis that heartbeats should be sent by the
+         * proxy to the client bidirectional events channel
+         */
+        private long m_nEventsHeartbeat = NO_EVENTS_HEARTBEAT;
         }
     }

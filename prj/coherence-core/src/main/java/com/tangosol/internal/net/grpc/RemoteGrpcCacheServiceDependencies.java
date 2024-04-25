@@ -1,18 +1,10 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.grpc;
-
-import com.tangosol.config.expression.Expression;
-
-import com.tangosol.internal.net.service.extend.remote.RemoteCacheServiceDependencies;
-
-import com.tangosol.internal.util.DaemonPoolDependencies;
-
-import com.tangosol.net.grpc.GrpcChannelDependencies;
 
 /**
  * The RemoteGrpcCacheServiceDependencies interface provides a gRPC
@@ -24,4 +16,17 @@ import com.tangosol.net.grpc.GrpcChannelDependencies;
 public interface RemoteGrpcCacheServiceDependencies
         extends RemoteGrpcServiceDependencies
     {
+    /**
+     * Returns the frequency in millis that heartbeats should be sent by the
+     * proxy to the client bidirectional events channel.
+     *
+     * @return the frequency in millis that heartbeats should be sent by the
+     *         proxy to the client bidirectional events channel
+     */
+    long getEventsHeartbeat();
+
+    /**
+     * The default heartbeat frequency value representing no heartbeats to be sent.
+     */
+    long NO_EVENTS_HEARTBEAT = 0L;
     }

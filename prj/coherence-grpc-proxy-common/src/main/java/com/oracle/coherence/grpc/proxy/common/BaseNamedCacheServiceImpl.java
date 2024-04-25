@@ -73,7 +73,7 @@ import static com.oracle.coherence.grpc.proxy.common.ResponseHandlers.handleUnar
  *
  * @author Jonathan Knight  2024.02.08
  */
-@SuppressWarnings({"resource", "ConstantValue"})
+@SuppressWarnings({"ConstantValue"})
 public abstract class BaseNamedCacheServiceImpl
         extends BaseGrpcServiceImpl
         implements NamedCacheService
@@ -88,6 +88,7 @@ public abstract class BaseNamedCacheServiceImpl
     public BaseNamedCacheServiceImpl(NamedCacheService.Dependencies dependencies)
         {
         super(dependencies, MBEAN_NAME, "GrpcNamedCacheProxy");
+        m_nEventsHeartbeat = dependencies.getEventsHeartbeat();
         }
 
     // ----- BaseGrpcServiceImpl implementation -----------------------------
@@ -248,7 +249,7 @@ public abstract class BaseNamedCacheServiceImpl
     @Override
     public StreamObserver<MapListenerRequest> events(StreamObserver<MapListenerResponse> observer)
         {
-        return new MapListenerProxy(this, SafeStreamObserver.ensureSafeObserver(observer));
+        return new MapListenerProxy(this, SafeStreamObserver.ensureSafeObserver(observer), m_nEventsHeartbeat);
         }
 
     // ----- getAll ---------------------------------------------------------
@@ -608,4 +609,8 @@ public abstract class BaseNamedCacheServiceImpl
     public static final String MISSING_EXTRACTOR_MESSAGE = "the request does not contain a serialized ValueExtractor";
 
     public static final String MISSING_AGGREGATOR_MESSAGE = "the request does not contain a serialized ValueExtractor";
+
+    // ----- data members ---------------------------------------------------
+
+    private final long m_nEventsHeartbeat;
     }

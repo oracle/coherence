@@ -44,7 +44,7 @@ public class HelidonCredentialsHelper
 
             if (type == SocketProviderFactory.Dependencies.ProviderType.GRPC)
                 {
-                return Optional.empty();
+                return Optional.of(TlsConfig.builder().enabled(false).buildPrototype());
                 }
 
             SSLSocketProvider.Dependencies dependencies = depsFactory.getSSLDependencies(sSocketId);
