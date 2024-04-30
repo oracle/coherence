@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -139,7 +139,7 @@ public class CreateKeyStore
 
         // Key and algorithm
         certInfo.set(X509CertInfo.KEY, new CertificateX509Key(keyPair.getPublic()));
-        AlgorithmId algorithm = new AlgorithmId(AlgorithmId.sha256WithRSAEncryption_oid);
+        AlgorithmId algorithm = new AlgorithmId(AlgorithmId.SHA256_oid);
         certInfo.set(X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(algorithm));
 
         // Validity
