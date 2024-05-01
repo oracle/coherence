@@ -1,5 +1,5 @@
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -66,7 +66,7 @@ the natural place to consume this dependency is from Maven:
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>22.06.7</version>
+        <version>22.06.8</version>
     </dependency>
 </dependencies>
 ```
@@ -184,13 +184,13 @@ For **Windows**, see [here](https://oracle.github.io/coherence-cli/docs/latest/#
 
 #### <a name="create"></a>Create and start a Cluster
 
-Use the following command to create a 3 node Coherence cluster called `my-cluster`, scoped to your local machine using the default of Coherence CE 22.06.7.
+Use the following command to create a 3 node Coherence cluster called `my-cluster`, scoped to your local machine using the default of Coherence CE 22.06.8.
 
 ```shell
 $ cohctl create cluster my-cluster
 
 Cluster name:         my-cluster
-Cluster version:      22.06.7
+Cluster version:      22.06.8
 Cluster port:         7574
 Management port:      30000
 Replica count:        3
@@ -203,9 +203,9 @@ Dependency Tool:      mvn
 Are you sure you want to create the cluster with the above details? (y/n) y
 
 Checking 3 Maven dependencies...
-- com.oracle.coherence.ce:coherence:22.06.7
-- com.oracle.coherence.ce:coherence-json:22.06.7
-- org.jline:jline:3.20.0
+- com.oracle.coherence.ce:coherence:22.06.8
+- com.oracle.coherence.ce:coherence-json:22.06.8
+- org.jline:jline:3.25.0
 Starting 3 cluster members for cluster my-cluster
 Starting cluster member storage-0...
 Starting cluster member storage-1...
@@ -322,7 +322,7 @@ inserts and retrieves data from the Coherence server.
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>22.06.7</version>
+        <version>22.06.8</version>
     </dependency>
 ```
 3. Copy and paste the following source to a file named src/main/java/HelloCoherence.java:
