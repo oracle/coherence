@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.internal.net.socketbus;
 
@@ -430,23 +430,23 @@ public abstract class BufferedSocketBus
         @Override
         protected boolean heartbeat()
             {
-            long    cbHeartbeat = m_cbWrite;
-            boolean fResult     = false;
-            if (cbHeartbeat == m_cbHeartbeatLast && // we've sent nothing since the last check
-                f_cbQueued.get() == 0 &&            // we have no outbound traffic queued up
-                m_state == ConnectionState.ACTIVE)  // COH-25350 - messages can be sent on the connection
+            boolean fResult = false;
+            if (m_cbWrite        == m_cbHeartbeatLast &&    // we've sent nothing since the last check
+                f_cbQueued.get() == 0 &&                    // we have no outbound traffic queued up
+                m_state          == ConnectionState.ACTIVE) // COH-25350 - messages can be sent on the connection
                 {
                 // prevent the network infrastructure from closing the idle socket
 
                 // setting m_fIdle to true will cause the next flush to minimally send an empty receipt
                 // flush will also reset idle
+                // some writes are seen on the socket when optimisticFlush() is called
                 m_fIdle = true;
                 optimisticFlush(); // attempt flush in case auto-flush is disabled
                 fResult = true;
                 }
             // else; the connection has seen writes since the last heartbeat check, no action required
 
-            m_cbHeartbeatLast = cbHeartbeat;
+            m_cbHeartbeatLast = m_cbWrite;
             return fResult;
             }
 
