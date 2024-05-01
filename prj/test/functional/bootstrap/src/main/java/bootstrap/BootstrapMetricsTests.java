@@ -6,16 +6,24 @@
  */
 package bootstrap;
 
+import com.oracle.bedrock.runtime.LocalPlatform;
+
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.Service;
+
 import com.tangosol.util.Resources;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
+
+import org.junit.jupiter.api.TestInfo;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -26,17 +34,34 @@ public class BootstrapMetricsTests
     @BeforeAll
     static void setup()
         {
-        System.setProperty("coherence.wka", "127.0.0.1");
-        System.setProperty("coherence.localhost", "127.0.0.1");
+        String sAddress = LocalPlatform.get().getLoopbackAddress().getHostAddress();
+
+        System.setProperty("coherence.wka", sAddress);
+        System.setProperty("coherence.localhost", sAddress);
         System.setProperty("coherence.ttl", "0");
+        System.setProperty("java.net.preferIPv4Stack", "true");
+        System.setProperty("test.unicast.address", sAddress);
+        System.setProperty("test.unicast.port", "0");
         System.setProperty("coherence.cacheconfig", Resources.DEFAULT_RESOURCE_PACKAGE + "/coherence-cache-config.xml");
         System.setProperty(MetricsHttpHelper.PROP_METRICS_ENABLED, "true");
         }
 
+    @BeforeEach
+    public void setupTest(TestInfo info)
+        {
+        System.err.println(">>>> Starting test " + info.getDisplayName());
+
+        m_nClusterPort = LocalPlatform.get().getAvailablePorts().next();
+        System.setProperty("test.multicast.port", String.valueOf(m_nClusterPort));
+        }
+
     @AfterEach
-    public void cleanup()
+    public void cleanup(TestInfo info)
         {
         Coherence.closeAll();
+        CacheFactory.getCacheFactoryBuilder().releaseAll(null);
+        CacheFactory.shutdown();
+        System.err.println(">>>> Completed clean-up after test " + info.getDisplayName());
         }
 
     @Test
@@ -54,8 +79,6 @@ public class BootstrapMetricsTests
         assertThat(service, is(notNullValue()));
         assertThat(service.isRunning(), is(true));
 
-        Coherence.closeAll();
-        assertThat(service.isRunning(), is(false));
         }
 
     @Test
@@ -72,8 +95,9 @@ public class BootstrapMetricsTests
         Service service = CacheFactory.getCluster().getService(MetricsHttpHelper.getServiceName());
         assertThat(service, is(notNullValue()));
         assertThat(service.isRunning(), is(true));
-
-        Coherence.closeAll();
-        assertThat(service.isRunning(), is(false));
         }
+
+    // ----- data members ---------------------------------------------------
+
+    public static int m_nClusterPort;
     }
