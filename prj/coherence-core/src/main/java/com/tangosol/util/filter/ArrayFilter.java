@@ -59,10 +59,18 @@ public abstract class ArrayFilter
     * </blockquote>
     *
     * @param aFilter  the filter array
+    *
+    * @exception NullPointerException thrown if the array or any member of the array is null
     */
     public ArrayFilter(Filter<?>[] aFilter)
         {
         Objects.requireNonNull(aFilter);
+
+        for (int i = 0, c = aFilter.length; i < c; i++)
+            {
+            int j = i;
+            Objects.requireNonNull(aFilter[i], () -> String.format("Null element %d: %s", j, Arrays.toString(aFilter)));
+            }
 
         m_aFilter = simplifyFilters(aFilter);
         }
