@@ -105,6 +105,8 @@ import java.math.BigInteger;
 import java.net.URL;
 
 import java.nio.BufferOverflowException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 
 import java.security.AccessController;
@@ -1410,23 +1412,52 @@ public abstract class ExternalizableHelper
         int     ofch   = 0;
         int     ofAsc  = of;
         int     ofEnd  = of + cb;
-        for ( ; ofAsc < ofEnd; ++ofAsc)
+
+        // read 8 bytes at a time into a long to speed up comparison
+        ByteBuffer buf = ByteBuffer.wrap(ab, of, cb);
+        int cLongs = cb / 8;
+        for (int i = 0; i < cLongs; i++)
             {
-            int n = ab[ofAsc];
-            if (n < 0)
+            long l = buf.getLong();
+            if ((l & 0x8080808080808080L) == 0)
+                {
+                ofAsc += 8;
+                }
+            else
                 {
                 // it's not all "ascii" data
                 fAscii = false;
                 break;
                 }
-            else
+            }
+
+        // compare remaining bytes one by one
+        if (fAscii)
+            {
+            for (; ofAsc < ofEnd; ++ofAsc)
                 {
-                ach[ofch++] = (char) n;
+                int n = ab[ofAsc];
+                if (n < 0)
+                    {
+                    // it's not all "ascii" data
+                    fAscii = false;
+                    break;
+                    }
                 }
             }
 
+        // the string contains non-ASCII characters; do full UTF-8 conversion
         if (!fAscii)
             {
+            // copy initial ASCII characters directly
+            if (ofAsc > of)
+                {
+                CharBuffer bufCh = CharBuffer.wrap(ach);
+                StandardCharsets.ISO_8859_1.newDecoder().decode(buf.slice(of, ofAsc - of), bufCh, true);
+                ofch = bufCh.position();
+                }
+            
+            // process remaining characters
             for ( ; ofAsc < ofEnd; ++ofAsc)
                 {
                 int ch = ab[ofAsc] & 0xFF;
