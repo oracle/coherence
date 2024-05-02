@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-
 package com.tangosol.net.partition;
-
 
 import com.tangosol.io.ExternalizableLite;
 
@@ -14,7 +12,6 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 
 import java.io.DataInput;
@@ -27,6 +24,8 @@ import java.util.Iterator;
 
 import jakarta.json.bind.annotation.JsonbProperty;
 
+import static com.oracle.coherence.common.base.Assertions.azzert;
+import static com.oracle.coherence.common.base.Randoms.getRandom;
 
 /**
 * PartitionSet is a light-weight data structure that represents a set of
@@ -51,7 +50,6 @@ import jakarta.json.bind.annotation.JsonbProperty;
 * again in the future.
 */
 public class PartitionSet
-        extends Base
         implements ExternalizableLite, PortableObject, Iterable<Integer>
     {
     // ----- constructors ---------------------------------------------------
@@ -79,6 +77,19 @@ public class PartitionSet
         }
 
     /**
+     * Construct a partition set with a given partition count and a single
+     * marked partition.
+     *
+     * @param cPartitions  the partition count
+     * @param nPartition   the partition to set
+     */
+    public PartitionSet(int cPartitions, int nPartition)
+        {
+        this(cPartitions);
+        add(nPartition);
+        }
+
+    /**
      * Construct a partition set with a given partition count and the specified
      * partitions set.
      *
@@ -101,7 +112,14 @@ public class PartitionSet
     public PartitionSet(int cPartitions, int... aiPartitions)
         {
         this(cPartitions);
-        Arrays.stream(aiPartitions).forEach(this::add);
+
+        if (aiPartitions != null)
+            {
+            for (int nPart : aiPartitions)
+                {
+                add(nPart);
+                }
+            }
         }
 
     /**
@@ -117,7 +135,6 @@ public class PartitionSet
         m_lTailMask   = partitions.m_lTailMask;
         m_cMarked     = partitions.m_cMarked;
         }
-
 
     // ----- pseudo Set operations ------------------------------------------
 
@@ -817,7 +834,6 @@ public class PartitionSet
             }
         }
 
-
     // ----- PortableObject interface ---------------------------------------
 
     /**
@@ -911,7 +927,6 @@ public class PartitionSet
             out.writeLongArray(3, m_alBits);
             }
         }
-
 
     // ----- Object methods -------------------------------------------------
 
@@ -1045,7 +1060,6 @@ public class PartitionSet
 
         return sb.toString();
         }
-
 
     // ----- accessors ------------------------------------------------------
 
