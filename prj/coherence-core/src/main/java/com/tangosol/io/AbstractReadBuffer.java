@@ -356,7 +356,7 @@ public abstract class AbstractReadBuffer
         public void close()
                 throws IOException
             {
-            m_achBuf = null;
+            s_achBuf.remove();
             }
 
         /**
@@ -760,10 +760,11 @@ public abstract class AbstractReadBuffer
         */
         protected char[] getCharBuf(int cchMax)
             {
-            char[] ach = m_achBuf;
+            char[] ach = s_achBuf.get();
             if (ach == null || ach.length < cchMax)
                 {
-                m_achBuf = ach = new char[Math.max(MIN_BUF, cchMax)];
+                ach = new char[Math.max(MIN_BUF, cchMax)];
+                s_achBuf.set(ach);
                 }
             return ach;
             }
@@ -846,10 +847,10 @@ public abstract class AbstractReadBuffer
         private int m_ofMark = -1;
 
         /**
-        * A lazily instantiated temp buffer used to avoid allocations for
+        * A lazily instantiated thread local temp buffer used to avoid allocations for
         * building Strings from UTF binaries.
         */
-        private transient char[] m_achBuf;
+        private static ThreadLocal<char[]> s_achBuf = new ThreadLocal<>();
 
         /**
         * When not null, filter to validate that an instance of a class can be deserialized from
