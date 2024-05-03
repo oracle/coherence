@@ -10,6 +10,7 @@
 
 package com.tangosol.coherence.component.util.daemon.queueProcessor.service;
 
+import com.oracle.coherence.common.collections.NullableSortedMap;
 import com.tangosol.coherence.component.net.Cluster;
 import com.tangosol.coherence.component.net.Member;
 import com.tangosol.coherence.component.net.MemberSet;
@@ -77,7 +78,6 @@ import com.tangosol.util.Listeners;
 import com.tangosol.util.LiteMap;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.ObservableHashMap;
-import com.tangosol.util.SafeSortedMap;
 import com.tangosol.util.WrapperException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -13491,7 +13491,7 @@ public abstract class Grid
          * PollExpiryMap holds the polls that auto-expire, keyed by the expiry
          * time.
          */
-        private com.tangosol.util.SafeSortedMap __m_ExpiryMap;
+        private NullableSortedMap __m_ExpiryMap;
         
         /**
          * Property LastNullPollId
@@ -13560,7 +13560,7 @@ public abstract class Grid
             // state initialization: public and protected properties
             try
                 {
-                setExpiryMap(new com.tangosol.util.SafeSortedMap());
+                setExpiryMap(new NullableSortedMap());
                 }
             catch (java.lang.Exception e)
                 {
@@ -13734,12 +13734,11 @@ public abstract class Grid
             // import java.util.Map$Entry as java.util.Map.Entry;
             // import java.util.NoSuchElementException;
             // import java.util.Set;
-            // import com.tangosol.util.SafeSortedMap;
-            
-            SafeSortedMap map = getExpiryMap();
+
+            NullableSortedMap map = (NullableSortedMap) getExpiryMap();
             
             // most of the time we will have nothing to do, so start by just checking
-            // if there oldest key has yet to expire
+            // if their oldest key has yet to expire
             try
                 {
                 if (map.isEmpty() || ((Long) map.firstKey()).longValue() > ldt)
@@ -13808,7 +13807,7 @@ public abstract class Grid
         * PollExpiryMap holds the polls that auto-expire, keyed by the expiry
         * time.
          */
-        public com.tangosol.util.SafeSortedMap getExpiryMap()
+        public Map getExpiryMap()
             {
             return __m_ExpiryMap;
             }
@@ -13936,9 +13935,9 @@ public abstract class Grid
         * PollExpiryMap holds the polls that auto-expire, keyed by the expiry
         * time.
          */
-        protected void setExpiryMap(com.tangosol.util.SafeSortedMap mapExpiry)
+        protected void setExpiryMap(Map mapExpiry)
             {
-            __m_ExpiryMap = mapExpiry;
+            __m_ExpiryMap = (NullableSortedMap) mapExpiry;
             }
         
         // Accessor for the property "LastNullPollId"

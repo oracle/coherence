@@ -9,6 +9,7 @@
 
 package com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService;
 
+import com.oracle.coherence.common.collections.NullableSortedMap;
 import com.oracle.coherence.common.util.Duration;
 import com.oracle.coherence.common.util.MemorySize;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap;
@@ -128,7 +129,6 @@ import com.tangosol.util.PrimitiveSparseArray;
 import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.SafeHashMap;
 import com.tangosol.util.SafeLinkedList;
-import com.tangosol.util.SafeSortedMap;
 import com.tangosol.util.SegmentedConcurrentMap;
 import com.tangosol.util.SetMap;
 import com.tangosol.util.SimpleMapEntry;
@@ -21561,11 +21561,10 @@ public class PartitionedCache
         // Declared at the super level
         protected java.util.Set instantiateKeySet(int cKeys)
             {
-            // import com.tangosol.util.SafeSortedMap;
             // import java.util.Collections;
             
             return ((PartitionedCache) get_Module()).isConcurrent()
-                ? Collections.newSetFromMap(new SafeSortedMap())
+                ? Collections.newSetFromMap(new NullableSortedMap())
                 : super.instantiateKeySet(cKeys);
             }
         
@@ -24351,14 +24350,13 @@ public class PartitionedCache
         // Declared at the super level
         protected java.util.Set instantiateKeySet(int cKeys)
             {
-            // import com.tangosol.util.SafeSortedMap;
             // import java.util.Collections;
             
             PartitionedCache service = (PartitionedCache) get_Module();
             
             // see comments in PutAllRequest.instantiateEntryMap
             return service.isConcurrent() && !isTaskSplitWorthy(cKeys)
-                ? Collections.newSetFromMap(new SafeSortedMap())
+                ? Collections.newSetFromMap(new NullableSortedMap())
                 : super.instantiateKeySet(cKeys);
             }
         
@@ -24662,7 +24660,7 @@ public class PartitionedCache
                 // state initialization: public and protected properties
                 try
                     {
-                    setMap(new com.tangosol.util.SafeSortedMap());
+                    setMap(new NullableSortedMap());
                     }
                 catch (java.lang.Exception e)
                     {
@@ -26622,11 +26620,10 @@ public class PartitionedCache
         // Declared at the super level
         protected java.util.Set instantiateKeySet(int cKeys)
             {
-            // import com.tangosol.util.SafeSortedMap;
             // import java.util.Collections;
             
             return ((PartitionedCache) get_Module()).isConcurrent()
-                ? Collections.newSetFromMap(new SafeSortedMap())
+                ? Collections.newSetFromMap(new NullableSortedMap())
                 : super.instantiateKeySet(cKeys);
             }
         
@@ -26950,7 +26947,7 @@ public class PartitionedCache
                 // state initialization: public and protected properties
                 try
                     {
-                    setMap(new com.tangosol.util.SafeSortedMap());
+                    setMap(new NullableSortedMap());
                     setPartitionVersion(-9223372036854775808L);
                     }
                 catch (java.lang.Exception e)
@@ -33454,13 +33451,11 @@ public class PartitionedCache
          */
         protected java.util.Map instantiateEntryMap(int cEntries)
             {
-            // import com.tangosol.util.SafeSortedMap;
-            
             PartitionedCache service = (PartitionedCache) get_Module();
             
             // no need to sort now if we are single threaded
             return service.isConcurrent()
-                ? new SafeSortedMap()
+                ? new NullableSortedMap()
                 : super.instantiateEntryMap(cEntries);
             }
         
@@ -35339,14 +35334,13 @@ public class PartitionedCache
         // Declared at the super level
         protected java.util.Set instantiateKeySet(int cKeys)
             {
-            // import com.tangosol.util.SafeSortedMap;
             // import java.util.Collections;
             
             PartitionedCache service = (PartitionedCache) get_Module();
             
             // see comments in PutAllRequest.instantiateKeySet
             return service.isConcurrent() && !service.isTaskSplitWorthy(cKeys)
-                ? Collections.newSetFromMap(new SafeSortedMap())
+                ? Collections.newSetFromMap(new NullableSortedMap())
                 : super.instantiateKeySet(cKeys);
             }
         
@@ -35619,7 +35613,7 @@ public class PartitionedCache
                 // state initialization: public and protected properties
                 try
                     {
-                    setMap(new com.tangosol.util.SafeSortedMap());
+                    setMap(new NullableSortedMap());
                     }
                 catch (java.lang.Exception e)
                     {

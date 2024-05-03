@@ -6,12 +6,13 @@
  */
 package com.tangosol.util.filter;
 
+import com.oracle.coherence.common.collections.NullableSortedMap;
+
 import org.junit.Test;
 import org.junit.runners.Parameterized;
 import org.junit.runner.RunWith;
 
 import com.tangosol.util.MapIndex;
-import com.tangosol.util.SafeSortedMap;
 import com.tangosol.util.extractor.IdentityExtractor;
 
 import java.util.Map;
@@ -81,7 +82,7 @@ public class AndFilterTest
             setKeys.add("key7");
             }
 
-        Map mapInverse = new SafeSortedMap();
+        Map mapInverse = new NullableSortedMap();
         mapInverse.put(1, new HashSet(Arrays.asList("key1")));
         mapInverse.put(2, new HashSet(Arrays.asList("key2")));
         mapInverse.put(3, new HashSet(Arrays.asList("key3")));

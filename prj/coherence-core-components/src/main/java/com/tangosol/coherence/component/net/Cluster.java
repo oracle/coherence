@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,12 +10,9 @@
 
 package com.tangosol.coherence.component.net;
 
+import com.oracle.coherence.common.collections.NullableSortedMap;
+
 import com.tangosol.coherence.component.application.console.Coherence;
-import com.tangosol.coherence.component.net.Cluster;
-import com.tangosol.coherence.component.net.Member;
-import com.tangosol.coherence.component.net.MemberSet;
-import com.tangosol.coherence.component.net.Packet;
-import com.tangosol.coherence.component.net.ServiceInfo;
 import com.tangosol.coherence.component.net.extend.util.TcpUtil;
 import com.tangosol.coherence.component.net.memberSet.ActualMemberSet;
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
@@ -12336,7 +12333,7 @@ public class Cluster
                 // state initialization: public and protected properties
                 try
                     {
-                    setExpiryMap(new com.tangosol.util.SafeSortedMap());
+                    setExpiryMap(new NullableSortedMap());
                     }
                 catch (java.lang.Exception e)
                     {
@@ -36437,7 +36434,7 @@ public class Cluster
                 // state initialization: public and protected properties
                 try
                     {
-                    setExpiryMap(new com.tangosol.util.SafeSortedMap());
+                    setExpiryMap(new NullableSortedMap());
                     }
                 catch (java.lang.Exception e)
                     {
