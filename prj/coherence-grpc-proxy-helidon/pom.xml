@@ -48,6 +48,12 @@
     <dependency>
       <groupId>io.helidon.webserver</groupId>
       <artifactId>helidon-webserver-grpc</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>jsr305</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 
