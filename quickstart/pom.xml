@@ -16,8 +16,8 @@
     <version>1.0.0</version>
 
     <properties>
-        <version.lib.coherence>22.06</version.lib.coherence>
-        <version.plugin.jib>2.4.0</version.plugin.jib>
+        <version.lib.coherence>22.06.8</version.lib.coherence>
+        <version.plugin.jib>3.4.2</version.plugin.jib>
     </properties>
 
     <dependencies>
@@ -71,7 +71,7 @@
                         <configuration>
                             <from>
                                 <image>
-                                    gcr.io/distroless/java:11
+                                    gcr.io/distroless/java17
                                 </image>
                             </from>
                             <to>
