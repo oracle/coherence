@@ -715,6 +715,12 @@
         <groupId>com.google.guava</groupId>
         <artifactId>guava-testlib</artifactId>
         <version>${guava.testlib.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>
@@ -1182,6 +1188,14 @@
                     <excludes>
                       <!-- Do not allow inadvertent inclusion of Coherence commercial dependencies in the CE product -->
                       <exclude>com.oracle.coherence</exclude>
+                      <!--
+                      This exclusion is to stop pulling in this jsr305 jar contains duplicate
+                      packages that breaks modules. It is usually pulled in as a transitive
+                      dependency of gRPC or Guava etc. It would usually need a specific exclusion
+                      adding in the module that causes it to be included (see coherence-grpc for
+                      an example of this.
+                      -->
+                      <exclude>com.google.code.findbugs:jsr305</exclude>
                     </excludes>
                   </bannedDependencies>
                 </rules>
