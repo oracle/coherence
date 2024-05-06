@@ -121,15 +121,34 @@ public class StorageManagerMBeanTests
             }
 
         ObjectName name = getQueryName(cache);
-        Integer keyListenerCount = (Integer) server.getAttribute(name, "ListenerKeyCount");
-        assertEquals("expected ListenerKeyCount to be 100", Integer.valueOf(100), keyListenerCount);
+
+        Eventually.assertDeferred(() -> getListenerKeyCount(server, name), is(100));
+
         for (int i = 0; i < 100; i++ )
             {
             cache.remove(i);
             }
 
-        Integer afterRemoveKeyListenerCount =  (Integer) server.getAttribute(name, "ListenerKeyCount");
-        assertEquals("COH-13113 regression: expected ListenerKeyCount to be 0, if non-zero, still a leak when removing KeyListener", Integer.valueOf(0), afterRemoveKeyListenerCount);
+        Eventually.assertDeferred(() -> getListenerKeyCount(server, name), is(0));
+        }
+
+    /**
+     * Static method to return listener key count given a {@link MBeanServer} and {@link ObjectName}.
+     *
+     * @param server  {@link MBeanServer} to query
+     * @param name    {@link ObjectName} to use
+     * @return the value of the listener key count
+     */
+    private static int getListenerKeyCount(MBeanServer server, ObjectName name)
+        {
+        try
+            {
+            return (Integer) server.getAttribute(name, "ListenerKeyCount");
+            }
+        catch (Exception e)
+            {
+            return -1;
+            }
         }
 
     /**
