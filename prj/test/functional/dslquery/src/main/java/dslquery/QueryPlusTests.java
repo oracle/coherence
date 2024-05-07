@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,6 +15,7 @@ import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
 
+import com.oracle.coherence.io.json.JsonObject;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.util.invoke.Lambdas;
@@ -40,13 +41,12 @@ import com.oracle.coherence.testing.processors.HasIndexProcessor;
 import java.util.Date;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
 
 import static com.oracle.coherence.testing.util.CollectionUtils.asList;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 
 /**
@@ -54,6 +54,7 @@ import static com.oracle.coherence.testing.util.CollectionUtils.asList;
  *
  * @author jk 2014.03.01
  */
+@SuppressWarnings({"unchecked", "rawtypes", "resource"})
 public class QueryPlusTests
     {
     @Before
@@ -252,10 +253,12 @@ public class QueryPlusTests
         assertThat(cacheNames, hasItem("dist-json-test"));
         NamedCache   cache        = m_ccf.ensureCache("dist-json-test", null);
         Object oValue = cache.get(1);
-        assertThat(oValue,  notNullValue());
-        assertThat(oValue.toString(), equalTo("{foo=1}")); // Json Object will be returned as HashMap
+        assertThat(oValue,  instanceOf(JsonObject.class));
+        JsonObject json = (JsonObject) oValue;
+        assertThat(json.get("foo"), is(1)); // Json Object will be returned as HashMap
         }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Test(expected = IllegalStateException.class)
     public void shouldRunDestroyCache() throws Exception
         {
