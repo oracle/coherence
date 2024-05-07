@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -948,6 +948,12 @@ public class SafeService
         translateEvent(evt);
         }
     
+    @Override
+    public void memberRecovered(com.tangosol.net.MemberEvent evt)
+        {
+        translateEvent(evt);
+        }
+
     // Declared at the super level
     /**
      * The "component has been initialized" method-notification called out of

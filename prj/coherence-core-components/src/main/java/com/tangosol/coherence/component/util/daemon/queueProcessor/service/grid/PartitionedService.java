@@ -21,6 +21,7 @@ import com.tangosol.coherence.component.net.message.RequestMessage;
 import com.tangosol.coherence.component.net.message.requestMessage.chainedRequest.BackupRequest;
 import com.tangosol.coherence.component.util.DistributionStrategy;
 import com.tangosol.coherence.component.util.PartialJob;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid;
 import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Continuation;
 import com.oracle.coherence.common.base.MutableLong;
@@ -666,6 +667,7 @@ public abstract class PartitionedService
         __mapChildren.put("DistributionRequest", PartitionedService.DistributionRequest.get_CLASS());
         __mapChildren.put("MemberConfigUpdate", PartitionedService.MemberConfigUpdate.get_CLASS());
         __mapChildren.put("MemberJoined", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.MemberJoined.get_CLASS());
+        __mapChildren.put("MemberRecovered", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.MemberRecovered.get_CLASS());
         __mapChildren.put("MemberWelcome", PartitionedService.MemberWelcome.get_CLASS());
         __mapChildren.put("MemberWelcomeRequest", PartitionedService.MemberWelcomeRequest.get_CLASS());
         __mapChildren.put("MemberWelcomeRequestTask", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.MemberWelcomeRequestTask.get_CLASS());
@@ -28788,6 +28790,7 @@ public abstract class PartitionedService
                 addNotification(PersistenceManagerMBean.RECOVER_SNAPSHOT_END, sMessage, sUserData);
                 
                 reset();
+                sendMemberRecovered();
                 }
             
             /**
@@ -29159,6 +29162,19 @@ public abstract class PartitionedService
                 addNotification(PersistenceManagerMBean.RETRIEVE_ARCHIVED_SNAPSHOT_BEGIN, getOperationStatus(), "");
                 }
             
+            /**
+             * Send a Member RECOVERED message to signal that this member's recovery has completed.
+             */
+            public void sendMemberRecovered()
+                {
+                PartitionedService   service = (PartitionedService) get_Module();
+                Grid.MemberRecovered msg     = (MemberRecovered) service.instantiateMessage("MemberRecovered");
+                Member               member  = service.getThisMember();
+                msg.setMemberId(member.getId());
+                msg.setToMemberSet(service.getServiceMemberSet());
+                service.post(msg);
+                }
+
             // Accessor for the property "ResumeOnCompletion"
             /**
              * Setter for property ResumeOnCompletion.<p>
