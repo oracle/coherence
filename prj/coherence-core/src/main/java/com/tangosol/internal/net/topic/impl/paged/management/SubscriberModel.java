@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -74,6 +74,7 @@ public class SubscriberModel
         addAttribute(ATTRIBUTE_NOTIFICATION_ID);
         addAttribute(ATTRIBUTE_POLLS);
         addAttribute(ATTRIBUTE_SUB_TYPE_CODE);
+        addAttribute(ATTRIBUTE_RECEIVE_CANCELLED);
         addAttribute(ATTRIBUTE_RECEIVE_COMPLETIONS);
         addAttribute(ATTRIBUTE_RECEIVE_COMPLETIONS_MEAN);
         addAttribute(ATTRIBUTE_RECEIVE_COMPLETIONS_ONE);
@@ -81,6 +82,8 @@ public class SubscriberModel
         addAttribute(ATTRIBUTE_RECEIVE_COMPLETIONS_FIFTEEN);
         addAttribute(ATTRIBUTE_RECEIVE_EMPTY);
         addAttribute(ATTRIBUTE_RECEIVE_ERRORS);
+        addAttribute(ATTRIBUTE_RECEIVE_QUEUE);
+        addAttribute(ATTRIBUTE_RECEIVE_REQUESTS);
         addAttribute(ATTRIBUTE_SERIALIZER);
         addAttribute(ATTRIBUTE_STATE);
         addAttribute(ATTRIBUTE_STATE_NAME);
@@ -313,6 +316,36 @@ public class SubscriberModel
     protected String getSerializer()
         {
         return String.valueOf(f_subscriber.getSerializer());
+        }
+
+    /**
+     * Return the count of calls to one of the receive methods.
+     *
+     * @return the count of calls to one of the receive methods
+     */
+    protected long getReceiveCalls()
+        {
+        return f_subscriber.getReceiveRequests();
+        }
+
+    /**
+     * Return the count of receive requests waiting.
+     *
+     * @return the count of receive requests waiting
+     */
+    protected int getReceiveQueueSize()
+        {
+        return f_subscriber.getReceiveQueueSize();
+        }
+
+    /**
+     * Return the count of cancelled receive requests completed.
+     *
+     * @return the count of cancelled receive requests completed
+     */
+    protected long getCancelledCount()
+        {
+        return f_subscriber.getCancelled();
         }
 
     /**
@@ -604,6 +637,36 @@ public class SubscriberModel
                         .withDescription("The number of elements received.")
                         .withFunction(SubscriberModel::getElementsPolled)
                         .metric(true)
+                        .build();
+
+    /**
+     * The number of cancelled received requests.
+     */
+    protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_RECEIVE_CANCELLED =
+                SimpleModelAttribute.longBuilder("CancelledCount", SubscriberModel.class)
+                        .withDescription("The number of cancelled receive requests.")
+                        .withFunction(SubscriberModel::getCancelledCount)
+                        .metric("CancelledCount")
+                        .build();
+
+    /**
+     * The number of outstanding received requests.
+     */
+    protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_RECEIVE_QUEUE  =
+                SimpleModelAttribute.longBuilder("ReceiveBacklog", SubscriberModel.class)
+                        .withDescription("The number of outstanding receive requests.")
+                        .withFunction(SubscriberModel::getReceiveQueueSize)
+                        .metric("ReceiveBacklog")
+                        .build();
+
+    /**
+     * The number of calls to one of the receive methods.
+     */
+    protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_RECEIVE_REQUESTS  =
+                SimpleModelAttribute.longBuilder("ReceiveRequestCount", SubscriberModel.class)
+                        .withDescription("The number of calls to one of the receive methods.")
+                        .withFunction(SubscriberModel::getReceiveCalls)
+                        .metric("ReceiveRequestCount")
                         .build();
 
     /**
