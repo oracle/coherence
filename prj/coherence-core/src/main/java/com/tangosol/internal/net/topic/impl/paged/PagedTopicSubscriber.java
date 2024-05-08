@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -112,6 +112,7 @@ import java.util.Set;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CountDownLatch;
@@ -123,6 +124,7 @@ import java.util.concurrent.TimeoutException;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
@@ -403,7 +405,18 @@ public class PagedTopicSubscriber<V>
     public CompletableFuture<Element<V>> receive()
         {
         ensureActive();
-        return (CompletableFuture<Element<V>>) f_queueReceiveOrders.add(ReceiveRequest.SINGLE);
+        CompletableFuture<Element<V>> future = (CompletableFuture<Element<V>>) f_queueReceiveOrders.add(ReceiveRequest.SINGLE);
+        f_cReceiveRequests.add(1L);
+        future.handle((e, error) ->
+            {
+            if (error instanceof CancellationException)
+                {
+                Logger.err("Receive cancelled", error);
+                f_cCancelled.add(1L);
+                }
+            return null;
+            });
+        return future;
         }
 
     @Override
@@ -411,7 +424,18 @@ public class PagedTopicSubscriber<V>
     public CompletableFuture<List<Element<V>>> receive(int cBatch)
         {
         ensureActive();
-        return (CompletableFuture<List<Element<V>>>) f_queueReceiveOrders.add(new ReceiveRequest(true, cBatch));
+        CompletableFuture<List<Element<V>>> future = (CompletableFuture<List<Element<V>>>) f_queueReceiveOrders.add(new ReceiveRequest(true, cBatch));
+        f_cReceiveRequests.add(1L);
+        future.handle((e, error) ->
+            {
+            if (error instanceof CancellationException)
+                {
+                Logger.err("Receive cancelled", error);
+                f_cCancelled.add(1L);
+                }
+            return null;
+            });
+        return future;
         }
 
     public Optional<Element<V>> peek(int nChannel)
@@ -794,6 +818,26 @@ public class PagedTopicSubscriber<V>
     public Channel getChannel(int nChannel)
         {
         return nChannel < m_aChannel.length ? m_aChannel[nChannel] : new Channel.EmptyChannel(nChannel);
+        }
+
+    /**
+     * Return the number of cancelled receive requests.
+     *
+     * @return the number of cancelled receive requests
+     */
+    public long getCancelled()
+        {
+        return f_cCancelled.longValue();
+        }
+
+    /**
+     * Return the count of calls to one of the receive methods.
+     *
+     * @return the count of calls to one of the receive methods
+     */
+    public long getReceiveRequests()
+        {
+        return f_cReceiveRequests.longValue();
         }
 
     /**
@@ -4912,4 +4956,14 @@ public class PagedTopicSubscriber<V>
      * Listeners for subscriber state changes.
      */
     private final Listeners f_stateListeners = new Listeners();
+
+    /**
+     * The count of calls to the {@link #receive()} or {@link #receive(int)} methods.
+     */
+    private final LongAdder f_cReceiveRequests = new LongAdder();
+
+    /**
+     * The count of receive futures that have been cancelled.
+     */
+    private final LongAdder f_cCancelled = new LongAdder();
     }
