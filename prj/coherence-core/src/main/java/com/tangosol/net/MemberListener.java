@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
@@ -60,4 +60,13 @@ public interface MemberListener
     * @param evt  the MemberEvent.MEMBER_LEFT event
     */
     public void memberLeft(MemberEvent evt);
+
+    /**
+     * Invoked when a Member has recovered from persistence.
+     *
+     * @param evt  the MemberEvent.MEMBER_RECOVERED event
+     */
+    default public void memberRecovered(MemberEvent evt)
+        {
+        }
     }

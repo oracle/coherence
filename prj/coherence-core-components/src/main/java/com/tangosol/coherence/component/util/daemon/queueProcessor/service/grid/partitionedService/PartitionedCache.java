@@ -645,6 +645,7 @@ public class PartitionedCache
         __mapChildren.put("MapEvent", PartitionedCache.MapEvent.get_CLASS());
         __mapChildren.put("MemberConfigUpdate", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.MemberConfigUpdate.get_CLASS());
         __mapChildren.put("MemberJoined", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.MemberJoined.get_CLASS());
+        __mapChildren.put("MemberRecovered", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.MemberRecovered.get_CLASS());
         __mapChildren.put("MemberWelcome", PartitionedCache.MemberWelcome.get_CLASS());
         __mapChildren.put("MemberWelcomeRequest", PartitionedCache.MemberWelcomeRequest.get_CLASS());
         __mapChildren.put("MemberWelcomeRequestTask", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.MemberWelcomeRequestTask.get_CLASS());

@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -150,6 +150,7 @@ import javax.management.Notification;
  * 12   * RESERVED for join protocol compatibility *
  * 13   * RESERVED for join protocol compatibility *
  * 17   * RESERVED for join protocol compatibility *
+ * 18    MemberRecovered
  */
 @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment", "JavadocBlankLines", "JavadocDeclaration", "EnhancedSwitchMigration"})
 public abstract class Grid
@@ -553,6 +554,7 @@ public abstract class Grid
         __mapChildren.put("DispatchNotification", Grid.DispatchNotification.get_CLASS());
         __mapChildren.put("MemberConfigUpdate", Grid.MemberConfigUpdate.get_CLASS());
         __mapChildren.put("MemberJoined", Grid.MemberJoined.get_CLASS());
+        __mapChildren.put("MemberRecovered", Grid.MemberRecovered.get_CLASS());
         __mapChildren.put("MemberWelcome", Grid.MemberWelcome.get_CLASS());
         __mapChildren.put("MemberWelcomeRequest", Grid.MemberWelcomeRequest.get_CLASS());
         __mapChildren.put("MemberWelcomeRequestTask", Grid.MemberWelcomeRequestTask.get_CLASS());
@@ -8716,6 +8718,170 @@ public abstract class Grid
             {
             super.write(output);
             
+            output.writeInt(getMemberId());
+            }
+        }
+
+    /**
+     * This Message is used to signal that recovery has completed either as 
+     * part of active persistence or snapshot recovery.
+     */
+    @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
+    public static class MemberRecovered
+            extends    com.tangosol.coherence.component.net.Message
+        {
+        // ---- Fields declarations ----
+
+        /**
+         * Property MemberId
+         *
+         * The ID of the member who has recovered.
+         */
+        private int __m_MemberId;
+
+        // Default constructor
+        public MemberRecovered()
+            {
+            this(null, null, true);
+            }
+
+        // Initializing constructor
+        public MemberRecovered(String sName, com.tangosol.coherence.Component compParent, boolean fInit)
+            {
+            super(sName, compParent, false);
+
+            if (fInit)
+                {
+                __init();
+                }
+            }
+
+        // Main initializer
+        public void __init()
+            {
+            // private initialization
+            __initPrivate();
+
+            // state initialization: public and protected properties
+            try
+                {
+                setMessageType(18);
+                }
+            catch (java.lang.Exception e)
+                {
+                // re-throw as a runtime exception
+                throw new com.tangosol.util.WrapperException(e);
+                }
+
+            // signal the end of the initialization
+            set_Constructed(true);
+            }
+
+        // Private initializer
+        protected void __initPrivate()
+            {
+
+            super.__initPrivate();
+            }
+
+        //++ getter for static property _Instance
+        /**
+         * Getter for property _Instance.<p>
+         * Auto generated
+         */
+        public static com.tangosol.coherence.Component get_Instance()
+            {
+            return new com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.MemberRecovered();
+            }
+
+        //++ getter for static property _CLASS
+        /**
+         * Getter for property _CLASS.<p>
+         * Property with auto-generated accessor that returns the Class object
+         * for a given component.
+         */
+        public static Class get_CLASS()
+            {
+            Class clz;
+            try
+                {
+                clz = Class.forName("com.tangosol.coherence/component/util/daemon/queueProcessor/service/Grid$MemberRecovered".replace('/', '.'));
+                }
+            catch (ClassNotFoundException e)
+                {
+                throw new NoClassDefFoundError(e.getMessage());
+                }
+            return clz;
+            }
+
+        //++ getter for autogen property _Module
+        /**
+         * This is an auto-generated method that returns the global [design
+         * time] parent component.
+         * 
+         * Note: the class generator will ignore any custom implementation for
+         * this behavior.
+         */
+        private com.tangosol.coherence.Component get_Module()
+            {
+            return this.get_Parent();
+            }
+
+        // Declared at the super level
+        /**
+         * Getter for property Description.<p>
+         * Used for debugging purposes (from toString). Create a human-readable
+         * description of the specific Message data.
+         */
+        public String getDescription()
+            {
+            return "MemberRecovered=" + getFromMember();
+            }
+
+        // Accessor for the property "MemberId"
+        /**
+         * Getter for property MemberId.<p>
+         * The ID of the member who has recovered.
+         */
+        public int getMemberId()
+            {
+            return __m_MemberId;
+            }
+
+        // Declared at the super level
+        public void onReceived()
+            {
+            super.onReceived();
+            Grid   service = (Grid) get_Module();
+            Member member  = service.getServiceMemberSet().getMember(getMemberId());
+            service.dispatchMemberEvent(member, MemberEvent.MEMBER_RECOVERED);
+            }
+
+        // Declared at the super level
+        public void read(com.tangosol.io.ReadBuffer.BufferInput input)
+                throws java.io.IOException
+            {
+            super.read(input);
+
+            setMemberId(input.readInt());
+            }
+
+        // Accessor for the property "MemberId"
+        /**
+         * Setter for property MemberId.<p>
+         * The ID of the member who has recovered.
+         */
+        public void setMemberId(int nId)
+            {
+            __m_MemberId = nId;
+            }
+
+        // Declared at the super level
+        public void write(com.tangosol.io.WriteBuffer.BufferOutput output)
+                throws java.io.IOException
+            {
+            super.write(output);
+
             output.writeInt(getMemberId());
             }
         }
