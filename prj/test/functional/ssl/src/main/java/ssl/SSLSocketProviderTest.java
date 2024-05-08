@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -77,6 +77,17 @@ public class SSLSocketProviderTest
     public void testSimpleServerConfiguration()
         {
         SSLSocketProviderDefaultDependencies sslDeps = loadDependencies("ssl-config-server.xml");
+        SSLContext ctx = sslDeps.getSSLContext();
+        assertThat(ctx, is(notNullValue()));
+        assertThat(ctx.getProtocol(), is(SSLSocketProviderDefaultDependencies.DEFAULT_SSL_PROTOCOL));
+        assertThat(sslDeps.getExecutor(), is(notNullValue()));
+        assertThat(sslDeps.getHostnameVerifier(), is(nullValue()));
+        }
+
+    @Test
+    public void testSimpleServerP12Configuration()
+        {
+        SSLSocketProviderDefaultDependencies sslDeps = loadDependencies("ssl-config-p12-server.xml");
         SSLContext ctx = sslDeps.getSSLContext();
         assertThat(ctx, is(notNullValue()));
         assertThat(ctx.getProtocol(), is(SSLSocketProviderDefaultDependencies.DEFAULT_SSL_PROTOCOL));
