@@ -2185,6 +2185,12 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
                 }
             }
 
+        @Override
+        public void memberRecovered(MemberEvent evt)
+            {
+            changeState(STATE_DISCONNECTED);
+            }
+
         /**
          * Produce a human-readable description of this object.
          *
