@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,9 @@ package common;
 
 
 import com.oracle.bedrock.OptionsByType;
+import com.oracle.bedrock.deferred.Deferred;
+import com.oracle.bedrock.deferred.PermanentlyUnavailableException;
+import com.oracle.bedrock.deferred.TemporarilyUnavailableException;
 import com.oracle.bedrock.jacoco.Dump;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.java.options.JavaHome;
@@ -1048,10 +1051,8 @@ public abstract class AbstractTestInfrastructure
     */
     public static void waitForBalanced(CacheService service)
         {
-        SafeService serviceSafe = (SafeService) service;
-        PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
 
-        Eventually.assertThat(invoking(serviceReal).calculateUnbalanced(), is(0));
+        Eventually.assertDeferred("waitForBalanced for service " + service.getInfo().getServiceName(), new WaitForBalanced(service), is(0));
         }
 
     /**
@@ -1675,6 +1676,31 @@ public abstract class AbstractTestInfrastructure
             {
             return Threads.getThreadDump();
             }
+        }
+
+    // ----- inner class: WaitForBalanced -----------------------------------
+
+    /**
+     * A Deferred that returns the unbalanced count for a
+     * partitioned cache service.
+     */
+    public static class WaitForBalanced
+            implements Deferred<Integer>
+        {
+        public WaitForBalanced(CacheService service)
+            {
+            f_service = service;
+            }
+
+        @Override
+        public Integer get() throws TemporarilyUnavailableException, PermanentlyUnavailableException
+            {
+            SafeService serviceSafe = (SafeService) f_service;
+            PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
+            return serviceReal.calculateUnbalanced();
+            }
+
+        private final CacheService f_service;
         }
 
     // ----- data members ---------------------------------------------------
