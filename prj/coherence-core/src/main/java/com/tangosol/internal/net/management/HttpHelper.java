@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.management;
 
@@ -25,6 +25,7 @@ import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.Resources;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -132,7 +133,7 @@ public abstract class HttpHelper
             ProxyServiceDependencies deps = null;
             try
                 {
-                URL    urlConfig   = classLoader.getResource(MANAGEMENT_CONFIG);
+                URL urlConfig = Resources.findFileOrResourceOrDefault(MANAGEMENT_CONFIG, classLoader);
 
                 if (urlConfig == null)
                     {
@@ -141,6 +142,7 @@ public abstract class HttpHelper
                     }
 
                 XmlElement xml = XmlHelper.loadXml(urlConfig);
+                Logger.info("Loaded management over REST configuration from \"" + urlConfig + '"');
                 XmlHelper.replaceSystemProperties(xml, "system-property");
 
                 //noinspection deprecation

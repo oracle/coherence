@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -62,7 +62,7 @@ public class ScopedServicesTests
         propsServer1.setProperty("coherence.management.extendedmbeanname", "true");
         propsServer1.setProperty("coherence.member", SERVER_PREFIX + "-1");
         propsServer1.setProperty("coherence.management.http", "inherit");
-        propsServer1.setProperty("coherence.management.http.port", "0");
+        propsServer1.setProperty("coherence.management.http.override-port", "0");
         propsServer1.setProperty("coherence.override", "tangosol-coherence-override-mgmt.xml");
 
         CoherenceClusterMember member1 = startCacheServer(SERVER_PREFIX + "-1", "rest",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -58,7 +58,7 @@ public class ManagementMBeanNameTests
         System.setProperty("coherence.cluster", "Test");
         System.setProperty("coherence.member", "Storage");
         System.setProperty("coherence.management.http", "all");
-        System.setProperty("coherence.management.http.port", String.valueOf(ports.next()));
+        System.setProperty("coherence.management.http.override-port", String.valueOf(ports.next()));
         System.setProperty("coherence.management.extendedmbeanname", "true");
         System.setProperty("coherence.management.port", String.valueOf(ports.next()));
 
