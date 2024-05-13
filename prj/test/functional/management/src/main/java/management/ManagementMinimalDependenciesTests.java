@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -80,7 +80,7 @@ public class ManagementMinimalDependenciesTests
                                     SystemProperty.of("coherence.cluster", "Storage"),
                                     SystemProperty.of("coherence.management.extendedmbeanname", true),
                                     SystemProperty.of("coherence.management.http", "inherit"),
-                                    SystemProperty.of("coherence.management.http.port", port),
+                                    SystemProperty.of("coherence.management.http.override-port", port),
                                     f_testLogs))
             {
             URI uri = URI.create("http://localhost:" + port.get() + "/management/coherence/cluster");

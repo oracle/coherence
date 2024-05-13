@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,6 +18,7 @@ import com.tangosol.internal.net.management.HttpHelper;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.management.MBeanHelper;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
@@ -36,6 +37,14 @@ import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.Properties;
 
+import javax.management.AttributeNotFoundException;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+import javax.management.ReflectionException;
+
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
@@ -49,6 +58,7 @@ import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -158,7 +168,7 @@ public class ManagementStartupModeTests
 
         propServer.put("coherence.management", "all");
         propServer.put("coherence.management.http", "all");
-        propServer.put("coherence.management.http.port", Integer.toString(nMgmtPort));
+        propServer.put("coherence.management.http.override-port", Integer.toString(nMgmtPort));
 
         try (CoherenceClusterMember member = startCacheServer(SERVER_MEMBERNAME, PROJECT_NAME, null, propServer, true))
             {
@@ -187,7 +197,7 @@ public class ManagementStartupModeTests
         propServer.put("coherence.management.http", "all");
 
         // harden this test to not used a fixed port, intermittently the port was in use by another process.
-        propServer.put("coherence.management.http.port", "0");
+        propServer.put("coherence.management.http.override-port", "0");
 
         try (CoherenceClusterMember member1 = startCacheServer(SERVER_MEMBERNAME_PREFIX + "-1", PROJECT_NAME, null, propServer, true))
             {
@@ -201,7 +211,7 @@ public class ManagementStartupModeTests
 
             // simulate user not setting coherence.management.port at all and using "coherence.management" set to all.
             // ensure collision on port that is already in use. Make sure log message reports the port conflicted on.
-            propServer.put("coherence.management.http.port", Integer.toString(nPortMgmt));
+            propServer.put("coherence.management.http.override-port", Integer.toString(nPortMgmt));
             try (CoherenceClusterMember member2 = startCacheServer(SERVER_MEMBERNAME_PREFIX + "-2", PROJECT_NAME, null, propServer, true))
                 {
                 File fileMember2Log = new File(ensureOutputDir(PROJECT_NAME), SERVER_MEMBERNAME_PREFIX + "-2.out");
@@ -210,6 +220,35 @@ public class ManagementStartupModeTests
                 assertTrue("failed to find log message detecting management over REST proxy address already in use error message in server log",
                     validateLogFileContainsAddressAlreadyInUse(fileMember2Log, Integer.toString(nPortMgmt)));
                 }
+            }
+        }
+
+    @Test
+    public void testConfigurationOverride()
+            throws MalformedObjectNameException, ReflectionException,
+                   InstanceNotFoundException, AttributeNotFoundException,
+                   MBeanException
+        {
+        String port = "44444";
+        System.setProperty("coherence.management", "all");
+        System.setProperty("coherence.management.http", "inherit");
+        System.setProperty("coherence.management.remote", "true");
+        System.setProperty("coherence.management.http.override-port", port);
+        try
+            {
+            AbstractFunctionalTest._startup();
+            MBeanServer serverJMX = MBeanHelper.findMBeanServer();
+            String      attr      = (String) serverJMX.getAttribute(new ObjectName("Coherence:type=ConnectionManager,name=ManagementHttpProxy,nodeId=1"), "HostIP");
+            assertNotNull(attr);
+            assertTrue("Management HTTP port", attr.endsWith(":" + port));
+            }
+        finally
+            {
+            AbstractFunctionalTest._shutdown();
+            System.clearProperty("coherence.management");
+            System.clearProperty("coherence.management.http");
+            System.clearProperty("coherence.management.remote");
+            System.clearProperty("coherence.management.http.override-port");
             }
         }
 
@@ -231,7 +270,7 @@ public class ManagementStartupModeTests
         Properties propServer  = new Properties();
 
         propServer.setProperty("coherence.management", sMgmt);
-        propServer.setProperty("coherence.management.http.port", "0");
+        propServer.setProperty("coherence.management.http.override-port", "0");
 
         if (sHttpMgmt != null)
             {

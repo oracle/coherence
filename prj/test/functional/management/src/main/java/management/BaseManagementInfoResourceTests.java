@@ -4642,7 +4642,7 @@ public abstract class BaseManagementInfoResourceTests
         propsServer1.add(SystemProperty.of("test.server.name", SERVER_PREFIX + -1));
         propsServer1.add(SystemProperty.of("coherence.management.http", "inherit"));
         propsServer1.add(SystemProperty.of("coherence.management.readonly", Boolean.toString(isReadOnly())));
-        propsServer1.add(SystemProperty.of("coherence.management.http.port", 0));
+        propsServer1.add(SystemProperty.of("coherence.management.http.override-port", 0));
         propsServer1.add(SystemProperty.of("coherence.management.http.cluster", sClusterName));
         propsServer1.add(SystemProperty.of("coherence.override", "tangosol-coherence-override-mgmt.xml"));
         propsServer1.add(SystemProperty.of("test.persistence.active.dir", m_dirActive.getAbsolutePath()));
