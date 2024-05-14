@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.management;
 
@@ -22,6 +22,7 @@ import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.Resources;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -122,16 +123,16 @@ public abstract class HttpHelper
             ProxyServiceDependencies deps = null;
             try
                 {
-                String sConfigFile = "management-http-config.xml";
-                URL    urlConfig   = classLoader.getResource(sConfigFile);
+                URL urlConfig = Resources.findFileOrResource(MANAGEMENT_CONFIG, classLoader);
 
                 if (urlConfig == null)
                     {
-                    throw new IllegalStateException("Unable to locate " + sConfigFile + " which should be"
+                    throw new IllegalStateException("Unable to locate " + MANAGEMENT_CONFIG + " which should be"
                         + " resolvable from the coherence-management module on the class path.");
                     }
 
                 XmlElement xml = XmlHelper.loadXml(urlConfig);
+                CacheFactory.log("Loaded management over REST configuration from \"" + urlConfig + '"', Base.LOG_INFO);
                 XmlHelper.replaceSystemProperties(xml, "system-property");
 
                 deps = LegacyXmlProxyServiceHelper.fromXml(
@@ -187,4 +188,9 @@ public abstract class HttpHelper
      * Default Management over REST HTTP port.
      */
     public static final int DEFAULT_MANAGEMENT_OVER_REST_PORT = 30000;
+
+    /**
+     * The name of the Management over REST proxy configuration file.
+     */
+    public static final String MANAGEMENT_CONFIG = "management-http-config.xml";
     }

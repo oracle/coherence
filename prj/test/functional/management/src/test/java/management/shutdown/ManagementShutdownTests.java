@@ -102,14 +102,14 @@ public class ManagementShutdownTests extends AbstractFunctionalTest
         propsServer1.setProperty("coherence.management", "dynamic");
         propsServer1.setProperty("coherence.management.http", "inherit");
         propsServer1.setProperty("coherence.management.readonly", Boolean.toString(false));
-        propsServer1.setProperty("coherence.management.http.port", "0");
+        propsServer1.setProperty("coherence.management.http.override-port", "0");
         propsServer1.setProperty("coherence.management.http.cluster", CLUSTER_NAME);
 
         propsServer1.setProperty("coherence.cluster", CLUSTER_NAME);
         propsServer1.setProperty("coherence.management.extendedmbeanname", "true");
         propsServer1.setProperty("coherence.member", SERVER_PREFIX + "-1");
         propsServer1.setProperty("coherence.management.http", "inherit");
-        propsServer1.setProperty("coherence.management.http.port", "0");
+        propsServer1.setProperty("coherence.management.http.override-port", "0");
 
         try
             {

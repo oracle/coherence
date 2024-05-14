@@ -170,7 +170,7 @@ public class ManagementInfoResourceTests
         propsServer1.setProperty("coherence.management.extendedmbeanname", "true");
         propsServer1.setProperty("coherence.member", SERVER_PREFIX + "-1");
         propsServer1.setProperty("coherence.management.http", "inherit");
-        propsServer1.setProperty("coherence.management.http.port", "0");
+        propsServer1.setProperty("coherence.management.http.override-port", "0");
         propsServer1.setProperty("coherence.management.readonly", Boolean.toString(isReadOnly()));
 
         try
