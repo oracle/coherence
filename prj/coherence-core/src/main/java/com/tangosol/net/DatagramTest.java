@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
@@ -1530,8 +1530,8 @@ public class DatagramTest
                     long ldtSentNanos = stream.readLong();
                     long ldtAckNanos  = stream.readLong();
 
-                    int nCurrent = stream.readInt();
-                    int nBytes   = cbPayload < 0 ? packet.getLength() : Math.min(cbPayload, packet.getLength());
+                    long nCurrent = stream.readLong();
+                    int  nBytes   = cbPayload < 0 ? packet.getLength() : Math.min(cbPayload, packet.getLength());
 
                     lifeTracker.trackArrival(nCurrent, ldtSentNanos, ldtAckNanos, nBytes);
                     nowTracker.trackArrival(nCurrent, ldtSentNanos, ldtAckNanos, nBytes);
@@ -1541,7 +1541,7 @@ public class DatagramTest
                     for (int i = 7/*header length in ints*/, c = nProcess / 4; i < c; ++i)
                         {
                         // check for corrupted packet
-                        int n = stream.readInt();
+                        long n = stream.readLong();
                         if (n != nCurrent)
                             {
                             if (n == 0)
@@ -1664,7 +1664,7 @@ public class DatagramTest
         * @param nCurrent packet number
         * @param cBytes   packet size in bytes
         */
-        public void trackArrival(int nCurrent, long ldtSentNanos, long ldtAckNanos, int cBytes)
+        public void trackArrival(long nCurrent, long ldtSentNanos, long ldtAckNanos, int cBytes)
             {
             long ldtNow = System.currentTimeMillis();
 
