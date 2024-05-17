@@ -7,7 +7,6 @@
 
 package queues;
 
-import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.pof.ConfigurablePofContext;
@@ -17,7 +16,6 @@ import com.tangosol.net.Session;
 
 import org.junit.jupiter.api.AfterEach;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -145,7 +143,6 @@ public abstract class AbstractCollectionTests<NC extends NamedCollection, C exte
         }
 
     @Test
-    @Disabled
     public void shouldGetNewInstanceOfDestroyedQueue()
         {
         String sName = getNewName();
