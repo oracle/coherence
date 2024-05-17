@@ -30,7 +30,7 @@ public class UnusableAggregator<K, V, R>
 
     public R aggregate(Set<? extends InvocableMap.Entry<? extends K, ? extends V>> setEntries)
         {
-        return null;
+        throw new UnsupportedOperationException("Computer says No!");
         }
 
     // ----- PortableObject interface ---------------------------------------

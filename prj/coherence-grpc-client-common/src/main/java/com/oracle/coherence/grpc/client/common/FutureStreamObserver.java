@@ -22,7 +22,7 @@ import java.util.function.BiFunction;
  * @author Jonathan Knight  2020.09.22
  * @since 20.06
  */
-class FutureStreamObserver<T, R>
+public class FutureStreamObserver<T, R>
         extends BaseFutureStreamObserver<T>
     {
     // ----- constructors ---------------------------------------------------
@@ -34,7 +34,7 @@ class FutureStreamObserver<T, R>
      * @param initialResult  the initial result
      * @param function       the function to call for each entry within the stream
      */
-    FutureStreamObserver(CompletableFuture<R> future, R initialResult, BiFunction<T, R, R> function)
+    public FutureStreamObserver(CompletableFuture<R> future, R initialResult, BiFunction<T, R, R> function)
         {
         f_future   = future;
         m_result   = initialResult;
@@ -56,7 +56,14 @@ class FutureStreamObserver<T, R>
         {
         if (!f_future.isDone())
             {
-            m_result = f_function.apply(t, m_result);
+            try
+                {
+                m_result = f_function.apply(t, m_result);
+                }
+            catch (Exception e)
+                {
+                f_future.completeExceptionally(e);
+                }
             }
         }
 

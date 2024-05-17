@@ -9,6 +9,7 @@ package com.oracle.coherence.grpc.proxy.common;
 import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Exceptions;
 
+import com.oracle.coherence.grpc.GrpcService;
 import com.tangosol.application.ContainerContext;
 import com.tangosol.application.Context;
 
@@ -65,6 +66,7 @@ import java.util.stream.Collectors;
  * @since 23.03
  */
 public class BaseGrpcServiceImpl
+        implements GrpcService
     {
     // ----- constructors ---------------------------------------------------
 
@@ -93,6 +95,16 @@ public class BaseGrpcServiceImpl
         }
 
     // ----- accessors ------------------------------------------------------
+
+    /**
+     * Return the service dependencies.
+     *
+     * @return the service dependencies
+     */
+    public Dependencies getDependencies()
+        {
+        return f_dependencies;
+        }
 
     /**
      * Obtain the gRPC metrics instance for this service.
@@ -144,7 +156,7 @@ public class BaseGrpcServiceImpl
      * @return  the {@link ConfigurableCacheFactory} with the specified scope name
      */
     @SuppressWarnings("resource")
-    protected ConfigurableCacheFactory getCCF(String sScope)
+    public ConfigurableCacheFactory getCCF(String sScope)
         {
         Optional<Context> optional         = f_dependencies.getContext();
         ContainerContext  containerContext = null;
@@ -364,7 +376,7 @@ public class BaseGrpcServiceImpl
      *
      * @throws io.grpc.StatusRuntimeException if no serializer is configured with the specified name
      */
-    protected Serializer getSerializer(String sFormat, ClassLoader loader)
+    public Serializer getSerializer(String sFormat, ClassLoader loader)
         {
         Serializer serializer = f_storeSerializer.get(sFormat, loader);
 

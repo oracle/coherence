@@ -10,6 +10,8 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.grpc.SimpleDaemonPoolExecutor;
 
+import com.oracle.coherence.grpc.client.common.v0.GrpcConnectionV0;
+import com.oracle.coherence.grpc.client.common.v1.GrpcConnectionV1;
 import com.oracle.coherence.grpc.internal.GrpcTracingInterceptors;
 
 import com.tangosol.internal.net.grpc.RemoteGrpcServiceDependencies;
@@ -121,21 +123,21 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
         m_channel = channel;
         }
 
-    public void setTracingInterceptor(ClientInterceptor tracingInterceptor)
+    /**
+     * Set the {@link ClientInterceptor} to use for tracing.
+     *
+     * @param interceptor the {@link ClientInterceptor} to use for tracing
+     */
+    public void setTracingInterceptor(ClientInterceptor interceptor)
         {
-        m_tracingInterceptor = tracingInterceptor;
+        m_tracingInterceptor = interceptor;
         }
 
-    public SimpleDaemonPoolExecutor getExecutor()
-        {
-        return m_executor;
-        }
-
-    public void setExecutor(SimpleDaemonPoolExecutor executor)
-        {
-        m_executor = executor;
-        }
-
+    /**
+     * Return the scope name to use on the server.
+     *
+     * @return the scope name to use on the server
+     */
     public String getScopeName()
         {
         return m_sScopeName;
@@ -147,7 +149,48 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
         m_sScopeName = sScopeName;
         }
 
-    // ----- CacheService methods -------------------------------------------
+    /**
+     * Create a {@link GrpcConnection}.
+     *
+     * @param sProtocol    the name of the requested protocol
+     * @param nVersion     the requested protocol version
+     * @param nVersionMin  the minimum supported protocol version
+     *
+     * @return a {@link GrpcConnection} corresponding to the version supported
+     *         by the gRPC proxy service on the server
+     */
+    protected GrpcConnection connect(String sProtocol, int nVersion, int nVersionMin)
+        {
+        GrpcConnection.Dependencies deps = new GrpcConnection.DefaultDependencies(sProtocol, m_dependencies, m_channel,
+                nVersion, nVersionMin, m_serializer);
+        return GrpcRemoteService.connect(deps);
+        }
+
+    /**
+     * Create a {@link GrpcConnection}.
+     *
+     * @param dependencies  the connection dependencies
+     *
+     * @return a {@link GrpcConnection} corresponding to the version supported
+     *         by the gRPC proxy service on the server
+     */
+    public static GrpcConnection connect(GrpcConnection.Dependencies dependencies)
+        {
+        try
+            {
+            GrpcConnection connection = new GrpcConnectionV1(dependencies);
+            connection.connect();
+            return connection;
+            }
+        catch (Exception e)
+            {
+            Logger.info("Could not instantiate V1 gRPC connector. " + e.getMessage());
+            // fall back to the version zero client
+            return new GrpcConnectionV0(dependencies.getChannel());
+            }
+        }
+
+    // ----- Service methods ------------------------------------------------
 
     @Override
     public ClassLoader getContextClassLoader()
@@ -257,9 +300,8 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
             setSerializer(instantiateSerializer(m_classLoader));
             setTracingInterceptor(instantiateTracingInterceptor());
 
-            SimpleDaemonPoolExecutor executor = instantiateExecutor();
-            setExecutor(executor);
-            executor.start();
+            m_executor = instantiateExecutor();
+            m_executor.start();
 
             m_fRunning = true;
             }
@@ -305,8 +347,7 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
                             Logger.err(e);
                             }
                         }
-                    SimpleDaemonPoolExecutor executor = getExecutor();
-                    executor.stop();
+                    m_executor.stop();
                     m_fRunning = false;
                     }
                 }
@@ -374,6 +415,11 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
      */
     protected abstract void stopInternal();
 
+    /**
+     * Return the {@link EventDispatcherRegistry} to use to register interceptors.
+     *
+     * @return the {@link EventDispatcherRegistry}
+     */
     protected EventDispatcherRegistry getEventDispatcherRegistry() {
         EventDispatcherRegistry reg = m_EventDispatcherRegistry;
         if (reg == null)
@@ -383,6 +429,11 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
         return reg;
     }
 
+    /**
+     * Set the {@link EventDispatcherRegistry}.
+     *
+     * @param registryInterceptor the {@link EventDispatcherRegistry}
+     */
     protected void setEventDispatcherRegistry(EventDispatcherRegistry registryInterceptor) {
         m_EventDispatcherRegistry = registryInterceptor;
     }
@@ -408,6 +459,11 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
                 : factory.createSerializer(loader);
         }
 
+    /**
+     * Instantiate the gRPC {@link Channel}.
+     *
+     * @return  the gRPC {@link Channel}
+     */
     protected Channel instantiateChannel()
         {
         D                         deps        = getDependencies();
@@ -441,6 +497,11 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
         return TracingHelper.isEnabled() ? GrpcTracingInterceptors.getClientInterceptor() : null;
         }
 
+    /**
+     * Instantiate the {@link SimpleDaemonPoolExecutor} executor.
+     *
+     * @return  the executor to use to execute tasks
+     */
     protected SimpleDaemonPoolExecutor instantiateExecutor()
         {
         String                        sPoolName    = getServiceName() + "-pool-" + f_cPool.getAndIncrement();
@@ -466,10 +527,19 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
      */
     private final String f_sServiceType;
 
+    /**
+     * The registered member listeners.
+     */
     private final Listeners f_memberListeners = new Listeners();
 
+    /**
+     * The registered service listeners.
+     */
     private final Listeners f_serviceListeners = new Listeners();
 
+    /**
+     * The service's {@link ResourceRegistry}.
+     */
     private final ResourceRegistry f_resourceRegistry = new SimpleResourceRegistry();
 
     /**

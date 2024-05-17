@@ -11,13 +11,22 @@ import com.oracle.bedrock.runtime.coherence.callables.FindGrpcProxyPort;
 
 import com.oracle.coherence.common.base.Exceptions;
 
+import com.oracle.coherence.grpc.NamedCacheProtocol;
+
 import com.oracle.coherence.grpc.client.common.AsyncNamedCacheClient;
+import com.oracle.coherence.grpc.client.common.GrpcConnection;
+import com.oracle.coherence.grpc.client.common.GrpcRemoteService;
 import com.oracle.coherence.grpc.client.common.NamedCacheClient;
+import com.oracle.coherence.grpc.client.common.NamedCacheClientChannel;
+
+import com.oracle.coherence.grpc.client.common.v0.GrpcConnectionV0;
+import com.tangosol.internal.net.grpc.DefaultRemoteGrpcCacheServiceDependencies;
+import com.tangosol.internal.net.grpc.RemoteGrpcServiceDependencies;
+
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;
-
 import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.grpc.GrpcDependencies;
@@ -52,7 +61,7 @@ import java.util.concurrent.TimeUnit;
  * @author Jonathan Knight  2019.11.29
  * @since 20.06
  */
-@SuppressWarnings({"resource", "CallToPrintStackTrace"})
+@SuppressWarnings({"CallToPrintStackTrace"})
 public final class ServerHelper
         implements BeforeAllCallback, AfterAllCallback
     {
@@ -62,6 +71,13 @@ public final class ServerHelper
     public ServerHelper()
         {
         m_properties = new Properties();
+        int    nProtocol = NamedCacheProtocol.VERSION;
+        String sProp     = System.getProperty("test.grpc.cache.protocol");
+        if (sProp != null)
+            {
+            nProtocol = Integer.parseInt(sProp);
+            }
+        m_nProtocolVersion = nProtocol;
         }
 
     @Override
@@ -98,6 +114,16 @@ public final class ServerHelper
         return this;
         }
 
+    public ServerHelper setProtocolVersion(int nVersion)
+        {
+        if (isRunning())
+            {
+            throw new IllegalStateException("The server has already started");
+            }
+        m_nProtocolVersion = nVersion;
+        return this;
+        }
+
     @SuppressWarnings("unchecked")
     public  <K, V> NamedCacheClient<K, V> createClient(String sScope,
                                                        String sCacheName,
@@ -124,7 +150,24 @@ public final class ServerHelper
         deps.setScope(sScope);
         deps.setSerializer(serializer, sFormat);
 
-        return new AsyncNamedCacheClient<>(deps);
+        RemoteGrpcServiceDependencies serviceDeps = new DefaultRemoteGrpcCacheServiceDependencies();
+
+        GrpcConnection connection;
+        if (m_nProtocolVersion == 0)
+            {
+            connection = new GrpcConnectionV0(m_channel);
+            }
+        else
+            {
+            GrpcConnection.Dependencies connectionDeps
+                    = new GrpcConnection.DefaultDependencies(NamedCacheProtocol.PROTOCOL_NAME, serviceDeps,
+                    m_channel, m_nProtocolVersion, m_nProtocolVersion, serializer);
+
+            connection = GrpcRemoteService.connect(connectionDeps);
+            }
+
+        NamedCacheClientChannel protocol = NamedCacheClientChannel.createProtocol(deps, connection);
+        return new AsyncNamedCacheClient<>(deps, protocol);
         }
 
     // ----- helper methods -------------------------------------------------
@@ -221,20 +264,9 @@ public final class ServerHelper
         if (m_channel != null)
             {
             Channel channel = m_channel;
-            if (channel instanceof ManagedChannel)
+            if (channel instanceof ManagedChannel managedChannel)
                 {
-                ManagedChannel managedChannel = (ManagedChannel) channel;
-                managedChannel.shutdown();
-                try
-                    {
-                    if (!managedChannel.awaitTermination(20, TimeUnit.SECONDS))
-                        {
-                        managedChannel.shutdownNow();
-                        }
-                    }
-                catch (InterruptedException ignored)
-                    {
-                    }
+                managedChannel.shutdownNow();
                 }
             }
         Coherence.closeAll();
@@ -263,6 +295,8 @@ public final class ServerHelper
     // ----- data members ---------------------------------------------------
 
     String m_sScope = GrpcDependencies.DEFAULT_SCOPE;
+
+    private int m_nProtocolVersion;
 
     private Session m_session;
 

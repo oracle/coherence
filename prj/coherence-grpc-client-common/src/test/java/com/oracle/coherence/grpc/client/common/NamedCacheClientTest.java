@@ -725,12 +725,12 @@ class NamedCacheClientTest
         {
         AsyncNamedCacheClient<String, String> async = mock(AsyncNamedCacheClient.class);
 
-        when(async.isActive()).thenReturn(TRUE_FUTURE);
+        when(async.isActiveInternal()).thenReturn(true);
 
         NamedCacheClient<String, String> client = new NamedCacheClient<>(async);
         boolean result = client.isActive();
 
-        verify(async).isActive();
+        verify(async).isActiveInternal();
         assertThat(result, is(true));
         }
 
@@ -739,13 +739,13 @@ class NamedCacheClientTest
         {
         AsyncNamedCacheClient<String, String> async = mock(AsyncNamedCacheClient.class);
 
-        when(async.isActive()).thenReturn(failedFuture());
+        when(async.isActiveInternal()).thenThrow(new RequestIncompleteException(ERROR));
 
         NamedCacheClient<String, String> client = new NamedCacheClient<>(async);
 
         RequestIncompleteException ex = assertThrows(RequestIncompleteException.class, client::isActive);
 
-        verify(async).isActive();
+        verify(async).isActiveInternal();
         assertThat(rootCause(ex), is(sameInstance(ERROR)));
         }
 

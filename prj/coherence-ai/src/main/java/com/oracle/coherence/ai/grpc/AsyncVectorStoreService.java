@@ -12,7 +12,7 @@ import com.google.protobuf.Empty;
 import com.oracle.coherence.grpc.ErrorsHelper;
 import com.oracle.coherence.grpc.SafeStreamObserver;
 
-import com.oracle.coherence.grpc.proxy.common.ResponseHandlers;
+import com.oracle.coherence.grpc.proxy.common.v0.ResponseHandlers;
 
 import io.grpc.stub.StreamObserver;
 

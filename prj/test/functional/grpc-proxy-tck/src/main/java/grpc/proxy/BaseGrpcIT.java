@@ -13,12 +13,9 @@ import com.google.protobuf.BytesValue;
 import com.oracle.coherence.common.base.Classes;
 
 import com.oracle.coherence.grpc.BinaryHelper;
-import com.oracle.coherence.grpc.Entry;
-import com.oracle.coherence.grpc.MapEventResponse;
-import com.oracle.coherence.grpc.MapListenerResponse;
 
-import com.oracle.coherence.grpc.proxy.common.NamedCacheService;
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;
 
@@ -35,18 +32,21 @@ import com.tangosol.net.OperationalContext;
 import com.tangosol.net.Session;
 
 import com.tangosol.net.SessionConfiguration;
-import com.tangosol.net.grpc.GrpcAcceptorController;
+import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
 
+import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapIndex;
+import com.tangosol.util.MapListener;
 import com.tangosol.util.NullImplementation;
-import com.tangosol.util.ObservableMap;
 import com.tangosol.util.ValueExtractor;
 
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.observers.TestObserver;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -59,7 +59,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -72,10 +71,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 
 /**
  * A base class for gRPC proxy integration tests.
@@ -140,22 +139,6 @@ public abstract class BaseGrpcIT
 
     // ----- helper methods -------------------------------------------------
 
-    /**
-     * Create an instance of the {@link NamedCacheService} to use for testing.
-     *
-     * @return an instance of the {@link NamedCacheService} to use for testing
-     */
-    protected NamedCacheService createCacheService()
-        {
-        GrpcAcceptorController                controller = GrpcAcceptorController.discoverController();
-        NamedCacheService.DefaultDependencies deps       = new NamedCacheService.DefaultDependencies(controller.getServerType());
-
-        deps.setConfigurableCacheFactorySupplier(this::ensureCCF);
-        Optional<TestNamedCacheServiceProvider> optional = TestNamedCacheServiceProvider.getProvider();
-        assertThat("Cannot find a TestNamedCacheServiceProvider instance, are you running this test from the TCK module instead of from one of the specific Netty or Helidon test modules",
-                optional.isPresent(), is(true));
-        return optional.get().getService(deps);
-        }
 
     protected static Stream<Arguments> getTestScopes()
         {
@@ -207,36 +190,7 @@ public abstract class BaseGrpcIT
         return list.stream();
         }
 
-    protected <K, V> List<MapEvent<K, V>> toMapEvents(ObservableMap<K, V> map, List<MapListenerResponse> responses,
-                                                      Serializer serializer)
-        {
-        return toMapEventsForFilterId(map, responses, serializer, -1);
-        }
 
-    protected <K, V> List<MapEvent<K, V>> toMapEventsForFilterId(ObservableMap<K, V> map,
-                                                                 List<MapListenerResponse> responses,
-                                                                 Serializer serializer, long filterId)
-        {
-        List<MapEvent<K, V>> events = new ArrayList<>();
-        for (MapListenerResponse response : responses)
-            {
-            if (response.getResponseTypeCase() == MapListenerResponse.ResponseTypeCase.EVENT)
-                {
-                MapEventResponse event = response.getEvent();
-                assertThat(event, is(notNullValue()));
-
-                if (filterId <= 0 || event.getFilterIdsList().contains(filterId))
-                    {
-                    events.add(new MapEvent<>(map,
-                                              event.getId(),
-                                              BinaryHelper.fromByteString(event.getKey(), serializer),
-                                              BinaryHelper.fromByteString(event.getOldValue(), serializer),
-                                              BinaryHelper.fromByteString(event.getNewValue(), serializer)));
-                    }
-                }
-            }
-        return events;
-        }
 
     /**
      * Assert at two lists of {@link MapEvent}s are equal.
@@ -346,49 +300,6 @@ public abstract class BaseGrpcIT
         }
 
     /**
-     * Convert a list of {@link Entry} instances into a {@link Map}.
-     *
-     * @param list       the list of {@link Entry} instances
-     * @param serializer the serializer to use to deserialize the keys and values
-     * @param <K>        the type of the entry key
-     * @param <V>        the type of te entry value
-     *
-     * @return the {@link Map} of entries
-     */
-    protected <K, V> LinkedHashMap<K, V> toMap(List<Entry> list, Serializer serializer)
-        {
-        LinkedHashMap<K, V> map = new LinkedHashMap<>();
-        for (Entry entry : list)
-            {
-            map.put(BinaryHelper.fromByteString(entry.getKey(), serializer),
-                    BinaryHelper.fromByteString(entry.getValue(), serializer));
-            }
-        return map;
-        }
-
-    /**
-     * Convert a list of {@link Entry} instances into a {@link List} of {@link Map.Entry}
-     * instances with deserialized keys and values.
-     *
-     * @param list       the list of {@link Entry} instances
-     * @param serializer the serializer to use to deserialize the keys and values
-     * @param <K>        the type of the entry key
-     * @param <V>        the type of te entry value
-     *
-     * @return the {@link Map} of entries
-     */
-    protected <K, V> List<Map.Entry<K, V>> toList(List<Entry> list, Serializer serializer)
-        {
-        LinkedHashMap<K, V> map = new LinkedHashMap<>();
-        for (Entry entry : list)
-            {
-            map.put(BinaryHelper.fromByteString(entry.getKey(), serializer),
-                    BinaryHelper.fromByteString(entry.getValue(), serializer));
-            }
-        return new ArrayList<>(map.entrySet());
-        }
-
-    /**
      * Remove all the indexes from the cache and return its index map.
      *
      * @param cache the cache to remove indexes from
@@ -428,6 +339,24 @@ public abstract class BaseGrpcIT
         {
         ConfigurableCacheFactory ccf = ensureCCF(scope);
         return ccf.ensureCache(name, loader);
+        }
+
+
+    /**
+     * Obtain the specified {@link NamedCache}.
+     *
+     * @param <K>  the type of the cache keys
+     * @param <V>  the type of the cache values
+     *
+     * @param sScope  the scope name of the cache
+     * @param name    the cache name
+     * @return the specified {@link NamedCache}
+     */
+    protected <K, V> NamedCache<K, V> ensureEmptyCache(String sScope, String name)
+        {
+        NamedCache<K, V> cache = ensureCache(sScope, name, Base.getContextClassLoader());
+        cache.clear();
+        return cache;
         }
 
     /**
@@ -533,6 +462,58 @@ public abstract class BaseGrpcIT
     @Retention(RetentionPolicy.RUNTIME)
     public @interface WithNullScopeName
         {
+        }
+
+    // ----- inner class: CollectingMapListener -----------------------------
+
+    @SuppressWarnings("unchecked")
+    protected static class CollectingMapListener<K, V>
+            extends TestObserver<MapEvent<K, V>>
+            implements MapListener<K, V>
+        {
+        public CollectingMapListener()
+            {
+            onSubscribe(mock(Disposable.class));
+            }
+
+        /**
+         * Return the number of values received.
+         *
+         * @return the number of values received
+         */
+        public int count()
+            {
+            return values.size();
+            }
+
+        @Override
+        public void entryInserted(MapEvent<K, V> mapEvent)
+            {
+            onNext(toSimpleEvent(mapEvent));
+            }
+
+        @Override
+        public void entryUpdated(MapEvent<K, V> mapEvent)
+            {
+            onNext(toSimpleEvent(mapEvent));
+            }
+
+        @Override
+        public void entryDeleted(MapEvent<K, V> mapEvent)
+            {
+            onNext(toSimpleEvent(mapEvent));
+            }
+
+        @SuppressWarnings("rawtypes")
+        protected MapEvent<K, V> toSimpleEvent(MapEvent<K, V> event)
+            {
+            if (event instanceof CacheEvent)
+                {
+                CacheEvent<K, V> ce = (CacheEvent) event;
+                return new CacheEvent<>(ce.getMap(), ce.getId(), ce.getKey(), ce.getOldValue(), ce.getNewValue(), ce.isSynthetic(), ce.getTransformationState(), ce.isPriming());
+                }
+            return new MapEvent<>(event.getMap(), event.getId(), event.getKey(), event.getOldValue(), event.getNewValue());
+            }
         }
 
     // ----- data members ---------------------------------------------------

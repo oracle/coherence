@@ -10,17 +10,18 @@ package netty.grpc.proxy;
 import com.google.protobuf.ByteString;
 
 import com.oracle.coherence.grpc.BinaryHelper;
-import com.oracle.coherence.grpc.MapEventResponse;
-import com.oracle.coherence.grpc.MapListenerErrorResponse;
-import com.oracle.coherence.grpc.MapListenerRequest;
-import com.oracle.coherence.grpc.MapListenerResponse;
-import com.oracle.coherence.grpc.MapListenerSubscribedResponse;
-import com.oracle.coherence.grpc.MapListenerUnsubscribedResponse;
-import com.oracle.coherence.grpc.Requests;
+import com.oracle.coherence.grpc.v0.Requests;
+
+import com.oracle.coherence.grpc.messages.cache.v0.MapEventResponse;
+import com.oracle.coherence.grpc.messages.cache.v0.MapListenerErrorResponse;
+import com.oracle.coherence.grpc.messages.cache.v0.MapListenerRequest;
+import com.oracle.coherence.grpc.messages.cache.v0.MapListenerResponse;
+import com.oracle.coherence.grpc.messages.cache.v0.MapListenerSubscribedResponse;
+import com.oracle.coherence.grpc.messages.cache.v0.MapListenerUnsubscribedResponse;
 
 import com.oracle.coherence.grpc.proxy.common.ConfigurableCacheFactorySuppliers;
-import com.oracle.coherence.grpc.proxy.common.MapListenerProxy;
-import com.oracle.coherence.grpc.proxy.common.NamedCacheService;
+import com.oracle.coherence.grpc.proxy.common.v0.MapListenerProxy;
+import com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService;
 
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.NamedSerializerFactory;

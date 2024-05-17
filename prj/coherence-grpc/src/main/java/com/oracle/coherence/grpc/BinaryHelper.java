@@ -20,15 +20,13 @@ import com.tangosol.io.Serializer;
 import com.tangosol.io.nio.ByteBufferReadBuffer;
 
 import com.tangosol.net.cache.KeyAssociation;
+
 import com.tangosol.net.partition.KeyPartitioningStrategy;
+
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 
-import java.util.List;
-import java.util.Map;
-
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -242,56 +240,6 @@ public final class BinaryHelper
         {
         Binary binary = ExternalizableHelper.toBinary(value, serializer);
         return toByteString(binary);
-        }
-
-    /**
-     * Create a {@link Map} to a list of {@link Entry} instances.
-     *
-     * @param map         the {@link Map} to convert to a list of {@link Entry} instances
-     * @param serializer  the {@link Serializer} to use
-     *
-     * @return a list of {@link Entry} instances
-     *
-     * @throws NullPointerException if the map is {@code null}
-     */
-    public static List<Entry> toEntryList(Map<?, ?> map, Serializer serializer)
-        {
-        return map.entrySet()
-                .stream()
-                .map(e -> toEntry(e, serializer))
-                .collect(Collectors.toList());
-        }
-
-    /**
-     * Create an {@link Entry} from a {@link Map.Entry}.
-     *
-     * @param entry       the {@link Map.Entry} to convert to an {@link Entry}
-     * @param serializer  the {@link Serializer} to use
-     *
-     * @return an {@link Entry} containing the specified key and value
-     *
-     * @throws NullPointerException if the entry is {@code null}
-     */
-    public static Entry toEntry(Map.Entry<?, ?> entry, Serializer serializer)
-        {
-        Binary binary = ExternalizableHelper.toBinary(entry.getKey(), serializer);
-        return toEntry(toByteString(binary), toByteString(entry.getValue(), serializer));
-        }
-
-    /**
-     * Create an {@link Entry} containing the specified key and value.
-     *
-     * @param key    the entry's key
-     * @param value  the entry's value
-     *
-     * @return an {@link Entry} containing the specified key and value
-     */
-    public static Entry toEntry(ByteString key, ByteString value)
-        {
-        return Entry.newBuilder()
-                .setKey(key)
-                .setValue(value)
-                .build();
         }
 
     /**

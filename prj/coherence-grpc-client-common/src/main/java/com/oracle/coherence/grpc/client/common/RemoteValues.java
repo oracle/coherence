@@ -51,7 +51,7 @@ public class RemoteValues<K, V>
      *
      * @param client  the {@link AsyncNamedCacheClient} that this key set is linked to
      */
-    protected RemoteValues(AsyncNamedCacheClient<K, V> client)
+    public RemoteValues(AsyncNamedCacheClient<K, V> client)
         {
         super(client);
         }
@@ -144,8 +144,8 @@ public class RemoteValues<K, V>
         @SuppressWarnings("unchecked")
         protected ValuesIterator(AsyncNamedCacheClient<K, V> client)
             {
-            this.f_client   = client;
-            this.f_iterator = new PagedIterator(new EntryAdvancer(client));
+            f_client   = client;
+            f_iterator = new PagedIterator(client.createEntryAdvancer());
             }
 
         // ----- Iterator interface -----------------------------------------

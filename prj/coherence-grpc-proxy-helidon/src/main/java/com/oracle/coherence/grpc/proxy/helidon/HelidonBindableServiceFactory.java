@@ -10,8 +10,9 @@ package com.oracle.coherence.grpc.proxy.helidon;
 import com.oracle.coherence.grpc.proxy.common.BindableGrpcProxyService;
 import com.oracle.coherence.grpc.proxy.common.BindableServiceFactory;
 import com.oracle.coherence.grpc.proxy.common.GrpcServiceDependencies;
-import com.oracle.coherence.grpc.proxy.common.NamedCacheService;
-import com.oracle.coherence.grpc.proxy.common.NamedCacheServiceGrpcImpl;
+import com.oracle.coherence.grpc.proxy.common.ProxyServiceGrpcImpl;
+import com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService;
+import com.oracle.coherence.grpc.proxy.common.v0.NamedCacheServiceGrpcImpl;
 
 import com.tangosol.net.grpc.GrpcDependencies;
 
@@ -28,10 +29,12 @@ public class HelidonBindableServiceFactory
         {
         if (depsService.getServerType() == GrpcDependencies.ServerType.Synchronous)
             {
-            NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(depsService);
-            deps.setExecutor(Runnable::run);
+            ProxyServiceGrpcImpl.Dependencies     depsProxy = new ProxyServiceGrpcImpl.DefaultDependencies(depsService);
+            NamedCacheService.DefaultDependencies depsCache = new NamedCacheService.DefaultDependencies(depsService);
+            depsCache.setExecutor(Runnable::run);
 
-            return List.of(new NamedCacheServiceGrpcImpl(HelidonNamedCacheService.newInstance(deps)));
+            return List.of(new NamedCacheServiceGrpcImpl(HelidonNamedCacheService.newInstance(depsCache)),
+                    new ProxyServiceGrpcImpl(depsProxy));
             }
         return List.of();
         }

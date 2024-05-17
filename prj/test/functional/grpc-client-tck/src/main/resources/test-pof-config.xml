@@ -47,5 +47,10 @@
             <class-name>grpc.client.GetEntryPartition</class-name>
         </user-type>
 
+        <user-type>
+            <type-id>2009</type-id>
+            <class-name>grpc.client.GetEntryExpiry</class-name>
+        </user-type>
+
     </user-type-list>
 </pof-config>

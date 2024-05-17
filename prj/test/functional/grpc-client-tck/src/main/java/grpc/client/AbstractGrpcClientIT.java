@@ -58,12 +58,9 @@ import com.tangosol.util.filter.MapEventFilter;
 
 import com.tangosol.util.processor.ExtractorProcessor;
 
-import io.grpc.StatusRuntimeException;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -85,14 +82,12 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -100,6 +95,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
+
+import static org.hamcrest.number.OrderingComparison.greaterThan;
+import static org.hamcrest.number.OrderingComparison.lessThan;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.same;
@@ -160,11 +158,8 @@ public abstract class AbstractGrpcClientIT
 
         NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
 
-        RequestIncompleteException rie = assertThrows(RequestIncompleteException.class,
+        assertThrows(RequestIncompleteException.class,
                 () -> grpcClient.aggregate(new UnusableAggregator<>()));
-
-        assertThat(rie.getCause(), instanceOf(ExecutionException.class));
-        assertThat(rie.getCause().getCause(), instanceOf(StatusRuntimeException.class));
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")
@@ -616,22 +611,33 @@ public abstract class AbstractGrpcClientIT
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
-    public void shouldInsertNewEntryWithExpiry(String sSerializerName, Serializer serializer) throws Exception
+    public void shouldUpdateNewEntryWithNewExpiry(String sSerializerName, Serializer serializer) throws Exception
         {
         String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
+        long cMillisInitial = 50000L;
+        long cExpireInitial = System.currentTimeMillis() + cMillisInitial - 1L;
+
         NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
-        String                     result     = grpcClient.put("key-1", "value-1", 500000L);
+        String                     result     = grpcClient.put("key-1", "value-1", cMillisInitial);
         assertThat(result, is(nullValue()));
+
+        long nExpiryActual = cache.invoke("key-1", GetEntryExpiry.instance());
+        assertThat(nExpiryActual, is(greaterThan(cExpireInitial)));
 
         assertThat(cache.get("key-1"), is("value-1"));
 
+        long cMillisUpdate = 20000L;
+        long cExpireUpdate = System.currentTimeMillis() + cMillisUpdate - 1L;
+
         // update the entry with a short TTL
-        grpcClient.put("key-1", "value-1", 1000L);
-        Thread.sleep(2000L);
-        assertThat(cache.get("key-1"), is(nullValue()));
+        grpcClient.put("key-1", "value-1", cMillisUpdate);
+
+        nExpiryActual = cache.invoke("key-1", GetEntryExpiry.instance());
+        assertThat(nExpiryActual, is(greaterThan(cExpireUpdate)));
+        assertThat(nExpiryActual, is(lessThan(cExpireInitial)));
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")
@@ -807,11 +813,15 @@ public abstract class AbstractGrpcClientIT
 
         NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
 
-        AsyncNamedCache<String, String> async = grpcClient.async();
-        async.putAll(map, 5000L).get(1, TimeUnit.MINUTES);
+        long cMillis = 50000L;
+        long cExpire = System.currentTimeMillis() + cMillis - 1L;
 
-        assertThat(cache.size(), is(2));
-        Eventually.assertDeferred(cache::size, is(0));
+        AsyncNamedCache<String, String> async = grpcClient.async();
+        async.putAll(map, cMillis).get(1, TimeUnit.MINUTES);
+        long nExpiry1 = cache.invoke("key-1", GetEntryExpiry.instance());
+        long nExpiry2 = cache.invoke("key-2", GetEntryExpiry.instance());
+        assertThat(nExpiry1, is(greaterThan(cExpire)));
+        assertThat(nExpiry2, is(greaterThan(cExpire)));
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")
@@ -1992,17 +2002,15 @@ public abstract class AbstractGrpcClientIT
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
-    @Disabled
     public void shouldSubscribeToEventsForKeyAndFilter(String sSerializerName, Serializer serializer) throws Exception
         {
         String                      cacheName = createCacheName("test-events");
         NamedCache<String, Integer> cache     = ensureCache(cacheName);
         cache.clear();
 
-        MapEventFilter<String, Integer> filter = new MapEventFilter<>(Filters.less(Extractors.identity(), 10));
+        MapEventFilter<String, Integer> filter     = new MapEventFilter<>(Filters.less(Extractors.identity(), 10));
+        NamedCache<String, Integer>     grpcClient = createClient(cacheName, sSerializerName, serializer);
 
-        NamedCache<String, Integer>      grpcClient            = createClient(cacheName, sSerializerName,
-                                                                              serializer);
         CollectingMapListener<String, Integer> listenerFilterTest = new CollectingMapListener<>(20);
         CollectingMapListener<String, Integer> listenerKeyTest    = new CollectingMapListener<>(3);
 
@@ -2012,14 +2020,15 @@ public abstract class AbstractGrpcClientIT
         // update the cache to generate events
         generateCacheEvents(cache);
 
-        assertThat(listenerFilterTest.awaitEvents(3, TimeUnit.SECONDS), is(true));
+        assertThat(listenerFilterTest.awaitEvents(30, TimeUnit.SECONDS), is(true));
         assertThat("Incorrect number of insert events (filter)", listenerFilterTest.getInsertCount(), is(10));
         assertThat("Incorrect number of update events (filter)", listenerFilterTest.getUpdateCount(), is(10));
         assertThat("Incorrect number of delete events (filter)", listenerFilterTest.getDeleteCount(), is(0));
 
-        assertThat("Incorrect number of insert events (key)", listenerKeyTest.getInsertCount(), is(3));
-        assertThat("Incorrect number of update events (key)", listenerKeyTest.getUpdateCount(), is(3));
-        assertThat("Incorrect number of delete events (key)", listenerKeyTest.getDeleteCount(), is(3));
+        assertThat(listenerKeyTest.awaitEvents(30, TimeUnit.SECONDS), is(true));
+        assertThat("Incorrect number of insert events (key)", listenerKeyTest.getInsertCount(), is(1));
+        assertThat("Incorrect number of update events (key)", listenerKeyTest.getUpdateCount(), is(1));
+        assertThat("Incorrect number of delete events (key)", listenerKeyTest.getDeleteCount(), is(1));
         }
 
     private static void generateCacheEvents(NamedCache<String, Integer> cache)
@@ -2047,7 +2056,7 @@ public abstract class AbstractGrpcClientIT
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
-        TestDeactivationListener         listener = new TestDeactivationListener(1);
+        TestDeactivationListener   listener    = new TestDeactivationListener(1);
         NamedCache<String, String> grpcClient  = createClient(cacheName, sSerializerName, serializer);
         grpcClient.addMapListener(listener);
 

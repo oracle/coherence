@@ -9,10 +9,11 @@ package com.oracle.coherence.grpc.client.common;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 import com.google.protobuf.UnsafeByteOperations;
+
 import com.oracle.coherence.common.base.Classes;
 
 import com.oracle.coherence.grpc.BinaryHelper;
-import com.oracle.coherence.grpc.OptionalValue;
+import com.oracle.coherence.grpc.MaybeByteString;
 import com.oracle.coherence.grpc.SimpleDaemonPoolExecutor;
 
 import com.tangosol.coherence.config.Config;
@@ -25,11 +26,14 @@ import com.tangosol.net.events.EventDispatcher;
 
 import com.tangosol.net.grpc.GrpcDependencies;
 
-import com.tangosol.net.partition.KeyPartitioningStrategy;
 import com.tangosol.util.Binary;
+import com.tangosol.util.ConverterCollections;
 import com.tangosol.util.ExternalizableHelper;
+
 import io.grpc.Channel;
 
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import java.util.concurrent.CompletableFuture;
@@ -44,7 +48,7 @@ import java.util.concurrent.Executors;
  * @author Jonathan Knight  2023.02.02
  * @since 23.03
  */
-public abstract class BaseGrpcClient<V>
+public abstract class BaseGrpcClient<V, ClientType extends ClientProtocol>
     {
     // ----- constructors ---------------------------------------------------
 
@@ -54,9 +58,11 @@ public abstract class BaseGrpcClient<V>
      *
      * @param dependencies  the {@link AsyncNamedCacheClient.Dependencies} to configure this
      *                      {@link AsyncNamedCacheClient}.
+     * @param client        the {@link NamedCacheClientChannel} to use to send requests
      */
-    public BaseGrpcClient(Dependencies dependencies)
+    public BaseGrpcClient(Dependencies dependencies, ClientType client)
         {
+        f_client       = Objects.requireNonNull(client);
         f_dependencies = dependencies;
         f_sName        = dependencies.getName();
         f_dispatcher   = dependencies.getEventDispatcher();
@@ -99,7 +105,7 @@ public abstract class BaseGrpcClient<V>
      */
     public boolean isActiveInternal()
         {
-        return !m_fReleased && !m_fDestroyed;
+        return f_client.isActive() && !m_fReleased && !m_fDestroyed;
         }
 
     /**
@@ -121,7 +127,7 @@ public abstract class BaseGrpcClient<V>
      *
      * @return the default serialization format
      */
-    protected static String getDefaultSerializerFormat()
+    public static String getDefaultSerializerFormat()
         {
         return Config.getBoolean("coherence.pof.enabled") ? "pof" : "java";
         }
@@ -143,9 +149,23 @@ public abstract class BaseGrpcClient<V>
      *
      * @return the {@link BytesValue} for the specified object
      */
-    protected BytesValue toBytesValue(Object obj)
+    public BytesValue toBytesValue(Object obj)
         {
         return BytesValue.of(toByteString(obj));
+        }
+
+    /**
+     * A utility method to serialize an Object to {@link ByteString}
+     * or return {@code null} if the value is {@code null}.
+     *
+     * @param obj  the object to convert to {@link ByteString}.
+     *
+     * @return the {@link ByteString} for the specified object or
+     *         {@code null} if the value is {@code null}
+     */
+    public ByteString toByteStringOrNull(Object obj)
+        {
+        return obj == null ? null : toByteString(obj);
         }
 
     /**
@@ -155,7 +175,7 @@ public abstract class BaseGrpcClient<V>
      *
      * @return the {@link ByteString} for the specified object
      */
-    protected ByteString toByteString(Object obj)
+    public ByteString toByteString(Object obj)
         {
         return UnsafeByteOperations.unsafeWrap(ExternalizableHelper.toBinary(obj, f_serializer).toByteBuffer());
         }
@@ -167,7 +187,7 @@ public abstract class BaseGrpcClient<V>
      *
      * @return the {@link ByteString} for the specified key object
      */
-    protected ByteString toKeyByteString(Object obj)
+    public ByteString toKeyByteString(Object obj)
         {
         Binary bin = ExternalizableHelper.toBinary(obj, f_serializer);
         if (f_fDeferKeyAssociationCheck)
@@ -191,24 +211,34 @@ public abstract class BaseGrpcClient<V>
         }
 
     /**
-     * A utility method to deserialize an {@link OptionalValue} to an Object.
-     * <p>
-     * If no value is present in the {@link OptionalValue} then the default
-     * value is returned.
+     * Convert a {@link Map} of {@link ByteString} keys and values
+     * to a deserialized map.
      *
-     * @param optional      the {@link OptionalValue} to deserialize an Object.
-     * @param defaultValue  the value to return if the {link @OptionalValue} does
-     *                      not contain a value
+     * @param map     the map to convert
+     * @param <KOut>  the type of the deserialized key
+     * @param <VOut>  the type of the deserialized value
      *
-     * @return an object from the specified {@link BytesValue}
+     * @return  the deserialized map
      */
-    protected V valueFromOptionalValue(OptionalValue optional, V defaultValue)
+    <KOut, VOut> Map<KOut, VOut> toMap(Map<ByteString, ByteString> map)
         {
-        if (optional.getPresent())
-            {
-            return fromByteString(optional.getValue());
-            }
-        return defaultValue;
+        return ConverterCollections.getMap(map, this::fromByteString, this::toByteString, this::fromByteString, this::toByteString);
+        }
+
+
+    /**
+     * Convert a {@link Map.Entry} of {@link ByteString} keys and values
+     * to a deserialized map.
+     *
+     * @param entry   the {@link Map.Entry} to convert
+     * @param <KOut>  the type of the deserialized key
+     * @param <VOut>  the type of the deserialized value
+     *
+     * @return  the deserialized map
+     */
+    <KOut, VOut> Map.Entry<KOut, VOut> toMapEntry(Map.Entry<ByteString, ByteString> entry)
+        {
+        return ConverterCollections.getEntry(entry, this::fromByteString, this::fromByteString, this::toByteString);
         }
 
     /**
@@ -218,7 +248,7 @@ public abstract class BaseGrpcClient<V>
      *
      * @return an object from the specified {@link BytesValue}
      */
-    protected V valueFromBytesValue(BytesValue bv)
+    public V valueFromBytesValue(BytesValue bv)
         {
         return fromBytesValue(bv);
         }
@@ -230,7 +260,7 @@ public abstract class BaseGrpcClient<V>
      *
      * @return an object from the specified {@link BytesValue}
      */
-    protected <T> T fromBytesValue(BytesValue bytes)
+    public <T> T fromBytesValue(BytesValue bytes)
         {
         return BinaryHelper.fromBytesValue(bytes, f_serializer);
         }
@@ -242,9 +272,27 @@ public abstract class BaseGrpcClient<V>
      *
      * @return an object from the specified {@link ByteString}
      */
-    protected <T> T fromByteString(ByteString bytes)
+    public <T> T fromByteString(ByteString bytes)
         {
         return BinaryHelper.fromByteString(bytes, f_serializer);
+        }
+
+
+    /**
+     * A utility method to deserialize a {@link MaybeByteString} to an Object.
+     *
+     * @param bytes         the {@link MaybeByteString} to deserialize an Object.
+     * @param defaultValue  the value to return if the {@link MaybeByteString} is empty
+     *
+     * @return an object from the specified {@link MaybeByteString}
+     */
+    public <T> T fromByteString(MaybeByteString bytes, T defaultValue)
+        {
+        if (bytes.isPresent())
+            {
+            return BinaryHelper.fromByteString(bytes.value(), f_serializer);
+            }
+        return defaultValue;
         }
 
     /**
@@ -255,7 +303,7 @@ public abstract class BaseGrpcClient<V>
      *
      * @return a failed {@link CompletableFuture}
      */
-    protected  <T> CompletableFuture<T> failedFuture(Throwable t)
+    public <T> CompletableFuture<T> failedFuture(Throwable t)
         {
         CompletableFuture<T> future = new CompletableFuture<>();
         future.completeExceptionally(t);
@@ -575,6 +623,11 @@ public abstract class BaseGrpcClient<V>
         }
 
     // ----- data members ---------------------------------------------------
+
+    /**
+     * The client to use to send requests.
+     */
+    protected final ClientType f_client;
 
     /**
      * The scope name to use for requests.

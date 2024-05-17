@@ -54,7 +54,7 @@ public class RemoteKeySet<K, V>
      *
      * @param client the {@link NamedCacheClient} that this key set is linked to
      */
-    protected RemoteKeySet(AsyncNamedCacheClient<K, V> client)
+    public RemoteKeySet(AsyncNamedCacheClient<K, V> client)
         {
         super(client);
         }

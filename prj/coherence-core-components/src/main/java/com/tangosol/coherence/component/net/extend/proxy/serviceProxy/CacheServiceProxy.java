@@ -474,16 +474,8 @@ public class CacheServiceProxy
      * Return the Serializer associated with the given NamedCache or null if the
     * NamedCache is an in-process cache.
      */
-    protected static com.tangosol.io.Serializer getSerializer(com.tangosol.net.NamedCache cache)
+    public static Serializer getSerializer(NamedCache cache)
         {
-        // import Component.Util.SafeNamedCache;
-        // import com.tangosol.io.Serializer;
-        // import com.tangosol.net.CacheService;
-        // import com.tangosol.net.NamedCache;
-        // import com.tangosol.net.cache.NearCache;
-        // import com.tangosol.net.cache.WrapperNamedCache;
-        // import java.util.Map;
-        
         Serializer serializer = null;
         
         if (cache instanceof WrapperNamedCache)

@@ -9,7 +9,7 @@ package netty.grpc.proxy;
 
 
 import com.oracle.coherence.grpc.proxy.NettyNamedCacheService;
-import com.oracle.coherence.grpc.proxy.common.NamedCacheService;
+import com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService;
 import grpc.proxy.TestNamedCacheServiceProvider;
 
 public class TestNamedCacheServiceProviderImpl

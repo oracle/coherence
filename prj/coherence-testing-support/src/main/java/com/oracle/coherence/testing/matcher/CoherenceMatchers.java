@@ -1,12 +1,16 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.testing.matcher;
 
+import com.tangosol.net.cache.CacheEvent;
+import com.tangosol.util.MapEvent;
 import org.hamcrest.Matcher;
+
+import java.util.List;
 
 /**
  * This class provides static helpers to fluently express assertion
@@ -37,4 +41,16 @@ public class CoherenceMatchers
         {
         return new ThreadGroupMatcher<T>(matcher);
         }
+
+    public static  Matcher<CacheEvent<?, ?>> cacheEvent(CacheEvent<?, ?> event)
+        {
+        return new CacheEventMatcher<>(event);
+        }
+
+    @SuppressWarnings("rawtypes")
+    public static <K, V, T extends List<? super CacheEvent<K, V>>> Matcher<T> cacheEvents(T list)
+        {
+        return new CacheEventMatcher(list);
+        }
+
     }

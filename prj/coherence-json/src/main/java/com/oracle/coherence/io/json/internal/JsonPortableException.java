@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.io.json.internal;
+
+import jakarta.json.bind.annotation.JsonbProperty;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -21,6 +23,10 @@ public class JsonPortableException
         extends RuntimeException
     {
     // ----- constructors ---------------------------------------------------
+
+    public JsonPortableException()
+        {
+        }
 
     /**
      * Create a {@link JsonPortableException}.
@@ -194,15 +200,18 @@ public class JsonPortableException
     /**
      * The exception's name.
      */
-    protected final String f_sName;
+    @JsonbProperty("name")
+    protected String f_sName;
 
     /**
      * The exception's message.
      */
-    protected final String f_sMessage;
+    @JsonbProperty("message")
+    protected String f_sMessage;
 
     /**
      * A raw representation of the remote stack trace for this exception.
      */
-    protected final String[] f_asStack;
+    @JsonbProperty("stack")
+    protected String[] f_asStack;
     }

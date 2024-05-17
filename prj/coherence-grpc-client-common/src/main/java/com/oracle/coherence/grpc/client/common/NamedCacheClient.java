@@ -14,6 +14,7 @@ import com.tangosol.net.RequestIncompleteException;
 
 import com.tangosol.net.cache.CacheMap;
 
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.Filter;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.ValueExtractor;
@@ -45,14 +46,18 @@ public class NamedCacheClient<K, V>
     // ----- constructors ---------------------------------------------------
 
     /**
-     * Creates a {@link NamedCacheClient} with the specified cache name
-     * and {@link NamedCacheGrpcClient}.
+     * Creates a {@link NamedCacheClient} wrapping the specified {@link AsyncNamedCacheClient}.
      *
      * @param asyncClient  the asynchronous client
      */
     protected NamedCacheClient(AsyncNamedCacheClient<K, V> asyncClient)
         {
         f_asyncClient = asyncClient;
+
+        AsyncNamedCacheClient.Dependencies dependencies = asyncClient.getDependencies();
+        f_deadline    = dependencies == null
+                ? GrpcDependencies.DEFAULT_DEADLINE_MILLIS
+                : Math.max(asyncClient.getDependencies().getDeadline(), 0L);
         }
 
     // ----- accessor methods -----------------------------------------------
@@ -224,7 +229,7 @@ public class NamedCacheClient<K, V>
     @Override
     public boolean isActive()
         {
-        return handleCompletableFuture(f_asyncClient.isActive());
+        return f_asyncClient.isActiveInternal();
         }
 
     @Override
@@ -435,7 +440,7 @@ public class NamedCacheClient<K, V>
 
     protected <T> T handleCompletableFuture(CompletableFuture<T> future)
         {
-        return handleCompletableFuture(future, -1L);
+        return handleCompletableFuture(future, f_deadline);
         }
 
     protected <T> T handleCompletableFuture(CompletableFuture<T> future, long cTimeoutMillis)
@@ -455,7 +460,15 @@ public class NamedCacheClient<K, V>
                 {
                 throw (UnsupportedOperationException) cause;
                 }
-            throw new RequestIncompleteException(e);
+            if (cause instanceof RequestIncompleteException)
+                {
+                throw (RequestIncompleteException) cause;
+                }
+            if (cause == null)
+                {
+                cause = e;
+                }
+            throw new RequestIncompleteException(cause);
             }
         catch (TimeoutException | InterruptedException e)
             {
@@ -469,4 +482,9 @@ public class NamedCacheClient<K, V>
      * The asynchronous client.
      */
     protected final AsyncNamedCacheClient<K, V> f_asyncClient;
+
+    /**
+     * The request timeout.
+     */
+    protected final long f_deadline;
     }

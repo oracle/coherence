@@ -6,15 +6,12 @@
  */
 package com.oracle.coherence.grpc.proxy;
 
-import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.grpc.internal.GrpcTracingInterceptors;
 
-import com.oracle.coherence.grpc.proxy.common.BindableGrpcProxyService;
-import com.oracle.coherence.grpc.proxy.common.BindableServiceFactory;
+import com.oracle.coherence.grpc.proxy.common.BaseGrpcAcceptorController;
 import com.oracle.coherence.grpc.proxy.common.DaemonPoolExecutor;
-import com.oracle.coherence.grpc.proxy.common.GrpcMetricsInterceptor;
 import com.oracle.coherence.grpc.proxy.common.GrpcServiceDependencies;
 
 import com.tangosol.application.ContainerContext;
@@ -22,7 +19,6 @@ import com.tangosol.application.Context;
 
 import com.tangosol.coherence.config.scheme.ServiceScheme;
 
-import com.tangosol.internal.net.service.peer.acceptor.DefaultGrpcAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
 
 import com.tangosol.internal.util.DaemonPool;
@@ -32,31 +28,23 @@ import com.tangosol.net.Coherence;
 import com.tangosol.net.grpc.GrpcAcceptorController;
 import com.tangosol.net.grpc.GrpcDependencies;
 
+import io.grpc.BindableService;
 import io.grpc.Grpc;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerCredentials;
 import io.grpc.ServerInterceptor;
-import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
 
-import io.grpc.health.v1.HealthCheckResponse;
-
 import io.grpc.inprocess.InProcessServerBuilder;
-
-import io.grpc.protobuf.services.ChannelzService;
-import io.grpc.protobuf.services.HealthStatusManager;
 
 import java.io.IOException;
 
 import java.net.SocketAddress;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.ServiceLoader;
-
-import java.util.concurrent.TimeUnit;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -68,29 +56,12 @@ import java.util.concurrent.locks.ReentrantLock;
  * @since 22.06.2
  */
 public class NettyGrpcAcceptorController
-        implements GrpcAcceptorController
+        extends BaseGrpcAcceptorController
     {
     @Override
     public int getPriority()
         {
         return PRIORITY_NORMAL;
-        }
-
-    @Override
-    public void setDependencies(GrpcAcceptorDependencies deps)
-        {
-        m_dependencies = deps;
-        }
-
-    @Override
-    public GrpcAcceptorDependencies getDependencies()
-        {
-        GrpcAcceptorDependencies deps = m_dependencies;
-        if (deps == null)
-            {
-            deps = m_dependencies = new DefaultGrpcAcceptorDependencies();
-            }
-        return deps;
         }
 
     @Override
@@ -100,125 +71,70 @@ public class NettyGrpcAcceptorController
         }
 
     @Override
-    public void start()
+    protected GrpcServiceDependencies createServiceDeps()
         {
-        if (m_fRunning)
+        GrpcAcceptorDependencies deps    = getDependencies();
+        Context                  context = deps.getContext();
+
+        GrpcServiceDependencies.DefaultDependencies serviceDeps
+                = new GrpcServiceDependencies.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
+
+        serviceDeps.setContext(context);
+
+        if (m_daemonPool != null)
             {
-            return;
+            serviceDeps.setExecutor(new DaemonPoolExecutor(m_daemonPool));
             }
 
-        f_lock.lock();
-        try
-            {
-            if (m_fRunning)
-                {
-                return;
-                }
-
-            GrpcAcceptorDependencies deps             = getDependencies();
-            ServerBuilder<?>         serverBuilder    = createServerBuilder(deps);
-            InProcessServerBuilder   inProcessBuilder = createInProcessServerBuilder(deps);
-            Context                  context          = deps.getContext();
-
-            GrpcServiceDependencies.DefaultDependencies serviceDeps
-                    = new GrpcServiceDependencies.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
-
-            serviceDeps.setContext(context);
-
-            if (m_daemonPool != null)
-                {
-                serviceDeps.setExecutor(new DaemonPoolExecutor(m_daemonPool));
-                }
-
-            m_listServices = BindableServiceFactory.discoverServices(serviceDeps);
-            List<String> listServiceNames = new ArrayList<>();
-            for (BindableGrpcProxyService service : m_listServices)
-                {
-                GrpcMetricsInterceptor  interceptor = new GrpcMetricsInterceptor(service.getMetrics());
-                ServerServiceDefinition definition  = ServerInterceptors.intercept(service, interceptor);
-                serverBuilder.addService(definition);
-                inProcessBuilder.addService(definition);
-                listServiceNames.add(definition.getServiceDescriptor().getName());
-                }
-
-            m_healthStatusManager = new HealthStatusManager();
-            serverBuilder.addService(m_healthStatusManager.getHealthService());
-            serverBuilder.addService(ChannelzService.newInstance(deps.getChannelzPageSize()));
-//            serverBuilder.intercept(new ServerLoggingInterceptor());
-
-            configure(serverBuilder, inProcessBuilder);
-
-            ServerInterceptor grpcTracingInterceptor = GrpcTracingInterceptors.getServerInterceptor();
-            if (grpcTracingInterceptor != null)
-                {
-                serverBuilder.intercept(grpcTracingInterceptor);
-                }
-
-            Server server          = serverBuilder.build();
-            Server inProcessServer = inProcessBuilder.build();
-
-            server.start();
-            inProcessServer.start();
-
-            for (SocketAddress address : inProcessServer.getListenSockets())
-                {
-                Logger.info(() -> "In-Process GrpcAcceptor is now listening for connections using name \""
-                        + address + "\"");
-                }
-
-            m_server          = server;
-            m_inProcessServer = inProcessServer;
-            m_healthStatusManager.setStatus(GrpcDependencies.SCOPED_PROXY_SERVICE_NAME, HealthCheckResponse.ServingStatus.SERVING);
-            listServiceNames.forEach(s -> m_healthStatusManager.setStatus(s, HealthCheckResponse.ServingStatus.SERVING));
-            m_fRunning = true;
-            }
-        catch (IOException e)
-            {
-            throw Exceptions.ensureRuntimeException(e, "Failed to start gRPC server");
-            }
-        finally
-            {
-            f_lock.unlock();
-            }
+        return serviceDeps;
         }
 
     @Override
-    public void stop()
+    protected void startInternal(List<ServerServiceDefinition> listServices, List<BindableService> listBindable) throws IOException
         {
-        if (m_fRunning)
+        GrpcAcceptorDependencies deps             = getDependencies();
+        ServerBuilder<?>         serverBuilder    = createServerBuilder(deps);
+        InProcessServerBuilder   inProcessBuilder = createInProcessServerBuilder(deps);
+
+        for (ServerServiceDefinition definition : listServices)
             {
-            f_lock.lock();
-            try
-                {
-                if (m_fRunning)
-                    {
-                    m_fRunning = false;
-                    m_healthStatusManager.enterTerminalState();
-                    m_healthStatusManager = null;
-                    stopServer(m_inProcessServer, "in-process server");
-                    m_inProcessServer = null;
-                    stopServer(m_server, "server");
-                    m_server = null;
-                    m_listServices = null;
-                    }
-                }
-            finally
-                {
-                f_lock.unlock();
-                }
+            serverBuilder.addService(definition);
+            inProcessBuilder.addService(definition);
             }
+
+        listBindable.forEach(serverBuilder::addService);
+
+        configure(serverBuilder, inProcessBuilder);
+
+        ServerInterceptor grpcTracingInterceptor = GrpcTracingInterceptors.getServerInterceptor();
+        if (grpcTracingInterceptor != null)
+            {
+            serverBuilder.intercept(grpcTracingInterceptor);
+            }
+
+        Server server          = serverBuilder.build();
+        Server inProcessServer = inProcessBuilder.build();
+
+        server.start();
+        inProcessServer.start();
+
+        for (SocketAddress address : inProcessServer.getListenSockets())
+            {
+            Logger.info(() -> "In-Process GrpcAcceptor is now listening for connections using name \""
+                    + address + "\"");
+            }
+
+        m_server          = server;
+        m_inProcessServer = inProcessServer;
         }
 
     @Override
-    public boolean isRunning()
+    protected void stopInternal()
         {
-        return m_fRunning;
-        }
-
-    @Override
-    public String getLocalAddress()
-        {
-        return m_dependencies.getLocalAddress();
+        stopServer(m_inProcessServer, "in-process server");
+        m_inProcessServer = null;
+        stopServer(m_server, "server");
+        m_server = null;
         }
 
     @Override
@@ -246,16 +162,6 @@ public class NettyGrpcAcceptorController
                     .orElse(null);
             }
         return null;
-        }
-
-    /**
-     * Return the list of services this controller is serving.
-     *
-     * @return the list of services this controller is serving
-     */
-    public List<BindableGrpcProxyService> getBindableServices()
-        {
-        return m_listServices;
         }
 
     @Override
@@ -299,41 +205,15 @@ public class NettyGrpcAcceptorController
 
     private void stopServer(Server server, String sName)
         {
-        boolean fStopped = false;
         if (server == null)
             {
             return;
             }
-
-        server.shutdown();
-        Logger.finest("Awaiting termination of Coherence gRPC proxy " + sName);
-        try
-            {
-            fStopped = server.awaitTermination(1, TimeUnit.MINUTES);
-            }
-        catch (InterruptedException ignored)
-            {
-            // ignored
-            }
-        if (!fStopped)
-            {
-            Logger.finest("Forcing termination of Coherence gRPC proxy " + sName);
-            server.shutdownNow();
-            }
+        server.shutdownNow();
         Logger.fine("Stopped Coherence gRPC proxy " + sName);
         }
 
     // ----- data members ---------------------------------------------------
-
-    /**
-     * The dependencies to use to configure the server.
-     */
-    private GrpcAcceptorDependencies m_dependencies;
-
-    /**
-     * Whether the server is running.
-     */
-    private volatile boolean m_fRunning;
 
     /**
      * The gPRC server.
@@ -349,16 +229,6 @@ public class NettyGrpcAcceptorController
      * The {@link DaemonPool} the services may use.
      */
     private DaemonPool m_daemonPool;
-
-    /**
-     * The gRPC health check service manager.
-     */
-    private HealthStatusManager m_healthStatusManager;
-
-    /**
-     * The list of {@link BindableGrpcProxyService services} served by this controller.
-     */
-    private List<BindableGrpcProxyService> m_listServices;
 
     /**
      * The lock to control start and stop state.

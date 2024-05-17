@@ -10,9 +10,10 @@ package com.oracle.coherence.grpc.proxy;
 import com.oracle.coherence.grpc.proxy.common.BindableGrpcProxyService;
 import com.oracle.coherence.grpc.proxy.common.BindableServiceFactory;
 import com.oracle.coherence.grpc.proxy.common.GrpcServiceDependencies;
-import com.oracle.coherence.grpc.proxy.common.NamedCacheService;
-import com.oracle.coherence.grpc.proxy.common.NamedCacheServiceGrpcImpl;
+import com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService;
+import com.oracle.coherence.grpc.proxy.common.v0.NamedCacheServiceGrpcImpl;
 
+import com.oracle.coherence.grpc.proxy.common.ProxyServiceGrpcImpl;
 import com.tangosol.net.grpc.GrpcDependencies;
 
 import java.util.List;
@@ -28,8 +29,11 @@ public class NettyBindableServiceFactory
         {
         if (depsService.getServerType() == GrpcDependencies.ServerType.Asynchronous)
             {
-            NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(depsService);
-            return List.of(new NamedCacheServiceGrpcImpl(NettyNamedCacheService.newInstance(deps)));
+            NamedCacheService.DefaultDependencies depsCache = new NamedCacheService.DefaultDependencies(depsService);
+            ProxyServiceGrpcImpl.Dependencies     depsProxy = new ProxyServiceGrpcImpl.DefaultDependencies(depsService);
+
+            return List.of(new NamedCacheServiceGrpcImpl(NettyNamedCacheService.newInstance(depsCache)),
+                    new ProxyServiceGrpcImpl(depsProxy));
             }
         return List.of();
         }

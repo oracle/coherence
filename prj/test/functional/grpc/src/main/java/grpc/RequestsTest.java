@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,7 +8,9 @@ package grpc;
 
 import com.google.protobuf.ByteString;
 
-import com.oracle.coherence.grpc.*;
+import com.oracle.coherence.grpc.v0.Requests;
+
+import com.oracle.coherence.grpc.messages.cache.v0.*;
 
 import com.tangosol.net.cache.CacheMap;
 

@@ -6,6 +6,7 @@
  */
 package com.oracle.coherence.grpc.proxy.common;
 
+import com.oracle.coherence.grpc.GrpcService;
 import com.tangosol.application.Context;
 import com.tangosol.internal.util.DaemonPool;
 import com.tangosol.io.NamedSerializerFactory;
@@ -23,6 +24,7 @@ import java.util.concurrent.Executor;
  * @since 22.06.2
  */
 public interface GrpcServiceDependencies
+        extends GrpcService.Dependencies
     {
     /**
      * Return the {@link NamedSerializerFactory}.
@@ -66,12 +68,13 @@ public interface GrpcServiceDependencies
      *
      * @return the optional application {@link Context}
      */
+    @Override
     Optional<Context> getContext();
 
     /**
      * Return the type of the gRPC server.
      *
-     * @return  the type of the gRPC server
+     * @return the type of the gRPC server
      */
     GrpcDependencies.ServerType getServerType();
 
@@ -86,7 +89,7 @@ public interface GrpcServiceDependencies
         /**
          * Create a {@link DefaultDependencies}.
          *
-         * @param serverType  the type of the gRPC server
+         * @param serverType the type of the gRPC server
          */
         public DefaultDependencies(GrpcDependencies.ServerType serverType)
             {
@@ -96,7 +99,7 @@ public interface GrpcServiceDependencies
         /**
          * Create a {@link DefaultDependencies}.
          *
-         * @param deps  the dependencies to copy
+         * @param deps the dependencies to copy
          */
         public DefaultDependencies(GrpcServiceDependencies deps)
             {
@@ -182,8 +185,8 @@ public interface GrpcServiceDependencies
         /**
          * Set the management {@link Registry} to register the proxy MBean with.
          *
-         * @param registry  the management {@link Registry} to register
-         *                  the proxy MBean with
+         * @param registry the management {@link Registry} to register
+         *                 the proxy MBean with
          */
         public void setRegistry(Registry registry)
             {
@@ -199,7 +202,7 @@ public interface GrpcServiceDependencies
         /**
          * Set the {@link Context}.
          *
-         * @param context  the {@link Context}
+         * @param context the {@link Context}
          */
         public void setContext(Context context)
             {

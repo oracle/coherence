@@ -15,19 +15,6 @@ import com.google.protobuf.Int32Value;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 
-import com.oracle.coherence.grpc.ContainsEntryRequest;
-import com.oracle.coherence.grpc.Entry;
-import com.oracle.coherence.grpc.EntryResult;
-import com.oracle.coherence.grpc.InvokeAllRequest;
-import com.oracle.coherence.grpc.MapEventResponse;
-import com.oracle.coherence.grpc.MapListenerErrorResponse;
-import com.oracle.coherence.grpc.MapListenerRequest;
-import com.oracle.coherence.grpc.MapListenerResponse;
-import com.oracle.coherence.grpc.MapListenerSubscribedResponse;
-import com.oracle.coherence.grpc.MapListenerUnsubscribedResponse;
-import com.oracle.coherence.grpc.Requests;
-
-import com.oracle.coherence.grpc.SafeStreamObserver;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
 import com.tangosol.net.AsyncNamedCache;
@@ -38,12 +25,12 @@ import com.tangosol.net.NamedMap;
 import com.tangosol.net.PriorityTask;
 import com.tangosol.net.RequestIncompleteException;
 
-import com.tangosol.net.RequestTimeoutException;
 import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.CacheEvent.TransformationState;
 import com.tangosol.net.cache.CacheMap;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.ConverterCollections;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.Listeners;
@@ -53,44 +40,33 @@ import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.MapListenerSupport;
 import com.tangosol.util.MapTriggerListener;
-import com.tangosol.util.SimpleMapEntry;
+import com.tangosol.util.PagedIterator;
 import com.tangosol.util.SparseArray;
 import com.tangosol.util.SynchronousListener;
 import com.tangosol.util.ValueExtractor;
-
 import com.tangosol.util.filter.AlwaysFilter;
 
 import io.grpc.Channel;
-
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 
-import io.grpc.stub.StreamObserver;
-
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EventListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -100,18 +76,15 @@ import java.util.stream.Stream;
 import static com.tangosol.internal.net.grpc.RemoteGrpcCacheServiceDependencies.NO_EVENTS_HEARTBEAT;
 
 /**
- * Implementation of a {@link NamedCache}.
+ * A base implementation of an {@link AsyncNamedCacheClient}.
  *
  * @param <K>  the type of the cache keys
  * @param <V>  the type of the cache values
- *
- * @author Jonathan Knight  2019.11.22
- * @since 20.06
  */
 @SuppressWarnings({"DuplicatedCode", "PatternVariableCanBeUsed"})
 public class AsyncNamedCacheClient<K, V>
-        extends BaseGrpcClient<V>
-        implements AsyncNamedCache<K, V>
+        extends BaseGrpcClient<V, NamedCacheClientChannel>
+        implements AsyncNamedCache<K, V>, NamedCacheClientChannel.EventDispatcher
     {
     // ----- constructors ---------------------------------------------------
 
@@ -119,29 +92,19 @@ public class AsyncNamedCacheClient<K, V>
      * Creates an {@link AsyncNamedCacheClient} from the specified
      * {@link Dependencies}.
      *
-     * @param dependencies  the {@link Dependencies} to configure this
+     * @param dependencies  the {@link AsyncNamedCacheClient.Dependencies} to configure this
      *                      {@link AsyncNamedCacheClient}.
+     * @param client        the {@link NamedCacheClientChannel} to use to send requests
      */
-    public AsyncNamedCacheClient(Dependencies dependencies)
+    public AsyncNamedCacheClient(Dependencies dependencies, NamedCacheClientChannel client)
         {
-        super(dependencies);
+        super(dependencies, client);
         f_synchronousCache          = new NamedCacheClient<>(this);
         f_listDeactivationListeners = new ArrayList<>();
-        f_service                   = dependencies.getClient()
-                                                  .orElseGet(() -> new NamedCacheGrpcClient(dependencies));
-        initEvents();
-        }
+        m_listenerSupport           = new MapListenerSupport();
+        m_aEvtFilter                = new SparseArray<>();
 
-    // ----- Object methods -------------------------------------------------
-
-    @Override
-    public String toString()
-        {
-        return "AsyncNamedCacheClient{"
-               + "scope: \"" + f_sScopeName + '"'
-               + "name: \"" + f_sName + '"'
-               + " format: \"" + f_sFormat + '"'
-               + '}';
+        client.setEventDispatcher(this);
         }
 
     // ----- AsyncNamedCache interface --------------------------------------
@@ -155,15 +118,13 @@ public class AsyncNamedCacheClient<K, V>
     // ----- AsyncNamedMap interface ----------------------------------------
 
     @Override
-   public NamedMap<K, V> getNamedMap()
+    public NamedMap<K, V> getNamedMap()
        {
        return getNamedCacheClient();
        }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <R> CompletableFuture<R> aggregate(Collection<? extends K> colKeys,
-                                              InvocableMap.EntryAggregator<? super K, ? super V, R> entryAggregator)
+    public <R> CompletableFuture<R> aggregate(Collection<? extends K> colKeys, InvocableMap.EntryAggregator<? super K, ? super V, R> entryAggregator)
         {
         return executeIfActive(() ->
             {
@@ -179,11 +140,8 @@ public class AsyncNamedCacheClient<K, V>
                     nDeadline = ((PriorityTask) entryAggregator).getRequestTimeoutMillis();
                     }
 
-                return f_service.aggregate(Requests.aggregate(f_sScopeName, f_sName, f_sFormat, keys,
-                                                              toByteString(entryAggregator)), nDeadline)
-                        .thenApplyAsync(this::fromBytesValue)
-                        .thenApply(r -> (R) r)
-                        .toCompletableFuture();
+                return f_client.aggregate(keys, toByteString(entryAggregator), nDeadline)
+                        .thenApply(this::fromBytesValue);
                 }
             catch (Throwable t)
                 {
@@ -193,9 +151,7 @@ public class AsyncNamedCacheClient<K, V>
         }
 
     @Override
-    @SuppressWarnings({"unchecked"})
-    public <R> CompletableFuture<R> aggregate(Filter<?> filter,
-                                              InvocableMap.EntryAggregator<? super K, ? super V, R> entryAggregator)
+    public <R> CompletableFuture<R> aggregate(Filter<?> filter, InvocableMap.EntryAggregator<? super K, ? super V, R> entryAggregator)
         {
         return executeIfActive(() ->
             {
@@ -207,12 +163,8 @@ public class AsyncNamedCacheClient<K, V>
                     nDeadline = ((PriorityTask) entryAggregator).getRequestTimeoutMillis();
                     }
 
-                return f_service
-                        .aggregate(Requests.aggregate(f_sScopeName, f_sName, f_sFormat, toByteString(filter),
-                                                      toByteString(entryAggregator)), nDeadline)
-                        .thenApplyAsync(this::fromBytesValue)
-                        .thenApply(r -> (R) r)
-                        .toCompletableFuture();
+                return f_client.aggregate(toByteString(filter), toByteString(entryAggregator), nDeadline)
+                        .thenApply(this::fromBytesValue);
                 }
             catch (Throwable t)
                 {
@@ -234,9 +186,7 @@ public class AsyncNamedCacheClient<K, V>
                     {
                     nDeadline = ((PriorityTask) entryProcessor).getRequestTimeoutMillis();
                     }
-
-                return f_service.invoke(Requests.invoke(f_sScopeName, f_sName, f_sFormat, toKeyByteString(k),
-                                                        toByteString(entryProcessor)), nDeadline)
+                return f_client.invoke(toKeyByteString(k), toByteString(entryProcessor), nDeadline)
                         .thenApplyAsync(this::valueFromBytesValue)
                         .thenApply(r -> (R) r)
                         .toCompletableFuture();
@@ -256,36 +206,18 @@ public class AsyncNamedCacheClient<K, V>
             {
             try
                 {
-                CompletableFuture<Map<K, R>>            future   = new CompletableFuture<>();
-                BiFunction<Entry, Map<K, R>, Map<K, R>> function = (e, m) ->
-                    {
-                    try
-                        {
-                        m.put(fromByteString(e.getKey()), fromByteString(e.getValue()));
-                        return m;
-                        }
-                    catch (Throwable ex)
-                        {
-                        future.completeExceptionally(ex);
-                        }
-                    return null;
-                    };
-                FutureStreamObserver<Entry, Map<K, R>> observer       = new FutureStreamObserver<>(future,
-                                                                                                   new HashMap<>(),
-                                                                                                   function);
-                Collection<ByteString>                 serializedKeys = colKeys.stream()
-                        .map(this::toKeyByteString)
-                        .collect(Collectors.toList());
-
                 long nDeadline = PriorityTask.TIMEOUT_DEFAULT;
                 if (processor instanceof PriorityTask)
                     {
                     nDeadline = ((PriorityTask) processor).getRequestTimeoutMillis();
                     }
 
-                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, serializedKeys, toByteString(processor)),
-                                  observer, nDeadline);
-                return future;
+                Collection<ByteString> serializedKeys = colKeys.stream()
+                        .map(this::toKeyByteString)
+                        .collect(Collectors.toList());
+
+                return f_client.invokeAll(serializedKeys, toByteString(processor), nDeadline)
+                        .thenApply(this::toMap);
                 }
             catch (Throwable t)
                 {
@@ -301,25 +233,8 @@ public class AsyncNamedCacheClient<K, V>
             {
             try
                 {
-                CompletableFuture<Map<K, R>>            future   = new CompletableFuture<>();
-                BiFunction<Entry, Map<K, R>, Map<K, R>> function = (e, m) ->
-                    {
-                    try
-                        {
-                        m.put(fromByteString(e.getKey()), fromByteString(e.getValue()));
-                        return m;
-                        }
-                    catch (Throwable ex)
-                        {
-                        future.completeExceptionally(ex);
-                        }
-                    return null;
-                    };
-                FutureStreamObserver<Entry, Map<K, R>> observer = new FutureStreamObserver<>(future, new HashMap<>(),
-                                                                                             function);
-                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, toByteString(filter),
-                                                     toByteString(processor)), observer);
-                return future;
+                return f_client.invokeAll(toByteString(filter), toByteString(processor))
+                        .thenApply(this::toMap);
                 }
             catch (Throwable t)
                 {
@@ -337,28 +252,13 @@ public class AsyncNamedCacheClient<K, V>
             {
             try
                 {
-                CompletableFuture<Void>       future   = new CompletableFuture<>();
-                BiFunction<Entry, Void, Void> function = (e, v) ->
-                    {
-                    try
-                        {
-                        Map.Entry<K, R> entry = new SimpleMapEntry<>(fromByteString(e.getKey()),
-                                                                     fromByteString(e.getValue()));
-                        callback.accept(entry);
-                        }
-                    catch (Throwable ex)
-                        {
-                        future.completeExceptionally(ex);
-                        }
-                    return null;
-                    };
-                FutureStreamObserver<Entry, Void> observer       = new FutureStreamObserver<>(future, VOID, function);
-                Collection<ByteString>            serializedKeys = colKeys.stream()
+                Collection<ByteString> serializedKeys = colKeys.stream()
                         .map(this::toKeyByteString)
                         .collect(Collectors.toList());
-                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, serializedKeys, toByteString(processor)),
-                                  observer);
-                return future;
+
+                Consumer<Map.Entry<ByteString, ByteString>> consumer = entry -> callback.accept(toMapEntry(entry));
+
+                return f_client.invokeAll(serializedKeys, toByteString(processor), consumer);
                 }
             catch (Throwable t)
                 {
@@ -376,25 +276,9 @@ public class AsyncNamedCacheClient<K, V>
             {
             try
                 {
-                CompletableFuture<Void>       future   = new CompletableFuture<>();
-                BiFunction<Entry, Void, Void> function = (e, v) ->
-                    {
-                    try
-                        {
-                        Map.Entry<K, R> entry = new SimpleMapEntry<>(fromByteString(e.getKey()),
-                                                                     fromByteString(e.getValue()));
-                        callback.accept(entry);
-                        }
-                    catch (Throwable ex)
-                        {
-                        future.completeExceptionally(ex);
-                        }
-                    return null;
-                    };
-                FutureStreamObserver<Entry, Void> observer = new FutureStreamObserver<>(future, VOID, function);
-                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, toByteString(filter),
-                                                     toByteString(processor)), observer);
-                return future;
+                Consumer<Map.Entry<ByteString, ByteString>> consumer = entry -> callback.accept(toMapEntry(entry));
+
+                return f_client.invokeAll(toByteString(filter), toByteString(processor), consumer);
                 }
             catch (Throwable t)
                 {
@@ -403,8 +287,6 @@ public class AsyncNamedCacheClient<K, V>
             });
         }
 
-    // ----- AsyncNamedCache methods ----------------------------------------
-
     @Override
     public CompletableFuture<Void> clear()
         {
@@ -412,7 +294,7 @@ public class AsyncNamedCacheClient<K, V>
             {
             try
                 {
-                return f_service.clear(Requests.clear(f_sScopeName, f_sName)).thenApply(e -> VOID).toCompletableFuture();
+                return f_client.clear();
                 }
             catch (Throwable t)
                 {
@@ -468,14 +350,8 @@ public class AsyncNamedCacheClient<K, V>
             {
             try
                 {
-                CompletableFuture<Map<K, R>>           future   = new CompletableFuture<>();
-                InvokeAllBiFunction<K, R>              function = new InvokeAllBiFunction<>(future);
-                FutureStreamObserver<Entry, Map<K, R>> observer = new FutureStreamObserver<>(future, new HashMap<>(),
-                                                                                             function);
-                ByteString                             filter   = toByteString(AlwaysFilter.INSTANCE());
-                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, filter, toByteString(processor)),
-                                  observer);
-                return future;
+                return f_client.invokeAll(toByteString(AlwaysFilter.INSTANCE()), toByteString(processor))
+                        .thenApply(this::toMap);
                 }
             catch (Throwable t)
                 {
@@ -492,26 +368,8 @@ public class AsyncNamedCacheClient<K, V>
             {
             try
                 {
-                CompletableFuture<Void>       future   = new CompletableFuture<>();
-                BiFunction<Entry, Void, Void> function = (e, v) ->
-                    {
-                    try
-                        {
-                        Map.Entry<K, R> entry = new SimpleMapEntry<>(fromByteString(e.getKey()),
-                                                                     fromByteString(e.getValue()));
-                        callback.accept(entry);
-                        }
-                    catch (Throwable ex)
-                        {
-                        future.completeExceptionally(ex);
-                        }
-                    return null;
-                    };
-                FutureStreamObserver<Entry, Void> observer = new FutureStreamObserver<>(future, VOID, function);
-                ByteString                        filter   = toByteString(AlwaysFilter.INSTANCE());
-                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, filter, toByteString(processor)),
-                                  observer);
-                return future;
+                Consumer<Map.Entry<ByteString, ByteString>> consumer = e -> callback.accept(toMapEntry(e));
+                return f_client.invokeAll(toByteString(AlwaysFilter.INSTANCE()), toByteString(processor), consumer);
                 }
             catch (Throwable t)
                 {
@@ -519,6 +377,7 @@ public class AsyncNamedCacheClient<K, V>
                 }
             });
         }
+
 
     @Override
     public <R> CompletableFuture<Void> invokeAll(InvocableMap.EntryProcessor<K, V, R> processor,
@@ -528,24 +387,8 @@ public class AsyncNamedCacheClient<K, V>
             {
             try
                 {
-                CompletableFuture<Void>       future   = new CompletableFuture<>();
-                BiFunction<Entry, Void, Void> function = (e, v) ->
-                    {
-                    try
-                        {
-                        callback.accept(fromByteString(e.getKey()), fromByteString(e.getValue()));
-                        }
-                    catch (Throwable ex)
-                        {
-                        future.completeExceptionally(ex);
-                        }
-                    return null;
-                    };
-                FutureStreamObserver<Entry, Void> observer = new FutureStreamObserver<>(future, VOID, function);
-                ByteString                        filter   = toByteString(AlwaysFilter.INSTANCE());
-                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, filter, toByteString(processor)),
-                                  observer);
-                return future;
+                return f_client.invokeAll(toByteString(AlwaysFilter.INSTANCE()), toByteString(processor),
+                        (k, v) -> callback.accept(fromByteString(k), fromByteString(v)));
                 }
             catch (Throwable t)
                 {
@@ -563,26 +406,12 @@ public class AsyncNamedCacheClient<K, V>
             {
             try
                 {
-                CompletableFuture<Void>       future   = new CompletableFuture<>();
-                BiFunction<Entry, Void, Void> function = (e, v) ->
-                    {
-                    try
-                        {
-                        callback.accept(fromByteString(e.getKey()), fromByteString(e.getValue()));
-                        }
-                    catch (Throwable ex)
-                        {
-                        future.completeExceptionally(ex);
-                        }
-                    return null;
-                    };
-                FutureStreamObserver<Entry, Void> observer = new FutureStreamObserver<>(future, VOID, function);
-                Collection<ByteString>            keys     = colKeys.stream()
+                Collection<ByteString> keys = colKeys.stream()
                         .map(this::toKeyByteString)
                         .collect(Collectors.toList());
 
-                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, keys, toByteString(processor)), observer);
-                return future;
+                return f_client.invokeAll(keys, toByteString(processor),
+                        (k, v) -> callback.accept(fromByteString(k), fromByteString(v)));
                 }
             catch (Throwable t)
                 {
@@ -600,22 +429,8 @@ public class AsyncNamedCacheClient<K, V>
         {
             try
                 {
-                CompletableFuture<Void>       future   = new CompletableFuture<>();
-                BiFunction<Entry, Void, Void> function = (e, v) ->
-                    {
-                    try
-                        {
-                        callback.accept(fromByteString(e.getKey()), fromByteString(e.getValue()));
-                        }
-                    catch (Throwable ex)
-                        {
-                        future.completeExceptionally(ex);
-                        }
-                    return VOID;
-                    };
-                FutureStreamObserver<Entry, Void> observer = new FutureStreamObserver<>(future, VOID, function);
-                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, toByteString(filter), toByteString(processor)), observer);
-                return future;
+                return f_client.invokeAll(toByteString(filter), toByteString(processor),
+                        (k, v) -> callback.accept(fromByteString(k), fromByteString(v)));
                 }
             catch (Throwable t)
                 {
@@ -627,7 +442,7 @@ public class AsyncNamedCacheClient<K, V>
     @Override
     public CompletableFuture<Boolean> isEmpty()
         {
-        return executeIfActive(() -> f_service.isEmpty(Requests.isEmpty(f_sScopeName, f_sName))
+        return executeIfActive(() -> f_client.isEmpty()
                 .thenApply(BoolValue::getValue)
                 .toCompletableFuture());
         }
@@ -653,8 +468,7 @@ public class AsyncNamedCacheClient<K, V>
     @Override
     public CompletableFuture<V> putIfAbsent(K key, V value)
         {
-        return executeIfActive(() -> f_service.putIfAbsent(Requests.putIfAbsent(f_sScopeName, f_sName, f_sFormat,
-                        toKeyByteString(key), toByteString(value)))
+        return executeIfActive(() -> f_client.putIfAbsent(toKeyByteString(key), toByteString(value))
                 .thenApplyAsync(this::valueFromBytesValue)
                 .toCompletableFuture());
         }
@@ -686,8 +500,7 @@ public class AsyncNamedCacheClient<K, V>
     @Override
     public CompletableFuture<V> replace(K key, V value)
         {
-        return executeIfActive(() -> f_service.replace(Requests.replace(f_sScopeName, f_sName, f_sFormat,
-                        toKeyByteString(key), toByteString(value)))
+        return executeIfActive(() -> f_client.replace(toKeyByteString(key), toByteString(value))
                 .thenApplyAsync(this::valueFromBytesValue)
                 .toCompletableFuture());
         }
@@ -695,9 +508,7 @@ public class AsyncNamedCacheClient<K, V>
     @Override
     public CompletableFuture<Boolean> replace(K key, V oldValue, V newValue)
         {
-        return executeIfActive(() -> f_service.replaceMapping(
-                Requests.replace(f_sScopeName, f_sName, f_sFormat, toKeyByteString(key),
-                                 toByteString(oldValue), toByteString(newValue)))
+        return executeIfActive(() -> f_client.replaceMapping(toKeyByteString(key), toByteString(oldValue), toByteString(newValue))
                 .thenApplyAsync(BoolValue::getValue)
                 .toCompletableFuture());
         }
@@ -705,7 +516,7 @@ public class AsyncNamedCacheClient<K, V>
     @Override
     public CompletableFuture<Integer> size()
         {
-        return executeIfActive(() -> f_service.size(Requests.size(f_sScopeName, f_sName))
+        return executeIfActive(() -> f_client.size()
                 .thenApply(Int32Value::getValue)
                 .toCompletableFuture());
         }
@@ -722,30 +533,30 @@ public class AsyncNamedCacheClient<K, V>
         return executeIfActive(() -> valuesInternal(filter, comparator));
         }
 
-    // ----- helper methods -------------------------------------------------
+    // ----- AsyncNamedCacheClient methods ----------------------------------
+    
+    /**
+     * Helper method for {@link #containsKey(Object)} invocations.
+     *
+     * @param oKey  the key to check
+     *
+     * @return a {@link CompletableFuture} returning {@code true} if the cache contains the given key
+     */
+    public CompletableFuture<Boolean> containsKeyInternal(Object oKey)
+        {
+        return executeIfActive(() -> f_client.containsKey(toKeyByteString(oKey))
+                .thenApplyAsync(BoolValue::getValue)
+                .toCompletableFuture());
+        }
 
     /**
-     * Helper method to obtain a {@link Collection} of {@link Entry} instances for the specified keys
-     * as a {@link Stream}.
+     * Create a {@link PagedIterator.Advancer} to use to iterate over the cache contents.
      *
-     * @param colKeys  the keys to look up
-     *
-     * @return a {@link Stream} of {@link Entry} instances for the keys found in the cache
+     * @return a {@link PagedIterator.Advancer} to use to iterate over the cache contents
      */
-    protected Stream<Entry> getAllInternal(Collection<? extends K> colKeys)
+    public PagedIterator.Advancer createEntryAdvancer()
         {
-        assertActive();
-        if (colKeys.isEmpty())
-            {
-            return Stream.empty();
-            }
-        else
-            {
-            List<ByteString> keys = colKeys.stream()
-                    .map(this::toKeyByteString)
-                    .collect(Collectors.toList());
-            return f_service.getAll(Requests.getAll(f_sScopeName, f_sName, f_sFormat, keys));
-            }
+        return new EntryAdvancer<>(this);
         }
 
     /**
@@ -756,53 +567,15 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return a {@link Map} containing keys/values for the keys found within the cache
      */
-    @SuppressWarnings("unchecked")
-    protected Map<K, V> getAllInternalAsMap(Collection<? extends K> colKeys)
+    public Map<K, V> getAllInternalAsMap(Collection<? extends K> colKeys)
         {
         assertActive();
-        return getAllInternal(colKeys)
-                .map(e -> (Map.Entry<K, V>) new SimpleMapEntry<>(fromByteString(e.getKey()), fromByteString(e.getValue())))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        }
-
-    /**
-     * Returns the scope name.
-     *
-     * @return the scope name
-     */
-    protected String getScopeName()
-        {
-        return f_sScopeName;
-        }
-
-    /**
-     * Returns the cache name.
-     *
-     * @return the cache name
-     */
-    protected String getCacheName()
-        {
-        return f_sName;
-        }
-
-    /**
-     * Get the {@link CacheService} associated with this cache.
-     *
-     * @return the {@link CacheService} associated with this cache
-     */
-    protected CacheService getCacheService()
-        {
-        return m_cacheService;
-        }
-
-    /**
-     * Set the {@link CacheService} associated with this cache.
-     *
-     * @param cacheService  the {@link CacheService} associated with this cache
-     */
-    protected void setCacheService(GrpcRemoteCacheService cacheService)
-        {
-        m_cacheService = cacheService;
+        if (colKeys.isEmpty())
+            {
+            return Map.of();
+            }
+        return f_client.getAll(ConverterCollections.getCollection(colKeys, this::toByteString, this::fromByteString))
+                .collect(Collectors.toMap(e -> fromByteString(e.getKey()), e -> fromByteString(e.getValue())));
         }
 
     /**
@@ -813,11 +586,61 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return the value within the Cache, or {@code defaultValue}
      */
-    protected CompletableFuture<V> getInternal(Object key, V defaultValue)
+    public CompletableFuture<V> getInternal(Object key, V defaultValue)
         {
-        return executeIfActive(() -> f_service.get(Requests.get(f_sScopeName, f_sName, f_sFormat, toKeyByteString(key)))
-                .thenApplyAsync(optional -> this.valueFromOptionalValue(optional, defaultValue))
-                .toCompletableFuture());
+        return f_client.get(toKeyByteString(key))
+                .thenApply(o -> fromByteString(o, defaultValue))
+                .toCompletableFuture();
+        }
+
+    /**
+     * Returns the scope name.
+     *
+     * @return the scope name
+     */
+    public String getScopeName()
+        {
+        return f_sScopeName;
+        }
+
+    /**
+     * Return the serialization format.
+     *
+     * @return the serialization format
+     */
+    protected String getFormat()
+        {
+        return f_sFormat;
+        }
+
+    /**
+     * Returns the cache name.
+     *
+     * @return the cache name
+     */
+    public String getCacheName()
+        {
+        return f_sName;
+        }
+
+    /**
+     * Get the {@link CacheService} associated with this cache.
+     *
+     * @return the {@link CacheService} associated with this cache
+     */
+    public CacheService getCacheService()
+        {
+        return m_cacheService;
+        }
+
+    /**
+     * Set the {@link CacheService} associated with this cache.
+     *
+     * @param cacheService  the {@link CacheService} associated with this cache
+     */
+    public void setCacheService(GrpcRemoteCacheService cacheService)
+        {
+        m_cacheService = cacheService;
         }
 
     /**
@@ -831,35 +654,11 @@ public class AsyncNamedCacheClient<K, V>
         }
 
     /**
-     * Helper method to perform invokeAll operations.
-     *
-     * @param request   the {@link InvokeAllRequest}
-     * @param observer  the {@link StreamObserver}
-     */
-    protected void invokeAllInternal(InvokeAllRequest request, StreamObserver<Entry> observer)
-        {
-        invokeAllInternal(request, observer, PriorityTask.TIMEOUT_DEFAULT);
-        }
-
-    /**
-     * Helper method to perform invokeAll operations.
-     *
-     * @param request   the {@link InvokeAllRequest}
-     * @param observer  the {@link StreamObserver}
-     *
-     */
-    protected void invokeAllInternal(InvokeAllRequest request, StreamObserver<Entry> observer, long nDeadline)
-        {
-        assertActive();
-        f_service.invokeAll(request, observer, nDeadline);
-        }
-
-    /**
      * Return {@code true} if the cache is still active.
      *
      * @return {@code true} if the cache is still active
      */
-    protected CompletableFuture<Boolean> isActive()
+    public CompletableFuture<Boolean> isActive()
         {
         return CompletableFuture.completedFuture(isActiveInternal());
         }
@@ -875,11 +674,11 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @since 14.1.1.2206.5
      */
-    protected CompletableFuture<Boolean> isReady()
+    public CompletableFuture<Boolean> isReady()
         {
         if (isActiveInternal())
             {
-            return executeIfActive(() -> f_service.isReady(Requests.ready(f_sScopeName, f_sName))
+            return executeIfActive(() -> f_client.isReady()
                 .thenApply(BoolValue::getValue).toCompletableFuture());
             }
         return CompletableFuture.completedFuture(false);
@@ -895,10 +694,9 @@ public class AsyncNamedCacheClient<K, V>
      * @return a {@link CompletableFuture} returning the value previously associated
      *         with the specified key, if any
      */
-    protected CompletableFuture<V> putInternal(K key, V value, long cTtl)
+    public CompletableFuture<V> putInternal(K key, V value, long cTtl)
         {
-        return executeIfActive(() -> f_service.put(Requests.put(f_sScopeName, f_sName, f_sFormat,
-                        toKeyByteString(key), toByteString(value), cTtl))
+        return executeIfActive(() -> f_client.put(toKeyByteString(key), toByteString(value), cTtl)
                 .thenApplyAsync(this::valueFromBytesValue)
                 .toCompletableFuture());
         }
@@ -917,14 +715,13 @@ public class AsyncNamedCacheClient<K, V>
             {
             try
                 {
-                List<Entry> entries = new ArrayList<>();
+
+                Map<ByteString, ByteString> mapBinary = new HashMap<>();
                 for (Map.Entry<? extends K, ? extends V> entry : map.entrySet())
                     {
-                    entries.add(Entry.newBuilder()
-                                        .setKey(toKeyByteString(entry.getKey()))
-                                        .setValue(toByteString(entry.getValue())).build());
+                    mapBinary.put(toKeyByteString(entry.getKey()), toByteString(entry.getValue()));
                     }
-                return f_service.putAll(Requests.putAll(f_sScopeName, f_sName, f_sFormat, entries, cMillis)).toCompletableFuture();
+                return f_client.putAll(mapBinary, cMillis);
                 }
             catch (Throwable t)
                 {
@@ -943,9 +740,9 @@ public class AsyncNamedCacheClient<K, V>
         return executeIfActive(() -> releaseInternal(false));
         }
 
-     protected <T, E> CompletableFuture<Void> removeIndex(ValueExtractor<? super T, ? extends E> valueExtractor)
+     public  <T, E> CompletableFuture<Void> removeIndex(ValueExtractor<? super T, ? extends E> valueExtractor)
         {
-        return f_service.removeIndex(Requests.removeIndex(f_sScopeName, f_sName, f_sFormat, toByteString(valueExtractor)))
+        return f_client.removeIndex(toByteString(valueExtractor))
                 .thenApply(e -> VOID).toCompletableFuture();
         }
 
@@ -956,9 +753,9 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return the value associated with the given key, or {@code null} if no mapping existed
      */
-    protected CompletableFuture<V> removeInternal(Object key)
+    public CompletableFuture<V> removeInternal(Object key)
         {
-        return executeIfActive(() -> f_service.remove(Requests.remove(f_sScopeName, f_sName, f_sFormat, toKeyByteString(key)))
+        return executeIfActive(() -> f_client.remove(toKeyByteString(key))
                 .thenApplyAsync(this::valueFromBytesValue)
                 .toCompletableFuture());
         }
@@ -973,12 +770,11 @@ public class AsyncNamedCacheClient<K, V>
      * @return a {@link CompletableFuture} returning a {@code boolean} indicating
      *         whether the mapping was removed
      */
-    protected CompletableFuture<Boolean> removeInternal(Object key, Object value)
+    public CompletableFuture<Boolean> removeInternal(Object key, Object value)
         {
-        return executeIfActive(() -> f_service.removeMapping(Requests.remove(f_sScopeName, f_sName, f_sFormat,
-                                                                             toByteString(key), toByteString(value)))
-                                               .thenApplyAsync(BoolValue::getValue)
-                                               .toCompletableFuture());
+        return executeIfActive(() -> f_client.remove(toKeyByteString(key), toByteString(value))
+                .thenApplyAsync(BoolValue::getValue)
+                .toCompletableFuture());
         }
 
     /**
@@ -988,7 +784,7 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return a {@link CompletableFuture} returning {@link Void}
      */
-    protected CompletableFuture<Void> removeMapListener(MapListener<? super K, ? super V> mapListener)
+    public CompletableFuture<Void> removeMapListener(MapListener<? super K, ? super V> mapListener)
         {
         return removeMapListener(mapListener, (Filter<?>) null);
         }
@@ -1001,7 +797,7 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return a {@link CompletableFuture} returning {@link Void}
      */
-    protected CompletableFuture<Void> removeMapListener(MapListener<? super K, ? super V> listener, K key)
+    public CompletableFuture<Void> removeMapListener(MapListener<? super K, ? super V> listener, K key)
         {
         return executeIfActive(() ->
             {
@@ -1015,20 +811,7 @@ public class AsyncNamedCacheClient<K, V>
                 // "priming" request should be sent regardless
                 if (fEmpty || fPriming)
                     {
-                    String uid = "";
-                    try
-                        {
-                        MapListenerRequest request = Requests.removeKeyMapListener(f_sScopeName, f_sName,
-                                f_sFormat, toKeyByteString(key), fPriming, ByteString.EMPTY);
-
-                        uid = request.getUid();
-                        return m_evtResponseObserver.send(request);
-                        }
-                    catch (Throwable t)
-                        {
-                        m_evtResponseObserver.removeAndComplete(uid, t);
-                        return CompletableFuture.failedFuture(t);
-                        }
+                    return f_client.removeMapListener(toKeyByteString(key), fPriming);
                     }
                 else
                     {
@@ -1047,7 +830,7 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return a {@link CompletableFuture} returning {@link Void}
      */
-    protected CompletableFuture<Void> removeMapListener(MapListener<? super K, ? super V> listener, Filter<?> filter)
+    public CompletableFuture<Void> removeMapListener(MapListener<? super K, ? super V> listener, Filter<?> filter)
         {
         return executeIfActive(() ->
             {
@@ -1071,7 +854,7 @@ public class AsyncNamedCacheClient<K, V>
             if (listener instanceof MapTriggerListener)
                 {
                 MapTriggerListener triggerListener = (MapTriggerListener) listener;
-                return removeRemoteFilterListener(ByteString.EMPTY, 0L, toByteString(triggerListener.getTrigger()));
+                return f_client.removeMapListener(ByteString.EMPTY, 0L, toByteString(triggerListener.getTrigger()));
                 }
 
             MapListenerSupport support = getMapListenerSupport();
@@ -1081,42 +864,11 @@ public class AsyncNamedCacheClient<K, V>
                 support.removeListener(listener, filter);
                 if (support.isEmpty(filter))
                     {
-                    return removeRemoteFilterListener(toByteString(filter), nId, ByteString.EMPTY);
+                    return f_client.removeMapListener(toByteString(filter), nId, ByteString.EMPTY);
                     }
                 }
             return CompletableFuture.completedFuture(VOID);
             });
-        }
-
-    /**
-     * Sends the serialized {@link Filter} for un-registration with the cache server.
-     *
-     * @param filterBytes   the serialized bytes of the {@link Filter}
-     * @param nFilterId     the ID of the {@link Filter}
-     * @param triggerBytes  the serialized bytes of the {@link MapTriggerListener}; pass {@link ByteString#EMPTY}
-     *                      if there is no trigger listener.
-     *
-     * @return {@link CompletableFuture} returning type {@link Void}
-     */
-    protected CompletableFuture<Void> removeRemoteFilterListener(ByteString filterBytes,
-            long nFilterId, ByteString triggerBytes)
-        {
-        String uid = "";
-        CompletableFuture<Void> future = new CompletableFuture<>();
-        try
-            {
-            MapListenerRequest request = Requests
-                    .removeFilterMapListener(f_sScopeName, f_sName, f_sFormat, filterBytes, nFilterId,
-                                             false, false, triggerBytes);
-            uid = request.getUid();
-            future = m_evtResponseObserver.send(request);
-            }
-        catch (Throwable t)
-            {
-            m_evtResponseObserver.removeAndComplete(uid, t);
-            future.completeExceptionally(t);
-            }
-        return future;
         }
 
     /**
@@ -1140,7 +892,7 @@ public class AsyncNamedCacheClient<K, V>
      * @throws UnsupportedOperationException this method is unsupported
      */
     @SuppressWarnings("unused")
-    protected Stream<InvocableMap.Entry<K, V>> stream(Filter<V> filter)
+    public Stream<InvocableMap.Entry<K, V>> stream(Filter<V> filter)
         {
         assertActive();
         throw new UnsupportedOperationException("method not implemented");
@@ -1150,7 +902,7 @@ public class AsyncNamedCacheClient<K, V>
      * Removes all mappings from this map.
      * <p>
      * Note: the removal of entries caused by this truncate operation will
-     * not be observable. This includes any registered {@link com.tangosol.util.MapListener
+     * not be observable. This includes any registered {@link MapListener
      * listeners}, {@link com.tangosol.util.MapTrigger triggers}, or {@link
      * com.tangosol.net.events.EventInterceptor interceptors}. However, a
      * {@link com.tangosol.net.events.partition.cache.CacheLifecycleEvent CacheLifecycleEvent}
@@ -1158,9 +910,9 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return a {@link CompletableFuture} returning {@link Void}
      */
-    protected CompletableFuture<Void> truncate()
+    public CompletableFuture<Void> truncate()
         {
-        return executeIfActive(() -> f_service.truncate(Requests.truncate(f_sScopeName, f_sName))
+        return executeIfActive(() -> f_client.truncate()
                 .thenApply(e -> VOID).toCompletableFuture());
         }
 
@@ -1173,29 +925,14 @@ public class AsyncNamedCacheClient<K, V>
      * @return a {@link Collection} of values based on the provided {@link Filter} and {@link Comparator}
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    protected CompletableFuture<Collection<V>> valuesInternal(Filter<?> filter, Comparator comparator)
+    public CompletableFuture<Collection<V>> valuesInternal(Filter<?> filter, Comparator comparator)
         {
-        return this.values(filter).thenApply((colValues) ->
+        return values(filter).thenApply((colValues) ->
             {
             List<V> values = new ArrayList<>(colValues);
             values.sort(comparator);
             return values;
             });
-        }
-
-    /**
-     * Helper method for {@link #containsKey(Object)} invocations.
-     *
-     * @param oKey  the key to check
-     *
-     * @return a {@link CompletableFuture} returning {@code true} if the cache contains the given key
-     */
-    protected CompletableFuture<Boolean> containsKeyInternal(Object oKey)
-        {
-        return executeIfActive(() -> f_service.containsKey(Requests.containsKey(f_sScopeName, f_sName, f_sFormat,
-                        toKeyByteString(oKey)))
-                .thenApplyAsync(BoolValue::getValue)
-                .toCompletableFuture());
         }
 
     /**
@@ -1205,10 +942,9 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return a {@link CompletableFuture} returning {@code true} if the cache contains the given value
      */
-    protected CompletableFuture<Boolean> containsValue(Object oValue)
+    public CompletableFuture<Boolean> containsValue(Object oValue)
         {
-        return executeIfActive(() -> f_service.containsValue(Requests.containsValue(f_sScopeName, f_sName, f_sFormat,
-                                                                                    toByteString(oValue)))
+        return executeIfActive(() -> f_client.containsValue(toByteString(oValue))
                 .thenApplyAsync(BoolValue::getValue)
                 .toCompletableFuture());
         }
@@ -1218,7 +954,7 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return a {@link CompletableFuture} returning {@link Void}
      */
-    protected CompletableFuture<Void> destroy()
+    public CompletableFuture<Void> destroy()
         {
         return executeIfActive(() -> releaseInternal(true));
         }
@@ -1234,81 +970,17 @@ public class AsyncNamedCacheClient<K, V>
         }
 
     /**
-     * Called by the constructor to initialize event support.
-     */
-    protected void initEvents()
-        {
-        m_evtResponseObserver = new EventStreamObserver();
-        m_listenerSupport     = new MapListenerSupport();
-        m_aEvtFilter          = new SparseArray<>();
-
-        // create a future to allow us to wait for the init request to complete
-        CompletableFuture<Void> future = m_evtResponseObserver.whenSubscribed().toCompletableFuture();
-        // handle subscription completion errors
-        future.handle((v, err) ->
-            {
-            if (err != null)
-                {
-                // close the channel if subscription failed
-                m_evtResponseObserver.onCompleted();
-                }
-            return null;
-            });
-
-        // Wait for the init request to complete
-        // The events bi-di channel has no deadline, but we need to ensure the initial
-        // subscription completes in a suitable time, so we use the deadline here
-        long cDeadlineMillis = f_dependencies.getDeadline();
-        try
-            {
-            future.get(cDeadlineMillis, TimeUnit.MILLISECONDS);
-            }
-        catch (InterruptedException | TimeoutException e)
-            {
-            throw new RequestTimeoutException("Timed out waiting for event subscription after "
-                    + cDeadlineMillis + " ms", e);
-            }
-        catch (ExecutionException e)
-            {
-            throw Exceptions.ensureRuntimeException(e);
-            }
-        }
-
-    /**
-     * Return the serialization format.
-     *
-     * @return the serialization format
-     */
-    protected String getFormat()
-        {
-        return f_sFormat;
-        }
-
-    /**
      * Obtain a page of cache keys.
      *
      * @param cookie  an opaque cooke used to determine the current page
      *
      * @return a page of cache keys
      */
-    protected Stream<BytesValue> getKeysPage(BytesValue cookie)
+    public Stream<BytesValue> getKeysPage(BytesValue cookie)
         {
         assertActive();
         ByteString s = cookie == null ? null : cookie.getValue();
-        return f_service.nextKeySetPage(Requests.page(f_sScopeName, f_sName, f_sFormat, s));
-        }
-
-    /**
-     * Obtain a page of cache entries.
-     *
-     * @param cookie  an opaque cooke used to determine the current page
-     *
-     * @return a page of cache entries
-     */
-    protected Stream<EntryResult> getEntriesPage(ByteString cookie)
-        {
-        assertActive();
-        return f_service.nextEntrySetPage(Requests.page(f_sScopeName, f_sName, f_sFormat, cookie));
+        return f_client.getKeysPage(s);
         }
 
     /**
@@ -1319,16 +991,14 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return a page of cache keys
      */
-    protected boolean containsEntry(K key, V value)
+    public boolean containsEntry(K key, V value)
         {
         assertActive();
         try
             {
-            ContainsEntryRequest       request   = Requests.containsEntry(f_sScopeName, f_sName, f_sFormat,
-                                                            toKeyByteString(key), toByteString(value));
-            CompletionStage<BoolValue> stage     = f_service.containsEntry(request);
-            BoolValue                  boolValue = stage.toCompletableFuture().get();
-
+            BoolValue boolValue = f_client.containsEntry(toKeyByteString(key), toByteString(value))
+                    .toCompletableFuture()
+                    .get();
             return boolValue != null && boolValue.getValue();
             }
         catch (InterruptedException | ExecutionException e)
@@ -1343,7 +1013,7 @@ public class AsyncNamedCacheClient<K, V>
      * @throws IllegalStateException if this {@link AsyncNamedCacheClient}
      *                               is not active
      */
-    protected void assertActive()
+    public void assertActive()
         {
         if (m_fReleased || m_fDestroyed)
             {
@@ -1386,76 +1056,81 @@ public class AsyncNamedCacheClient<K, V>
      * @return a {@link CompletableFuture} that will be complete when the operation
      * is completed.
      */
-    protected synchronized CompletableFuture<Void> releaseInternal(boolean destroy)
+    protected CompletableFuture<Void> releaseInternal(boolean destroy)
         {
-        CompletableFuture<Void> future;
+        f_lock.lock();
+        try
+            {
+            CompletableFuture<Void> future;
+            f_cListener.set(0);
 
-        // close the events bidirectional channel and any event listeners
-        if (m_evtResponseObserver != null)
-            {
-            m_evtResponseObserver.onCompleted();
-            }
-        f_cListener.set(0);
-
-        if (!m_fDestroyed && !m_fReleased)
-            {
-            if (destroy)
-                {
-                m_fDestroyed = true;
-                future = f_service.destroy(Requests.destroy(f_sScopeName, f_sName)).thenApply(e -> VOID).toCompletableFuture();
-                }
-            else
-                {
-                m_fReleased = true;
-                future = CompletableFuture.completedFuture(VOID);
-                }
-            }
-        else
-            {
-            future = CompletableFuture.completedFuture(VOID);
-            }
-
-        return future.handleAsync((v, err) -> {
-        for (DeactivationListener<AsyncNamedCacheClient<? super K, ? super V>> listener : f_listDeactivationListeners)
-            {
-            try
+            if (!m_fDestroyed && !m_fReleased)
                 {
                 if (destroy)
                     {
-                    listener.destroyed(this);
+                    m_fDestroyed = true;
+                    future = f_client.destroy();
                     }
                 else
                     {
-                    listener.released(this);
+                    m_fReleased = true;
+                    future = CompletableFuture.completedFuture(VOID);
                     }
                 }
-            catch (Throwable t)
+            else
                 {
-                Logger.err(t);
+                future = CompletableFuture.completedFuture(VOID);
                 }
-            }
-        f_listDeactivationListeners.clear();
 
-        CacheEvent<?, ?> evt = createDeactivationEvent(/*destroyed*/true);
-        for (NamedCacheDeactivationListener listener : f_listCacheDeactivationListeners)
-            {
-            try
-                {
-                listener.entryDeleted(evt);
-                }
-            catch (Throwable t)
-                {
-                Logger.err(t);
-                }
-            }
-        f_listCacheDeactivationListeners.clear();
+            f_client.close();
 
-        if (err != null)
-            {
-            throw Base.ensureRuntimeException(err);
+            return future.handleAsync((v, err) ->
+                {
+                for (DeactivationListener<AsyncNamedCacheClient<? super K, ? super V>> listener : f_listDeactivationListeners)
+                    {
+                    try
+                        {
+                        if (destroy)
+                            {
+                            listener.destroyed(this);
+                            }
+                        else
+                            {
+                            listener.released(this);
+                            }
+                        }
+                    catch (Throwable t)
+                        {
+                        Logger.err(t);
+                        }
+                    }
+                f_listDeactivationListeners.clear();
+
+                CacheEvent<?, ?> evt = createDeactivationEvent(/*destroyed*/true);
+                for (NamedCacheDeactivationListener listener : f_listCacheDeactivationListeners)
+                    {
+                    try
+                        {
+                        listener.entryDeleted(evt);
+                        }
+                    catch (Throwable t)
+                        {
+                        Logger.err(t);
+                        }
+                    }
+                f_listCacheDeactivationListeners.clear();
+
+                if (err != null)
+                    {
+                    throw Base.ensureRuntimeException(err);
+                    }
+                return VOID;
+                });
             }
-        return VOID;
-        });
+        finally
+            {
+            f_lock.unlock();
+            }
         }
 
     /**
@@ -1480,8 +1155,7 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @param listener  the listener to add
      */
-    public void addDeactivationListener(DeactivationListener<AsyncNamedCacheClient<? super K, ?
-            super V>> listener)
+    public void addDeactivationListener(DeactivationListener<AsyncNamedCacheClient<? super K, ? super V>> listener)
         {
         assertActive();
         f_lockDeactivationListeners.lock();
@@ -1532,7 +1206,7 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @param listener  the listener to remove
      */
-    protected void removeDeactivationListener(DeactivationListener<AsyncNamedCacheClient<? super K, ? super V>> listener)
+    public void removeDeactivationListener(DeactivationListener<AsyncNamedCacheClient<? super K, ? super V>> listener)
         {
         if (listener != null)
             {
@@ -1546,6 +1220,11 @@ public class AsyncNamedCacheClient<K, V>
                 f_lockDeactivationListeners.unlock();
                 }
             }
+        }
+
+    protected List<NamedCacheDeactivationListener> getDeactivationListeners()
+        {
+        return Collections.unmodifiableList(f_listCacheDeactivationListeners);
         }
 
     /**
@@ -1564,24 +1243,10 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return {@link CompletableFuture} returning type {@link Void}
      */
-    protected <T, E> CompletableFuture<Void> addIndex(ValueExtractor<? super T, ? extends E> extractor,
-                                                      boolean fOrdered, Comparator<? super E> comparator)
+    public  <T, E> CompletableFuture<Void> addIndex(ValueExtractor<? super T, ? extends E> extractor,
+            boolean fOrdered, Comparator<? super E> comparator)
         {
-        return executeIfActive(() ->
-                               {
-                               ByteString serializedExtractor = toByteString(extractor);
-                               if (comparator == null)
-                                   {
-                                   return f_service.addIndex(Requests.addIndex(f_sScopeName, f_sName, f_sFormat, serializedExtractor, fOrdered))
-                                           .thenApply(e -> VOID).toCompletableFuture();
-                                   }
-                               else
-                                   {
-                                   return f_service.addIndex(Requests.addIndex(f_sScopeName, f_sName, f_sFormat, serializedExtractor,
-                                                                               fOrdered, toByteString(comparator)))
-                                           .thenApply(e -> VOID).toCompletableFuture();
-                                   }
-                               });
+        return executeIfActive(() -> f_client.addIndex(toByteString(extractor), fOrdered, toByteStringOrNull(comparator)));
         }
 
     /**
@@ -1593,7 +1258,7 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return {@link CompletableFuture} returning type {@link Void}
      */
-    protected CompletableFuture<Void> addMapListener(MapListener<? super K, ? super V> mapListener)
+    public CompletableFuture<Void> addMapListener(MapListener<? super K, ? super V> mapListener)
         {
         return addMapListener(mapListener, (Filter<?>) null, false);
         }
@@ -1614,7 +1279,7 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return {@link CompletableFuture} returning type {@link Void}
      */
-    protected CompletableFuture<Void> addMapListener(MapListener<? super K, ? super V> mapListener, K key, boolean fLite)
+    public CompletableFuture<Void> addMapListener(MapListener<? super K, ? super V> mapListener, K key, boolean fLite)
         {
         return executeIfActive(() ->
                                {
@@ -1624,10 +1289,7 @@ public class AsyncNamedCacheClient<K, V>
                                    }
                                catch (Exception e)
                                    {
-                                   CompletableFuture<Void> future = new CompletableFuture<>();
-
-                                   future.completeExceptionally(e);
-                                   return future;
+                                   return CompletableFuture.failedFuture(e);
                                    }
                                });
         }
@@ -1651,7 +1313,7 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return {@link CompletableFuture} returning type {@link Void}
      */
-    protected CompletableFuture<Void> addMapListener(MapListener<? super K, ? super V> mapListener, Filter<?> filter,
+    public CompletableFuture<Void> addMapListener(MapListener<? super K, ? super V> mapListener, Filter<?> filter,
                                                      boolean fLite)
         {
         return executeIfActive(() ->
@@ -1689,31 +1351,25 @@ public class AsyncNamedCacheClient<K, V>
     protected CompletableFuture<Void> addKeyMapListener(MapListener<? super K, ? super V> listener, Object key,
                                                         boolean fLite)
         {
-        MapListenerSupport support = getMapListenerSupport();
-        boolean            first   = support.addListenerWithCheck(listener, key, fLite);
-        boolean            priming = MapListenerSupport.isPrimingListener(listener);
+        MapListenerSupport support    = getMapListenerSupport();
+        boolean            fShouldAdd = support.addListenerWithCheck(listener, key, fLite);
+        boolean            fPriming   = MapListenerSupport.isPrimingListener(listener);
 
         // "priming" request should be sent regardless
-        if (first || priming)
+        if (fShouldAdd || fPriming)
             {
-            String uid = "";
-            try
+            return f_client.addMapListener(toKeyByteString(key), fLite, fPriming)
+                .handle((ignored, err) ->
                 {
-                MapListenerRequest request = Requests
-                        .addKeyMapListener(f_sScopeName, f_sName, f_sFormat, toKeyByteString(key),
-                                           fLite, priming, ByteString.EMPTY);
-                uid = request.getUid();
-                return m_evtResponseObserver.send(request);
-                }
-            catch (Throwable t)
-                {
-                synchronized (support)
+                if (err != null)
                     {
-                    support.removeListener(listener, key);
-                    m_evtResponseObserver.removeAndComplete(uid, t);
+                    synchronized (support)
+                        {
+                        support.removeListener(listener, key);
+                        }
                     }
-                return CompletableFuture.failedFuture(t);
-                }
+                return VOID;
+                });
             }
         else
             {
@@ -1762,7 +1418,7 @@ public class AsyncNamedCacheClient<K, V>
         if (listener instanceof MapTriggerListener)
             {
             MapTriggerListener triggerListener = (MapTriggerListener) listener;
-            return addRemoteFilterListener(ByteString.EMPTY, 0L, fLite, toByteString(triggerListener.getTrigger()));
+            return f_client.addMapListener(ByteString.EMPTY, 0L, fLite, toByteString(triggerListener.getTrigger()));
             }
 
         boolean wasEmpty;
@@ -1781,7 +1437,7 @@ public class AsyncNamedCacheClient<K, V>
 
         if (wasEmpty || first)
             {
-            future = addRemoteFilterListener(toByteString(filter), filterId, fLite, ByteString.EMPTY);
+            future = f_client.addMapListener(toByteString(filter), filterId, fLite, ByteString.EMPTY);
             if (future.isCompletedExceptionally())
                 {
                 synchronized (support)
@@ -1800,39 +1456,6 @@ public class AsyncNamedCacheClient<K, V>
             future = CompletableFuture.completedFuture(VOID);
             }
 
-        return future;
-        }
-
-    /**
-     * Sends the serialized {@link Filter} for registration with the cache server.
-     *
-     * @param filterBytes   the serialized bytes of the {@link Filter}
-     * @param nFilterId     the ID of the {@link Filter}
-     * @param fLite         {@code true} to indicate that the {@link MapEvent} objects do
-     *                      not have to include the OldValue and NewValue
-     *                      property values in order to allow optimizations
-     * @param triggerBytes  the serialized bytes of the {@link MapTriggerListener}; pass {@link ByteString#EMPTY}
-     *                      if there is no trigger listener.
-     *
-     * @return {@link CompletableFuture} returning type {@link Void}
-     */
-    protected CompletableFuture<Void> addRemoteFilterListener(ByteString filterBytes,
-                                                              long nFilterId, boolean fLite, ByteString triggerBytes)
-        {
-        String uid = "";
-        CompletableFuture<Void> future;
-        try
-            {
-            MapListenerRequest request = Requests
-                    .addFilterMapListener(f_sScopeName, f_sName, f_sFormat, filterBytes, nFilterId, fLite, false, triggerBytes);
-            uid = request.getUid();
-            future = m_evtResponseObserver.send(request);
-            }
-        catch (Throwable t)
-            {
-            m_evtResponseObserver.removeAndComplete(uid, t);
-            future = CompletableFuture.failedFuture(t);
-            }
         return future;
         }
 
@@ -1879,25 +1502,22 @@ public class AsyncNamedCacheClient<K, V>
         }
 
     /**
-     * Dispatch the received {@link MapEventResponse} for processing by local listeners.
+     * Dispatch a received mep event for processing by local listeners.
      * <p>
      * This method is taken from code in the TDE RemoteNamedCache.
      *
-     * @param response  the {@link MapEventResponse} to process
      */
+    @Override
     @SuppressWarnings({"unchecked", "rawtypes", "ConstantConditions"})
-    protected void dispatch(MapEventResponse response)
+    public void dispatch(List<Long> listFilterIds, int nEventId, ByteString binKey, ByteString binOldValue,
+                            ByteString binNewValue, boolean fSynthetic, boolean fPriming,
+                            TransformationState transformState)
         {
-        List<Long>          listFilterIds  = response.getFilterIdsList();
         int                 cFilters       = listFilterIds == null ? 0 : listFilterIds.size();
-        int                 nEventId       = response.getId();
-        Object              oKey           = fromByteString(response.getKey());
-        Object              oValueOld      = fromByteString(response.getOldValue());
-        Object              oValueNew      = fromByteString(response.getNewValue());
-        boolean             fSynthetic     = response.getSynthetic();
-        boolean             fPriming       = response.getPriming();
+        Object              oKey           = fromByteString(binKey);
+        Object              oValueOld      = fromByteString(binOldValue);
+        Object              oValueNew      = fromByteString(binNewValue);
         MapListenerSupport  support        = getMapListenerSupport();
-        TransformationState transformState = TransformationState.valueOf(response.getTransformationState().toString());
         CacheEvent<?, ?>    evt            = null;
 
         // collect key-based listeners
@@ -1982,6 +1602,46 @@ public class AsyncNamedCacheClient<K, V>
             }
         }
 
+    @Override
+    public void onDestroy()
+        {
+        if (isActiveInternal())
+            {
+            m_fDestroyed = true;
+            releaseInternal(true);
+            }
+        f_cListener.set(0);
+        }
+
+    @Override
+    public void onTruncate()
+        {
+        CacheEvent<?, ?> evt = createDeactivationEvent(/*destroyed*/ false);
+        for (NamedCacheDeactivationListener listener : getDeactivationListeners())
+            {
+            try
+                {
+                listener.entryUpdated(evt);
+                }
+            catch (Throwable t)
+                {
+                Logger.err(t);
+                }
+            }
+        }
+
+    @Override
+    public void incrementListeners()
+        {
+        f_cListener.incrementAndGet();
+        }
+
+    @Override
+    public void decrementListeners()
+        {
+        f_cListener.decrementAndGet();
+        }
+
     /**
      * Return the number of listeners registered with this map.
      *
@@ -1997,7 +1657,7 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return the event dispatcher for this cache
      */
-    protected GrpcCacheLifecycleEventDispatcher getEventDispatcher()
+    public GrpcCacheLifecycleEventDispatcher getEventDispatcher()
         {
         return (GrpcCacheLifecycleEventDispatcher) f_dispatcher;
         }
@@ -2007,9 +1667,21 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return this client's dependencies
      */
-    protected Dependencies getDependencies()
+    protected AsyncNamedCacheClient.Dependencies getDependencies()
         {
-        return (Dependencies) f_dependencies;
+        return (AsyncNamedCacheClient.Dependencies) f_dependencies;
+        }
+
+    // ----- Object methods -------------------------------------------------
+
+    @Override
+    public String toString()
+        {
+        return "AsyncNamedCacheClient{"
+                + "scope: \"" + f_sScopeName + '"'
+                + "name: \"" + f_sName + '"'
+                + " format: \"" + f_sFormat + '"'
+                + '}';
         }
 
     // ----- inner class: EventTask -----------------------------------------
@@ -2018,7 +1690,7 @@ public class AsyncNamedCacheClient<K, V>
      * A simple {@link Runnable} to dispatch an event to a listener.
      */
     @SuppressWarnings("rawtypes")
-    static class EventTask
+    public static class EventTask
             implements Runnable
         {
         /**
@@ -2027,7 +1699,7 @@ public class AsyncNamedCacheClient<K, V>
          * @param event     the event to dispatch
          * @param listener  the listener to dispatch the event to
          */
-        EventTask(CacheEvent<?, ?> event, MapListener listener)
+        public EventTask(CacheEvent<?, ?> event, MapListener listener)
             {
             f_event    = event;
             f_listener = listener;
@@ -2065,343 +1737,6 @@ public class AsyncNamedCacheClient<K, V>
         private final MapListener f_listener;
         }
 
-    // ----- inner class: InvokeAllBiFunction -------------------------------
-
-    /**
-     * A {@link BiFunction} that completes a {@link CompletableFuture}.
-     *
-     * @param <Kf>  key type
-     * @param <Rf>  result type
-     */
-    protected class InvokeAllBiFunction<Kf, Rf>
-            implements BiFunction<Entry, Map<Kf, Rf>, Map<Kf, Rf>>
-        {
-        // ----- constructors -----------------------------------------------
-
-        /**
-         * Constructs a new {@code InvokeAllBiFunction}.
-         *
-         * @param future  the {@link CompletableFuture} to notify
-         */
-        protected InvokeAllBiFunction(CompletableFuture<Map<Kf, Rf>> future)
-            {
-            f_future = future;
-            }
-
-        // ----- BiFunction interface ---------------------------------------
-
-        @Override
-        public Map<Kf, Rf> apply(Entry e, Map<Kf, Rf> m)
-            {
-            try
-                {
-                m.put(fromByteString(e.getKey()), fromByteString(e.getValue()));
-                return m;
-                }
-            catch (Throwable ex)
-                {
-                f_future.completeExceptionally(ex);
-                }
-            return null;
-            }
-
-        // ----- data members -----------------------------------------------
-
-        /**
-         * The {@link CompletableFuture} to notify
-         */
-        protected final CompletableFuture<Map<Kf, Rf>> f_future;
-        }
-
-    // ----- EventStreamObserver -------------------------------------------
-    /**
-     * A {@code EventStreamObserver} that processes {@link MapListenerResponse}s.
-     */
-    @SuppressWarnings("EnhancedSwitchMigration")
-    protected class EventStreamObserver
-            implements StreamObserver<MapListenerResponse>
-        {
-        // ----- constructors -----------------------------------------------
-
-        /**
-         * Constructs a new EventStreamObserver
-         */
-        protected EventStreamObserver()
-            {
-            f_sUid   = UUID.randomUUID().toString();
-            f_future = new CompletableFuture<>();
-            StreamObserver<MapListenerRequest> observer = f_service.events(this);
-            m_evtRequestObserver = (SafeStreamObserver<MapListenerRequest>) SafeStreamObserver.ensureSafeObserver(observer);
-            m_evtRequestObserver.whenDone().thenAccept(v -> f_mapFuture.values().forEach(f -> f.complete(null)));
-
-            // initialise the bidirectional stream so that this client will receive
-            // destroy and truncate events
-            MapListenerRequest request = MapListenerRequest.newBuilder()
-                    .setScope(f_sScopeName)
-                    .setCache(f_sName)
-                    .setUid(f_sUid)
-                    .setSubscribe(true)
-                    .setFormat(f_sFormat)
-                    .setType(MapListenerRequest.RequestType.INIT)
-                    .setHeartbeatMillis(getDependencies().getEventsHeartbeat())
-                    .build();
-
-            observer.onNext(request);
-            }
-
-        // ----- public methods ---------------------------------------------
-
-        /**
-         * Subscription {@link CompletionStage}.
-         *
-         * @return a {@link CompletionStage} returning {@link Void}
-         */
-        public CompletionStage<Void> whenSubscribed()
-            {
-            return f_future;
-            }
-
-        // ----- StreamObserver interface -----------------------------------
-
-        @Override
-        public void onNext(MapListenerResponse response)
-            {
-            switch (response.getResponseTypeCase())
-                {
-                case SUBSCRIBED:
-                    onSubscribed(response);
-                    break;
-                case UNSUBSCRIBED:
-                    onUnsubscribed(response);
-                    break;
-                case EVENT:
-                    dispatch(response.getEvent());
-                    break;
-                case ERROR:
-                    onError(response);
-                    break;
-                case DESTROYED:
-                    onDestroyed(response);
-                    break;
-                case TRUNCATED:
-                    onTruncated(response);
-                    break;
-                case HEARTBEAT:
-                    break;
-                case RESPONSETYPE_NOT_SET:
-                    Logger.info("Received unexpected event without a response type!");
-                    break;
-                default:
-                    Logger.info("Received unexpected event " + response.getEvent());
-                }
-            }
-
-        @Override
-        public void onError(Throwable t)
-            {
-            f_lock.lock();
-            try
-                {
-                m_fDone = true;
-                if (!f_future.isDone())
-                    {
-                    f_future.completeExceptionally(t);
-                    }
-                f_mapFuture.values().forEach(f -> f.complete(null));
-                }
-            finally
-                {
-                f_lock.unlock();
-                }
-            }
-
-        @Override
-        public void onCompleted()
-            {
-            f_lock.lock();
-            try
-                {
-                m_fDone = true;
-                if (!f_future.isDone())
-                    {
-                    f_future.completeExceptionally(
-                            new IllegalStateException("Event observer completed without subscription"));
-                    }
-                f_mapFuture.values().forEach(f -> f.complete(null));
-                }
-            finally
-                {
-                f_lock.unlock();
-                }
-            }
-
-        // ----- helper methods ---------------------------------------------
-
-        private void onSubscribed(MapListenerResponse response)
-            {
-            MapListenerSubscribedResponse subscribed  = response.getSubscribed();
-            String                        responseUid = subscribed.getUid();
-            if (f_sUid.equals(responseUid))
-                {
-                f_future.complete(VOID);
-                }
-            else
-                {
-                CompletableFuture<Void> future = f_mapFuture.remove(responseUid);
-                if (future != null)
-                    {
-                    future.complete(VOID);
-                    }
-                f_cListener.incrementAndGet();
-                }
-            }
-
-        private void onUnsubscribed(MapListenerResponse response)
-            {
-            MapListenerUnsubscribedResponse unsubscribed = response.getUnsubscribed();
-            CompletableFuture<Void> future = f_mapFuture.remove(unsubscribed.getUid());
-            if (future != null)
-                {
-                future.complete(VOID);
-                }
-            f_cListener.decrementAndGet();
-            }
-
-        private void onDestroyed(MapListenerResponse response)
-            {
-            if (response.getDestroyed().getCache().equals(f_sName))
-                {
-                if (isActiveInternal())
-                    {
-                    m_fDestroyed = true;
-                    releaseInternal(true);
-                    }
-                f_cListener.set(0);
-                }
-            }
-
-        private void onTruncated(MapListenerResponse response)
-            {
-            if (response.getTruncated().getCache().equals(f_sName))
-                {
-                CacheEvent<?, ?> evt = createDeactivationEvent(/*destroyed*/ false);
-                for (NamedCacheDeactivationListener listener : f_listCacheDeactivationListeners)
-                    {
-                    try
-                        {
-                        listener.entryUpdated(evt);
-                        }
-                    catch (Throwable t)
-                        {
-                        Logger.err(t);
-                        }
-                    }
-                }
-            }
-
-        private void onError(MapListenerResponse response)
-            {
-            MapListenerErrorResponse error       = response.getError();
-            String                   responseUid = error.getUid();
-            if (f_sUid.equals(responseUid))
-                {
-                f_future.completeExceptionally(new RuntimeException(error.getMessage()));
-                }
-            else
-                {
-                CompletableFuture<Void> future = f_mapFuture.remove(responseUid);
-                if (future != null)
-                    {
-                    future.completeExceptionally(new RuntimeException(error.getMessage()));
-                    }
-                }
-            }
-
-
-        public CompletableFuture<Void> send(MapListenerRequest request)
-            {
-            if (m_fDone)
-                {
-                return CompletableFuture.completedFuture(null);
-                }
-
-            f_lock.lock();
-            try
-                {
-                if (m_fDone)
-                    {
-                    return CompletableFuture.completedFuture(null);
-                    }
-                CompletableFuture<Void> future = new CompletableFuture<>();
-                f_mapFuture.put(request.getUid(), future);
-                m_evtRequestObserver.onNext(request);
-                return future;
-                }
-            finally
-                {
-                f_lock.unlock();
-                }
-            }
-
-        public void removeAndComplete(String uid, Throwable t)
-            {
-            CompletableFuture<Void> future = f_mapFuture.remove(uid);
-            if (future != null && !future.isDone())
-                {
-                if (t == null)
-                    {
-                    future.complete(null);
-                    }
-                else
-                    {
-                    future.completeExceptionally(t);
-                    }
-                }
-            }
-
-        // ----- Object methods ---------------------------------------------
-
-        @Override
-        public String toString()
-            {
-            return "EventStreamObserver(" +
-                    "cacheName='" + f_sName + '\'' +
-                    ", uid='" + f_sUid + '\'' +
-                    ')';
-            }
-
-        // ----- data members -----------------------------------------------
-
-        /**
-         * The event ID.
-         */
-        protected final String f_sUid;
-
-        /**
-         * The {@link CompletableFuture} to notify
-         */
-        protected final CompletableFuture<Void> f_future;
-
-        /**
-         * A flag indicating that this observer is closed.
-         */
-        protected volatile boolean m_fDone;
-
-        /**
-         * The lock to control sending messages and closing the channel.
-         */
-        protected final Lock f_lock = new ReentrantLock();
-
-        /**
-         * The client channel for events observer.
-         */
-        private final SafeStreamObserver<MapListenerRequest> m_evtRequestObserver;
-
-        /**
-         * The map of event listener request futures keyed by request id.
-         */
-        protected final Map<String, CompletableFuture<Void>> f_mapFuture = new ConcurrentHashMap<>();
-        }
 
     // ----- inner class: WrapperDeactivationListener -----------------------
 
@@ -2447,107 +1782,6 @@ public class AsyncNamedCacheClient<K, V>
         protected final MapListener<? super K, ? super V> m_listener;
         }
 
-    // ----- Dependencies ---------------------------------------------------
-
-    /**
-     * The dependencies used to create an {@link AsyncNamedCacheClient}.
-     */
-    public interface Dependencies
-            extends BaseGrpcClient.Dependencies
-        {
-        /**
-         * Return the optional {@link NamedCacheGrpcClient} to use.
-         *
-         * @return the optional {@link NamedCacheGrpcClient} to use
-         */
-        Optional<NamedCacheGrpcClient> getClient();
-
-        /**
-         * Returns the frequency in millis that heartbeats should be sent by the
-         * proxy to the client bidirectional events channel.
-         *
-         * @return the frequency in millis that heartbeats should be sent by the
-         *         proxy to the client bidirectional events channel
-         */
-        long getEventsHeartbeat();
-        }
-        // ----- DefaultDependencies ----------------------------------------
-
-    /**
-     * The dependencies used to create an {@link AsyncNamedCacheClient}.
-     */
-    public static class DefaultDependencies
-            extends BaseGrpcClient.DefaultDependencies
-            implements Dependencies
-        {
-        // ----- constructors -----------------------------------------------
-
-        /**
-         * Create a {@link DefaultDependencies}.
-         *
-         * @param sCacheName  the name of the underlying cache that
-         *                    the {@link AsyncNamedCacheClient} will
-         *                    represent
-         * @param channel     the gRPC {@link Channel} to use
-         */
-        public DefaultDependencies(String sCacheName, Channel channel, GrpcCacheLifecycleEventDispatcher dispatcher)
-            {
-            super(sCacheName, channel, dispatcher);
-            }
-
-        // ----- Dependencies methods ---------------------------------------
-
-        @Override
-        public Optional<NamedCacheGrpcClient> getClient()
-            {
-            return Optional.ofNullable(m_client);
-            }
-
-        @Override
-        public long getEventsHeartbeat()
-            {
-            return m_nEventsHeartbeat;
-            }
-
-        // ----- setters ----------------------------------------------------
-
-        /**
-         * Set the optional {@link NamedCacheGrpcClient}.
-         *
-         * @param client the optional {@link NamedCacheGrpcClient}
-         */
-        public void setClient(NamedCacheGrpcClient client)
-            {
-            m_client = client;
-            }
-
-        /**
-         * Set the frequency in millis that heartbeats should be sent by the
-         * proxy to the client bidirectional events channel.
-         * <p/>
-         * If the frequency is set to zero or less, then no heartbeats will be sent.
-         *
-         * @param nEventsHeartbeat the heartbeat frequency in millis
-         */
-        public void setEventsHeartbeat(long nEventsHeartbeat)
-            {
-            m_nEventsHeartbeat = Math.max(NO_EVENTS_HEARTBEAT, nEventsHeartbeat);
-            }
-
-        // ----- data members -----------------------------------------------
-
-        /**
-         * An optional {@link NamedCacheGrpcClient} to use
-         */
-        private NamedCacheGrpcClient m_client;
-
-        /**
-         * The frequency in millis that heartbeats should be sent by the
-         * proxy to the client bidirectional events channel
-         */
-        private long m_nEventsHeartbeat = NO_EVENTS_HEARTBEAT;
-        }
-
     // ----- helper methods ---------------------------------------------
 
    /**
@@ -2586,6 +1820,162 @@ public class AsyncNamedCacheClient<K, V>
        return result;
        }
 
+
+    // ----- Dependencies ---------------------------------------------------
+
+    /**
+     * The dependencies used to create an {@link AsyncNamedCacheClient}.
+     */
+    public interface Dependencies
+            extends BaseGrpcClient.Dependencies
+        {
+        /**
+         * Returns the frequency in millis that heartbeats should be sent by the
+         * proxy to the client bidirectional events channel.
+         *
+         * @return the frequency in millis that heartbeats should be sent by the
+         *         proxy to the client bidirectional events channel
+         */
+        long getEventsHeartbeat();
+        }
+
+    // ----- DefaultDependencies ----------------------------------------
+
+    /**
+     * The dependencies used to create an {@link AsyncNamedCacheClient}.
+     */
+    public static class DefaultDependencies
+            extends BaseGrpcClient.DefaultDependencies
+            implements Dependencies
+        {
+        // ----- constructors -----------------------------------------------
+
+        /**
+         * Create a {@link DefaultDependencies}.
+         *
+         * @param sCacheName  the name of the underlying cache that
+         *                    the {@link AsyncNamedCacheClient} will
+         *                    represent
+         * @param channel     the gRPC {@link Channel} to use
+         */
+        public DefaultDependencies(String sCacheName, Channel channel, GrpcCacheLifecycleEventDispatcher dispatcher)
+            {
+            super(sCacheName, channel, dispatcher);
+            }
+
+        // ----- Dependencies methods ---------------------------------------
+
+        @Override
+        public long getEventsHeartbeat()
+            {
+            return m_nEventsHeartbeat;
+            }
+
+        // ----- setters ----------------------------------------------------
+
+        /**
+         * Set the frequency in millis that heartbeats should be sent by the
+         * proxy to the client bidirectional events channel.
+         * <p/>
+         * If the frequency is set to zero or less, then no heartbeats will be sent.
+         *
+         * @param nEventsHeartbeat the heartbeat frequency in millis
+         */
+        public void setEventsHeartbeat(long nEventsHeartbeat)
+            {
+            m_nEventsHeartbeat = Math.max(NO_EVENTS_HEARTBEAT, nEventsHeartbeat);
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The frequency in millis that heartbeats should be sent by the
+         * proxy to the client bidirectional events channel
+         */
+        private long m_nEventsHeartbeat = NO_EVENTS_HEARTBEAT;
+        }
+
+    // ----- inner class: EntryAdvancer -------------------------------------
+
+    /**
+     * A {@link PagedIterator.Advancer} to support a
+     * {@link PagedIterator} over an entry set.
+     */
+    @SuppressWarnings("rawtypes")
+    protected static class EntryAdvancer<K, V>
+            implements PagedIterator.Advancer
+        {
+        // ----- constructors -----------------------------------------------
+
+        /**
+         * Constructs a new {@code EntryAdvancer} using the provided {@link AsyncNamedCacheClient}.
+         *
+         * @param client  the async client
+         */
+        protected EntryAdvancer(AsyncNamedCacheClient<K, V> client)
+            {
+            this.f_parent = client;
+            }
+
+        // ----- Advancer interface -----------------------------------------
+
+        @Override
+        public void remove(Object oCurr)
+            {
+            Map.Entry entry = (Map.Entry) oCurr;
+            try
+                {
+                f_parent.removeInternal(entry.getKey())
+                        .toCompletableFuture()
+                        .get();
+                }
+            catch (InterruptedException | ExecutionException e)
+                {
+                throw new RequestIncompleteException(e);
+                }
+            }
+
+        @Override
+        public Collection nextPage()
+            {
+            if (m_exhausted)
+                {
+                return null;
+                }
+
+            NamedCacheClientChannel.EntrySetPage page = f_parent.f_client.getEntriesPage(m_cookie);
+            if (!page.isEmpty())
+                {
+                m_cookie = page.cookie();
+                }
+            else
+                {
+                m_cookie = null;
+                }
+
+            m_exhausted = m_cookie == null || m_cookie.isEmpty();
+            return ConverterCollections.getEntrySet(page.entries(), f_parent::fromByteString, f_parent::toKeyByteString,
+                    f_parent::fromByteString, f_parent::toByteString);
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * A flag indicating whether this advancer has exhausted all of the pages.
+         */
+        protected boolean m_exhausted;
+
+        /**
+         * The opaque cookie used by the server to maintain the page location.
+         */
+        protected ByteString m_cookie;
+
+        /**
+         * The {@link AsyncNamedCacheClient} used to send gRPC requests.
+         */
+        protected final AsyncNamedCacheClient<K, V> f_parent;
+        }
+
     // ----- constants ------------------------------------------------------
 
     /**
@@ -2596,47 +1986,39 @@ public class AsyncNamedCacheClient<K, V>
     // ----- data members ---------------------------------------------------
 
     /**
-     * The {@link NamedCacheGrpcClient} to delegate calls.
-     */
-    protected final NamedCacheGrpcClient f_service;
-
-    /**
      * The synchronous version of this client.
      */
-    protected final NamedCacheClient<K, V> f_synchronousCache;
+    private final NamedCacheClient<K, V> f_synchronousCache;
 
     /**
      * The list of {@link DeactivationListener} to be notified when this {@link AsyncNamedCacheClient}
      * is released or destroyed.
      */
-    protected final List<DeactivationListener<AsyncNamedCacheClient<? super K, ? super V>>> f_listDeactivationListeners;
+    private final List<DeactivationListener<AsyncNamedCacheClient<? super K, ? super V>>> f_listDeactivationListeners;
 
     /**
      * The list of {@link NamedCacheDeactivationListener} instances added to this client.
      */
-    protected final List<NamedCacheDeactivationListener> f_listCacheDeactivationListeners = new ArrayList<>();
+    private final List<NamedCacheDeactivationListener> f_listCacheDeactivationListeners = new ArrayList<>();
 
-    protected final Lock f_lockDeactivationListeners = new ReentrantLock();
+    private final Lock f_lockDeactivationListeners = new ReentrantLock();
 
-    /**
-     * The event response observer.
-     */
-    protected EventStreamObserver m_evtResponseObserver;
+    private final Lock f_lock = new ReentrantLock();
 
     /**
      * The map listener support.
      */
-    protected MapListenerSupport m_listenerSupport;
+    private final MapListenerSupport m_listenerSupport;
 
     /**
      * The array of filter.
      */
-    protected LongArray<Filter<?>> m_aEvtFilter;
+    private final LongArray<Filter<?>> m_aEvtFilter;
 
     /**
      * The count of successfully registered {@link MapListener map listeners}
      */
-    private final AtomicInteger f_cListener = new AtomicInteger(0);
+    protected final AtomicInteger f_cListener = new AtomicInteger(0);
 
     /**
      * The owing cache service.

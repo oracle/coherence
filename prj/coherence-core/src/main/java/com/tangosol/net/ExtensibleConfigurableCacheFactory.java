@@ -912,7 +912,7 @@ public class ExtensibleConfigurableCacheFactory
      *
      * @return the class loader to use for loading the configuration
      */
-    protected ClassLoader getConfigClassLoader()
+    public ClassLoader getConfigClassLoader()
         {
         return m_loader;
         }

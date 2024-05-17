@@ -7,13 +7,20 @@
 
 package grpc.proxy;
 
+import com.google.protobuf.Message;
 import io.grpc.stub.StreamObserver;
 
+import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observer;
 
 import io.reactivex.rxjava3.disposables.Disposable;
 
 import io.reactivex.rxjava3.observers.TestObserver;
+
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * A test {@link StreamObserver} that is based on the RxJava {@link TestObserver}
@@ -74,6 +81,77 @@ public class TestStreamObserver<T>
     public T valueAt(int i)
         {
         return values().get(i);
+        }
+
+    /**
+     * Return the number of messages received by this observer.
+     *
+     * @return the number of messages received by this observer
+     */
+    public int valueCount()
+        {
+        return values().size();
+        }
+
+    /**
+     * Wait until the {@code TestObserver} receives the given
+     * number of items.
+     *
+     * @param atLeast  the number of items expected at least
+     * @param timeout  the timeout value
+     * @param unit     the timeout units
+     *
+     * @return this
+     */
+    public TestStreamObserver<T> awaitCount(int atLeast, long timeout, TimeUnit unit) throws InterruptedException
+        {
+        long start         = System.currentTimeMillis();
+        long timeoutMillis = unit.toMillis(timeout);
+
+        for (; ; )
+            {
+            if (System.currentTimeMillis() - start >= timeoutMillis)
+                {
+                this.timeout = true;
+                break;
+                }
+            if (done.getCount() == 0L)
+                {
+                break;
+                }
+            if (values.size() >= atLeast)
+                {
+                break;
+                }
+
+            try
+                {
+                Thread.sleep(10);
+                }
+            catch (InterruptedException ex)
+                {
+                throw new RuntimeException(ex);
+                }
+            }
+        return this;
+        }
+
+    /**
+     * Return a {@link Stream} of received values of the specified type
+     *
+     * @param converter  a function to convert the messages received by this observer into the required type
+     * @param type       the type of message
+     * @param <M>        the type of message
+     *
+     * @return a {@link Stream} of received values of the specified type
+     */
+    public <M extends Message> Stream<M> streamOf(Function<T, M> converter, Class<M> type)
+        {
+        return values().stream()
+                .map(converter)
+                .filter(Objects::nonNull)
+                .filter(type::isInstance)
+                .map(type::cast);
         }
 
     // ----- inner class: WrapperStreamObserver -----------------------------

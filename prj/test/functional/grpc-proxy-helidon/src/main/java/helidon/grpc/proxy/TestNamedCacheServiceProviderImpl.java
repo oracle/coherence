@@ -7,7 +7,7 @@
 
 package helidon.grpc.proxy;
 
-import com.oracle.coherence.grpc.proxy.common.NamedCacheService;
+import com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService;
 import com.oracle.coherence.grpc.proxy.helidon.HelidonNamedCacheService;
 import grpc.proxy.TestNamedCacheServiceProvider;
 

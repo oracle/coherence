@@ -28,7 +28,7 @@ import java.util.concurrent.ExecutionException;
  * <p>
  * Some methods in this class are intentionally inefficient partly due to their being a
  * more efficient means to perform the same task using the underlying {@link NamedCache}
- * and partly to ensure that using this class on a client will not cause all of the data
+ * and partly to ensure that using this class on a client will not cause all the data
  * from the underlying {@link NamedCache} to be pulled back to the caller in one result.
  *
  * @param <K> the type of the underlying cache's keys
@@ -48,7 +48,7 @@ public class RemoteEntrySet<K, V>
      *
      * @param map the {@link NamedCache} that this entry set is linked to
      */
-    protected RemoteEntrySet(AsyncNamedCacheClient<K, V> map)
+    public RemoteEntrySet(AsyncNamedCacheClient<K, V> map)
         {
         super(map);
         }
@@ -81,7 +81,7 @@ public class RemoteEntrySet<K, V>
     @SuppressWarnings("unchecked")
     public Iterator<Map.Entry<K, V>> iterator()
         {
-        return new PagedIterator(createEntryAdvancer());
+        return new PagedIterator(f_client.createEntryAdvancer());
         }
 
     @Override
@@ -125,7 +125,6 @@ public class RemoteEntrySet<K, V>
         {
         try
             {
-            //noinspection SuspiciousToArrayCall
             return getCache().entrySet(Filters.always()).get().toArray(array);
             }
         catch (InterruptedException | ExecutionException e)

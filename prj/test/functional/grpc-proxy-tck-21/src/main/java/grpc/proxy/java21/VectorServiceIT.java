@@ -30,12 +30,13 @@ import com.oracle.coherence.ai.grpc.Vectors;
 import com.oracle.coherence.ai.internal.BinaryVector;
 
 import com.oracle.coherence.grpc.BinaryHelper;
-import com.oracle.coherence.grpc.GetRequest;
-import com.oracle.coherence.grpc.OptionalValue;
-import com.oracle.coherence.grpc.PutRequest;
-import com.oracle.coherence.grpc.Requests;
+import com.oracle.coherence.grpc.v0.Requests;
 
-import com.oracle.coherence.grpc.proxy.common.NamedCacheService;
+import com.oracle.coherence.grpc.messages.cache.v0.GetRequest;
+import com.oracle.coherence.grpc.messages.cache.v0.OptionalValue;
+import com.oracle.coherence.grpc.messages.cache.v0.PutRequest;
+
+import com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService;
 
 import com.oracle.coherence.testing.CheckJDK;
 import com.tangosol.io.ReadBuffer;
@@ -50,6 +51,7 @@ import com.tangosol.net.grpc.GrpcAcceptorController;
 import grpc.proxy.BaseGrpcIT;
 import grpc.proxy.TestStreamObserver;
 
+import grpc.proxy.version_0.BaseVersionZeroGrpcIT;
 import io.grpc.stub.StreamObserver;
 
 import org.hamcrest.MatcherAssert;
@@ -76,7 +78,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @BaseGrpcIT.WithNullScopeName
 @SuppressWarnings("resource")
 public class VectorServiceIT
-        extends BaseGrpcIT
+        extends BaseVersionZeroGrpcIT
     {
     @BeforeAll
     static void checkJavaVersion()

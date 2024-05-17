@@ -6,7 +6,11 @@
  */
 package com.oracle.coherence.grpc.client.common;
 
+import com.oracle.coherence.common.base.Logger;
+
+import com.oracle.coherence.grpc.NamedCacheProtocol;
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
+
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 import com.tangosol.internal.net.grpc.RemoteGrpcCacheServiceDependencies;
 
@@ -37,7 +41,7 @@ import java.util.function.IntPredicate;
  * @author Jonathan Knight  2022.08.25
  * @since 22.06.2
  */
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({"rawtypes", "PatternVariableCanBeUsed"})
 public class GrpcRemoteCacheService
         extends GrpcRemoteService<RemoteGrpcCacheServiceDependencies>
         implements CacheService
@@ -191,7 +195,7 @@ public class GrpcRemoteCacheService
                 }
             catch (Throwable e)
                 {
-                e.printStackTrace();
+                Logger.err(e);
                 }
             }
         }
@@ -215,13 +219,41 @@ public class GrpcRemoteCacheService
     @SuppressWarnings("unchecked")
     protected <K, V> AsyncNamedCacheClient<K, V> ensureAsyncCache(String sCacheName)
         {
+        GrpcCacheLifecycleEventDispatcher dispatcher = new GrpcCacheLifecycleEventDispatcher(sCacheName, this);
+
         Channel channel = m_tracingInterceptor == null
                 ? m_channel
                 : ClientInterceptors.intercept(m_channel, m_tracingInterceptor);
 
+        AsyncNamedCacheClient.Dependencies dependencies = createCacheDependencies(sCacheName, channel, dispatcher);
+
+        GrpcConnection connection = connect(NamedCacheProtocol.PROTOCOL_NAME,
+                NamedCacheProtocol.VERSION, NamedCacheProtocol.SUPPORTED_VERSION);
+
+        NamedCacheClientChannel     protocol = NamedCacheClientChannel.createProtocol(dependencies, connection);
+        AsyncNamedCacheClient<K, V> client   = new AsyncNamedCacheClient<>(dependencies, protocol);
+        EventDispatcherRegistry     dispatcherReg = getEventDispatcherRegistry();
+
+        if (dispatcherReg != null)
+            {
+            dispatcherReg.registerEventDispatcher(dispatcher);
+            }
+
+        client.setCacheService(this);
+        client.addDeactivationListener(f_truncateListener);
+        client.addDeactivationListener(f_deactivationListener);
+
+        // We must dispatch the created event async
+        m_executor.execute(() -> dispatcher.dispatchCacheCreated(client.getNamedCache()));
+
+        return client;
+        }
+
+    private AsyncNamedCacheClient.Dependencies createCacheDependencies(String sCacheName, Channel channel,
+            GrpcCacheLifecycleEventDispatcher dispatcher)
+        {
         RemoteGrpcCacheServiceDependencies dependencies = getDependencies();
         String                             sScopeName   = dependencies.getRemoteScopeName();
-        GrpcCacheLifecycleEventDispatcher  dispatcher   = new GrpcCacheLifecycleEventDispatcher(sCacheName, this);
 
         if (sScopeName == null)
             {
@@ -240,22 +272,7 @@ public class GrpcRemoteCacheService
         deps.setDeadline(nDeadline);
         deps.setEventsHeartbeat(nHeartbeat == 0L ? (nDeadline / 2) : nHeartbeat);
 
-        AsyncNamedCacheClient<?, ?> client = new AsyncNamedCacheClient<>(deps);
-
-        EventDispatcherRegistry dispatcherReg = getEventDispatcherRegistry();
-        if (dispatcherReg != null)
-            {
-            dispatcherReg.registerEventDispatcher(dispatcher);
-            }
-
-        client.setCacheService(this);
-        client.addDeactivationListener(f_truncateListener);
-        client.addDeactivationListener(f_deactivationListener);
-
-        // We must dispatch the created event async
-        m_executor.execute(() -> dispatcher.dispatchCacheCreated(client.getNamedCache()));
-
-        return (AsyncNamedCacheClient<K, V>) client;
+        return deps;
         }
 
     // ----- inner class: ClientDeactivationListener ------------------------
@@ -300,7 +317,6 @@ public class GrpcRemoteCacheService
     private class TruncateListener
             extends AbstractMapListener
             implements NamedCacheDeactivationListener
-
         {
         // ----- NamedCacheDeactivationListener interface -------------------
 

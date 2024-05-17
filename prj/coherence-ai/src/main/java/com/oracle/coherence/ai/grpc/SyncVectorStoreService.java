@@ -29,7 +29,7 @@ import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.SafeStreamObserver;
 
 import com.oracle.coherence.grpc.proxy.common.BaseGrpcServiceImpl;
-import com.oracle.coherence.grpc.proxy.common.ResponseHandlers;
+import com.oracle.coherence.grpc.proxy.common.v0.ResponseHandlers;
 
 import com.oracle.coherence.io.json.JsonObject;
 import com.oracle.coherence.io.json.JsonSerializer;

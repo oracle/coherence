@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -162,6 +162,29 @@ public final class ErrorsHelper
             abEncoded = s_encoder.encode(abStack);
             }
         return new String(abEncoded);
+        }
+
+    /**
+     * Log the exception unless it is a {@link StatusRuntimeException}
+     * with a status of {@link Status#CANCELLED}.
+     *
+     * @param t  the exception to log
+     */
+    public static void logIfNotCancelled(Throwable t)
+        {
+        boolean fLog = true;
+        if (t instanceof StatusRuntimeException sre)
+            {
+            fLog = sre.getStatus().getCode() != Status.Code.CANCELLED;
+            }
+        else if (t instanceof StatusException se)
+            {
+            fLog = se.getStatus().getCode() != Status.Code.CANCELLED;
+            }
+        if (fLog)
+            {
+            Logger.err(t);
+            }
         }
 
     // ----- constants ------------------------------------------------------
