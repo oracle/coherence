@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,6 +12,8 @@ import com.oracle.coherence.concurrent.executor.RemoteExecutor;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 
 import org.hamcrest.MatcherAssert;
@@ -80,12 +82,27 @@ public abstract class AbstractRemoteExecutorTest
         }
 
     @Test
+    public void shouldExecuteOnDefaultExecutor()
+            throws Exception
+        {
+        RemoteExecutor def = RemoteExecutor.getDefault();
+
+        assertThat(def, is(notNullValue()));
+        MatcherAssert.assertThat(((NamedClusteredExecutorService) def).getName().getName(), is(RemoteExecutor.DEFAULT_EXECUTOR_NAME));
+        Future<String> future = def.submit(() -> "Executed");
+        assertThat(future.get(), is("Executed"));
+        }
+
+    @Test
     public void shouldGetNamedExecutor()
+            throws Exception
         {
         RemoteExecutor def = RemoteExecutor.get(RemoteExecutor.DEFAULT_EXECUTOR_NAME);
 
         assertThat(def, is(notNullValue()));
         assertThat(((NamedClusteredExecutorService) def).getName().getName(), is(RemoteExecutor.DEFAULT_EXECUTOR_NAME));
+        Future<String> future = def.submit(() -> "Executed");
+        assertThat(future.get(), is("Executed"));
         }
 
     @Test
