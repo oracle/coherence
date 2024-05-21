@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2022 Oracle and/or its affiliates.
+  Copyright (c) 2022, 2024 Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 
 <report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -118,6 +118,11 @@
 
       <column id="TotalRemoveCount">
         <name>RemoveCount</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="ListenerRegistrations">
+        <name>ListenerRegistrations</name>
         <hidden>true</hidden>
       </column>
 
@@ -286,6 +291,30 @@
       <column id="LocksPending">
         <name>LocksPending</name>
         <header>Locks Pending</header>
+      </column>
+      
+      <column id="ListenerKeyCount">
+        <name>ListenerKeyCount</name>
+        <header>Listener Key Count</header>
+      </column>
+
+      <column id="ListenerFilterCount">
+        <name>ListenerFilterCount</name>
+        <header>Listener Filter Count</header>
+      </column>
+
+      <column id="ListenerRegistrationsCount">
+        <type>function</type>
+        <name>deltaListenerRegistrationsCount</name>
+        <header>Listener Registration Count</header>
+        <column-ref>ListenerRegistrations</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Service</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>Cache</column-ref>
+          <column-ref>NodeTimestamp</column-ref>
+        </params>
       </column>
     </row>
   </report>
