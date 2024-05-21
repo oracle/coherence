@@ -20,7 +20,9 @@ import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.Session;
 
+import com.tangosol.net.ViewBuilder;
 import com.tangosol.util.Extractors;
+import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 
 import com.tangosol.util.function.Remote;
@@ -53,8 +55,10 @@ public class NamedClusteredExecutorService
 
         f_name = name;
 
-        m_viewNamed = Caches.executors(session())
-                .view().filter(Filters.equal(Extractors.extract("getExecutorName()"), f_name)).build();
+        Filter<?>         filter  = Filters.equal(Extractors.extract("getExecutorName()"), f_name.getName());
+        ViewBuilder<?, ?> builder = Caches.executors(session()).view();
+
+        m_viewNamed = builder.keys().filter(filter).build();
         }
 
     // ----- ClusteredExecutorService methods ---------------------------
@@ -170,6 +174,5 @@ public class NamedClusteredExecutorService
      * If the map is empty, it means there is no registered executors
      * for the given name causing attempted executions to be rejected.
      */
-    @SuppressWarnings("rawtypes")
-    protected NamedCache m_viewNamed;
+    protected NamedCache<?, ?> m_viewNamed;
     }
