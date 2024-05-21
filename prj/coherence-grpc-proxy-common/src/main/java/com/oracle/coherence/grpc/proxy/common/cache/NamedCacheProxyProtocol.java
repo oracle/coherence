@@ -190,7 +190,7 @@ public class NamedCacheProxyProtocol
             NamedCacheProxy proxy = m_aProxy.get(cacheId);
             if (proxy == null)
                 {
-                throw new IllegalStateException("No cache proxy exist for id " + cacheId);
+                throw new IllegalStateException("No cache proxy exist for id " + cacheId + " request=" + requestType);
                 }
 
             switch (requestType)

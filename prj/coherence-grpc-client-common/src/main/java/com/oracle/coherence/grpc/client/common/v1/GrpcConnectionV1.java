@@ -9,8 +9,10 @@ package com.oracle.coherence.grpc.client.common.v1;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.Message;
+import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.Predicate;
+import com.oracle.coherence.common.base.Timeout;
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.ErrorsHelper;
@@ -30,6 +32,7 @@ import com.tangosol.io.Serializer;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.PriorityTask;
 import com.tangosol.net.RequestIncompleteException;
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.UUID;
 import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
@@ -89,8 +92,41 @@ public class GrpcConnectionV1
     @Override
     public void close()
         {
+        m_closed = true;
+        if (!m_mapFuture.isEmpty())
+            {
+            try
+                {
+                long nDeadline = m_dependencies.getServiceDependencies().getDeadline();
+                if (nDeadline <= 0)
+                    {
+                    nDeadline = GrpcDependencies.DEFAULT_DEADLINE_MILLIS;
+                    }
+                try (Timeout ignored = Timeout.after(nDeadline, TimeUnit.MILLISECONDS))
+                    {
+                    while (!m_mapFuture.isEmpty())
+                        {
+                        Blocking.sleep(100);
+                        }
+                    }
+                }
+            catch (InterruptedException e)
+                {
+                // ignored
+                }
+            }
+
+        if (!m_mapFuture.isEmpty())
+            {
+            m_mapFuture.values().forEach(f -> f.onError(new RequestIncompleteException("channel closed")));
+            m_mapFuture.clear();
+            }
+
+        if (m_observer != null && !m_observer.isDone())
+            {
+            m_observer.onCompleted();
+            }
         m_observer     = null;
-        m_closed       = true;
         m_initResponse = null;
         m_uuid         = null;
         }
@@ -350,6 +386,7 @@ public class GrpcConnectionV1
 
     protected LockingStreamObserver<ProxyRequest> ensureConnected()
         {
+        assertActive();
         LockingStreamObserver<ProxyRequest> observer = m_observer;
         if (observer == null)
             {

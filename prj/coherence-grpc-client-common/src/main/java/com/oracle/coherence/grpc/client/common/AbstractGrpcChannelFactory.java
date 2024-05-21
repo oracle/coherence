@@ -485,6 +485,7 @@ public abstract class AbstractGrpcChannelFactory
             List<SocketAddress>   list            = new ArrayList<>();
             SocketAddress         address         = addressProvider.getNextAddress();
             boolean               fFirst          = true;
+            int                   nAddress        = 0;
 
             Logger.config("Resolving configured remote gRPC endpoints for service " + f_serviceInfo.getService());
 
@@ -504,10 +505,14 @@ public abstract class AbstractGrpcChannelFactory
                         fFirst = false;
                         }
                     list.add(address);
+                    nAddress++;
                     }
                 address = addressProvider.getNextAddress();
                 }
-
+            if (nAddress > 1)
+                {
+                Collections.shuffle(list);
+                }
             return list;
             }
 
@@ -588,15 +593,14 @@ public abstract class AbstractGrpcChannelFactory
                                                         + "' within cluster '" + sCluster + "'");
                     }
 
-                List<SocketAddress> list = new ArrayList<>();
+                List<SocketAddress> list     = new ArrayList<>();
+                int                 nAddress = 0;
+
                 for (int i = 0; i < aoResult.length; i += 2)
                     {
                     list.add(new InetSocketAddress((String) aoResult[i], (Integer) aoResult[i+1]));
+                    nAddress++;
                     }
-
-                list.stream()
-                        .findAny()
-                        .ifPresent(address -> updateAuthority((InetSocketAddress) address));
 
                 if (list.isEmpty())
                     {
@@ -604,6 +608,14 @@ public abstract class AbstractGrpcChannelFactory
                             + "' while looking for its gRPC proxy service '" + sServiceRemote + "'");
                     }
 
+                list.stream()
+                        .findAny()
+                        .ifPresent(address -> updateAuthority((InetSocketAddress) address));
+
+                if (nAddress > 1)
+                    {
+                    Collections.shuffle(list);
+                    }
                 return list;
                 }
             catch (Exception ex)

@@ -1082,6 +1082,7 @@ public class AsyncNamedCacheClient<K, V>
                 future = CompletableFuture.completedFuture(VOID);
                 }
 
+            getMapListenerSupport().clear();
             f_client.close();
 
             return future.handleAsync((v, err) ->

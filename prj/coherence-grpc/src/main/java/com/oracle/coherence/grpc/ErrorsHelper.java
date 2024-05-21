@@ -15,6 +15,7 @@ import io.grpc.StatusRuntimeException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
@@ -172,19 +173,38 @@ public final class ErrorsHelper
      */
     public static void logIfNotCancelled(Throwable t)
         {
-        boolean fLog = true;
-        if (t instanceof StatusRuntimeException sre)
+        if (rootCause(t) instanceof SocketException)
             {
-            fLog = sre.getStatus().getCode() != Status.Code.CANCELLED;
+            Logger.err(t.getMessage());
             }
-        else if (t instanceof StatusException se)
+        else
             {
-            fLog = se.getStatus().getCode() != Status.Code.CANCELLED;
+            boolean fLog = true;
+            if (t instanceof StatusRuntimeException sre)
+                {
+                fLog = sre.getStatus().getCode() != Status.Code.CANCELLED;
+                }
+            else if (t instanceof StatusException se)
+                {
+                fLog = se.getStatus().getCode() != Status.Code.CANCELLED;
+                }
+            if (fLog)
+                {
+                Logger.err(t);
+                }
             }
-        if (fLog)
+        }
+
+    private static Throwable rootCause(Throwable t)
+        {
+        Throwable rootCause = t;
+        Throwable cause     = t.getCause();
+        while (cause != null)
             {
-            Logger.err(t);
+            rootCause = cause;
+            cause     = cause.getCause();
             }
+        return rootCause;
         }
 
     // ----- constants ------------------------------------------------------
