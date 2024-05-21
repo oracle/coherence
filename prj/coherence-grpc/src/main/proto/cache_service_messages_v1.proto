@@ -60,12 +60,12 @@ enum NamedCacheRequestType {
     // The response will contain the Cache Id and a BoolValue in the response field.
     ContainsEntry = 4;
     // Determine whether the specified cache is contains a specified key.
-    // The message field must contain a BinaryValue that contains the
+    // The message field must contain a BytesValue that contains the
     // serialized key.
     // The response will contain the Cache Id and a BoolValue in the response field.
     ContainsKey = 5;
     // Determine whether the specified cache is contains a specified value.
-    // The message field must contain a BinaryValue that contains the
+    // The message field must contain a BytesValue that contains the
     // serialized value.
     // The response will contain the Cache Id and a BoolValue in the response field.
     ContainsValue = 6;
@@ -82,16 +82,16 @@ enum NamedCacheRequestType {
     // The response will contain the Cache Id and a BoolValue in the response field.
     IsReady = 9;
     // Determine whether the specified cache is contains a specified key.
-    // The message field must contain a BinaryValue that contains the
+    // The message field must contain a BytesValue that contains the
     // serialized key of the entry to get.
     // The response will contain the Cache Id and an OptionalValue that will be empty
     // if the cache did not contain an entry for the key or will contain the value from
     // the cache.
     Get = 10;
     // Return the values from the specified cache that are mapped to a collection of keys.
-    // The message field must contain a CollectionOfBinaryValue that contains the
+    // The message field must contain a CollectionOfBytesValues that contains the
     // serialized keys of the entries to get.
-    // There will be multiple responses containing the Cache Id and an KeyAndValueMessage for
+    // There will be multiple responses containing the Cache Id and an BinaryKeyAndValue for
     // each requested key.
     GetAll = 11;
     // Add or remove an index.
