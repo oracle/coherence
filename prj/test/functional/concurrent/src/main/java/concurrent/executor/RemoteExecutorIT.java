@@ -38,10 +38,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 public class RemoteExecutorIT
         extends AbstractRemoteExecutorTest
     {
-    static
-        {
-        System.setProperty("coherence.concurrent.serializer", "pof");
-        }
+
     // ----- AbstractRemoteExecutorTest methods -----------------------------
 
     @Override
@@ -65,8 +62,8 @@ public class RemoteExecutorIT
                           LocalHost.only(),
                           Multicast.ttl(0),
                           IPv4Preferred.yes(),
-                          SystemProperty.of("coherence.concurrent.serializer", "pof"),
                           ClusterPort.automatic(),
+                          SystemProperty.of("coherence.lambdas", "dynamic"),
                           StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()))
                     .include(1,
                              DisplayName.of("storage"),
