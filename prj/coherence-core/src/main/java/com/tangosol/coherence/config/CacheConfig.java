@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -45,6 +45,7 @@ public class CacheConfig
         m_sScopeName = "";
 
         // by default the registries are empty
+        m_registrySchemeMapping        = new SchemeMappingRegistry();
         m_registrySchemeRegistry       = new ServiceSchemeRegistry();
         m_listEventInterceptorBuilders = new LinkedList<>();
 
