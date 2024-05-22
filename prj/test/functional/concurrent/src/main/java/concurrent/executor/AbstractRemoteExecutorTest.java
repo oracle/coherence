@@ -7,16 +7,20 @@
 package concurrent.executor;
 
 import com.oracle.bedrock.testsupport.junit.AbstractTestLogs;
+
 import com.oracle.coherence.concurrent.executor.NamedClusteredExecutorService;
 import com.oracle.coherence.concurrent.executor.RemoteExecutor;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 
-import java.util.concurrent.ExecutionException;
+import com.tangosol.util.Base;
+
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 
 import org.hamcrest.MatcherAssert;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +41,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 public abstract class AbstractRemoteExecutorTest
     {
+    static
+        {
+        System.setProperty("coherence.lambdas", "dynamic");
+        }
+
     // ----- api ------------------------------------------------------------
 
     /**
@@ -52,14 +61,7 @@ public abstract class AbstractRemoteExecutorTest
     public void beforeAll()
         {
         m_clientMember = getClient().start().join();
-        try
-            {
-            Thread.sleep(4000);
-            }
-        catch (InterruptedException e)
-            {
-            e.printStackTrace();
-            }
+        Base.sleep(4000);
         }
 
     @AfterEach
