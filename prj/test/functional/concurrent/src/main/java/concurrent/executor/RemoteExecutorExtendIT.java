@@ -20,6 +20,7 @@ import com.oracle.bedrock.runtime.coherence.options.RoleName;
 
 import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
+import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
 
@@ -69,6 +70,7 @@ public class RemoteExecutorExtendIT
                           IPv4Preferred.yes(),
                           logs,
                           ClusterPort.automatic(),
+                          SystemProperty.of("coherence.lambdas", "dynamic"),
                           StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()))
                     .include(1,
                              DisplayName.of("storage"),
