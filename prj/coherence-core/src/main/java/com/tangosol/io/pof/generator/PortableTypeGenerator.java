@@ -323,7 +323,9 @@ public class PortableTypeGenerator
                 }
             else
                 {
-                ctor.visitMethodInsn(INVOKESPECIAL, m_classNode.superName, "<init>", "()V", false);
+                MethodNode defaultCtor = findMethod("<init>", "()V");
+                String owner = defaultCtor == null ? m_classNode.superName : m_classNode.name;
+                ctor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "()V", false);
                 }
             
             // create nested reader for this type
