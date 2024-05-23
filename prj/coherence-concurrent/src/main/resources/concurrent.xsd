@@ -33,13 +33,30 @@
   <xsd:element name="thread-factory">
     <xsd:annotation>
       <xsd:documentation>
-        The thread-factory element contains the configuration info for a
-        class that implements the java.util.concurrent.ThreadFactory interface.
+        The thread-factory element contains the configuration info to
+        create a custom java.util.concurrent.ThreadFactory implementation.
       </xsd:documentation>
     </xsd:annotation>
 
     <xsd:complexType>
       <xsd:sequence>
+        <xsd:element ref="instance"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="custom-executor">
+    <xsd:annotation>
+      <xsd:documentation>
+        The custom-executor element contains the configuration info to
+        create a custom java.util.concurrent.ExecutorService that will
+        be registered with the executor service.
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="name"/>
         <xsd:element ref="instance"/>
       </xsd:sequence>
     </xsd:complexType>

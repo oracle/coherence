@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
 
@@ -13,10 +13,12 @@ import java.util.Map;
 /**
  * A basic implementation of a {@link Task.Properties}.
  *
+ * @param <V>  the value type of the property
+ *
  * @author bo, lh
  * @since 21.06
  */
-public class TaskProperties
+public class TaskProperties<V>
         implements Task.Properties
     {
     // ----- constructors ---------------------------------------------------
@@ -68,5 +70,5 @@ public class TaskProperties
     /**
      * The map that stores the properties.
      */
-    protected Map m_properties;
+    protected Map<String, Object> m_properties;
     }

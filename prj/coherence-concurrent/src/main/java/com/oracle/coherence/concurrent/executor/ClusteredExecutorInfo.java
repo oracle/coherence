@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -594,11 +594,20 @@ public class ClusteredExecutorInfo
 
     // ----- inner class: CacheAwareContinuation ----------------------------
 
+    /**
+     * A base {@link ComposableContinuation} that allows subclasses access
+     * to the underlying caches that drive the executor service.
+     */
     protected static abstract class CacheAwareContinuation
         implements ComposableContinuation
         {
         // ----- constructors -----------------------------------------------
 
+        /**
+         * Constructs a new {@code CacheAwareContinuation}.
+         *
+         * @param cacheService  the executor cache service
+         */
         public CacheAwareContinuation(CacheService cacheService)
             {
             f_cacheService = cacheService;
@@ -1114,6 +1123,8 @@ public class ClusteredExecutorInfo
         // ----- constructors -----------------------------------------------
 
         /**
+         * Constructs a new {@code TouchRunnable}.
+         *
          * @param sExecutorId   the {@link Executor} identity to update
          * @param cacheService  the {@link CacheService}
          */

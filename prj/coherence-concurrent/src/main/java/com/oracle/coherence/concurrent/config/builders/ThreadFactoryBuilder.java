@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.config.builders;
-
-import com.oracle.coherence.persistence.PersistenceEnvironment;
 
 import com.tangosol.coherence.config.ParameterList;
 
@@ -21,7 +19,7 @@ import java.util.concurrent.ThreadFactory;
 /**
  * A {@link ParameterizedBuilder} for constructing a {@link ThreadFactory}.
  *
- * @author rl  11.20.26
+ * @author rl  11.20.21
  * @since 21.12
  */
 public class ThreadFactoryBuilder
@@ -54,7 +52,7 @@ public class ThreadFactoryBuilder
     // ----- data members ---------------------------------------------------
 
     /**
-     * A {@link ParameterizedBuilder} that creates a {@link PersistenceEnvironment}.
+     * A {@link ParameterizedBuilder} that creates a {@link ThreadFactory}.
      */
     protected ParameterizedBuilder<ThreadFactory> m_bldr;
     }

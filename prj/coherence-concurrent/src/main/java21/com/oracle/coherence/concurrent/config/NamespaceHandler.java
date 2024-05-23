@@ -7,6 +7,7 @@
 package com.oracle.coherence.concurrent.config;
 
 import com.oracle.coherence.concurrent.config.processors.CachedProcessor;
+import com.oracle.coherence.concurrent.config.processors.CustomExecutorProcessor;
 import com.oracle.coherence.concurrent.config.processors.FixedProcessor;
 import com.oracle.coherence.concurrent.config.processors.SingleProcessor;
 import com.oracle.coherence.concurrent.config.processors.ThreadFactoryProcessor;
@@ -39,5 +40,6 @@ public class NamespaceHandler
         registerProcessor(ThreadFactoryProcessor.class);
         registerProcessor(WorkStealingProcessor.class);
         registerProcessor(VirtualPerTaskProcessor.class);
+        registerProcessor(CustomExecutorProcessor.class);
         }
     }
