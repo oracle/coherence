@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -149,6 +149,14 @@ public class CountDownLatchProducer
         return sName;
         }
 
+    /**
+     * Determine the initial count of the semaphore from a {@link Count}
+     * annotation.
+     *
+     * @param ip  the injection point
+     *
+     * @return the count of the semaphore to inject
+     */
     protected int getCount(InjectionPoint ip)
         {
         return ip.getQualifiers().stream()

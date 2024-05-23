@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
 
@@ -14,8 +14,6 @@ import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.util.function.Remote.Predicate;
 
-import java.io.DataInput;
-import java.io.DataOutput;
 import java.io.IOException;
 
 import java.util.ArrayList;
@@ -137,18 +135,6 @@ public final class TaskCollectors
             return List::size;
             }
 
-        // ----- ExternalizableLite -----------------------------------------
-
-        @Override
-        public void readExternal(DataInput in) throws IOException
-            {
-            }
-
-        @Override
-        public void writeExternal(DataOutput out) throws IOException
-            {
-            }
-
         // ----- PortableObject interface -----------------------------------
 
         @Override
@@ -206,18 +192,6 @@ public final class TaskCollectors
             return () -> new AtomicReference<>(null);
             }
 
-        // ----- ExternalizableLite -----------------------------------------
-
-        @Override
-        public void readExternal(DataInput in) throws IOException
-            {
-            }
-
-        @Override
-        public void writeExternal(DataOutput out) throws IOException
-            {
-            }
-
         // ----- PortableObject interface -----------------------------------
 
         @Override
@@ -257,18 +231,6 @@ public final class TaskCollectors
 
                 return last;
                 };
-            }
-
-        // ----- ExternalizableLite -----------------------------------------
-
-        @Override
-        public void readExternal(DataInput in) throws IOException
-            {
-            }
-
-        @Override
-        public void writeExternal(DataOutput out) throws IOException
-            {
             }
 
         // ----- PortableObject interface -----------------------------------
@@ -334,19 +296,6 @@ public final class TaskCollectors
             return ArrayList::new;
             }
 
-
-        // ----- ExternalizableLite -----------------------------------------
-
-        @Override
-        public void readExternal(DataInput in) throws IOException
-            {
-            }
-
-        @Override
-        public void writeExternal(DataOutput out) throws IOException
-            {
-            }
-
         // ----- PortableObject interface -----------------------------------
 
         @Override
@@ -408,19 +357,6 @@ public final class TaskCollectors
         public Supplier<Set<T>> supplier()
             {
             return HashSet::new;
-            }
-
-
-        // ----- ExternalizableLite -----------------------------------------
-
-        @Override
-        public void readExternal(DataInput in) throws IOException
-            {
-            }
-
-        @Override
-        public void writeExternal(DataOutput out) throws IOException
-            {
             }
 
         // ----- PortableObject interface -----------------------------------

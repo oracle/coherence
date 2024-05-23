@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.config;
 
 import com.oracle.coherence.concurrent.config.processors.CachedProcessor;
+import com.oracle.coherence.concurrent.config.processors.CustomExecutorProcessor;
 import com.oracle.coherence.concurrent.config.processors.FixedProcessor;
 import com.oracle.coherence.concurrent.config.processors.SingleProcessor;
 import com.oracle.coherence.concurrent.config.processors.ThreadFactoryProcessor;
@@ -37,5 +38,6 @@ public class NamespaceHandler
         registerProcessor(SingleProcessor.class);
         registerProcessor(ThreadFactoryProcessor.class);
         registerProcessor(WorkStealingProcessor.class);
+        registerProcessor(CustomExecutorProcessor.class);
         }
     }

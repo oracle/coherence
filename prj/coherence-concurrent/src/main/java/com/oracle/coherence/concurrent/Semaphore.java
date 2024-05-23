@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent;
@@ -12,6 +12,12 @@ import java.util.concurrent.TimeUnit;
 
 
 /**
+ * A counting semaphore. Conceptually, a semaphore maintains a set of permits.
+ * Each {@link #acquire()} blocks if necessary until a permit is available,
+ * and then takes it. Each {@link #release()} adds a permit, potentially
+ * releasing a blocking acquirer. However, no actual permit objects are used;
+ * the Semaphore just keeps a count of the number available and acts accordingly.
+ *
  * @author Aleks Seovic  2021.12.05
  * @since 21.12
  */

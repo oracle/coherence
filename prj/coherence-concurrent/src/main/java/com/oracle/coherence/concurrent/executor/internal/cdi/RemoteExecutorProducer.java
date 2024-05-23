@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -27,12 +27,26 @@ import jakarta.enterprise.inject.spi.InjectionPoint;
 @ApplicationScoped
 public class RemoteExecutorProducer
     {
+    /**
+     * Obtains a {@link RemoteExecutor} using no qualifiers.
+     *
+     * @param injectionPoint  the {@link InjectionPoint}
+     *
+     * @return the {@link RemoteExecutor} for the given {@link InjectionPoint}
+     */
     @Produces
     public RemoteExecutor getUnqualifiedRemoteExecutor(InjectionPoint injectionPoint)
         {
         return getRemoteExecutor(injectionPoint);
         }
 
+    /**
+     * Obtains a {@link RemoteExecutor} using a {@code name} qualifier.
+     *
+     * @param injectionPoint  the {@link InjectionPoint}
+     *
+     * @return the {@link RemoteExecutor} for the given {@link InjectionPoint}
+     */
     @Produces
     @Name("")
     @Typed(RemoteExecutor.class)
@@ -41,6 +55,13 @@ public class RemoteExecutorProducer
         return RemoteExecutor.get(getName(injectionPoint));
         }
 
+    /**
+     * Obtain the named qualifier for the given {@link InjectionPoint}.
+     *
+     * @param injectionPoint  the {@link InjectionPoint}
+     *
+     * @return the named qualifier for the given {@link InjectionPoint}
+     */
     protected String getName(InjectionPoint injectionPoint)
         {
         String sName = injectionPoint.getQualifiers().stream()

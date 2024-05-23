@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.config.processors;
 
@@ -20,6 +20,8 @@ import com.tangosol.run.xml.XmlElement;
 /**
  * Base class for {@link ElementProcessor}s producing {@link NamedExecutorService}
  * instances.
+ *
+ * @param <T> the {@link ParameterizedBuilder} type this processor supports
  *
  * @author rl  11.26.21
  * @since 21.12

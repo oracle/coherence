@@ -66,6 +66,15 @@ public class Queues
 
     // ----- helper methods -------------------------------------------------
 
+    /**
+     * Ensure a {@link NamedBlockingQueue}.
+     *
+     * @param sName  the queue name; if {@code null} or empty, the default
+     *               queue will be returned
+     * @param <E>    the element type of the queue
+     *
+     * @return  the queue for the given name
+     */
     @SuppressWarnings("unchecked")
     protected static <E> NamedBlockingDeque<E> ensureQueue(String sName)
         {

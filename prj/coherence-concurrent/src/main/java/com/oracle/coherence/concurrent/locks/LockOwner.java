@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -157,7 +157,18 @@ public class LockOwner
 
     // ---- data members ----------------------------------------------------
 
+    /**
+     * The member {@link UUID}.
+     */
     private UUID m_memberId;
+
+    /**
+     * The thread ID.
+     */
     private long m_threadId;
+
+    /**
+     * Flag indicating the member is a remote client.
+     */
     private boolean m_fClient;
     }
