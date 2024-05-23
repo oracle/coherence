@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -29,8 +29,13 @@ import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.fail;
 
+import com.tangosol.util.filter.AlwaysFilter;
+
+import com.tangosol.util.processor.ConditionalPut;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -380,6 +385,33 @@ public class PersistenceTestHelper
 
         if (!mapBuffer.isEmpty())
             {
+            nc.putAll(mapBuffer);
+            }
+        }
+
+    public static void populateData(NamedCache nc, int nStart, int cMax, boolean fInvoke)
+        {
+        Map<Integer, Integer> mapBuffer = new HashMap<>();
+        int                   BATCH     = 10000;
+
+        for (int i = 0; i < cMax; i++)
+            {
+            mapBuffer.put(i + nStart, i + nStart);
+
+            byte[] array = new byte[1024];
+            new Random().nextBytes(array);
+            if (i % BATCH == 0)
+                {
+                nc.invokeAll(mapBuffer.keySet(), new ConditionalPut(AlwaysFilter.INSTANCE, array));
+                mapBuffer.clear();
+                }
+            }
+
+        if (!mapBuffer.isEmpty())
+            {
+            byte[] array = new byte[1024];
+            new Random().nextBytes(array);
+            nc.invokeAll(mapBuffer.keySet(), new ConditionalPut(AlwaysFilter.INSTANCE, array));
             nc.putAll(mapBuffer);
             }
         }

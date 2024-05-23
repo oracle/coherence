@@ -16,6 +16,8 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.deferred.atomic.DeferredAtomicInteger;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
+import com.oracle.coherence.persistence.PersistentStoreInfo;
+
 import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.coherence.dslquery.internal.PersistenceToolsHelper;
@@ -53,6 +55,7 @@ import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.LongArray;
+import com.tangosol.util.MapIndex;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.MapTrigger;
 import com.tangosol.util.MapTriggerListener;
@@ -388,16 +391,21 @@ public abstract class AbstractSimplePersistenceTests
             PersistenceManager<ReadBuffer> manager = createPersistenceManager(dir);
             try
                 {
-                String[] as = manager.list();
-                assertEquals(cPart, as.length);
+                PersistentStoreInfo[] aInfo = manager.listStoreInfo();
+                assertEquals(cPart, aInfo.length);
 
                 // assert that each partition is valid and holds the cache
                 // name as well as find the GUID for the partition that holds
                 // the persisted data during the scan
                 String sGUID = null;
-                for (int i = 0; i < as.length; ++i)
+                for (int i = 0; i < aInfo.length; ++i)
                     {
-                    String s = as[i];
+                    String s = aInfo[i].getId();
+
+                    if (manager.isEmpty(s))
+                        {
+                        continue;
+                        }
 
                     PersistentStore<ReadBuffer> store = manager.open(s, null);
                     try
@@ -1432,12 +1440,12 @@ public abstract class AbstractSimplePersistenceTests
         props1.setProperty("test.persistence.active.dir", fileActive1.getAbsolutePath());
         props1.setProperty("test.persistence.backup.dir", fileBackup1.getAbsolutePath());
 
-        Properties props2 = new Properties(props);
+        Properties props2 = new Properties();
         props2.putAll(props);
         props2.setProperty("test.persistence.active.dir", fileActive2.getAbsolutePath());
         props2.setProperty("test.persistence.backup.dir", fileBackup2.getAbsolutePath());
 
-        Properties props3 = new Properties(props);
+        Properties props3 = new Properties();
         props3.putAll(props);
         props3.setProperty("test.persistence.active.dir", fileActive3.getAbsolutePath());
         props3.setProperty("test.persistence.backup.dir", fileBackup3.getAbsolutePath());
@@ -1787,7 +1795,7 @@ public abstract class AbstractSimplePersistenceTests
             BinaryEntry              binEntry = (BinaryEntry) entry;
             BackingMapContext        bmc      = binEntry.getBackingMapContext();
             BackingMapManagerContext bmmc     = bmc.getManagerContext();
-            PartitionedService       service = (PartitionedService) bmmc.getCacheService();
+            PartitionedService       service  = (PartitionedService) bmmc.getCacheService();
 
             try
                 {

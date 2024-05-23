@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -153,6 +153,11 @@ public class CachePersistenceHelper
     public static void seal(PersistentStore<ReadBuffer> store,
                             PartitionedService service, Object oToken)
         {
+        if (!store.isOpen())
+            {
+            return;
+            }
+
         store.ensureExtent(META_EXTENT);
 
         boolean fCommit = false;
@@ -186,6 +191,11 @@ public class CachePersistenceHelper
      */
     public static void unseal(PersistentStore<ReadBuffer> store)
         {
+        if (!store.isOpen())
+            {
+            return;
+            }
+
         Object oToken = store.begin();
 
         store.erase(META_EXTENT, BINARY_PARTITION_COUNT, oToken);
@@ -289,6 +299,11 @@ public class CachePersistenceHelper
      */
     public static void validate(PersistentStore store, PartitionedService service)
         {
+        if (!store.isOpen())
+            {
+            return;
+            }
+
         StringBuilder sb = new StringBuilder();
         try
             {
@@ -341,6 +356,11 @@ public class CachePersistenceHelper
      */
     public static void storeCacheNames(PersistentStore store, LongArray laCaches)
         {
+        if (!store.isOpen())
+            {
+            return;
+            }
+
         int          cCaches = laCaches.getSize();
         WriteBuffer  buf     = new ByteArrayWriteBuffer(cCaches * 100);
         BufferOutput out     = buf.getBufferOutput();
@@ -378,8 +398,13 @@ public class CachePersistenceHelper
      */
     public static LongArray<String> getCacheNames(PersistentStore<ReadBuffer> store)
         {
-        ReadBuffer        bufVal   = store.load(META_EXTENT, BINARY_CACHES);
         LongArray<String> laCaches = new SparseArray<>();
+        if (!store.isOpen())
+            {
+            return laCaches;
+            }
+
+        ReadBuffer bufVal = store.load(META_EXTENT, BINARY_CACHES);
 
         if (bufVal != null)
             {
@@ -511,13 +536,16 @@ public class CachePersistenceHelper
      */
     public static void deleteExtents(PersistentStore store, long lExtentId)
         {
-        long lDelExtentId = lExtentId;
-
-        for (int i = 0; i <= RESERVED_META_EXTENTS; ++i)
+        if (store.isOpen())
             {
-            store.deleteExtent(lDelExtentId);
+            long lDelExtentId = lExtentId;
 
-            lDelExtentId = -lExtentId - i;
+            for (int i = 0; i <= RESERVED_META_EXTENTS; ++i)
+                {
+                store.deleteExtent(lDelExtentId);
+
+                lDelExtentId = -lExtentId - i;
+                }
             }
         }
 
@@ -960,6 +988,11 @@ public class CachePersistenceHelper
                                      Binary binExtractor, Binary binComparator,
                                      Object oToken)
         {
+        if (!store.isOpen())
+            {
+            return;
+            }
+
         ReadBuffer bufIndex = createIndexRegistrationKey(lCacheId, binExtractor);
 
         long lExtentId = getIndexExtentId(lCacheId);
@@ -980,6 +1013,11 @@ public class CachePersistenceHelper
     public static void unregisterIndex(PersistentStore<ReadBuffer> store, long lCacheId,
                                        Binary binExtractor, Object oToken)
         {
+        if (!store.isOpen())
+            {
+            return;
+            }
+
         ReadBuffer bufIndex = createIndexRegistrationKey(lCacheId, binExtractor);
 
         long lExtentId = getIndexExtentId(lCacheId);
@@ -1136,10 +1174,13 @@ public class CachePersistenceHelper
                     "The directory " + dirSnapshot + " does not exist or can not be read"));
             }
 
-        File[] aFiles = dirSnapshot.listFiles((File file) ->
+        // find a list of directory that is not empty, it should always contain the stores for global partitions
+        File[] aStores = dirSnapshot.listFiles((File file) ->
             {
+            File[] aFiles = file.listFiles();
+
             String sDirName = file.getName();
-            if (file.isDirectory() && !DEFAULT_LOCK_DIR.equals(sDirName))
+            if (file.isDirectory() && !DEFAULT_LOCK_DIR.equals(sDirName) && aFiles.length > 0)
                 {
                 if (!GUIDHelper.validateGUID(sDirName))
                     {
@@ -1151,7 +1192,7 @@ public class CachePersistenceHelper
             return false;
             });
 
-        if (aFiles == null || aFiles.length == 0)
+        if (aStores == null || aStores.length == 0)
             {
             throw ensurePersistenceException(new IllegalArgumentException("Directory " +
                     dirSnapshot.getAbsolutePath() + " does not contain any valid snapshot directories"));
@@ -1161,7 +1202,7 @@ public class CachePersistenceHelper
         // one of the stores and instantiate the appropriate manager
         try
             {
-            Properties props = readMetadata(aFiles[0]);
+            Properties props = readMetadata(aStores[0]);
 
             String sPersistenceType = props.getProperty(META_STORAGE_FORMAT);
 

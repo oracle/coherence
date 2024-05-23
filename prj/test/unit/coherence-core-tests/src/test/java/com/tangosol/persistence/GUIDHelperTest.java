@@ -1,10 +1,14 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.persistence;
+
+import com.oracle.coherence.common.base.Logger;
+
+import com.oracle.coherence.persistence.PersistentStoreInfo;
 
 import com.tangosol.net.Member;
 
@@ -149,72 +153,81 @@ public class GUIDHelperTest
 
         // test empty resolver
         resolver = new GUIDHelper.GUIDResolver(7);
-        resolver.registerGUIDs(aMembers[1], new String[] {});
-        resolver.registerGUIDs(aMembers[2], new String[] {});
-        resolver.registerGUIDs(aMembers[3], new String[] {});
-        resolver.registerGUIDs(aMembers[4], new String[] {});
-        resolver.registerGUIDs(aMembers[5], new String[] {});
-        resolver.registerGUIDs(aMembers[6], new String[] {});
+        resolver.registerStoreInfo(aMembers[1], new PersistentStoreInfo[] {});
+        resolver.registerStoreInfo(aMembers[2], new PersistentStoreInfo[] {});
+        resolver.registerStoreInfo(aMembers[3], new PersistentStoreInfo[] {});
+        resolver.registerStoreInfo(aMembers[4], new PersistentStoreInfo[] {});
+        resolver.registerStoreInfo(aMembers[5], new PersistentStoreInfo[] {});
+        resolver.registerStoreInfo(aMembers[6], new PersistentStoreInfo[] {});
 
-        mapAvail = resolver.resolve();
-        assertEquals(6, mapAvail.size());
-        assertEquals(0, mapAvail.get(aMembers[1]).cardinality());
-        assertEquals(0, mapAvail.get(aMembers[2]).cardinality());
-        assertEquals(0, mapAvail.get(aMembers[3]).cardinality());
-        assertEquals(0, mapAvail.get(aMembers[4]).cardinality());
-        assertEquals(0, mapAvail.get(aMembers[5]).cardinality());
-        assertEquals(0, mapAvail.get(aMembers[6]).cardinality());
+        try
+            {
+            mapAvail = resolver.resolve();
+
+            assertEquals(6, mapAvail.size());
+            assertEquals(0, mapAvail.get(aMembers[1]).cardinality());
+            assertEquals(0, mapAvail.get(aMembers[2]).cardinality());
+            assertEquals(0, mapAvail.get(aMembers[3]).cardinality());
+            assertEquals(0, mapAvail.get(aMembers[4]).cardinality());
+            assertEquals(0, mapAvail.get(aMembers[5]).cardinality());
+            assertEquals(0, mapAvail.get(aMembers[6]).cardinality());
+            }
+        catch (Exception e)
+            {
+            Logger.info("## got exception ", e);
+            fail("Resolve failed");
+            }
 
         // test a uniform view (everybody sees the newest)
         resolver = new GUIDHelper.GUIDResolver(7);
-        resolver.registerGUIDs(aMembers[1], new String[]
-                {GUIDHelper.generateGUID(0,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(1,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(2,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(4,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(6,10,1341890565000L,aMembers[1])});
-        resolver.registerGUIDs(aMembers[2], new String[]
-                {GUIDHelper.generateGUID(0,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(1,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(2,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(4,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(6,10,1341890565000L,aMembers[1])});
-        resolver.registerGUIDs(aMembers[3], new String[]
-                {GUIDHelper.generateGUID(0,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(1,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(2,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(4,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(6,10,1341890565000L,aMembers[1])});
-        resolver.registerGUIDs(aMembers[4], new String[]
-                {GUIDHelper.generateGUID(0,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(1,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(2,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(4,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(6,10,1341890565000L,aMembers[1])});
-        resolver.registerGUIDs(aMembers[5], new String[]
-                {GUIDHelper.generateGUID(0,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(1,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(2,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(4,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(6,10,1341890565000L,aMembers[1])});
-        resolver.registerGUIDs(aMembers[6], new String[]
-                {GUIDHelper.generateGUID(0,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(1,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(2,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(4,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(6,10,1341890565000L,aMembers[1])});
+        resolver.registerStoreInfo(aMembers[1], new PersistentStoreInfo[]
+                {new PersistentStoreInfo(GUIDHelper.generateGUID(0,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(1,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(2,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(4,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(6,10,1341890565000L,aMembers[1]), false)});
+        resolver.registerStoreInfo(aMembers[2], new PersistentStoreInfo[]
+                {new PersistentStoreInfo(GUIDHelper.generateGUID(0,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(1,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(2,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo( GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(4,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(6,10,1341890565000L,aMembers[1]), false)});
+        resolver.registerStoreInfo(aMembers[3], new PersistentStoreInfo[]
+                {new PersistentStoreInfo(GUIDHelper.generateGUID(0,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(1,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(2,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(4,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(6,10,1341890565000L,aMembers[1]), false),});
+        resolver.registerStoreInfo(aMembers[4], new PersistentStoreInfo[]
+                {new PersistentStoreInfo(GUIDHelper.generateGUID(0,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(1,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(2,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(4,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(6,10,1341890565000L,aMembers[1]), false),});
+        resolver.registerStoreInfo(aMembers[5], new PersistentStoreInfo[]
+                {new PersistentStoreInfo(GUIDHelper.generateGUID(0,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(1,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(2,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(4,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(6,10,1341890565000L,aMembers[1]), false),});
+        resolver.registerStoreInfo(aMembers[6], new PersistentStoreInfo[]
+                {new PersistentStoreInfo(GUIDHelper.generateGUID(0,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(1,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(2,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(4,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(6,10,1341890565000L,aMembers[1]), false),});
 
         mapAvail = resolver.resolve();
         assertEquals(6, mapAvail.size());
@@ -227,54 +240,54 @@ public class GUIDHelperTest
 
         // test a mixed view (everybody sees some version)
         resolver = new GUIDHelper.GUIDResolver(7);
-        resolver.registerGUIDs(aMembers[1], new String[]
-                {GUIDHelper.generateGUID(0,5,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(1,5,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(2,5,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(4,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(6,10,1341890565000L,aMembers[1])});
-        resolver.registerGUIDs(aMembers[2], new String[]
-                {GUIDHelper.generateGUID(0,5,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(1,5,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(2,5,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(4,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(6,10,1341890565000L,aMembers[1])});
-        resolver.registerGUIDs(aMembers[3], new String[]
-                {GUIDHelper.generateGUID(0,5,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(1,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(2,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(4,5,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(5,5,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(6,5,1341890565000L,aMembers[1])});
-        resolver.registerGUIDs(aMembers[4], new String[]
-                {GUIDHelper.generateGUID(0,5,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(1,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(2,5,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(4,5,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(6,5,1341890565000L,aMembers[1])});
-        resolver.registerGUIDs(aMembers[5], new String[]
-                {GUIDHelper.generateGUID(0,2,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(1,2,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(2,2,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(3,2,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(4,2,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(5,2,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(6,2,1341890565000L,aMembers[1])});
-        resolver.registerGUIDs(aMembers[6], new String[]
-                {GUIDHelper.generateGUID(0,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(1,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(2,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(4,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]),
-                 GUIDHelper.generateGUID(6,10,1341890565000L,aMembers[1])});
+        resolver.registerStoreInfo(aMembers[1], new PersistentStoreInfo[]
+                {new PersistentStoreInfo(GUIDHelper.generateGUID(0,5,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(1,5,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(2,5,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo( GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]), true),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(4,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(6,10,1341890565000L,aMembers[1]), true)});
+        resolver.registerStoreInfo(aMembers[2], new PersistentStoreInfo[]
+                {new PersistentStoreInfo(GUIDHelper.generateGUID(0,5,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(1,5,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(2,5,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(4,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(6,10,1341890565000L,aMembers[1]), false)});
+        resolver.registerStoreInfo(aMembers[3], new PersistentStoreInfo[]
+                {new PersistentStoreInfo(GUIDHelper.generateGUID(0,5,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(1,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(2,10,1341890565000L,aMembers[1]), true),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(4,5,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(5,5,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(6,5,1341890565000L,aMembers[1]), false),});
+        resolver.registerStoreInfo(aMembers[4], new PersistentStoreInfo[]
+                {new PersistentStoreInfo(GUIDHelper.generateGUID(0,5,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(1,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(2,5,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(4,5,1341890565000L,aMembers[1]), true),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(6,5,1341890565000L,aMembers[1]), false)});
+        resolver.registerStoreInfo(aMembers[5], new PersistentStoreInfo[]
+                {new PersistentStoreInfo(GUIDHelper.generateGUID(0,2,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(1,2,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo( GUIDHelper.generateGUID(2,2,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(3,2,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(4,2,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(5,2,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(6,2,1341890565000L,aMembers[1]), false)});
+        resolver.registerStoreInfo(aMembers[6], new PersistentStoreInfo[]
+                {new PersistentStoreInfo(GUIDHelper.generateGUID(0,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(1,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(2,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(3,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(4,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(5,10,1341890565000L,aMembers[1]), false),
+                 new PersistentStoreInfo(GUIDHelper.generateGUID(6,10,1341890565000L,aMembers[1]), true)});
 
         mapAvail = resolver.resolve();
         assertEquals(6, mapAvail.size());

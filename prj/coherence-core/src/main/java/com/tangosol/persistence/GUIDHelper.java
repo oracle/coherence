@@ -8,6 +8,8 @@ package com.tangosol.persistence;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.oracle.coherence.persistence.PersistentStoreInfo;
+
 import com.tangosol.net.Member;
 import com.tangosol.net.partition.PartitionSet;
 
@@ -120,46 +122,25 @@ public class GUIDHelper
         }
 
     /**
-     * Return GUID in the specified list of GUIDs for the specified partition.
+     * Return GUID in the specified list of persistent store info for the
+     * specified partition.
      *
-     * @param listGUID    the list of GUIDs
+     * @param listInfo    the list of persistent store info objects
      * @param nPartition  the partition
      *
      * @return GUID for the specified partition
      */
-    public static String getGUID(List<String> listGUID, int nPartition)
+    public static String getGUID(List<PersistentStoreInfo> listInfo, int nPartition)
         {
-        for (String s : listGUID)
+        for (PersistentStoreInfo p : listInfo)
             {
+            String s = p.getId();
             if (getPartition(s) == nPartition)
                 {
                 return s;
                 }
             }
         return null;
-        }
-
-    /**
-     * Return a list of the newest GUID for each partition, indexed by the
-     * partition-id.
-     * @deprecated
-     * Replaced by {@link #resolveNewest(Map, Set, int)}.
-     *
-     * @param colGUID      the collection of GUIDs to resolve
-     * @param cPartitions  the partition-count
-     *
-     * @return a list of the newest GUID for each partition
-     */
-    @Deprecated
-    public static String[] resolveNewest(Collection<String> colGUID, int cPartitions)
-        {
-        String[] asGUIDNewest = new String[cPartitions];
-        for (String sGUID : colGUID)
-            {
-            evaluateGUID(sGUID, asGUIDNewest, new HashSet<String>(), cPartitions);
-            }
-
-        return asGUIDNewest;
         }
 
     /**
@@ -394,7 +375,8 @@ public class GUIDHelper
             {
             for (Object oStore : aoStore)
                 {
-                parts.add(getPartition((String) oStore));
+                PersistentStoreInfo info = (PersistentStoreInfo) oStore;
+                parts.add(getPartition(info.getId()));
                 }
             }
         return parts;
@@ -541,6 +523,33 @@ public class GUIDHelper
         return aEntry;
         }
 
+    /**
+     * Convert a map with values of PersistentInfo array to values of String array
+     *
+     * @param mapStoreInfo  the map to be converted
+     *
+     * @return the converted map
+     *
+     * @since 24.09
+     */
+    public static Map<Integer, String[]> getMapGuids(Map<Integer, Object[]> mapStoreInfo)
+        {
+        Map<Integer, String[]> mapGUID = new HashMap();
+        List<String>          listGUID = new ArrayList<>();
+        for (Map.Entry entry : mapStoreInfo.entrySet())
+            {
+            PersistentStoreInfo[] aInfo = (PersistentStoreInfo[]) entry.getValue();
+            for (PersistentStoreInfo info : aInfo)
+                {
+                listGUID.add(info.getId());
+                }
+            mapGUID.put((Integer) entry.getKey(), listGUID.toArray(new String[listGUID.size()]));
+            listGUID.clear();
+            }
+
+        return mapGUID;
+        }
+
     // ----- inner class: GUIDResolver --------------------------------------
 
     /**
@@ -559,8 +568,8 @@ public class GUIDHelper
          */
         public GUIDResolver(int cPartitions)
             {
-            m_cPartitions = cPartitions;
-            f_mapGUID     = new HashMap<>();
+            m_cPartitions  = cPartitions;
+            f_mapStoreInfo = new HashMap<>();
             }
 
         // ----- GUIDResolver methods ---------------------------------------
@@ -569,11 +578,11 @@ public class GUIDHelper
          * Register the specified list of GUIDs from the specified member.
          *
          * @param member  the member
-         * @param asGUID  the list of GUIDs
+         * @param aInfo   the list of PersistentStoreInfo
          */
-        public void registerGUIDs(Member member, String[] asGUID)
+        public void registerStoreInfo(Member member, PersistentStoreInfo[] aInfo)
             {
-            f_mapGUID.put(member, asGUID);
+            f_mapStoreInfo.put(member, aInfo);
 
             m_mapResolved = null; // reset the resolved map
             }
@@ -589,13 +598,13 @@ public class GUIDHelper
             {
             resolve();
 
-            return m_asGUIDNewest[nPartition];
+            return m_aStoreNewest[nPartition].getId();
             }
 
         /**
          * Return the list of the newest GUIDs for the specified set of partitions.
          *
-         * @param parts  the set of partitions to return GUIDs for
+         * @param parts     the set of partitions to return GUIDs for
          *
          * @return the list of newest GUIDs
          */
@@ -604,16 +613,16 @@ public class GUIDHelper
             // ensure that the GUIDs have been resolved
             resolve();
 
-            int      cPartitions  = parts.cardinality();
-            String[] asGUIDNewest = m_asGUIDNewest;
-            String[] asGUIDResult = new String[cPartitions];
-            int      cResults     = 0;
+            int                   cPartitions  = parts.cardinality();
+            PersistentStoreInfo[] aStoreNewest = m_aStoreNewest;
+            String[]              asGUIDResult = new String[cPartitions];
+            int                   cResults     = 0;
             for (int iPart = parts.next(0); iPart >= 0; iPart = parts.next(iPart + 1))
                 {
-                String sGUID = asGUIDNewest[iPart];
-                if (sGUID != null)
+                PersistentStoreInfo info = aStoreNewest[iPart];
+                if (info != null)
                     {
-                    asGUIDResult[cResults++] = sGUID;
+                    asGUIDResult[cResults++] = info.getId();
                     }
                 }
 
@@ -626,6 +635,45 @@ public class GUIDHelper
                 }
 
             return asGUIDResult;
+            }
+
+        /**
+         * Return the list of the PersistentStoreInfo with newest GUIDs
+         * for the specified set of partitions.
+         *
+         * @param parts  the set of partitions to return PersistentStoreInfo for
+         *
+         * @return the list of the PersistentStoreInfo with newest GUIDs
+         *
+         * @since 24.09
+         */
+        public PersistentStoreInfo[] getNewestStoreInfos(PartitionSet parts)
+            {
+            // ensure that the GUIDs have been resolved
+            resolve();
+
+            int                   cPartitions   = parts.cardinality();
+            PersistentStoreInfo[] asStoreNewest = m_aStoreNewest;
+            PersistentStoreInfo[] asStoreResult = new PersistentStoreInfo[cPartitions];
+            int                   cResults      = 0;
+            for (int iPart = parts.next(0); iPart >= 0; iPart = parts.next(iPart + 1))
+                {
+                PersistentStoreInfo info = asStoreNewest[iPart];
+                if (info != null)
+                    {
+                    asStoreResult[cResults++] = info;
+                    }
+                }
+
+            if (cResults < cPartitions)
+                {
+                // shrink the GUID list
+                PersistentStoreInfo[] aNew = new PersistentStoreInfo[cResults];
+                System.arraycopy(asStoreResult, 0, aNew, 0, cResults);
+                asStoreResult = aNew;
+                }
+
+            return asStoreResult;
             }
 
         /**
@@ -642,13 +690,25 @@ public class GUIDHelper
             }
 
         /**
-         * Return a Map of member id to an array of GUIDs.
+         * Retrieve a map of member to a list of GUIDs to be deleted.
          *
-         * @return a Map of member id to an array of GUIDs
+         * @return a map of member to a list of GUIDs to be deleted
          */
-        public Map<Integer, String[]> getMemberGUIDs()
+        public Map<Member, List<String>> getInvalidGUIDs()
             {
-            return ConverterCollections.getMap(f_mapGUID,
+            resolve();
+
+            return m_mapCleanup;
+            }
+
+        /**
+         * Return a Map of member id to an array of PersistentStoreInfo.
+         *
+         * @return a Map of member id to an array of PersistentStoreInfo
+         */
+        public Map<Integer, PersistentStoreInfo[]> getMemberStoreInfo()
+            {
+            return ConverterCollections.getMap(f_mapStoreInfo,
                     Member::getId,
                     NullImplementation.getConverter(),
                     NullImplementation.getConverter(),
@@ -668,9 +728,10 @@ public class GUIDHelper
             }
 
         /**
-         * Resolve the registered GUIDs and return a map associating each member
-         * to the set of partitions that it had registered as having the newest
-         * GUID for.
+         * Resolve the registered PersistentStoreInfos and return a map associating each
+         * member to the set of partitions that it had registered as having the newest
+         * GUID for, except when the newest store is empty while the older
+         * version is not.
          *
          * @return a map associating each member to the set of partitions it has
          *         the latest GUID for
@@ -684,35 +745,110 @@ public class GUIDHelper
                 return mapResolved;
                 }
 
-            int          cPartitions   = m_cPartitions;
-            PartitionSet partsResolved = new PartitionSet(cPartitions);
-            Set<String>  setPrevGUIDs  = new HashSet<>();
-            String[]     asGUIDNewest  = resolveNewest(f_mapGUID, setPrevGUIDs, cPartitions);
+            int                     cPartitions   = m_cPartitions;
+            PartitionSet            partsResolved = new PartitionSet(cPartitions);
+            List<String>            listDelete    = new ArrayList<>();
+            PersistentStoreInfo[]   aStoreNewest  = new PersistentStoreInfo[cPartitions];
 
-            Map<Member, PartitionSet> mapOwnership = new HashMap<>();
-
-            for (Map.Entry<Member, String[]> entry : f_mapGUID.entrySet())
+            Collection<PersistentStoreInfo> colStoreInfo = new ImmutableMultiList(f_mapStoreInfo.values());
+            for (PersistentStoreInfo info : colStoreInfo)
                 {
-                Member       member = entry.getKey();
-                String[]     asGUID = entry.getValue();
-                PartitionSet parts  = new PartitionSet(cPartitions);
-                for (int i = 0, c = asGUID.length; i < c; i++)
+                String  sGUID      = info.getId();
+                int     iPartition = getPartition(sGUID);
+                if (iPartition >= cPartitions)
                     {
-                    String sGUID = asGUID[i];
-                    if (!setPrevGUIDs.contains(sGUID))
-                        {
-                        parts.add(getPartition(sGUID));
-                        }
+                    // there may be legally named GUIDs that are found, from a
+                    // previous service incarnation with a different partition-count
+                    continue;
                     }
 
-                mapOwnership.put(member, parts);
-                partsResolved.add(parts);
+                PersistentStoreInfo infoLatest = aStoreNewest[iPartition];
+
+                if (infoLatest == null)
+                    {
+                    infoLatest = info;
+                    }
+                else if (infoLatest.isEmpty() ^ info.isEmpty())
+                    {
+                    infoLatest = info.isEmpty() ? infoLatest : info;
+                    listDelete.add((info.isEmpty() ? info : infoLatest).getId());
+                    }
+                else if (getVersion(info.getId()) > getVersion(infoLatest.getId()))
+                    {
+                    infoLatest = info;
+                    }
+
+                aStoreNewest[iPartition]  = infoLatest;
+                }
+
+            // walk the map of members and their registered GUID lists to find,
+            // for each member, the set of partitions that the member has
+            // registered the "newest" GUID for
+            Map<Member, PartitionSet> mapOwnershipRecover = new HashMap<>();
+            for (Member member : f_mapStoreInfo.keySet())
+                {
+                mapOwnershipRecover.put(member, new PartitionSet(cPartitions));
+                }
+
+            for (int iPart = 0; iPart < cPartitions; iPart++)
+                {
+                PersistentStoreInfo info = aStoreNewest[iPart];
+                if (info != null)
+                    {
+                    String sGUIDNewest = info.getId();
+                    for (Map.Entry<Member, PersistentStoreInfo[]> entry : f_mapStoreInfo.entrySet())
+                        {
+                        PersistentStoreInfo[] aInfoThis = entry.getValue();
+
+                        for (int i = 0, c = aInfoThis.length; i < c; i++)
+                            {
+                            if (equals(sGUIDNewest, aInfoThis[i].getId()))
+                                {
+
+                                Member member = entry.getKey();
+                                mapOwnershipRecover.get(member).add(iPart);
+
+                                partsResolved.add(iPart);
+                                break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+            // walk the map of members and their registered GUID lists to find,
+            // for each member, the list of empty GUIDs that the member
+            // should be responsible to clean up
+            Map<Member,  List<String>> mapOwnershipCleanup = new HashMap<>();
+            for (String sGUID : listDelete)
+                {
+                for (Map.Entry<Member, PersistentStoreInfo[]> entry : f_mapStoreInfo.entrySet())
+                    {
+                    PersistentStoreInfo[] aInfoThis = entry.getValue();
+
+                    for (int i = 0, c = aInfoThis.length; i < c; i++)
+                        {
+                        if (equals(sGUID, aInfoThis[i].getId()))
+                            {
+                            Member member = entry.getKey();
+                            List<String> list = mapOwnershipCleanup.get(member);
+                            if (list == null)
+                                {
+                                list = new ArrayList();
+                                mapOwnershipCleanup.put(member, list);
+                                }
+
+                            list.add(sGUID);
+                            break;
+                            }
+                        }
+                    }
                 }
 
             // check if the storage is "shared" - meaning that all the members
             // can see all the partition stores
             boolean fSharedStorage = true;
-            for (PartitionSet partsMember : mapOwnership.values())
+            for (PartitionSet partsMember : mapOwnershipRecover.values())
                 {
                 if (!partsMember.equals(partsResolved))
                     {
@@ -722,20 +858,20 @@ public class GUIDHelper
                 }
 
             // store the resolved results
-            m_mapResolved     = mapOwnership;
+            m_mapResolved     = mapOwnershipRecover;
             m_partsUnresolved = partsResolved.invert();
-            m_asGUIDNewest    = asGUIDNewest;
+            m_aStoreNewest    = aStoreNewest;
             m_fSharedStorage  = fSharedStorage;
-
-            return mapOwnership;
+            m_mapCleanup      = mapOwnershipCleanup;
+            return mapOwnershipRecover;
             }
 
         // ----- data members -----------------------------------------------
 
         /**
-         * The Map of registered GUIDs, keyed by member.
+         * The Map of registered PersistentStoreInfos, keyed by member.
          */
-        protected final Map<Member, String[]> f_mapGUID;
+        protected final Map<Member, PersistentStoreInfo[]> f_mapStoreInfo;
 
         /**
          * The partition-count.
@@ -743,9 +879,14 @@ public class GUIDHelper
         protected int m_cPartitions;
 
         /**
-         * The resolved list of the newest GUIDs, indexed by partition-id.
+         * The resolved list of the newest stores, indexed by partition-id.
          */
-        protected String[] m_asGUIDNewest;
+        protected PersistentStoreInfo[] m_aStoreNewest;
+
+        /**
+         * The map of member to a list of GUIDs to be deleted.
+         */
+        protected Map<Member, List<String>> m_mapCleanup;
 
         /**
          * The resolved map of members to the associated set of partitions.

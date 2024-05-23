@@ -14,6 +14,7 @@ import com.tangosol.coherence.component.net.MemberSet;
 import com.tangosol.coherence.component.net.memberSet.SingleMemberSet;
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.PartitionControl;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.tracing.Span;
 import com.tangosol.internal.tracing.TracingHelper;
@@ -4651,6 +4652,24 @@ public class Storage
         }
 
     /**
+     * Returns true iff the corresponding partition contains data.
+     *
+     * @param iPartition  partition to check
+     *
+     * @return true if it contains data
+     */
+    public boolean hasData(int iPartition)
+        {
+        Set setKeys        = collectKeySet(getService().instantiatePartitionSet(iPartition), false);
+        Map mapKeyListener = getKeyListenerMap();
+        Map mapLease       = getLeaseMap();
+
+        return setKeys.size() > 0
+               || (mapKeyListener != null && !Collections.disjoint(mapKeyListener.keySet(), setKeys))
+               || (mapLease       != null && !Collections.disjoint(mapLease.keySet(), setKeys));
+        }
+
+    /**
      * Determine whether there are any interceptors registered against the
      * StorageDispatcher.
      */
@@ -4767,14 +4786,15 @@ public class Storage
         int               cEntries  = aEntry.length;
         Map               map       = fPutAll ? new HashMap(cEntries) : getBackupMap();
         long              lExtentId = getCacheId();
-        PartitionedCache.PartitionControl ctrl      = (PartitionedCache.PartitionControl) service.getPartitionControl(iPartition);
-        PersistentStore   store     = ctrl.getPersistentBackupStore();
 
         try
             {
             // handle persistence
-            if (isPersistent() && service.isBackupPersistence() && store != null)
+            if (isPersistent() && service.isBackupPersistence())
                 {
+                PartitionedCache.PartitionControl ctrl      = (PartitionedCache.PartitionControl) service.getPartitionControl(iPartition);
+                PersistentStore                   store     = ctrl.ensureOpenPersistentStore(null, true, true);
+
                 ctrl.ensureBackupPersistentExtent(lExtentId);
 
                 Object oToken = store.begin();
@@ -4839,6 +4859,11 @@ public class Storage
         // import java.util.Map;
         // import java.util.Map$Entry as java.util.Map.Entry;
 
+        if (!iter.hasNext())
+            {
+            return;
+            }
+
         PartitionedCache          service  = getService();
         int              cEntries = 0;
         com.tangosol.net.cache.ConfigurableCacheMap.EvictionApprover approver = null;
@@ -4859,7 +4884,7 @@ public class Storage
 
             if (isPersistent())
                 {
-                PersistentStore   store         = ctrlPartition.getPersistentStore();
+                PersistentStore   store         = ctrlPartition.ensureOpenPersistentStore();
                 Object            oToken        = store.begin();
                 long              lExtentId     = getCacheId();
 
@@ -4981,10 +5006,12 @@ public class Storage
         if (isPersistent())
             {
             PartitionedCache.PartitionControl ctrlPartition = (PartitionedCache.PartitionControl) service.getPartitionControl(iPartition);
-            PersistentStore   store         = ctrlPartition.getPersistentStore();
-            Object            oToken        = store.begin();
             long              lExtentId     = getCacheId();
 
+            ctrlPartition.ensurePersistentExtent(lExtentId);
+
+            PersistentStore store     = ctrlPartition.ensureOpenPersistentStore();
+            Object          oToken    = store.begin();
             try
                 {
                 while (iter.hasNext())
@@ -4995,8 +5022,6 @@ public class Storage
 
                     // insert into the listener map
                     mapKeyListeners.put(binKey, mapMembers);
-
-                    ctrlPartition.ensurePersistentExtent(lExtentId);
 
                     for (Iterator iterMember = mapMembers.entrySet().iterator(); iterMember.hasNext();)
                         {
@@ -5068,14 +5093,23 @@ public class Storage
         // import java.util.Map;
         // import java.util.Map$Entry as java.util.Map.Entry;
 
+        if (!iter.hasNext())
+            {
+            return;
+            }
+
         PartitionedCache service  = getService();
         Map     mapLease = getLeaseMap();
 
         if (isPersistent())
             {
-            PersistentStore store     = service.getPartitionControl(iPartition).getPersistentStore();
+            PartitionControl ctrlPartition = (PartitionControl) service.getPartitionControl(iPartition);
+            long              lExtentId     = getCacheId();
+
+            ctrlPartition.ensurePersistentExtent(lExtentId);
+
+            PersistentStore store     = ctrlPartition.ensureOpenPersistentStore();
             Object          oToken    = store.begin();
-            long            lExtentId = getCacheId();
 
             try
                 {
@@ -5134,6 +5168,11 @@ public class Storage
     public void insertPrimaryListenerTransfer(int iPartition, java.util.Map.Entry[] aEntry)
         {
         // import com.tangosol.util.SimpleEnumerator;
+
+        if (aEntry.length == 0)
+            {
+            return;
+            }
 
         // insert the data to primary and persistent store
         insertPrimaryKeyListeners(iPartition, new SimpleEnumerator(aEntry));
@@ -5995,8 +6034,8 @@ public class Storage
                     {
                     // persist the lock registration
                     int               nPartition    = service.getKeyPartition(binKey);
-                    PartitionedCache.PartitionControl ctrlPartition = (PartitionedCache.PartitionControl) service.getPartitionControl(nPartition);
-                    PersistentStore   store         = ctrlPartition.getPersistentStore();
+                    PartitionedCache.PartitionControl ctrl = (PartitionedCache.PartitionControl) service.getPartitionControl(nPartition);
+                    PersistentStore   store         = ctrl.ensureOpenPersistentStore(/*storeFrom*/ null, /*fSeal*/ true);
                     long              ldtJoined     = service.getServiceMemberSet().getServiceJoinTime(nHolderId);
 
                     // the lock holder (as known to this service) is uniquely identified
@@ -6210,8 +6249,6 @@ public class Storage
         Set               setKeys    = collectKeySet(iPartition);
         com.tangosol.net.partition.PartitionAwareBackingMap              pabmPrime  = getPartitionAwareBackingMap();
         com.tangosol.net.partition.PartitionAwareBackingMap              pabmBackup = getPartitionAwareBackupMap();
-        PartitionedCache.PartitionControl ctrl       = (PartitionedCache.PartitionControl) service.getPartitionControl(iPartition);
-        PersistentStore   store      = ctrl.getPersistentBackupStore();
 
         if (pabmBackup != null)
             {
@@ -6250,8 +6287,11 @@ public class Storage
                     }
 
                 // handle persistence
-                if (isPersistent() && service.isBackupPersistence() && store != null)
+                if (isPersistent() && service.isBackupPersistence())
                     {
+                    PartitionedCache.PartitionControl ctrl       = (PartitionedCache.PartitionControl) service.getPartitionControl(iPartition);
+                    PersistentStore                   store      = ctrl.ensureOpenPersistentStore(null, true, true);
+
                     ctrl.ensureBackupPersistentExtent(lExtentId);
 
                     Object oToken = store.begin(null, ctrl);
@@ -6646,7 +6686,7 @@ public class Storage
      * partition's persistent form (if applicable).
      *
      * @param nPartition    the partition
-     * @param store            the persistent store
+     * @param store         the persistent store
      * @param oToken        the persistence token to use for persisting the
      * global metadata, or null for auto-commit
      */
@@ -6665,6 +6705,11 @@ public class Storage
             {
             PartitionedCache    service    = getService();
             Serializer serializer = service.getSerializer();
+
+            if (store == null || !store.isOpen())
+                {
+                store = service.getPartitionControl(nPartition).ensureOpenPersistentStore();
+                }
 
             // persist the index registrations
             //
@@ -6713,8 +6758,7 @@ public class Storage
      */
     public void persistGlobalMetadata(int nPartition, Object oToken)
         {
-        persistGlobalMetadata(nPartition,
-                              getService().getPartitionControl(nPartition).ensurePersistentStore(), oToken);
+        persistGlobalMetadata(nPartition, null, oToken);
         }
 
     /**
@@ -6728,7 +6772,7 @@ public class Storage
     public void persistGlobalMetadata(int nPartition, boolean fBackup, Object oToken)
         {
         persistGlobalMetadata(nPartition,
-                              getService().getPartitionControl(nPartition).ensurePersistentStore(null, /*fEvents*/ false, /*fBackup*/ true), oToken);
+                              getService().getPartitionControl(nPartition).ensurePersistentStore(null, /*fEvents*/ false, /*fBackup*/ fBackup), oToken);
         }
 
     /**
@@ -6776,7 +6820,7 @@ public class Storage
                     //       metadata, and the additional complexity seems unwarranted
 
                     PartitionedCache.PartitionControl ctrlPart = (PartitionedCache.PartitionControl) service.getPartitionControl(iPart);
-                    PersistentStore   store    = ctrlPart.getPersistentStore();
+                    PersistentStore   store    = ctrlPart.ensureOpenPersistentStore(/*storeFrom*/ null, /*fSeal*/ true);
 
                     if (store != null)
                         {
@@ -6818,22 +6862,21 @@ public class Storage
             PartitionedCache           service       = getService();
             int               nPartition    = service.getKeyPartition(binKey);
             PartitionedCache.PartitionControl ctrlPartition = (PartitionedCache.PartitionControl) service.getPartitionControl(nPartition);
-            PersistentStore   store         = ctrlPartition.getPersistentStore();
             long              ldtJoined     = service.getServiceMemberSet().getServiceJoinTime(member.getId());
+            PersistentStore   store         = ctrlPartition.ensureOpenPersistentStore(/*storeFrom*/ null, /*fSeal*/ true);
+            long              lExtentId     = getCacheId();
+
+            ctrlPartition.ensurePersistentExtent(lExtentId);
 
             // the listening member (as known to this service) is uniquely identified
             // by the service join-time
             if (fAdd)
                 {
-                long lExtentId = getCacheId();
-
-                ctrlPartition.ensurePersistentExtent(lExtentId);
-
                 com.tangosol.persistence.CachePersistenceHelper.registerListener(store, lExtentId, binKey, ldtJoined, fLite, /*oToken*/ null);
                 }
             else
                 {
-                com.tangosol.persistence.CachePersistenceHelper.unregisterListener(store, getCacheId(), binKey, ldtJoined, /*oToken*/ null);
+                com.tangosol.persistence.CachePersistenceHelper.unregisterListener(store, lExtentId, binKey, ldtJoined, /*oToken*/ null);
                 }
             }
         }
@@ -6869,7 +6912,7 @@ public class Storage
             for (int iPart = partsGlobal.next(0); iPart >= 0; iPart = partsGlobal.next(iPart + 1))
                 {
                 Binary          binTrigger = com.tangosol.util.ExternalizableHelper.toBinary(trigger, serializer);
-                PersistentStore store      = service.getPartitionControl(iPart).getPersistentStore();
+                PersistentStore store      = service.getPartitionControl(iPart).ensureOpenPersistentStore(/*storeFrom*/ null, /*fSeal*/ true);
 
                 if (fAdd)
                     {

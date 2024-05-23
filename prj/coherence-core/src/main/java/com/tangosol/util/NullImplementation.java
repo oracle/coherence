@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,6 +18,7 @@ import com.oracle.coherence.persistence.PersistenceManager;
 import com.oracle.coherence.persistence.PersistenceStatistics;
 import com.oracle.coherence.persistence.PersistenceTools;
 import com.oracle.coherence.persistence.PersistentStore;
+import com.oracle.coherence.persistence.PersistentStoreInfo;
 
 import com.tangosol.io.DeltaCompressor;
 import com.tangosol.io.ExternalizableLite;
@@ -2600,12 +2601,10 @@ public class NullImplementation
             return false;
             }
 
-        /**
-        * {@inheritDoc}
-        */
-        public String[] list()
+        @Override
+        public PersistentStoreInfo[] listStoreInfo()
             {
-            return new String[0];
+            return new PersistentStoreInfo[0];
             }
 
         /**
@@ -2614,6 +2613,12 @@ public class NullImplementation
         public String[] listOpen()
             {
             return new String[0];
+            }
+
+        @Override
+        public boolean isEmpty(String sId)
+            {
+            return true;
             }
 
         /**
@@ -2740,6 +2745,12 @@ public class NullImplementation
             }
 
         @Override
+        public boolean containsExtent(long lExtentId)
+            {
+            return false;
+            }
+
+        @Override
         public void store(long lExtentId, R key, R value, Object oToken)
             {
             }
@@ -2752,6 +2763,12 @@ public class NullImplementation
         @Override
         public void iterate(Visitor<R> visitor)
             {
+            }
+
+        @Override
+        public boolean isOpen()
+            {
+            return false;
             }
 
         @Override

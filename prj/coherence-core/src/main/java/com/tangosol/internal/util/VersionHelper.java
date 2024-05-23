@@ -342,17 +342,24 @@ public class VersionHelper
     // ----- constants ------------------------------------------------------
 
     /**
+     * The encoded CE 24.03.0 and 1 versions.
+     */
+    public static final int VERSION_24_03 = encodeVersion(24, 3, 0);
+    public static final int VERSION_24_03_1 = encodeVersion(24, 3, 1);
+
+    /**
      * The encoded CE 23.09.0 and 1 versions.
      */
     public static final int VERSION_23_09 = encodeVersion(23, 9, 0);
     public static final int VERSION_23_09_1 = encodeVersion(23, 9, 1);
 
     /**
-     * The encoded 14.1.1.2206.0, 6 and 7 versions.
+     * The encoded 14.1.1.2206.0, 6, 7 and 9 versions.
      */
     public static final int VERSION_14_1_1_2206   = encodeVersion(14, 1, 1, 2206, 0);
     public static final int VERSION_14_1_1_2206_6 = encodeVersion(14, 1, 1, 2206, 6);
     public static final int VERSION_14_1_1_2206_7 = encodeVersion(14, 1, 1, 2206, 7);
+    public static final int VERSION_14_1_1_2206_9 = encodeVersion(14, 1, 1, 2206, 9);
 
     /**
      * The encoded 14.1.2.0.0 version.

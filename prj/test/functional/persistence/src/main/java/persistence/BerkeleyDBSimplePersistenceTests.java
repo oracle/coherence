@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -446,7 +446,7 @@ public class BerkeleyDBSimplePersistenceTests
                 .getConfigurableCacheFactory("client-cache-config.xml", null);
         setFactory(factory);
 
-        final String sServer = "testBackupPersistence" + nServers;
+        final String sServer = "testBackupPersistence" + (fRolling ? "Rolling" : "") + nServers;
         NamedCache cache = getNamedCache(sCacheName);
         DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
         Cluster cluster = CacheFactory.ensureCluster();
@@ -582,7 +582,7 @@ public class BerkeleyDBSimplePersistenceTests
 
             CacheFactory.shutdown();
 
-            for (int i = 0; i < nServers; i++)
+            for (int i = 0; i < nServers + 1; i++)
                 {
                 FileHelper.deleteDirSilent(fileActive[i]);
                 FileHelper.deleteDirSilent(fileBackup[i]);

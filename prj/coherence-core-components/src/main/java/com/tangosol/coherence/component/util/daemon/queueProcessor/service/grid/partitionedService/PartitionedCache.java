@@ -3335,7 +3335,38 @@ public class PartitionedCache
         long cWait2 = getLockingNextMillis() - ldtNow;
         return cWait1 <= 0L ? cWait2 : Math.min(cWait1, cWait2);
         }
-    
+
+    /**
+     * Determine whether the specified partition contains data that can be
+     * persisted or not.
+     *
+     * @param iPartition  partition number to check
+     *
+     * @return true if there is data, false otherwise
+     */
+    public boolean hasPersistentData(int iPartition)
+        {
+        if (super.hasPersistentData(iPartition))
+            {
+            return true;
+            }
+
+        BackingMapManager manager = getBackingMapManager();
+        for (Iterator iterStore = getStorageArray().iterator(); iterStore.hasNext();)
+            {
+            Storage storage = (Storage) iterStore.next();
+            if (storage.isValid() && manager.isBackingMapPersistent(storage.getCacheName()))
+                {
+                if (storage.hasData(iPartition))
+                    {
+                    return true;
+                    }
+                }
+            }
+
+        return false;
+        }
+
     // Declared at the super level
     /**
      * Initialize the service config for this member.
@@ -3720,8 +3751,6 @@ public class PartitionedCache
         
         if (isActivePersistence())
             {
-            // ensure persistent stores are opened before we move any data;
-            // the call to super will seal the partition once it is populated
             PartitionedCache.PartitionControl ctrl  = (PartitionedCache.PartitionControl) getPartitionControl(iPartition);
             PersistentStore   store = null;
             if (iBackupTo == 0)
@@ -3739,7 +3768,7 @@ public class PartitionedCache
         
             // ensure we have exclusive access to the store which primarily acts as a
             // hint to the store that it should defer any maintenance
-            if (store != null)
+            if (store != null && store.isOpen())
                 {
                 closeable = store.exclusively();
                 }
@@ -8255,7 +8284,7 @@ public class PartitionedCache
         if (storage != null && storage.isPersistent())
             {
             PartitionedCache.PartitionControl ctrlPart = (PartitionedCache.PartitionControl) getPartitionControl(nPartition);
-            PersistentStore   store    = ctrlPart.getPersistentBackupStore();
+            PersistentStore                   store    = ctrlPart.ensureOpenPersistentStore(null, true, true);
             if (store != null)
                 {
                 ctrlPart.ensureBackupPersistentExtent(lCacheId);
@@ -8307,7 +8336,7 @@ public class PartitionedCache
                 Set   setPartKeys = (Set) entry.getValue();
                 
                 PartitionedCache.PartitionControl ctrlPart = (PartitionedCache.PartitionControl) getPartitionControl(iPart);
-                PersistentStore   store    = ctrlPart.getPersistentBackupStore();
+                PersistentStore                   store    = ctrlPart.ensureOpenPersistentStore(null, true, true);
                 if (store != null)
                     {
                     ctrlPart.ensureBackupPersistentExtent(lCacheId);
@@ -8355,8 +8384,7 @@ public class PartitionedCache
                 Set   setPartKeys = (Set) entry.getValue();
                 
                 PartitionedCache.PartitionControl ctrlPart = (PartitionedCache.PartitionControl) getPartitionControl(iPart);
-        
-                PersistentStore store = ctrlPart.getPersistentBackupStore();
+                PersistentStore                   store    = ctrlPart.ensureOpenPersistentStore(null, true, true);
                 if (store != null)
                     {
                     ctrlPart.ensureBackupPersistentExtent(lCacheId);
@@ -8421,7 +8449,7 @@ public class PartitionedCache
             int               nPartition    = ((Integer) entry.getKey()).intValue();
             Collection        colPartStatus = (Collection) entry.getValue();
             PartitionedCache.PartitionControl ctrlPartition = (PartitionedCache.PartitionControl) getPartitionControl(nPartition);
-            PersistentStore   store         = ctrlPartition.getPersistentStore();
+            PersistentStore   store         = ctrlPartition.ensureOpenPersistentStore(/*storeFrom*/ null, /*fSeal*/ true);
         
             // commit changes to the persisted partition atomically
             Object oToken = store.begin(collector, ctrlPartition);
@@ -8498,7 +8526,7 @@ public class PartitionedCache
             flush();
         
             PartitionedCache.PartitionControl ctrl        = (PartitionedCache.PartitionControl) getPartitionControl(status.getPartition());
-            PersistentStore   store       = ctrl.getPersistentStore();
+            PersistentStore   store       = ctrl.ensureOpenPersistentStore(/*storeFrom*/ null, /*fSeal*/ true);
             PersistentStore   storeEvents = ctrl.getPersistentEventsStore();
         
             boolean fPersistEvents = storeEvents != null && status.getMapEventsRaw() != null;
@@ -9971,12 +9999,11 @@ public class PartitionedCache
             {
             PartitionedCache.PartitionControl ctrl  = (PartitionedCache.PartitionControl) getPartitionControl(iPartition);
             PersistentStore   store = null;
-        
+
             if (iBackup == 0)
                 {
                 // ensure the persistent store is opened before we move any data
                 // but do *not* create the store of events
-        
                 store = ctrl.ensurePersistentStore(null, /*fEventsStore*/ false);
                 }
             else
@@ -9990,7 +10017,7 @@ public class PartitionedCache
         
             // ensure we have exclusive access to the store which primarily acts as a
             // hint to the store that it should defer any maintenance
-            if (store != null)
+            if (store != null && store.isOpen())
                 {
                 closeable = store.exclusively();
                 }
@@ -9998,7 +10025,7 @@ public class PartitionedCache
             if (iBackup == 0)
                 {
                 // creating the events store is completed prior to inserting data
-                if (isPersistEvents() && iBackup == 0)
+                if (isPersistEvents())
                     {
                     PartitionedCache.TransferRequest msgLast   = (PartitionedCache.TransferRequest) listXferRequests.get(listXferRequests.size() - 1);
                     ReadBuffer       bufEvents = msgLast.getEventsStoreBinary();
@@ -31441,7 +31468,7 @@ public class PartitionedCache
                         {
                         LongArray         laCaches = null;
             
-                        PersistentStore store = ensurePersistentStore(null, /*fEventsStore*/ false, /*fBackupStore*/ true);
+                        PersistentStore store = ensureOpenPersistentStore(null, true, true);
                         if (store != null && store.ensureExtent(lExtentId))
                             {
                             if (laCaches == null)
@@ -31506,7 +31533,7 @@ public class PartitionedCache
                     if (fCreatedExtent = listExtents.contains(lExtentId))
                         {
                         LongArray         laCaches = null;
-                        PersistentStore[] aStore   = new PersistentStore[] {ensurePersistentStore(), storeEvents};
+                        PersistentStore[] aStore   = new PersistentStore[] {ensureOpenPersistentStore(), storeEvents};
             
                         for (int i = 0, c = aStore.length; i < c; ++i)
                             {
@@ -31534,8 +31561,8 @@ public class PartitionedCache
                     // to ensure the final state is a non-existent extent with the understanding
                     // that the second deleteExtent may be a no-op
             
-                    com.tangosol.persistence.CachePersistenceHelper.deleteExtents(ensurePersistentStore(), lExtentId);
-            
+                    com.tangosol.persistence.CachePersistenceHelper.deleteExtents(ensureOpenPersistentStore(), lExtentId);
+
                     if (storeEvents != null)
                         {
                         storeEvents.deleteExtent(lExtentId);
@@ -31562,7 +31589,7 @@ public class PartitionedCache
          * Prepare (register or ensure) all known storage cache ids (extents)
         * with this PartitionControl.
         * 
-        * In the case of registeration the first mutating operation (or adding
+        * In the case of registration the first mutating operation (or adding
         * of a key listener) on an extent will ensure the persistent extent on
         * the associated PersistentStore (see ensurePersistentExtent).
          */
@@ -31571,7 +31598,7 @@ public class PartitionedCache
             // import com.tangosol.net.internal.CopyOnWriteLongList;
             // import com.tangosol.util.LongArray;
             // import com.tangosol.util.LongArray$Iterator as com.tangosol.util.LongArray.Iterator;
-            
+
             LongArray           laCaches    = ((PartitionedCache) get_Module()).getPersistentCacheIds();
             CopyOnWriteLongList listExtents = getPersistentBackupExtents();
             
@@ -31581,7 +31608,7 @@ public class PartitionedCache
                 iter.next();
             
                 long lCacheId = iter.getIndex();
-            
+
                 listExtents.add(lCacheId);
                 }
             }
@@ -39927,7 +39954,7 @@ public class PartitionedCache
                 // import com.tangosol.run.xml.XmlElement;
                 
                 super.entryInserted(evt);
-                
+
                 PartitionedCache service = (PartitionedCache) get_Module();
                 Object  oKey    = evt.getKey();
                 

@@ -34,6 +34,9 @@ import com.oracle.coherence.persistence.PersistenceEnvironment;
 import com.oracle.coherence.persistence.PersistenceException;
 import com.oracle.coherence.persistence.PersistenceManager;
 import com.oracle.coherence.persistence.PersistentStore;
+import com.oracle.coherence.persistence.PersistentStoreInfo;
+
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.internal.net.service.grid.DefaultPartitionedServiceDependencies;
@@ -43,6 +46,7 @@ import com.tangosol.internal.tracing.Span;
 import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.internal.util.AtomicsHelper;
 import com.tangosol.internal.util.OwnershipConflictResolver;
+import com.tangosol.internal.util.VersionHelper;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.pof.ConfigurablePofContext;
@@ -97,6 +101,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.EventListener;
 import java.util.HashMap;
@@ -115,6 +120,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_1_2206_9;
+import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_2_0;
+import static com.tangosol.internal.util.VersionHelper.VERSION_24_03_1;
+
 
 /**
  * Base for partitioned clustered service components.
@@ -878,9 +888,9 @@ public abstract class PartitionedService
             {
             com.oracle.coherence.persistence.PersistentStore store = ctrl.ensurePersistentStore();
         
-            saveQuorum(iPartition, store);
+            saveQuorum(iPartition);
         
-            // no contents to write; seal the store immediately
+            // no contents to write; seal the store immediately if it has been opened
             if (!isExiting() && getServiceState() != SERVICE_STOPPING)
                 {
                 // seal the events store first
@@ -890,7 +900,7 @@ public abstract class PartitionedService
                     com.tangosol.persistence.CachePersistenceHelper.seal(storeEvents, this, /*oToken*/ null);
                     }
         
-                com.tangosol.persistence.CachePersistenceHelper.seal(store, this, /*oToken*/ null);
+                com.tangosol.persistence.CachePersistenceHelper.seal(ctrl.ensurePersistentStore(), this, /*oToken*/ null);
                 }
             }
         
@@ -3802,7 +3812,19 @@ public abstract class PartitionedService
             GuardSupport.heartbeat();
             }
         }
-    
+
+    /**
+     * Return true iff there are entries in the specified partition.
+     *
+     * @param iPartition  partition number to check
+     *
+     * @return  true iff there are entries
+     */
+    public boolean hasPersistentData(int iPartition)
+        {
+        return CachePersistenceHelper.isGlobalPartitioningSchemePID(iPartition);
+        }
+
     /**
      * Increment and return the ownership version for the specified partition.
     * 
@@ -4765,10 +4787,8 @@ public abstract class PartitionedService
                     ctrl.deleteBackupPersistentStore();
                     }
         
-                // backup to primary: open the persistent store
-                com.oracle.coherence.persistence.PersistentStore store = ctrl.ensurePersistentStore();
-        
-                saveQuorum(iPartition, store);
+                // backup to primary
+                saveQuorum(iPartition);
         
                 if (!isExiting() && getServiceState() != SERVICE_STOPPING)
                     {
@@ -4779,7 +4799,7 @@ public abstract class PartitionedService
                         com.tangosol.persistence.CachePersistenceHelper.seal(storeEvents, this, /*oToken*/ null);
                         }
         
-                    com.tangosol.persistence.CachePersistenceHelper.seal(store, this, /*oToken*/ null);
+                    com.tangosol.persistence.CachePersistenceHelper.seal(ctrl.ensurePersistentStore(), this, /*oToken*/ null);
                     }
                 }
             }
@@ -5622,78 +5642,78 @@ public abstract class PartitionedService
                     : ctrl.openSnapshot(sSnapshot);
             if (mgr != null)
                 {
-                PartitionSet partsGlobal  = com.tangosol.persistence.CachePersistenceHelper.getGlobalPartitions(this);
-                String[]     asGUID       = mgr.list();
+                PartitionSet          partsGlobal  = com.tangosol.persistence.CachePersistenceHelper.getGlobalPartitions(this);
+                PersistentStoreInfo[] aStoreInfo   = mgr.listStoreInfo();
                 
                 // if backups are persisted, add those, but only if there is no primary persisted
-                String[] asBackupGUIDAll = backupMgr != null ? backupMgr.list() : null;
-                String[] asBackupGUID    = null;
+                PersistentStoreInfo[] aBackupStoreInfoAll = backupMgr != null ? backupMgr.listStoreInfo() : null;
+                PersistentStoreInfo[] aBackupStoreInfo    = null;
                 
-                if (asBackupGUIDAll != null)
+                if (aBackupStoreInfoAll != null)
                     {
                     List listBackupGUIDs = new ArrayList();
                     
-                    for (int i = 0; i < asBackupGUIDAll.length; i++)
+                    for (int i = 0; i < aBackupStoreInfoAll.length; i++)
                         {
-                        String sGUID = asBackupGUIDAll[i];
+                        String sGUID = aBackupStoreInfoAll[i].getId();
                         
                         int iPart = GUIDHelper.getPartition(sGUID);
-                        if (GUIDHelper.getGUID(Arrays.asList(asGUID), iPart) == null)
+                        if (GUIDHelper.getGUID(Arrays.asList(aStoreInfo), iPart) == null)
                             {
-                            listBackupGUIDs.add(sGUID);
+                            listBackupGUIDs.add(aBackupStoreInfoAll[i]);
                             }
                         }
-        
-                    asBackupGUID = (String[]) listBackupGUIDs.toArray(new String[0]);
-                    Arrays.sort(asBackupGUID);
+
+                    aBackupStoreInfo = (PersistentStoreInfo[]) listBackupGUIDs.toArray(new PersistentStoreInfo[listBackupGUIDs.size()]);
+                    Arrays.sort(aBackupStoreInfo, Comparator.comparing(PersistentStoreInfo::getId));
                     }
-        
-                String[]     asGUIDMerged = asBackupGUID == null
-                    ? asGUID
-                    : (String[]) Base.mergeArray(asGUID, asBackupGUID);
+
+                PersistentStoreInfo[] aStoreInfoMerged = aBackupStoreInfo == null
+                    ? aStoreInfo
+                    : Base.mergeArray(aStoreInfo, aBackupStoreInfo);
         
                 int  cParts      = getPartitionCount();
-                int  cGUID       = asGUIDMerged.length;
+                int  cGUID       = aStoreInfoMerged.length;
                 List listRecover = new ArrayList(cGUID);
                 List listGlobal  = new ArrayList(1);
         
                 for (int i = 0; i < cGUID; i++)
                     {
-                    String sGUID = asGUIDMerged[i];
-                    int    iPart = GUIDHelper.getPartition(sGUID);
+                    PersistentStoreInfo storeInfo = aStoreInfoMerged[i];
+                    int                 iPart     = GUIDHelper.getPartition(storeInfo.getId());
         
-                    if (iPart < cParts && ctrl.isAllowed(sGUID))
+                    if (iPart < cParts && ctrl.isAllowed(storeInfo.getId()))
                         {
                         if (partsRecover.contains(iPart))
                             {
-                            listRecover.add(sGUID);
+                            listRecover.add(storeInfo);
                             }
         
                         // we only need the global partitions to facilitate the active persistence recovery
                         if (partsGlobal.contains(iPart) &&
                             sSnapshot == null &&
-                            (asBackupGUID == null ||
-                             (asBackupGUID != null &&
-                              Arrays.binarySearch(asBackupGUID, sGUID) < 0)))
+                            (aBackupStoreInfo == null ||
+                             (aBackupStoreInfo != null &&
+                              Arrays.binarySearch(aBackupStoreInfo, storeInfo) < 0)))
                             {
                             PartitionedService.PartitionControl ctrlPart = getPartitionControl(iPart);
         
                             // exclude the GUIDs for currently active stores
                             // also, exclude global partitions when from backup
                             PersistentStore store = ctrlPart == null ? null : ctrlPart.getPersistentStore();
-                            if (store == null || !store.getId().equals(sGUID))
+                            if (store == null || !store.getId().equals(storeInfo.getId()))
                                 {
-                                listGlobal.add(sGUID);
+                                listGlobal.add(storeInfo);
                                 }
                             }
                         }
                     }
         
                 com.tangosol.persistence.GUIDHelper.GUIDResolver resolver = new com.tangosol.persistence.GUIDHelper.GUIDResolver(cParts);
-                resolver.registerGUIDs(getThisMember(),
-                    (String[]) listRecover.toArray(new String[listRecover.size()]));
+                resolver.registerStoreInfo(getThisMember(),
+                    (PersistentStoreInfo[]) listRecover.toArray(new PersistentStoreInfo[listRecover.size()]));
         
-                msgResponse.setPersistentIds(resolver.getNewestGUIDs(partsRecover));
+                msgResponse.setStoreInfos(resolver.getNewestStoreInfos(partsRecover));
         
                 if (sSnapshot == null)
                     {
@@ -5711,8 +5731,8 @@ public abstract class PartitionedService
                     if (binQuorum == null && !listGlobal.isEmpty())
                         {
                         resolver = new com.tangosol.persistence.GUIDHelper.GUIDResolver(cParts);
-                        resolver.registerGUIDs(getThisMember(),
-                            (String[]) listGlobal.toArray(new String[listGlobal.size()]));
+                        resolver.registerStoreInfo(getThisMember(),
+                            (PersistentStoreInfo[]) listGlobal.toArray(new PersistentStoreInfo[listGlobal.size()]));
         
                         PersistentStore    storeGlobal = null;
                         PersistenceManager quorumMgr   = mgr;
@@ -6437,7 +6457,7 @@ public abstract class PartitionedService
                 {
                 // save the "last well known quorum"
                 Binary binQuorum = com.tangosol.persistence.CachePersistenceHelper.writeQuorum(
-                    ensurePartitionControl(iPart).ensurePersistentStore(), this);
+                    ensurePartitionControl(iPart).ensureOpenPersistentStore(), this);
         
                 // prior to 12.2.1.1.0 Binary objects could not be placed in the PartitionConfig
                 if (isVersionCompatible(getOwnershipMemberSet(), 12, 2, 1, 1, 0))
@@ -6712,11 +6732,11 @@ public abstract class PartitionedService
         if (!parts.isEmpty())
             {
             // attempt to remove old versions of the specified partitions
-            ServiceMemberSet setMembers = getServiceMemberSet();
-            String[]         asGUIDs    = mgrActive.list();
-            for (int i = 0, c = asGUIDs == null ? 0 : asGUIDs.length; i < c; ++i)
+            ServiceMemberSet      setMembers = getServiceMemberSet();
+            PersistentStoreInfo[] aInfos     = mgrActive.listStoreInfo();
+            for (int i = 0, c = aInfos == null ? 0 : aInfos.length; i < c; ++i)
                 {
-                String sGUID = asGUIDs[i];
+                String sGUID = aInfos[i].getId();
                 int    iPart = GUIDHelper.getPartition(sGUID);
         
                 if (iPart < getPartitionCount() && parts.contains(iPart))
@@ -6770,10 +6790,10 @@ public abstract class PartitionedService
                 // backup partitions
                 if (mgrBackup != null)
                     {
-                    String[] asBackupGUIDs = mgrBackup.list();
-                    for (int i = 0, c = asBackupGUIDs == null ? 0 : asBackupGUIDs.length; i < c; ++i)
+                    PersistentStoreInfo[] aBackupInfos = mgrBackup.listStoreInfo();
+                    for (int i = 0, c = aBackupInfos == null ? 0 : aBackupInfos.length; i < c; ++i)
                         {
-                        String sGUID = asBackupGUIDs[i];
+                        String sGUID = aBackupInfos[i].getId();
                         int    iPart = GUIDHelper.getPartition(sGUID);
         
                         // clean up all backups possible as not all are used to recover
@@ -6805,7 +6825,7 @@ public abstract class PartitionedService
     
     /**
      * RecoverJob performs partition recovery for a sub set of partitions based
-    * on the associated PartitionRecoverRequest to facilitate parallel recovery.
+     * on the associated PartitionRecoverRequest to facilitate parallel recovery.
      */
     public void onPartitionRecoverJob(PartitionedService.PartitionRecoverRequest.RecoverJob job)
         {
@@ -6822,32 +6842,51 @@ public abstract class PartitionedService
         // import java.util.Map;
         // import java.util.Map$Entry as java.util.Map.Entry;
         
-        PartitionRecoverInfo info            = job.getRecoverInfo();
-        List                 listGUID        = job.getListGUID();
-        int                  cGUID           = listGUID.size();
-        Map                  mapStoresFrom   = new HashMap(cGUID);
-        PartitionSet         partsFail       = instantiatePartitionSet(false);
-        PartitionSet         partsEventsFail = instantiatePartitionSet(false);
-        PersistenceManager   mgrRecover      = info.getManager();
-        String[]             asGUID          = (String[]) listGUID.toArray(new String[cGUID]);
+        PartitionRecoverInfo    info            = job.getRecoverInfo();
+        List                    listGUID        = job.getListGUID();
+        int                     cGUID           = listGUID.size();
+        Map                     mapStoresFrom   = new HashMap(cGUID);
+        PartitionSet            partsFail       = instantiatePartitionSet(false);
+        PartitionSet            partsEventsFail = instantiatePartitionSet(false);
+        PersistenceManager      mgrRecover      = info.getManager();
+        PartitionRecoverRequest msgRequest      = (PartitionRecoverRequest) info.getRequest();
+        String[]                asInvalidGUIDs  = msgRequest.getInvalidPersistentIds();
+        String[]                asGUID          = (String[]) listGUID.toArray(new String[cGUID]);
         PartitionedService.PersistenceControl  ctrl            = getPersistenceControl();
-        boolean              fSnapshot       = ctrl.getActiveManager() != mgrRecover;
-        
+        boolean                 fSnapshot       = ctrl.getActiveManager() != mgrRecover;
+
         if (mgrRecover != null)
             {
             // if recovering from persisted backup partitions
-            PersistenceManager backupMgr     = fSnapshot
+            PersistenceManager backupMgr         = fSnapshot
                 ? null
                 : ctrl.getBackupManager();  // the backup manager
-            String[]           asBackupGUID  = backupMgr == null ? null : backupMgr.list();
-            String[]           asPrimaryGUID = null;
-        
-            // favor primary partitions
-            if (asBackupGUID != null)
+            PersistentStoreInfo[] aBackupStores  = backupMgr == null ? null : backupMgr.listStoreInfo();
+            PersistentStoreInfo[] aPrimaryStores = null;
+
+            // clean up stores the coordinator determined to be invalid
+            if (asInvalidGUIDs != null)
                 {
-                Arrays.sort(asBackupGUID);
-                asPrimaryGUID = mgrRecover.list();
-                Arrays.sort(asPrimaryGUID);
+                for (int i = 0, c = asInvalidGUIDs.length; i < c; i++)
+                    {
+                    String sGUID = asInvalidGUIDs[i];
+                    if (fSnapshot)
+                        {
+                        mgrRecover.close(sGUID);
+                        }
+                    else
+                        {
+                        mgrRecover.delete(sGUID, false);
+                        }
+                    }
+                }
+
+            // favor primary partitions
+            if (aBackupStores != null)
+                {
+                Arrays.sort(aBackupStores, PersistentStoreInfo::compareTo);
+                aPrimaryStores = mgrRecover.listStoreInfo();
+                Arrays.sort(aPrimaryStores, PersistentStoreInfo::compareTo);
                 }
             
             // collect valid stores and remove invalid to prevent an infinite protocol loop
@@ -6857,19 +6896,16 @@ public abstract class PartitionedService
                 int    iPart  = GUIDHelper.getPartition(sGUID);
                 try
                     {
+                    boolean fBackup = aBackupStores != null &&
+                                      Arrays.stream(aBackupStores).anyMatch(s -> sGUID.equals(s.getId())) &&
+                                      !Arrays.stream(aPrimaryStores).anyMatch(s -> sGUID.equals(s.getId()));
+
                     // mark store is primary or backup in order to close it with the correct
                     // persistence manager
                     mapStoresFrom.put(Integer.valueOf(iPart),
                                        new Object[] {
-                                          ctrl.openStoreForRead((asBackupGUID != null &&
-                                                                 Arrays.binarySearch(asBackupGUID, sGUID) >= 0 &&
-                                                                 Arrays.binarySearch(asPrimaryGUID, sGUID) < 0)
-                                                                        ? backupMgr
-                                                                        : mgrRecover,
-                                                                sGUID, fSnapshot),
-                                          Boolean.valueOf(asBackupGUID != null &&
-                                                Arrays.binarySearch(asBackupGUID, sGUID) >= 0 &&
-                                                Arrays.binarySearch(asPrimaryGUID, sGUID) < 0)});
+                                          ctrl.openStoreForRead(fBackup ? backupMgr : mgrRecover, sGUID),
+                                          Boolean.valueOf(fBackup)});
         
         
                     if ((i & 0xF) == 0xF)
@@ -7737,6 +7773,11 @@ public abstract class PartitionedService
         
         if (fOpen)
             {
+            if (mgr.isEmpty(sGUID))
+                {
+                return mgr.createStore(sGUID);
+                }
+
             for (int cRetry = 0; true; cRetry++)
                 {
                 try
@@ -7802,7 +7843,7 @@ public abstract class PartitionedService
                 PartitionedService.PartitionControl ctrlPart   = getPartitionControl(nPartition);
         
                 PartitionedService.PersistenceControl ctrlPersistence = getPersistenceControl();
-        
+
                 // recovery could be a relatively expensive I/O operation, so
                 // heartbeat between each partition
                 heartbeat();
@@ -7816,10 +7857,10 @@ public abstract class PartitionedService
                     {
                     try
                         {
-                        storeTo = ctrlPart.ensurePersistentStore(storeFrom);
-        
+                        storeTo = ctrlPart.ensureOpenPersistentStore(storeFrom, false);
+
                         com.tangosol.persistence.CachePersistenceHelper.validate(storeTo, this);
-        
+
                         com.tangosol.persistence.CachePersistenceHelper.unseal(storeTo);
                         }
                     catch (PersistenceException e)
@@ -8212,7 +8253,7 @@ public abstract class PartitionedService
                 {
                 com.oracle.coherence.persistence.PersistentStore store = ctrl.ensurePersistentStore();
         
-                saveQuorum(iPartition, store);
+                saveQuorum(iPartition);
         
                 if (!isExiting() && getServiceState() != SERVICE_STOPPING)
                     {
@@ -8233,7 +8274,7 @@ public abstract class PartitionedService
                     // ensure backup store
                     com.oracle.coherence.persistence.PersistentStore store = ctrl.ensurePersistentStore(null, /*fEventsStore*/ false, /*fBackupStore*/ true);
         
-                    saveQuorum(iPartition, store);
+                    saveQuorum(iPartition, true);
         
                     if (!isExiting() && getServiceState() != SERVICE_STOPPING)
                         {
@@ -8266,7 +8307,7 @@ public abstract class PartitionedService
         
         // only called if there is a persistence environment configured;
         // the recovery could be from either the active or snapshot store
-        
+
         if (com.tangosol.persistence.CachePersistenceHelper.isGlobalPartitioningSchemePID(iPartition))
             {
             Binary binQuorum = com.tangosol.persistence.CachePersistenceHelper.readQuorumRaw(storeFrom);
@@ -8274,7 +8315,7 @@ public abstract class PartitionedService
                 {
                 // copy the quorum info in case this node fails before restore completes
                 com.tangosol.persistence.CachePersistenceHelper.writeQuorumRaw(storeTo, binQuorum);
-        
+
                 // cache it for ease of use (see onFinalizeRestorePrimary())
                 getPersistenceControl().setQuorumRaw(binQuorum);
                 }
@@ -8297,7 +8338,7 @@ public abstract class PartitionedService
         com.tangosol.persistence.CachePersistenceHelper.seal(storeTo, this, /*oToken*/ null);
         
         ctrl.setRecovered(true);
-        
+
         return true;
         }
     
@@ -8340,16 +8381,16 @@ public abstract class PartitionedService
                 PersistentStore storeFrom   = (PersistentStore) entry.getValue();
                 String          sGUID       = ((PersistentStore) ((Object[]) mapStoresFrom.get(IPartition))[0]).getId();
                 boolean         fFromBackup = ((Boolean) ((Object[]) mapStoresFrom.get(IPartition))[1]).booleanValue();
-        
-               _assert(getPartitionControl(nPartition).isLocked(), "Partition must be locked");
-        
+
+                _assert(getPartitionControl(nPartition).isLocked(), "Partition must be locked");
+
                 try
                     {
                     // Note: recoverPartition can throw PersistenceException only due to
                     //       a failure on the recovering store
-        
+
                     PersistentStore storeTo = isActivePersistence() ? storeFrom : NullImplementation.getPersistentStore();
-        
+
                     if (recoverPartition(nPartition, storeFrom, storeTo, listRequests))
                         {
                         // finished with the recovery; close or delete the old store
@@ -9098,7 +9139,38 @@ public abstract class PartitionedService
                 getContinuations().instantiateFinalizeRestorePrimaries(msgRequest, mapUpdate));
             }
         }
-    
+
+    /**
+     * Save the quorum info if necessary.
+     *
+     * @since 24.09
+     */
+    public void saveQuorum(int iPartition)
+        {
+        saveQuorum(iPartition, false);
+        }
+
+    /**
+     * Save the quorum info if necessary.
+     *
+     * @since 24.09
+     */
+    public void saveQuorum(int iPartition, boolean fBackup)
+        {
+        if (CachePersistenceHelper.isGlobalPartitioningSchemePID(iPartition))
+            {
+            PersistentStore store = fBackup
+                ? getPartitionControl(iPartition).ensureOpenPersistentStore(null, false, true)
+                : getPartitionControl(iPartition).ensureOpenPersistentStore();
+
+            Binary binQuorum = getPersistenceControl().getQuorumRaw();
+            if (binQuorum != null)
+                {
+                CachePersistenceHelper.writeQuorumRaw(store, binQuorum);
+                }
+            }
+        }
+
     /**
      * Save the quorum info if necessary.
      */
@@ -12663,7 +12735,7 @@ public abstract class PartitionedService
             
             // we must be the distribution coordinator
             _assert(isCoordinator());
-            
+
             PartitionedService service    = getService();
             Map     mapSuggest = null;
             
@@ -12696,9 +12768,10 @@ public abstract class PartitionedService
             
             PartitionSet partsAssign = resolverGUID.getUnresolvedPartitions();
             partsAssign.retain(partsOrphan);
-            
-            PartitionSet partsRecover = service.instantiatePartitionSet(false);
-            Map          mapMemberMsg = new HashMap(); // <Member, $PartitionRecoverRequest>
+
+            Map          mapInvalidGUIDs = resolverGUID.getInvalidGUIDs();
+            PartitionSet partsRecover    = service.instantiatePartitionSet(false);
+            Map          mapMemberMsg    = new HashMap(); // <Member, $PartitionRecoverRequest>
             
             if (mapSuggest != null && !mapSuggest.isEmpty())
                 {
@@ -12716,7 +12789,12 @@ public abstract class PartitionedService
                         // unknown member; skip the suggestion
                         continue;
                         }
-            
+
+                    // get a list of invalid empty persistentIds that need to be cleaned up
+                    List     listGUIDs      = (List) mapInvalidGUIDs.get(memberOwner);
+                    String[] asInvalidGUIDs = listGUIDs == null ? null :
+                                              (String[]) listGUIDs.toArray(new String[listGUIDs.size()]);
+
                     parts.retain(partsOrphan);
             
                     for (int iPart = parts.next(0); iPart >= 0; iPart = parts.next(iPart + 1))
@@ -12732,6 +12810,7 @@ public abstract class PartitionedService
                                 msgRequest.addToMember(memberOwner);
                                 msgRequest.setPartsAssign(service.instantiatePartitionSet(false));
                                 msgRequest.setPartsRecover(service.instantiatePartitionSet(false));
+                                msgRequest.setInvalidPersistentIds(asInvalidGUIDs);
                                 msgRequest.setEventsPartsFailed(service.instantiatePartitionSet(false));
             
                                 mapMemberMsg.put(memberOwner, msgRequest);
@@ -18679,10 +18758,10 @@ public abstract class PartitionedService
                 
                         if (msgRequest.getRecoveryPartitions() != null)
                             {
-                            String[] asGUID = msgResponse.getPersistentIds();
-                            if (asGUID != null)
+                            PersistentStoreInfo[] aInfo = msgResponse.getStoreInfos();
+                            if (aInfo != null)
                                 {
-                                resolver.registerGUIDs(msg.getFromMember(), asGUID);
+                                resolver.registerStoreInfo(msg.getFromMember(), aInfo);
                                 }
                             }
                 
@@ -18756,11 +18835,11 @@ public abstract class PartitionedService
         private int[][] __m_Assignments;
         
         /**
-         * Property PersistentIds
+         * Property StoreInfos
          *
-         * The peristent store ids that are available to the responding member.
+         * The PersistentStoreInfos with the corresponding store ids that are available to the responding member.
          */
-        private String[] __m_PersistentIds;
+        private PersistentStoreInfo[] __m_StoreInfos;
         
         /**
          * Property QuorumRaw
@@ -18879,12 +18958,12 @@ public abstract class PartitionedService
         
         // Accessor for the property "PersistentIds"
         /**
-         * Getter for property PersistentIds.<p>
-        * The peristent store ids that are available to the responding member.
+         * Getter for property StoreInfos.<p>
+        * The PersistentStoreInfos with the corresponding store ids that are available to the responding member.
          */
-        public String[] getPersistentIds()
+        public PersistentStoreInfo[] getStoreInfos()
             {
-            return __m_PersistentIds;
+            return __m_StoreInfos;
             }
         
         // Accessor for the property "QuorumRaw"
@@ -18921,27 +19000,36 @@ public abstract class PartitionedService
             setSuccess(fSuccess);
             if (fSuccess)
                 {
+                Grid    service      = getService();
                 boolean fAssignments = input.readBoolean();
                 if (fAssignments)
                     {
-                    setAssignments(com.tangosol.util.ExternalizableHelper.readIntArray2d(input));
+                    setAssignments(ExternalizableHelper.readIntArray2d(input));
                     }
             
                 // read the persistent store ids
-                boolean fGUIDs = input.readBoolean();
-                if (fGUIDs)
+                boolean fStores = input.readBoolean();
+                if (fStores)
                     {
-                    int      cGUID  = input.readInt();
-                    String[] asGUID = new String[cGUID];
-                    for (int i = 0; i < cGUID; i++)
+                    boolean               fStoresCompat = service.isVersionCompatible(OwnershipResponse::isLazyOpenCompatible);
+                    int                   cStores       = input.readInt();
+                    PersistentStoreInfo[] aInfo         = new PersistentStoreInfo[cStores];
+                    for (int i = 0; i < cStores; i++)
                         {
-                        asGUID[i] = input.readUTF();
+                        if (fStoresCompat)
+                            {
+                            aInfo[i] = ExternalizableHelper.readObject(input);
+                            }
+                        else
+                            {
+                            aInfo[i] = new PersistentStoreInfo(input.readUTF(), false);
+                            }
                         }
-            
-                    setPersistentIds(asGUID);
+
+                    setStoreInfos(aInfo);
                     }
             
-                if (getService().isVersionCompatible(getFromMember(), 12, 2, 1, 1, 0))
+                if (service.isVersionCompatible(getFromMember(), 12, 2, 1, 1, 0))
                     {
                     // the quorum info exchange was introduced in 12.2.1.1
                     int cb = input.readInt();
@@ -18966,11 +19054,11 @@ public abstract class PartitionedService
         // Accessor for the property "PersistentIds"
         /**
          * Setter for property PersistentIds.<p>
-        * The peristent store ids that are available to the responding member.
+        * The PersistentStoreInfos with the corresponding store ids that are available to the responding member.
          */
-        public void setPersistentIds(String[] asGUID)
+        public void setStoreInfos(PersistentStoreInfo[] aInfos)
             {
-            __m_PersistentIds = asGUID;
+            __m_StoreInfos = aInfos;
             }
         
         // Accessor for the property "QuorumRaw"
@@ -19008,6 +19096,8 @@ public abstract class PartitionedService
             output.writeBoolean(fSuccess);
             if (fSuccess)
                 {
+                Grid service = getService();
+
                 int[][] aaiOwner = getAssignments();
                 if (aaiOwner == null)
                     {
@@ -19016,26 +19106,34 @@ public abstract class PartitionedService
                 else
                     {
                     output.writeBoolean(true);
-                    com.tangosol.util.ExternalizableHelper.writeIntArray2d(output, aaiOwner);
+                    ExternalizableHelper.writeIntArray2d(output, aaiOwner);
                     }
-            
-                String[] asGUID = getPersistentIds();
-                boolean  fGUIDs = asGUID != null;
-            
-                output.writeBoolean(fGUIDs);
-                if (fGUIDs)
+
+                PersistentStoreInfo[] aInfo   = getStoreInfos();
+                boolean               fStores = aInfo != null;
+
+                output.writeBoolean(fStores);
+                if (fStores)
                     {
+                    boolean fStoresCompat = service.isVersionCompatible(OwnershipResponse::isLazyOpenCompatible);
                     // write the persistent store ids
-                    int cGUID = asGUID.length;
-            
-                    output.writeInt(cGUID);
-                    for (int i = 0; i < cGUID; i++)
+                    int cStores = aInfo.length;
+
+                    output.writeInt(cStores);
+                    for (int i = 0; i < cStores; i++)
                         {
-                        output.writeUTF(asGUID[i]);
+                        if (fStoresCompat)
+                            {
+                            ExternalizableHelper.writeObject(output, aInfo[i]);
+                            }
+                        else
+                            {
+                            output.writeUTF(aInfo[i].getId());
+                            }
                         }
                     }
             
-                if (getService().isVersionCompatible(getToMemberSet(), 12, 2, 1, 1, 0))
+                if (service.isVersionCompatible(getToMemberSet(), 12, 2, 1, 1, 0))
                     {
                     // the quorum info exchange was introduced in 12.2.1.1
             
@@ -19050,6 +19148,13 @@ public abstract class PartitionedService
                     }
                 }
             }
+
+            protected static boolean isLazyOpenCompatible(int nVersion)
+                {
+                return VersionHelper.isVersionCompatible(VERSION_14_1_2_0, nVersion)
+                       || VersionHelper.isPatchCompatible(VERSION_24_03_1, nVersion)
+                       || VersionHelper.isPatchCompatible(VERSION_14_1_1_2206_9, nVersion);
+                }
         }
 
     // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService$PartitionAbandonRequest
@@ -20990,7 +21095,7 @@ public abstract class PartitionedService
          * 
          * @volatile
          */
-        private volatile transient com.oracle.coherence.persistence.PersistentStore __m_PersistentStore;
+        private volatile transient PersistentStore __m_PersistentStore;
         
         /**
          * Property Recovered
@@ -21557,11 +21662,96 @@ public abstract class PartitionedService
             {
             return false;
             }
-        
+
         /**
-         * Ensure that a persistent store is opened for the partition associated
-        * with this control, opening a new store if one does not already exist.
-        * This method is called on the service thread only.
+         * Ensure that a persistent store is opened for the partition associated with this control,
+         * opening a new store if one does not already exist.
+         * This method is called on the service thread only.
+         *
+         * @return the open persistent sotre
+         */
+        public PersistentStore ensureOpenPersistentStore()
+            {
+            return ensureOpenPersistentStore(null, false);
+            }
+
+        /**
+         * Ensure that a persistent store is opened for the partition associated with this control,
+         * opening a new store if one does not already exist.
+         * This method is called on the service thread only.
+         *
+         * @return the open persistent store
+         */
+        public PersistentStore ensureOpenPersistentStore(PersistentStore storeFrom, boolean fSeal)
+            {
+            return ensureOpenPersistentStore(storeFrom, fSeal, false);
+            }
+
+        /**
+         * Ensure that a persistent store is opened for the partition associated with this control,
+         * opening a new store if one does not already exist.
+         * This method is called on the service thread only.
+         *
+         * @return the open persistent store
+         */
+        public PersistentStore ensureOpenPersistentStore(PersistentStore storeFrom, boolean fSeal, boolean fBackupStore)
+            {
+            PersistentStore store = fBackupStore ? getPersistentBackupStore() : getPersistentStore();
+
+            if (store == null || !store.isOpen() || storeFrom != null)
+                {
+                synchronized (this)
+                    {
+                    store = fBackupStore ? getPersistentBackupStore() : getPersistentStore();
+
+                    PartitionedService service = getService();
+                    String             sGUID   = null;
+                    if (store == null || storeFrom != null)
+                        {
+                        int     nPartition = getPartitionId();
+                        Member  member     = service.getThisMember();
+                        long    ldtJoin    = service.getServiceMemberSet().getServiceJoinTime(member.getId());
+
+                        sGUID = GUIDHelper.generateGUID(nPartition,
+                                                        service.getOwnershipVersion(nPartition),
+                                                        ldtJoin,
+                                                        member);
+                        }
+                    else if (!store.isOpen())
+                        {
+                        sGUID = store.getId();
+                        }
+
+                    if (sGUID != null)
+                        {
+                        store = fBackupStore
+                                ? service.getPersistenceControl().openBackupStore(sGUID, storeFrom)
+                                : service.getPersistenceControl().openActiveStore(sGUID, storeFrom);
+
+                        // seal immediately if not opened during partition ownership change
+                        if (fSeal)
+                            {
+                            CachePersistenceHelper.seal(store, service, /*oToken*/ null);
+                            }
+
+                        if (fBackupStore)
+                            {
+                            setPersistentBackupStore(store);
+                            }
+                        else
+                            {
+                            setPersistentStore(store);
+                            }
+                        }
+                    }
+                }
+
+            return store;
+            }
+
+        /**
+         * Ensure that a persistent directory is created for the partition associated with this control.
+         * This method is called on the service thread only.
          */
         public com.oracle.coherence.persistence.PersistentStore ensurePersistentStore()
             {
@@ -21569,9 +21759,8 @@ public abstract class PartitionedService
             }
         
         /**
-         * Ensure that a persistent store is opened for the partition associated
-        * with this control, opening a new store if one does not already exist.
-        * This method is called on the service thread only.
+         * Ensure that a persistent directory is created for the partition associated with this control.
+         * This method is called on the service thread only.
          */
         public com.oracle.coherence.persistence.PersistentStore ensurePersistentStore(com.oracle.coherence.persistence.PersistentStore storeFrom)
             {
@@ -21579,9 +21768,8 @@ public abstract class PartitionedService
             }
         
         /**
-         * Ensure that a persistent store is opened for the partition associated
-        * with this control, opening a new store if one does not already exist.
-        * This method is called on the service thread only.
+         * Ensure that a persistent directory is created for the partition associated with this control.
+         * This method is called on the service thread only.
          */
         public com.oracle.coherence.persistence.PersistentStore ensurePersistentStore(com.oracle.coherence.persistence.PersistentStore storeFrom, boolean fEventsStore)
             {
@@ -21589,9 +21777,8 @@ public abstract class PartitionedService
             }
         
         /**
-         * Ensure that a persistent store is opened for the partition associated
-        * with this control, opening a new store if one does not already exist.
-        * This method is called on the service thread only.
+         * Ensure that a persistent directory is created for the partition associated with this control.
+         * This method is called on the service thread only.
          */
         public com.oracle.coherence.persistence.PersistentStore ensurePersistentStore(com.oracle.coherence.persistence.PersistentStore storeFrom, boolean fEventsStore, boolean fBackupStore)
             {
@@ -21618,12 +21805,12 @@ public abstract class PartitionedService
             
                 if (!fBackupStore)
                     {
-                    store = ctrlPersistence.openActiveStore(sGUID, storeFrom);
+                    store = ctrlPersistence.ensurePersistentStore(sGUID);
                     setPersistentStore(store);
                     }
                 else
                     {
-                    store = ctrlPersistence.openBackupStore(sGUID, storeFrom);
+                    store = ctrlPersistence.ensureBackupPersistentStore(sGUID);
                     setPersistentBackupStore(store);
                     }
                 }
@@ -23049,9 +23236,11 @@ public abstract class PartitionedService
                 {
                 PartitionedService service  = getService();
                 String  sStoreId = store.getId();
-            
-                com.oracle.coherence.persistence.PersistentStore storeNew = ensurePersistentStore(store);
-            
+
+                PersistentStore storeNew = store.isOpen()
+                                           ? ensureOpenPersistentStore(store, false)
+                                           : ensurePersistentStore(store);
+
                 service.saveQuorum(-1, storeNew);
             
                 // seal the events store first
@@ -23658,7 +23847,14 @@ public abstract class PartitionedService
          * The list of GUIDs to recover from persistent storage.
          */
         private String[] __m_GUIDs;
-        
+
+        /**
+         * Property InvalidPersistentIds
+         *
+         * A list of invalid persistentIds to be deleted.
+         */
+        private String[] __m_InvalidPersistentIds;
+
         /**
          * Property MapAssigned
          *
@@ -23856,7 +24052,16 @@ public abstract class PartitionedService
             {
             return __m_GUIDs;
             }
-        
+
+        /**
+         * Getter for property InvalidPersistentIds
+         * A list of invalid persistentIds to be deleted.
+         */
+        public String[] getInvalidPersistentIds()
+            {
+            return __m_InvalidPersistentIds;
+            }
+
         // Accessor for the property "MapAssigned"
         /**
          * Getter for property MapAssigned.<p>
@@ -24007,6 +24212,14 @@ public abstract class PartitionedService
                 {
                 setSnapshotToRecover(input.readUTF());
                 }
+
+            int      cSize         = input.readInt();
+            String[] asGUIDToClean = new String[cSize];
+            for (int i = 0; i < cSize; i++)
+                {
+                asGUIDToClean[i] = input.readUTF();
+                }
+            setInvalidPersistentIds(asGUIDToClean);
             }
         
         /**
@@ -24105,7 +24318,16 @@ public abstract class PartitionedService
             {
             __m_GUIDs = asGUID;
             }
-        
+
+        /**
+         * Setter for property InvalidPersistentIds
+         * A list of invalid persistentIds to be deleted.
+         */
+        public void setInvalidPersistentIds(String[] asGUIDs)
+            {
+            __m_InvalidPersistentIds = asGUIDs;
+            }
+
         // Accessor for the property "MapAssigned"
         /**
          * Setter for property MapAssigned.<p>
@@ -24212,6 +24434,15 @@ public abstract class PartitionedService
                 {
                 output.writeBoolean(true);
                 output.writeUTF(sSnapshot);
+                }
+
+            String[] asInvalidGUIDs = getInvalidPersistentIds();
+            int      cSize          = asInvalidGUIDs == null ? 0 : asInvalidGUIDs.length;
+
+            output.writeInt(cSize);
+            for (int i = 0; i < cSize; i++)
+                {
+                output.writeUTF(asInvalidGUIDs[i]);
                 }
             }
 
@@ -26109,7 +26340,52 @@ public abstract class PartitionedService
             
             builder.build(/*iPart*/ 0);
             }
-        
+
+        /**
+         * Open and return a PersistentStore with the specified GUID name from the active persistence manager.
+         * The returned store is "failure-safe' and any persistence failure (synchronous or asynchronous)
+         * will be handled by the active failure handler.
+         *
+         * This method is called on the service thread only.
+         */
+        public PersistentStore ensurePersistentStore(String sGUID)
+            {
+            try
+                {
+                // create an unopened persistence store
+                return new SafePersistenceWrappers.SafePersistentStore(getActiveManager().createStore(sGUID), getActiveFailureHandler());
+                }
+            catch (PersistenceException e)
+                {
+                onActivePersistenceFailure(e);
+                }
+
+            return NullImplementation.getPersistentStore();
+            }
+
+
+        /**
+         * Open and return a PersistentStore with the specified GUID name from the backup persistence manager.
+         * The returned store is "failure-safe' and any persistence failure (synchronous or asynchronous)
+         * will be handled by the active failure handler.
+         *
+         * This method is called on the service thread only.
+         */
+        public PersistentStore ensureBackupPersistentStore(String sGUID)
+            {
+            try
+                {
+                // create an unopened persistence store
+                return new SafePersistenceWrappers.SafePersistentStore(getBackupManager().createStore(sGUID), getActiveFailureHandler());
+                }
+            catch (PersistenceException e)
+                {
+                onActivePersistenceFailure(e);
+                }
+
+            return NullImplementation.getPersistentStore();
+            }
+
         // Accessor for the property "ActiveFailureHandler"
         /**
          * Getter for property ActiveFailureHandler.<p>
@@ -26505,7 +26781,7 @@ public abstract class PartitionedService
                 }
             return mgrActive;
             }
-        
+
         /**
          * Open and return a PersistentStore with the specified GUID name from
         * the active persistence manager.  The returned store is "failure-safe'
@@ -26647,9 +26923,65 @@ public abstract class PartitionedService
             
             return mgr;
             }
-        
+
         /**
-         * Return an active PersistenceManager iff configured.
+         * Open a persistent store for reading. An empty directory indicates that
+         * no resources have been allocated yet, in which case an "unopened"
+         * store is returned.
+         * An unopened store corresponds to an empty partition.
+         *
+         * @param mgr    the persistence manager to use to open the store
+         * @param sGUID  the store GUID
+         *
+         * @return the opened store
+         */
+        public com.oracle.coherence.persistence.PersistentStore openStoreForRead(com.oracle.coherence.persistence.PersistenceManager mgr, String sGUID)
+            {
+            // import com.oracle.coherence.persistence.ConcurrentAccessException;
+            // import com.oracle.coherence.persistence.FatalAccessException;
+            // import com.oracle.coherence.persistence.PersistentStore;
+            // import com.tangosol.persistence.CachePersistenceHelper as com.tangosol.persistence.CachePersistenceHelper;
+
+            // _assert(isRecovering());
+
+            PartitionedService service = (PartitionedService) get_Module();
+
+            if (mgr.isEmpty(sGUID))
+                {
+                return mgr.createStore(sGUID);
+                }
+
+            for (int cRetry = 0; true; cRetry++)
+                {
+                try
+                    {
+                    PersistentStore store = mgr.open(sGUID, /*storeFrom*/ null);
+
+                    com.tangosol.persistence.CachePersistenceHelper.validate(store, service);
+
+                    return store;
+                    }
+                catch (ConcurrentAccessException e)
+                    {
+                    if (cRetry > 100)
+                        {
+                        throw new FatalAccessException(e);
+                        }
+                    service.sleep(10L);
+                    }
+                }
+            }
+
+
+        /**
+         * Open a persistent store for reading.
+         *
+         * @param mgr    the persistence manager to use to open the store
+         * @param sGUID  the store GUID
+         * @param fOpen  whether the store is to be actually opened or just
+         *               created (e.g.: for snapshot processing)
+         *
+         * @return the opened store
          */
         public com.oracle.coherence.persistence.PersistentStore openStoreForRead(com.oracle.coherence.persistence.PersistenceManager mgr, String sGUID, boolean fOpen)
             {
@@ -27677,12 +28009,19 @@ public abstract class PartitionedService
                         // take quite awhile and require quite a bit of memory).
                 
                         sGUID  = buildGUID(iPart);
-                        store  = mgrSnapshot.open(sGUID, /*storeFrom*/ null);
-                        oToken = store.begin();
-                
-                        service.snapshotPartition(iPart, store, oToken);
-                
-                        store.commit(oToken);
+                        if (service.hasPersistentData(iPart))
+                            {
+                            store  = mgrSnapshot.open(sGUID, /*storeFrom*/ null);
+                            oToken = store.begin();
+
+                            service.snapshotPartition(iPart, store, oToken);
+
+                            store.commit(oToken);
+                            }
+                        else
+                            {
+                            mgrSnapshot.createStore(sGUID);
+                            }
                         }
                     else
                         {
@@ -28051,8 +28390,8 @@ public abstract class PartitionedService
                 Map     mapStores = getSnapshotStores(sSnapshot);
                 PartitionedService service   = getService(); 
                 
-                // allocate the stores evenly across all members; Map<Integer, String[]>
-                mapStores = GUIDHelper.assignStores(mapStores, service.getPartitionCount());
+                // allocate the stores evenly across all members; Map<Integer, PersistentStoreInfo[]>
+                mapStores = GUIDHelper.assignStores(GUIDHelper.getMapGuids(mapStores), service.getPartitionCount());
                 
                 // update the attributes
                 setSnapshotName(sSnapshot);
@@ -30620,7 +30959,7 @@ public abstract class PartitionedService
                         msgResponse.setValue(new Object[]
                             {
                             RESPONSE_STORES,
-                            mgrSnapshot == null ? new String[0] : mgrSnapshot.list()
+                            mgrSnapshot == null ? new PersistentStoreInfo[0] : mgrSnapshot.listStoreInfo()
                             });
                         }
                     finally

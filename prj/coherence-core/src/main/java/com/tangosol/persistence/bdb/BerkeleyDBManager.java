@@ -352,6 +352,12 @@ public class BerkeleyDBManager
                 for (String sFileName : asFileList)
                     {
                     fileStore = new File(f_dirSnapshot, sFileName);
+
+                    if (FileHelper.isEmpty(fileStore))
+                        {
+                        continue;
+                        }
+
                     validateBDBEnvironment(fileStore);
                     validateStoreSealed(sFileName);
 
