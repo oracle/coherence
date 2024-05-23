@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2021, Oracle and/or its affiliates.
+  Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns="class://com.oracle.coherence.concurrent.config.NamespaceHandler"
@@ -33,13 +33,30 @@
   <xsd:element name="thread-factory">
     <xsd:annotation>
       <xsd:documentation>
-        The thread-factory element contains the configuration info for a
-        class that implements the java.util.concurrent.ThreadFactory interface.
+        The thread-factory element contains the configuration info to
+        create a custom java.util.concurrent.ThreadFactory implementation.
       </xsd:documentation>
     </xsd:annotation>
 
     <xsd:complexType>
       <xsd:sequence>
+        <xsd:element ref="instance"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="custom-executor">
+    <xsd:annotation>
+      <xsd:documentation>
+        The custom-executor element contains the configuration info to
+        create a custom java.util.concurrent.ExecutorService that will
+        be registered with the executor service.
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="name"/>
         <xsd:element ref="instance"/>
       </xsd:sequence>
     </xsd:complexType>

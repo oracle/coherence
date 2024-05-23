@@ -72,7 +72,8 @@ public class FixedBuilder
     /**
      * Creates the description for this executor.
      *
-     * @param factory  the {@link ThreadFactory}, if any
+     * @param cThreadCount  the configured thread count
+     * @param factory       the {@link ThreadFactory}, if any
      *
      * @return the description for this executor
      */
@@ -88,7 +89,7 @@ public class FixedBuilder
     // ----- data members ---------------------------------------------------
 
     /**
-     * The number of threads;
+     * The number of threads.
      */
     protected Expression<Integer> m_threadCount;
     }

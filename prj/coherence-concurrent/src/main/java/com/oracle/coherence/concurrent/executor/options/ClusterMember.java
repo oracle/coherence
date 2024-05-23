@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent.executor.options;
@@ -78,7 +78,7 @@ public class ClusterMember
     // ----- constants ------------------------------------------------------
 
     /**
-     * Static {@code ClusterMember) instance.
+     * Static {@code ClusterMember} instance.
      */
     public static ClusterMember INSTANCE = new ClusterMember();
     }

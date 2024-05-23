@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -61,6 +61,8 @@ public class ExclusiveLockHolder
      * Return {@code true} if this lock is currently owned by the specified
      * {@link LockOwner}.
      *
+     * @param owner  the {@link LockOwner}
+     *
      * @return {@code true} if this lock is currently owned by he specified
      *                      {@link LockOwner}
      */
@@ -72,6 +74,8 @@ public class ExclusiveLockHolder
     /**
      * Return {@code true} if this lock is currently owned by the specified
      * member, regardless of which thread on that member owns it.
+     *
+     * @param memberId  the member {@link UUID}
      *
      * @return {@code true} if this lock is currently owned by he specified
      *                      member

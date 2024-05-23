@@ -29,6 +29,8 @@ import com.tangosol.util.function.Remote;
 
 import java.util.List;
 
+import java.util.Objects;
+
 import java.util.concurrent.RejectedExecutionException;
 
 /**
@@ -49,6 +51,7 @@ public class NamedClusteredExecutorService
      *
      * @param name  the executor service name
      */
+    @SuppressWarnings("unchecked")
     public NamedClusteredExecutorService(Name name)
         {
         super(session());
@@ -66,7 +69,7 @@ public class NamedClusteredExecutorService
     @Override
     public <T> Task.Orchestration<T> orchestrate(Task<T> task)
         {
-        return new NamedOrchestration<>(this, f_name, task);
+        return new NamedOrchestration<>(this, f_name, Objects.requireNonNull(task));
         }
 
     @Override
@@ -122,10 +125,38 @@ public class NamedClusteredExecutorService
     protected static class NamedOrchestration<T>
             extends ClusteredOrchestration<T>
         {
+        // ----- constructors -----------------------------------------------
+
+        /**
+         * Creates a NamedOrchestration.
+         *
+         * @param clusteredExecutorService the {@link ClusteredExecutorService}
+         * @param name                     the executor {@link Name}
+         * @param task                     the {@link Task} to execute
+         */
         public NamedOrchestration(ClusteredExecutorService clusteredExecutorService, Name name, Task<T> task)
             {
             super(clusteredExecutorService, task);
             filter(Predicates.has(name));
+            }
+
+        /**
+         * As this orchestration installs a filter as part of its required
+         * function, any user predicates will be <em>and</em>'d together.
+         * @param predicate  the {@link TaskExecutorService.ExecutorInfo} predicate
+         *
+         * @return this orchestration
+         */
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        @Override
+        public Task.Orchestration<T> filter(Remote.Predicate<? super ExecutorInfo> predicate)
+            {
+            Remote.Predicate<?> predExisting = m_strategyBuilder.m_predicate;
+            if (predExisting != null)
+                {
+                predExisting.and((Remote.Predicate) predicate);
+                }
+            return this;
             }
         }
 

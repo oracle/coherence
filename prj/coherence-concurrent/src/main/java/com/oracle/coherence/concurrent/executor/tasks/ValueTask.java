@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -46,7 +46,7 @@ public class ValueTask<T>
     /**
      * Constructs a {@link ValueTask}.
      *
-     * @param value the value
+     * @param value the value to return
      */
     @SuppressWarnings("unused")
     public ValueTask(T value)
@@ -54,6 +54,14 @@ public class ValueTask<T>
         this(value, -1);
         }
 
+    /**
+     * Constructs a {@link ValueTask} that returns its value after
+     * the given delay.
+     *
+     * @param value          the value to return
+     * @param cInitialDelay  the delay, in millis, the task should wait
+     *                       before returning the value
+     */
     public ValueTask(T value, long cInitialDelay)
         {
         m_value         = value;

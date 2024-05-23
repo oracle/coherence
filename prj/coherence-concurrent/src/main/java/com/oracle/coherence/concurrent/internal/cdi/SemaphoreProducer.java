@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.internal.cdi;
 
@@ -151,6 +151,13 @@ public class SemaphoreProducer
         return sName;
         }
 
+    /**
+     * Determine the number of permits from a {@link Permits} annotation.
+     *
+     * @param ip  the injection point
+     *
+     * @return the number of permits inject
+     */
     protected int getPermits(InjectionPoint ip)
         {
         return ip.getQualifiers().stream()

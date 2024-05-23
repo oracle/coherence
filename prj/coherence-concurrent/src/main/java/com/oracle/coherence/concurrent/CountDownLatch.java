@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent;
@@ -10,6 +10,9 @@ package com.oracle.coherence.concurrent;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * A synchronization aid that allows one or more threads to wait until a set
+ * of operations being performed in other threads completes.
+ *
  * @author Aleks Seovic  2021.12.05
  * @since 21.12
  */

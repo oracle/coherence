@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -25,18 +25,29 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * A task which may take a long time to execute, may be executed by multiple {@link Executor}s,
- * may generate intermediate results, and may yield for later execution.
+ * A task which may take a long time to execute, may be executed by multiple
+ * {@link Executor}s, may generate intermediate results, and may yield for
+ * later execution.
  * <p>
- * Implementations define a single method called {@link #execute(Context)} that performs the task, possibly yielding
- * execution to some later point.
- * Once the method has completed execution, by returning a result or throwing an
- * exception (but not a YieldException), the task is considered completed for the assigned {@link Executor}.
+ * Implementations define a single method called {@link #execute(Context)}
+ * that performs the task, possibly yielding execution to some later point.
+ * Once the method has completed execution, by returning a result or throwing
+ * an exception (but not a Yield exception), the task is considered completed
+ * for the assigned {@link Executor}.
+ * </p>
  * <p>
- * {@link Task}s are like {@link Callable} and {@link Runnable} classes in that they are designed to be potentially
- * executed by one or more {@link Thread}s, typically {@link Executor}s. Unlike {@link Callable} and {@link Runnable}
- * classes, the execution may occur in Java Virtual Machines, fail and/or recover between different Java Virtual Machine
- * processes.
+ * {@link Task}s are like {@link Callable} and {@link Runnable} classes in
+ * that they are designed to be potentially executed by one or more
+ * {@link Thread}s, typically {@link Executor}s. Unlike {@link Callable} and
+ * {@link Runnable} classes, the execution may occur in Java Virtual Machines,
+ * fail and/or recover between different Java Virtual Machine processes.
+ * As such, it is recommended to account for fail-over if a task is recovered.
+ * Important execution state should be saved in the in the {@link Context}
+ * {@link Context#getProperties() properties}.  Tasks should check
+ * {@link Context#isResuming()} to determine if the task has failed over to
+ * another executor and if execution state should be recovered from the
+ * {@link Context} {@link Context#getProperties() properties}.
+ * </p>
  *
  * @param <T>  the type of result produced by the {@link Task}
  *
@@ -132,7 +143,6 @@ public interface Task<T>
      * A mutable reduction operation that accumulates results into a mutable result
      * container, optionally transforming the accumulated result into a final
      * representation after all results have been processed.
-     * <p>
      *
      * @param <T>  the type of input elements to the reduction operation
      * @param <A>  the mutable accumulation type of the reduction operation
@@ -187,8 +197,8 @@ public interface Task<T>
      * A {@link Collectable} that supports performing operations when a {@link Task}
      * orchestration is complete.
      *
-     * @param <T>  {@inheritDoc}
-     * @param <R>  {@inheritDoc}
+     * @param <T>  the type of the {@link Task}
+     * @param <R>  the type of the result
      */
     interface Completable<T, R>
             extends Collectable<T, R>
@@ -290,7 +300,7 @@ public interface Task<T>
      * A publisher of collected {@link Task} results that additionally permits
      * coordination of the submitted {@link Task}.
      * <p>
-     * Results collected by the execution of a {@link Task } using one or more
+     * Results collected by the execution of a {@link Task} using one or more
      * {@link Executor}s are sent to registered {@link Subscriber}s. Each registered
      * {@link Subscriber} receives the same results (via method
      * {@link Subscriber#onNext(Object)}) in the same order, unless drops or

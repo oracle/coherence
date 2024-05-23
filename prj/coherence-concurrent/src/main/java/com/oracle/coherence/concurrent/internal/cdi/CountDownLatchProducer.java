@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.internal.cdi;
 
@@ -149,6 +149,14 @@ public class CountDownLatchProducer
         return sName;
         }
 
+    /**
+     * Determine the initial count of the semaphore from a {@link Count}
+     * annotation.
+     *
+     * @param ip  the injection point
+     *
+     * @return the count of the semaphore to inject
+     */
     protected int getCount(InjectionPoint ip)
         {
         return ip.getQualifiers().stream()

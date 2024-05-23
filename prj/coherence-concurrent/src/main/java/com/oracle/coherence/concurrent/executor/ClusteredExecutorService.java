@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -220,13 +220,14 @@ public class ClusteredExecutorService
     @Override
     public <T> Task.Orchestration<T> orchestrate(Task<T> task)
         {
-        return new ClusteredOrchestration<>(this, task);
+        return new ClusteredOrchestration<>(this, Objects.requireNonNull(task));
         }
 
     @SuppressWarnings("rawtypes")
     @Override
     public <R> Task.Coordinator<R> acquire(String sTaskId)
         {
+        Objects.requireNonNull(sTaskId);
         CacheService service = getCacheService();
 
         if (Caches.tasks(service).containsKey(sTaskId))
@@ -350,6 +351,9 @@ public class ClusteredExecutorService
     @Override
     public <T> ScheduledFuture<T> schedule(Remote.Callable<T> callable, long lcDelay, TimeUnit unit)
         {
+        Objects.requireNonNull(callable);
+        Objects.requireNonNull(unit);
+
         ScheduledCallableTask<T> callableTask =
                 new ScheduledCallableTask(callable,
                         lcDelay == 0
@@ -375,13 +379,23 @@ public class ClusteredExecutorService
     @Override
     public ScheduledFuture<?> scheduleAtFixedRate(Remote.Runnable command, long lcInitialDelay, long lcPeriod, TimeUnit unit)
         {
+        if (lcPeriod <= 0)
+            {
+            throw new IllegalArgumentException("Period must be greater than zero");
+            }
+
         return scheduleRunnable(command, lcInitialDelay, lcPeriod, 0, unit);
         }
 
     @Override
-    public ScheduledFuture<?> scheduleWithFixedDelay(Remote.Runnable command, long cInitialDelay, long cDelay, TimeUnit unit)
+    public ScheduledFuture<?> scheduleWithFixedDelay(Remote.Runnable command, long lcInitialDelay, long lcDelay, TimeUnit unit)
         {
-        return scheduleRunnable(command, cInitialDelay, 0, cDelay, unit);
+        if (lcDelay <= 0)
+            {
+            throw new IllegalArgumentException("Delay must be greater than zero");
+            }
+
+        return scheduleRunnable(command, lcInitialDelay, 0, lcDelay, unit);
         }
 
     @Override
@@ -411,16 +425,18 @@ public class ClusteredExecutorService
         }
 
     @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Remote.Callable<T>> tasks)
+    public <T> List<Future<T>> invokeAll(Collection<? extends Remote.Callable<T>> colTasks)
             throws InterruptedException
         {
-        Objects.requireNonNull(tasks);
+        Objects.requireNonNull(colTasks);
 
-        ArrayList<Future<T>> listFutures = new ArrayList<>(tasks.size());
+        ArrayList<Future<T>> listFutures = new ArrayList<>(colTasks.size());
         try
             {
-            for (Callable<T> t : tasks)
+            for (Callable<T> t : colTasks)
                 {
+                Objects.requireNonNull(t);
+
                 CESRunnableFuture<T> f = new CESRunnableFuture<>(t);
                 listFutures.add(f);
                 execute(f);
@@ -453,6 +469,7 @@ public class ClusteredExecutorService
             throws InterruptedException
         {
         Objects.requireNonNull(tasks);
+        Objects.requireNonNull(unit);
 
         final long           lcNanos     = unit.toNanos(lcTimeout);
         final long           lcDeadline  = System.nanoTime() + lcNanos;
@@ -464,6 +481,8 @@ public class ClusteredExecutorService
             {
             for (Callable<T> t : tasks)
                 {
+                Objects.requireNonNull(t);
+
                 listFutures.add(new CESRunnableFuture<>(t));
                 }
 
@@ -806,6 +825,8 @@ public class ClusteredExecutorService
     protected ScheduledFuture<?> scheduleRunnable(Runnable command, long cInitialDelay, long cPeriod,
                                                   long cDelay, TimeUnit unit)
         {
+        Objects.requireNonNull(command);
+
         Duration initialDelayDur = cInitialDelay == 0
                 ? null
                 : Duration.ofNanos(unit.toNanos(cInitialDelay));

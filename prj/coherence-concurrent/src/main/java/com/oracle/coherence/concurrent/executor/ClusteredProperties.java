@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -173,6 +173,8 @@ public class ClusteredProperties
 
     /**
      * Property key.
+     *
+     * @param <T>  the key type
      */
     @SuppressWarnings("rawtypes")
     public static class PropertyKey<T extends Serializable>
@@ -322,6 +324,8 @@ public class ClusteredProperties
 
     /**
      * Property value.
+     *
+     * @param <T>  the property value type
      */
     public static class PropertyValue<T extends Serializable>
             implements ExternalizableLite, PortableObject

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package concurrent.config;
 import com.oracle.coherence.concurrent.config.NamedExecutorService;
 import com.oracle.coherence.concurrent.config.NamespaceHandler;
 import com.oracle.coherence.concurrent.config.processors.CachedProcessor;
+import com.oracle.coherence.concurrent.config.processors.CustomExecutorProcessor;
 import com.oracle.coherence.concurrent.config.processors.FixedProcessor;
 import com.oracle.coherence.concurrent.config.processors.SingleProcessor;
 import com.oracle.coherence.concurrent.config.processors.WorkStealingProcessor;
@@ -76,7 +77,7 @@ public class NamespaceHandlerTest
         assertThat(result,                      is(notNullValue()));
         assertThat(result.getName(),            is("test"));
         assertThat(result.getExecutorService(), is(notNullValue()));
-        assertThat(result.getDescription(), is("FixedThreadPool(ThreadCount=5, ThreadFactory=default)"));
+        assertThat(result.getDescription(),     is("FixedThreadPool(ThreadCount=5, ThreadFactory=default)"));
         }
 
     @Test
@@ -93,9 +94,11 @@ public class NamespaceHandlerTest
                     + "  </e:thread-factory>\n"
                     + "</e:fixed>";
 
-        XmlElement          xml       = XmlHelper.loadXml(sXml).getRoot();
-        NamespaceHandler    handler   = new NamespaceHandler();
-        ElementProcessor<?> processor = handler.getElementProcessor(xml);
+        XmlElement          xml           = XmlHelper.loadXml(sXml).getRoot();
+        NamespaceHandler    handler       = new NamespaceHandler();
+        ElementProcessor<?> processor     = handler.getElementProcessor(xml);
+        String              sExpectedDesc =
+                "FixedThreadPool(ThreadCount=5, ThreadFactory=java.util.concurrent.Executors$DefaultThreadFactory)";
 
         assertThat(processor, instanceOf(FixedProcessor.class));
 
@@ -104,7 +107,7 @@ public class NamespaceHandlerTest
         assertThat(result,                      is(notNullValue()));
         assertThat(result.getName(),            is("test1"));
         assertThat(result.getExecutorService(), is(notNullValue()));
-        assertThat(result.getDescription(), is("FixedThreadPool(ThreadCount=5, ThreadFactory=java.util.concurrent.Executors$DefaultThreadFactory)"));
+        assertThat(result.getDescription(),    is(sExpectedDesc));
         }
 
     @Test
@@ -125,7 +128,7 @@ public class NamespaceHandlerTest
         assertThat(result,                      is(notNullValue()));
         assertThat(result.getName(),            is("test2"));
         assertThat(result.getExecutorService(), is(notNullValue()));
-        assertThat(result.getDescription(), is("SingleThreaded(ThreadFactory=default)"));
+        assertThat(result.getDescription(),     is("SingleThreaded(ThreadFactory=default)"));
         }
 
     @Test
@@ -141,9 +144,11 @@ public class NamespaceHandlerTest
                     + "  </e:thread-factory>\n"
                     + "</e:single>";
 
-        XmlElement          xml       = XmlHelper.loadXml(sXml).getRoot();
-        NamespaceHandler    handler   = new NamespaceHandler();
-        ElementProcessor<?> processor = handler.getElementProcessor(xml);
+        XmlElement          xml           = XmlHelper.loadXml(sXml).getRoot();
+        NamespaceHandler    handler       = new NamespaceHandler();
+        ElementProcessor<?> processor     = handler.getElementProcessor(xml);
+        String              sExpectedDesc =
+                "SingleThreaded(ThreadFactory=java.util.concurrent.Executors$DefaultThreadFactory)";
 
         assertThat(processor, instanceOf(SingleProcessor.class));
 
@@ -152,7 +157,7 @@ public class NamespaceHandlerTest
         assertThat(result,                      is(notNullValue()));
         assertThat(result.getName(),            is("test3"));
         assertThat(result.getExecutorService(), is(notNullValue()));
-        assertThat(result.getDescription(), is("SingleThreaded(ThreadFactory=java.util.concurrent.Executors$DefaultThreadFactory)"));
+        assertThat(result.getDescription(), is(sExpectedDesc));
         }
 
     @Test
@@ -189,9 +194,11 @@ public class NamespaceHandlerTest
                     + "  </e:thread-factory>\n"
                     + "</e:cached>";
 
-        XmlElement          xml       = XmlHelper.loadXml(sXml).getRoot();
-        NamespaceHandler    handler   = new NamespaceHandler();
-        ElementProcessor<?> processor = handler.getElementProcessor(xml);
+        XmlElement          xml           = XmlHelper.loadXml(sXml).getRoot();
+        NamespaceHandler    handler       = new NamespaceHandler();
+        ElementProcessor<?> processor     = handler.getElementProcessor(xml);
+        String              sExpectedDesc =
+                "CachedThreadPool(ThreadFactory=java.util.concurrent.Executors$DefaultThreadFactory)";
 
         assertThat(processor, instanceOf(CachedProcessor.class));
 
@@ -200,7 +207,7 @@ public class NamespaceHandlerTest
         assertThat(result,                      is(notNullValue()));
         assertThat(result.getName(),            is("test5"));
         assertThat(result.getExecutorService(), is(notNullValue()));
-        assertThat(result.getDescription(), is("CachedThreadPool(ThreadFactory=java.util.concurrent.Executors$DefaultThreadFactory)"));
+        assertThat(result.getDescription(),     is(sExpectedDesc));
         }
 
     @Test
@@ -222,7 +229,7 @@ public class NamespaceHandlerTest
         assertThat(result,                      is(notNullValue()));
         assertThat(result.getName(),            is("test6"));
         assertThat(result.getExecutorService(), is(notNullValue()));
-        assertThat(result.getDescription(), is("WorkStealingThreadPool(Parallelism=" + nProcessors + ')'));
+        assertThat(result.getDescription(),     is("WorkStealingThreadPool(Parallelism=" + nProcessors + ')'));
         }
 
     @Test
@@ -244,7 +251,32 @@ public class NamespaceHandlerTest
         assertThat(result,                      is(notNullValue()));
         assertThat(result.getName(),            is("test7"));
         assertThat(result.getExecutorService(), is(notNullValue()));
-        assertThat(result.getDescription(), is("WorkStealingThreadPool(Parallelism=5)"));
+        assertThat(result.getDescription(),     is("WorkStealingThreadPool(Parallelism=5)"));
+        }
+
+    @Test
+    void testCustomExecutorService()
+        {
+        String sXml = "<e:custom-executor>\n"
+                    + "  <e:name>test9</e:name>\n"
+                    + "  <instance>\n"
+                    + "    <class-factory-name>concurrent.config.CustomExecutorFactory</class-factory-name>\n"
+                    + "    <method-name>createExecutor</method-name>\n"
+                    + "  </instance>\n"
+                    + "</e:custom-executor>";
+
+        XmlElement          xml       = XmlHelper.loadXml(sXml).getRoot();
+        NamespaceHandler    handler   = new NamespaceHandler();
+        ElementProcessor<?> processor = handler.getElementProcessor(xml);
+
+        assertThat(processor, instanceOf(CustomExecutorProcessor.class));
+
+        NamedExecutorService result = ((CustomExecutorProcessor) processor).process(context, xml);
+
+        assertThat(result,                      is(notNullValue()));
+        assertThat(result.getName(),            is("test9"));
+        assertThat(result.getExecutorService(), is(notNullValue()));
+        assertThat(result.getDescription(),     is("CustomExecutorService"));
         }
 
     // ----- data members ---------------------------------------------------
