@@ -770,8 +770,8 @@ public class GUIDHelper
                     }
                 else if (infoLatest.isEmpty() ^ info.isEmpty())
                     {
-                    infoLatest = info.isEmpty() ? infoLatest : info;
                     listDelete.add((info.isEmpty() ? info : infoLatest).getId());
+                    infoLatest = info.isEmpty() ? infoLatest : info;
                     }
                 else if (getVersion(info.getId()) > getVersion(infoLatest.getId()))
                     {

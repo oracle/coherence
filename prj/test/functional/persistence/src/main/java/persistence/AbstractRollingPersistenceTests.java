@@ -467,7 +467,7 @@ public abstract class AbstractRollingPersistenceTests
         {
         public MemberHandler(Cluster cluster, String sPrefix, int cBackups)
             {
-            super(cluster, sPrefix, true, false);
+            super(cluster, sPrefix, true, System.getProperty("os.name").toLowerCase().contains("windows"));
 
             m_cBackups = cBackups;
             }
