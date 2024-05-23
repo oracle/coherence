@@ -7,6 +7,7 @@
 
 package queues;
 
+import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.pof.ConfigurablePofContext;
@@ -14,6 +15,7 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedCollection;
 import com.tangosol.net.Session;
 
+import org.junit.ClassRule;
 import org.junit.jupiter.api.AfterEach;
 
 import org.junit.jupiter.api.Test;
@@ -27,6 +29,7 @@ import java.util.Map;
 
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -390,4 +393,10 @@ public abstract class AbstractCollectionTests<NC extends NamedCollection, C exte
      * A map of collections used in tests.
      */
     protected final Map<String, NC> m_mapQueue = new ConcurrentHashMap<>();
+
+    /**
+     * Time out the test if it hangs
+     */
+    @ClassRule
+    public static final ThreadDumpOnTimeoutRule timeout = ThreadDumpOnTimeoutRule.after(15, TimeUnit.MINUTES);
     }
