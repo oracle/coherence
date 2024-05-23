@@ -7,6 +7,7 @@
 
 package queues;
 
+import com.oracle.coherence.common.util.Threads;
 import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
@@ -19,6 +20,9 @@ import org.junit.ClassRule;
 import org.junit.jupiter.api.AfterEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -30,6 +34,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -40,6 +45,7 @@ import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
+@Timeout(100)
 @SuppressWarnings("rawtypes")
 public abstract class AbstractCollectionTests<NC extends NamedCollection, C extends Collection>
         implements CollectionTests<NC, C>
@@ -87,6 +93,19 @@ public abstract class AbstractCollectionTests<NC extends NamedCollection, C exte
                 }
             }
         }
+
+    @RegisterExtension
+    TestExecutionExceptionHandler timeoutExceptionHandler = (context, throwable) ->
+        {
+        if (throwable instanceof TimeoutException && throwable.getSuppressed().length > 0
+                && throwable.getSuppressed()[0] instanceof InterruptedException)
+            {
+            throwable.getSuppressed()[0].printStackTrace(System.out);
+            System.err.println("Test timed out: " + context.getDisplayName());
+            System.err.println(Threads.getThreadDump(true));
+            }
+        throw throwable;
+        };
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
