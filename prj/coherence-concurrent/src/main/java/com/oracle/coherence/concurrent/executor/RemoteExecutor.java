@@ -189,8 +189,8 @@ import java.util.concurrent.TimeoutException;
  *
  * // WaitingSubscriber is an implementation of the
  * // com.oracle.coherence.concurrent.executor.Task.Subscriber interface
- * // that blocks until Subscriber.onComplete() is called and will
- * // return the results from the executed tasks
+ * // that has a get() method that blocks until Subscriber.onComplete() is
+ * // called and will return the results received by onNext()
  * WaitingSubscriber subscriber = new WaitingSubscriber();
  *
  *
@@ -218,6 +218,7 @@ import java.util.concurrent.TimeoutException;
  * Task.Orchestration<String> orchestration =
  *     executor.orchestrate(new ValueTask("Hello World"))
  *             .limit(1)
+ *             .subscribe(subscriber)
  *             .submit();
  * }
  * </pre>
@@ -231,7 +232,8 @@ import java.util.concurrent.TimeoutException;
  * // of 'storage'
  * Task.Orchestration<String> orchestration =
  *     executor.orchestrate(new ValueTask("Hello World"))
- *             .filter(Role.of("storage")
+ *             .filter(Predicates.role("storage"))
+ *             .subscribe(subscriber)
  *             .submit();
  * }
  * </pre>
@@ -241,19 +243,24 @@ import java.util.concurrent.TimeoutException;
  * {@link Remote.Predicate} interface.  Both limits and filters can be applied
  * simultaneously.
  * <p>
- * There may be cases where all results from the executed tasks is desirable.
- * This can be controlled using a {@link Task.Collector}.
- * For example, if only the first result from the tasks being executed is
- * required:
+ * Collection of results and how they are presented to the subscriber
+ * can be customized by using {@code collect} and {@code until}:
  *
  * <pre>
  * {@code
- * // The task will be executed on all cluster members and the first
- * // result, null or otherwise, will be collected
+ * // orchestrate the task, collecting the first non-null result,
+ * // subscribe, and submit
  * Task.Orchestration<String> orchestration =
- *     executor.orchestrate(new ValueTask("Hello World"))
+ *     executor.orchestrate(new MayReturnNullTask())
  *             .collect(TaskCollectors.firstOf())
+ *             .until(Predicates.nonNullValue())
+ *             .subscribe(subscriber)
  *             .submit();
+ *
+ * // wait for the task to complete
+ * // the first non-result returned will be the one provided to the
+ * // subscriber
+ * Collection<String> results = subscriber.get();
  * }
  * </pre>
  *
@@ -261,20 +268,6 @@ import java.util.concurrent.TimeoutException;
  * case none apply to the target use case, implement the
  * {@link Task.Collector} interface.
  * <p>
- * Result collection can be further customized by using a
- * {@link Remote.Predicate predicate} that will dictate when result
- * collection should be considered complete.
- *
- * <pre>
- * {@code
- * // The task will be executed on all cluster members and the first
- * // non-null value will be collected
- * Task.Orchestration<String> orchestration =
- *     executor.orchestrate(new StringOrNullTask())
- *             .collect(TaskCollectors.firstOf())
- *             .until(Predicates.nonNullValue())
- *             .submit();
- * }
  * </pre>
  *
  * @author rlubke 11.15.2021
