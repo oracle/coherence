@@ -137,7 +137,7 @@ public class NamedClusteredExecutorService
         public NamedOrchestration(ClusteredExecutorService clusteredExecutorService, Name name, Task<T> task)
             {
             super(clusteredExecutorService, task);
-            filter(Predicates.has(name));
+            m_strategyBuilder.m_predicate = Predicates.has(name);
             }
 
         /**
