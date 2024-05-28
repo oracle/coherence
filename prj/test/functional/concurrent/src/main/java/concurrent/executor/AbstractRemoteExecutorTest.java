@@ -37,7 +37,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.hamcrest.MatcherAssert;
 
+import org.junit.Assume;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -74,8 +76,14 @@ public abstract class AbstractRemoteExecutorTest
 
     // ----- lifecycle methods ----------------------------------------------
 
+    @BeforeAll
+    public static void beforeAll()
+        {
+        Assume.assumeFalse(Boolean.getBoolean("coverage.enabled"));
+        }
+
     @BeforeEach
-    public void beforeAll()
+    public void beforeEach()
         {
         m_clientMember = getClient().start().join();
         Base.sleep(4000);
