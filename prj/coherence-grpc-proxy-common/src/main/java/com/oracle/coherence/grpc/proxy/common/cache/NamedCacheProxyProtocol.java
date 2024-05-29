@@ -84,9 +84,9 @@ import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.InKeySetFilter;
 import io.grpc.stub.StreamObserver;
 
-import java.util.BitSet;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -182,7 +182,7 @@ public class NamedCacheProxyProtocol
                 throw new IllegalArgumentException("Missing channel id in request, has an EnsureCache request been sent" + requestType);
                 }
 
-            if (m_destroyedIds.get(cacheId))
+            if (m_destroyedIds.contains(cacheId))
                 {
                 throw new IllegalStateException("The cache with id " + cacheId + " has been explicitly destroyed");
                 }
@@ -374,7 +374,7 @@ public class NamedCacheProxyProtocol
                 {
                 proxy.getNamedCache().destroy();
                 }
-            m_destroyedIds.set(nId);
+            m_destroyedIds.add(nId);
             }
         finally
             {
@@ -393,7 +393,7 @@ public class NamedCacheProxyProtocol
                 {
                 cacheId = Base.getRandom().nextInt(Integer.MAX_VALUE);
                 }
-            while (cacheId == 0 || m_aProxy.get(cacheId) != null || m_destroyedIds.get(cacheId));
+            while (cacheId == 0 || m_aProxy.get(cacheId) != null || m_destroyedIds.contains(cacheId));
 
             NamedCache<?, ?> cache      = m_proxy.ensureCache(request.getCache(), null);
             NamedCacheProxy  cacheProxy = new NamedCacheProxy();
@@ -1505,7 +1505,7 @@ public class NamedCacheProxyProtocol
     /**
      * A bit-set containing destroyed cache identifiers.
      */
-    private final BitSet m_destroyedIds = new BitSet();
+    private final Set<Integer> m_destroyedIds = new HashSet<>();
 
     /**
      * A {@link StreamObserver} for processing event messages.
