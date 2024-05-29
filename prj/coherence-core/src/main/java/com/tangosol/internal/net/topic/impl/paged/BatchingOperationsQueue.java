@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -943,8 +943,8 @@ public class BatchingOperationsQueue<V, R>
             if (!m_fDone)
                 {
                 CancellationException exception = sReason != null && !sReason.isEmpty()
-                    ? new CancellationException(sReason)
-                    : new CancellationException();
+                    ? new OperationCancelledException(sReason)
+                    : new OperationCancelledException();
 
                 Throwable throwable = function == null ? exception : function.apply(exception, f_value);
                 f_executor.completeExceptionally(f_future, throwable);
@@ -988,6 +988,21 @@ public class BatchingOperationsQueue<V, R>
          * The size of this element;
          */
         private long m_cbSize;
+        }
+
+    // ----- inner class: SubscriberClosedException -------------------------------
+
+    protected static class OperationCancelledException
+            extends CancellationException
+        {
+        public OperationCancelledException()
+            {
+            }
+
+        public OperationCancelledException(String message)
+            {
+            super(message);
+            }
         }
 
     // ----- inner class: OnErrorAction -------------------------------------------
