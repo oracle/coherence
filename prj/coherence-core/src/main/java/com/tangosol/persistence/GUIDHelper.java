@@ -144,68 +144,6 @@ public class GUIDHelper
         }
 
     /**
-     * Return an array of the newest GUID for each partition, indexed by the
-     * partition-id and collect previous GUIDs into the provided set.
-     *
-     * @param mapGUID       the map of GUIDs to resolve
-     * @param setPrevGUIDs  the set that holds old GUIDs
-     * @param cPartitions   the partition-count
-     *
-     * @return an array of the newest GUID for each partition
-     */
-    protected static String[] resolveNewest(Map<Member, String[]> mapGUID, Set<String> setPrevGUIDs, int cPartitions)
-        {
-        String[] asGUIDNewest = new String[cPartitions];
-        for (Map.Entry<Member, String[]> entry : mapGUID.entrySet())
-            {
-            String[] asGUIDThis = entry.getValue();
-            for (int i = 0, c = asGUIDThis.length; i < c; i++)
-                {
-                evaluateGUID(asGUIDThis[i], asGUIDNewest, setPrevGUIDs, cPartitions);
-                }
-            }
-
-        return asGUIDNewest;
-        }
-
-    /**
-     * Evaluate the provided GUID ensuring {@code asGUIDNewest} references the
-     * latest and {@code setPrevGUIDs} references previous GUIDs.
-     *
-     * @param sGUID         the GUID to be evaluated
-     * @param asGUIDNewest  the array that contains the newest GUIDs
-     * @param setPrevGUIDs  the set that contains the old GUIDs
-     * @param cPartitions   the partition-count
-     */
-    protected static void evaluateGUID(String sGUID, String[] asGUIDNewest,
-                          Set<String> setPrevGUIDs, int cPartitions)
-        {
-        int iPartition = getPartition(sGUID);
-        if (iPartition >= cPartitions)
-            {
-            // there may be legally named GUIDs that are found, from a
-            // previous service incarnation with a different partition-count
-            setPrevGUIDs.add(sGUID);
-            return;
-            }
-
-        String sGUIDNewest = asGUIDNewest[iPartition];
-        if (sGUIDNewest == null || getVersion(sGUID) > getVersion(sGUIDNewest))
-            {
-            asGUIDNewest[iPartition] = sGUID;
-            if (sGUIDNewest != null)
-                {
-                setPrevGUIDs.add(sGUIDNewest);
-                }
-            }
-        else if (getVersion(sGUID) < getVersion(sGUIDNewest) ||
-                 getMemberId(sGUID) != getMemberId(sGUIDNewest))
-            {
-            setPrevGUIDs.add(sGUID);
-            }
-        }
-
-    /**
      * Return a Map containing assignments of member id to stores based on the
      * given constraints.
      * <p>
@@ -748,7 +686,9 @@ public class GUIDHelper
             int                     cPartitions   = m_cPartitions;
             PartitionSet            partsResolved = new PartitionSet(cPartitions);
             List<String>            listDelete    = new ArrayList<>();
+            Set<String>             setPrevGUIDs  = new HashSet<>();
             PersistentStoreInfo[]   aStoreNewest  = new PersistentStoreInfo[cPartitions];
+            Map<Member, PartitionSet> mapOwnershipRecover = new HashMap<>();
 
             Collection<PersistentStoreInfo> colStoreInfo = new ImmutableMultiList(f_mapStoreInfo.values());
             for (PersistentStoreInfo info : colStoreInfo)
@@ -759,6 +699,7 @@ public class GUIDHelper
                     {
                     // there may be legally named GUIDs that are found, from a
                     // previous service incarnation with a different partition-count
+                    setPrevGUIDs.add(sGUID);
                     continue;
                     }
 
@@ -775,45 +716,33 @@ public class GUIDHelper
                     }
                 else if (getVersion(info.getId()) > getVersion(infoLatest.getId()))
                     {
+                    setPrevGUIDs.add(infoLatest.getId());
                     infoLatest = info;
+                    }
+                else if (getVersion(info.getId()) < getVersion(infoLatest.getId()))
+                    {
+                    setPrevGUIDs.add(info.getId());
                     }
 
                 aStoreNewest[iPartition]  = infoLatest;
                 }
 
-            // walk the map of members and their registered GUID lists to find,
-            // for each member, the set of partitions that the member has
-            // registered the "newest" GUID for
-            Map<Member, PartitionSet> mapOwnershipRecover = new HashMap<>();
-            for (Member member : f_mapStoreInfo.keySet())
+            for (Map.Entry<Member, PersistentStoreInfo[]> entry : f_mapStoreInfo.entrySet())
                 {
-                mapOwnershipRecover.put(member, new PartitionSet(cPartitions));
-                }
-
-            for (int iPart = 0; iPart < cPartitions; iPart++)
-                {
-                PersistentStoreInfo info = aStoreNewest[iPart];
-                if (info != null)
+                Member                member     = entry.getKey();
+                PersistentStoreInfo[] aStoreInfo = entry.getValue();
+                PartitionSet          parts      = new PartitionSet(cPartitions);
+                for (int i = 0, c = aStoreInfo.length; i < c; i++)
                     {
-                    String sGUIDNewest = info.getId();
-                    for (Map.Entry<Member, PersistentStoreInfo[]> entry : f_mapStoreInfo.entrySet())
+                    PersistentStoreInfo storeInfo = aStoreInfo[i];
+                    if (!setPrevGUIDs.contains(storeInfo.getId()))
                         {
-                        PersistentStoreInfo[] aInfoThis = entry.getValue();
-
-                        for (int i = 0, c = aInfoThis.length; i < c; i++)
-                            {
-                            if (equals(sGUIDNewest, aInfoThis[i].getId()))
-                                {
-
-                                Member member = entry.getKey();
-                                mapOwnershipRecover.get(member).add(iPart);
-
-                                partsResolved.add(iPart);
-                                break;
-                                }
-                            }
+                        parts.add(getPartition(storeInfo.getId()));
                         }
                     }
+
+                mapOwnershipRecover.put(member, parts);
+                partsResolved.add(parts);
                 }
 
             // walk the map of members and their registered GUID lists to find,
@@ -863,6 +792,7 @@ public class GUIDHelper
             m_aStoreNewest    = aStoreNewest;
             m_fSharedStorage  = fSharedStorage;
             m_mapCleanup      = mapOwnershipCleanup;
+
             return mapOwnershipRecover;
             }
 
