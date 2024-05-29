@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1113,10 +1113,19 @@ public class PagedTopic
         
                 cAttempt++;
                 long now = System.currentTimeMillis();
+                long nTime = now - start;
+                long cSeconds = nTime / 1000;
+
+                if (nTime > 300000)
+                    {
+                    throw new RequestTimeoutException("This member has been waiting for subscription confirmation for " + cSeconds + " seconds (attempts "
+                            + cAttempt + ") for subscription "
+                            + lSubscription + " on topic " + sTopicName + " group " + groupId + " subscriber " + id);
+                    }
+
                 if ((now - lastTime) > 30000)
                     {
                     lastTime = now;
-                    long cSeconds = (now - start) / 1000;
                     _trace("This member has been waiting for subscription confirmation for " + cSeconds + " seconds (attempts "
                             + cAttempt + ") for subscription "
                             + lSubscription + " on topic " + sTopicName + " group " + groupId + " subscriber " + id, 7);
