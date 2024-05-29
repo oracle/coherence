@@ -540,11 +540,17 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.util.transformer.SamplingEventTransformer</class-name>
     </user-type>
 
-    <!-- com.tangosol.io.pof.reflect package (140-159) -->
+    <!-- com.tangosol.io.pof.reflect package (140-149) -->
 
     <user-type>
       <type-id>140</type-id>
       <class-name>com.tangosol.io.pof.reflect.SimplePofPath</class-name>
+    </user-type>
+
+    <!-- com.oracle.coherence.persistence. types (150 - 159) -->
+    <user-type>
+      <type-id>150</type-id>
+      <class-name>com.oracle.coherence.persistence.PersistentStoreInfo</class-name>
     </user-type>
 
     <!-- com.tangosol.net package (160-169) -->

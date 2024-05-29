@@ -8,6 +8,10 @@ package com.oracle.coherence.persistence;
 
 import com.tangosol.io.ExternalizableLite;
 
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -19,7 +23,7 @@ import java.io.IOException;
  * @author mg 2024.14.18
  */
 public class PersistentStoreInfo
-        implements Comparable, ExternalizableLite
+        implements Comparable, PortableObject, ExternalizableLite
     {
     // ----- constructors ---------------------------------------------------
 
@@ -83,6 +87,24 @@ public class PersistentStoreInfo
         out.writeBoolean(m_fEmpty);
         }
 
+    // ----- PofSerializer interface -----------------------------------
+
+    @Override
+    public void readExternal(PofReader in)
+            throws IOException
+        {
+        m_sId    = in.readString(0);
+        m_fEmpty = in.readBoolean(1);
+        }
+
+    @Override
+    public void writeExternal(PofWriter out)
+            throws IOException
+        {
+        out.writeString(0, m_sId);
+        out.writeBoolean(1, m_fEmpty);
+        }
+
     // ----- Comparable interface -------------------------------------------
 
     @Override
@@ -95,6 +117,13 @@ public class PersistentStoreInfo
             nResult = -(Boolean.valueOf(isEmpty()).compareTo(Boolean.valueOf(info.isEmpty())));
             }
         return nResult;
+        }
+
+    // ----- Object methods -------------------------------------------------
+
+    public String toString()
+        {
+        return "PersistenceStoreInfo [id=" + m_sId + ", isEmpty=" + m_fEmpty + "]";
         }
 
     // ----- data members ---------------------------------------------------
