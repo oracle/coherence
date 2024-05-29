@@ -411,7 +411,10 @@ public class PagedTopicSubscriber<V>
             {
             if (error instanceof CancellationException)
                 {
-                Logger.err("Receive cancelled", error);
+                if (!(error instanceof BatchingOperationsQueue.OperationCancelledException))
+                    {
+                    Logger.err("Receive cancelled", error);
+                    }
                 f_cCancelled.add(1L);
                 }
             return null;
@@ -430,7 +433,10 @@ public class PagedTopicSubscriber<V>
             {
             if (error instanceof CancellationException)
                 {
-                Logger.err("Receive cancelled", error);
+                if (!(error instanceof BatchingOperationsQueue.OperationCancelledException))
+                    {
+                    Logger.err("Receive cancelled", error);
+                    }
                 f_cCancelled.add(1L);
                 }
             return null;
