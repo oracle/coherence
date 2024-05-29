@@ -92,43 +92,58 @@ public class GrpcConnectionV1
     @Override
     public void close()
         {
-        m_closed = true;
-        if (!m_mapFuture.isEmpty())
+        if (!m_closed)
             {
+            f_lock.lock();
             try
                 {
-                long nDeadline = m_dependencies.getServiceDependencies().getDeadline();
-                if (nDeadline <= 0)
+                if (!m_closed)
                     {
-                    nDeadline = GrpcDependencies.DEFAULT_DEADLINE_MILLIS;
-                    }
-                try (Timeout ignored = Timeout.after(nDeadline, TimeUnit.MILLISECONDS))
-                    {
-                    while (!m_mapFuture.isEmpty())
+                    m_closed = true;
+                    if (!m_mapFuture.isEmpty())
                         {
-                        Blocking.sleep(100);
+                        try
+                            {
+                            long nDeadline = m_dependencies.getServiceDependencies().getDeadline();
+                            if (nDeadline <= 0)
+                                {
+                                nDeadline = GrpcDependencies.DEFAULT_DEADLINE_MILLIS;
+                                }
+                            try (Timeout ignored = Timeout.after(nDeadline, TimeUnit.MILLISECONDS))
+                                {
+                                while (!m_mapFuture.isEmpty())
+                                    {
+                                    Blocking.sleep(100);
+                                    }
+                                }
+                            }
+                        catch (InterruptedException e)
+                            {
+                            // ignored
+                            }
                         }
+
+                    if (m_observer != null && !m_observer.isDone())
+                        {
+                        m_observer.onCompleted();
+                        }
+
+                    if (!m_mapFuture.isEmpty())
+                        {
+                        m_mapFuture.values().forEach(f -> f.onError(new RequestIncompleteException("channel closed")));
+                        m_mapFuture.clear();
+                        }
+                    m_listeners.clear();
+                    m_observer     = null;
+                    m_initResponse = null;
+                    m_uuid         = null;
                     }
                 }
-            catch (InterruptedException e)
+            finally
                 {
-                // ignored
+                f_lock.unlock();
                 }
             }
-
-        if (!m_mapFuture.isEmpty())
-            {
-            m_mapFuture.values().forEach(f -> f.onError(new RequestIncompleteException("channel closed")));
-            m_mapFuture.clear();
-            }
-
-        if (m_observer != null && !m_observer.isDone())
-            {
-            m_observer.onCompleted();
-            }
-        m_observer     = null;
-        m_initResponse = null;
-        m_uuid         = null;
         }
 
     @Override
@@ -188,7 +203,6 @@ public class GrpcConnectionV1
     public void onNext(ProxyResponse response)
         {
         ProxyResponse.ResponseCase responseCase = response.getResponseCase();
-
         if (responseCase == ProxyResponse.ResponseCase.HEARTBEAT)
             {
             // nothing to do
@@ -275,10 +289,12 @@ public class GrpcConnectionV1
     @Override
     public void onError(Throwable t)
         {
-        ErrorsHelper.logIfNotCancelled(t);
-        m_observer = null;
-        close();
-        m_mapFuture.values().forEach(f -> f.onError(t));
+        if (!m_closed)
+            {
+            ErrorsHelper.logIfNotCancelled(t);
+            m_mapFuture.values().forEach(f -> f.onError(t));
+            close();
+            }
         }
 
     @Override
@@ -588,7 +604,7 @@ public class GrpcConnectionV1
     /**
      * A flag to indicate that this connection is closed.
      */
-    private boolean m_closed = false;
+    private volatile boolean m_closed = false;
 
     /**
      * The underlying gRPC {@link Channel}

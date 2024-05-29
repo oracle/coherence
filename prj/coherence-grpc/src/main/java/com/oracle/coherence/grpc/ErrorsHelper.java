@@ -182,11 +182,13 @@ public final class ErrorsHelper
             boolean fLog = true;
             if (t instanceof StatusRuntimeException sre)
                 {
-                fLog = sre.getStatus().getCode() != Status.Code.CANCELLED;
+                Status.Code code = sre.getStatus().getCode();
+                fLog = code != Status.Code.CANCELLED && code != Status.Code.UNIMPLEMENTED;
                 }
             else if (t instanceof StatusException se)
                 {
-                fLog = se.getStatus().getCode() != Status.Code.CANCELLED;
+                Status.Code code = se.getStatus().getCode();
+                fLog = code != Status.Code.CANCELLED && code != Status.Code.UNIMPLEMENTED;
                 }
             if (fLog)
                 {
