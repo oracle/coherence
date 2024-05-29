@@ -110,7 +110,7 @@
     <copyright.svn>-p4</copyright.svn>
 
     <!-- Coherence container/image properties -->
-    <docker.registry>docker.io/oraclecoherence</docker.registry>
+    <docker.registry/>
     <docker.image.suffix/>
     <docker.image.name>${docker.registry}/coherence-ce:${project.version}${docker.image.suffix}</docker.image.name>
     <docker.image.arch>amd64</docker.image.arch>
@@ -1080,6 +1080,31 @@
       </properties>
     </profile>
 
+    <profile>
+      <id>image-registry-set</id>
+      <activation>
+        <property>
+          <name>env.IMAGE_REGISTRY_NAME</name>
+        </property>
+      </activation>
+      <properties>
+        <docker.registry>${env.IMAGE_REGISTRY_NAME}</docker.registry>
+        <docker.image.name>${docker.registry}/coherence-ce:${project.version}${docker.image.suffix}</docker.image.name>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>image-registry-not-set</id>
+      <activation>
+        <property>
+          <name>!env.IMAGE_REGISTRY_NAME</name>
+        </property>
+      </activation>
+      <properties>
+        <docker.registry/>
+        <docker.image.name>coherence-ce:${project.version}${docker.image.suffix}</docker.image.name>
+      </properties>
+    </profile>
   </profiles>
 
   <repositories>
