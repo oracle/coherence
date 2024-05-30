@@ -476,10 +476,11 @@ public class GUIDHelper
         List<String>          listGUID = new ArrayList<>();
         for (Map.Entry entry : mapStoreInfo.entrySet())
             {
-            PersistentStoreInfo[] aInfo = (PersistentStoreInfo[]) entry.getValue();
-            for (PersistentStoreInfo info : aInfo)
+            // POF widens to Object[], need to cast individual elements
+            Object[] aOInfo = (Object[]) entry.getValue();
+            for (Object oInfo : aOInfo)
                 {
-                listGUID.add(info.getId());
+                listGUID.add(((PersistentStoreInfo) oInfo).getId());
                 }
             mapGUID.put((Integer) entry.getKey(), listGUID.toArray(new String[listGUID.size()]));
             listGUID.clear();
