@@ -315,7 +315,7 @@ public class MasterMemberSet
     public synchronized com.tangosol.util.ObservableMap ensureMemberConfigMap(int i)
         {
         // as of Coherence 12.1.2, ClusterService no longer uses the MemberConfigMap
-        throw new UnsupportedOperationException();
+        return null;
         }
     
     /**
