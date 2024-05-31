@@ -9,10 +9,15 @@ package com.tangosol.coherence.config.scheme;
 import java.util.List;
 
 import com.oracle.coherence.common.util.Options;
+
 import com.tangosol.application.ContainerContext;
+
 import com.tangosol.coherence.config.builder.NamedCollectionBuilder;
 import com.tangosol.coherence.config.builder.NamedEventInterceptorBuilder;
 import com.tangosol.coherence.config.builder.ServiceBuilder;
+
+import com.tangosol.internal.net.service.grid.DefaultPartitionedServiceDependencies;
+
 import com.tangosol.net.NamedCollection;
 
 /**
@@ -50,6 +55,21 @@ public interface ServiceScheme
      * @return the scoped service name
      */
     public String getScopedServiceName();
+
+    /**
+     * Return a scoped service name to use as the string parameter for {@link DefaultPartitionedServiceDependencies#PROP_SERVICE_PARTITIONS PROP_SERVICE_PARTITIONS}.
+     * <p>
+     * When present, replace {@link #DELIM_DOMAIN_PARTITION} and {@link #DELIM_APPLICATION_SCOPE} in scoped service name with character period.
+     * For example, scoped service name <code>tenant/appscope:PartitionedCache</code> is transformed to <code>tenant.appscope.PartitionedCache</code>.
+     *
+     * @return transformed scoped service name
+     *
+     * @since 24.09
+     */
+    default public String getScopedServiceNameForProperty()
+        {
+        return getScopedServiceName().replace(DELIM_DOMAIN_PARTITION.charAt(0), '.').replace(DELIM_APPLICATION_SCOPE.charAt(0), '.');
+        }
 
     /**
      * Return the service type.
