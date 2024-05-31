@@ -184,7 +184,7 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
             }
         catch (Exception e)
             {
-            Logger.info("Could not instantiate V1 gRPC connector. " + e.getMessage());
+            Logger.finer("Could not instantiate V1 gRPC connector. " + e.getMessage());
             // fall back to the version zero client
             return new GrpcConnectionV0(dependencies.getChannel());
             }

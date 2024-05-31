@@ -32,9 +32,11 @@ import com.tangosol.io.Serializer;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.PriorityTask;
 import com.tangosol.net.RequestIncompleteException;
+import com.tangosol.net.RequestTimeoutException;
 import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.UUID;
 import io.grpc.Channel;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 
 import java.util.List;
@@ -120,6 +122,11 @@ public class GrpcConnectionV1
                         catch (InterruptedException e)
                             {
                             // ignored
+                            }
+                        if (!m_mapFuture.isEmpty())
+                            {
+                            m_mapFuture.values().forEach(f -> f.onError(new RequestTimeoutException()));
+                            m_mapFuture.clear();
                             }
                         }
 
@@ -289,18 +296,39 @@ public class GrpcConnectionV1
     @Override
     public void onError(Throwable t)
         {
-        if (!m_closed)
+        f_pollLock.lock();
+        try
             {
-            ErrorsHelper.logIfNotCancelled(t);
-            m_mapFuture.values().forEach(f -> f.onError(t));
-            close();
+            if (!m_closed)
+                {
+                ErrorsHelper.logIfNotCancelled(t);
+                m_mapFuture.values().forEach(f -> f.onError(t));
+                m_mapFuture.clear();
+                close();
+                }
+            else
+                {
+                Logger.err("onError called after close() has been called", t);
+                }
+            }
+        finally
+            {
+            f_pollLock.unlock();
             }
         }
 
     @Override
     public void onCompleted()
         {
-        close();
+        f_pollLock.lock();
+        try
+            {
+            close();
+            }
+        finally
+            {
+            f_pollLock.unlock();
+            }
         }
 
     @Override
@@ -350,9 +378,18 @@ public class GrpcConnectionV1
                 }
             return future.get();
             }
-        catch (InterruptedException | ExecutionException | TimeoutException e)
+        catch (ExecutionException e)
             {
-            throw new RequestIncompleteException(e);
+            Throwable cause = e.getCause();
+            if (!(cause instanceof StatusRuntimeException))
+                {
+                Logger.err(cause);
+                }
+            throw new RequestIncompleteException(e.getMessage(), e);
+            }
+        catch (InterruptedException | TimeoutException e)
+            {
+            throw new RequestIncompleteException(e.getMessage(), e);
             }
         }
 
@@ -365,6 +402,7 @@ public class GrpcConnectionV1
 
     private <T extends Message> void poll(Message message, StreamObserver<T> observer, LockingStreamObserver<ProxyRequest> sender)
         {
+        f_pollLock.lock();
         try
             {
             long nId = m_nMessageId.incrementAndGet();
@@ -389,6 +427,10 @@ public class GrpcConnectionV1
         catch (Exception e)
             {
             observer.onError(e);
+            }
+        finally
+            {
+            f_pollLock.unlock();
             }
         }
 
@@ -548,6 +590,11 @@ public class GrpcConnectionV1
      * A lock to control thread safety.
      */
     private final Lock f_lock = new ReentrantLock();
+
+    /**
+     * A lock to control thread safety for polls.
+     */
+    private final Lock f_pollLock = new ReentrantLock();
 
     /**
      * The list of response listeners.
