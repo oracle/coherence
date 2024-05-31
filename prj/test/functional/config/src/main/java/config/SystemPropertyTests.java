@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -31,6 +31,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
@@ -70,6 +72,41 @@ public class SystemPropertyTests
     public void testPersistenceSystemPropertiesBackwardCompatibility() throws IOException
         {
         testPersistenceSystemProperties("coherence.");
+        }
+
+    /**
+     * Verify can set partition count using either system property coherence.distributed.partitioncount or coherence.distributed.partitions.
+     */
+    @Test
+    public void testPropertyDistributedPartitionCount()
+        {
+        Object[][] PARTITIONS_DATA =
+            {
+                {"coherence.distributed.partitioncount", Integer.valueOf(631)},
+                {"coherence.distributed.partitions",     Integer.valueOf(638)},
+            };
+
+        for (Object[] part_data : PARTITIONS_DATA)
+            {
+            try (SystemPropertyResource p1 = new SystemPropertyResource((String) part_data[0], part_data[1].toString()))
+                {
+                ExtensibleConfigurableCacheFactory eccf =
+                        (ExtensibleConfigurableCacheFactory) CacheFactory.getCacheFactoryBuilder()
+                                .getConfigurableCacheFactory("com/oracle/coherence/defaults/coherence-cache-config.xml", null);
+
+                for (ServiceScheme scheme : eccf.getCacheConfig().getServiceSchemeRegistry())
+                    {
+                    ServiceDependencies depsService =
+                            (ServiceDependencies) ((AbstractServiceScheme) scheme).getServiceDependencies();
+
+                    if (depsService instanceof PartitionedServiceDependencies)
+                        {
+                        assertThat(((PartitionedServiceDependencies) depsService).getPreferredPartitionCount(), is(part_data[1]));
+                        }
+                    }
+                }
+            CacheFactory.shutdown();
+            }
         }
 
     /**
