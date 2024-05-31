@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -413,7 +413,11 @@ public class ServiceMemberSet
                 setState(nMember, setMember.getState(nMember));
         
                 // copy the config map content
-                ensureMemberConfigMap(nMember).putAll(setMember.getMemberConfigMap(nMember));
+                Map mapConfig = ensureMemberConfigMap(nMember);
+                if (mapConfig != null)
+                    {
+                    mapConfig.putAll(setMember.getMemberConfigMap(nMember));
+                    }
                 }
         
             // validate
@@ -1683,9 +1687,12 @@ public class ServiceMemberSet
             {
             Map mapConfig = ensureMemberConfigMap(nMember);
         
-            // store the new Member's config state 
-            mapConfig.clear();
-            mapConfig.putAll(map);
+            // store the new Member's config state
+            if (mapConfig != null)
+                {
+                mapConfig.clear();
+                mapConfig.putAll(map);
+                }
             }
         }
     }
