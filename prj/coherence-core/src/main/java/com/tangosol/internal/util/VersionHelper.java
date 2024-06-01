@@ -344,6 +344,11 @@ public class VersionHelper
     /**
      * The encoded CE 24.03.0 and 1 versions.
      */
+    public static final int VERSION_24_09 = encodeVersion(24, 9, 0);
+
+    /**
+     * The encoded CE 24.03.0 and 1 versions.
+     */
     public static final int VERSION_24_03 = encodeVersion(24, 3, 0);
     public static final int VERSION_24_03_1 = encodeVersion(24, 3, 1);
 

@@ -121,9 +121,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_1_2206_9;
 import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_2_0;
-import static com.tangosol.internal.util.VersionHelper.VERSION_24_03_1;
+import static com.tangosol.internal.util.VersionHelper.VERSION_24_09;
 
 
 /**
@@ -19152,8 +19151,7 @@ public abstract class PartitionedService
             protected static boolean isLazyOpenCompatible(int nVersion)
                 {
                 return VersionHelper.isVersionCompatible(VERSION_14_1_2_0, nVersion)
-                       || VersionHelper.isPatchCompatible(VERSION_24_03_1, nVersion)
-                       || VersionHelper.isPatchCompatible(VERSION_14_1_1_2206_9, nVersion);
+                    || VersionHelper.isVersionCompatible(VERSION_24_09, nVersion);
                 }
         }
 
