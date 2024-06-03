@@ -6,6 +6,7 @@
  */
 package com.oracle.coherence.grpc.client.common;
 
+import com.google.protobuf.Message;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.grpc.SimpleDaemonPoolExecutor;
@@ -51,6 +52,7 @@ import io.grpc.ClientInterceptor;
 
 import io.grpc.ManagedChannel;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -163,22 +165,27 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
         {
         GrpcConnection.Dependencies deps = new GrpcConnection.DefaultDependencies(sProtocol, m_dependencies, m_channel,
                 nVersion, nVersionMin, m_serializer);
-        return GrpcRemoteService.connect(deps);
+        return GrpcRemoteService.connect(deps, getResponseType());
         }
 
     /**
      * Create a {@link GrpcConnection}.
      *
      * @param dependencies  the connection dependencies
+     * @param responseType  the type of the expected response message
      *
      * @return a {@link GrpcConnection} corresponding to the version supported
      *         by the gRPC proxy service on the server
+     *
+     * @throws NullPointerException if the expected response type is {@code null}
      */
-    public static GrpcConnection connect(GrpcConnection.Dependencies dependencies)
+    public static GrpcConnection connect(GrpcConnection.Dependencies dependencies,
+            Class<? extends Message> responseType)
         {
         try
             {
-            GrpcConnection connection = new GrpcConnectionV1(dependencies);
+            Class<? extends Message> type       = Objects.requireNonNull(responseType);
+            GrpcConnection           connection = new GrpcConnectionV1(dependencies, type);
             connection.connect();
             return connection;
             }
@@ -189,6 +196,15 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
             return new GrpcConnectionV0(dependencies.getChannel());
             }
         }
+
+    /**
+     * Return the expected response message type.
+     * <p/>
+     * This method must not return {@code null}
+     *
+     * @return the expected response message type
+     */
+    protected abstract Class<? extends Message> getResponseType();
 
     // ----- Service methods ------------------------------------------------
 

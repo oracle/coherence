@@ -281,6 +281,16 @@ public abstract class AbstractGrpcChannelFactory
             m_sAuthority = sAuthority;
             }
 
+        protected String getAuthorityInternal()
+            {
+            return m_sAuthority;
+            }
+
+        protected GrpcServiceInfo getServiceInfo()
+            {
+            return m_serviceInfo;
+            }
+
         private void resolve()
             {
             if (m_fResolving || m_fShutdown)
@@ -327,9 +337,17 @@ public abstract class AbstractGrpcChannelFactory
         public AddressProviderNameResolver(GrpcChannelDependencies deps, GrpcServiceInfo serviceInfo, Args args)
             {
             super(deps, serviceInfo, args);
+            }
 
-            // run an initial resolve to set the authority
-            new Resolve(this, serviceInfo).run();
+        @Override
+        public String getServiceAuthority()
+            {
+            if (getAuthorityInternal() == null)
+                {
+                // run an initial resolve to set the authority
+                new Resolve(this, getServiceInfo()).run();
+                }
+            return super.getServiceAuthority();
             }
         }
 

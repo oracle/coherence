@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -138,6 +138,7 @@
       <!-- the following additional modules are buildable by this profile -->
       <modules>
         <module>build-artifacts</module>
+        <module>grpc-compatibility</module>
         <module>topics-compatibility</module>
         <module>jcache-compliance</module>
         <module>osgi</module>

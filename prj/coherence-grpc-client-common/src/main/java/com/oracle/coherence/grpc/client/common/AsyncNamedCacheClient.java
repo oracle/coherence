@@ -1083,7 +1083,7 @@ public class AsyncNamedCacheClient<K, V>
                 }
 
             getMapListenerSupport().clear();
-            f_client.close();
+            //f_client.close();
 
             return future.handleAsync((v, err) ->
                 {
@@ -1832,12 +1832,12 @@ public class AsyncNamedCacheClient<K, V>
         {
         /**
          * Returns the frequency in millis that heartbeats should be sent by the
-         * proxy to the client bidirectional events channel.
+         * proxy to the client bidirectional channel.
          *
          * @return the frequency in millis that heartbeats should be sent by the
-         *         proxy to the client bidirectional events channel
+         *         proxy to the client bidirectional channel
          */
-        long getEventsHeartbeat();
+        long getHeartbeatMillis();
         }
 
     // ----- DefaultDependencies ----------------------------------------
@@ -1867,7 +1867,7 @@ public class AsyncNamedCacheClient<K, V>
         // ----- Dependencies methods ---------------------------------------
 
         @Override
-        public long getEventsHeartbeat()
+        public long getHeartbeatMillis()
             {
             return m_nEventsHeartbeat;
             }
@@ -1876,13 +1876,13 @@ public class AsyncNamedCacheClient<K, V>
 
         /**
          * Set the frequency in millis that heartbeats should be sent by the
-         * proxy to the client bidirectional events channel.
+         * proxy to the client bidirectional channel.
          * <p/>
          * If the frequency is set to zero or less, then no heartbeats will be sent.
          *
          * @param nEventsHeartbeat the heartbeat frequency in millis
          */
-        public void setEventsHeartbeat(long nEventsHeartbeat)
+        public void setHeartbeatMillis(long nEventsHeartbeat)
             {
             m_nEventsHeartbeat = Math.max(NO_EVENTS_HEARTBEAT, nEventsHeartbeat);
             }
@@ -1891,7 +1891,7 @@ public class AsyncNamedCacheClient<K, V>
 
         /**
          * The frequency in millis that heartbeats should be sent by the
-         * proxy to the client bidirectional events channel
+         * proxy to the client bidirectional channel
          */
         private long m_nEventsHeartbeat = NO_EVENTS_HEARTBEAT;
         }

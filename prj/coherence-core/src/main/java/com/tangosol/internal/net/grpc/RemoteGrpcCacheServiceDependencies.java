@@ -18,12 +18,12 @@ public interface RemoteGrpcCacheServiceDependencies
     {
     /**
      * Returns the frequency in millis that heartbeats should be sent by the
-     * proxy to the client bidirectional events channel.
+     * proxy to the client bidirectional channel.
      *
      * @return the frequency in millis that heartbeats should be sent by the
-     *         proxy to the client bidirectional events channel
+     *         proxy to the client bidirectional channel
      */
-    long getEventsHeartbeat();
+    long getHeartbeatInterval();
 
     /**
      * The default heartbeat frequency value representing no heartbeats to be sent.

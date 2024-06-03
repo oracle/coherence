@@ -9,32 +9,39 @@ package com.oracle.coherence.grpc.client.common.v1;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.Message;
-import com.oracle.coherence.common.base.Blocking;
+
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.Predicate;
-import com.oracle.coherence.common.base.Timeout;
+
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
+
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.ErrorsHelper;
 import com.oracle.coherence.grpc.LockingStreamObserver;
 import com.oracle.coherence.grpc.SafeStreamObserver;
+
 import com.oracle.coherence.grpc.client.common.GrpcConnection;
-import com.oracle.coherence.grpc.messages.cache.v1.NamedCacheResponse;
+
 import com.oracle.coherence.grpc.messages.common.v1.ErrorMessage;
 import com.oracle.coherence.grpc.messages.common.v1.HeartbeatMessage;
+
 import com.oracle.coherence.grpc.messages.proxy.v1.InitRequest;
 import com.oracle.coherence.grpc.messages.proxy.v1.InitResponse;
 import com.oracle.coherence.grpc.messages.proxy.v1.ProxyRequest;
 import com.oracle.coherence.grpc.messages.proxy.v1.ProxyResponse;
 import com.oracle.coherence.grpc.services.proxy.v1.ProxyServiceGrpc;
+
 import com.tangosol.internal.net.grpc.RemoteGrpcServiceDependencies;
+
 import com.tangosol.io.Serializer;
+
 import com.tangosol.net.Coherence;
 import com.tangosol.net.PriorityTask;
 import com.tangosol.net.RequestIncompleteException;
-import com.tangosol.net.RequestTimeoutException;
+
 import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.UUID;
+
 import io.grpc.Channel;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
@@ -42,12 +49,15 @@ import io.grpc.stub.StreamObserver;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
 import java.util.concurrent.atomic.AtomicLong;
+
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -60,18 +70,22 @@ public class GrpcConnectionV1
     /**
      * Create a {@link GrpcConnectionV1}.
      *
-     * @param dependencies the dependencies to use
+     * @param dependencies  the dependencies to use
+     * @param type          the expected response message type
+     *
+     * @throws NullPointerException if the expected response type is {@code null}
      */
-    public GrpcConnectionV1(GrpcConnection.Dependencies dependencies)
+    public GrpcConnectionV1(Dependencies dependencies, Class<? extends Message> type)
         {
         RemoteGrpcServiceDependencies serviceDependencies = dependencies.getServiceDependencies();
 
+        f_responseType   = Objects.requireNonNull(type);
         m_serializer     = dependencies.getSerializer();
         m_dependencies   = dependencies;
         f_sScope         = Objects.requireNonNullElse(serviceDependencies.getRemoteScopeName(), Coherence.DEFAULT_SCOPE);
-        f_requestTimeout = serviceDependencies.getRequestTimeoutMillis();
         m_channel        = dependencies.getChannel();
         m_sProtocol      = dependencies.getProtocolName();
+        f_requestTimeout = serviceDependencies.getRequestTimeoutMillis();
         }
 
     @Override
@@ -94,6 +108,15 @@ public class GrpcConnectionV1
     @Override
     public void close()
         {
+        closeInternal(null);
+        }
+
+    public void closeInternal(Throwable closeWithError)
+        {
+        Throwable error = closeWithError == null
+                ? new RequestIncompleteException("Channel was closed")
+                : closeWithError;
+        m_mapFuture.values().forEach(f -> f.onError(error));
         if (!m_closed)
             {
             f_lock.lock();
@@ -102,34 +125,9 @@ public class GrpcConnectionV1
                 if (!m_closed)
                     {
                     m_closed = true;
-                    if (!m_mapFuture.isEmpty())
-                        {
-                        try
-                            {
-                            long nDeadline = m_dependencies.getServiceDependencies().getDeadline();
-                            if (nDeadline <= 0)
-                                {
-                                nDeadline = GrpcDependencies.DEFAULT_DEADLINE_MILLIS;
-                                }
-                            try (Timeout ignored = Timeout.after(nDeadline, TimeUnit.MILLISECONDS))
-                                {
-                                while (!m_mapFuture.isEmpty())
-                                    {
-                                    Blocking.sleep(100);
-                                    }
-                                }
-                            }
-                        catch (InterruptedException e)
-                            {
-                            // ignored
-                            }
-                        if (!m_mapFuture.isEmpty())
-                            {
-                            m_mapFuture.values().forEach(f -> f.onError(new RequestTimeoutException()));
-                            m_mapFuture.clear();
-                            }
-                        }
-
+                    m_mapFuture.values().forEach(f -> f.onError(error));
+                    m_mapFuture.clear();
+    
                     if (m_observer != null && !m_observer.isDone())
                         {
                         m_observer.onCompleted();
@@ -222,7 +220,8 @@ public class GrpcConnectionV1
             // this is a non-request related message, send it to any listeners
             try
                 {
-                Message message = response.getMessage().unpack(NamedCacheResponse.class);
+
+                Message message = response.getMessage().unpack(f_responseType);
                 m_listeners.forEach(listener ->
                     {
                     Predicate<Message> predicate = (Predicate<Message>) listener.predicate();
@@ -246,7 +245,7 @@ public class GrpcConnectionV1
                     {
                     if (responseCase == ProxyResponse.ResponseCase.MESSAGE)
                         {
-                        Message message = response.getMessage().unpack(NamedCacheResponse.class);
+                        Message message = response.getMessage().unpack(f_responseType);
                         handler.onNext(message);
                         // we do not remove the handler from the map yet, as there may be
                         // more responses for the same request
@@ -296,39 +295,26 @@ public class GrpcConnectionV1
     @Override
     public void onError(Throwable t)
         {
-        f_pollLock.lock();
-        try
+        if (m_connectFuture != null)
             {
-            if (!m_closed)
-                {
-                ErrorsHelper.logIfNotCancelled(t);
-                m_mapFuture.values().forEach(f -> f.onError(t));
-                m_mapFuture.clear();
-                close();
-                }
-            else
-                {
-                Logger.err("onError called after close() has been called", t);
-                }
+            m_connectFuture.completeExceptionally(t);
             }
-        finally
+
+        if (!m_closed)
             {
-            f_pollLock.unlock();
+            ErrorsHelper.logIfNotCancelled(t);
+            closeInternal(t);
+            }
+        else
+            {
+            Logger.err("onError called after close() has been called", t);
             }
         }
 
     @Override
     public void onCompleted()
         {
-        f_pollLock.lock();
-        try
-            {
-            close();
-            }
-        finally
-            {
-            f_pollLock.unlock();
-            }
+        closeInternal(null);
         }
 
     @Override
@@ -368,10 +354,14 @@ public class GrpcConnectionV1
 
     private  <T extends Message> T send(Message message, LockingStreamObserver<ProxyRequest> observer)
         {
+        CompletableFuture<T> future  = poll(message, observer);
+        return awaitFuture(future, f_requestTimeout);
+        }
+
+    private <T extends Message> T awaitFuture(CompletableFuture<T> future, long nMillis)
+        {
         try
             {
-            CompletableFuture<T> future  = poll(message, observer);
-            long                 nMillis = f_requestTimeout;
             if (nMillis > 0L)
                 {
                 return future.get(nMillis, TimeUnit.MILLISECONDS);
@@ -402,7 +392,6 @@ public class GrpcConnectionV1
 
     private <T extends Message> void poll(Message message, StreamObserver<T> observer, LockingStreamObserver<ProxyRequest> sender)
         {
-        f_pollLock.lock();
         try
             {
             long nId = m_nMessageId.incrementAndGet();
@@ -428,10 +417,6 @@ public class GrpcConnectionV1
             {
             observer.onError(e);
             }
-        finally
-            {
-            f_pollLock.unlock();
-            }
         }
 
     protected void assertActive()
@@ -452,13 +437,14 @@ public class GrpcConnectionV1
             observer = m_observer;
             if (observer == null)
                 {
+                InitRequest request;
                 try
                     {
                     ProxyServiceGrpc.ProxyServiceStub stub = createStub(m_channel);
                     observer = LockingStreamObserver.ensureLockingObserver(
                             SafeStreamObserver.ensureSafeObserver(stub.subChannel(this)));
 
-                    InitRequest request = InitRequest.newBuilder()
+                    request = InitRequest.newBuilder()
                             .setScope(f_sScope)
                             .setFormat(m_serializer.getName())
                             .setProtocol(m_sProtocol)
@@ -466,7 +452,12 @@ public class GrpcConnectionV1
                             .setSupportedProtocolVersion(m_dependencies.getSupportedVersion())
                             .build();
 
-                    send(request, observer);
+                    ResponseHandler<ProxyResponse> handler = new ResponseHandler<>();
+                    m_connectFuture = handler.getFuture();
+                    poll(request, handler, observer);
+                    long nMillis = f_requestTimeout <= 0 ? GrpcDependencies.DEFAULT_DEADLINE_MILLIS : f_requestTimeout;
+                    awaitFuture(m_connectFuture, nMillis);
+                    m_connectFuture = null;
                     m_observer = observer;
                     }
                 finally
@@ -591,10 +582,7 @@ public class GrpcConnectionV1
      */
     private final Lock f_lock = new ReentrantLock();
 
-    /**
-     * A lock to control thread safety for polls.
-     */
-    private final Lock f_pollLock = new ReentrantLock();
+    private final Class<? extends Message> f_responseType;
 
     /**
      * The list of response listeners.
@@ -624,7 +612,7 @@ public class GrpcConnectionV1
     /**
      * The unique request identifier.
      */
-    private final AtomicLong m_nMessageId = new AtomicLong();
+    private final AtomicLong m_nMessageId = new AtomicLong(1L);
 
     /**
      * The {@link StreamObserver} to send responses to.
@@ -632,6 +620,8 @@ public class GrpcConnectionV1
      * This must be thread safe as calls must be synchronized.
      */
     private LockingStreamObserver<ProxyRequest> m_observer;
+
+    private CompletableFuture<ProxyResponse> m_connectFuture;
 
     /**
      * The name of the protocol this connection is using.

@@ -20,6 +20,7 @@ import com.oracle.coherence.grpc.client.common.NamedCacheClient;
 import com.oracle.coherence.grpc.client.common.NamedCacheClientChannel;
 
 import com.oracle.coherence.grpc.client.common.v0.GrpcConnectionV0;
+import com.oracle.coherence.grpc.messages.cache.v1.NamedCacheResponse;
 import com.tangosol.internal.net.grpc.DefaultRemoteGrpcCacheServiceDependencies;
 import com.tangosol.internal.net.grpc.RemoteGrpcServiceDependencies;
 
@@ -163,7 +164,7 @@ public final class ServerHelper
                     = new GrpcConnection.DefaultDependencies(NamedCacheProtocol.PROTOCOL_NAME, serviceDeps,
                     m_channel, m_nProtocolVersion, m_nProtocolVersion, serializer);
 
-            connection = GrpcRemoteService.connect(connectionDeps);
+            connection = GrpcRemoteService.connect(connectionDeps, NamedCacheResponse.class);
             }
 
         NamedCacheClientChannel protocol = NamedCacheClientChannel.createProtocol(deps, connection);

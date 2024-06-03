@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.oracle.coherence.ce.tests</groupId>
+        <artifactId>grpc-compatibility</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>grpc-ce-latest</artifactId>
+    <name>Coherence gRPC CE Latest Tests</name>
+
+    <properties>
+        <!--
+        The version prefix to test (this is the Coherence version without the final patch number
+        For this build, this version should be the latest released version of CE.
+        -->
+        <coherence.compatability.version>[24,999]</coherence.compatability.version>
+        <coherence.compatability.allow.snapshots>false</coherence.compatability.allow.snapshots>
+        <!-- This is the groupId of the version server being tested against, not the current version being built -->
+        <coherence.compatability.groupId>com.oracle.coherence.ce</coherence.compatability.groupId>
+        <is.not.java.17>false</is.not.java.17>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>${coherence.group.id}</groupId>
+            <artifactId>coherence-java-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${coherence.group.id}.tests</groupId>
+            <artifactId>grpc-compatibility-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                  <execution>
+                    <id>get-coherence-grpc-proxy</id>
+                    <goals>
+                      <goal>get</goal>
+                    </goals>
+                    <phase>process-resources</phase>
+                    <configuration>
+                        <groupId>${coherence.compatability.groupId}</groupId>
+                        <artifactId>coherence-grpc-proxy</artifactId>
+                        <version>${coherence.compatability.version}</version>
+                        <transitive>true</transitive>
+                    </configuration>
+                  </execution>
+                  <execution>
+                    <id>get-coherence-json</id>
+                    <goals>
+                      <goal>get</goal>
+                    </goals>
+                    <phase>process-resources</phase>
+                    <configuration>
+                        <groupId>${coherence.compatability.groupId}</groupId>
+                        <artifactId>coherence-json</artifactId>
+                        <version>${coherence.compatability.version}</version>
+                        <transitive>true</transitive>
+                    </configuration>
+                  </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- run all tests in stage13 and Java 17+ -->
+        <profile>
+          <id>stage13</id>
+          <properties>
+            <skipTests>${is.not.java.17}</skipTests>
+          </properties>
+        </profile>
+
+        <profile>
+          <id>NotJava17</id>
+          <activation>
+            <jdk>(,17)</jdk>
+          </activation>
+          <properties>
+            <is.not.java.17>true</is.not.java.17>
+            <skipTests>true</skipTests>
+          </properties>
+        </profile>
+    </profiles>
+</project>

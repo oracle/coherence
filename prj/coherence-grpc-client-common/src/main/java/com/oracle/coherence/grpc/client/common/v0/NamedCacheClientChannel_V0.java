@@ -572,6 +572,8 @@ public class NamedCacheClientChannel_V0
             m_evtRequestObserver = (SafeStreamObserver<MapListenerRequest>) SafeStreamObserver.ensureSafeObserver(observer);
             m_evtRequestObserver.whenDone().thenAccept(v -> f_mapFuture.values().forEach(f -> f.complete(null)));
 
+            long nDeadline = f_dependencies.getDeadline();
+
             // initialise the bidirectional stream so that this client will receive
             // destroy and truncate events
             MapListenerRequest request = MapListenerRequest.newBuilder()
@@ -581,7 +583,7 @@ public class NamedCacheClientChannel_V0
                     .setSubscribe(true)
                     .setFormat(f_sFormat)
                     .setType(MapListenerRequest.RequestType.INIT)
-                    .setHeartbeatMillis(f_dependencies.getEventsHeartbeat())
+                    .setHeartbeatMillis(f_dependencies.getHeartbeatMillis())
                     .build();
 
             observer.onNext(request);

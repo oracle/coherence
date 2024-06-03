@@ -6,9 +6,11 @@
  */
 package com.oracle.coherence.grpc.client.common;
 
+import com.google.protobuf.Message;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.grpc.NamedCacheProtocol;
+import com.oracle.coherence.grpc.messages.cache.v1.NamedCacheResponse;
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
@@ -49,6 +51,12 @@ public class GrpcRemoteCacheService
     public GrpcRemoteCacheService()
         {
         super(CacheService.TYPE_REMOTE_GRPC);
+        }
+
+    @Override
+    protected Class<? extends Message> getResponseType()
+        {
+        return NamedCacheResponse.class;
         }
 
     @Override
@@ -268,9 +276,9 @@ public class GrpcRemoteCacheService
         deps.setExecutor(m_executor);
         deps.setDeferKeyAssociationCheck(dependencies.isDeferKeyAssociationCheck());
         long nDeadline  = dependencies.getDeadline();
-        long nHeartbeat = dependencies.getEventsHeartbeat();
+        long nHeartbeat = dependencies.getHeartbeatInterval();
         deps.setDeadline(nDeadline);
-        deps.setEventsHeartbeat(nHeartbeat == 0L ? (nDeadline / 2) : nHeartbeat);
+        deps.setHeartbeatMillis(nHeartbeat == 0L ? (nDeadline / 2) : nHeartbeat);
 
         return deps;
         }

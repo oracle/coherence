@@ -38,23 +38,23 @@ public class DefaultRemoteGrpcCacheServiceDependencies
         }
 
     @Override
-    public long getEventsHeartbeat()
+    public long getHeartbeatInterval()
         {
-        return m_nEventsHeartbeat;
+        return m_nHeartbeatInterval;
         }
 
     /**
      * Set the frequency in millis that heartbeats should be sent by the
-     * proxy to the client bidirectional events channel.
+     * proxy to the client bidirectional channel.
      * <p/>
      * If the frequency is set to zero or less, then no heartbeats will be sent.
      *
      * @param nEventsHeartbeat the heartbeat frequency in millis
      */
-    @Injectable("event-heartbeat-millis")
-    public void setEventsHeartbeat(long nEventsHeartbeat)
+    @Injectable("heartbeat-interval")
+    public void setHeartbeatInterval(long nEventsHeartbeat)
         {
-        m_nEventsHeartbeat = Math.max(NO_EVENTS_HEARTBEAT, nEventsHeartbeat);
+        m_nHeartbeatInterval = Math.max(NO_EVENTS_HEARTBEAT, nEventsHeartbeat);
         }
 
     // ----- data members ---------------------------------------------------
@@ -63,5 +63,5 @@ public class DefaultRemoteGrpcCacheServiceDependencies
      * The frequency in millis that heartbeats should be sent by the
      * proxy to the client bidirectional events channel
      */
-    private long m_nEventsHeartbeat = NO_EVENTS_HEARTBEAT;
+    private long m_nHeartbeatInterval = NO_EVENTS_HEARTBEAT;
     }
