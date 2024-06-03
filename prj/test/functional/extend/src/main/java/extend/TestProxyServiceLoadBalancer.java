@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,7 +12,7 @@ import com.tangosol.net.Member;
 
 import com.tangosol.net.proxy.DefaultProxyServiceLoadBalancer;
 
-import java.security.AccessController;
+import com.tangosol.net.security.SecurityHelper;
 
 import java.util.Comparator;
 import java.util.List;
@@ -65,7 +65,7 @@ public class TestProxyServiceLoadBalancer
     public List<Member> getMemberList(Member client)
         {
         m_client = client;
-        m_subject = Subject.getSubject(AccessController.getContext());
+        m_subject = SecurityHelper.getCurrentSubject();
         return super.getMemberList(client);
         }
 
