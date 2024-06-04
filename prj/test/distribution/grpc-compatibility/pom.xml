@@ -34,6 +34,9 @@
     <coherence.compatability.allow.snapshots/>
     <coherence.compatability.groupId/>
     <skipTests>true</skipTests>
+
+    <maven.home.dir>${env.MAVEN_HOME}</maven.home.dir>
+    <coherence.compatability.settings>${maven.home.dir}/conf/settings.xml</coherence.compatability.settings>
   </properties>
 
   <build>
@@ -59,7 +62,7 @@
               <coherence.compatability.groupId>${coherence.compatability.groupId}</coherence.compatability.groupId>
               <coherence.compatability.version>${coherence.compatability.version}</coherence.compatability.version>
               <coherence.compatability.allow.snapshots>${coherence.compatability.allow.snapshots}</coherence.compatability.allow.snapshots>
-              <coherence.compatability.settings>${top.parent.basedir}/../tools/maven/conf/settings.xml</coherence.compatability.settings>
+              <coherence.compatability.settings>${coherence.compatability.settings}</coherence.compatability.settings>
           </systemProperties>
         </configuration>
       </plugin>

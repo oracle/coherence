@@ -273,10 +273,11 @@ public class ClientCompatibilityIT
             if (sSettings != null && !sSettings.isBlank())
                 {
                 fileSettings = new File(sSettings);
-                assertThat(fileSettings.exists(), is(true));
-                assertThat(fileSettings.isFile(), is(true));
+                if (fileSettings.exists())
+                    {
+                    assertThat(fileSettings.isFile(), is(true));
+                    }
                 }
-
 
             String sVersion = Config.getProperty("coherence.compatability.version");
             assertThat("coherence.compatability.version property sis not set", sVersion, notNullValue());
@@ -320,6 +321,7 @@ public class ClientCompatibilityIT
 
             ClassPath cp = ClassPath.of(
                     ClassPath.ofClass(ClientCompatibilityIT.class),
+                    ClassPath.ofClass(AbstractGrpcClientIT.class),
                     ClassPath.ofClass(CoherenceClusterExtension.class),
                     ClassPath.ofClass(Test.class),
                     ClassPath.ofClass(Arguments.class)
@@ -372,7 +374,7 @@ public class ClientCompatibilityIT
         };
 
     @RegisterExtension
-    static final TestLogsExtension TEST_LOGS = new TestLogsExtension(DefaultCacheConfigGrpcIT.class);
+    static final TestLogsExtension TEST_LOGS = new TestLogsExtension(ClientCompatibilityIT.class);
 
     static CoherenceClusterExtension sClusterExtension;
 

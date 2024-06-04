@@ -162,7 +162,9 @@ class path, or module path, of the JVM.
         </name-service-addresses>
         <socket-provider system-property="coherence.grpc.socketprovider"/>
       </grpc-channel>
+      <request-timeout system-property="coherence.grpc.request.timeout"/>
       <defer-key-association-check system-property="coherence.grpc.defer.key.association"/>
+      <heartbeat-interval system-property="coherence.grpc.heartbeat.interval"/>
     </remote-grpc-cache-scheme>
 
     <!-- near caching scheme for gRPC clients -->
@@ -195,7 +197,9 @@ class path, or module path, of the JVM.
         </remote-addresses>
         <socket-provider system-property="coherence.grpc.socketprovider"/>
       </grpc-channel>
+      <request-timeout system-property="coherence.grpc.request.timeout"/>
       <defer-key-association-check system-property="coherence.grpc.defer.key.association"/>
+      <heartbeat-interval system-property="coherence.grpc.heartbeat.interval"/>
     </remote-grpc-cache-scheme>
 
     <!-- partitioned caching scheme for clustered clients -->

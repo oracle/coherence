@@ -45,43 +45,6 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                  <execution>
-                    <id>get-coherence-grpc-proxy</id>
-                    <goals>
-                      <goal>get</goal>
-                    </goals>
-                    <phase>process-resources</phase>
-                    <configuration>
-                        <groupId>${coherence.compatability.groupId}</groupId>
-                        <artifactId>coherence-grpc-proxy</artifactId>
-                        <version>${coherence.compatability.version}</version>
-                        <transitive>true</transitive>
-                    </configuration>
-                  </execution>
-                  <execution>
-                    <id>get-coherence-json</id>
-                    <goals>
-                      <goal>get</goal>
-                    </goals>
-                    <phase>process-resources</phase>
-                    <configuration>
-                        <groupId>${coherence.compatability.groupId}</groupId>
-                        <artifactId>coherence-json</artifactId>
-                        <version>${coherence.compatability.version}</version>
-                        <transitive>true</transitive>
-                    </configuration>
-                  </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-
     <profiles>
         <!-- run all tests in stage13 and Java 17+ -->
         <profile>
