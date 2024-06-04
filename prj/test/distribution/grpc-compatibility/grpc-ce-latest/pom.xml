@@ -45,24 +45,24 @@
         </dependency>
     </dependencies>
 
-    <profiles>
-        <!-- run all tests in stage13 and Java 17+ -->
-        <profile>
-          <id>stage13</id>
-          <properties>
-            <skipTests>${is.not.java.17}</skipTests>
-          </properties>
-        </profile>
+<!--    <profiles>-->
+<!--        &lt;!&ndash; run all tests in stage13 and Java 17+ &ndash;&gt;-->
+<!--        <profile>-->
+<!--          <id>stage13</id>-->
+<!--          <properties>-->
+<!--            <skipTests>${is.not.java.17}</skipTests>-->
+<!--          </properties>-->
+<!--        </profile>-->
 
-        <profile>
-          <id>NotJava17</id>
-          <activation>
-            <jdk>(,17)</jdk>
-          </activation>
-          <properties>
-            <is.not.java.17>true</is.not.java.17>
-            <skipTests>true</skipTests>
-          </properties>
-        </profile>
-    </profiles>
+<!--        <profile>-->
+<!--          <id>NotJava17</id>-->
+<!--          <activation>-->
+<!--            <jdk>(,17)</jdk>-->
+<!--          </activation>-->
+<!--          <properties>-->
+<!--            <is.not.java.17>true</is.not.java.17>-->
+<!--            <skipTests>true</skipTests>-->
+<!--          </properties>-->
+<!--        </profile>-->
+<!--    </profiles>-->
 </project>
