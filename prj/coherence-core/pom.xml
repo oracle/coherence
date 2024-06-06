@@ -56,13 +56,6 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- jandex for searching for PortableType -->
-    <dependency>
-      <groupId>io.smallrye</groupId>
-      <artifactId>jandex</artifactId>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
 
     <!-- optional dependencies -->
 

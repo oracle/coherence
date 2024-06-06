@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,7 +8,6 @@
 plugins {
     id 'java'
     id '%s'
-    id 'com.github.vlsi.jandex' version '1.86'
 }
 repositories {
     maven { url '%s' }
@@ -21,4 +20,8 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+coherencePof {
+    indexPofClasses = false;
 }

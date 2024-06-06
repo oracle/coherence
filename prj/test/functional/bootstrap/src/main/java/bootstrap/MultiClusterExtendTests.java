@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@ package bootstrap;
 
 import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.coherence.ServiceStatus;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.DisplayName;
@@ -42,6 +43,9 @@ public class MultiClusterExtendTests
             {
             Eventually.assertDeferred(memberOne::isReady, is(true));
             Eventually.assertDeferred(memberTwo::isReady, is(true));
+
+            Eventually.assertDeferred(() -> memberOne.getServiceStatus("Proxy"), is(ServiceStatus.RUNNING));
+            Eventually.assertDeferred(() -> memberTwo.getServiceStatus("Proxy"), is(ServiceStatus.RUNNING));
 
             String sCacheName = "test";
             String sKey       = "Key";

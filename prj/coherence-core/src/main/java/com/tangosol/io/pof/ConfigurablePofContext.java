@@ -4,7 +4,6 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-
 package com.tangosol.io.pof;
 
 
@@ -29,21 +28,11 @@ import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.CopyOnWriteMap;
 import com.tangosol.util.ExternalizableHelper;
-import com.tangosol.util.LiteMap;
-import com.tangosol.util.Resources;
 import com.tangosol.util.SafeHashMap;
-
-import org.jboss.jandex.AnnotationInstance;
-import org.jboss.jandex.AnnotationTarget;
-import org.jboss.jandex.AnnotationValue;
-import org.jboss.jandex.DotName;
-import org.jboss.jandex.Index;
-import org.jboss.jandex.IndexReader;
 
 import jakarta.inject.Named;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import java.lang.ref.WeakReference;
 
@@ -56,6 +45,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -221,6 +211,7 @@ import java.util.stream.Collectors;
 * {@link #PROPERTY_CONFIG tangosol.pof.config} system property.
 *
 * @author jh/cp  2006.07.24
+* @author Gunnar Hillert 2024.04.20
 *
 * @since Coherence 3.2
 */
@@ -776,7 +767,7 @@ public class ConfigurablePofContext
     /**
      * Determine if implicit root lambda class processing is allowed.
      *
-     * @return true iff implicit root lambda class processing is allowed.
+     * @return true if implicit root lambda class processing is allowed.
      */
     protected boolean isLambdaAllowed()
         {
@@ -817,9 +808,21 @@ public class ConfigurablePofContext
         }
 
     /**
-     * Set the Jandex index file name to use to discover portable types.
+     * If portable type discovery is enabled, and we were unable to retrieve indexed classes, shall we try to auto-discover
+     * portable type annotated classes from the classpath? This is enabled by default but for testing purposes it may be
+     * needed to set this property to false.
      *
-     * @param sIndexFile  Jandex index file name to use to discover portable types
+     * @param fEnableAutoTypeDiscovery true by default (if not set)
+     */
+    public void setEnableAutoTypeDiscovery(boolean fEnableAutoTypeDiscovery)
+        {
+        m_fEnableAutoTypeDiscovery = fEnableAutoTypeDiscovery;
+        }
+
+    /**
+     * Set the POF index file name to use to discover portable types.
+     *
+     * @param sIndexFile the POF index file name to use to discover portable types
      */
     public void setIndexFileName(String sIndexFile)
         {
@@ -827,9 +830,9 @@ public class ConfigurablePofContext
         }
 
     /**
-     * Return the Jandex index file name to use to discover portable types.
+     * Return the POF index file name to use to discover portable types.
      *
-     * @return the Jandex index file name to use to discover portable types
+     * @return the POF index file name to use to discover portable types
      */
     public String getIndexFileName()
         {
@@ -935,6 +938,57 @@ public class ConfigurablePofContext
         }
 
     /**
+     * Discovers classes that are annotated with {@link PortableType} annotations. It will fist try to load a class index
+     * from {@link PofIndexer#DEFAULT_INDEX_FILE_NAME}. If no portable type classes are returned, we will perform
+     * automatic type discovery using the available classpath. Keep in mind that this might be a potentially slow operation.
+     * @return a map of PortableType annotated classes with the respective type id. Never null.
+     */
+    protected Map<? extends String, ? extends Integer> discoverPortableTypes()
+        {
+        final PofIndexer pofIndexer = new PofIndexer();
+        pofIndexer.setIndexFileName(getIndexFileName());
+
+        final Map<URL, Properties> mapIndexes       = pofIndexer.loadIndexes();
+        final Map<String, Integer> mapPortableTypes = new SafeHashMap<>();
+
+        if (mapIndexes.isEmpty() && m_fEnableAutoTypeDiscovery)
+            {
+            Logger.finer("No POF index files found. Executing auto-discovery of PortableType-annotated " +
+                    "classes from the classpath. Be aware that this might be a time-consuming operation. The use of POF " +
+                    "index files is preferred.");
+            mapPortableTypes.putAll(pofIndexer.discoverPortableTypes());
+            Logger.info(mapPortableTypes.size() + " class" + (mapPortableTypes.size() != 1 ? "es" : "") +
+                    " auto-discovered with PortableType annotation from classpath");
+            return mapPortableTypes;
+            }
+
+        // find the list of classes that implement PortableType
+        for (Map.Entry<URL, Properties> entry : mapIndexes.entrySet())
+            {
+            final Properties properties = entry.getValue();
+            for (Map.Entry mapEntry : properties.entrySet())
+                {
+                final Integer pofId;
+                final String  sClassName = (String) mapEntry.getKey();
+
+                if (mapEntry.getValue() != null && mapEntry.getValue() instanceof Integer)
+                    {
+                    pofId = Integer.valueOf((String) mapEntry.getValue());
+                    }
+                else
+                    {
+                    pofId = pofIndexer.getPortableTypeIdForClassName(sClassName);
+                    }
+                mapPortableTypes.put(sClassName, pofId);
+                }
+            Logger.info(properties.size() + " class" + (properties.size() != 1 ? "es" : "") +
+                    " registered with PortableType annotation " +
+                    "from index: " + entry.getKey());
+            }
+            return mapPortableTypes;
+        }
+
+    /**
     * Create a PofConfig object based on a configuration that was either
     * provided as XML, or can be loaded from the specified (or default) URI
     * using the provided ClassLoader.
@@ -946,7 +1000,6 @@ public class ConfigurablePofContext
         // load the XML configuration if it is not already provided
         String     sURI      = m_sUri;
         XmlElement xmlConfig = m_xml;
-        int        cClasses  = 0;
 
         if (xmlConfig == null)
             {
@@ -974,31 +1027,7 @@ public class ConfigurablePofContext
 
         if (fEnableTypeDiscovery)
             {
-            Map<URL, Index> mapIndexes = loadIndexes();
-
-            // find the list of classes that implement PortableType
-            for (Map.Entry<URL, Index> entry : mapIndexes.entrySet())
-                {
-                Index index = entry.getValue();
-                cClasses = 0;
-                for (AnnotationInstance anno : index.getAnnotations(DotName.createSimple(PortableType.class.getName())))
-                    {
-                    if (anno.target().kind().equals(AnnotationTarget.Kind.CLASS))
-                        {
-                        AnnotationValue id        = anno.value("id");
-                        String          sTypeName = anno.target().asClass().toString();
-                        int             nTypeId   = id == null ? -1 : id.asInt();
-                        mapPortableTypes.put(sTypeName, nTypeId);
-                        cClasses++;
-
-                        Logger.finest(() -> String.format("Registered portable type %s(id=%d)", sTypeName, nTypeId));
-                        }
-                    }
-
-                Logger.info(cClasses + " class" + (cClasses != 1 ? "es" : "") +
-                            " registered with PortableType annotation " +
-                            "from index: " + entry.getKey());
-                }
+                mapPortableTypes.putAll(discoverPortableTypes());
             }
 
         // scan the types for the highest type-id
@@ -1532,42 +1561,6 @@ public class ConfigurablePofContext
         }
 
     /**
-     * Attempt to load all Jandex index files which will we will use to search for
-     * classes that have the PortableType annotation.
-     *
-     * @return a {@link Map} of {@link Index}es keyed by {@link URL} or an empty {@link Map} if none found.
-     */
-    private Map<URL, Index> loadIndexes()
-        {
-        Map<URL, Index> mapIndexes     = new LiteMap<>();
-        String          sIndexFileName = m_sIndexFileName;
-
-        try {
-            Iterable<URL> iterUrls = Resources.findResources(sIndexFileName, getContextClassLoader());
-
-            // loop through each URL and load the index
-            for (URL url : iterUrls)
-                {
-                try (InputStream input = url.openStream())
-                    {
-                    mapIndexes.put(url, new IndexReader(input).read());
-                    }
-                catch (Exception ignore)
-                    {
-                    Logger.warn("Unable to read Jandex index file " + url + ", error is " + ignore.getMessage());
-                    }
-                }
-            }
-        catch (IOException e)
-            {
-            // any Exception coming from getResources() or toURL() is ignored and
-            // the Map of indexes remain empty
-            }
-
-        return mapIndexes;
-        }
-
-    /**
      * Merge all included POF configuration files into the given xml configuration.
      *
      * @param sURI       the URI of the POF configuration file
@@ -1845,9 +1838,9 @@ public class ConfigurablePofContext
     protected static final Class ROOT_LAMBDA_CLASS = FunctionalInterface.class;
 
     /**
-     * Default Jandex index file.
+     * Default POF index file.
      */
-    protected static final String DEFAULT_INDEX_FILE_NAME = "META-INF/jandex.idx";
+    protected static final String DEFAULT_INDEX_FILE_NAME = "META-INF/pof.idx";
 
     // ----- data members ---------------------------------------------------
 
@@ -1861,6 +1854,13 @@ public class ConfigurablePofContext
     * use.
     */
     private WeakReference<ClassLoader> m_refLoader;
+
+    /**
+     * If portable type discovery is enabled, and we were unable to retrieve indexed classes, shall we try to auto-discover
+     * portable type annotated classes from the classpath? This is enabled by default but for testing purposes it may be
+     * needed to set this property to false.
+     */
+    private boolean m_fEnableAutoTypeDiscovery = true;
 
     /**
     * The URI that specifies the location of the configuration file.
@@ -1891,7 +1891,8 @@ public class ConfigurablePofContext
     private volatile PofConfig m_cfg;
 
     /**
-     * The Jandex index file name to use.
+     * The POF index file name to use.
      */
     private String m_sIndexFileName = DEFAULT_INDEX_FILE_NAME;
+
     }

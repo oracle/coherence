@@ -26,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 
 import java.lang.reflect.Constructor;
@@ -35,6 +37,8 @@ import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
@@ -49,9 +53,9 @@ import static com.oracle.coherence.gradle.support.TestUtils.getPofClass;
 import static com.oracle.coherence.gradle.support.TestUtils.setupGradleBuildFile;
 import static com.oracle.coherence.gradle.support.TestUtils.setupGradlePropertiesFile;
 import static com.oracle.coherence.gradle.support.TestUtils.setupGradleSettingsFile;
-
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-
 
 /**
  * @author Gunnar Hillert
@@ -274,11 +278,10 @@ public class CoherencePluginTests
         }
 
     @Test
-    void applyBasicCoherenceGradlePluginWithClassAndKordampJandexPlugin()
-        {
+    void applyBasicCoherenceGradlePluginWithClassAndWithPofIndexing() throws IOException {
         setupGradlePropertiesFile(m_gradleProjectRootDirectory);
         setupGradleSettingsFile(m_gradleProjectRootDirectory, "settings", f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo());
-        setupGradleBuildFile(m_gradleProjectRootDirectory, "applyWithKordampJandexPlugin",
+        setupGradleBuildFile(m_gradleProjectRootDirectory, "applyWithIndexing",
                 f_coherenceBuildTimeProperties.getCoherenceGroupId(),
                 f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo(),
                 f_coherenceBuildTimeProperties.getCoherenceGroupId(),
@@ -303,14 +306,25 @@ public class CoherencePluginTests
 
         Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "Foo", "build/classes/java/main/");
         assertThatClassIsPofInstrumented(foo);
+
+        File pofIndexFile = new File(m_gradleProjectRootDirectory, "build/classes/java/main/META-INF/pof.idx");
+        assertTrue(pofIndexFile.exists(), "The pof.idx should exist at " + pofIndexFile.getAbsolutePath());
+        assertTrue(pofIndexFile.isFile());
+
+        Properties properties = new Properties();
+        properties.load(new FileReader(pofIndexFile));
+
+        assertFalse(properties.isEmpty());
+        assertTrue(properties.containsKey("Foo"));
+        assertTrue(properties.get("Foo").equals(""));
+
         }
 
     @Test
-    void applyBasicCoherenceGradlePluginWithClassAndVlsiJandexPlugin()
-        {
+    void applyBasicCoherenceGradlePluginWithoutPofIndexing() throws IOException {
         setupGradlePropertiesFile(m_gradleProjectRootDirectory);
         setupGradleSettingsFile(m_gradleProjectRootDirectory, "settings", f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo());
-        setupGradleBuildFile(m_gradleProjectRootDirectory, "applyWithVlsiJandexPlugin",
+        setupGradleBuildFile(m_gradleProjectRootDirectory, "applyWithoutIndexing",
                 f_coherenceBuildTimeProperties.getCoherenceGroupId(),
                 f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo(),
                 f_coherenceBuildTimeProperties.getCoherenceGroupId(),
@@ -335,6 +349,9 @@ public class CoherencePluginTests
 
         Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "Foo", "build/classes/java/main/"); // "build/classes/java/main/"
         assertThatClassIsPofInstrumented(foo);
+
+        File pofIndexFile = new File(m_gradleProjectRootDirectory, "build/classes/java/main/META-INF/pof.idx");
+        assertFalse(pofIndexFile.exists(), "The pof.idx should NOT exist at " + pofIndexFile.getAbsolutePath());
         }
 
     @Test

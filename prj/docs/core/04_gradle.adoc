@@ -12,10 +12,8 @@
 // both they serve a purpose, and the docs will look wrong if it is removed.
 == Gradle POF Plugin
 
-:coherence-gradle-plugin-version: 23.09.1
+:coherence-gradle-plugin-version: 24.03
 :coherence-version: {version-coherence}
-:com-github-vlsi-jandex-version: 1.86
-:org-kordamp-gradle-jandex-version: 1.1.0
 
 The POF Gradle Plugin provides automated instrumentation of classes with the `@PortableType` annotation to generate
 consistent (and correct) implementations of Evolvable POF serialization methods.
@@ -148,36 +146,12 @@ if you assume that the `Color` class from the earlier code examples:
 </schema>
 ----
 
-=== Jandex Index
+=== Generating POF Index Files
 
-The portable type discovery feature of Coherence depends on the availability of a
-https://github.com/smallrye/jandex[Jandex] index within the modules that provide portable types that need to be registered.
-
-Therefore, in order to use POF instrumented classes at compile-time in your Gradle project, you should also add a
-Jandex Gradle plugin. As Oracle Coherence uses Jandex 2 under the covers, there are 2 options available:
-
-- https://github.com/vlsi/vlsi-release-plugins
-- https://github.com/kordamp/jandex-gradle-plugin (Only versions `< 1.0.0` as recent versions use Jandex 3)
-
-.Build.gradle
-[source,groovy,subs="normal"]
-----
-plugins {
-  id 'java'
-  id 'com.oracle.coherence.ce' version '{coherence-gradle-plugin-version}'
-  id 'com.github.vlsi.jandex' version '{com-github-vlsi-jandex-version}'
-}
-----
-
-.Build.gradle
-[source,groovy,subs="normal"]
-----
-plugins {
-  id 'java'
-  id 'com.oracle.coherence.ce' version '{coherence-gradle-plugin-version}'
-  id 'org.kordamp.gradle.jandex' version '{org-kordamp-gradle-jandex-version}'
-}
-----
+The portable type discovery feature of Coherence can use index files to speed up the discovery of `@PortableType` annotated
+classes. By default, at compile time, the Gradle plugin will generate index files under `META-INF/pod.idx` that contain class names of
+`@PortableType` annotated classes. You can skip the generation of those index files by setting the `indexPofClasses`
+property in your Gradle plugin configuration to `false`.
 
 === Example
 
@@ -279,7 +253,6 @@ For projects to pick up the local changes ensure the following configuration:
 plugins {
   id 'java'
   id 'com.oracle.coherence.ce' version '{coherence-gradle-plugin-version}'
-  id 'com.github.vlsi.jandex' version '{com-github-vlsi-jandex-version}'
 }
 ----
 

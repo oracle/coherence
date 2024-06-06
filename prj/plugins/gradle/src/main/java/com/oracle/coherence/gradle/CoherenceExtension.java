@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.gradle;
+
+import com.tangosol.io.pof.schema.annotation.PortableType;
 
 import org.gradle.api.provider.Property;
 
@@ -59,4 +61,12 @@ public abstract class CoherenceExtension
      */
     public abstract Property<String> getPofSchemaXmlPath();
 
+
+    /**
+     * Shall {@link PortableType} annotated classes be indexed to an index file at {@code META-INF/pof.idx}?
+     * If not specified, this property defaults to {@code true}.
+     *
+     * @return Gradle container object wrapping a Boolean property
+     */
+    public abstract Property<Boolean> getIndexPofClasses();
     }

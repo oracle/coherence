@@ -12,6 +12,7 @@ import com.oracle.coherence.common.schema.Schema;
 import com.oracle.coherence.common.schema.SchemaBuilder;
 import com.oracle.coherence.common.schema.XmlSchemaSource;
 
+import com.tangosol.io.pof.PofIndexer;
 import com.tangosol.io.pof.generator.PortableTypeGenerator;
 
 import com.tangosol.io.pof.schema.annotation.PortableType;
@@ -101,6 +102,16 @@ abstract class CoherenceTask
     public abstract Property<Boolean> getUsePofSchemaXml();
 
     /**
+     * Shall {@link PortableType} annotated classes be indexed to an index file at {@code META-INF/pof.idx}?
+     * If not specified, this property defaults to {@code true}.
+     *
+     * @return Gradle container object wrapping a Boolean property
+     */
+    @Input
+    @Optional
+    public abstract Property<Boolean> getIndexPofClasses();
+
+    /**
      * Sets the project's resources directory. This is an optional property.
      **/
     @Input
@@ -183,6 +194,8 @@ abstract class CoherenceTask
             usePofSchemaXmlPath = false;
             }
 
+        final boolean indexPofClasses = this.getIndexPofClasses().getOrElse(true);
+
         logger.info("The following configuration properties are configured:");
 
         logger.info("Property classesDirectory   = {}", classesDirectory.getAbsolutePath());
@@ -201,6 +214,7 @@ abstract class CoherenceTask
 
         logger.info("Property outputDirectory    = {}", outputDirectory.getAbsolutePath());
         logger.info("Property sPofSchemaXmlPath  = {}", sPofSchemaXmlPath);
+        logger.info("Property indexPofClasses  = {}", indexPofClasses);
         logger.info("Property debug              = {}", fDebug);
 
         if (!classesDirectory.equals(outputDirectory))
@@ -271,6 +285,9 @@ abstract class CoherenceTask
                 }
             }
 
+        final List<File> classesFromDirectory = new ArrayList<>();
+        final List<File> classesFromJarFile = new ArrayList<>();
+
         if (!listInstrument.isEmpty())
             {
             final List<File>            listDeps     = resolveDependencies();
@@ -281,12 +298,16 @@ abstract class CoherenceTask
             listDeps.stream()
                     .filter(File::isDirectory)
                     .peek(f -> logger.lifecycle("Adding classes from " + f + " to schema"))
-                    .forEach(dependencies::withClassesFromDirectory);
+                    .forEach(classesFromDirectory::add);
+
+            classesFromDirectory.forEach(dependencies::withClassesFromDirectory);
 
             listDeps.stream()
                     .filter(f -> f.isFile() && f.getName().endsWith(".jar"))
                     .peek(f -> logger.lifecycle("Adding classes from " + f + " to schema"))
-                    .forEach(dependencies::withClassesFromJarFile);
+                    .forEach(classesFromJarFile::add);
+
+            classesFromJarFile.forEach(dependencies::withClassesFromJarFile);
 
             final Schema schema = schemaBuilder
                     .addSchemaSource(dependencies)
@@ -300,6 +321,22 @@ abstract class CoherenceTask
             catch (IOException e)
                 {
                 throw Exceptions.ensureRuntimeException(e);
+                }
+            }
+
+        if (indexPofClasses)
+            {
+            try {
+                logger.warn("Creating POF index in directory " + outputDirectory.getCanonicalPath());
+                new PofIndexer()
+                        .ignoreClasspath(true)
+                        .withClassesFromDirectory(listInstrument)
+                        .withClassesFromJarFile(classesFromJarFile)
+                        .createIndexInDirectory(outputDirectory);
+                }
+            catch (IOException e)
+                {
+                    throw Exceptions.ensureRuntimeException(e);
                 }
             }
         }

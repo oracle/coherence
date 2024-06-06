@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -22,17 +22,17 @@ import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.filter.LikeFilter;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.nio.file.Files;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 import java.util.function.Function;
-
-import org.jboss.jandex.Index;
-import org.jboss.jandex.IndexWriter;
-import org.jboss.jandex.Indexer;
 
 import org.junit.Test;
 
@@ -41,22 +41,16 @@ import java.io.Serializable;
 
 import java.math.BigInteger;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
 import static org.hamcrest.CoreMatchers.instanceOf;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.*;
 
 /**
 * Test for the ConfigurablePofHandler class.
 * <p/>
-* @author cp  2006.07.26
+* @author cp 2006.07.26
+* @author Gunnar Hillert 2024.04.15
 */
 public class ConfigurablePofContextTest
         extends Base
@@ -135,6 +129,7 @@ public class ConfigurablePofContextTest
     public void testFilter() throws Exception
         {
         ConfigurablePofContext ctx = new ConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         ctx.setContextClassLoader(PofMaster.class.getClassLoader());
 
         Object o = new AndFilter(
@@ -145,6 +140,7 @@ public class ConfigurablePofContextTest
         ctx.serialize(buf.getBufferOutput(), o);
 
         ConfigurablePofContext ctx2 = new ConfigurablePofContext();
+        ctx2.setEnableAutoTypeDiscovery(false);
         ctx2.setContextClassLoader(PofMaster.class.getClassLoader());
         Object o2 = ctx2.deserialize(buf.toBinary().getBufferInput());
 
@@ -186,7 +182,9 @@ public class ConfigurablePofContextTest
     public void testDefaultLambda() throws Exception
         {
         ConfigurablePofContext ctx = new ConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         ctx.setContextClassLoader(PofMaster.class.getClassLoader());
+
 
         Function<Object, String> func = (Function<Object, String> & Serializable) (n) -> n.toString();
 
@@ -210,7 +208,6 @@ public class ConfigurablePofContextTest
             throws IOException
         {
         File fileIndex = setupIndex(PortableTypeTest1.class);
-
         try
             {
             ConfigurablePofContext ctx = new ConfigurablePofContext("com/tangosol/io/pof/portable-type-pof-config1.xml");
@@ -733,32 +730,17 @@ public class ConfigurablePofContextTest
     // ----- helpers --------------------------------------------------------
 
     /**
-     * Create a Jandex index using the given file name and classes.
+     * Create a POF index using the given file name and classes.
      *
-     * @param sFileName the file name to write the index to. The classes should be in the format of "java/lang/Thread.class"
+     * @param pofIndexFile the file to write the index to. The classes should be in the format of "java/lang/Thread.class"
      * @param clazzes  classes to index
      */
-    public void createManualIndex(String sFileName, String... clazzes) throws IOException
+    public void createManualIndex(File pofIndexFile, Class... clazzes) throws IOException
         {
-        Indexer indexer = new Indexer();
-        for (String clazz : clazzes)
-            {
-            InputStream stream = ConfigurablePofContextTest.class.getClassLoader().getResourceAsStream(clazz);
-            indexer.index(stream);
-            stream.close();
-            }
-        Index index = indexer.complete();
-
-        FileOutputStream out    = new FileOutputStream(sFileName);
-        IndexWriter      writer = new IndexWriter(out);
-        try
-            {
-            writer.write(index);
-            }
-        finally
-            {
-            out.close();
-            }
+        final PofIndexer pofIndexer = new PofIndexer()
+                .withIndexFileName(pofIndexFile.getName())
+                .withClasses(Arrays.stream(clazzes).toList());
+        pofIndexer.createIndex(pofIndexFile);
         }
 
     /**
@@ -769,20 +751,10 @@ public class ConfigurablePofContextTest
      */
     protected File setupIndex(Class<?>... clazzes) throws IOException
         {
-        String sIndexFile = Files.createTempFile("index" + System.currentTimeMillis(), "idx").toFile().toString();
-        createManualIndex(sIndexFile, Arrays.stream(clazzes).map(c -> getIndexClassName(c)).toArray(String[]::new));
-        assertThat(sIndexFile, is(notNullValue()));
-        File fileIndex = new File(sIndexFile);
+        File fileIndex = Files.createTempFile("index" + System.currentTimeMillis(), ".idx").toFile();
+        createManualIndex(fileIndex, clazzes);
         assertThat(fileIndex.exists(), is(true));
         return fileIndex;
         }
 
-    protected String getIndexClassName(Class clazz)
-        {
-        if (clazz == null)
-            {
-            throw new IllegalArgumentException("Class must not be null");
-            }
-        return clazz.getName().replaceAll("\\.", "/") + ".class";
-        }
     }

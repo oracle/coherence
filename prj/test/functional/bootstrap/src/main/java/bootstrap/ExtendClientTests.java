@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package bootstrap;
 import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.coherence.ServiceStatus;
 
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
@@ -57,6 +58,7 @@ public class ExtendClientTests
                                                              m_testLogs))
             {
             Eventually.assertDeferred(member::isReady, is(true));
+            Eventually.assertDeferred(() -> member.getServiceStatus("Proxy"), is(ServiceStatus.RUNNING));
 
             try (CoherenceClusterMember client = platform.launch(CoherenceClusterMember.class,
                                                                  SystemProperty.of("coherence.client", "remote"),
@@ -83,6 +85,7 @@ public class ExtendClientTests
                                                              m_testLogs))
             {
             Eventually.assertDeferred(member::isReady, is(true));
+            Eventually.assertDeferred(() -> member.getServiceStatus("Proxy"), is(ServiceStatus.RUNNING));
 
             try (CoherenceClusterMember client = platform.launch(CoherenceClusterMember.class,
                                                                  SystemProperty.of("coherence.client", "remote-fixed"),

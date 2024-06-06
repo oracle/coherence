@@ -20,7 +20,8 @@ import org.gradle.api.tasks.compile.JavaCompile;
  * @see CoherenceTaskRegistrationAction
  * @see CoherenceTestTaskRegistrationAction
  */
-public abstract class AbstractCoherenceTaskRegistrationAction implements Action<CoherenceTask> {
+public abstract class AbstractCoherenceTaskRegistrationAction implements Action<CoherenceTask>
+    {
 
     //----- constructors ----------------------------------------------------
 
@@ -65,6 +66,10 @@ public abstract class AbstractCoherenceTaskRegistrationAction implements Action<
         if (coherenceExtension.getPofSchemaXmlPath().isPresent())
             {
             coherencePofTask.getPofSchemaXmlPath().set(coherenceExtension.getPofSchemaXmlPath());
+            }
+        if (coherenceExtension.getIndexPofClasses().isPresent())
+            {
+            coherencePofTask.getIndexPofClasses().set(coherenceExtension.getIndexPofClasses());
             }
         }
 

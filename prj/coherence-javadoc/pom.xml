@@ -100,14 +100,6 @@
       <artifactId>je</artifactId>
     </dependency>
 
-    <!-- jandex for searching for PortableType -->
-    <dependency>
-      <groupId>io.smallrye</groupId>
-      <artifactId>jandex</artifactId>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-
     <!-- IMPORTANT: intentional dependency on old versions of Servlet and JSP specs,
                     as that's what Coherence*Web currently supports -->
     <!-- TODO: upgrade to Java EE 8 spec versions -->

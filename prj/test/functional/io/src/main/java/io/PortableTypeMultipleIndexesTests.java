@@ -108,9 +108,9 @@ public class PortableTypeMultipleIndexesTests
             assertThat(dirCountryMetaInf.mkdir(), is(true));
 
             // copy the files
-            assertThat(Files.copy(filePerson.toPath(), new File(dirPersonMetaInf, "jandex.idx").toPath()), is(notNullValue()));
-            assertThat(Files.copy(fileAddress.toPath(), new File(dirAddressMetaInf, "jandex.idx").toPath()), is(notNullValue()));
-            assertThat(Files.copy(fileCountry.toPath(), new File(dirCountryMetaInf, "jandex.idx").toPath()), is(notNullValue()));
+            assertThat(Files.copy(filePerson.toPath(), new File(dirPersonMetaInf, "pof.idx").toPath()), is(notNullValue()));
+            assertThat(Files.copy(fileAddress.toPath(), new File(dirAddressMetaInf, "pof.idx").toPath()), is(notNullValue()));
+            assertThat(Files.copy(fileCountry.toPath(), new File(dirCountryMetaInf, "pof.idx").toPath()), is(notNullValue()));
 
             // create the Jar files
             s_dirJarBase = FileHelper.createTempDir();
