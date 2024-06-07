@@ -18,15 +18,19 @@ import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.testkit.runner.UnexpectedBuildFailure;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
+
 import org.junit.jupiter.api.io.TempDir;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -39,6 +43,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
@@ -69,6 +74,17 @@ public class CoherencePluginTests
         LOGGER.info("Using Coherence Group Id '{}' and Coherence version {}",
                     f_coherenceBuildTimeProperties.getCoherenceGroupId(),
                     f_coherenceBuildTimeProperties.getCoherenceVersion());
+        }
+
+    @AfterEach
+    void cleanUp()
+        {
+        GradleRunner.create()
+                .withProjectDir(m_gradleProjectRootDirectory)
+                .withArguments("clean", "--info")
+                .withDebug(true)
+                .withPluginClasspath()
+                .build();
         }
 
     @Test
@@ -530,6 +546,8 @@ public class CoherencePluginTests
         }
 
     @Test
+    @DisabledOnOs(value = OS.WINDOWS, disabledReason =
+            "GradleRunner does not seem to release all file handles. See https://github.com/gradle/gradle/issues/12535")
     void applyCoherenceGradlePluginWithJarDependency()
         {
         setupGradlePropertiesFile(m_gradleProjectRootDirectory);
@@ -608,6 +626,8 @@ public class CoherencePluginTests
         }
 
     @Test
+    @DisabledOnOs(value = OS.WINDOWS, disabledReason =
+            "GradleRunner does not seem to release all file handles. See https://github.com/gradle/gradle/issues/12535")
     void verifyCoherenceGradlePluginWithMultiProject() throws IOException
         {
         final String projectFolder = "test-multi-project";
@@ -641,8 +661,10 @@ public class CoherencePluginTests
             throw new IllegalStateException(String.format("The directory '%s' does not exist.",
                     sourceDirectoryLocationAsFile.getAbsolutePath()));
             }
-        Files.walk(sourceDirectoryLocation)
-                .forEach(source ->
+
+        try (Stream<Path> paths = Files.walk(sourceDirectoryLocation))
+            {
+            paths.forEach(source ->
                     {
                     if (source.getFileName().toString().equals(testProjectFolder))
                         {
@@ -681,6 +703,7 @@ public class CoherencePluginTests
                         TestUtils.copyUsingPaths(source, destination);
                         }
                     });
+            }
         }
 
     void assertSuccess(BuildResult gradleResult)
