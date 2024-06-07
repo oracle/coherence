@@ -39,6 +39,7 @@ import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.CacheService;
@@ -74,7 +75,6 @@ import com.tangosol.util.Listeners;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
-import com.tangosol.util.MultiplexingMapListener;
 import com.tangosol.util.SparseArray;
 import com.tangosol.util.TaskDaemon;
 import com.tangosol.util.ThreadGateLite;
@@ -137,7 +137,7 @@ import java.util.stream.Collectors;
  * @author jk/mf 2015.06.15
  * @since Coherence 14.1.1
  */
-@SuppressWarnings({"rawtypes", "EnhancedSwitchMigration", "PatternVariableCanBeUsed"})
+@SuppressWarnings({"rawtypes"})
 public class PagedTopicSubscriber<V>
     implements Subscriber<V>, AutoCloseable
     {
@@ -164,7 +164,6 @@ public class PagedTopicSubscriber<V>
 
         f_fAnonymous                 = sName == null;
         m_listenerGroupDeactivation  = new GroupDeactivationListener();
-        m_listenerChannelAllocation  = new ChannelListener();
         f_serializer                 = m_caches.getSerializer();
         f_listenerNotification       = new SimpleMapListener<>().addDeleteHandler(this::onChannelPopulatedNotification);
         f_gate                       = new ThreadGateLite<>();
@@ -189,13 +188,13 @@ public class PagedTopicSubscriber<V>
             fWarn = true;
             }
 
-        f_fCompleteOnEmpty   = optionsMap.contains(CompleteOnEmpty.class);
-        f_filterNotification = new InKeySetFilter<>(/*filter*/ null, m_caches.getPartitionNotifierSet(f_nNotificationId));
-        f_id                 = new SubscriberId(f_nNotificationId, member.getId(), member.getUuid());
-
-        f_subscriberGroupId  = f_fAnonymous ? SubscriberGroupId.anonymous() : SubscriberGroupId.withName(sName);
-        f_key                = new SubscriberInfo.Key(f_subscriberGroupId, f_id.getId());
-        f_heartbeatProcessor = new SubscriberHeartbeatProcessor();
+        f_fCompleteOnEmpty          = optionsMap.contains(CompleteOnEmpty.class);
+        f_filterNotification        = new InKeySetFilter<>(/*filter*/ null, m_caches.getPartitionNotifierSet(f_nNotificationId));
+        f_id                        = new SubscriberId(f_nNotificationId, member.getId(), member.getUuid());
+        f_subscriberGroupId         = f_fAnonymous ? SubscriberGroupId.anonymous() : SubscriberGroupId.withName(sName);
+        f_key                       = new SubscriberInfo.Key(f_subscriberGroupId, f_id.getId());
+        f_heartbeatProcessor        = new SubscriberHeartbeatProcessor();
+        m_listenerChannelAllocation = new ChannelListener(f_id, new PagedTopicSubscription.Key(f_topic.getName(), f_subscriberGroupId));
 
         Filtered filtered = optionsMap.get(Filtered.class);
         f_filter = filtered == null ? null : filtered.getFilter();
@@ -1499,8 +1498,7 @@ public class PagedTopicSubscriber<V>
 
             // We must execute against all Subscription keys for the channel and subscriber group
             CompletableFuture<Map<Subscription.Key, CommitResult>> future
-                    = InvocableMapHelper.invokeAllAsync(m_caches.Subscriptions, setKeys,
-                            m_caches.getUnitOfOrder(nPart), new CommitProcessor(position, f_id), f_executor);
+                    = CompletableFuture.supplyAsync(() -> m_caches.Subscriptions.invokeAll(setKeys, new CommitProcessor(position, f_id)), Daemons.commonPool());
 
             return future.handle((map, err) ->
                             {
@@ -3000,13 +2998,7 @@ public class PagedTopicSubscriber<V>
         {
         try
             {
-            ChannelListener listener = m_listenerChannelAllocation;
-
-            if (listener != null)
-                {
-                m_caches.f_topicService.addSubscriptionListener(listener);
-                m_caches.Subscriptions.addMapListener(listener, m_aChannel[0].subscriberPartitionSync, false);
-                }
+            m_caches.f_topicService.addSubscriptionListener(m_listenerChannelAllocation);
             }
         catch (RuntimeException e)
             {
@@ -3021,13 +3013,7 @@ public class PagedTopicSubscriber<V>
         {
         try
             {
-            ChannelListener listener = m_listenerChannelAllocation;
-
-            if (listener != null)
-                {
-                m_caches.f_topicService.removeSubscriptionListener(listener);
-                m_caches.Subscriptions.removeMapListener(listener, m_aChannel[0].subscriberPartitionSync);
-                }
+            m_caches.f_topicService.removeSubscriptionListener(m_listenerChannelAllocation);
             }
         catch (RuntimeException e)
             {
@@ -3250,7 +3236,7 @@ public class PagedTopicSubscriber<V>
      */
     public static Option withNotificationId(int nId)
         {
-        return (WithNotificationId) () -> nId;
+        return (WithNotificationId<Object, Object>) () -> nId;
         }
 
     // ----- inner class: WithIdentifier ------------------------------------
@@ -3655,7 +3641,7 @@ public class PagedTopicSubscriber<V>
             m_lock.lock();
             try
                 {
-                long l = m_lVersion.incrementAndGet();
+                m_lVersion.incrementAndGet();
                 m_fEmpty = false;
                 }
             finally
@@ -4305,11 +4291,12 @@ public class PagedTopicSubscriber<V>
      * A {@link MapListener} that tracks changes to the channels owned by this subscriber.
      */
     protected class ChannelListener
-            extends MultiplexingMapListener<Subscription.Key, Subscription>
             implements PagedTopicSubscription.Listener
         {
-        public ChannelListener()
+        public ChannelListener(SubscriberId id, PagedTopicSubscription.Key key)
             {
+            f_id    = id;
+            f_key   = key;
             m_latch = new CountDownLatch(1);
             }
 
@@ -4318,7 +4305,7 @@ public class PagedTopicSubscriber<V>
         @Override
         public void onUpdate(PagedTopicSubscription subscription)
             {
-            if (Objects.equals(getSubscriberGroupId(), subscription.getSubscriberGroupId()))
+            if (Objects.equals(subscription.getKey(), f_key))
                 {
                 f_daemonChannels.executeTask(() -> onChannelAllocation(subscription));
                 }
@@ -4327,20 +4314,9 @@ public class PagedTopicSubscriber<V>
         @Override
         public void onDelete(PagedTopicSubscription subscription)
             {
-            if (Objects.equals(getSubscriberGroupId(), subscription.getSubscriberGroupId()))
+            if (Objects.equals(subscription.getKey(), f_key))
                 {
                 f_daemonChannels.executeTask(() -> updateChannelOwnership(PagedTopicSubscription.NO_CHANNELS, true));
-                }
-            }
-
-        // ----- MultiplexingMapListener methods ----------------------------
-
-        @Override
-        protected void onMapEvent(MapEvent<Subscription.Key, Subscription> evt)
-            {
-            if (f_daemonChannels.isRunning() && !f_daemonChannels.isStopping())
-                {
-                f_daemonChannels.executeTask(() -> onChannelAllocation(evt));
                 }
             }
 
@@ -4359,13 +4335,13 @@ public class PagedTopicSubscriber<V>
                 return false;
                 }
             ChannelListener that = (ChannelListener) o;
-            return Objects.equals(getId(), that.getId());
+            return Objects.equals(f_id, that.f_id) && Objects.equals(f_key, that.f_key);
             }
 
         @Override
         public int hashCode()
             {
-            return Objects.hash(getId());
+            return Objects.hash(f_id, f_key);
             }
 
         // ----- helper methods ---------------------------------------------
@@ -4383,43 +4359,6 @@ public class PagedTopicSubscriber<V>
                 }
             }
 
-        private void onChannelAllocation(MapEvent<Subscription.Key, Subscription> evt)
-            {
-            if (!isActive())
-                {
-                return;
-                }
-
-            PagedTopicSubscription pagedTopicSubscription = m_caches.getService().getSubscription(m_subscriptionId);
-            if (pagedTopicSubscription != null)
-                {
-                // we have a PagedTopicSubscription so get the channels from it rather than the
-                // subscription as these allocations come from the senior and will be consistent
-                // we will get events when the subscription is updated
-                return;
-                }
-
-            SortedSet<Integer> setChannel = null;
-
-            if (evt.isDelete())
-                {
-                setChannel = PagedTopicSubscription.NO_CHANNELS;
-                }
-            else
-                {
-                Subscription subscription = evt.getNewValue();
-                if (subscription.hasSubscriber(f_id))
-                    {
-                    int cChannel = m_caches.getChannelCount();
-                    setChannel = Arrays.stream(subscription.getChannels(f_id, cChannel))
-                            .boxed()
-                            .collect(Collectors.toCollection(TreeSet::new));
-                    }
-                }
-
-            onChannelAllocation(setChannel);
-            }
-
         private void onChannelAllocation(PagedTopicSubscription subscription)
             {
             if (!isActive())
@@ -4432,11 +4371,7 @@ public class PagedTopicSubscriber<V>
                 {
                 setChannel = subscription.getOwnedChannels(f_id);
                 }
-            onChannelAllocation(setChannel);
-            }
 
-        private void onChannelAllocation(SortedSet<Integer> setChannel)
-            {
             if (setChannel != null && setChannel.isEmpty())
                 {
                 updateChannelOwnership(PagedTopicSubscription.NO_CHANNELS, true);
@@ -4450,16 +4385,11 @@ public class PagedTopicSubscriber<V>
                     }
                 else if (isActive() && !f_fAnonymous && isConnected())
                     {
-                    Logger.finest("Disconnecting Subscriber " + PagedTopicSubscriber.this);
+                    Logger.finest("Disconnecting Subscriber (null channel set) " + PagedTopicSubscriber.this);
                     updateChannelOwnership(PagedTopicSubscription.NO_CHANNELS, true);
                     disconnectInternal(false);
                     }
                 }
-            }
-
-        private long getId()
-            {
-            return PagedTopicSubscriber.this.f_id.getId();
             }
 
         // ----- data members -----------------------------------------------
@@ -4468,6 +4398,16 @@ public class PagedTopicSubscriber<V>
          * A latch that is triggered when channel ownership is initialized.
          */
         private CountDownLatch m_latch;
+
+        /**
+         * The subscriber identifier.
+         */
+        private final SubscriberId f_id;
+
+        /**
+         * The subscription key to listen for changes to.
+         */
+        private final PagedTopicSubscription.Key f_key;
         }
 
     // ----- inner class: TimeoutInterceptor --------------------------------
@@ -4582,7 +4522,7 @@ public class PagedTopicSubscriber<V>
          *
          * @param subscriber  the subscriber to reconnect
          */
-        protected ReconnectTask(PagedTopicSubscriber subscriber)
+        protected ReconnectTask(PagedTopicSubscriber<?> subscriber)
             {
             m_subscriber = subscriber;
             }
@@ -4609,7 +4549,7 @@ public class PagedTopicSubscriber<V>
         /**
          * The subscriber to reconnect.
          */
-        private final PagedTopicSubscriber m_subscriber;
+        private final PagedTopicSubscriber<?> m_subscriber;
 
         /**
          * The number of time the task has executed.
@@ -4846,7 +4786,7 @@ public class PagedTopicSubscriber<V>
     /**
      * The listener that will update channel allocations.
      */
-    protected ChannelListener m_listenerChannelAllocation;
+    protected final ChannelListener m_listenerChannelAllocation;
 
     /**
      * The array of {@link ChannelOwnershipListener listeners} to be notified when channel allocations change.
@@ -4911,7 +4851,7 @@ public class PagedTopicSubscriber<V>
     /**
      * The NamedCache deactivation listener.
      */
-    protected GroupDeactivationListener m_listenerGroupDeactivation;
+    protected final GroupDeactivationListener m_listenerGroupDeactivation;
 
     /**
      * A {@link List} of actions to run when this publisher closes.

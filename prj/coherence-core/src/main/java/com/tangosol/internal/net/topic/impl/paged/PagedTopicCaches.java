@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -238,6 +238,7 @@ public class PagedTopicCaches
         m_mapListener.remove(listener);
         }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public void ensureConnected()
         {
         if (m_state == State.Disconnected)
@@ -926,8 +927,18 @@ public class PagedTopicCaches
         // finish the initialization by having subscription in all partitions advance to our selected heads
         processor = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_ADVANCE, alHead, filter,
                 extractor, subscriberId, fReconnect, fCreateGroupOnly, lSubscription);
-        InvocableMapHelper.invokeAllAsync(Subscriptions, setSubKeys,
-                key -> getUnitOfOrder(key.getPartitionId()), processor).join();
+
+        CompletableFuture<?> futureSub = InvocableMapHelper.invokeAllAsync(Subscriptions, setSubKeys,
+                key -> getUnitOfOrder(key.getPartitionId()), processor);
+
+        try
+            {
+            futureSub.get(30, TimeUnit.SECONDS);
+            }
+        catch (TimeoutException e)
+            {
+            throw Exceptions.ensureRuntimeException(e, "Timed out waiting for subscriptions");
+            }
 
         return alHead;
         }
@@ -1065,11 +1076,6 @@ public class PagedTopicCaches
             Pages.removeMapListener(listener);
             }
         f_topicService.removeMemberListener(listener);
-        }
-
-    public DeactivationListener getDeactivationListener()
-        {
-        return m_deactivationListener;
         }
 
     /**
@@ -1506,10 +1512,14 @@ public class PagedTopicCaches
                 Logger.fine("Detected local member disconnect in service " + PagedTopicCaches.this);
                 disconnected();
                 }
-            else if (service.getOwnershipEnabledMembers().isEmpty())
+            else
                 {
-                Logger.fine("Detected loss of all storage members in service " + PagedTopicCaches.this);
-                disconnected();
+                service.getOwnershipSenior();
+                if (service.getOwnershipEnabledMembers().isEmpty())
+                    {
+                    Logger.fine("Detected loss of all storage members in service " + PagedTopicCaches.this);
+                    disconnected();
+                    }
                 }
             }
 

@@ -919,8 +919,6 @@ public class PagedTopicPartition
         int                     cChannel                 = getChannelCount();
         long[]                  alResult                 = new long[cChannel];
         int                     cParts                   = getPartitionCount();
-        int                     nSyncPartition           = Subscription.getSyncPartition(subscriberGroupId, 0, cParts);
-        boolean                 fSyncPartition           = key.getPartitionId() == nSyncPartition;
 
         if (!fAnonymous)
             {
@@ -929,7 +927,7 @@ public class PagedTopicPartition
                 // Ensure the subscription exists.
                 // If the cluster has been upgraded from a version prior to 22.06.4 the
                 // subscription may not be present in the service senior. If we already
-                // know about the subscription, this call is effectively a no-op.
+                // know about the subscription, the following call will effectively be a no-op.
                 lSubscriptionId = f_service.ensureSubscription(f_sName, subscriberGroupId,
                         subscriberId, filter, converter);
                 // Update the entry processor so the correct subscription id is sent back
@@ -1167,44 +1165,11 @@ public class PagedTopicPartition
                         }
                     else
                         {
-                        if (lSubscriptionId != 0)
-                            {
-                            // We have a subscription id, so the service senior is 22.06.4 or higher.
-                            // Make sure we update subscriptionZero from that state.
-                            fReconnect = subscriptionZero.hasSubscriber(subscriberId);
-                            PagedTopicSubscription pagedTopicSubscription = f_service.getSubscription(lSubscriptionId);
-                            subscriptionZero.update(pagedTopicSubscription);
-                            }
-                        else
-                            {
-                            // This is the legacy subscription handling code prior to 22.06.4
-                            // If the senior is running version 22.06.4, or later we would have
-                            // a non-zero lSubscriptionId and the senior would be managing the
-                            // subscription and channel allocations.
-                            // Ideally we would not do this at all, but we have to account for
-                            // a rolling upgrade from an earlier version.
-                            if (!subscriptionZero.hasSubscriber(subscriberId))
-                                {
-                                // the subscription is out of date, or this is a new subscriber and
-                                // is not an anonymous subscriber (nSubscriberId != 0)
-                                Map<Integer, Set<SubscriberId>> mapRemoved = subscriptionZero
-                                        .addSubscriber(subscriberId, cChannel, getMemberSet());
-
-                                if (fSyncPartition)
-                                    {
-                                    // we only log the update for the sync partition
-                                    // (no need to repeat the same message for every partition)
-                                    Logger.finest(String.format("Added subscriber %s in group %s allocations %s",
-                                                                subscriberId, subscriberGroupId, subscriptionZero.getAllocations()));
-                                    if (!mapRemoved.isEmpty())
-                                        {
-                                        logRemoval(mapRemoved, f_sName, subscriberGroupId.getGroupName());
-                                        }
-                                    }
-
-                                fReconnect = false; // reset reconnect flag as this is effectively a new subscriber
-                                }
-                            }
+                        // We must have a subscription id, as the service senior must be 22.06.4 or higher.
+                        // Make sure we update subscriptionZero from that state.
+                        fReconnect = subscriptionZero.hasSubscriber(subscriberId);
+                        PagedTopicSubscription pagedTopicSubscription = f_service.getSubscription(lSubscriptionId);
+                        subscriptionZero.update(pagedTopicSubscription);
                         }
                     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -75,7 +75,6 @@ import java.io.IOException;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -215,6 +214,7 @@ public abstract class AbstractNamedTopicTests
             }
         catch (Throwable e)
             {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
             }
         finally
@@ -886,10 +886,11 @@ public abstract class AbstractNamedTopicTests
             for (Subscriber<String> subscriber : listSubscriber)
                 {
                 Map<Integer, Position> mapCommit = subscriber.getLastCommitted();
-                int                    nChannel  = subscriber.getChannels()[0];
                 assertThat(mapCommit, is(notNullValue()));
-                assertThat(mapCommit.size(), is(1));
-                assertThat(mapCommit.get(nChannel), is(PagedPosition.NULL_POSITION));
+                for (Position position : mapCommit.values())
+                    {
+                    assertThat(position, is(PagedPosition.NULL_POSITION));
+                    }
                 }
 
             // add data
@@ -4728,6 +4729,7 @@ System.setProperty("test.log.page", String.valueOf(((PagedPosition) elementHead.
         protected void failed(Throwable e, Description description)
             {
             System.err.println(">>>>> Test Failed: " + m_sName);
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
             System.err.println("<<<<<");
             System.err.flush();

@@ -6,6 +6,7 @@
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
+import com.oracle.coherence.common.collections.ConcurrentHashMap;
 import com.oracle.coherence.common.util.SafeClock;
 
 import com.tangosol.internal.net.topic.ChannelAllocationStrategy;
@@ -26,16 +27,15 @@ import java.io.IOException;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -443,7 +443,7 @@ public class PagedTopicSubscription
             for (int i = 0; i < m_aChannelAllocation.length; i++)
                 {
                 int          nChannel     = i;
-                SubscriberId subscriberId = m_mapSubscriber.get(m_aChannelAllocation[i]);
+                SubscriberId subscriberId = m_mapSubscriber.getOrDefault(m_aChannelAllocation[i], SubscriberId.NullSubscriber);
                 m_mapSubscriberChannels.compute(subscriberId, (k, oValue) ->
                     {
                     if (oValue == null)
@@ -798,7 +798,7 @@ public class PagedTopicSubscription
     /**
      * The subscribers subscribed to this subscription.
      */
-    private final SortedMap<Long, SubscriberId> m_mapSubscriber = new TreeMap<>();
+    private final SortedMap<Long, SubscriberId> m_mapSubscriber = new ConcurrentSkipListMap<>();
 
     /**
      * The channel allocations for this subscription.
@@ -808,10 +808,10 @@ public class PagedTopicSubscription
     /**
      * A map of subscriber identifiers to owned channels.
      */
-    private final Map<SubscriberId, Object> m_mapSubscriberChannels = new HashMap<>();
+    private final Map<SubscriberId, Object> m_mapSubscriberChannels = new ConcurrentHashMap<>();
 
     /**
      * The timestamps of the subscriber's subcription.
      */
-    private final Map<Long, Long> m_mapSubscriberTimestamp = new HashMap<>();
+    private final Map<Long, Long> m_mapSubscriberTimestamp = new ConcurrentHashMap<>();
     }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -22,7 +22,7 @@
   <name>Coherence Topics 14.1.1.2206.3 Tests</name>
 
   <properties>
-    <coherence.compatibility.version>22.06.3</coherence.compatibility.version>
+    <coherence.compatibility.version>22.06.8</coherence.compatibility.version>
   </properties>
 
   <dependencies>

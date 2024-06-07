@@ -182,7 +182,11 @@ public class SubscriberModel
      */
     protected String getChannels()
         {
-        int[] aChannel = f_subscriber.getChannels();
+        int[] aChannel = null;
+        if (f_subscriber.isActive() && f_subscriber.isConnected())
+            {
+            aChannel = f_subscriber.getChannels();
+            }
         return aChannel == null ? "[]" : Arrays.toString(aChannel);
         }
 
