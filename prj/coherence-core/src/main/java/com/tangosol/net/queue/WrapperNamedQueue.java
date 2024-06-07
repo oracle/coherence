@@ -167,6 +167,12 @@ public class WrapperNamedQueue<E>
         }
 
     @Override
+    public long append(E e)
+        {
+        return getQueue().offer(e) ? getQueue().size() : Long.MIN_VALUE;
+        }
+
+    @Override
     public E remove()
         {
         return getQueue().remove();
@@ -323,7 +329,6 @@ public class WrapperNamedQueue<E>
             ((ObservableCollection) queue).removeListener(listener, filter);
             }
         }
-
 
     // ----- Object methods -------------------------------------------------
 

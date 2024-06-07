@@ -39,6 +39,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.hamcrest.number.OrderingComparison.lessThanOrEqualTo;
 
 @SuppressWarnings({"rawtypes", "unchecked", "MismatchedQueryAndUpdateOfCollection"})
@@ -113,6 +114,36 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
             assertThat(cache.get(key), is(sExpected));
             i++;
             }
+        }
+
+    // ----- test append() method -------------------------------------------
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldAppendToQueue(String sSerializer)
+        {
+        QueueType queue   = getNewCollection(sSerializer);
+        String    sValue1 = "message-1";
+        String    sValue2 = "message-2";
+        String    sValue3 = "message-3";
+
+        long nId1 = queue.append(sValue1);
+        long nId2 = queue.append(sValue2);
+        long nId3 = queue.append(sValue3);
+        assertThat(nId1, is(greaterThan(Long.MIN_VALUE)));
+        assertThat(nId2, is(greaterThan(Long.MIN_VALUE)));
+        assertThat(nId3, is(greaterThan(Long.MIN_VALUE)));
+
+        NamedCache<?, ?> cache = getCollectionCache(queue.getName());
+        int              nHash = queue.getQueueNameHash();
+
+        QueueKey queueKey1 = new QueueKey(nHash, nId1);
+        QueueKey queueKey2 = new QueueKey(nHash, nId2);
+        QueueKey queueKey3 = new QueueKey(nHash, nId3);
+
+        assertThat(cache.get(queueKey1), is(sValue1));
+        assertThat(cache.get(queueKey2), is(sValue2));
+        assertThat(cache.get(queueKey3), is(sValue3));
         }
 
     // ----- test offer() method --------------------------------------------

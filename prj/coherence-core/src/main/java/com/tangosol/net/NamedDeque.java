@@ -21,4 +21,14 @@ public interface NamedDeque<E>
     {
     @Override
     QueueService getService();
+
+
+    /**
+     * Insert an element to head of this {@link NamedDeque}.
+     *
+     * @param e  the element to insert
+     *
+     * @return the identifier for the inserted element, or {@link Long#MIN_VALUE} if the element could not be inserted
+     */
+    long prepend(E e);
     }

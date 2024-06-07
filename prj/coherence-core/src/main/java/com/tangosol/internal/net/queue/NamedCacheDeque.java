@@ -56,6 +56,22 @@ public class NamedCacheDeque<E>
     // ----- NamedDeque methods ---------------------------------------------
 
     @Override
+    public long prepend(E e)
+        {
+        QueueOfferResult result = offerToHeadInternal(e);
+        boolean fSuccess = result.getResult() == QueueOfferResult.RESULT_SUCCESS;
+        if (fSuccess)
+            {
+            m_statistics.registerAccepted();
+            }
+        else
+            {
+            m_statistics.registerRejected();
+            }
+        return fSuccess ? result.getId() : Long.MIN_VALUE;
+        }
+
+    @Override
     public void addFirst(E e)
         {
         QueueOfferResult result  = offerToHeadInternal(e);

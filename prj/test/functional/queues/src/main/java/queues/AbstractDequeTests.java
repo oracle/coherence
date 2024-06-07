@@ -27,6 +27,7 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.number.OrderingComparison.greaterThan;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class AbstractDequeTests<DequeType extends NamedDeque>
@@ -44,6 +45,36 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public DequeType getCollection(Session session, String sName)
         {
         return (DequeType) session.getDeque(sName);
+        }
+
+    // ----- test prepend() method ------------------------------------------
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldPrependToQueue(String sSerializer)
+        {
+        DequeType deque  = getNewCollection(sSerializer);
+        String    sValue1 = "message-1";
+        String    sValue2 = "message-2";
+        String    sValue3 = "message-3";
+
+        long nId1 = deque.prepend(sValue1);
+        long nId2 = deque.prepend(sValue2);
+        long nId3 = deque.prepend(sValue3);
+        assertThat(nId1, is(greaterThan(Long.MIN_VALUE)));
+        assertThat(nId2, is(greaterThan(Long.MIN_VALUE)));
+        assertThat(nId3, is(greaterThan(Long.MIN_VALUE)));
+
+        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        int              nHash = deque.getQueueNameHash();
+
+        QueueKey queueKey1 = new QueueKey(nHash, nId1);
+        QueueKey queueKey2 = new QueueKey(nHash, nId2);
+        QueueKey queueKey3 = new QueueKey(nHash, nId3);
+
+        assertThat(cache.get(queueKey1), is(sValue1));
+        assertThat(cache.get(queueKey2), is(sValue2));
+        assertThat(cache.get(queueKey3), is(sValue3));
         }
 
     // ----- test addFirst() method ---------------------------------------------------

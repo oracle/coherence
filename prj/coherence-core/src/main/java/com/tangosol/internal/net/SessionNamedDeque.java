@@ -415,6 +415,18 @@ public class SessionNamedDeque<E, Q extends NamedDeque<E>>
         f_deque.removeListener(listener, filter);
         }
 
+    @Override
+    public long prepend(E e)
+        {
+        return f_deque.prepend(e);
+        }
+
+    @Override
+    public long append(E e)
+        {
+        return f_deque.append(e);
+        }
+
     // ----- object methods -------------------------------------------------
 
     @Override

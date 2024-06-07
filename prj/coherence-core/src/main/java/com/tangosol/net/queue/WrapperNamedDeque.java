@@ -169,6 +169,13 @@ public class WrapperNamedDeque<E>
         return getDeque().descendingIterator();
         }
 
+    @Override
+    public long prepend(E e)
+        {
+        Deque<E> deque = getDeque();
+        return deque.offerFirst(e) ?  0L : Long.MIN_VALUE;
+        }
+
     // ----- Object methods -------------------------------------------------
 
     @Override
