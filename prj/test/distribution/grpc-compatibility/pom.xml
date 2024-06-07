@@ -33,7 +33,6 @@
     <coherence.compatability.version/>
     <coherence.compatability.allow.snapshots/>
     <coherence.compatability.groupId/>
-    <skipTests>true</skipTests>
 
     <maven.home.dir>${env.MAVEN_HOME}</maven.home.dir>
     <coherence.compatability.settings>${maven.home.dir}/conf/settings.xml</coherence.compatability.settings>
