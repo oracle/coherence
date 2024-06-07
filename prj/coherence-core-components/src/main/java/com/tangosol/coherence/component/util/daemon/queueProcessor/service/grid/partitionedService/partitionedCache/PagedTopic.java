@@ -551,18 +551,14 @@ public class PagedTopic
     
     protected boolean confirmSubscriber(String sTopicName, long lSubscription, com.tangosol.internal.net.topic.impl.paged.model.SubscriberId subscriberId)
         {
-        // import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches$Names as com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names;
-        // import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
-        // import java.util.Map;
-        
         boolean fConfirmed = false;
         
         if (lSubscription != 0)
             {
-            String     sCacheName    = com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names.SUBSCRIPTIONS.cacheNameForTopicName(sTopicName);
-            Map        mapRefsBinary = getReferencesBinaryMap();
+            String               sCacheName    = com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names.SUBSCRIPTIONS.cacheNameForTopicName(sTopicName);
+            Map                  mapRefsBinary = getReferencesBinaryMap();
             PagedTopic.BinaryMap mapBinary     = (PagedTopic.BinaryMap) mapRefsBinary.get(sCacheName);
-        
+
             fConfirmed = mapBinary != null && mapBinary.confirmSubscriber(lSubscription, subscriberId);
             }
         
@@ -829,19 +825,14 @@ public class PagedTopic
     
     public void ensureKnownTopics()
         {
-        // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
-        // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription$Key as com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key;
-        // import java.util.Map;;
-        // import java.util.Map;
-        // import java.util.Iterator;
-        
         Map map = getTopicConfigMap();
         for (Iterator it = map.keySet().iterator(); it.hasNext(); )
             {
             Object oKey = it.next();
-            if (oKey instanceof com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key)
+            if (oKey instanceof PagedTopicSubscription.Key)
                 {
-                ensureSubscription((PagedTopicSubscription) map.get(oKey));
+                PagedTopicSubscription subscription = (PagedTopicSubscription) map.get(oKey);
+                ensureSubscription(subscription);
                 }
             }
         }
@@ -918,14 +909,8 @@ public class PagedTopic
             }
         }
 
-    public long ensureSubscription(com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription subscription)
+    public long ensureSubscription(PagedTopicSubscription subscription)
         {
-        // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
-        // import com.tangosol.net.management.MBeanHelper;
-        // import com.tangosol.util.LongArray;
-        // import java.util.concurrent.locks.ReentrantLock;;
-        // import java.util.concurrent.locks.ReentrantLock;
-        
         long lSubscriptionId = subscription.getSubscriptionId();
         _assert(lSubscriptionId != 0);
         
@@ -1929,7 +1914,7 @@ public class PagedTopic
         PartitionSet partsMask       = request.getRequestMaskSafe();
         long         lSubscriptionId = request.getSubscriptionId();
         SubscriberId subscriberId    = request.getSubscriberId();          
-        
+
         PagedTopicSubscription subscription = getSubscription(lSubscriptionId);
         if (subscription == null)
             {
@@ -1948,7 +1933,6 @@ public class PagedTopic
             partsMask.remove(collectOwnedPartitions(/*fPrimary*/ true));
             msgResponse.setResult(Boolean.TRUE);
             }
-        
         msgResponse.setRejectPartitions(partsMask);
         post(msgResponse);
         }
@@ -1958,9 +1942,8 @@ public class PagedTopic
         long                lSubscriptionId = request.getSubscriptionId();
         SubscriberId[]      aSubscriberId   = request.getSubscriberIds();
         String              sTopicName      = request.getTopicName();
-        Map                 configMap       = getTopicConfigMap();
         PagedTopic.Response msgResponse     = (PagedTopic.Response) instantiateMessage("Response");
-        
+
         msgResponse.respondTo(request);
         
         com.tangosol.coherence.component.net.Member memberThis        = getThisMember();
@@ -1973,6 +1956,7 @@ public class PagedTopic
             lock.lock();
             try
                 {
+                Map configMap = getTopicConfigMap();
                 msgResponse.respondTo(request);
         
                 PagedTopicSubscription subscription = null;
@@ -2031,7 +2015,7 @@ public class PagedTopic
                             String sReason = isSubscriptionDestroyed(lSubscriptionId)
                                     ? "has been destroyed"
                                     : "is invalid";
-        
+
                             IllegalStateException error = new IllegalStateException("The subscriber group id=" + lSubscriptionId + ") " + sReason);
                             msgResponse.setResult(PagedTopic.Response.RESULT_FAILURE);
                             msgResponse.setValue(error);
@@ -2072,7 +2056,7 @@ public class PagedTopic
                                     }
                                 }
                             }
-        
+
                         msgResponse.setResult(PagedTopic.Response.RESULT_SUCCESS);
                         msgResponse.setValue(Long.valueOf(lSubscriptionId));
                         post(msgResponse);
@@ -5417,37 +5401,32 @@ public class PagedTopic
             // Declared at the super level
             public void entryInserted(com.tangosol.util.MapEvent evt)
                 {
-                // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
-                // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription$Key as com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key;
-                
                 super.entryInserted(evt);
                 
                 PagedTopic service = (PagedTopic) get_Module();
                 Object  oKey    = evt.getKey();
                 
-                if (oKey instanceof com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key)
+                if (oKey instanceof PagedTopicSubscription.Key)
                     {
-                    com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key key = (com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key) oKey;
-                    service.ensureSubscription((PagedTopicSubscription) evt.getNewValue());
+                    PagedTopicSubscription.Key key          = (PagedTopicSubscription.Key) oKey;
+                    PagedTopicSubscription     subscription = (PagedTopicSubscription) evt.getNewValue();
+                    service.ensureSubscription(subscription);
                     }
                 }
             
             // Declared at the super level
             public void entryUpdated(com.tangosol.util.MapEvent evt)
                 {
-                // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
-                // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription$Key as com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key;
-                // import com.tangosol.run.xml.XmlElement;
-                
                 super.entryUpdated(evt);
                 
                 PagedTopic service = (PagedTopic) get_Module();
-                Object  oKey    = evt.getKey();
+                Object     oKey    = evt.getKey();
                 
-                if (oKey instanceof com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key)
+                if (oKey instanceof PagedTopicSubscription.Key)
                     {
-                    com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key key = (com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key) oKey;
-                    service.ensureSubscription((PagedTopicSubscription) evt.getNewValue());
+                    PagedTopicSubscription.Key key          = (PagedTopicSubscription.Key) oKey;
+                    PagedTopicSubscription     subscription = (PagedTopicSubscription) evt.getNewValue();
+                    service.ensureSubscription(subscription);
                     }
                 }
             }
