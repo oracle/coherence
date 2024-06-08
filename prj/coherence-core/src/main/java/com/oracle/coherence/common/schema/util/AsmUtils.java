@@ -14,7 +14,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
-
+import org.objectweb.asm.tree.MethodNode;
 
 /**
  * Various ASM helpers.
@@ -79,6 +79,21 @@ public class AsmUtils
         }
 
     /**
+     * Add specified annotation to the method.
+     *
+     * @param node        the {@code MethodNode} to add annotation to
+     * @param annotation  the annotation to add
+     */
+    public static void addAnnotation(MethodNode node, AnnotationNode annotation)
+        {
+        if (node.visibleAnnotations == null)
+            {
+            node.visibleAnnotations = new ArrayList<>();
+            }
+        node.visibleAnnotations.add(annotation);
+        }
+
+    /**
      * Return {@code true} if the class has specified annotation.
      *
      * @param node             the {@code ClassNode} to check
@@ -102,6 +117,20 @@ public class AsmUtils
      *         {@code false} otherwise
      */
     public static boolean hasAnnotation(FieldNode node, Class annotationClass)
+        {
+        return getAnnotation(node, annotationClass) != null;
+        }
+
+    /**
+     * Return {@code true} if the method has specified annotation.
+     *
+     * @param node             the {@code MethodNode} to check
+     * @param annotationClass  the class of the annotation to check for
+     *
+     * @return {@code true} if the method has specified annotation,
+     *         {@code false} otherwise
+     */
+    public static boolean hasAnnotation(MethodNode node, Class annotationClass)
         {
         return getAnnotation(node, annotationClass) != null;
         }
@@ -134,6 +163,22 @@ public class AsmUtils
      *         present
      */
     public static AnnotationNode getAnnotation(FieldNode node, Class... annotationClasses)
+        {
+        return findAnnotationNode(node.visibleAnnotations, annotationClasses);
+        }
+
+    /**
+     * Return the first of the specified annotations that is present on the
+     * method.
+     *
+     * @param node               the {@code MethodNode} to get the annotation from
+     * @param annotationClasses  the ordered list of annotations to search for
+     *
+     * @return the first of the specified annotations that is present on the
+     *         field, or {@code null} if none of the specified annotations are
+     *         present
+     */
+    public static AnnotationNode getAnnotation(MethodNode node, Class... annotationClasses)
         {
         return findAnnotationNode(node.visibleAnnotations, annotationClasses);
         }

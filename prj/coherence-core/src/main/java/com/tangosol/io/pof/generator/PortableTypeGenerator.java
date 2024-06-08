@@ -288,10 +288,12 @@ public class PortableTypeGenerator
 
         FieldNode evolvable = new FieldNode(ACC_PRIVATE | ACC_TRANSIENT, "__evolvable$" + m_type.getId(),
                                             "Lcom/tangosol/io/Evolvable;", null, null);
+        addAnnotation(evolvable, JSONB_TRANSIENT);
         m_classNode.fields.add(evolvable);
 
         FieldNode holder = new FieldNode(ACC_PRIVATE | ACC_TRANSIENT, "__evolvableHolder$",
                                          "Lcom/tangosol/io/pof/EvolvableHolder;", null, null);
+        addAnnotation(holder, JSONB_TRANSIENT);
         m_classNode.fields.add(holder);
 
         implementGetEvolvable(fDelegateToSuper, evolvable, holder);
@@ -426,6 +428,8 @@ public class PortableTypeGenerator
         {
         MethodNode mn = new MethodNode(ACC_PUBLIC, "getEvolvable",
                             "(I)Lcom/tangosol/io/Evolvable;", null, null);
+        addAnnotation(mn, JSONB_TRANSIENT);
+
         mn.visitCode();
         mn.visitVarInsn(ALOAD, 0);
         mn.visitFieldInsn(GETFIELD, m_classNode.name, evolvable.name, evolvable.desc);
@@ -503,6 +507,8 @@ public class PortableTypeGenerator
         MethodNode mn = new MethodNode(ACC_PUBLIC, "getEvolvableHolder",
                             "()Lcom/tangosol/io/pof/EvolvableHolder;", null,
                             null);
+        addAnnotation(mn, JSONB_TRANSIENT);
+
         mn.visitCode();
         mn.visitVarInsn(ALOAD, 0);
         mn.visitFieldInsn(GETFIELD, m_classNode.name, holder.name, holder.desc);
@@ -1846,6 +1852,11 @@ public class PortableTypeGenerator
      */
     private static final Type OBJECT_TYPE = Type.getType(Object.class);
 
+    /**
+     * JsonbTransient annotation.
+     */
+    private static final AnnotationNode JSONB_TRANSIENT =
+            new AnnotationNode("Ljakarta/json/bind/annotation/JsonbTransient;");
 
     // ---- data members ----------------------------------------------------
 
