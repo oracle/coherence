@@ -53,7 +53,6 @@
           </execution>
         </executions>
         <configuration>
-          <skip>${skipTests}</skip>
           <dependenciesToScan>
             <dependency>${coherence.group.id}.tests:grpc-compatibility-core</dependency>
           </dependenciesToScan>
@@ -73,6 +72,10 @@
       <id>security-manager</id>
       <activation>
         <activeByDefault>false</activeByDefault>
+        <property>
+          <name>test.security.enabled</name>
+          <value>true</value>
+        </property>
       </activation>
       <build>
         <plugins>
