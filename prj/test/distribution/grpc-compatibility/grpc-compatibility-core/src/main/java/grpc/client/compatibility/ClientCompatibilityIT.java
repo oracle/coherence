@@ -61,6 +61,7 @@ import grpc.client.IsGrpcProxyRunning;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,7 +71,9 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
+import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -242,6 +245,78 @@ public class ClientCompatibilityIT
             }
         }
 
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    @Override
+    public void shouldReplaceAllWithKeySet(String sSerializerName, Serializer serializer)
+        {
+        Assumptions.assumeTrue(!"prod".equals(COHERENCE_MODE));
+        super.shouldReplaceAllWithKeySet(sSerializerName, serializer);
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    @Override
+    public void shouldReplaceAllWithFilter(String sSerializerName, Serializer serializer)
+        {
+        Assumptions.assumeTrue(!"prod".equals(COHERENCE_MODE));
+        super.shouldReplaceAllWithFilter(sSerializerName, serializer);
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    @Override
+    public void shouldReturnTrueForContainsAssociatedKeyWithExistingMapping(String sSerializerName, Serializer serializer)
+        {
+        Assumptions.assumeTrue(!"prod".equals(COHERENCE_MODE));
+        super.shouldReturnTrueForContainsAssociatedKeyWithExistingMapping(sSerializerName, serializer);
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    @Override
+    public void shouldReturnFalseForContainsKeyWithNonExistentMapping(String sSerializerName, Serializer serializer)
+        {
+        Assumptions.assumeTrue(!"prod".equals(COHERENCE_MODE));
+        super.shouldReturnTrueForContainsAssociatedKeyWithExistingMapping(sSerializerName, serializer);
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    @Override
+    public void shouldComputeAndUpdateEntry(String sSerializerName, Serializer serializer)
+        {
+        Assumptions.assumeTrue(!"prod".equals(COHERENCE_MODE));
+        super.shouldComputeAndUpdateEntry(sSerializerName, serializer);
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    @Override
+    public void shouldComputeAndUpdateEntryWithAssociatedKey(String sSerializerName, Serializer serializer)
+        {
+        Assumptions.assumeTrue(!"prod".equals(COHERENCE_MODE));
+        super.shouldComputeAndUpdateEntryWithAssociatedKey(sSerializerName, serializer);
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    @Override
+    public void shouldReplaceAllWithAssociatedKeySet(String sSerializerName, Serializer serializer)
+        {
+        Assumptions.assumeTrue(!"prod".equals(COHERENCE_MODE));
+        super.shouldReplaceAllWithAssociatedKeySet(sSerializerName, serializer);
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    @Override
+    public void shouldReturnTrueForContainsKeyWithExistingMapping(String sSerializerName, Serializer serializer)
+        {
+        Assumptions.assumeTrue(!"prod".equals(COHERENCE_MODE));
+        super.shouldReturnTrueForContainsAssociatedKeyWithExistingMapping(sSerializerName, serializer);
+        }
+
     @Override
     protected <K, V> NamedCache<K, V> createClient(String sCacheName, String sSerializerName, Serializer serializer)
         {
@@ -379,4 +454,6 @@ public class ClientCompatibilityIT
     static CoherenceClusterExtension sClusterExtension;
 
     static final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+
+    static final String COHERENCE_MODE = Config.getProperty("coherence.mode");
     }
