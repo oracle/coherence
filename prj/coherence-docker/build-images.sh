@@ -251,7 +251,7 @@ fi
   LABEL_JAVA_SPEC_VERSION=$(buildah run --tty -- "container-${1}" java -cp ${CLASSES_TARGET} ${GET_PROPERTY_CLASS} java.vm.specification.version) || true
 
   # Add the configuration, entrypoint, ports, env-vars etc...
-  buildah config --healthcheck-start-period 10s --healthcheck-interval 10s --healthcheck "CMD ${ENTRY_POINT} ${HEALTH_CMD}" "container-${1}"
+  buildah config --healthcheck-start-period 30s --healthcheck-interval 60s --healthcheck "CMD ${ENTRY_POINT} ${HEALTH_CMD}" "container-${1}"
 
   buildah config --arch "${1}" --os "${2}" \
       --entrypoint "[\"${ENTRY_POINT}\"]" --cmd "${CMD} ${MAIN_CLASS}" \

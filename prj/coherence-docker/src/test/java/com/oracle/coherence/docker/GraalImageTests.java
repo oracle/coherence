@@ -6,6 +6,7 @@
  */
 package com.oracle.coherence.docker;
 
+import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
@@ -47,6 +48,7 @@ import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
 import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -96,7 +98,7 @@ public class GraalImageTests
                 .withFileSystemBind(fileScript.getAbsolutePath(), "/app/classes/scripts/js", BindMode.READ_ONLY)
                 .withExposedPorts(EXTEND_PORT, CONCURRENT_EXTEND_PORT)))
             {
-            Eventually.assertDeferred(container::isHealthy, is(true));
+            Eventually.assertDeferred(container::isHealthy, is(true), Timeout.after(5, TimeUnit.MINUTES));
 
             LocalPlatform platform       = LocalPlatform.get();
             int           extendPort     = container.getMappedPort(EXTEND_PORT);
