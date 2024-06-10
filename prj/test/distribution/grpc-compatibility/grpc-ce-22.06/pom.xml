@@ -30,7 +30,8 @@
         <coherence.compatability.allow.snapshots>false</coherence.compatability.allow.snapshots>
         <!-- This is the groupId of the version server being tested against, not the current version being built -->
         <coherence.compatability.groupId>com.oracle.coherence.ce</coherence.compatability.groupId>
-        <is.not.java.11>false</is.not.java.11>
+        <is.invalid.jdk>true</is.invalid.jdk>
+        <skipTests>${is.invalid.jdk}</skipTests>
     </properties>
 
     <dependencies>
@@ -50,18 +51,18 @@
 <!--        <profile>-->
 <!--          <id>stage13</id>-->
 <!--          <properties>-->
-<!--            <skipTests>${is.not.java.11}</skipTests>-->
+<!--            <skipTests>${is.invalid.jdk}</skipTests>-->
 <!--          </properties>-->
 <!--        </profile>-->
 
 <!--        <profile>-->
-<!--          <id>NotJava11</id>-->
+<!--          <id>IsValidJdk</id>-->
 <!--          <activation>-->
-<!--            <jdk>(,11)</jdk>-->
+<!--            <jdk>[11,21]</jdk>-->
 <!--          </activation>-->
 <!--          <properties>-->
-<!--            <is.not.java.11>true</is.not.java.11>-->
-<!--            <skipTests>true</skipTests>-->
+<!--            <is.invalid.jdk>false</is.invalid.jdk>-->
+<!--            <skipTests>false</skipTests>-->
 <!--          </properties>-->
 <!--        </profile>-->
 <!--    </profiles>-->
