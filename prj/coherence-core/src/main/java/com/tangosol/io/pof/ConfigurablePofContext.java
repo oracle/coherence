@@ -1857,10 +1857,10 @@ public class ConfigurablePofContext
 
     /**
      * If portable type discovery is enabled, and we were unable to retrieve indexed classes, shall we try to auto-discover
-     * portable type annotated classes from the classpath? This is enabled by default but for testing purposes it may be
-     * needed to set this property to false.
+     * portable type annotated classes from the classpath? This is disabled by default, it can be enabled by setting the
+     * {@code coherence.pof.classpath.scanning.enabled} system property to {@code true}.
      */
-    private boolean m_fEnableAutoTypeDiscovery = true;
+    private boolean m_fEnableAutoTypeDiscovery = Config.getBoolean("coherence.pof.classpath.scanning.enabled", false);
 
     /**
     * The URI that specifies the location of the configuration file.
