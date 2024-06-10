@@ -1190,7 +1190,6 @@ public class Coherence
                 }
 
             f_dispatcher.dispatchStarting();
-            m_fStarted = true;
 
             try
                 {
@@ -1229,6 +1228,7 @@ public class Coherence
                             }
 
                         f_mapServer.values().forEach(holder -> holder.getServer().waitForServiceStart());
+                        m_fStarted = true;
                         f_futureStarted.complete(this);
                         f_dispatcher.dispatchStarted();
                         }

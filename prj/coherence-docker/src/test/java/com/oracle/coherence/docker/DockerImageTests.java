@@ -64,6 +64,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -112,7 +113,7 @@ public class DockerImageTests
         ImageNames.verifyTestAssumptions();
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
-                .waitingFor(Wait.forHealthcheck())
+                .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(5)))
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
@@ -140,7 +141,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
-                .waitingFor(Wait.forHealthcheck())
+                .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(5)))
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
                 .withExposedPorts(EXTEND_PORT, GRPC_PORT, CONCURRENT_EXTEND_PORT)))
             {
@@ -184,7 +185,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
-                .waitingFor(Wait.forHealthcheck())
+                .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(5)))
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
                 .withFileSystemBind(fileArgsDir.getAbsolutePath(), "/args", BindMode.READ_ONLY)))
             {
@@ -208,7 +209,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
-                .waitingFor(Wait.forHealthcheck())
+                .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(5)))
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
                 .withFileSystemBind(sLibs, COHERENCE_HOME + "/ext/conf", BindMode.READ_ONLY)
                 .withExposedPorts(EXTEND_PORT)))
@@ -236,7 +237,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
-                .waitingFor(Wait.forHealthcheck())
+                .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(5)))
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
                 .withExposedPorts(MANAGEMENT_PORT)))
             {
@@ -261,7 +262,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
-                .waitingFor(Wait.forHealthcheck())
+                .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(5)))
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
                 .withExposedPorts(METRICS_PORT)))
             {
@@ -292,7 +293,7 @@ public class DockerImageTests
             {
             try (GenericContainer<?> container1 = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                     .withImagePullPolicy(NeverPull.INSTANCE)
-                    .waitingFor(Wait.forHealthcheck())
+                    .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(5)))
                     .withExposedPorts(MANAGEMENT_PORT)
                     .withNetwork(network)
                     .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build(sName1)))
@@ -321,7 +322,7 @@ public class DockerImageTests
 
                 try (GenericContainer<?> container2 = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                         .withImagePullPolicy(NeverPull.INSTANCE)
-                        .waitingFor(Wait.forHealthcheck())
+                        .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(5)))
                         .withNetwork(network)
                         .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build(sName2)))
                         .withEnv("COHERENCE_WKA", sbWka.toString())
