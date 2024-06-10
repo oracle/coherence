@@ -6,6 +6,8 @@
  */
 package com.oracle.coherence.docker;
 
+import com.github.dockerjava.api.command.CreateContainerCmd;
+import com.github.dockerjava.api.model.HealthCheck;
 import com.tangosol.internal.net.management.HttpHelper;
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 import com.tangosol.net.CacheFactory;
@@ -18,6 +20,8 @@ import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.time.Duration;
+import java.util.function.Consumer;
 
 
 /**
