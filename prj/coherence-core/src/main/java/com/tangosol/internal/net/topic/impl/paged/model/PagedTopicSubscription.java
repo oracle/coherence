@@ -6,7 +6,6 @@
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
-import com.oracle.coherence.common.collections.ConcurrentHashMap;
 import com.oracle.coherence.common.util.SafeClock;
 
 import com.tangosol.internal.net.topic.ChannelAllocationStrategy;
@@ -27,15 +26,16 @@ import java.io.IOException;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -332,7 +332,7 @@ public class PagedTopicSubscription
             boolean fModified = false;
             for (SubscriberId subscriberId : aSubscriberId)
                 {
-                if (SubscriberId.NullSubscriber.equals(subscriberId))
+                if (subscriberId == null)
                     {
                     continue;
                     }
@@ -405,7 +405,17 @@ public class PagedTopicSubscription
     @SuppressWarnings("unchecked")
     public SortedSet<Integer> getOwnedChannels(SubscriberId id)
         {
-        Object oValue = m_mapSubscriberChannels.getOrDefault(id, NO_CHANNELS);
+        Object oValue;
+        f_lock.lock();
+        try
+            {
+            oValue = id == null ? NO_CHANNELS : m_mapSubscriberChannels.getOrDefault(id, NO_CHANNELS);
+            }
+        finally
+            {
+            f_lock.unlock();
+            }
+
         if (oValue instanceof Integer)
             {
             return new ImmutableArrayList(Collections.singleton(oValue));
@@ -561,17 +571,25 @@ public class PagedTopicSubscription
     @Override
     public void readExternal(DataInput in) throws IOException
         {
-        m_key                = ExternalizableHelper.readObject(in);
-        m_nSubscriptionId    = in.readLong();
-        m_filter             = ExternalizableHelper.readObject(in);
-        m_extractor          = ExternalizableHelper.readObject(in);
-        m_aChannelAllocation = ExternalizableHelper.readObject(in);
-        m_mapSubscriber.clear();
-        ExternalizableHelper.readMap(in, m_mapSubscriber, null);
-        m_mapSubscriberChannels.clear();
-        ExternalizableHelper.readMap(in, m_mapSubscriberChannels, null);
-        m_mapSubscriberTimestamp.clear();
-        ExternalizableHelper.readMap(in, m_mapSubscriberTimestamp, null);
+        f_lock.lock();
+        try
+            {
+            m_key                = ExternalizableHelper.readObject(in);
+            m_nSubscriptionId    = in.readLong();
+            m_filter             = ExternalizableHelper.readObject(in);
+            m_extractor          = ExternalizableHelper.readObject(in);
+            m_aChannelAllocation = ExternalizableHelper.readObject(in);
+            m_mapSubscriber.clear();
+            ExternalizableHelper.readMap(in, m_mapSubscriber, null);
+            m_mapSubscriberChannels.clear();
+            ExternalizableHelper.readMap(in, m_mapSubscriberChannels, null);
+            m_mapSubscriberTimestamp.clear();
+            ExternalizableHelper.readMap(in, m_mapSubscriberTimestamp, null);
+            }
+        finally
+            {
+            f_lock.unlock();
+            }
         }
 
     @Override
@@ -798,7 +816,7 @@ public class PagedTopicSubscription
     /**
      * The subscribers subscribed to this subscription.
      */
-    private final SortedMap<Long, SubscriberId> m_mapSubscriber = new ConcurrentSkipListMap<>();
+    private final SortedMap<Long, SubscriberId> m_mapSubscriber = new TreeMap<>();
 
     /**
      * The channel allocations for this subscription.
@@ -808,10 +826,10 @@ public class PagedTopicSubscription
     /**
      * A map of subscriber identifiers to owned channels.
      */
-    private final Map<SubscriberId, Object> m_mapSubscriberChannels = new ConcurrentHashMap<>();
+    private final Map<SubscriberId, Object> m_mapSubscriberChannels = new HashMap<>();
 
     /**
      * The timestamps of the subscriber's subcription.
      */
-    private final Map<Long, Long> m_mapSubscriberTimestamp = new ConcurrentHashMap<>();
+    private final Map<Long, Long> m_mapSubscriberTimestamp = new HashMap<>();
     }
