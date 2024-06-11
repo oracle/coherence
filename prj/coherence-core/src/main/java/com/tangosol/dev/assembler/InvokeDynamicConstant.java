@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.dev.assembler;
 
@@ -174,7 +174,7 @@ public class InvokeDynamicConstant
     /**
     * Returns the method name and signature represented by a
     * {@link SignatureConstant}. In version 51.0 this constant has no
-    * runtime affect on the linking procedure induced by an invokedynamic
+    * runtime effect on the linking procedure induced by an invokedynamic
     * instruction.
     *
     * @return method name and signature represented by a SignatureConstant
@@ -187,7 +187,7 @@ public class InvokeDynamicConstant
     /**
     * Sets the method name and signature represented by a
     * {@link SignatureConstant}. In version 51.0 this constant has no
-    * runtime affect on the linking procedure induced by an invokedynamic
+    * runtime effect on the linking procedure induced by an invokedynamic
     * instruction.
     *
     * @param methodNameAndDescription  method name and signature represented

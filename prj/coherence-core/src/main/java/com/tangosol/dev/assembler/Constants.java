@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.dev.assembler;
@@ -218,6 +218,10 @@ public interface Constants
     */
     public static final int CONSTANT_METHODTYPE         = 16;
     /**
+     * Constant pool: Used by dynamic instruction.
+     */
+    public static final int CONSTANT_DYNAMIC            = 17;
+    /**
     * Constant pool: Used by the invokedynamic instruction.
     */
     public static final int CONSTANT_INVOKEDYNAMIC      = 18;
@@ -229,7 +233,7 @@ public interface Constants
     * The number of constant pool elements used by the constant, indexed by
     * JVM constant classification tag.
     */
-    public static final int[] CONSTANT_SIZE  = {0,1,0,1,1,2,2,1,1,1,1,1,1,0,0,1,1,0,1};
+    public static final int[] CONSTANT_SIZE  = {0,1,0,1,1,2,2,1,1,1,1,1,1,0,0,1,1,1,1};
     /**
     * The desired order (in an assembled constant pool) of the constant
     * types.
@@ -249,6 +253,7 @@ public interface Constants
         CONSTANT_INTERFACEMETHODREF,
         CONSTANT_METHODHANDLE,
         CONSTANT_METHODTYPE,
+        CONSTANT_DYNAMIC,
         CONSTANT_INVOKEDYNAMIC
         };
 
