@@ -12,7 +12,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.oracle.coherence.tests</groupId>
+        <groupId>com.oracle.coherence.ce.tests</groupId>
         <artifactId>grpc-compatibility</artifactId>
         <version>${revision}</version>
         <relativePath>../pom.xml</relativePath>
