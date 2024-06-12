@@ -105,6 +105,10 @@ public class XsdValidationTests
         XmlValidator.validate("../../../coherence-core/src/main/resources/com/oracle/coherence/defaults/tangosol-coherence-override-eval.xml");
         XmlValidator.validate("../../../coherence-core/src/main/resources/com/oracle/coherence/defaults/tangosol-coherence-override-prod.xml");
         XmlValidator.validate("../../../coherence-core/src/main/resources/tangosol-coherence.xml");
+        XmlValidator.validate("../../../coherence-core/src/main/resources/com/oracle/coherence/defaults/grpc-proxy-cache-config.xml");
+
+        XmlValidator.validate("../../../coherence-concurrent/src/main/resources/coherence-concurrent-config.xml");
+        XmlValidator.validate("../../../coherence-concurrent/src/main/resources/coherence-concurrent-client-config.xml");
         }
 
    /**

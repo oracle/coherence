@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.run.xml;
 
@@ -23,6 +23,8 @@ import java.net.URL;
 import java.net.URLConnection;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import  java.util.concurrent.atomic.AtomicBoolean;
@@ -37,6 +39,9 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
+
+import org.w3c.dom.ls.LSInput;
+import org.w3c.dom.ls.LSResourceResolver;
 
 import org.xml.sax.AttributeList;
 import org.xml.sax.DocumentHandler;
@@ -270,8 +275,17 @@ public class SaxParser
                 return;
                 }
 
-            SchemaFactory schemaFactory = SchemaFactory
+            ResourceResolver resolver      = null;
+            SchemaFactory    schemaFactory = SchemaFactory
                     .newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+
+            if (s_fJdk22 && "strict".equalsIgnoreCase(System.getProperty("javax.xml.catalog.resolve")))
+                {
+                // specifying a custom resolver is a workaround for issue reported in OWLS-116652
+                resolver = new ResourceResolver(this.getClass());
+                schemaFactory.setResourceResolver(resolver);
+                }
+
             Schema            schema    = schemaFactory.newSchema(resolveSchemaSources(listSchemaURIs));
             Source            source    = new StreamSource(new StringReader(sXml));
             Validator         validator = schema.newValidator();
@@ -300,6 +314,11 @@ public class SaxParser
                 }
             validator.setErrorHandler(handler);
             validator.validate(source);
+
+            if (resolver != null)
+                {
+                resolver.closeStreams();
+                }
 
             // optimize error handling to report all errors
             // prior to failing; this is easier for user that
@@ -746,10 +765,200 @@ public class SaxParser
         private XmlElement m_current;
         }
 
+    // ----- inner class: Input ---------------------------------------------
+
+    /**
+     * An LSInput implementation that is used when Java 22+ strict XML catalog resolve is enabled.
+     * This class is required to work around the issue that is described in OWLS-116652
+     *
+     * @since 24.03
+     */
+    public static class Input
+            implements LSInput
+        {
+        // ----- constructors -----------------------------------------------
+
+        public Input(InputStream is, String publicId, String systemId)
+            {
+            this.is       = is;
+            this.publicId = publicId;
+            this.systemId = systemId;
+            }
+
+        // ----- LSInput interface ------------------------------------------
+
+        @Override
+        public Reader getCharacterStream()
+            {
+            return null;
+            }
+
+        @Override
+        public void setCharacterStream(Reader characterStream)
+            {
+            }
+
+        @Override
+        public InputStream getByteStream()
+            {
+            return this.is;
+            }
+
+        @Override
+        public void setByteStream(InputStream byteStream)
+            {
+            }
+
+        @Override
+        public String getStringData()
+            {
+            return null;
+            }
+
+        @Override
+        public void setStringData(String stringData)
+            {
+            }
+
+        @Override
+        public String getSystemId()
+            {
+            return this.systemId;
+            }
+
+        @Override
+        public void setSystemId(String systemId)
+            {
+            }
+
+        @Override
+        public String getPublicId()
+            {
+            return this.publicId;
+            }
+
+        @Override
+        public void setPublicId(String publicId)
+            {
+            }
+        @Override
+        public String getBaseURI()
+            {
+            return null;
+            }
+
+        @Override
+        public void setBaseURI(String baseURI)
+            {
+            }
+
+        @Override
+        public String getEncoding()
+            {
+            return null;
+            }
+
+        @Override
+        public void setEncoding(String encoding)
+            {
+            }
+
+        @Override
+        public boolean getCertifiedText()
+            {
+            return false;
+            }
+
+        @Override
+        public void setCertifiedText(boolean certifiedText)
+            {
+            }
+
+        // ----- data members -----------------------------------------------
+
+        private InputStream is;
+
+        private String publicId;
+
+        private String systemId;
+        }
+
+    // ----- inner class: ResourceResolver ----------------------------------
+
+    /**
+     * An ResourceResolver implementation that is used when Java 22+ strict XML catalog resolve is enabled.
+     * This class is required to work around the issue that is described in OWLS-116652
+     *
+     * @since 24.03
+     */
+    public static class ResourceResolver
+            implements LSResourceResolver
+        {
+        // ----- constructors -----------------------------------------------
+
+        ResourceResolver(Class<?> clazz)
+            {
+            this.clazz = clazz;
+            }
+
+        // ----- LSResourceResolver interface -------------------------------
+
+        @Override
+        public LSInput resolveResource(String type, String namespaceURI, String publicId, String systemId, String baseURI)
+            {
+            InputStream is = this.clazz.getResourceAsStream("/" + systemId);
+
+            if (is == null)
+                {
+                Logger.warn("SaxParser.ResourceResolver.resolveResource: failed to resolve \"/" + systemId + " resolution: " + baseURI + "/" + systemId);
+                return null;
+                }
+            else
+                {
+                this.streamsToClose.add(is);
+                return new Input(is, publicId, systemId);
+                }
+            }
+
+        /**
+         * Close all streams created by this resolver.
+         */
+        void closeStreams()
+            {
+            Iterator iter = this.streamsToClose.iterator();
+
+            while (iter.hasNext())
+                {
+                InputStream is = (InputStream) iter.next();
+                if (is != null)
+                    {
+                    try
+                        {
+                        is.close();
+                        }
+                    catch (IOException e)
+                        {
+                        }
+                    }
+                }
+            }
+
+        // ----- data members -----------------------------------------------
+
+        private List<InputStream> streamsToClose = Collections.synchronizedList(new ArrayList());
+
+        private Class<?> clazz;
+        }
+
     // ----- constants ------------------------------------------------------
 
     /**
      * Record if resolved SaxParser supports JAXP 1.5 {@link XMLConstants#ACCESS_EXTERNAL_DTD} and {@link XMLConstants#ACCESS_EXTERNAL_SCHEMA} properties. Only report warning once if does not.
      */
     private static final AtomicBoolean ATTEMPT_RESTRICT_EXTERNAL = new AtomicBoolean(true);
+
+    /**
+     * True iff if jvm runtime is JDK 22 or higher.
+     */
+    private static boolean s_fJdk22 = Runtime.version().feature() > 21;
     }
