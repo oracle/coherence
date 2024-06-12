@@ -38,30 +38,26 @@ public class DefaultRemoteGrpcCacheServiceDependencies
         }
 
     @Override
-    public long getHeartbeatInterval()
+    public boolean isDeferKeyAssociationCheck()
         {
-        return m_nHeartbeatInterval;
+        return m_fDeferKeyAssociationCheck;
         }
 
     /**
-     * Set the frequency in millis that heartbeats should be sent by the
-     * proxy to the client bidirectional channel.
-     * <p/>
-     * If the frequency is set to zero or less, then no heartbeats will be sent.
+     * Set the flag to defer the KeyAssociation check.
      *
-     * @param nEventsHeartbeat the heartbeat frequency in millis
+     * @param fDefer  the KeyAssociation check defer flag
      */
-    @Injectable("heartbeat-interval")
-    public void setHeartbeatInterval(long nEventsHeartbeat)
+    @Injectable("defer-key-association-check")
+    public void setDeferKeyAssociationCheck(boolean fDefer)
         {
-        m_nHeartbeatInterval = Math.max(NO_EVENTS_HEARTBEAT, nEventsHeartbeat);
+        m_fDeferKeyAssociationCheck = fDefer;
         }
 
-    // ----- data members ---------------------------------------------------
+    // ----- data fields and constants --------------------------------------
 
     /**
-     * The frequency in millis that heartbeats should be sent by the
-     * proxy to the client bidirectional events channel
+     * The flag to indicate if the KeyAssociation check is deferred.
      */
-    private long m_nHeartbeatInterval = NO_EVENTS_HEARTBEAT;
+    private boolean m_fDeferKeyAssociationCheck;
     }

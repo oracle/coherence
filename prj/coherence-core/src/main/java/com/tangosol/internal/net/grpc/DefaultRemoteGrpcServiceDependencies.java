@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,7 @@ import com.tangosol.config.annotation.Injectable;
 import com.tangosol.config.expression.Expression;
 import com.tangosol.config.expression.LiteralExpression;
 import com.tangosol.internal.net.service.extend.remote.DefaultRemoteCacheServiceDependencies;
+import com.tangosol.internal.net.service.extend.remote.DefaultRemoteServiceDependencies;
 import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.internal.util.DaemonPoolDependencies;
 import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
@@ -25,7 +26,7 @@ import com.tangosol.net.grpc.GrpcDependencies;
  * @since 23.03
  */
 public abstract class DefaultRemoteGrpcServiceDependencies
-        extends DefaultRemoteCacheServiceDependencies
+        extends DefaultRemoteServiceDependencies
         implements RemoteGrpcServiceDependencies
     {
     /**
@@ -54,6 +55,7 @@ public abstract class DefaultRemoteGrpcServiceDependencies
             setRemoteScopeName(deps.getRemoteScopeName());
             setScopeName(deps.getScopeName());
             setSerializerFactory(deps.getSerializerFactory());
+            setHeartbeatInterval(deps.getHeartbeatInterval());
             }
         }
 
@@ -236,6 +238,45 @@ public abstract class DefaultRemoteGrpcServiceDependencies
         return super.getRequestTimeoutMillis();
         }
 
+
+    @Override
+    public long getHeartbeatInterval()
+        {
+        return m_nHeartbeatInterval;
+        }
+
+    /**
+     * Set the frequency in millis that heartbeats should be sent by the
+     * proxy to the client bidirectional channel.
+     * <p/>
+     * If the frequency is set to zero or less, then no heartbeats will be sent.
+     *
+     * @param nEventsHeartbeat the heartbeat frequency in millis
+     */
+    @Injectable("heartbeat-interval")
+    public void setHeartbeatInterval(long nEventsHeartbeat)
+        {
+        m_nHeartbeatInterval = Math.max(NO_EVENTS_HEARTBEAT, nEventsHeartbeat);
+        }
+
+    @Override
+    public boolean isRequireHeartbeatAck()
+        {
+        return m_fRequireHeartbeatAck;
+        }
+
+    /**
+     * Set the flag to indicate whether heart beat messages require an
+     * ack response from the server.
+     *
+     * @param fRequireHeartbeatAck  {@code true} to require an ack response
+     */
+    @Injectable("heartbeat-ack-required")
+    public void setRequireHeartbeatAck(boolean fRequireHeartbeatAck)
+        {
+        m_fRequireHeartbeatAck = fRequireHeartbeatAck;
+        }
+
     // ----- helper methods -------------------------------------------------
 
     protected DefaultDaemonPoolDependencies ensureDaemonPoolDependencies()
@@ -279,4 +320,15 @@ public abstract class DefaultRemoteGrpcServiceDependencies
      * The serializer factory.
      */
     private SerializerFactory m_serializerFactory;
+
+    /**
+     * The frequency in millis that heartbeats should be sent by the
+     * proxy to the client bidirectional events channel
+     */
+    private long m_nHeartbeatInterval = NO_EVENTS_HEARTBEAT;
+
+    /**
+     * The flag to indicate whether heart beat messages require an ack from the server.
+     */
+    private boolean m_fRequireHeartbeatAck = false;
     }

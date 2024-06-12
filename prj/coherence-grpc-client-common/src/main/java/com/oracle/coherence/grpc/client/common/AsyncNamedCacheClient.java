@@ -1838,6 +1838,15 @@ public class AsyncNamedCacheClient<K, V>
          *         proxy to the client bidirectional channel
          */
         long getHeartbeatMillis();
+
+        /**
+         * Return the flag to determine whether heart beat messages should require an
+         * ack response from the server.
+         *
+         * @return  that is {@code true} if heart beat messages should require an
+         *          ack response from the server
+         */
+        boolean isRequireHeartbeatAck();
         }
 
     // ----- DefaultDependencies ----------------------------------------
@@ -1872,6 +1881,12 @@ public class AsyncNamedCacheClient<K, V>
             return m_nEventsHeartbeat;
             }
 
+        @Override
+        public boolean isRequireHeartbeatAck()
+            {
+            return m_fRequireHeartbeatAck;
+            }
+
         // ----- setters ----------------------------------------------------
 
         /**
@@ -1887,6 +1902,17 @@ public class AsyncNamedCacheClient<K, V>
             m_nEventsHeartbeat = Math.max(NO_EVENTS_HEARTBEAT, nEventsHeartbeat);
             }
 
+        /**
+         * Set the flag to indicate whether heart beat messages require an
+         * ack response from the server.
+         *
+         * @param fRequireHeartbeatAck  {@code true} to require an ack response
+         */
+        public void setRequireHeartbeatAck(boolean fRequireHeartbeatAck)
+            {
+            m_fRequireHeartbeatAck = fRequireHeartbeatAck;
+            }
+
         // ----- data members -----------------------------------------------
 
         /**
@@ -1894,6 +1920,9 @@ public class AsyncNamedCacheClient<K, V>
          * proxy to the client bidirectional channel
          */
         private long m_nEventsHeartbeat = NO_EVENTS_HEARTBEAT;
+
+
+        private boolean m_fRequireHeartbeatAck;
         }
 
     // ----- inner class: EntryAdvancer -------------------------------------

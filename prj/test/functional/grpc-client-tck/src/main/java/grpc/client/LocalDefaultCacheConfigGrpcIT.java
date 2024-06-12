@@ -14,6 +14,8 @@ public class LocalDefaultCacheConfigGrpcIT
     @BeforeAll
     static void setupCluster() throws Exception
         {
+        System.setProperty("coherence.grpc.heartbeat.interval", "1000");
+        System.setProperty("coherence.grpc.heartbeat.ack", "true");
         runCluster();
         }
     }

@@ -16,17 +16,4 @@ package com.tangosol.internal.net.grpc;
 public interface RemoteGrpcCacheServiceDependencies
         extends RemoteGrpcServiceDependencies
     {
-    /**
-     * Returns the frequency in millis that heartbeats should be sent by the
-     * proxy to the client bidirectional channel.
-     *
-     * @return the frequency in millis that heartbeats should be sent by the
-     *         proxy to the client bidirectional channel
-     */
-    long getHeartbeatInterval();
-
-    /**
-     * The default heartbeat frequency value representing no heartbeats to be sent.
-     */
-    long NO_EVENTS_HEARTBEAT = 0L;
     }

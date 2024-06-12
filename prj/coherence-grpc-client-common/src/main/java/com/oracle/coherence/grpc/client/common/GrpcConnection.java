@@ -121,6 +121,27 @@ public interface GrpcConnection
 
     <T extends Message> void removeResponseObserver(Listener<T> listener);
 
+    /**
+     * Return the number of heart beat messages sent.
+     *
+     * @return the number of heart beat messages sent
+     */
+    long getHeartbeatsSent();
+
+    /**
+     * Return the timestamp of the last heartbeat sent.
+     *
+     * @return the timestamp of the last heartbeat sent
+     */
+    long getLastHeartbeatTime();
+
+    /**
+     * Return the number of heart beat ack responses received.
+     *
+     * @return the number of heart beat ack responses received
+     */
+    long getHeartbeatsAcked();
+
     // ----- inner class: Listener ------------------------------------------
 
     record Listener<T extends Message>(StreamObserver<T> observer, Predicate<T> predicate)

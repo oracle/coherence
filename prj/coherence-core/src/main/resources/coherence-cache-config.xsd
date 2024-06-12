@@ -890,6 +890,7 @@
               <xsd:element ref="listener" minOccurs="0" />
               <xsd:element ref="defer-key-association-check" minOccurs="0" />
               <xsd:element ref="heartbeat-interval" minOccurs="0" />
+              <xsd:element ref="heartbeat-ack-required" minOccurs="0" />
               <xsd:any namespace="##other" processContents="lax"
                   minOccurs="0" maxOccurs="unbounded" />
           </xsd:sequence>

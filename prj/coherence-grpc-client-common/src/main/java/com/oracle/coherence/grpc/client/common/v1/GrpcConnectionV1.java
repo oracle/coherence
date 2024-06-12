@@ -8,6 +8,7 @@
 package com.oracle.coherence.grpc.client.common.v1;
 
 import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
 
 import com.oracle.coherence.common.base.Logger;
@@ -33,6 +34,7 @@ import com.oracle.coherence.grpc.services.proxy.v1.ProxyServiceGrpc;
 
 import com.tangosol.internal.net.grpc.RemoteGrpcServiceDependencies;
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.Coherence;
@@ -40,6 +42,7 @@ import com.tangosol.net.PriorityTask;
 import com.tangosol.net.RequestIncompleteException;
 
 import com.tangosol.net.grpc.GrpcDependencies;
+import com.tangosol.util.SafeClock;
 import com.tangosol.util.UUID;
 
 import io.grpc.Channel;
@@ -58,6 +61,7 @@ import java.util.concurrent.TimeoutException;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -79,13 +83,15 @@ public class GrpcConnectionV1
         {
         RemoteGrpcServiceDependencies serviceDependencies = dependencies.getServiceDependencies();
 
-        f_responseType   = Objects.requireNonNull(type);
-        m_serializer     = dependencies.getSerializer();
-        m_dependencies   = dependencies;
-        f_sScope         = Objects.requireNonNullElse(serviceDependencies.getRemoteScopeName(), Coherence.DEFAULT_SCOPE);
-        m_channel        = dependencies.getChannel();
-        m_sProtocol      = dependencies.getProtocolName();
-        f_requestTimeout = serviceDependencies.getRequestTimeoutMillis();
+        f_responseType      = Objects.requireNonNull(type);
+        m_serializer        = dependencies.getSerializer();
+        m_dependencies      = dependencies;
+        f_sScope            = Objects.requireNonNullElse(serviceDependencies.getRemoteScopeName(), Coherence.DEFAULT_SCOPE);
+        m_channel           = dependencies.getChannel();
+        m_sProtocol         = dependencies.getProtocolName();
+        f_requestTimeout     = serviceDependencies.getRequestTimeoutMillis();
+        f_nHeartbeatInterval = serviceDependencies.getHeartbeatInterval();
+        f_fHeartbeatAck      = serviceDependencies.isRequireHeartbeatAck();
         }
 
     @Override
@@ -211,6 +217,7 @@ public class GrpcConnectionV1
         if (responseCase == ProxyResponse.ResponseCase.HEARTBEAT)
             {
             // nothing to do
+            f_cHeartbeatAck.increment();
             return;
             }
 
@@ -327,6 +334,24 @@ public class GrpcConnectionV1
     public <T extends Message> void removeResponseObserver(Listener<T> listener)
         {
         m_listeners.remove(listener);
+        }
+
+    @Override
+    public long getHeartbeatsSent()
+        {
+        return f_cHeartbeat.sum();
+        }
+
+    @Override
+    public long getLastHeartbeatTime()
+        {
+        return m_nLastHeartbeatTime;
+        }
+
+    @Override
+    public long getHeartbeatsAcked()
+        {
+        return f_cHeartbeatAck.sum();
         }
 
     // ----- Object methods -------------------------------------------------
@@ -459,6 +484,11 @@ public class GrpcConnectionV1
                     awaitFuture(m_connectFuture, nMillis);
                     m_connectFuture = null;
                     m_observer = observer;
+
+                    if (f_nHeartbeatInterval > 0L)
+                        {
+                        Daemons.commonPool().schedule(new HeartbeatTask(f_fHeartbeatAck), f_nHeartbeatInterval);
+                        }
                     }
                 finally
                     {
@@ -575,6 +605,41 @@ public class GrpcConnectionV1
         private T m_value;
         }
 
+    // ----- inner class: HeartbeatTask -------------------------------------
+
+    protected class HeartbeatTask
+            implements Runnable
+        {
+        public HeartbeatTask(boolean fAck)
+            {
+            ByteString bytes = m_uuid == null
+                       ? ByteString.EMPTY
+                       : ByteString.copyFrom(m_uuid.toByteArray());
+
+            f_message = HeartbeatMessage.newBuilder()
+                    .setUuid(bytes)
+                    .setAck(fAck)
+                    .build();
+            }
+
+        @Override
+        public void run()
+            {
+            if (isConnected())
+                {
+                m_nLastHeartbeatTime = SafeClock.INSTANCE.getSafeTimeMillis();
+                f_cHeartbeat.increment();
+                poll(f_message);
+                Daemons.commonPool().schedule(this, f_nHeartbeatInterval);
+                }
+            }
+
+        /**
+         * The {@link HeartbeatMessage} to send.
+         */
+        private final HeartbeatMessage f_message;
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -652,4 +717,29 @@ public class GrpcConnectionV1
      * The request timeout to apply.
      */
     private final long f_requestTimeout;
+
+    /**
+     * The frequency to use to send heart-beats.
+     */
+    private final long f_nHeartbeatInterval;
+
+    /**
+     * A flag to indicate whether the server should send ack responses for heart beat messages.
+     */
+    private boolean f_fHeartbeatAck;
+
+    /**
+     * The count of heartbeat acks received.
+     */
+    private final LongAdder f_cHeartbeatAck = new LongAdder();
+
+    /**
+     * The count of heart beat messages sent.
+     */
+    private final LongAdder f_cHeartbeat = new LongAdder();
+
+    /**
+     * The timestamp of the last heart beat message.
+     */
+    private long m_nLastHeartbeatTime;
     }

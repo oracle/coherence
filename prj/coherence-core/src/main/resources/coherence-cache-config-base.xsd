@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -780,6 +780,17 @@
                 default.
 
                 Used in: outgoing-message-handler
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="heartbeat-ack-required" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The heartbeat-ack-required setting requires the server
+                to send an ack response to a client heart beat message.
+
+                Used in: remote-grpc-cache-scheme
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>

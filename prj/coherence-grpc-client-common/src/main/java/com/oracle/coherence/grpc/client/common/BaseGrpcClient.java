@@ -79,6 +79,16 @@ public abstract class BaseGrpcClient<V, ClientType extends ClientProtocol>
     // ----- helper methods -------------------------------------------------
 
     /**
+     * Return the {@link ClientProtocol} being used.
+     *
+     * @return the {@link ClientProtocol} being used
+     */
+    public ClientType getClientProtocol()
+        {
+        return f_client;
+        }
+
+    /**
      * Return {@code true} if the cache has been released.
      *
      * @return {@code true} if the cache has been released

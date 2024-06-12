@@ -10,16 +10,22 @@ package grpc.client;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.grpc.client.common.AsyncNamedCacheClient;
+import com.oracle.coherence.grpc.client.common.ClientProtocol;
 import com.oracle.coherence.grpc.client.common.DeactivationListener;
+import com.oracle.coherence.grpc.client.common.GrpcConnection;
 import com.oracle.coherence.grpc.client.common.GrpcRemoteCacheService;
+import com.oracle.coherence.grpc.client.common.NamedCacheClient;
+import com.oracle.coherence.grpc.client.common.NamedCacheClientChannel;
 import com.oracle.coherence.io.json.JsonSerializer;
 
 import com.tangosol.coherence.component.net.extend.remoteService.RemoteCacheService;
 import com.tangosol.coherence.component.util.SafeAsyncNamedCache;
 
+import com.tangosol.coherence.component.util.SafeNamedCache;
 import com.tangosol.coherence.component.util.safeService.SafeCacheService;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
+import com.tangosol.internal.net.SessionNamedCache;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;
@@ -88,6 +94,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -1404,6 +1411,44 @@ public abstract class AbstractGrpcClientIT
 
         assertThat(map, hasEntry(key1, person1.getFirstName()));
         assertThat(map, hasEntry(key2, person2.getFirstName()));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    @SuppressWarnings("unchecked")
+    public void shouldHeartbeat(String sSerializerName, Serializer serializer) throws Exception
+        {
+        String                     cacheName  = createCacheName("foo");
+        NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
+
+        if (grpcClient instanceof SessionNamedCache)
+            {
+            grpcClient = ((SessionNamedCache) grpcClient).getInternalNamedCache();
+            }
+        if (grpcClient instanceof SafeNamedCache)
+            {
+            grpcClient = ((SafeNamedCache) grpcClient).getNamedCache();
+            }
+
+        assertThat(grpcClient, is(instanceOf(NamedCacheClient.class)));
+
+        NamedCacheClient<?, ?>             client       = (NamedCacheClient) grpcClient;
+        AsyncNamedCacheClient<?, ?>        asyncClient  = client.getAsyncClient();
+        NamedCacheClientChannel            channel      = asyncClient.getClientProtocol();
+        AsyncNamedCacheClient.Dependencies dependencies = channel.getDependencies();
+
+        long    nMillis = dependencies.getHeartbeatMillis();
+        boolean fAck    = dependencies.isRequireHeartbeatAck();
+        Assumptions.assumeTrue(nMillis > 0L, "Skipping test, heart beats are not configured");
+        Assumptions.assumeTrue(fAck, "Skipping test, heart beat acks are not configured");
+
+        GrpcConnection connection = channel.getConnection();
+        long           nTimestamp = connection.getLastHeartbeatTime();
+        long           cSent      = connection.getHeartbeatsSent();
+
+        Eventually.assertDeferred(connection::getHeartbeatsSent, is(greaterThan(cSent)));
+        Eventually.assertDeferred(connection::getHeartbeatsAcked, is(greaterThan(cSent)));
+        assertThat(connection.getLastHeartbeatTime(), is(greaterThan(nTimestamp)));
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")

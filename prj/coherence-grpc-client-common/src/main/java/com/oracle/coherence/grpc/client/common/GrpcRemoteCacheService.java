@@ -275,11 +275,9 @@ public class GrpcRemoteCacheService
         deps.setSerializer(m_serializer, m_serializer.getName());
         deps.setExecutor(m_executor);
         deps.setDeferKeyAssociationCheck(dependencies.isDeferKeyAssociationCheck());
-        long nDeadline  = dependencies.getDeadline();
-        long nHeartbeat = dependencies.getHeartbeatInterval();
-        deps.setDeadline(nDeadline);
-        deps.setHeartbeatMillis(nHeartbeat == 0L ? (nDeadline / 2) : nHeartbeat);
-
+        deps.setDeadline(dependencies.getDeadline());
+        deps.setHeartbeatMillis(dependencies.getHeartbeatInterval());
+        deps.setRequireHeartbeatAck(dependencies.isRequireHeartbeatAck());
         return deps;
         }
 

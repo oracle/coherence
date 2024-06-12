@@ -39,6 +39,12 @@ public abstract class BaseNamedCacheClientChannel
                                          .orElseGet(BaseGrpcClient::getDefaultSerializerFormat));
         }
 
+    @Override
+    public AsyncNamedCacheClient.Dependencies getDependencies()
+        {
+        return super.getDependencies();
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**

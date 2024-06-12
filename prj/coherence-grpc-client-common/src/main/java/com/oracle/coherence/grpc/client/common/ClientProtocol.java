@@ -33,4 +33,11 @@ public interface ClientProtocol
      * @return {@code true} if this client protocol is active
      */
     boolean isActive();
+
+    /**
+     * Return the {@link GrpcConnection} being used.
+     *
+     * @return the {@link GrpcConnection} being used
+     */
+    GrpcConnection getConnection();
     }

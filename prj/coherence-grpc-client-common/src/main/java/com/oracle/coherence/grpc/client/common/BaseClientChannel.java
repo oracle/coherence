@@ -45,6 +45,17 @@ public abstract class BaseClientChannel<DepsType extends BaseGrpcClient.Dependen
         return f_connection.isConnected();
         }
 
+    @Override
+    public GrpcConnection getConnection()
+        {
+        return f_connection;
+        }
+
+    public DepsType getDependencies()
+        {
+        return f_dependencies;
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**

@@ -105,6 +105,24 @@ public class GrpcConnectionV0
         {
         }
 
+    @Override
+    public long getHeartbeatsSent()
+        {
+        return 0L;
+        }
+
+    @Override
+    public long getLastHeartbeatTime()
+        {
+        return 0L;
+        }
+
+    @Override
+    public long getHeartbeatsAcked()
+        {
+        return 0L;
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**

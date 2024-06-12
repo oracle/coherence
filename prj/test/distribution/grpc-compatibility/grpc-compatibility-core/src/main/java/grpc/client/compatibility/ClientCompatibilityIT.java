@@ -106,6 +106,9 @@ public class ClientCompatibilityIT
     @BeforeAll
     static void setupCluster(TestInfo info) throws Exception
         {
+        System.setProperty("coherence.grpc.heartbeat.interval", "1000");
+        System.setProperty("coherence.grpc.heartbeat.ack", "true");
+
         executor.schedule(() ->
             {
             System.err.println("***** Exiting due to probable hanging test *****");

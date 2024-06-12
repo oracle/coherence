@@ -65,6 +65,13 @@ public interface NamedCacheClientChannel
         }
 
     /**
+     * Return the dependencies for this channel.
+     *
+     * @return the dependencies for this channel
+     */
+    AsyncNamedCacheClient.Dependencies getDependencies();
+
+    /**
      * Asynchronous implementation of {@link NamedCache#addIndex}.
      *
      * @param extractor  the ValueExtractor object that is used to extract an

@@ -165,6 +165,7 @@ class path, or module path, of the JVM.
       <request-timeout system-property="coherence.grpc.request.timeout"/>
       <defer-key-association-check system-property="coherence.grpc.defer.key.association"/>
       <heartbeat-interval system-property="coherence.grpc.heartbeat.interval"/>
+      <heartbeat-ack-required system-property="coherence.grpc.heartbeat.ack"/>
     </remote-grpc-cache-scheme>
 
     <!-- near caching scheme for gRPC clients -->
@@ -200,6 +201,7 @@ class path, or module path, of the JVM.
       <request-timeout system-property="coherence.grpc.request.timeout"/>
       <defer-key-association-check system-property="coherence.grpc.defer.key.association"/>
       <heartbeat-interval system-property="coherence.grpc.heartbeat.interval"/>
+      <heartbeat-ack-required system-property="coherence.grpc.heartbeat.ack"/>
     </remote-grpc-cache-scheme>
 
     <!-- partitioned caching scheme for clustered clients -->
