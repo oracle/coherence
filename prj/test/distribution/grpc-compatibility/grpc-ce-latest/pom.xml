@@ -30,7 +30,8 @@
         <coherence.compatability.allow.snapshots>false</coherence.compatability.allow.snapshots>
         <!-- This is the groupId of the version server being tested against, not the current version being built -->
         <coherence.compatability.groupId>com.oracle.coherence.ce</coherence.compatability.groupId>
-        <is.not.java.17>false</is.not.java.17>
+        <is.invalid.jdk>true</is.invalid.jdk>
+        <skipTests>${is.invalid.jdk}</skipTests>
     </properties>
 
     <dependencies>
@@ -45,24 +46,25 @@
         </dependency>
     </dependencies>
 
-<!--    <profiles>-->
-<!--        &lt;!&ndash; run all tests in stage13 and Java 17+ &ndash;&gt;-->
-<!--        <profile>-->
-<!--          <id>stage13</id>-->
-<!--          <properties>-->
-<!--            <skipTests>${is.not.java.17}</skipTests>-->
-<!--          </properties>-->
-<!--        </profile>-->
+    <profiles>
+        <!-- run all tests in stage13 and Java 17+ -->
+        <profile>
+          <id>stage13</id>
+          <properties>
+<!--            <skipTests>${is.invalid.jdk}</skipTests>-->
+            <skipTests>true</skipTests>
+          </properties>
+        </profile>
 
-<!--        <profile>-->
-<!--          <id>NotJava17</id>-->
-<!--          <activation>-->
-<!--            <jdk>(,17)</jdk>-->
-<!--          </activation>-->
-<!--          <properties>-->
-<!--            <is.not.java.17>true</is.not.java.17>-->
-<!--            <skipTests>true</skipTests>-->
-<!--          </properties>-->
-<!--        </profile>-->
-<!--    </profiles>-->
+        <profile>
+          <id>IsValidJdk</id>
+          <activation>
+            <jdk>[17,21]</jdk>
+          </activation>
+          <properties>
+<!--            <is.invalid.jdk>false</is.invalid.jdk>-->
+<!--            <skipTests>false</skipTests>-->
+          </properties>
+        </profile>
+    </profiles>
 </project>
