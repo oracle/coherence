@@ -33,6 +33,8 @@
     <coherence.compatability.version/>
     <coherence.compatability.allow.snapshots/>
     <coherence.compatability.groupId/>
+    <coherence.compatability.minJavaVersion/>
+    <coherence.compatability.maxJavaVersion/>
 
     <maven.home.dir>${env.MAVEN_HOME}</maven.home.dir>
     <coherence.compatability.settings>${maven.home.dir}/conf/settings.xml</coherence.compatability.settings>
@@ -61,6 +63,8 @@
               <coherence.compatability.version>${coherence.compatability.version}</coherence.compatability.version>
               <coherence.compatability.allow.snapshots>${coherence.compatability.allow.snapshots}</coherence.compatability.allow.snapshots>
               <coherence.compatability.settings>${coherence.compatability.settings}</coherence.compatability.settings>
+              <coherence.compatability.minJavaVersion>${coherence.compatability.minJavaVersion}</coherence.compatability.minJavaVersion>
+              <coherence.compatability.maxJavaVersion>${coherence.compatability.maxJavaVersion}</coherence.compatability.maxJavaVersion>
           </systemProperties>
         </configuration>
       </plugin>

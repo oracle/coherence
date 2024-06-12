@@ -12,7 +12,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.oracle.coherence.ce.tests</groupId>
+        <groupId>com.oracle.coherence.tests</groupId>
         <artifactId>grpc-compatibility</artifactId>
         <version>${revision}</version>
         <relativePath>../pom.xml</relativePath>
@@ -30,9 +30,10 @@
         <coherence.compatability.allow.snapshots>true</coherence.compatability.allow.snapshots>
         <!-- This is the groupId of the version server being tested against, not the current version being built -->
         <coherence.compatability.groupId>com.oracle.coherence.ce</coherence.compatability.groupId>
-<!--        <is.not.java.17>false</is.not.java.17>-->
-        <is.not.java.17>true</is.not.java.17>
-        <skipTests>${is.not.java.17}</skipTests>
+
+        <coherence.compatability.minJavaVersion>17</coherence.compatability.minJavaVersion>
+        <coherence.compatability.maxJavaVersion/>
+        <skipTests>true</skipTests>
     </properties>
 
     <dependencies>
@@ -46,25 +47,4 @@
             <version>${project.version}</version>
         </dependency>
     </dependencies>
-
-    <profiles>
-        <!-- run all tests in stage13 and Java 17+ -->
-        <profile>
-          <id>stage13</id>
-          <properties>
-<!--            <skipTests>${is.not.java.17}</skipTests>-->
-          </properties>
-        </profile>
-
-        <profile>
-          <id>NotJava17</id>
-          <activation>
-            <jdk>(,17)</jdk>
-          </activation>
-          <properties>
-<!--            <is.not.java.17>true</is.not.java.17>-->
-<!--            <skipTests>true</skipTests>-->
-          </properties>
-        </profile>
-    </profiles>
 </project>

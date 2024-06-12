@@ -1439,6 +1439,7 @@ public abstract class AbstractGrpcClientIT
 
         long    nMillis = dependencies.getHeartbeatMillis();
         boolean fAck    = dependencies.isRequireHeartbeatAck();
+        Assumptions.assumeTrue(channel.getVersion() >= 1, "Skipping test, protocol is less then version 1");
         Assumptions.assumeTrue(nMillis > 0L, "Skipping test, heart beats are not configured");
         Assumptions.assumeTrue(fAck, "Skipping test, heart beat acks are not configured");
 

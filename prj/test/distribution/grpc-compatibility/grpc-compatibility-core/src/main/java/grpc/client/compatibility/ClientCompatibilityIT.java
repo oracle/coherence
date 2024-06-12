@@ -44,6 +44,7 @@ import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
 
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.util.Threads;
+import com.oracle.coherence.testing.Junit5CheckJDK;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.io.Serializer;
@@ -56,7 +57,6 @@ import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
 
 import grpc.client.AbstractGrpcClientIT;
-import grpc.client.DefaultCacheConfigGrpcIT;
 import grpc.client.IsGrpcProxyRunning;
 
 import org.junit.jupiter.api.AfterAll;
@@ -67,7 +67,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
-import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
@@ -106,6 +105,19 @@ public class ClientCompatibilityIT
     @BeforeAll
     static void setupCluster(TestInfo info) throws Exception
         {
+        String sMinJavaVersion = Config.getProperty("coherence.compatability.minJavaVersion");
+        String sMaxJavaVersion = Config.getProperty("coherence.compatability.maxJavaVersion");
+
+        if (sMinJavaVersion != null && !sMinJavaVersion.isBlank())
+            {
+            Junit5CheckJDK.assumeJDKVersionGreaterThanEqual(sMinJavaVersion);
+            }
+
+        if (sMaxJavaVersion != null && !sMaxJavaVersion.isBlank())
+            {
+            Junit5CheckJDK.assumeJDKVersionLessThanOrEqual(sMaxJavaVersion);
+            }
+
         System.setProperty("coherence.grpc.heartbeat.interval", "1000");
         System.setProperty("coherence.grpc.heartbeat.ack", "true");
 
