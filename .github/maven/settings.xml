@@ -12,4 +12,35 @@
     <activeProfile>default</activeProfile>
   </activeProfiles>
 
+  <profiles>
+    <profile>
+      <id>default</id>
+      <repositories>
+        <repository>
+          <id>central</id>
+          <name>Maven Central</name>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+          <url>https://repo.maven.apache.org/maven2/</url>
+          <layout>default</layout>
+        </repository>
+        <repository>
+          <id>sonatype</id>
+          <name>Sonatype Snapshots</name>
+          <releases>
+            <enabled>false</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+          <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+          <layout>default</layout>
+        </repository>
+      </repositories>
+    </profile>
+  </profiles>
 </settings>
