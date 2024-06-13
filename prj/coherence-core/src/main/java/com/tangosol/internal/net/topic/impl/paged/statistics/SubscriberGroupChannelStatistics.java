@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -189,7 +189,7 @@ public class SubscriberGroupChannelStatistics
     /**
      * The current head position.
      */
-    private PagedPosition m_head = new PagedPosition(0L, 0);
+    private PagedPosition m_head = PagedPosition.NULL_POSITION;
 
     /**
      * The owning subscriber.
