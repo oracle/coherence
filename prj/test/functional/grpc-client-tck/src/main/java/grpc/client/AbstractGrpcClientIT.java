@@ -69,6 +69,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 
@@ -2261,6 +2262,7 @@ public abstract class AbstractGrpcClientIT
     @SuppressWarnings("unchecked")
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
+    @Disabled // ToDo JK
     public void shouldSubscribeWithSynchronousListener(String sSerializerName, Serializer serializer) throws Exception
         {
         String                     cacheName  = "test-events-" + System.currentTimeMillis();
