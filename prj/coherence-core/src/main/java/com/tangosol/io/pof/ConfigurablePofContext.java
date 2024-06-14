@@ -945,7 +945,7 @@ public class ConfigurablePofContext
      */
     protected Map<? extends String, ? extends Integer> discoverPortableTypes()
         {
-        final PofIndexer pofIndexer = new PofIndexer();
+        final PofIndexer pofIndexer = new PofIndexer(getContextClassLoader());
         pofIndexer.setIndexFileName(getIndexFileName());
 
         final Map<URL, Properties> mapIndexes       = pofIndexer.loadIndexes();

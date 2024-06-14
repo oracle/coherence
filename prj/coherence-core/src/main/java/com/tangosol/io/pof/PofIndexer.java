@@ -7,6 +7,7 @@
 package com.tangosol.io.pof;
 
 
+import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.dev.introspect.ClassAnnotationSeeker;
@@ -60,7 +61,7 @@ public class PofIndexer
      */
     public PofIndexer()
         {
-        m_classLoader = PofIndexer.class.getClassLoader();
+        this(Classes.getContextClassLoader());
         }
 
     /**
@@ -70,7 +71,7 @@ public class PofIndexer
      */
     public PofIndexer(ClassLoader classLoader)
         {
-        m_classLoader = classLoader;
+        m_classLoader = classLoader == null ? PofIndexer.class.getClassLoader() : classLoader;
         }
 
     // ----- Pof Indexer implementation --------------------------------------
@@ -289,7 +290,7 @@ public class PofIndexer
         {
         try
             {
-            PortableType portableType = Class.forName(classname).getAnnotation(PortableType.class);
+            PortableType portableType = Class.forName(classname, true, m_classLoader).getAnnotation(PortableType.class);
             int portableTypeId = portableType.id();
             return portableTypeId;
             }
