@@ -227,7 +227,6 @@ public class GrpcConnectionV1
             // this is a non-request related message, send it to any listeners
             try
                 {
-
                 Message message = response.getMessage().unpack(f_responseType);
                 m_listeners.forEach(listener ->
                     {

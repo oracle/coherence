@@ -9,8 +9,8 @@ package grpc.client;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.grpc.client.common.AsyncNamedCacheClient;
-import com.oracle.coherence.grpc.client.common.ClientProtocol;
 import com.oracle.coherence.grpc.client.common.DeactivationListener;
 import com.oracle.coherence.grpc.client.common.GrpcConnection;
 import com.oracle.coherence.grpc.client.common.GrpcRemoteCacheService;
@@ -62,6 +62,7 @@ import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.filter.MapEventFilter;
 
+import com.tangosol.util.listener.SimpleMapListener;
 import com.tangosol.util.processor.ExtractorProcessor;
 
 import org.junit.jupiter.api.AfterEach;
@@ -87,6 +88,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -2254,6 +2256,57 @@ public abstract class AbstractGrpcClientIT
         cache.put("luke", luke);
         cached = cache.get("luke");
         assertThat(cached.getLastName(), is(luke.getLastName()));
+        }
+
+    @SuppressWarnings("unchecked")
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldSubscribeWithSynchronousListener(String sSerializerName, Serializer serializer) throws Exception
+        {
+        String                     cacheName  = "test-events-" + System.currentTimeMillis();
+        NamedCache<String, String> cache      = ensureCache(cacheName);
+        NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
+
+        if (grpcClient instanceof SessionNamedCache)
+            {
+            grpcClient = ((SessionNamedCache) grpcClient).getInternalNamedCache();
+            }
+        if (grpcClient instanceof SafeNamedCache)
+            {
+            grpcClient = ((SafeNamedCache) grpcClient).getNamedCache();
+            }
+
+        assertThat(grpcClient, is(instanceOf(NamedCacheClient.class)));
+
+        NamedCacheClient<?, ?>       client      = (NamedCacheClient) grpcClient;
+        AsyncNamedCacheClient<?, ?>  asyncClient = client.getAsyncClient();
+        NamedCacheClientChannel      channel     = asyncClient.getClientProtocol();
+
+        Assumptions.assumeTrue(channel.getVersion() >= 1, "Skipping test, protocol is less then version 1");
+
+        cache.clear();
+
+        String                      key      = "key-1";
+        CompletableFuture<Void>     future   = new CompletableFuture<>();
+        MapListener<String, String> listener = new SimpleMapListener<String, String>()
+                .synchronous()
+                .addInsertHandler(evt -> future.complete(null));
+
+        grpcClient.addMapListener(listener, key, true);
+        grpcClient.async().put(key, "value")
+                .handle((ignored, err) ->
+                    {
+                    if (err != null)
+                        {
+                        throw Exceptions.ensureRuntimeException(err);
+                        }
+                    // As the listener is synchronous, the event must have been
+                    // received before the put request returns
+                    assertThat(future.isDone(), is(true));
+                    return null;
+                    })
+                .get(2, TimeUnit.MINUTES);
+
         }
 
     // ----- helper methods -------------------------------------------------

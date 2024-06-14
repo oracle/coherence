@@ -107,13 +107,14 @@ public class NamedCacheClientChannel_V1
         }
 
     @Override
-    public CompletableFuture<Void> addMapListener(ByteString key, boolean fLite, boolean fPriming)
+    public CompletableFuture<Void> addMapListener(ByteString key, boolean fLite, boolean fPriming, boolean fSynchronous)
         {
         MapListenerRequest request = MapListenerRequest.newBuilder()
                 .setKeyOrFilter(KeyOrFilter.newBuilder().setKey(key).build())
                 .setLite(fLite)
                 .setPriming(fPriming)
                 .setSubscribe(true)
+                .setSynchronous(fSynchronous)
                 .build();
 
         return poll(NamedCacheRequestType.MapListener, request)
@@ -121,12 +122,13 @@ public class NamedCacheClientChannel_V1
         }
 
     @Override
-    public CompletableFuture<Void> addMapListener(ByteString filterBytes, long nFilterId, boolean fLite, ByteString triggerBytes)
+    public CompletableFuture<Void> addMapListener(ByteString filterBytes, long nFilterId, boolean fLite, ByteString triggerBytes, boolean fSynchronous)
         {
         MapListenerRequest.Builder builder = MapListenerRequest.newBuilder()
                 .setKeyOrFilter(KeyOrFilter.newBuilder().setFilter(filterBytes).build())
                 .setFilterId(nFilterId)
                 .setLite(fLite)
+                .setSynchronous(fSynchronous)
                 .setSubscribe(true);
 
         if (triggerBytes != null)

@@ -511,7 +511,7 @@ public class NamedCacheClientChannel_V0
         }
 
     @Override
-    public CompletableFuture<Void> addMapListener(ByteString key, boolean fLite, boolean fPriming)
+    public CompletableFuture<Void> addMapListener(ByteString key, boolean fLite, boolean fPriming, boolean fSynchronous)
         {
         String uid = "";
         try
@@ -530,7 +530,7 @@ public class NamedCacheClientChannel_V0
 
     @Override
     public CompletableFuture<Void> addMapListener(ByteString filterBytes,
-                                                  long nFilterId, boolean fLite, ByteString triggerBytes)
+                                                  long nFilterId, boolean fLite, ByteString triggerBytes, boolean fSynchronous)
         {
         String uid = "";
         CompletableFuture<Void> future;

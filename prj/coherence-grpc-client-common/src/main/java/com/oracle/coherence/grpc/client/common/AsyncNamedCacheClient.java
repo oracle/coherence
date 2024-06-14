@@ -1352,14 +1352,15 @@ public class AsyncNamedCacheClient<K, V>
     protected CompletableFuture<Void> addKeyMapListener(MapListener<? super K, ? super V> listener, Object key,
                                                         boolean fLite)
         {
-        MapListenerSupport support    = getMapListenerSupport();
-        boolean            fShouldAdd = support.addListenerWithCheck(listener, key, fLite);
-        boolean            fPriming   = MapListenerSupport.isPrimingListener(listener);
+        MapListenerSupport support      = getMapListenerSupport();
+        boolean            fShouldAdd   = support.addListenerWithCheck(listener, key, fLite);
+        boolean            fPriming     = MapListenerSupport.isPrimingListener(listener);
+        boolean            fSynchronous = listener.isSynchronous();
 
         // "priming" request should be sent regardless
         if (fShouldAdd || fPriming)
             {
-            return f_client.addMapListener(toKeyByteString(key), fLite, fPriming)
+            return f_client.addMapListener(toKeyByteString(key), fLite, fPriming, fSynchronous)
                 .handle((ignored, err) ->
                 {
                 if (err != null)
@@ -1401,6 +1402,8 @@ public class AsyncNamedCacheClient<K, V>
     protected CompletableFuture<Void> addFilterMapListener(MapListener<? super K, ? super V> listener,
                                                            Filter<?> filter, boolean fLite)
         {
+        boolean fSynchronous = listener.isSynchronous();
+
         if (listener instanceof NamedCacheDeactivationListener)
             {
             f_lockDeactivationListeners.lock();
@@ -1419,7 +1422,7 @@ public class AsyncNamedCacheClient<K, V>
         if (listener instanceof MapTriggerListener)
             {
             MapTriggerListener triggerListener = (MapTriggerListener) listener;
-            return f_client.addMapListener(ByteString.EMPTY, 0L, fLite, toByteString(triggerListener.getTrigger()));
+            return f_client.addMapListener(ByteString.EMPTY, 0L, fLite, toByteString(triggerListener.getTrigger()), fSynchronous);
             }
 
         boolean wasEmpty;
@@ -1438,7 +1441,7 @@ public class AsyncNamedCacheClient<K, V>
 
         if (wasEmpty || first)
             {
-            future = f_client.addMapListener(toByteString(filter), filterId, fLite, ByteString.EMPTY);
+            future = f_client.addMapListener(toByteString(filter), filterId, fLite, ByteString.EMPTY, fSynchronous);
             if (future.isCompletedExceptionally())
                 {
                 synchronized (support)

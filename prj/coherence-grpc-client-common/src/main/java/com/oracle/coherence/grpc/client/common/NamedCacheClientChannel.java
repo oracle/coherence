@@ -89,31 +89,33 @@ public interface NamedCacheClientChannel
     /**
      * Sends the serialized {@link Filter} for registration with the cache server.
      *
-     * @param key       the serialized bytes of the {@link Filter}
-     * @param fLite     {@code true} to indicate that the {@link MapEvent} objects do
-     *                  not have to include the OldValue and NewValue
-     *                  property values in order to allow optimizations
-     * @param fPriming  {@code true} if this is a priming listener
+     * @param key           the serialized bytes of the {@link Filter}
+     * @param fLite         {@code true} to indicate that the {@link MapEvent} objects do
+     *                      not have to include the OldValue and NewValue
+     *                      property values in order to allow optimizations
+     * @param fPriming      {@code true} if this is a priming listener
+     * @param fSynchronous  {@code true} if this is a synchronous listener
      *
      * @return {@link CompletableFuture} returning type {@link Void}
      */
-    CompletableFuture<Void> addMapListener(ByteString key, boolean fLite, boolean fPriming);
+    CompletableFuture<Void> addMapListener(ByteString key, boolean fLite, boolean fPriming, boolean fSynchronous);
 
     /**
      * Sends the serialized {@link Filter} for registration with the cache server.
      *
-     * @param filterBytes  the serialized bytes of the {@link Filter}
-     * @param nFilterId    the ID of the {@link Filter}
-     * @param fLite        {@code true} to indicate that the {@link MapEvent} objects do
-     *                     not have to include the OldValue and NewValue
-     *                     property values in order to allow optimizations
-     * @param triggerBytes the serialized bytes of the {@link MapTriggerListener}; pass {@link ByteString#EMPTY}
-     *                     if there is no trigger listener.
+     * @param filterBytes   the serialized bytes of the {@link Filter}
+     * @param nFilterId     the ID of the {@link Filter}
+     * @param fLite         {@code true} to indicate that the {@link MapEvent} objects do
+     *                      not have to include the OldValue and NewValue
+     *                      property values in order to allow optimizations
+     * @param triggerBytes  the serialized bytes of the {@link MapTriggerListener}; pass {@link ByteString#EMPTY}
+     *                      if there is no trigger listener.
+     * @param fSynchronous  {@code true} if this is a synchronous listener
      *
      * @return {@link CompletableFuture} returning type {@link Void}
      */
     CompletableFuture<Void> addMapListener(ByteString filterBytes, long nFilterId, boolean fLite,
-                                           ByteString triggerBytes);
+                                           ByteString triggerBytes, boolean fSynchronous);
 
     /**
      * Perform an aggregating operation asynchronously against the entries
