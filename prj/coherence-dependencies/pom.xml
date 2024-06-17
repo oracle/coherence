@@ -156,7 +156,16 @@
 
     <!-- library dependency versions -->
     <asciidoctor.diagram.version>2.0.2</asciidoctor.diagram.version>
+
+    <!--
+         When changing asm.version, also change the value of the constant
+         defined in com.tangosol.util.asm.BaseClassReaderInternal#MAX_MAJOR_VERSION
+         to have the same value as the latest class opcode defined in
+         org.objectweb.asm.Opcodes.  As of ASM 9.6, this is Opcodes.V22 whose
+         value is 66.
+    -->
     <asm.version>9.6</asm.version>
+
     <bdb.version>6.2.31</bdb.version>
     <bnd.version>6.4.0</bnd.version>
     <caffeine.version>3.1.1</caffeine.version>
