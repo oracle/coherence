@@ -1,13 +1,16 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.security;
 
+
 import com.tangosol.util.NullImplementation;
+
+import java.lang.reflect.Method;
 
 import java.security.AccessController;
 
@@ -28,7 +31,15 @@ public abstract class SecurityHelper
     */
     public static Subject getCurrentSubject()
         {
-        return Subject.getSubject(AccessController.getContext());
+        try
+            {
+            return (currentMethod != null) ? (Subject) currentMethod.invoke(null, (Object[])null) :
+                Subject.getSubject(AccessController.getContext());
+            }
+        catch (Exception ignore)
+            {
+            }
+        return null;
         }
 
     
@@ -40,4 +51,18 @@ public abstract class SecurityHelper
     public static final Subject EMPTY_SUBJECT = new Subject(true, NullImplementation.getSet(), 
             NullImplementation.getSet(), NullImplementation.getSet());
 
+    static Method currentMethod = null;
+    static
+        {
+        Class c;
+        try
+            {
+            c = Class.forName("javax.security.auth.Subject");
+            currentMethod = c.getMethod("current", (Class[]) null);
+            }
+        catch (Exception ignore)
+            {
+            // pre-JDK23
+            }
+        }
     }
