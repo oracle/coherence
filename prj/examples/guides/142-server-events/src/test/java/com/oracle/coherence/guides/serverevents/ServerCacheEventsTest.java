@@ -1,27 +1,24 @@
 /*
- * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.guides.serverevents;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.guides.serverevents.interceptors.AuditingInterceptor;
 import com.oracle.coherence.guides.serverevents.interceptors.EntryProcessorAuditingInterceptor;
 import com.oracle.coherence.guides.serverevents.interceptors.UppercaseInterceptor;
-
 import com.oracle.coherence.guides.serverevents.interceptors.ValidationInterceptor;
-import com.oracle.coherence.guides.serverevents.model.AuditEvent;
+
 import com.oracle.coherence.guides.serverevents.model.Customer;
 
 import com.tangosol.net.NamedCache;
 
-import com.tangosol.util.Aggregators;
-import com.tangosol.util.Filters;
 import com.tangosol.util.Processors;
 
 import org.hamcrest.Matchers;
@@ -29,10 +26,8 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static com.tangosol.util.Filters.equal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
-
 
 /**
  * Tests to demonstrate various uses of cache events.
@@ -129,7 +124,7 @@ public class ServerCacheEventsTest
         cache1.truncate();
 
         // ensure we get two events, one from each storage node
-        Eventually.assertDeferred(() -> auditEvents.values(equal(AuditEvent::getEventType, "TRUNCATED")).size(), Matchers.is(2));
+        Eventually.assertDeferred(() -> auditEvents.values().stream().filter(p -> p.getEventType().equals("TRUNCATED")).count(), Matchers.is(2L));
 
         dumpAuditEvents("truncate");
     }
@@ -165,8 +160,8 @@ public class ServerCacheEventsTest
 
         dumpAuditEvents("testEntryProcessorInterceptor-1");
         // up to 3 entry processor events and 3 updates
-        Eventually.assertDeferred(() -> auditEvents.aggregate(Filters.equal(AuditEvent::getEventType, "EXECUTED"), Aggregators.count()), Matchers.lessThanOrEqualTo(3));
-        Eventually.assertDeferred(() -> auditEvents.aggregate(Filters.equal(AuditEvent::getEventType, "UPDATED"), Aggregators.count()), Matchers.equalTo(3));
+        Eventually.assertDeferred(() -> auditEvents.values().stream().filter(p -> p.getEventType().equals("EXECUTED")).count(), Matchers.lessThanOrEqualTo(3L));
+        Eventually.assertDeferred(() -> auditEvents.values().stream().filter(p -> p.getEventType().equals("UPDATED")).count(), Matchers.is(3L));
 
         auditEvents.clear();
 
@@ -177,7 +172,7 @@ public class ServerCacheEventsTest
         dumpAuditEvents("testEntryProcessorInterceptor-2");
 
         // ensure up to 4 EXECUTED events are received
-        Eventually.assertDeferred(() -> auditEvents.aggregate(Filters.equal(AuditEvent::getEventType, "EXECUTED"), Aggregators.count()), Matchers.lessThanOrEqualTo(4));
+        Eventually.assertDeferred(() -> auditEvents.values().stream().filter(p -> p.getEventType().equals("EXECUTED")).count(), Matchers.lessThanOrEqualTo(4L));
     }
     // #end::test3[]
 
