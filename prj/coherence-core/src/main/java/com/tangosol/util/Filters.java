@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
 
@@ -61,8 +61,7 @@ public class Filters
      *
      * @see AllFilter
      */
-    @SuppressWarnings("unchecked")
-    public static <T> Filter<T> all(Filter<? super T>... filters)
+    public static AllFilter all(Filter<?>... filters)
         {
         return new AllFilter(filters);
         }
@@ -78,8 +77,7 @@ public class Filters
      *
      * @see AnyFilter
      */
-    @SuppressWarnings("unchecked")
-    public static <T> Filter<T> any(Filter<? super T>... filters)
+    public static AnyFilter any(Filter<?>... filters)
         {
         return new AnyFilter(filters);
         }
@@ -91,7 +89,7 @@ public class Filters
      *
      * @see AlwaysFilter
      */
-    public static <T> Filter<T> always()
+    public static <T> AlwaysFilter<T> always()
         {
         return AlwaysFilter.INSTANCE();
         }
@@ -103,7 +101,7 @@ public class Filters
      *
      * @see NeverFilter
      */
-    public static <T> Filter<T> never()
+    public static <T> NeverFilter<T> never()
         {
         return NeverFilter.INSTANCE();
         }
@@ -115,7 +113,7 @@ public class Filters
      *
      * @see PresentFilter
      */
-    public static <T> Filter<T> present()
+    public static <T> PresentFilter<T> present()
         {
         return PresentFilter.INSTANCE();
         }
@@ -132,8 +130,7 @@ public class Filters
      *
      * @see NotFilter
      */
-    @SuppressWarnings("unchecked")
-    public static <T> Filter<T> not(Filter<T> filter)
+    public static <T> NotFilter<T> not(Filter<T> filter)
         {
         return new NotFilter<>(filter);
         }
@@ -149,7 +146,7 @@ public class Filters
      *
      * @see IsNullFilter
      */
-    public static <T, E> Filter<T> isNull(ValueExtractor<T, E> extractor)
+    public static <T, E> IsNullFilter<T, E> isNull(ValueExtractor<T, E> extractor)
         {
         return new IsNullFilter<>(extractor);
         }
@@ -165,7 +162,7 @@ public class Filters
      *
      * @see IsNotNullFilter
      */
-    public static <T, E> Filter<T> isNotNull(ValueExtractor<T, E> extractor)
+    public static <T, E> IsNotNullFilter<T, E> isNotNull(ValueExtractor<T, E> extractor)
         {
         return new IsNotNullFilter<>(extractor);
         }
@@ -178,7 +175,7 @@ public class Filters
      *
      * @return a filter that evaluates to true for non-null values
      */
-    public static <T> Filter<T> isTrue(ValueExtractor<T, Boolean> extractor)
+    public static <T> EqualsFilter<T, Boolean> isTrue(ValueExtractor<T, Boolean> extractor)
         {
         return equal(extractor, true);
         }
@@ -191,7 +188,7 @@ public class Filters
      *
      * @return a filter that evaluates to true for non-null values
      */
-    public static <T> Filter<T> isFalse(ValueExtractor<T, Boolean> extractor)
+    public static <T> EqualsFilter<T, Boolean> isFalse(ValueExtractor<T, Boolean> extractor)
         {
         return equal(extractor, false);
         }
@@ -210,7 +207,7 @@ public class Filters
      * @see EqualsFilter
      * @see com.tangosol.util.extractor.UniversalExtractor
      */
-    public static <T, E> Filter<T> equal(String fieldName, E value)
+    public static <T, E> EqualsFilter<T, E> equal(String fieldName, E value)
         {
         return equal(Extractors.extract(fieldName), value);
         }
@@ -227,7 +224,7 @@ public class Filters
      *
      * @see EqualsFilter
      */
-    public static <T, E> Filter<T> equal(ValueExtractor<T, ? extends E> extractor, E value)
+    public static <T, E> EqualsFilter<T, E> equal(ValueExtractor<T, ? extends E> extractor, E value)
         {
         return new EqualsFilter<>(extractor, value);
         }
@@ -244,7 +241,7 @@ public class Filters
      *
      * @see NotEqualsFilter
      */
-    public static <T, E> Filter<T> notEqual(ValueExtractor<T, ? extends E> extractor, E value)
+    public static <T, E> NotEqualsFilter<T, E> notEqual(ValueExtractor<T, ? extends E> extractor, E value)
         {
         return new NotEqualsFilter<>(extractor, value);
         }
@@ -263,7 +260,7 @@ public class Filters
      *
      * @see LessFilter
      */
-    public static <T, E extends Comparable<? super E>> Filter<T> less(ValueExtractor<T, ? extends E> extractor, E value)
+    public static <T, E extends Comparable<? super E>> LessFilter<T, E> less(ValueExtractor<T, ? extends E> extractor, E value)
         {
         return new LessFilter<>(extractor, value);
         }
@@ -282,7 +279,7 @@ public class Filters
      *
      * @see LessEqualsFilter
      */
-    public static <T, E extends Comparable<? super E>> Filter<T> lessEqual(ValueExtractor<T, ? extends E> extractor, E value)
+    public static <T, E extends Comparable<? super E>> LessEqualsFilter<T, E> lessEqual(ValueExtractor<T, ? extends E> extractor, E value)
         {
         return new LessEqualsFilter<>(extractor, value);
         }
@@ -301,7 +298,7 @@ public class Filters
      *
      * @see GreaterFilter
      */
-    public static <T, E extends Comparable<? super E>> Filter<T> greater(ValueExtractor<T, ? extends E> extractor, E value)
+    public static <T, E extends Comparable<? super E>> GreaterFilter<T, E> greater(ValueExtractor<T, ? extends E> extractor, E value)
         {
         return new GreaterFilter<>(extractor, value);
         }
@@ -320,7 +317,7 @@ public class Filters
      *
      * @see GreaterEqualsFilter
      */
-    public static <T, E extends Comparable<? super E>> Filter<T> greaterEqual(ValueExtractor<T, ? extends E> extractor, E value)
+    public static <T, E extends Comparable<? super E>> GreaterEqualsFilter<T, E> greaterEqual(ValueExtractor<T, ? extends E> extractor, E value)
         {
         return new GreaterEqualsFilter<>(extractor, value);
         }
@@ -340,8 +337,7 @@ public class Filters
      *
      * @see BetweenFilter
      */
-    @SuppressWarnings("unchecked")
-    public static <T, E extends Comparable<? super E>> Filter<T> between(ValueExtractor<T, ? extends E> extractor, E from, E to)
+    public static <T, E extends Comparable<? super E>> BetweenFilter<T, E> between(ValueExtractor<T, ? extends E> extractor, E from, E to)
         {
         return new BetweenFilter<>(extractor, from, to);
         }
@@ -361,7 +357,7 @@ public class Filters
      *
      * @see ContainsFilter
      */
-    public static <T, E, C extends Collection<? extends E>> Filter<T> contains(ValueExtractor<T, C> extractor, E value)
+    public static <T, E, C extends Collection<? extends E>> ContainsFilter<T, ?> contains(ValueExtractor<T, C> extractor, E value)
         {
         return new ContainsFilter<>(extractor, value);
         }
@@ -380,7 +376,7 @@ public class Filters
      *
      * @see ContainsFilter
      */
-    public static <T, E> Filter<T> arrayContains(ValueExtractor<T, E[]> extractor, E value)
+    public static <T, E> ContainsFilter<T, ?> arrayContains(ValueExtractor<T, E[]> extractor, E value)
         {
         return new ContainsFilter<>(extractor, value);
         }
@@ -400,7 +396,7 @@ public class Filters
      *
      * @see ContainsAllFilter
      */
-    public static <T, E, C extends Collection<? extends E>> Filter<T> containsAll(ValueExtractor<T, C> extractor, Set<? extends E> setValues)
+    public static <T, E, C extends Collection<? extends E>> ContainsAllFilter<T, C> containsAll(ValueExtractor<T, C> extractor, Set<? extends E> setValues)
         {
         return new ContainsAllFilter<>(extractor, setValues);
         }
@@ -421,7 +417,7 @@ public class Filters
      * @see ContainsAllFilter
      */
     @SafeVarargs
-    public static <T, E, C extends Collection<? extends E>> Filter<T> containsAll(ValueExtractor<T, C> extractor, E... values)
+    public static <T, E, C extends Collection<? extends E>> ContainsAllFilter<T, C> containsAll(ValueExtractor<T, C> extractor, E... values)
         {
         return new ContainsAllFilter<>(extractor, new ImmutableArrayList(values));
         }
@@ -440,7 +436,7 @@ public class Filters
      *
      * @see ContainsAllFilter
      */
-    public static <T, E> Filter<T> arrayContainsAll(ValueExtractor<T, E[]> extractor, Set<? extends E> setValues)
+    public static <T, E> ContainsAllFilter<T, E[]> arrayContainsAll(ValueExtractor<T, E[]> extractor, Set<? extends E> setValues)
         {
         return new ContainsAllFilter<>(extractor, setValues);
         }
@@ -460,7 +456,7 @@ public class Filters
      * @see ContainsAllFilter
      */
     @SafeVarargs
-    public static <T, E> Filter<T> arrayContainsAll(ValueExtractor<T, E[]> extractor, E... values)
+    public static <T, E> ContainsAllFilter<T, E[]> arrayContainsAll(ValueExtractor<T, E[]> extractor, E... values)
         {
         return new ContainsAllFilter<>(extractor, new ImmutableArrayList(values));
         }
@@ -480,7 +476,7 @@ public class Filters
      *
      * @see ContainsAnyFilter
      */
-    public static <T, E, C extends Collection<? extends E>> Filter<T> containsAny(ValueExtractor<T, C> extractor, Set<? extends E> setValues)
+    public static <T, E, C extends Collection<? extends E>> ContainsAnyFilter<T, C> containsAny(ValueExtractor<T, C> extractor, Set<? extends E> setValues)
         {
         return new ContainsAnyFilter<>(extractor, setValues);
         }
@@ -501,7 +497,7 @@ public class Filters
      * @see ContainsAnyFilter
      */
     @SafeVarargs
-    public static <T, E, C extends Collection<? extends E>> Filter<T> containsAny(ValueExtractor<T, C> extractor, E... values)
+    public static <T, E, C extends Collection<? extends E>> ContainsAnyFilter<T, C> containsAny(ValueExtractor<T, C> extractor, E... values)
         {
         return new ContainsAnyFilter<>(extractor, new ImmutableArrayList(values));
         }
@@ -520,7 +516,7 @@ public class Filters
      *
      * @see ContainsAnyFilter
      */
-    public static <T, E> Filter<T> arrayContainsAny(ValueExtractor<T, E[]> extractor, Set<? extends E> setValues)
+    public static <T, E> ContainsAnyFilter<T, E[]> arrayContainsAny(ValueExtractor<T, E[]> extractor, Set<? extends E> setValues)
         {
         return new ContainsAnyFilter<>(extractor, setValues);
         }
@@ -540,7 +536,7 @@ public class Filters
      * @see ContainsAnyFilter
      */
     @SafeVarargs
-    public static <T, E> Filter<T> arrayContainsAny(ValueExtractor<T, E[]> extractor, E... values)
+    public static <T, E> ContainsAnyFilter<T, E[]> arrayContainsAny(ValueExtractor<T, E[]> extractor, E... values)
         {
         return new ContainsAnyFilter<>(extractor, new ImmutableArrayList(values));
         }
@@ -559,7 +555,7 @@ public class Filters
      *
      * @see ContainsAnyFilter
      */
-    public static <T, E> Filter<T> in(ValueExtractor<T, ? extends E> extractor, Set<? extends E> setValues)
+    public static <T, E> InFilter<T, E> in(ValueExtractor<T, ? extends E> extractor, Set<? extends E> setValues)
         {
         return new InFilter<>(extractor, setValues);
         }
@@ -579,7 +575,7 @@ public class Filters
      * @see ContainsAnyFilter
      */
     @SafeVarargs
-    public static <T, E> Filter<T> in(ValueExtractor<T, ? extends E> extractor, E... values)
+    public static <T, E> InFilter<T, E> in(ValueExtractor<T, ? extends E> extractor, E... values)
         {
         return new InFilter<>(extractor, new HashSet<>(Arrays.asList(values)));
         }
@@ -594,7 +590,7 @@ public class Filters
      *
      * @return a LikeFilter
      */
-    public static <T, E> Filter<T> like(ValueExtractor<T, E> extractor, String sPattern)
+    public static <T, E> LikeFilter<T, E> like(ValueExtractor<T, E> extractor, String sPattern)
         {
         return like(extractor, sPattern, (char) 0, false);
         }
@@ -610,7 +606,7 @@ public class Filters
      *
      * @return a LikeFilter
      */
-    public static <T, E> Filter<T> like(ValueExtractor<T, E> extractor, String sPattern, char chEscape)
+    public static <T, E> LikeFilter<T, E> like(ValueExtractor<T, E> extractor, String sPattern, char chEscape)
         {
         return like(extractor, sPattern, chEscape, false);
         }
@@ -626,7 +622,7 @@ public class Filters
      *
      * @return a LikeFilter
      */
-    public static <T, E> Filter<T> like(ValueExtractor<T, E> extractor, String sPattern, boolean fIgnoreCase)
+    public static <T, E> LikeFilter<T, E> like(ValueExtractor<T, E> extractor, String sPattern, boolean fIgnoreCase)
         {
         return like(extractor, sPattern, (char) 0, fIgnoreCase);
         }
@@ -643,7 +639,7 @@ public class Filters
      *
      * @return a LikeFilter
      */
-    public static <T, E> Filter<T> like(ValueExtractor<T, E> extractor, String sPattern, char chEscape, boolean fIgnoreCase)
+    public static <T, E> LikeFilter<T, E> like(ValueExtractor<T, E> extractor, String sPattern, char chEscape, boolean fIgnoreCase)
         {
         return new LikeFilter<>(extractor, sPattern, chEscape, fIgnoreCase);
         }
@@ -658,7 +654,7 @@ public class Filters
      *
      * @return a RegexFilter
      */
-    public static <T, E> Filter<T> regex(ValueExtractor<T, E> extractor, String sRegex)
+    public static <T, E> RegexFilter<T, E> regex(ValueExtractor<T, E> extractor, String sRegex)
         {
         return new RegexFilter<>(extractor, sRegex);
         }
@@ -671,7 +667,7 @@ public class Filters
      *
      * @return a RegexFilter
      */
-    public static <T> Filter<T> predicate(Remote.Predicate<T> predicate)
+    public static <T> PredicateFilter<T, ?> predicate(Remote.Predicate<T> predicate)
         {
         return new PredicateFilter<>(predicate);
         }
@@ -686,7 +682,7 @@ public class Filters
      *
      * @return a RegexFilter
      */
-    public static <T, E> Filter<T> predicate(ValueExtractor<T, ? extends E> extractor, Remote.Predicate<? super E> predicate)
+    public static <T, E> PredicateFilter<T, E> predicate(ValueExtractor<T, ? extends E> extractor, Remote.Predicate<? super E> predicate)
         {
         return new PredicateFilter<>(extractor, predicate);
         }
@@ -708,7 +704,7 @@ public class Filters
      *
      * @since 14.1.1.0
      */
-    public static <V> Filter<V> script(String sLanguage, String sScriptPath, Object... aoArgs)
+    public static <V> ScriptFilter<V> script(String sLanguage, String sScriptPath, Object... aoArgs)
         {
         return new ScriptFilter<>(sLanguage, sScriptPath, aoArgs);
         }
