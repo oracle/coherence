@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -59,10 +59,10 @@ public class ReporterTests
 
         // Explicitly set the date format so that tests run correctly
         // in all time zones.  The prj/tests/reporter/unit-test-list-base.txt has
-        // hardcoded EST times that must match the test.
+        // hardcoded GMT times that must match the test.
         SimpleDateFormat df = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
 
-        df.setTimeZone(TimeZone.getTimeZone("EST"));
+        df.setTimeZone(TimeZone.getTimeZone("GMT"));
 
         Reporter reporter = new Reporter();
 
