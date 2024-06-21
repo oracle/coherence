@@ -6822,17 +6822,18 @@ public abstract class PartitionedService
         // import java.util.Map;
         // import java.util.Map$Entry as java.util.Map.Entry;
         
-        PartitionRecoverInfo info            = job.getRecoverInfo();
-        List                 listGUID        = job.getListGUID();
-        int                  cGUID           = listGUID.size();
-        Map                  mapStoresFrom   = new HashMap(cGUID);
-        PartitionSet         partsFail       = instantiatePartitionSet(false);
-        PartitionSet         partsEventsFail = instantiatePartitionSet(false);
-        PersistenceManager   mgrRecover      = info.getManager();
-        String[]             asGUID          = (String[]) listGUID.toArray(new String[cGUID]);
+        PartitionRecoverInfo info             = job.getRecoverInfo();
+        List                 listGUID         = job.getListGUID();
+        int                  cGUID            = listGUID.size();
+        Map                  mapStoresFrom    = new HashMap(cGUID);
+        PartitionSet         partsFail        = instantiatePartitionSet(false);
+        PartitionSet         partsEventsFail  = instantiatePartitionSet(false);
+        PersistenceManager   mgrRecover       = info.getManager();
+        String[]             asGUID           = (String[]) listGUID.toArray(new String[cGUID]);
         PartitionedService.PersistenceControl  ctrl            = getPersistenceControl();
-        boolean              fSnapshot       = ctrl.getActiveManager() != mgrRecover;
-        
+        boolean              fSnapshot        = ctrl.getActiveManager() != mgrRecover;
+        MemberSet            ownershipMembers = getOwnershipMemberSet();
+
         if (mgrRecover != null)
             {
             // if recovering from persisted backup partitions
@@ -6853,8 +6854,19 @@ public abstract class PartitionedService
             // collect valid stores and remove invalid to prevent an infinite protocol loop
             for (int i = 0; i < cGUID && getServiceState() < SERVICE_STOPPING; i++)
                 {
-                String sGUID  = asGUID[i];
-                int    iPart  = GUIDHelper.getPartition(sGUID);
+                String sGUID     = asGUID[i];
+                int    iPart     = GUIDHelper.getPartition(sGUID);
+                int    nMember   = GUIDHelper.getMemberId(sGUID);
+                long   lJoinTime = GUIDHelper.getServiceJoinTime(sGUID);
+                if (!fSnapshot &&
+                    getThisMember().getId() != nMember &&
+                    ownershipMembers.contains(nMember) &&
+                    lJoinTime == getServiceMemberSet().getServiceJoinTime(nMember))
+                    {
+                    // skip; list can return stores created concurrently by active members
+                    continue;
+                    }
+
                 try
                     {
                     // mark store is primary or backup in order to close it with the correct
