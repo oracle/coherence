@@ -1,14 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
-
 package com.tangosol.util.extractor;
-
-
 import com.tangosol.io.ExternalizableLite;
+import com.tangosol.io.ResolvingObjectInputStream;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -19,11 +17,12 @@ import com.tangosol.util.ClassHelper;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
 
 import java.lang.reflect.Method;
 
 import javax.json.bind.annotation.JsonbProperty;
-
 
 /**
 * Reflection-based ValueUpdater implementation.
@@ -210,6 +209,30 @@ public class ReflectionUpdater
         out.writeString(0, m_sMethod);
         }
 
+    // ----- Serializable methods -------------------------------------------
+
+    /**
+     * See {@link java.io.Serializable} for documentation on this method.
+     *
+     * @param inputStream  the input stream
+     *
+     * @throws NotSerializableException, ClassNotFoundException, IOException
+     *
+     * @since 12.2.1.4.22
+     */
+    private void readObject(ObjectInputStream inputStream) throws ClassNotFoundException, IOException
+        {
+        if (inputStream instanceof ResolvingObjectInputStream)
+            {
+            // the input stream was created by ExternalizableHelper; proceed with deserialization
+            inputStream.defaultReadObject();
+            }
+        else
+            {
+            // this class is not intended for "external" use
+            throw new NotSerializableException();
+            }
+        }
 
     // ----- data members ---------------------------------------------------
 
