@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util.invoke;
 
 import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.ExternalizableLite;
+import com.tangosol.io.ResolvingObjectInputStream;
 import com.tangosol.io.SerializationSupport;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerAware;
@@ -23,6 +24,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 
@@ -227,7 +229,7 @@ public class RemoteConstructor<T>
         out.writeObjectArray(1, m_aoArgs);
         }
 
-    // ---- SerializationSupport interface ----------------------------------
+    // ----- SerializationSupport interface ---------------------------------
 
     /**
      * {@inheritDoc}
@@ -249,7 +251,7 @@ public class RemoteConstructor<T>
         return newInstance();
         }
 
-    // ---- SerializerAware interface ----------------------------------
+    // ----- SerializerAware interface --------------------------------------
     
     @Override
     public Serializer getContextSerializer()
@@ -264,6 +266,31 @@ public class RemoteConstructor<T>
         if (serializer instanceof ClassLoaderAware)
             {
             m_loader = ((ClassLoaderAware) serializer).getContextClassLoader();
+            }
+        }
+
+    // ----- Serializable methods -------------------------------------------
+
+    /**
+     * See {@link Serializable} for documentation on this method.
+     *
+     * @param inputStream  the input stream
+     *
+     * @throws NotSerializableException, ClassNotFoundException, IOException
+     *
+     * @since 12.2.1.4.22
+     */
+    private void readObject(ObjectInputStream inputStream) throws ClassNotFoundException, IOException
+        {
+        if (inputStream instanceof ResolvingObjectInputStream)
+            {
+            // the input stream was created by ExternalizableHelper; proceed with deserialization
+            inputStream.defaultReadObject();
+            }
+        else
+            {
+            // this class is not intended for "external" use
+            throw new NotSerializableException();
             }
         }
 
