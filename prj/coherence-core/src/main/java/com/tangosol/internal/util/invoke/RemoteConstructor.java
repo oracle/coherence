@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@ package com.tangosol.internal.util.invoke;
 
 import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.ExternalizableLite;
+import com.tangosol.io.ResolvingObjectInputStream;
 import com.tangosol.io.SerializationSupport;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerAware;
@@ -19,16 +20,17 @@ import com.tangosol.io.pof.PortableObject;
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 
+import jakarta.json.bind.annotation.JsonbProperty;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 
 import java.util.Arrays;
-
-import jakarta.json.bind.annotation.JsonbProperty;
 
 /**
  * RemoteConstructor represents both a ClassDefinition for a {@link Remotable}
@@ -227,7 +229,7 @@ public class RemoteConstructor<T>
         out.writeObjectArray(1, m_aoArgs);
         }
 
-    // ---- SerializationSupport interface ----------------------------------
+    // ----- SerializationSupport interface ---------------------------------
 
     /**
      * {@inheritDoc}
@@ -249,7 +251,7 @@ public class RemoteConstructor<T>
         return newInstance();
         }
 
-    // ---- SerializerAware interface ----------------------------------
+    // ----- SerializerAware interface --------------------------------------
     
     @Override
     public Serializer getContextSerializer()
@@ -264,6 +266,32 @@ public class RemoteConstructor<T>
         if (serializer instanceof ClassLoaderAware)
             {
             m_loader = ((ClassLoaderAware) serializer).getContextClassLoader();
+            }
+        }
+
+    // ----- Serializable methods -------------------------------------------
+
+    /**
+     * See {@link Serializable} for documentation on this method.
+     *
+     * @param inputStream  the input stream
+     *
+     * @throws NotSerializableException, ClassNotFoundException, IOException
+     *
+     * @since 12.2.1.4.22
+     */
+    @java.io.Serial
+    private void readObject(ObjectInputStream inputStream) throws ClassNotFoundException, IOException
+        {
+        if (inputStream instanceof ResolvingObjectInputStream)
+            {
+            // the input stream was created by ExternalizableHelper; proceed with deserialization
+            inputStream.defaultReadObject();
+            }
+        else
+            {
+            // this class is not intended for "external" use
+            throw new NotSerializableException();
             }
         }
 
