@@ -93,6 +93,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -2287,11 +2288,26 @@ public abstract class AbstractGrpcClientIT
 
         cache.clear();
 
-        String                      key      = "key-1";
-        CompletableFuture<Void>     future   = new CompletableFuture<>();
-        MapListener<String, String> listener = new SimpleMapListener<String, String>()
-                .synchronous()
-                .addInsertHandler(evt -> future.complete(null));
+        String        key   = "key-" + System.nanoTime();
+        AtomicBoolean fDone = new AtomicBoolean(false);
+        MapListener<String, String> listener = new MapListenerSupport.SynchronousListener<>()
+            {
+            @Override
+            public void entryInserted(MapEvent<String, String> evt)
+                {
+                fDone.set(true);
+                }
+
+            @Override
+            public void entryUpdated(MapEvent<String, String> evt)
+                {
+                }
+
+            @Override
+            public void entryDeleted(MapEvent<String, String> evt)
+                {
+                }
+            };
 
         grpcClient.addMapListener(listener, key, true);
         grpcClient.async().put(key, "value")
@@ -2303,7 +2319,7 @@ public abstract class AbstractGrpcClientIT
                         }
                     // As the listener is synchronous, the event must have been
                     // received before the put request returns
-                    assertThat(future.isDone(), is(true));
+                    assertThat(fDone.get(), is(true));
                     return null;
                     })
                 .get(2, TimeUnit.MINUTES);
