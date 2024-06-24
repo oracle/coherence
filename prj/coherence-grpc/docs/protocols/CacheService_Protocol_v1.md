@@ -78,13 +78,13 @@ The `NamedCacheRequest` message contains the following fields:
 
 The `NamedCacheResponse` message contains the following fields:
 
-| Name      | Type                    | Description                                                                                        |
- |-----------|-------------------------|----------------------------------------------------------------------------------------------------|
- | `cacheId` | `int32`                 | The unique identifier for the cache that the request is for (or zero for an ensure cache message). |
-| `type`    | `NamedCacheRequestType` | An enum identifying the message type                                                               |
- | `message` | `Any`                   | A optional `Any` message containing a sub-message specific to the request `type`.                  |
+| Name      | Type           | Description                                                                                        |
+ |-----------|----------------|----------------------------------------------------------------------------------------------------|
+ | `cacheId` | `int32`        | The unique identifier for the cache that the request is for (or zero for an ensure cache message). |
+| `type`    | `ResponseType` | An enum identifying the message type                                                               |
+ | `message` | `Any`          | A optional `Any` message containing a sub-message specific to the request `type`.                  |
 
-The `type` field in the `NamedCacheRequestType` can be used by the client to determine the type of message that has been sent by the server. This field is an emu with oe of the following values:
+The `type` field in the `ResponseType` can be used by the client to determine the type of message that has been sent by the server. This field is an emu with oe of the following values:
 
 - `Message`  - The response is a response related to a request (the request identifier will be in the `id` field of the `ProxyResponse`)
   - `MapEvent` - The response is a MapEvent and should be routed to the MapListener instances registered on the client. Handling MapEvents is covered in detail below. The `message` field in the `NamedCacheResponse` will contains a `MapEventMessage`. 
