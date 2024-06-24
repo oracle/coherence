@@ -213,114 +213,138 @@ public class GrpcConnectionV1
     @SuppressWarnings("unchecked")
     public void onNext(ProxyResponse response)
         {
-        ProxyResponse.ResponseCase responseCase = response.getResponseCase();
-        if (responseCase == ProxyResponse.ResponseCase.HEARTBEAT)
+        f_observerLock.lock();
+        try
             {
-            // nothing to do
-            f_cHeartbeatAck.increment();
-            return;
-            }
+            ProxyResponse.ResponseCase responseCase = response.getResponseCase();
+            if (responseCase == ProxyResponse.ResponseCase.HEARTBEAT)
+                {
+                // nothing to do
+                f_cHeartbeatAck.increment();
+                return;
+                }
 
-        long id = response.getId();
-        if (id == 0)
-            {
-            // this is a non-request related message, send it to any listeners
-            try
+            long id = response.getId();
+            if (id == 0)
                 {
-                Message message = response.getMessage().unpack(f_responseType);
-                m_listeners.forEach(listener ->
-                    {
-                    Predicate<Message> predicate = (Predicate<Message>) listener.predicate();
-                    if (predicate.evaluate(message))
-                        {
-                        ((StreamObserver<Message>) listener.observer()).onNext(message);
-                        }
-                    });
-                }
-            catch (Exception e)
-                {
-                Logger.err(e);
-                }
-            }
-        else
-            {
-            StreamObserver<Message> handler = (StreamObserver<Message>) m_mapFuture.get(id);
-            if (handler != null)
-                {
+                // this is a non-request related message, send it to any listeners
                 try
                     {
-                    if (responseCase == ProxyResponse.ResponseCase.MESSAGE)
+                    Message message = response.getMessage().unpack(f_responseType);
+                    m_listeners.forEach(listener ->
                         {
-                        Message message = response.getMessage().unpack(f_responseType);
-                        handler.onNext(message);
-                        // we do not remove the handler from the map yet, as there may be
-                        // more responses for the same request
-                        }
-                    else
-                        {
-                        // The response is a terminal type, so we remove the handler from the map
-                        m_mapFuture.remove(id);
-                        switch (responseCase)
+                        Predicate<Message> predicate = (Predicate<Message>) listener.predicate();
+                        if (predicate.evaluate(message))
                             {
-                            case INIT:
-                                m_initResponse = response.getInit();
-                                m_uuid         = new UUID(m_initResponse.getUuid().toByteArray());
-                                handler.onNext(m_initResponse);
-                                handler.onCompleted();
-                                break;
-                            case ERROR:
-                                ErrorMessage error = response.getError();
-                                Throwable cause = null;
-                                if (error.hasError())
-                                    {
-                                    cause = BinaryHelper.fromByteString(error.getError(), m_serializer);
-                                    }
-                                handler.onError(new RequestIncompleteException(error.getMessage(), cause));
-                                break;
-                            case COMPLETE:
-                                handler.onCompleted();
-                                break;
-                            case RESPONSE_NOT_SET:
-                            default:
-                                handler.onError(new RequestIncompleteException("Unexpected response case: " + responseCase));
+                            ((StreamObserver<Message>) listener.observer()).onNext(message);
                             }
-                        }
+                        });
                     }
                 catch (Exception e)
                     {
-                    handler.onError(e);
+                    Logger.err(e);
                     }
                 }
             else
                 {
-                Logger.err("Failed to find handler for response: " + id);
+                StreamObserver<Message> handler = (StreamObserver<Message>) m_mapFuture.get(id);
+                if (handler != null)
+                    {
+                    try
+                        {
+                        if (responseCase == ProxyResponse.ResponseCase.MESSAGE)
+                            {
+                            Message message = response.getMessage().unpack(f_responseType);
+                            handler.onNext(message);
+                            // we do not remove the handler from the map yet, as there may be
+                            // more responses for the same request
+                            }
+                        else
+                            {
+                            // The response is a terminal type, so we remove the handler from the map
+                            m_mapFuture.remove(id);
+                            switch (responseCase)
+                                {
+                                case INIT:
+                                    m_initResponse = response.getInit();
+                                    m_uuid         = new UUID(m_initResponse.getUuid().toByteArray());
+                                    handler.onNext(m_initResponse);
+                                    handler.onCompleted();
+                                    break;
+                                case ERROR:
+                                    ErrorMessage error = response.getError();
+                                    Throwable cause = null;
+                                    if (error.hasError())
+                                        {
+                                        cause = BinaryHelper.fromByteString(error.getError(), m_serializer);
+                                        }
+                                    handler.onError(new RequestIncompleteException(error.getMessage(), cause));
+                                    break;
+                                case COMPLETE:
+                                    handler.onCompleted();
+                                    break;
+                                case RESPONSE_NOT_SET:
+                                default:
+                                    handler.onError(new RequestIncompleteException("Unexpected response case: " + responseCase));
+                                }
+                            }
+                        }
+                    catch (Exception e)
+                        {
+                        handler.onError(e);
+                        }
+                    }
+                else
+                    {
+                    Logger.err("Failed to find handler for response: " + id);
+                    }
                 }
+            }
+        finally
+            {
+            f_observerLock.unlock();
             }
         }
 
     @Override
     public void onError(Throwable t)
         {
-        if (m_connectFuture != null)
+        f_observerLock.lock();
+        try
             {
-            m_connectFuture.completeExceptionally(t);
-            }
+            if (m_connectFuture != null)
+                {
+                m_connectFuture.completeExceptionally(t);
+                }
 
-        if (!m_closed)
-            {
-            ErrorsHelper.logIfNotCancelled(t);
-            closeInternal(t);
+            if (!m_closed)
+                {
+                ErrorsHelper.logIfNotCancelled(t);
+                closeInternal(t);
+                }
+            else
+                {
+                Logger.err("onError called after close() has been called", t);
+                }
             }
-        else
+        finally
             {
-            Logger.err("onError called after close() has been called", t);
+            f_observerLock.unlock();
             }
         }
 
     @Override
     public void onCompleted()
         {
-        closeInternal(null);
+        f_observerLock.lock();
+        try
+            {
+            closeInternal(null);
+            }
+        finally
+            {
+            f_observerLock.unlock();
+            }
         }
 
     @Override
@@ -645,6 +669,12 @@ public class GrpcConnectionV1
      * A lock to control thread safety.
      */
     private final Lock f_lock = new ReentrantLock();
+
+
+    /**
+     * A lock to control thread safety for received messages.
+     */
+    private final Lock f_observerLock = new ReentrantLock();
 
     private final Class<? extends Message> f_responseType;
 

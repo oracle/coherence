@@ -2262,7 +2262,6 @@ public abstract class AbstractGrpcClientIT
     @SuppressWarnings("unchecked")
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
-    @Disabled // ToDo JK
     public void shouldSubscribeWithSynchronousListener(String sSerializerName, Serializer serializer) throws Exception
         {
         String                     cacheName  = "test-events-" + System.currentTimeMillis();
