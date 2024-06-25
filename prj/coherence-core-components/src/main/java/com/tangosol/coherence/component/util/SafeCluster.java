@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -608,7 +608,7 @@ public class SafeCluster
                             {
                             if (cluster.isHalted())
                                 {
-                                throw new IllegalStateException("The cluster has been halted and is not restartable.");
+                                throw new IllegalStateException("The cluster has been halted and is not restartable. This cluster member's JVM process must be restarted.");
                                 }
         
                             cluster.ensureStopped();
