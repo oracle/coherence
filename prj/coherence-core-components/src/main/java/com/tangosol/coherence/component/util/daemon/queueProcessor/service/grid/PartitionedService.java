@@ -4649,7 +4649,7 @@ public abstract class PartitionedService
         String[] asGUIDs   = msgRequest.getGUIDs();
         int      cGUIDs    = asGUIDs.length;  
         Map      mapUpdate = new HashMap(cGUIDs);
-
+        
         for (int i = 0; i < cGUIDs; i++)
             {
             String sGUID      = asGUIDs[i];
@@ -6297,7 +6297,7 @@ public abstract class PartitionedService
                     msg.setRecoveryPartitions(partsRecover);
                     msg.setToMemberSet(setOwners);
                     msg.setRequestAssignments(aaiOwnersResolved);
-
+        
                     post(msg);
                     }
                 else
@@ -6795,42 +6795,24 @@ public abstract class PartitionedService
                         String sGUID = aBackupInfos[i].getId();
                         int    iPart = GUIDHelper.getPartition(sGUID);
         
+                        // clean up all backups possible as not all are used to recover
                         if (iPart < getPartitionCount())
                             {
                             VersionedOwnership owners       = getPartitionConfig(iPart);
                             int                nMemberStore = GUIDHelper.getMemberId(sGUID);
-                            if (isInOwnerMembers(nMemberStore, owners))
+                            int                nMemberThis  = getThisMember().getId();
+                            long               ldtJoinStore = GUIDHelper.getServiceJoinTime(sGUID);
+        
+                            // delete the persistent store; backups can be a previous store
+                            // not previously owned
+                            if (nMemberStore != nMemberThis &&
+                                ldtJoinStore != setMembers.getServiceJoinTime(nMemberThis))
                                 {
-                                // a copy of the partition is still active in another backup
-                                continue;
-                                }
-
-                            int  nMemberThis  = getThisMember().getId();
-                            long ldtJoinStore = GUIDHelper.getServiceJoinTime(sGUID);
-                            int  nMemberOwner = 0;
-                            for (int j = 1; j < owners.getBackupCount() + 1; j++)
-                                {
-                                if (owners.getOwner(j) != 0)
+                                // delete the old store
+                                if (mgrBackup.delete(sGUID, false))
                                     {
-                                    nMemberOwner = owners.getOwner(j);
-                                    }
-
-                                boolean fEligible = nMemberOwner > 0 &&
-                                                    ldtJoinStore != setMembers.getServiceJoinTime(nMemberOwner) &&
-                                                    GUIDHelper.getVersion(sGUID) < owners.getVersion();
-
-                                // delete the persistent store
-                                if (fEligible &&
-                                    (nMemberThis == nMemberStore &&
-                                     setMembers.getServiceJoinTime(nMemberThis) == ldtJoinStore ||
-                                     ldtJoinStore != setMembers.getServiceJoinTime(nMemberStore)))
-                                    {
-                                        // delete the old store
-                                        if (mgrBackup.delete(sGUID, false))
-                                            {
-                                            _trace("Removed old partition (" + sGUID +
-                                                   ") from backup persistent directory store", 7);
-                                            }
+                                    _trace("Removed old partition (" + sGUID +
+                                        ") from backup persistent directory store", 7);
                                     }
                                 }
                             }
@@ -6838,27 +6820,6 @@ public abstract class PartitionedService
                     }
                 }
             }
-        }
-
-    /**
-     * Determine whether a given store owner is still in the owners list for
-     * this partition, meaning that it may still be in use here or elsewhere.
-     *
-     * @param nMemberStore  the store to check
-     * @param owners        the versioned ownership view config for the partition
-     * @return true if this store is still owned by any of the listed members
-     */
-    private boolean isInOwnerMembers(int nMemberStore, VersionedOwnership owners)
-        {
-        for (int i = 1; i < owners.getBackupCount() + 1; i++)
-            {
-            if (owners.getOwner(i) == nMemberStore)
-                {
-                return true;
-                }
-            }
-
-        return false;
         }
     
     /**
@@ -6880,19 +6841,18 @@ public abstract class PartitionedService
         // import java.util.Map;
         // import java.util.Map$Entry as java.util.Map.Entry;
         
-        PartitionRecoverInfo    info             = job.getRecoverInfo();
-        List                    listGUID         = job.getListGUID();
-        int                     cGUID            = listGUID.size();
-        Map                     mapStoresFrom    = new HashMap(cGUID);
-        PartitionSet            partsFail        = instantiatePartitionSet(false);
-        PartitionSet            partsEventsFail  = instantiatePartitionSet(false);
-        PersistenceManager      mgrRecover       = info.getManager();
-        PartitionRecoverRequest msgRequest       = (PartitionRecoverRequest) info.getRequest();
-        String[]                asInvalidGUIDs   = msgRequest.getInvalidPersistentIds();
-        String[]                asGUID           = (String[]) listGUID.toArray(new String[cGUID]);
+        PartitionRecoverInfo    info            = job.getRecoverInfo();
+        List                    listGUID        = job.getListGUID();
+        int                     cGUID           = listGUID.size();
+        Map                     mapStoresFrom   = new HashMap(cGUID);
+        PartitionSet            partsFail       = instantiatePartitionSet(false);
+        PartitionSet            partsEventsFail = instantiatePartitionSet(false);
+        PersistenceManager      mgrRecover      = info.getManager();
+        PartitionRecoverRequest msgRequest      = (PartitionRecoverRequest) info.getRequest();
+        String[]                asInvalidGUIDs  = msgRequest.getInvalidPersistentIds();
+        String[]                asGUID          = (String[]) listGUID.toArray(new String[cGUID]);
         PartitionedService.PersistenceControl  ctrl            = getPersistenceControl();
-        boolean                 fSnapshot        = ctrl.getActiveManager() != mgrRecover;
-        MemberSet               ownershipMembers = getOwnershipMemberSet();
+        boolean                 fSnapshot       = ctrl.getActiveManager() != mgrRecover;
 
         if (mgrRecover != null)
             {
@@ -6927,21 +6887,12 @@ public abstract class PartitionedService
                 aPrimaryStores = mgrRecover.listStoreInfo();
                 Arrays.sort(aPrimaryStores, PersistentStoreInfo::compareTo);
                 }
-
+            
             // collect valid stores and remove invalid to prevent an infinite protocol loop
             for (int i = 0; i < cGUID && getServiceState() < SERVICE_STOPPING; i++)
                 {
-                String sGUID   = asGUID[i];
-                int    iPart   = GUIDHelper.getPartition(sGUID);
-                int    nMember = GUIDHelper.getMemberId(sGUID);
-                if (!fSnapshot &&
-                    getThisMember().getId() != nMember &&
-                    ownershipMembers.contains(nMember))
-                    {
-                    // skip; list can return stores created concurrently by active members
-                    continue;
-                    }
-
+                String sGUID  = asGUID[i];
+                int    iPart  = GUIDHelper.getPartition(sGUID);
                 try
                     {
                     boolean fBackup = aBackupStores != null &&
@@ -7234,7 +7185,7 @@ public abstract class PartitionedService
         
         String sMsg = "Failed to recover partition " + nPartition +
                    " from the persistent storage (GUID=" + sGUID + ')';
-
+                   
         int nLogLevel = 2;
         if (e instanceof FatalAccessException)
             {
@@ -7399,12 +7350,9 @@ public abstract class PartitionedService
         
                     // allocation partition control for persistence
                     PartitionedService.PartitionControl ctrlPartition = ensurePartitionControl(iPartition);
-                    //ctrlPartition.lock(-1L, PartitionedService.PartitionControl.LOCK_PRIMARY_XFER_IN);
-
+        
                     receivePartition(iPartition, iStore, listXfersIn);
-
-                    //ctrlPartition.unlock();
-
+        
                     listXfersIn.clear();
         
                     // set the partition version
@@ -8433,7 +8381,7 @@ public abstract class PartitionedService
                 String          sGUID       = ((PersistentStore) ((Object[]) mapStoresFrom.get(IPartition))[0]).getId();
                 boolean         fFromBackup = ((Boolean) ((Object[]) mapStoresFrom.get(IPartition))[1]).booleanValue();
 
-                _assert(getPartitionControl(nPartition).isLocked(), "Partition " + nPartition + " must be locked");
+                _assert(getPartitionControl(nPartition).isLocked(), "Partition must be locked");
 
                 try
                     {
@@ -8610,7 +8558,7 @@ public abstract class PartitionedService
     protected void releasePartitionControl(int nPartition)
         {
         // import com.tangosol.net.Guardian$GuardContext as com.tangosol.net.Guardian.GuardContext;
-
+        
         PartitionedService.PartitionControl ctrlPartition = getPartitionControl(nPartition);
         if (ctrlPartition != null)
             {

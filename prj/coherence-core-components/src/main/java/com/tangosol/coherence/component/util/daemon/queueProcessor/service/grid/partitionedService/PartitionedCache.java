@@ -3746,7 +3746,7 @@ public class PartitionedCache
         {
         // import com.oracle.coherence.persistence.PersistentStore;
         // import java.util.Iterator;
-
+        
         AutoCloseable closeable = null;
         
         if (isActivePersistence())
@@ -8284,11 +8284,7 @@ public class PartitionedCache
         if (storage != null && storage.isPersistent())
             {
             PartitionedCache.PartitionControl ctrlPart = (PartitionedCache.PartitionControl) getPartitionControl(nPartition);
-            while (ctrlPart.isLocked())
-                {
-                sleep(10L);
-                }
-            PersistentStore store = ctrlPart.ensureOpenPersistentStore(null, true, true);
+            PersistentStore                   store    = ctrlPart.ensureOpenPersistentStore(null, true, true);
             if (store != null)
                 {
                 ctrlPart.ensureBackupPersistentExtent(lCacheId);
@@ -8453,10 +8449,6 @@ public class PartitionedCache
             int               nPartition    = ((Integer) entry.getKey()).intValue();
             Collection        colPartStatus = (Collection) entry.getValue();
             PartitionedCache.PartitionControl ctrlPartition = (PartitionedCache.PartitionControl) getPartitionControl(nPartition);
-            while (ctrlPartition.isLocked())
-                {
-                sleep(10L);
-                }
             PersistentStore   store         = ctrlPartition.ensureOpenPersistentStore(/*storeFrom*/ null, /*fSeal*/ true);
         
             // commit changes to the persisted partition atomically
@@ -8473,7 +8465,7 @@ public class PartitionedCache
                         long       lExtentId = storage.getCacheId();
                         ReadBuffer bufKey    = status.getKey();
                         ReadBuffer bufValue  = status.getMergedNewValue();
-
+        
                         ctrlPartition.ensurePersistentExtent(lExtentId);
         
                         if (bufValue == null)
@@ -10000,7 +9992,7 @@ public class PartitionedCache
         // import com.oracle.coherence.persistence.PersistentStore;
         // import com.tangosol.io.ReadBuffer;
         // import java.util.Iterator;
-
+        
         AutoCloseable closeable = null;
         
         if (isActivePersistence())
@@ -31531,7 +31523,7 @@ public class PartitionedCache
                 {
                 return false;
                 }
-
+            
             if (listExtents.contains(lExtentId) && !isRecovering())
                 {
                 PersistentStore storeEvents    = getPersistentEventsStore();
@@ -31556,11 +31548,11 @@ public class PartitionedCache
                                 com.tangosol.persistence.CachePersistenceHelper.storeCacheNames(aStore[i], laCaches);
                                 }
                             }
-
+            
                         listExtents.remove(lExtentId);
                         }
                     }
-
+            
                 if (fCreatedExtent && mapGraveyard.containsKey(Long.valueOf(lExtentId)))
                     {
                     // as we ensured the extent the cache was concurrently destroyed; the
