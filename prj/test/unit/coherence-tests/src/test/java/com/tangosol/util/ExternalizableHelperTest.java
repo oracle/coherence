@@ -6,7 +6,6 @@
  */
 package com.tangosol.util;
 
-
 import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.ByteArrayWriteBuffer;
 import com.tangosol.io.ExternalizableLiteSerializer;
@@ -58,7 +57,6 @@ import com.oracle.coherence.testing.CheckJDK;
 
 import static org.junit.Assert.*;
 
-
 /**
 * Unit tests for ExternalizableHelper.
 *
@@ -76,13 +74,14 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         {
         assertUtfConversion("Aleksandar");
         assertUtfConversion("Александар");
+        assertUtfConversion("Aleksandar$ñ£");
         assertUtfConversion("ⅯⅭⅯⅬⅩⅩⅠⅤ");
         assertUtfConversion(toBytes(new int[] {0xf0938080, 0xf09f8ebf, 0xf09f8f80, 0xf09f8e89, 0xf09f9294}));
 
         // make sure we can still handle our proprietary (broken) encoding
         String sUtf = new String(toBytes(new int[] {0xf0938080, 0xf09f8ebf, 0xf09f8f80, 0xf09f8e89, 0xf09f9294}), StandardCharsets.UTF_8);
         Binary bin = ExternalizableHelper.toBinary(sUtf);
-        assertEquals(32, bin.length());
+        assertEquals(22, bin.length());
         assertEquals(sUtf, ExternalizableHelper.fromBinary(bin));
         }
 

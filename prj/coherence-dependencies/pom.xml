@@ -66,7 +66,7 @@
       --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
       --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
       --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
-      --add-opens=java.base/java.lang=ALL-UNNAMED
+      --add-opens java.base/java.lang=ALL-UNNAMED
     </default.failsafe.modules.argline>
     <failsafe.modules.argline>${default.failsafe.modules.argline}</failsafe.modules.argline>
     <failsafe.coverage.argline/>
@@ -75,7 +75,7 @@
       --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
       --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
       --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
-      --add-opens=java.base/java.lang=ALL-UNNAMED
+      --add-opens java.base/java.lang=ALL-UNNAMED
     </default.surefire.modules.argline>
     <surefire.modules.argline>${default.surefire.modules.argline}</surefire.modules.argline>
 

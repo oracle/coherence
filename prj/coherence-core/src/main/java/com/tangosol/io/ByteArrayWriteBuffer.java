@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io;
@@ -14,7 +14,7 @@ import java.io.UTFDataFormatException;
 
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
-
+import java.nio.CharBuffer;
 
 /**
 * ByteArrayWriteBuffer is an implementation of WriteBuffer on a byte array.
@@ -661,6 +661,7 @@ public class ByteArrayWriteBuffer
         /**
         * {@inheritDoc}
         */
+        @SuppressWarnings("deprecation")
         public void writeBytes(String s)
                 throws IOException
             {
@@ -679,19 +680,18 @@ public class ByteArrayWriteBuffer
         public void writeChars(String s)
                 throws IOException
             {
-            char[] ach = s.toCharArray();
-            int    cch = ach.length;
-
-            int    of  = m_ofWrite;
-            int    cb  = cch << 1;
+            int cch = s.length();
+            int of  = m_ofWrite;
+            int cb  = cch << 1;
             checkBounds(of, cb);
 
             byte[] ab  = m_ab;
             for (int ofch = 0; ofch < cch; ++ofch)
                 {
-                int ch = ach[ofch];
-                ab[of++] = (byte) (ch >>>  8);
-                ab[of++] = (byte) (ch);
+                char ch = s.charAt(ofch);
+                ab[of]     = (byte) (ch >>> 8);
+                ab[of + 1] = (byte) (ch);
+                of += 2;
                 }
 
             moveOffset(cb);
@@ -703,36 +703,103 @@ public class ByteArrayWriteBuffer
         public void writeUTF(String s)
                 throws IOException
             {
-            if (s.length() == 0)
+            if (s.isEmpty())
                 {
                 // 0-length UTF (Java UTF has a 2-byte length indicator)
                 writeShort(0);
                 }
             else
                 {
-                // calculate the length (in bytes) of the resulting UTF
-                int cb = calcUTF(s);
+                // estimate the length (in bytes) of the resulting UTF (see writeSafeUTF below for details)
+                int cbEstimate = s.length();
+                int ofHeader   = m_ofWrite;
+
+                // Java UTF binary format has only 2 bytes for length; fail fast if we know we'll be attempting
+                // to write more than 64K of data
+                if (cbEstimate > 0xFFFF)
+                    {
+                    throw new UTFDataFormatException("UTF binary length=" + cbEstimate + ", max=65535");
+                    }
+
+                // now that we have a rough idea of the UTF length, make sure the buffer
+                // is big enough; in theory, although unlikely, each character could use 4 bytes,
+                // so we need to assume the worst-case scenario
+                int ofValue = ofHeader + 2;
+                checkBounds(ofValue, 2 + cbEstimate << 2);
+
+                // write the UTF header (the estimated length in bytes)
+                byte[] ab  = m_ab;
+                ab[ofHeader]     = (byte) (cbEstimate >>>  8);
+                ab[ofHeader + 1] = (byte) (cbEstimate);
+
+                // write the UTF directly into the buffer
+                int cb = formatModifiedUTF(s, m_ab, ofValue);
 
                 // Java UTF binary format has only 2 bytes for length
                 if (cb > 0xFFFF)
                     {
-                    throw new UTFDataFormatException("UTF binary length="
-                            + cb + ", max=65535");
+                    throw new UTFDataFormatException("UTF binary length=" + cbEstimate + ", max=65535");
+                    }
+                else if (cb != cbEstimate)
+                    {
+                    // unfortunately, we wrote more bytes than we assumed would be the case,
+                    // so we need to fix the header
+                    ab[ofHeader]     = (byte) (cb >>>  8);
+                    ab[ofHeader + 1] = (byte) (cb);
+                    }
+                
+                moveOffset(2 + cb);
+                }
+            }
+
+        public void writeUTF(CharBuffer bufCh)
+                throws IOException
+            {
+            if (bufCh.isEmpty())
+                {
+                // 0-length UTF (Java UTF has a 2-byte length indicator)
+                writeShort(0);
+                }
+            else
+                {
+                // estimate the length (in bytes) of the resulting UTF (see writeSafeUTF below for details)
+                int cbEstimate = bufCh.length();
+                int ofHeader   = m_ofWrite;
+
+                // Java UTF binary format has only 2 bytes for length; fail fast if we know we'll be attempting
+                // to write more than 64K of data
+                if (cbEstimate > 0xFFFF)
+                    {
+                    throw new UTFDataFormatException("UTF binary length=" + cbEstimate + ", max=65535");
                     }
 
-                // now that we know the UTF length (including the 2-byte
-                // length-ecoding that precedes it), make sure the bufer
-                // is big enough
-                int ofb = m_ofWrite;
-                checkBounds(ofb, 2 + cb);
+                // now that we have a rough idea of the UTF length, make sure the buffer
+                // is big enough; in theory, although unlikely, each character could use 4 bytes,
+                // so we need to assume the worst-case scenario
+                int ofValue = ofHeader + 2;
+                checkBounds(ofValue, 2 + cbEstimate << 2);
 
-                // 2-byte length encoding
-                byte[] ab = m_ab;
-                ab[ofb++] = (byte) (cb >>> 8);
-                ab[ofb++] = (byte) (cb      );
+                // write the UTF header (the estimated length in bytes)
+                byte[] ab  = m_ab;
+                ab[ofHeader]     = (byte) (cbEstimate >>> 8);
+                ab[ofHeader + 1] = (byte) (cbEstimate);
 
                 // write the UTF directly into the buffer
-                formatUTF(ab, ofb, cb, s);
+                int cb = formatModifiedUTF(bufCh, m_ab, ofValue);
+
+                // Java UTF binary format has only 2 bytes for length
+                if (cb > 0xFFFF)
+                    {
+                    throw new UTFDataFormatException("UTF binary length=" + cbEstimate + ", max=65535");
+                    }
+                else if (cb != cbEstimate)
+                    {
+                    // unfortunately, we wrote more bytes than we assumed would be the case,
+                    // so we need to fix the header
+                    ab[ofHeader]     = (byte) (cb >>>  8);
+                    ab[ofHeader + 1] = (byte) (cb);
+                    }
+
                 moveOffset(2 + cb);
                 }
             }
@@ -751,27 +818,159 @@ public class ByteArrayWriteBuffer
                 }
             else
                 {
-                if (s.length() == 0)
+                if (s.isEmpty())
                     {
                     writePackedInt(0);
                     }
+                else if (isLatin1(s))
+                    {
+                    byte[] abString = value(s);
+                    if (isAscii(abString))
+                        {
+                        // String uses ASCII encoding (characters 0x00-0x7F), which are represented using
+                        // single byte UTF-8 format, so we can write value array directly
+                        writePackedInt(abString.length);
+                        write(abString);
+                        }
+                    else
+                        {
+                        // we need to convert all negative bytes (0x80-0xFF) into 2-byte UTF-8 format
+                        int cb = abString.length + countNegatives(abString);
+                        writePackedInt(cb);
+
+                        byte[] ab = m_ab;
+                        int    of = m_ofWrite;
+
+                        checkBounds(of, cb);
+
+                        for (byte b : abString)
+                            {
+                            if (b < 0)
+                                {
+                                ab[of++] = (byte) (0xC0 | ((b & 0xFF) >> 6));
+                                ab[of++] = (byte) (0x80 | (b & 0x3F));
+                                }
+                            else
+                                {
+                                ab[of++] = b;
+                                }
+                            }
+
+                        moveOffset(cb);
+                        }
+                    }
                 else
                     {
-                    // calculate the length (in bytes) of the resulting UTF
-                    int cb = calcUTF(s);
+                    // The tricky part here is that we need to write encoded string length in bytes *before* we actually
+                    // encode string, but we won't know the actual length in bytes *until* we encode it.
+                    //
+                    // We are going to assume that:
+                    //
+                    // 1. In most cases we are dealing with Latin1 encoded strings, with no multi-byte characters
+                    // 2. Even when we are not, the number of bytes written will never be *less* then the string length
+                    //
+                    // Because of this, we will write the actual string length into the buffer, which is the correct value
+                    // to write if string is a Latin1 string, or close enough to the final result that we can simply replace
+                    // it with the correct value at the end
+                    int cbEstimate = s.length();
+                    int ofHeader   = m_ofWrite;
 
-                    // write the UTF header (the length)
-                    writePackedInt(cb);
+                    // write the UTF header (the estimated length in bytes)
+                    writePackedInt(cbEstimate);
 
-                    // now that we know the UTF length, make sure the bufer
-                    // is big enough
-                    int ofb = m_ofWrite;
-                    checkBounds(ofb, cb);
+                    // now that we have a rough idea of the UTF length, make sure the buffer
+                    // is big enough; in theory, although unlikely, each character could use 3 bytes,
+                    // so we need to assume the worst-case scenario (4-byte characters are counted as two
+                    // characters, high and low surrogate, by String.length(), so that case is accounted for)
+                    int ofValue = m_ofWrite;
+                    checkBounds(ofValue, cbEstimate * 3);
 
                     // write the UTF directly into the buffer
-                    formatUTF(m_ab, ofb, cb, s);
+                    int cb = formatUTF(s, m_ab, ofValue);
+
+                    if (cb != cbEstimate)
+                        {
+                        // unfortunately, we wrote more bytes than we assumed would be the case,
+                        // so we need to fix the header
+                        int cbHeader = ofValue - ofHeader;
+                        int cbActual = cb < 0x40 ? 1 : (39 - Integer.numberOfLeadingZeros(cb)) / 7;
+                        if (cbHeader != cbActual)
+                            {
+                            // bad news: we need more bytes for the header, so we need to move the value :-(
+                            checkBounds(ofHeader, cbActual + cb);
+                            int ofValueNew = ofValue + cbActual - cbHeader;
+                            System.arraycopy(m_ab, ofValue, m_ab, ofValueNew, cb);
+                            ofValue = ofValueNew;
+                            }
+
+                        // now we can simply overwrite the header with the actual number of bytes
+                        m_ofWrite = ofHeader;
+                        writePackedInt(cb);
+                        m_ofWrite = ofValue;
+                        }
+
                     moveOffset(cb);
                     }
+                }
+            }
+
+        public void writeSafeUTF(CharBuffer bufCh)
+                throws IOException
+            {
+            if (bufCh.isEmpty())
+                {
+                writePackedInt(0);
+                }
+            else
+                {
+                // The tricky part here is that we need to write encoded string length in bytes *before* we actually
+                // encode string, but we won't know the actual length in bytes *until* we encode it.
+                //
+                // We are going to assume that:
+                //
+                // 1. In most cases we are dealing with Latin1 encoded strings, with no multi-byte characters
+                // 2. Even when we are not, the number of bytes written will never be *less* then the string length
+                //
+                // Because of this, we will write the actual string length into the buffer, which is the correct value
+                // to write if string is a Latin1 string, or close enough to the final result that we can simply replace
+                // it with the correct value at the end
+                int cbEstimate = bufCh.length();
+                int ofHeader   = m_ofWrite;
+
+                // write the UTF header (the estimated length in bytes)
+                writePackedInt(cbEstimate);
+
+                // now that we have a rough idea of the UTF length, make sure the buffer
+                // is big enough; in theory, although unlikely, each character could use 4 bytes,
+                // so we need to assume the worst-case scenario
+                int ofValue = m_ofWrite;
+                checkBounds(ofValue, cbEstimate << 2);
+
+                // write the UTF directly into the buffer
+                int cb = formatUTF(bufCh, m_ab, ofValue);
+
+                if (cb != cbEstimate)
+                    {
+                    // unfortunately, we wrote more bytes than we assumed would be the case,
+                    // so we need to fix the header
+                    int cbHeader = ofValue - ofHeader;
+                    int cbActual = cb < 0x40 ? 1 : (39 - Integer.numberOfLeadingZeros(cb)) / 7;
+                    if (cbHeader != cbActual)
+                        {
+                        // bad news: we need more bytes for the header, so we need to move the value :-(
+                        checkBounds(ofHeader, cbActual + cb);
+                        int ofValueNew = ofValue + cbActual - cbHeader;
+                        System.arraycopy(m_ab, ofValue, m_ab, ofValueNew, cb);
+                        ofValue = ofValueNew;
+                        }
+
+                    // now we can simply overwrite the header with the actual number of bytes
+                    m_ofWrite = ofHeader;
+                    writePackedInt(cb);
+                    m_ofWrite = ofValue;
+                    }
+
+                moveOffset(cb);
                 }
             }
 
@@ -860,7 +1059,7 @@ public class ByteArrayWriteBuffer
         *
         * @param cb  the number of bytes to advance the offset
         */
-        protected void moveOffset(int cb)
+        private void moveOffset(int cb)
             {
             int of = m_ofWrite + cb;
             m_ofWrite = of;

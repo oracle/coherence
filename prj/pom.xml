@@ -714,13 +714,13 @@
           --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
-          --add-opens=java.base/java.lang=ALL-UNNAMED
+          --add-opens java.base/java.lang=ALL-UNNAMED,com.oracle.coherence
         </default.failsafe.modules.argline>
         <default.surefire.modules.argline>
           --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
-          --add-opens=java.base/java.lang=ALL-UNNAMED
+          --add-opens java.base/java.lang=ALL-UNNAMED,com.oracle.coherence
         </default.surefire.modules.argline>
         <failsafe.modules.argline>${default.failsafe.modules.argline}</failsafe.modules.argline>
         <surefire.modules.argline>${default.surefire.modules.argline}</surefire.modules.argline>
@@ -805,11 +805,13 @@
           --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
+          --add-opens java.base/java.lang=ALL-UNNAMED,com.oracle.coherence
         </failsafe.modules.argline>
         <surefire.modules.argline>
           --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
+          --add-opens java.base/java.lang=ALL-UNNAMED,com.oracle.coherence
         </surefire.modules.argline>
         <jacoco.agent.ut.arg/>
         <jacoco.agent.it.arg/>
