@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io.pof;
@@ -650,10 +650,10 @@ public class PofDeltaCompressorTest
                         out.writeBigDecimal(i, (BigDecimal) oVal);
                         break;
                     case DT_BINARY:
-                        out.writeBinary(i, new Binary((byte[]) oVal));
+                        out.writeBinary(i, (Binary) oVal);
                         break;
                     case DT_STRING:
-                        out.writeString(i, new String((char[]) oVal));
+                        out.writeString(i, (String) oVal);
                         break;
                     case DT_RAWDATE:
                         out.writeRawDate(i, (RawDate) oVal);
@@ -1269,9 +1269,10 @@ public class PofDeltaCompressorTest
                 case DT_BYTEARRAY:
                 case DT_BINARY:
                     {
-                    byte[] abOld = (byte[]) oVal;
+                    boolean fBinary = oVal instanceof Binary;
+                    byte[] abOld = fBinary ? ((Binary) oVal).toByteArray() : (byte[]) oVal;
                     int    cbOld = abOld.length;
-                    byte[] abNew = (byte[]) abOld.clone();
+                    byte[] abNew = abOld.clone();
                     int    cbNew  = cbOld;
                     if (pctChance(10))
                         {
@@ -1296,15 +1297,16 @@ public class PofDeltaCompressorTest
                             }
                         }
 
-                    return abNew;
+                    return fBinary ? new Binary(abNew) : abNew;
                     }
 
                 case DT_CHARARRAY:
                 case DT_STRING:
                     {
-                    char[] achOld = (char[]) oVal;
+                    boolean fString = oVal instanceof String;
+                    char[] achOld = fString ? ((String) oVal).toCharArray() : (char[]) oVal;
                     int    cchOld = achOld.length;
-                    char[] achNew = (char[]) achOld.clone();
+                    char[] achNew = achOld.clone();
                     int    cchNew  = cchOld;
                     if (pctChance(10))
                         {
@@ -1329,7 +1331,7 @@ public class PofDeltaCompressorTest
                             }
                         }
 
-                    return achNew;
+                    return fString ? new String(achNew) : achNew;
                     }
 
                 case DT_SHORTARRAY:
@@ -1675,12 +1677,16 @@ public class PofDeltaCompressorTest
                     }
 
                 case DT_BYTEARRAY:
+                    return getRandomBinary(0, rnd.nextInt(200) + 1).toByteArray();
+
                 case DT_BINARY:
-                    return getRandomBinary(0, rnd.nextInt(20) + 1).toByteArray();
+                    return getRandomBinary(0, rnd.nextInt(200) + 1);
 
                 case DT_CHARARRAY:
+                    return getRandomString(0, rnd.nextInt(200) + 1, rnd.nextBoolean()).toCharArray();
+
                 case DT_STRING:
-                    return getRandomString(0, rnd.nextInt(20) + 1, rnd.nextBoolean()).toCharArray();
+                    return getRandomString(0, rnd.nextInt(200) + 1, rnd.nextBoolean());
 
                 case DT_SHORTARRAY:
                     {

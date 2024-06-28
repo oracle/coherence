@@ -7,14 +7,16 @@
 
 package com.tangosol.io;
 
+import com.tangosol.util.Binary;
+import com.tangosol.util.ExternalizableHelper;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.UTFDataFormatException;
 
-import com.tangosol.util.Binary;
-import com.tangosol.util.ExternalizableHelper;
 import java.nio.CharBuffer;
+
+import java.util.Arrays;
 
 /**
 * ByteArrayWriteBuffer is an implementation of WriteBuffer on a byte array.
@@ -845,14 +847,23 @@ public class ByteArrayWriteBuffer
 
                         for (byte b : abString)
                             {
-                            if (b < 0)
+                            try
                                 {
-                                ab[of++] = (byte) (0xC0 | ((b & 0xFF) >> 6));
-                                ab[of++] = (byte) (0x80 | (b & 0x3F));
+                                if (b < 0)
+                                    {
+                                    ab[of++] = (byte) (0xC0 | ((b & 0xFF) >> 6));
+                                    ab[of++] = (byte) (0x80 | (b & 0x3F));
+                                    }
+                                else
+                                    {
+                                    ab[of++] = b;
+                                    }
                                 }
-                            else
+                            catch (ArrayIndexOutOfBoundsException e)
                                 {
-                                ab[of++] = b;
+                                String sMsg = "Failed to encode string '%s': cb=%d, ab.length=%d, of=%d, abString=%s"
+                                        .formatted(s, cb, ab.length, of, Arrays.toString(abString));
+                                throw new RuntimeException(sMsg, e);
                                 }
                             }
 
