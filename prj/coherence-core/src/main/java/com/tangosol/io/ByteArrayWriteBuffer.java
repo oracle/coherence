@@ -724,15 +724,11 @@ public class ByteArrayWriteBuffer
                     }
 
                 // now that we have a rough idea of the UTF length, make sure the buffer
-                // is big enough; in theory, although unlikely, each character could use 4 bytes,
-                // so we need to assume the worst-case scenario
+                // is big enough; in theory, although unlikely, each character could use 3 bytes,
+                // so we need to assume the worst-case scenario (4-byte characters are counted as two
+                // characters, high and low surrogate, by String.length(), so that case is accounted for)
                 int ofValue = ofHeader + 2;
-                checkBounds(ofValue, 2 + cbEstimate << 2);
-
-                // write the UTF header (the estimated length in bytes)
-                byte[] ab  = m_ab;
-                ab[ofHeader]     = (byte) (cbEstimate >>>  8);
-                ab[ofHeader + 1] = (byte) (cbEstimate);
+                checkBounds(ofValue, cbEstimate * 3);
 
                 // write the UTF directly into the buffer
                 int cb = formatModifiedUTF(s, m_ab, ofValue);
@@ -742,14 +738,11 @@ public class ByteArrayWriteBuffer
                     {
                     throw new UTFDataFormatException("UTF binary length=" + cbEstimate + ", max=65535");
                     }
-                else if (cb != cbEstimate)
-                    {
-                    // unfortunately, we wrote more bytes than we assumed would be the case,
-                    // so we need to fix the header
-                    ab[ofHeader]     = (byte) (cb >>>  8);
-                    ab[ofHeader + 1] = (byte) (cb);
-                    }
-                
+
+                // write the UTF header (the length in bytes)
+                m_ab[ofHeader]     = (byte) (cb >>>  8);
+                m_ab[ofHeader + 1] = (byte) (cb);
+
                 moveOffset(2 + cb);
                 }
             }
@@ -776,15 +769,11 @@ public class ByteArrayWriteBuffer
                     }
 
                 // now that we have a rough idea of the UTF length, make sure the buffer
-                // is big enough; in theory, although unlikely, each character could use 4 bytes,
-                // so we need to assume the worst-case scenario
+                // is big enough; in theory, although unlikely, each character could use 3 bytes,
+                // so we need to assume the worst-case scenario (4-byte characters are counted as two
+                // characters, high and low surrogate, by String.length(), so that case is accounted for)
                 int ofValue = ofHeader + 2;
-                checkBounds(ofValue, 2 + cbEstimate << 2);
-
-                // write the UTF header (the estimated length in bytes)
-                byte[] ab  = m_ab;
-                ab[ofHeader]     = (byte) (cbEstimate >>> 8);
-                ab[ofHeader + 1] = (byte) (cbEstimate);
+                checkBounds(ofValue, cbEstimate * 3);
 
                 // write the UTF directly into the buffer
                 int cb = formatModifiedUTF(bufCh, m_ab, ofValue);
@@ -794,12 +783,11 @@ public class ByteArrayWriteBuffer
                     {
                     throw new UTFDataFormatException("UTF binary length=" + cbEstimate + ", max=65535");
                     }
-                else if (cb != cbEstimate)
+                else
                     {
-                    // unfortunately, we wrote more bytes than we assumed would be the case,
-                    // so we need to fix the header
-                    ab[ofHeader]     = (byte) (cb >>>  8);
-                    ab[ofHeader + 1] = (byte) (cb);
+                    // write the UTF header (the length in bytes)
+                    m_ab[ofHeader]     = (byte) (cb >>>  8);
+                    m_ab[ofHeader + 1] = (byte) (cb);
                     }
 
                 moveOffset(2 + cb);
@@ -840,30 +828,20 @@ public class ByteArrayWriteBuffer
                         int cb = abString.length + countNegatives(abString);
                         writePackedInt(cb);
 
-                        byte[] ab = m_ab;
-                        int    of = m_ofWrite;
-
+                        int of = m_ofWrite;
                         checkBounds(of, cb);
 
+                        byte[] ab = m_ab;
                         for (byte b : abString)
                             {
-                            try
+                            if (b < 0)
                                 {
-                                if (b < 0)
-                                    {
-                                    ab[of++] = (byte) (0xC0 | ((b & 0xFF) >> 6));
-                                    ab[of++] = (byte) (0x80 | (b & 0x3F));
-                                    }
-                                else
-                                    {
-                                    ab[of++] = b;
-                                    }
+                                ab[of++] = (byte) (0xC0 | ((b & 0xFF) >> 6));
+                                ab[of++] = (byte) (0x80 | (b & 0x3F));
                                 }
-                            catch (ArrayIndexOutOfBoundsException e)
+                            else
                                 {
-                                String sMsg = "Failed to encode string '%s': cb=%d, ab.length=%d, of=%d, abString=%s"
-                                        .formatted(s, cb, ab.length, of, Arrays.toString(abString));
-                                throw new RuntimeException(sMsg, e);
+                                ab[of++] = b;
                                 }
                             }
 
