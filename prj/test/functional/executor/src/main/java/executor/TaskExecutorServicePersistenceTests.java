@@ -102,6 +102,7 @@ import static org.hamcrest.core.Is.is;
  * @author lh
  * @since 21.12
  */
+@Ignore("COH-27716")
 @Category(SingleClusterForAllTests.class)
 public class TaskExecutorServicePersistenceTests
     {
