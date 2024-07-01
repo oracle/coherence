@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -436,10 +436,9 @@ public class MetricsHttpHandler
             {
             return Format.DotDelimited;
             }
-        // Legacy names, whilst deprecated, are still the default until two releases after deprecation.
-        // Once we can switch to default names as the real default we can change the line below to use
-        // if (Config.getBoolean(PROP_USE_LEGACY_NAMES, false))
-        else if (Config.getBoolean(PROP_USE_LEGACY_NAMES, true))
+        // As of 14.1.2 and 24.09 this property defaults to false, which will remove the
+        // "vendor:" prefix from Prometheus metrics and require use of updated Grafana dashboards
+        else if (Config.getBoolean(PROP_USE_LEGACY_NAMES, false))
             {
             return Format.Legacy;
             }

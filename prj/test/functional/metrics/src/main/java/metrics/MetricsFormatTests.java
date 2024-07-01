@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -47,7 +47,7 @@ public class MetricsFormatTests
         ArrayList<Object[]> parameters = new ArrayList<>();
 
         // Run Coherence with no metrics format configured - i.e. use whatever is the current default
-        parameters.add(new Object[]{"None Specified", "foo", false, MetricsHttpHandler.Format.Legacy});
+        parameters.add(new Object[]{"None Specified", "foo", false, MetricsHttpHandler.Format.Default});
         // Run Coherence with the default metrics format configured
         parameters.add(new Object[]{"Default", MetricsHttpHandler.PROP_USE_LEGACY_NAMES, false, MetricsHttpHandler.Format.Default});
         // Run Coherence with the legacy metrics format configured
