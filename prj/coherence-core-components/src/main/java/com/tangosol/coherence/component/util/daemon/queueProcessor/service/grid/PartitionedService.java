@@ -4644,7 +4644,7 @@ public abstract class PartitionedService
         // import java.util.List;
         // import java.util.Map;
         
-        // lock all parititons that we will attempt to recover in parallel
+        // lock all partitions that we will attempt to recover in parallel
         
         String[] asGUIDs   = msgRequest.getGUIDs();
         int      cGUIDs    = asGUIDs.length;  
@@ -4656,8 +4656,15 @@ public abstract class PartitionedService
             int    nPartition = GUIDHelper.getPartition(sGUID);
         
             PartitionedService.PartitionControl ctrlPart = ensurePartitionControl(nPartition);
+            if (ctrlPart.isLocked() && ctrlPart.getLockType() == PartitionedService.PartitionControl.LOCK_PERSISTENCE)
+                {
+                // partition can be subject of recovery attempt from another request received concurrently;
+                // prevent from trying to recover more than once (and potentially terminate the service
+                // due to FatalException after first request unlocks...)
+                continue;
+                }
             ctrlPart.lock(-1L, PartitionedService.PartitionControl.LOCK_PERSISTENCE);
-        
+
             _assert(getPrimaryOwner(nPartition) == null);
         
             // the common flow is to maintain and increment the global versioning for
@@ -4797,7 +4804,7 @@ public abstract class PartitionedService
                         {
                         com.tangosol.persistence.CachePersistenceHelper.seal(storeEvents, this, /*oToken*/ null);
                         }
-        
+
                     com.tangosol.persistence.CachePersistenceHelper.seal(ctrl.ensurePersistentStore(), this, /*oToken*/ null);
                     }
                 }
@@ -5711,7 +5718,7 @@ public abstract class PartitionedService
                 com.tangosol.persistence.GUIDHelper.GUIDResolver resolver = new com.tangosol.persistence.GUIDHelper.GUIDResolver(cParts);
                 resolver.registerStoreInfo(getThisMember(),
                     (PersistentStoreInfo[]) listRecover.toArray(new PersistentStoreInfo[listRecover.size()]));
-        
+
                 msgResponse.setStoreInfos(resolver.getNewestStoreInfos(partsRecover));
         
                 if (sSnapshot == null)
@@ -6784,36 +6791,39 @@ public abstract class PartitionedService
                     }
                 }
         
-            if (!msg.isPrimary())
+            if (!msg.isPrimary() && mgrBackup != null)
                 {
-                // backup partitions
-                if (mgrBackup != null)
+                PersistentStoreInfo[] aBackupInfos = mgrBackup.listStoreInfo();
+                for (int i = 0, c = aBackupInfos == null ? 0 : aBackupInfos.length; i < c; ++i)
                     {
-                    PersistentStoreInfo[] aBackupInfos = mgrBackup.listStoreInfo();
-                    for (int i = 0, c = aBackupInfos == null ? 0 : aBackupInfos.length; i < c; ++i)
+                    String sGUID = aBackupInfos[i].getId();
+                    int    iPart = GUIDHelper.getPartition(sGUID);
+
+                    // clean up all backups possible as not all are used to recover
+                    if (iPart < getPartitionCount())
                         {
-                        String sGUID = aBackupInfos[i].getId();
-                        int    iPart = GUIDHelper.getPartition(sGUID);
-        
-                        // clean up all backups possible as not all are used to recover
-                        if (iPart < getPartitionCount())
+                        VersionedOwnership owners       = getPartitionConfig(iPart);
+                        int                nMemberStore = GUIDHelper.getMemberId(sGUID);
+                        if (isInOwnerMembers(nMemberStore, owners))
                             {
-                            VersionedOwnership owners       = getPartitionConfig(iPart);
-                            int                nMemberStore = GUIDHelper.getMemberId(sGUID);
-                            int                nMemberThis  = getThisMember().getId();
-                            long               ldtJoinStore = GUIDHelper.getServiceJoinTime(sGUID);
-        
-                            // delete the persistent store; backups can be a previous store
-                            // not previously owned
-                            if (nMemberStore != nMemberThis &&
-                                ldtJoinStore != setMembers.getServiceJoinTime(nMemberThis))
+                            // a copy of the partition is still active in another backup index
+                            continue;
+                            }
+
+                        int                nMemberThis  = getThisMember().getId();
+                        long               ldtJoinStore = GUIDHelper.getServiceJoinTime(sGUID);
+
+                        // delete the persistent store; backups can be a previous store
+                        // not previously owned
+                        if (nMemberStore != nMemberThis &&
+                            ldtJoinStore != setMembers.getServiceJoinTime(nMemberThis) &&
+                            ldtJoinStore != setMembers.getServiceJoinTime(nMemberStore))
+                            {
+                            // delete the old store
+                            if (mgrBackup.delete(sGUID, false))
                                 {
-                                // delete the old store
-                                if (mgrBackup.delete(sGUID, false))
-                                    {
-                                    _trace("Removed old partition (" + sGUID +
-                                        ") from backup persistent directory store", 7);
-                                    }
+                                _trace("Removed old partition (" + sGUID +
+                                       ") from backup persistent directory store", 7);
                                 }
                             }
                         }
@@ -6821,7 +6831,28 @@ public abstract class PartitionedService
                 }
             }
         }
-    
+
+    /**
+     * Determine whether a given store owner is still in the owners list for
+     * this partition, meaning that it may still be in use here or elsewhere.
+     *
+     * @param nMemberStore  the store to check
+     * @param owners        the versioned ownership view config for the partition
+     * @return true if this store is still owned by any of the listed members
+     */
+    private boolean isInOwnerMembers(int nMemberStore, VersionedOwnership owners)
+        {
+        for (int i = 1; i < owners.getBackupCount() + 1; i++)
+            {
+            if (owners.getOwner(i) == nMemberStore)
+                {
+                return true;
+                }
+            }
+
+        return false;
+        }
+
     /**
      * RecoverJob performs partition recovery for a sub set of partitions based
      * on the associated PartitionRecoverRequest to facilitate parallel recovery.
@@ -6860,8 +6891,10 @@ public abstract class PartitionedService
             PersistenceManager backupMgr         = fSnapshot
                 ? null
                 : ctrl.getBackupManager();  // the backup manager
-            PersistentStoreInfo[] aBackupStores  = backupMgr == null ? null : backupMgr.listStoreInfo();
-            PersistentStoreInfo[] aPrimaryStores = null;
+            PersistentStoreInfo[] aBackupStores
+                    = backupMgr == null ? null : backupMgr.listStoreInfo();
+            PersistentStoreInfo[] aPrimaryStores   = null;
+            MemberSet             ownershipMembers = getOwnershipMemberSet();
 
             // clean up stores the coordinator determined to be invalid
             if (asInvalidGUIDs != null)
@@ -6891,22 +6924,34 @@ public abstract class PartitionedService
             // collect valid stores and remove invalid to prevent an infinite protocol loop
             for (int i = 0; i < cGUID && getServiceState() < SERVICE_STOPPING; i++)
                 {
-                String sGUID  = asGUID[i];
-                int    iPart  = GUIDHelper.getPartition(sGUID);
+                String sGUID     = asGUID[i];
+                int    iPart     = GUIDHelper.getPartition(sGUID);
+                long   lJoinTime = GUIDHelper.getServiceJoinTime(sGUID);
+                int    nMember   = GUIDHelper.getMemberId(sGUID);
+                if (!fSnapshot &&
+                    getThisMember().getId() != nMember &&
+                    ownershipMembers.contains(nMember) &&
+                    lJoinTime == getServiceMemberSet().getServiceJoinTime(nMember))
+                    {
+                    // skip; list can return stores created concurrently by active members
+                    partsFail.add(iPart);
+                    onStoreOpenFailed(mgrRecover, iPart, sGUID, null);
+                    continue;
+                    }
+
+                // mark store is primary or backup in order to close it with the correct
+                // persistence manager
+                boolean fBackup = aBackupStores != null &&
+                                  Arrays.stream(aBackupStores).anyMatch(s -> sGUID.equals(s.getId())) &&
+                                  !Arrays.stream(aPrimaryStores).anyMatch(s -> sGUID.equals(s.getId()));
+
                 try
                     {
-                    boolean fBackup = aBackupStores != null &&
-                                      Arrays.stream(aBackupStores).anyMatch(s -> sGUID.equals(s.getId())) &&
-                                      !Arrays.stream(aPrimaryStores).anyMatch(s -> sGUID.equals(s.getId()));
-
-                    // mark store is primary or backup in order to close it with the correct
-                    // persistence manager
                     mapStoresFrom.put(Integer.valueOf(iPart),
                                        new Object[] {
                                           ctrl.openStoreForRead(fBackup ? backupMgr : mgrRecover, sGUID),
                                           Boolean.valueOf(fBackup)});
-        
-        
+
                     if ((i & 0xF) == 0xF)
                         {
                         // open persistent store can be expensive, make sure we notify the guardian
@@ -7227,7 +7272,7 @@ public abstract class PartitionedService
             nLogLevel = 3;
             }
         
-        _trace(sMsg + '\n' + Base.getStackTrace(e), nLogLevel);
+        _trace(sMsg + (e == null ? "" : '\n' + Base.getStackTrace(e)), nLogLevel);
         }
     
     /**
@@ -7350,9 +7395,9 @@ public abstract class PartitionedService
         
                     // allocation partition control for persistence
                     PartitionedService.PartitionControl ctrlPartition = ensurePartitionControl(iPartition);
-        
+
                     receivePartition(iPartition, iStore, listXfersIn);
-        
+
                     listXfersIn.clear();
         
                     // set the partition version
@@ -7827,7 +7872,7 @@ public abstract class PartitionedService
             boolean fSnapshot = mgrRecover != getPersistenceManager();
         
             _trace("Recovering " + mapStores.size() + " partitions", 5);
-        
+
             // iterate the persistent stores and recover from them as long as
             // the service is not stopping (which could happen in the case of a
             // cascading cluster-wide failure or shutdown)
@@ -24239,7 +24284,7 @@ public abstract class PartitionedService
             // import java.util.concurrent.atomic.AtomicInteger;
             // import java.util.Iterator;
             // import java.util.Map;
-            
+
             PartitionedService   service = (PartitionedService) getService();
             String[]  asGUIDs = getGUIDs();
             int       cGUIDs  = asGUIDs.length;                                    
@@ -24264,17 +24309,20 @@ public abstract class PartitionedService
                 {
                 String      sGUID      = asGUIDs[i];
                 int         nPartition = GUIDHelper.getPartition(sGUID);
-                int         nBatch     = i / cBatch;
-                PartitionedService.PartitionRecoverRequest.RecoverJob job        = (PartitionedService.PartitionRecoverRequest.RecoverJob) laJob.get(nBatch);
-                if (job == null)
+                if (mapUpdate.containsKey(nPartition))
                     {
-                    job = new PartitionedService.PartitionRecoverRequest.RecoverJob();
-                    job.setListGUID(new ArrayList());
-                    job.setService(service);
-                    job.setRecoverInfo(info);
-                    laJob.set(nBatch, job);
+                    int nBatch = i / cBatch;
+                    PartitionedService.PartitionRecoverRequest.RecoverJob job = (PartitionedService.PartitionRecoverRequest.RecoverJob) laJob.get(nBatch);
+                    if (job == null)
+                        {
+                        job = new PartitionedService.PartitionRecoverRequest.RecoverJob();
+                        job.setListGUID(new ArrayList());
+                        job.setService(service);
+                        job.setRecoverInfo(info);
+                        laJob.set(nBatch, job);
+                        }
+                    job.getListGUID().add(sGUID);
                     }
-                job.getListGUID().add(sGUID);
                 }
             
             if (laJob.isEmpty())
