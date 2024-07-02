@@ -126,4 +126,28 @@ public class SessionNamedBlockingDeque<E>
         {
         return f_deque.drainTo(c, maxElements);
         }
+
+    @Override
+    public long prepend(E e, long timeout, TimeUnit unit) throws InterruptedException
+        {
+        return f_deque.prepend(e, timeout, unit);
+        }
+
+    @Override
+    public long prependFirst(E e) throws InterruptedException
+        {
+        return f_deque.prependFirst(e);
+        }
+
+    @Override
+    public long append(E e, long timeout, TimeUnit unit) throws InterruptedException
+        {
+        return f_deque.append(e, timeout, unit);
+        }
+
+    @Override
+    public long appendLast(E e) throws InterruptedException
+        {
+        return f_deque.appendLast(e);
+        }
     }

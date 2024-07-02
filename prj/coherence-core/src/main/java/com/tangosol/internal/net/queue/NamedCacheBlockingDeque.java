@@ -78,6 +78,100 @@ public class NamedCacheBlockingDeque<E>
     // ----- BlockingDeque methods ------------------------------------------
 
     @Override
+    public long prepend(E e, long timeout, TimeUnit unit) throws InterruptedException
+        {
+        long          nanos = unit.toNanos(timeout);
+        ReentrantLock lock  = m_lock;
+        lock.lockInterruptibly();
+        try
+            {
+            long nId = prepend(e);
+            while (nId < 0L)
+                {
+                if (nanos <= 0L)
+                    {
+                    return -1L;
+                    }
+                nanos = m_notFull.awaitNanos(nanos);
+                nId = prepend(e);
+              }
+            return nId;
+            }
+        finally
+            {
+            lock.unlock();
+            }
+        }
+
+    @Override
+    public long prependFirst(E e) throws InterruptedException
+        {
+        final ReentrantLock lock = m_lock;
+        lock.lock();
+        try
+            {
+            long nId = prepend(e);
+            while (nId < 0L)
+                {
+                m_notFull.await();
+                nId = prepend(e);
+                }
+            return nId;
+            }
+        finally
+            {
+            lock.unlock();
+            }
+        }
+
+    @Override
+    public long append(E e, long timeout, TimeUnit unit) throws InterruptedException
+        {
+        long          nanos = unit.toNanos(timeout);
+        ReentrantLock lock  = m_lock;
+        lock.lockInterruptibly();
+        try
+            {
+            long nId = append(e);
+            while (nId < 0L)
+                {
+                if (nanos <= 0L)
+                    {
+                    return -1L;
+                    }
+                nanos = m_notFull.awaitNanos(nanos);
+                nId = append(e);
+              }
+            return nId;
+            }
+        finally
+            {
+            lock.unlock();
+            }
+        }
+
+    @Override
+    public long appendLast(E e) throws InterruptedException
+        {
+        final ReentrantLock lock = m_lock;
+        lock.lock();
+        try
+            {
+            long nId = append(e);
+            while (nId < 0L)
+                {
+                m_notFull.await();
+                nId = append(e);
+                }
+            return nId;
+            }
+        finally
+            {
+            lock.unlock();
+            }
+        }
+
+    @Override
     public void putFirst(E e) throws InterruptedException
         {
         final ReentrantLock lock = m_lock;

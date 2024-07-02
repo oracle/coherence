@@ -63,4 +63,13 @@ public interface NamedQueue<E>
      * @return the consistent hash of the queue name
      */
     int getQueueNameHash();
+
+    /**
+     * Insert an element to the tail this {@link NamedQueue}.
+     *
+     * @param e  the element to insert
+     *
+     * @return the identifier for the inserted element, or {@link Long#MIN_VALUE} if the element could not be inserted
+     */
+    long append(E e);
     }

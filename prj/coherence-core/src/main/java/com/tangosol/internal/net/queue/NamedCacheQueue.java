@@ -147,7 +147,7 @@ public class NamedCacheQueue<E>
         }
 
     @Override
-    public boolean offer(E e)
+    public long append(E e)
         {
         assertNotNull(e);
         QueueOfferResult result = offerToTailInternal(e);
@@ -160,7 +160,14 @@ public class NamedCacheQueue<E>
             {
             m_statistics.registerRejected();
             }
-        return fSuccess;
+        return fSuccess ? result.getId() : Long.MIN_VALUE;
+        }
+
+    @Override
+    public boolean offer(E e)
+        {
+        long id = append(e);
+        return id >= 0L;
         }
 
     @Override
