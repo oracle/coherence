@@ -142,27 +142,35 @@ public class VersionHelper
         final int INDEX_MONTH = 4; // 14.1.1.20.06.01
 
         String[] asVersions = sVersion.split("\\.");
-        int[]    an         = new int[5];
 
-        // handle feature pack which condenses YY && MM into a single string
+        if (asVersions.length == 2 || asVersions.length == 3)
             {
-            String sYear = asVersions.length > INDEX_YEAR ? asVersions[INDEX_YEAR] : "";
-            if (sYear.length() >= 4) // YYMM
-                {
-                asVersions = Arrays.copyOf(asVersions, asVersions.length + 1);
-
-                // right shift
-                for (int i = asVersions.length - 2; i > INDEX_YEAR; --i)
-                    {
-                    asVersions[i + 1] = asVersions[i];
-                    asVersions[i]     = null;
-                    }
-
-                asVersions[INDEX_YEAR]  = sYear.substring(0, 2);
-                asVersions[INDEX_MONTH] = sYear.substring(2);
-                }
+            // this is a CE version...
+            int nYear  = Integer.parseInt(asVersions[0]);
+            int nMonth = Integer.parseInt(asVersions[1]);
+            int nPatch =  asVersions.length == 3 ? Integer.parseInt(asVersions[2]) : 0;
+            return encodeVersion(nYear, nMonth, nPatch);
             }
 
+        // handle feature pack which condenses YY && MM into a single string
+        String sYear = asVersions.length > INDEX_YEAR ? asVersions[INDEX_YEAR] : "";
+        if (sYear.length() >= 4) // YYMM
+            {
+            asVersions = Arrays.copyOf(asVersions, asVersions.length + 1);
+
+            // right shift
+            for (int i = asVersions.length - 2; i > INDEX_YEAR; --i)
+                {
+                asVersions[i + 1] = asVersions[i];
+                asVersions[i]     = null;
+                }
+
+            asVersions[INDEX_YEAR]  = sYear.substring(0, 2);
+            asVersions[INDEX_MONTH] = sYear.substring(2);
+            }
+
+        int[] an = new int[5];
+        
         // process the version converting to 5 base 64 encoded integers
         for (int i = 0, c = Math.min(an.length, asVersions.length); i < c; i++)
             {
