@@ -247,20 +247,11 @@ public class PagedTopicPartition
         int                    nChannel        = keyPage.getChannelId();
         long                   lPage           = keyPage.getPageId();
         PagedTopicDependencies configuration   = getDependencies();
-        int                    channelCount    = getChannelCount();
         int                    cbCapPage       = configuration.getPageCapacity();
         long                   cbCapServer     = configuration.getServerCapacity();
         List<Binary>           listElements    = processor.getElements();
         int                    nNotifyPostFull = processor.getNotifyPostFull();
         boolean                fSealPage       = processor.isSealPage();
-
-        if (nChannel >= channelCount)
-            {
-            // publisher tried to publish to a non-existent channel,
-            // the publisher probably has an incorrect channel count
-            throw new RequestIncompleteException("Invalid channel " + nChannel
-                    + ", channel count is " + channelCount + ", valid channels are 0.." + (channelCount - 1));
-            }
 
         if (cbCapServer > 0 && nNotifyPostFull != 0)
             {
@@ -453,13 +444,16 @@ public class PagedTopicPartition
         usage.setPartitionTail(lPage);
         usage.setPartitionMax(lPage); // unlike tail this is never reset to NULL_PAGE
 
+        boolean fFirstPage;
         if (lTailPrev == Page.NULL_PAGE)
             {
             // partition was empty, our new tail is also our head
             usage.setPartitionHead(lPage);
+            fFirstPage = true;
             }
         else
             {
+            fFirstPage = false;
             // attach old tail to new tail
             page.incrementReferenceCount(); // ref from old tail to new page
 
@@ -471,7 +465,20 @@ public class PagedTopicPartition
             }
 
         // attach on behalf of waiting subscribers, they will have to find this page on their own
-        page.adjustReferenceCount(usage.resetWaitingSubscriberCount());
+        int c = usage.resetWaitingSubscriberCount();
+        if (fFirstPage && c == 0)
+            {
+            // The Usage may have zero subscriptions if a Publisher has recently increased the channel count
+            // In this case we check the service to see whether the topic has subscriptions
+            String sCache        = entry.getBackingMapContext().getCacheName();
+            String sTopic        = PagedTopicCaches.Names.getTopicName(sCache);
+            long   cSubscription = f_service.getSubscriptionCount(sTopic);
+            if (cSubscription > 0L)
+                {
+                c = 1;//(int) cSubscription;
+                }
+            }
+        page.adjustReferenceCount(c);
 
         long nTime = getClusterTime();
         page.setTimestampHead(nTime);

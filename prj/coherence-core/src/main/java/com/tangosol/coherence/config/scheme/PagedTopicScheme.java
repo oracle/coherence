@@ -449,13 +449,14 @@ public class PagedTopicScheme
             }
 
         // add the subscriber expiry interceptor
-        NamedEventInterceptorBuilder builder = new NamedEventInterceptorBuilder();
-        builder.setOrder(Interceptor.Order.HIGH);
-        builder.setName("$SubscriberExpiry$" + getServiceName());
-        builder.setRegistrationBehavior(RegistrationBehavior.REPLACE);
-        builder.setCustomBuilder((resolver, loader, listParameters) -> new PagedTopicSubscriber.TimeoutInterceptor());
+        NamedEventInterceptorBuilder builderTimeout = new NamedEventInterceptorBuilder();
+        builderTimeout.setOrder(Interceptor.Order.HIGH);
+        builderTimeout.setName("$SubscriberExpiry$" + getServiceName());
+        builderTimeout.setRegistrationBehavior(RegistrationBehavior.REPLACE);
+        builderTimeout.setCustomBuilder((resolver, loader, listParameters) -> new PagedTopicSubscriber.TimeoutInterceptor());
 
-        list.add(builder);
+        list.add(builderTimeout);
+
         return list;
         }
 
