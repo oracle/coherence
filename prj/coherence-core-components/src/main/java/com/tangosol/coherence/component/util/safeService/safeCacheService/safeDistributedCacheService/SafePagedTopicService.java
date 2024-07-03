@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,6 +15,7 @@ import com.tangosol.coherence.component.util.SafeNamedTopic;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicConfigMap;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.TopicService;
@@ -320,6 +321,19 @@ public class SafePagedTopicService
         {
         return ((com.tangosol.net.PagedTopicService) getRunningCacheService()).getSubscribers(Param_1, Param_2);
         }
+
+    @Override
+    public boolean hasSubscribers(String sTopicName)
+        {
+        return ((com.tangosol.net.PagedTopicService) getRunningCacheService()).hasSubscribers(sTopicName);
+        }
+
+    @Override
+    public long getSubscriptionCount(String sTopicName)
+        {
+        return ((com.tangosol.net.PagedTopicService) getRunningCacheService()).getSubscriptionCount(sTopicName);
+        }
+
     @Override
     public com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription getSubscription(long Param_1)
         {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -34,7 +34,6 @@ import com.tangosol.internal.net.service.grid.PartitionedCacheDependencies;
 import com.tangosol.internal.net.topic.impl.paged.DefaultPagedTopicDependencies;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 
@@ -60,7 +59,6 @@ import com.tangosol.net.topic.FixedElementCalculator;
 import com.tangosol.net.topic.NamedTopic;
 
 import com.tangosol.util.RegistrationBehavior;
-import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.ResourceResolver;
 import com.tangosol.util.ResourceResolverHelper;
 
@@ -440,13 +438,14 @@ public class PagedTopicScheme
             }
 
         // add the subscriber expiry interceptor
-        NamedEventInterceptorBuilder builder = new NamedEventInterceptorBuilder();
-        builder.setOrder(Interceptor.Order.HIGH);
-        builder.setName("$SubscriberExpiry$" + getServiceName());
-        builder.setRegistrationBehavior(RegistrationBehavior.REPLACE);
-        builder.setCustomBuilder((resolver, loader, listParameters) -> new PagedTopicSubscriber.TimeoutInterceptor());
+        NamedEventInterceptorBuilder builderTimeout = new NamedEventInterceptorBuilder();
+        builderTimeout.setOrder(Interceptor.Order.HIGH);
+        builderTimeout.setName("$SubscriberExpiry$" + getServiceName());
+        builderTimeout.setRegistrationBehavior(RegistrationBehavior.REPLACE);
+        builderTimeout.setCustomBuilder((resolver, loader, listParameters) -> new PagedTopicSubscriber.TimeoutInterceptor());
 
-        list.add(builder);
+        list.add(builderTimeout);
+
         return list;
         }
 

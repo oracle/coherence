@@ -23,6 +23,7 @@ import com.tangosol.coherence.component.net.Message;
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.serviceMemberSet.MasterMemberSet;
 import com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.PartialRequest;
+import com.tangosol.internal.net.topic.ChannelAllocationStrategy;
 import com.tangosol.internal.net.topic.SimpleChannelAllocationStrategy;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
@@ -34,14 +35,19 @@ import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
+import com.tangosol.internal.net.topic.impl.paged.model.Usage;
 import com.tangosol.internal.util.Daemons;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.WriteBuffer;
 import com.tangosol.net.CacheService;
+import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.RequestPolicyException;
 import com.tangosol.net.RequestTimeoutException;
 import com.tangosol.net.ServiceDependencies;
 import com.tangosol.net.cache.LocalCache;
+import com.tangosol.net.events.EventInterceptor;
+import com.tangosol.net.events.internal.ServiceDispatcher;
+import com.tangosol.net.events.partition.TransferEvent;
 import com.tangosol.net.internal.ScopedTopicReferenceStore;
 import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.partition.PartitionSet;
@@ -51,6 +57,7 @@ import com.tangosol.net.topic.TopicException;
 import com.tangosol.run.xml.SimpleElement;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlValue;
+import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.ListMap;
@@ -765,7 +772,7 @@ public class PagedTopic
 
                 ServiceDependencies deps = getDependencies();
 
-                long cRequestTimeout = deps == null ? 0l : deps.getRequestTimeoutMillis();
+                long cRequestTimeout = deps == null ? 0L : deps.getRequestTimeoutMillis();
                 long cStart          = TimeHelper.getSafeTimeMillis();
                 long cTimeout        = Timeout.isSet() ? Timeout.remainingTimeoutMillis() : cRequestTimeout;
 
@@ -780,7 +787,8 @@ public class PagedTopic
                     {
                     if (TimeHelper.getSafeTimeMillis() - cStart > cTimeout)
                         {
-                        throw new RequestTimeoutException("Timed out waiting for topic channel count to be set to " + cRequired);
+                        throw new RequestTimeoutException("Timed out waiting for config map update of channel count to be set to "
+                                + cRequired + " for topic " + sTopic + " (actual=" + cActual + ")");
                         }
                     try
                         {
@@ -796,12 +804,19 @@ public class PagedTopic
 
                 // Get confirmation of the new channel count from all storage members
                 cStart = TimeHelper.getSafeTimeMillis();
+                long nThirtySecs = 30L * 1000L;
+                long nLog        = cStart + nThirtySecs;
+                int cFinalActual = cActual;
                 while (!confirmChannelCount(sTopic, cActual))
                     {
-                    if (TimeHelper.getSafeTimeMillis() - cStart > cTimeout)
+                    long nTime = TimeHelper.getSafeTimeMillis() - cStart;
+                    if (nTime > nLog)
                         {
-                        throw new RequestTimeoutException("Timed out waiting for topic channel count confirmation from all storage enabled members");
+                        long cSeconds = nTime / 1000L;
+                        Logger.info(() -> String.format("This member has been waiting %d seconds for the channel count of topic %s to be set to %d across all storage members",
+                                cSeconds, sTopic, cFinalActual));
                         }
+
                     try
                         {
                         Blocking.sleep(10L);
@@ -823,6 +838,7 @@ public class PagedTopic
         return cActual;
         }
     
+    @SuppressWarnings("resource")
     public void ensureKnownTopics()
         {
         Map map = getTopicConfigMap();
@@ -835,11 +851,6 @@ public class PagedTopic
                 ensureSubscription(subscription);
                 }
             }
-        }
-    
-    protected com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches ensurePagedTopicCaches(String sTopicName)
-        {
-        return null;
         }
     
     // Declared at the super level
@@ -855,17 +866,20 @@ public class PagedTopic
      */
     public void ensureStorageInternal(String sName, long lCacheId, boolean fInit)
         {
-        // import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches$Names as com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names;
-        
         super.ensureStorageInternal(sName, lCacheId, fInit);
         
-        if (com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names.SUBSCRIPTIONS.isA(sName))
+        if (PagedTopicCaches.Names.SUBSCRIPTIONS.isA(sName))
             {
-            // we need to also ensure the BimaryMap for Subscriptions as we
+            // we need to also ensure the BinaryMap for Subscriptions as we
             // need to use if for subscriber confirmation calls later
             ensureBinaryMap(sName, lCacheId);
             }
-        else if (com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names.CONTENT.isA(sName))
+        else if (PagedTopicCaches.Names.USAGE.isA(sName))
+            {
+            // we need to also ensure the BinaryMap for Usage and ensure the channel index is added
+            BinaryMap binaryMap = (BinaryMap) ensureBinaryMap(sName, lCacheId);
+            }
+        else if (PagedTopicCaches.Names.CONTENT.isA(sName))
             {
             // we need to also ensure the BinaryMap for Content as we
             // need to use if for topic confirmation calls later
@@ -873,7 +887,7 @@ public class PagedTopic
         
             if (isOwnershipEnabled())
                 {
-                String sTopicName = com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names.getTopicName(sName);
+                String sTopicName = PagedTopicCaches.Names.getTopicName(sName);
                 MBeanHelper.registerPagedTopicMBean(this, sTopicName);
                 }
             }
@@ -1275,21 +1289,26 @@ public class PagedTopic
     // From interface: com.tangosol.net.PagedTopicService
     public int getChannelCount(String sName)
         {
-        // import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
-        // import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
-        
-        int cChannel = getChannelCountFromConfigMap(sName);
-        
-        if (cChannel <= 0)
-            {
-            PagedTopicBackingMapManager mgr  = (PagedTopicBackingMapManager) getTopicBackingMapManager();
-            PagedTopicDependencies      deps = mgr.getTopicDependencies(sName);
-            cChannel = deps.getConfiguredChannelCount();
-            }
-        
-        return cChannel;
+        int cChannelMap    = getChannelCountFromConfigMap(sName);
+        int cChannelConfig = getConfiguredChannelCount(sName);
+        return Math.max(cChannelMap, cChannelConfig);
         }
-    
+
+    /**
+     * Return the channel count configured in the topic dependencies.
+     * This may be different (less than) the actual channel count.
+     *
+     * @param sName  the name of the topic
+     *
+     * @return the channel count configured in the topic dependencies
+     */
+    protected int getConfiguredChannelCount(String sName)
+        {
+        PagedTopicBackingMapManager mgr  = getTopicBackingMapManager();
+        PagedTopicDependencies      deps = mgr.getTopicDependencies(sName);
+        return deps.getConfiguredChannelCount();
+        }
+
     // Accessor for the property "ChannelCountExecutor"
     /**
      * Getter for property ChannelCountExecutor.<p>
@@ -1380,7 +1399,19 @@ public class PagedTopic
         
         return PagedTopicConfigMap.getSubscribers(getTopicConfigMap(), sTopicName, groupId);
         }
-    
+
+    @Override
+    public boolean hasSubscribers(String sTopicName)
+        {
+        return PagedTopicConfigMap.hasSubscriptions(getTopicConfigMap(), sTopicName);
+        }
+
+    @Override
+    public long getSubscriptionCount(String sTopicName)
+        {
+        return PagedTopicConfigMap.getSubscriptionCount(getTopicConfigMap(), sTopicName);
+        }
+
     // From interface: com.tangosol.net.PagedTopicService
     public com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription getSubscription(long lSubscriptionId)
         {
@@ -1627,7 +1658,15 @@ public class PagedTopic
     protected void onFinalizeStartup()
         {
         super.onFinalizeStartup();
-        
+
+        // Add the interceptor that will handle topic logic on transfer events
+        ServiceDispatcher dispatcher  = getEventsHelper().getServiceDispatcher();
+        if (dispatcher != null)
+            {
+            TransferInterceptor interceptor = new TransferInterceptor(this);
+            dispatcher.addEventInterceptor("$Recovery$", interceptor, Set.of(TransferEvent.Type.RECOVERED, TransferEvent.Type.ARRIVED), true);
+            }
+
         // ensureKnownTopics() should only be called after AcceptingClients flag is set
         // to true, at which point the client thread performing the service "start" sequence
         // is notified, allowing it to release all acquired monitors (cluster, service, etc).
@@ -1669,6 +1708,28 @@ public class PagedTopic
         {
         super.onOwnershipSeniority(memberPreviousSenior);
         cleanupSubscribers();
+
+        // Ensure the channel counts are consistent for subscriptions
+        // We do this on acquiring seniority due to bugs in earlier
+        // versions where this could be out of sync
+        // If the channel counts are already correct these calls will basically
+        // be no-op calls.
+        ReentrantLock lock = getSubscriptionLock();
+        lock.lock();
+        try
+            {
+            TopicConfig.Map           configMap = getTopicConfigMap();
+            ChannelAllocationStrategy strategy  = getChannelAllocationStrategy();
+            for (String sTopic : PagedTopicConfigMap.getTopicNames(configMap))
+                {
+                int cChannel = getChannelCount(sTopic);
+                PagedTopicConfigMap.setChannelCount(configMap, sTopic, cChannel, strategy);
+                }
+            }
+        finally
+            {
+            lock.unlock();
+            }
         }
 
     @Override
@@ -1861,6 +1922,82 @@ public class PagedTopic
             task.setChannelCount(msgRequest.getChannelCount());
             task.setMember(msgRequest.getFromMember());
             getChannelCountExecutor().executeTask(task);
+            }
+        }
+
+    public void onChannelCount(EnsureChannelCountTask task)
+        {
+        String     sTopic     = task.getTopicName();
+        int        cRequired  = task.getRequiredChannelCount();
+        int        cChannel   = task.getChannelCount();
+        int        cConfigMap = getChannelCountFromConfigMap(sTopic);
+        int        cActual;
+
+        if (cConfigMap == 0)
+            {
+            // the channel count is not in the config map, so the senior when the
+            // topic was created was an older version. We need to use whatever is
+            // the configured channel count for this member.
+            cActual = getChannelCount(sTopic);
+            }
+        else
+            {
+            cActual = cConfigMap;
+            }
+
+        if (cRequired > cConfigMap)
+            {
+            ReentrantLock lock = getTopicStoreLock();
+            lock.lock();
+            try
+                {
+                cConfigMap = getChannelCountFromConfigMap(sTopic);
+                if (cRequired > cConfigMap)
+                    {
+                    String  sServiceName = getServiceName();
+                    boolean fSuspend     = !isSuspendedFully();
+
+                    try
+                        {
+                        if (fSuspend)
+                            {
+                            ((Cluster) getCluster()).suspendService(sServiceName, /*fResumeOnFailover*/ true);
+                            }
+
+                        String            sCacheName   = PagedTopicCaches.Names.CONTENT.cacheNameForTopicName(sTopic);
+                        ServiceConfig.Map map          = getServiceConfigMap();
+                        XmlElement         xmlElement  = (XmlElement) map.get(sCacheName);
+                        XmlValue           xmlChannels = xmlElement.getAttribute("channels");
+
+                        if (xmlChannels == null)
+                            {
+                            xmlChannels = xmlElement.addAttribute("channels");
+                            }
+                        xmlChannels.setInt(cChannel);
+                        map.put(sCacheName, xmlElement);
+
+                        if (cConfigMap != cChannel)
+                            {
+                            // only log if we actually changed the count, we may have only updated the config map
+                            Logger.config("Increased channel count for topic \"" + sTopic + "\" from "
+                                + cActual + " to " + cChannel + " requested by " + task.getMember());
+                            }
+
+                        PagedTopicConfigMap.setChannelCount(getTopicConfigMap(), sTopic, cChannel, getChannelAllocationStrategy());
+                        }
+                    finally
+                        {
+                        if (fSuspend)
+                            {
+                            getCluster().resumeService(sServiceName);
+                            }
+                        }
+                    }
+                }
+            finally
+                {
+                lock.unlock();
+                }
             }
         }
 
@@ -2607,77 +2744,8 @@ public class PagedTopic
         // From interface: java.lang.Runnable
         public void run()
             {
-            PagedTopic service    = getService();
-            String     sTopic     = getTopicName();
-            int        cRequired  = getRequiredChannelCount();
-            int        cChannel   = getChannelCount();
-            int        cConfigMap = service.getChannelCountFromConfigMap(sTopic);
-            int        cActual;
-            
-            if (cConfigMap == 0)
-                {
-                // the channel count is not in the config map, so the senior when the
-                // topic was created was an older version. We need to use whatever is
-                // the configured channel count for this member.
-                cActual = service.getChannelCount(sTopic);
-                }
-            else
-                {
-                cActual = cConfigMap;
-                }
-            
-            if (cRequired > cConfigMap)
-                {
-                ReentrantLock lock = service.getTopicStoreLock();
-                lock.lock();
-                try
-                    {
-                    cConfigMap = service.getChannelCountFromConfigMap(sTopic);
-                    if (cRequired > cConfigMap)
-                        {
-                        String  sServiceName = service.getServiceName();
-                        boolean fSuspend     = !service.isSuspendedFully();
-            
-                        try
-                            {
-                            if (fSuspend)
-                                {
-                                ((Cluster) service.getCluster()).suspendService(sServiceName, /*fResumeOnFailover*/ true);
-                                }
-            
-                            String            sCacheName   = PagedTopicCaches.Names.CONTENT.cacheNameForTopicName(sTopic);
-                            ServiceConfig.Map map          = service.getServiceConfigMap();
-                            XmlElement         xmlElement  = (XmlElement) map.get(sCacheName);
-                            XmlValue           xmlChannels = xmlElement.getAttribute("channels");
-
-                            if (xmlChannels == null)
-                                {
-                                xmlChannels = xmlElement.addAttribute("channels");
-                                }
-                            xmlChannels.setInt(cChannel);
-                            map.put(sCacheName, xmlElement);
-                            
-                            if (cConfigMap != cChannel)
-                                {
-                                // only log if we actually changed the count, we may have only updated the config map
-                                Logger.config("Increased channel count for topic \"" + sTopic + "\" from "
-                                    + cActual + " to " + cChannel + " requested by " + getMember());
-                                }
-                            }
-                        finally
-                            {
-                            if (fSuspend)
-                                {
-                                service.getCluster().resumeService(sServiceName);
-                                }
-                            }
-                        }
-                    }
-                finally
-                    {
-                    lock.unlock();
-                    }
-                }
+            PagedTopic service = getService();
+            service.onChannelCount(this);
             }
         
         // Accessor for the property "ChannelCount"
@@ -5560,7 +5628,7 @@ public class PagedTopic
             * An integer value, unique to the Service using this map, that
             * defines the type of this config map.
             * 
-            * @see Grid#getConfigMap(int)
+            * @see com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid#getConfigMap(int)
              */
             public int getMapType()
                 {
@@ -6295,4 +6363,60 @@ public class PagedTopic
                 }
             }
         }
+
+    /**
+    * An interceptor that intercepts recovered transfer events, specifically for a topic Usage cache.
+    * The data in the cache is used to determine the number of channels for a topic.
+    * If the channel count determined by the data in the Usage cache is greater than the configured
+    * channel count, the channel count will be increased to match the data.
+    * This is because channels count could be increased by a publisher that has been configured to
+    * have a higher count that that configured on the storage member. If storage is restarted the only
+    * way to know the number of actual published channels is to look at the data.
+    */
+    protected static class TransferInterceptor
+           implements EventInterceptor<TransferEvent>
+       {
+       protected TransferInterceptor(PagedTopic service)
+           {
+           f_service = service;
+           }
+
+       @Override
+       public void onEvent(TransferEvent event)
+           {
+           Map<String, Set<BinaryEntry>> entries = event.getEntries();
+           PagedTopicService             service = (PagedTopicService) event.getService();
+
+           for (Map.Entry<String, Set<BinaryEntry>> entry : entries.entrySet())
+               {
+               String sCacheName = entry.getKey();
+               if (PagedTopicCaches.Names.USAGE.equals(PagedTopicCaches.Names.fromCacheName(sCacheName)))
+                   {
+                   String sTopic   = PagedTopicCaches.Names.getTopicName(sCacheName);
+                   int    cChannel = 0;
+                   for (BinaryEntry binaryEntry : entry.getValue())
+                       {
+                       Usage.Key key = (Usage.Key) binaryEntry.getKey();
+                       cChannel = Math.max(cChannel, 1 + key.getChannelId());
+                       }
+                   int cActual = service.getChannelCount(sTopic);
+                   if (cChannel > cActual)
+                       {
+                       final int cFinal = cChannel;
+                       Daemons.commonPool().execute(() ->
+                           {
+                           Logger.config("Post partition recovery, increasing channel count for topic \"" + sTopic
+                                   + "\" from " + cActual + " to " + cFinal);
+                           f_service.ensureChannelCount(sTopic, cFinal, cFinal);
+                           });
+                       }
+                   }
+               }
+           }
+
+       // ----- data members ---------------------------------------------------
+
+       private final PagedTopic f_service;
+       }
+
     }

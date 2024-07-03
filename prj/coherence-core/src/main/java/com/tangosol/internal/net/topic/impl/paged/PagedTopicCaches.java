@@ -323,26 +323,6 @@ public class PagedTopicCaches
         }
 
     /**
-     * Return the default publisher channel count for this topic.
-     * <p>
-     * If the system property {@link Publisher#PROP_CHANNEL_COUNT} with a suffix of a dot
-     * followed by the topic name is set, that value will be used.
-     * <p>
-     * If the system property {@link Publisher#PROP_CHANNEL_COUNT} with no suffix is set,
-     * that value will be used.
-     * <p>
-     * If neither property is set the configured channel count will be used.
-     *
-     * @return the default publisher channel count for this topic
-     */
-    public int getPublisherChannelCount()
-        {
-        int cChannel = getDependencies().getConfiguredChannelCount();
-        cChannel = Config.getInteger(Publisher.PROP_CHANNEL_COUNT, cChannel);
-        return Config.getInteger(Publisher.PROP_CHANNEL_COUNT + "." + f_sTopicName, cChannel);
-        }
-
-    /**
      * Return the set of NotificationKeys covering all partitions for the given notifier
      *
      * @param nNotifier  the notifier id

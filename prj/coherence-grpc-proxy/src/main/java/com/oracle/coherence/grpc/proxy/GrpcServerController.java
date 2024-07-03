@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,7 +10,6 @@ package com.oracle.coherence.grpc.proxy;
 import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Exceptions;
 
-import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.Objects;
 import com.tangosol.application.ContainerContext;
 import com.tangosol.application.Context;
@@ -329,15 +328,12 @@ public class GrpcServerController
         @Override
         public void preStop(Context ctx)
             {
-Logger.info("***** Entered preStop name=" + ctx.getApplicationName());
             f_lock.lock();
             try
                 {
-Logger.info("***** In preStop - acquired lock" + ctx.getApplicationName());
                 ContainerContext     containerContext = ctx.getContainerContext();
                 String               sScopePrefix     = ServiceScheme.getScopePrefix(ctx.getApplicationName(), containerContext);
                 GrpcServerController controller       = f_mapDomainController.get(sScopePrefix);
-Logger.info("***** In preStop - controller=" + controller + " match=" + (controller != null && Objects.equals(ctx, controller.f_context)));
                 if (controller != null && Objects.equals(ctx, controller.f_context))
                     {
                     f_mapDomainController.remove(sScopePrefix);
@@ -348,7 +344,6 @@ Logger.info("***** In preStop - controller=" + controller + " match=" + (control
                 {
                 f_lock.unlock();
                 }
-Logger.info("***** Leaving preStop name=" + ctx.getApplicationName());
             }
 
         @Override

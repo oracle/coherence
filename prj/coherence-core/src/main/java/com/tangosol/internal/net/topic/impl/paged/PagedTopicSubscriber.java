@@ -2381,9 +2381,14 @@ public class PagedTopicSubscriber<V>
             PagedTopicChannel[] aExistingChannel = m_aChannel;
             if (nMaxChannel >= aExistingChannel.length)
                 {
-                int cChannel = nMaxChannel + 1;
-                // this subscriber has fewer channels than the server so needs to be resized
-                m_aChannel = initializeChannels(m_caches, cChannel, f_subscriberGroupId, aExistingChannel);
+                // This subscriber has fewer channels than the server so needs to be resized
+                // We disconnect as the subscription may not be properly initialized for
+                // the new channel count if this has happened due to a rolling upgrade
+                // from an earlier buggy topics version
+                Logger.finer(() -> String.format("Disconnecting subscriber %d on topic %s due to increase in channel count from %d to %d",
+                        f_id.getId(), f_topic.getName(), aExistingChannel.length, nMaxChannel));
+                disconnectInternal(true);
+                return;
                 }
 
             if (!Arrays.equals(m_aChannelOwned, aChannel))
@@ -2401,7 +2406,7 @@ public class PagedTopicSubscriber<V>
                     }
                 setRevoked = Collections.unmodifiableSet(setRevoked);
 
-                Set<Integer> setAssigned = Collections.unmodifiableSet(new HashSet<>(setChannel));
+                Set<Integer> setAssigned = Set.copyOf(setChannel);
 
                 Logger.finest(String.format("Subscriber %d (name=%s) channel allocation changed, assigned=%s added=%s revoked=%s",
                                             f_id.getId(), f_sIdentifyingName, setAssigned, setAdded, setRevoked));

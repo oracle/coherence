@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
+import com.oracle.coherence.common.base.Logger;
+import com.tangosol.internal.net.topic.ChannelAllocationStrategy;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
@@ -185,6 +187,69 @@ public abstract class PagedTopicConfigMap
                     || subscription.hasSubscriber(subscriberId);
             }
         return false;
+        }
+
+    /**
+     * Returns {@code true} if the specified topic has any registered subscriptions.
+     *
+     * @param configMap  the config map for the service
+     * @param sTopic     the name of the topic
+     *
+     * @return {@code true} if the specified topic has any registered subscriptions
+     */
+    public static boolean hasSubscriptions(Map<?, ?> configMap, String sTopic)
+        {
+        return configMap.keySet().stream()
+                .filter(key -> key instanceof PagedTopicSubscription.Key)
+                .map(PagedTopicSubscription.Key.class::cast)
+                .anyMatch(key -> key.getTopicName().equals(sTopic));
+        }
+
+    /**
+     * Returns the count of subscriptions for the specified topic.
+     *
+     * @param configMap  the config map for the service
+     * @param sTopic     the name of the topic
+     *
+     * @return the count of subscriptions for the specified topic
+     */
+    public static long getSubscriptionCount(Map<?, ?> configMap, String sTopic)
+        {
+        return configMap.keySet().stream()
+                .filter(key -> key instanceof PagedTopicSubscription.Key)
+                .map(PagedTopicSubscription.Key.class::cast)
+                .filter(key -> key.getTopicName().equals(sTopic))
+                .count();
+        }
+
+    /**
+     * Update the channel count and allocations for all subscriptions for a topic.
+     *
+     * @param configMap  the config map to update
+     * @param sTopic     the name of the topic
+     * @param cChannel   the new channel count
+     * @param strategy   the channel allocation strategy
+     */
+    @SuppressWarnings("unchecked")
+    public static void setChannelCount(Map<?, ?> configMap, String sTopic, int cChannel, ChannelAllocationStrategy strategy)
+        {
+        Set<PagedTopicSubscription.Key> setKey = configMap.keySet().stream()
+                .filter(key -> key instanceof PagedTopicSubscription.Key)
+                .map(PagedTopicSubscription.Key.class::cast)
+                .filter(key -> key.getTopicName().equals(sTopic))
+                .collect(Collectors.toSet());
+
+        Map<PagedTopicSubscription.Key, PagedTopicSubscription> mapSub = (Map<PagedTopicSubscription.Key, PagedTopicSubscription>) configMap;
+        for (PagedTopicSubscription.Key key : setKey)
+            {
+            PagedTopicSubscription subscription = (PagedTopicSubscription) configMap.get(key);
+            if (subscription.getChannelCount() < cChannel)
+                {
+                Logger.config("Updating channel count for subscription " + key.getGroupName() + " in topic " + sTopic + " to " + cChannel);
+                subscription.updateChannelAllocations(strategy, cChannel);
+                mapSub.put(key, subscription);
+                }
+            }
         }
 
     /**
