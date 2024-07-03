@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -111,6 +111,8 @@ public class TopicChannelCountTests
             NamedTopic<String> topic = session.getTopic(sTopicName);
             topic.ensureSubscriberGroup(sTopicName);
 
+            int cActual = topic.getChannelCount();
+
             Set<Integer> setChannel = new HashSet<>();
             try (Publisher<String> publisher = topic.createPublisher(Publisher.OrderBy.roundRobin()))
                 {
@@ -122,16 +124,16 @@ public class TopicChannelCountTests
                     }
                 }
             // should have published to all channels based on the publisher's channel count
-            assertThat(setChannel.size(), is(cChannel));
+            assertThat(setChannel.size(), is(cActual));
 
             CoherenceClusterMember member = m_cluster.getCluster()
                     .findAny()
                     .orElseThrow(() -> new AssertionError("Could not find cluster member"));
 
             Set<Integer> setActualChannel = member.invoke(new GetChannelsWithMessages(sTopicName));
-            assertThat(setActualChannel.size(), is(cChannel));
+            assertThat(setActualChannel.size(), is(cActual));
 
-            for (int i = 0; i < cChannel; i++)
+            for (int i = 0; i < cActual; i++)
                 {
                 assertThat(setChannel.contains(i), is(true));
                 assertThat(setActualChannel.contains(i), is(true));
@@ -143,53 +145,59 @@ public class TopicChannelCountTests
     public void shouldPublishWhenPublisherConfiguredWithMoreChannels() throws Exception
         {
         String sTopicName = m_testWatcher.getMethodName();
+        String sGroupName = "test-group";
         int    cChannel   = 34;
 
-        try (Session session = m_cluster.buildSession(SessionBuilders
-                .storageDisabledMember(SystemProperty.of(PROP_CHANNELS, cChannel))))
+        try (Session session = m_cluster.buildSession(SessionBuilders.storageDisabledMember()))
             {
             NamedTopic<Integer> topic = session.getTopic(sTopicName);
-            topic.ensureSubscriberGroup(sTopicName);
+            topic.ensureSubscriberGroup(sGroupName);
 
-            try (Publisher<Integer> publisher = topic.createPublisher(Publisher.OrderBy.value(n -> n)))
+            try (Subscriber<Integer> subscriberOne = topic.createSubscriber(inGroup(sGroupName), Subscriber.CompleteOnEmpty.enabled());
+                 Subscriber<Integer> subscriberTwo = topic.createSubscriber(inGroup(sGroupName), Subscriber.CompleteOnEmpty.enabled()))
                 {
-                CompletableFuture<Publisher.Status>[] aFuture = new CompletableFuture[cChannel];
-                for (int i = 0; i < cChannel; i++)
+                try (Publisher<Integer> publisher = topic.createPublisher(PagedTopicPublisher.ChannelCount.of(cChannel), Publisher.OrderBy.roundRobin()))
                     {
-                    aFuture[i] = publisher.publish(i);
-                    }
+                    CompletableFuture<Publisher.Status>[] aFuture = new CompletableFuture[cChannel];
+                    for (int i = 0; i < cChannel; i++)
+                        {
+                        aFuture[i] = publisher.publish(i);
+                        }
 
-                for (int i = 0; i < cChannel; i++)
-                    {
-                    Eventually.assertDeferred(aFuture[i]::isDone, is(true));
-                    // the future should have completed normally
-                    aFuture[i].get();
-                    }
+                    for (int i = 0; i < cChannel; i++)
+                        {
+                        Eventually.assertDeferred(aFuture[i]::isDone, is(true));
+                        // the future should have completed normally
+                        aFuture[i].get();
+                        }
 
-                CoherenceClusterMember member = m_cluster.getCluster()
-                        .findAny()
-                        .orElseThrow(() -> new AssertionError("Could not find cluster member"));
+                    CoherenceClusterMember member = m_cluster.getCluster()
+                            .findAny()
+                            .orElseThrow(() -> new AssertionError("Could not find cluster member"));
 
-                // should have pages in 34 channels
-                Set<Integer> setActualChannel = member.invoke(new GetChannelsWithMessages(sTopicName));
-                assertThat(setActualChannel.size(), is(cChannel));
+                    // should have pages in 34 channels
+                    Set<Integer> setActualChannel = member.invoke(new GetChannelsWithMessages(sTopicName));
+                    assertThat(setActualChannel.size(), is(cChannel));
 
-                Set<Integer> setMessage = new HashSet<>();
-                int cReceived = 0;
-                try (Subscriber<Integer> subscriber = topic.createSubscriber(inGroup("test"), Subscriber.CompleteOnEmpty.enabled()))
-                    {
-                    Subscriber.Element<Integer> element = subscriber.receive().get(1, TimeUnit.MINUTES);
+                    Set<Integer> setMessage = new HashSet<>();
+
+                    Subscriber.Element<Integer> element = subscriberOne.receive().get(1, TimeUnit.MINUTES);
                     while (element != null)
                         {
                         setMessage.add(element.getValue());
-                        cReceived++;
-                        element = subscriber.receive().get(1, TimeUnit.MINUTES);
+                        element = subscriberOne.receive().get(1, TimeUnit.MINUTES);
                         }
-                    }
 
-                // should have received from all channels based on the publisher's channel count
-                assertThat(cReceived, is(cChannel));
-                assertThat(setMessage.size(), is(cChannel));
+                    element = subscriberTwo.receive().get(1, TimeUnit.MINUTES);
+                    while (element != null)
+                        {
+                        setMessage.add(element.getValue());
+                        element = subscriberTwo.receive().get(1, TimeUnit.MINUTES);
+                        }
+
+                    // should have received from all channels based on the publisher's channel count
+                    assertThat(setMessage.size(), is(cChannel));
+                    }
                 }
             }
         }
@@ -472,7 +480,6 @@ public class TopicChannelCountTests
         }
 
     @Test
-    @Ignore("Skipped until Bug 34767222 is fixed")
     public void shouldIncreaseChannelCountWhileActiveSubscriber() throws Exception
         {
         String sTopicName = m_testWatcher.getMethodName();
@@ -857,7 +864,7 @@ public class TopicChannelCountTests
     public CoherenceClusterResource m_cluster =
             new CoherenceClusterResource()
                     .with(ClusterName.of(m_testWatcher.getMethodName()),
-                          Logging.atFinest(),
+                          Logging.atMax(),
                           CacheConfig.of(CACHE_CONFIG_FILE),
                           LocalHost.only(),
                           WellKnownAddress.loopback(),

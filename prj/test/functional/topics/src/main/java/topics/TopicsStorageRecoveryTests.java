@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -37,7 +37,8 @@ import com.oracle.bedrock.testsupport.junit.TestLogs;
 
 import com.oracle.coherence.common.base.Logger;
 
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
+import com.oracle.coherence.common.collections.ConcurrentHashMap;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicPublisher;
 import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.net.CacheFactory;
@@ -54,14 +55,13 @@ import com.tangosol.util.ExternalizableHelper;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
+import topics.callables.ResumeService;
+import topics.callables.SuspendService;
 
-import java.io.Closeable;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.File;
@@ -70,6 +70,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -91,6 +94,7 @@ import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
  * enabled and is removed via a clean shutdown (as would happen in k8s
  * using the operator).
  */
+@SuppressWarnings("CallToPrintStackTrace")
 public class TopicsStorageRecoveryTests
     {
     @Before
@@ -190,7 +194,7 @@ public class TopicsStorageRecoveryTests
         // create a subscriber group so that published messages are not lost before the subscriber subscribes
         topic.ensureSubscriberGroup(sGroup);
 
-        try (Publisher<Message> publisher = topic.createPublisher())
+        try (Publisher<Message> publisher = topic.createPublisher(Publisher.OrderBy.roundRobin(), PagedTopicPublisher.ChannelCount.of(10)))
             {
             AtomicBoolean fPublish    = new AtomicBoolean(true);
             AtomicBoolean fSubscribe  = new AtomicBoolean(true);
@@ -200,6 +204,9 @@ public class TopicsStorageRecoveryTests
             AtomicInteger cPublished  = new AtomicInteger(0);
             AtomicInteger cReceived   = new AtomicInteger(0);
 
+            Map<Message, Subscriber.Element<Message>> mapReceived = new ConcurrentHashMap<>();
+            Map<Message, Publisher.Status> mapPublished = new ConcurrentHashMap<>();
+
             // A runnable to do the publishing
             Runnable runPublisher = () ->
                 {
@@ -207,8 +214,9 @@ public class TopicsStorageRecoveryTests
                     {
                     for (int i = 0; i < 100 && fPublish.get(); i++)
                         {
-                        publisher.publish(new Message(i, "Message-" + i))
-                                .handle((v, err) ->
+                        Message message = new Message(i, "Message-" + i);
+                        publisher.publish(message)
+                                .handle((status, err) ->
                                         {
                                         if (err != null)
                                             {
@@ -217,6 +225,7 @@ public class TopicsStorageRecoveryTests
                                         else
                                             {
                                             cPublished.incrementAndGet();
+                                            mapPublished.put(message, status);
                                             }
                                         return null;
                                         });
@@ -273,6 +282,7 @@ public class TopicsStorageRecoveryTests
                                 Subscriber.Element<Message> element = future.get(1, TimeUnit.MINUTES);
                                 if (element != null)
                                     {
+                                    mapReceived.put(element.getValue(), element);
                                     element.commit();
                                     cReceived.incrementAndGet();
                                     if (i >= 5)
@@ -312,7 +322,7 @@ public class TopicsStorageRecoveryTests
 
             // Suspend the services - we do this via the storage member like the Operator would
             Logger.info(" Suspending service " + sServiceName + " published=" + cPublished.get());
-            Boolean fSuspended = member.invoke(() -> suspend(sServiceName));
+            Boolean fSuspended = member.invoke(new SuspendService(sServiceName));
             assertThat(fSuspended, is(true));
             Logger.info("Suspended service " + sServiceName + " published=" + cPublished.get());
 
@@ -343,7 +353,7 @@ public class TopicsStorageRecoveryTests
             Logger.info("Resuming service " + sServiceName + " published=" + cPublished.get());
             member = s_storageCluster.stream().findAny().orElse(null);
             assertThat(member, is(notNullValue()));
-            Boolean fResumed = member.invoke(() -> resume(sServiceName));
+            Boolean fResumed = member.invoke(new ResumeService(sServiceName));
             assertThat(fResumed, is(true));
             Logger.info("Resumed service " + sServiceName + " published=" + cPublished.get());
             Logger.info("Awake. published=" + cPublished.get());
@@ -353,8 +363,17 @@ public class TopicsStorageRecoveryTests
             threadSubscribe.join(120000);
             // we should have received at least as many as published (could be more if a commit did not succeed
             // during fail-over and the messages was re-received, but that is ok)
-            Logger.info("Test complete: published=" + cPublished.get() + " received=" + cReceived.get());
-            assertThat(cReceived.get(), is(greaterThanOrEqualTo(cPublished.get())));
+            int count = mapReceived.size();
+            Logger.info("Test complete: published=" + cPublished.get() + " received=" + cReceived.get() + " map=" + count);
+            if (count != cPublished.get())
+                {
+                TreeSet<Message> setKey = new TreeSet<>(mapPublished.keySet());
+                for (Message message : setKey)
+                    {
+                    System.err.println(mapPublished.get(message) + " " + mapReceived.get(message));
+                    }
+                }
+            assertThat(count, is(cPublished.get()));
             }
         }
 
@@ -525,7 +544,7 @@ public class TopicsStorageRecoveryTests
 
             // Suspend the services - we do this via the storage member like the Operator would
             Logger.info(" Suspending service " + sServiceName);
-            Boolean fSuspended = member.invoke(() -> suspend(sServiceName));
+            Boolean fSuspended = member.invoke(new SuspendService(sServiceName));
             assertThat(fSuspended, is(true));
             Logger.info("Suspended service " + sServiceName);
 
@@ -568,7 +587,7 @@ public class TopicsStorageRecoveryTests
             Logger.info("Resuming service " + sServiceName);
             member = s_storageCluster.stream().findAny().orElse(null);
             assertThat(member, is(notNullValue()));
-            Boolean fResumed = member.invoke(() -> resume(sServiceName));
+            Boolean fResumed = member.invoke(new ResumeService(sServiceName));
             assertThat(fResumed, is(true));
             Logger.info("Resumed service " + sServiceName);
 
@@ -611,7 +630,7 @@ public class TopicsStorageRecoveryTests
         }
 
     @Test
-    @Ignore("skipped until a solution to non-clean shutdown with active persistence is discovered")
+//    @Ignore("skipped until a solution to non-clean shutdown with active persistence is discovered")
     @SuppressWarnings("unchecked")
     public void shouldRecoverWaitingSubscriberAfterStorageRestart() throws Exception
         {
@@ -706,22 +725,6 @@ public class TopicsStorageRecoveryTests
 
     // ----- helper methods -------------------------------------------------
 
-    static Boolean suspend(String sName)
-        {
-        Logger.info("Suspending service " + sName);
-        CacheFactory.ensureCluster().suspendService(sName);
-        Logger.info("Suspended service " + sName);
-        return true;
-        }
-
-    static Boolean resume(String sName)
-        {
-        Logger.info("Resuming service " + sName);
-        CacheFactory.ensureCluster().resumeService(sName);
-        Logger.info("Resumed service " + sName);
-        return true;
-        }
-
     private void pause()
         {
         try
@@ -776,7 +779,7 @@ public class TopicsStorageRecoveryTests
     // ----- inner class: Message -------------------------------------------
 
     public static class Message
-            implements ExternalizableLite
+            implements ExternalizableLite, Comparable<Message>
         {
         public Message()
             {
@@ -803,12 +806,38 @@ public class TopicsStorageRecoveryTests
             }
 
         @Override
+        public int compareTo(Message o)
+            {
+            int n = Integer.compare(m_id, o.m_id);
+            if (n == 0)
+                {
+                n = m_sValue.compareTo(o.m_sValue);
+                }
+            return n;
+            }
+
+        @Override
         public String toString()
             {
             return "Message(" +
                     "id=" + m_id +
                     ", value='" + m_sValue + '\'' +
                     ')';
+            }
+
+        @Override
+        public boolean equals(Object o)
+            {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Message message = (Message) o;
+            return m_id == message.m_id && Objects.equals(m_sValue, message.m_sValue);
+            }
+
+        @Override
+        public int hashCode()
+            {
+            return Objects.hash(m_id, m_sValue);
             }
 
         private int m_id;
