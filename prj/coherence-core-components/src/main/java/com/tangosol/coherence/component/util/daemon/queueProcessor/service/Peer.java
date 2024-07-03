@@ -1,6 +1,5 @@
-
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1649,11 +1648,8 @@ public abstract class Peer
             }
         
         dispatchConnectionEvent(connection, ConnectionEvent.CONNECTION_ERROR, e);
-        
-        if (_isTraceEnabled(6))
-            {
-            _trace("Closed: " + connection + " due to:\n" + getStackTrace(e), 6);
-            }
+
+        _trace("Closed: " + connection + " due to: " + e, 6);
         }
     
     /**
