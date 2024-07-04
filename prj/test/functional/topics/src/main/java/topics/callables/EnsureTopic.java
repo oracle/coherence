@@ -9,6 +9,7 @@ package topics.callables;
 
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.common.util.Duration;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.Session;
@@ -32,7 +33,10 @@ public class EnsureTopic
     public Boolean call() throws Exception
         {
         Logger.info("Ensuring topic " + f_sName);
-        NamedTopic<?> topic = Coherence.getInstance().getSession().getTopic(f_sName);
+        Coherence coherence = Coherence.getInstance();
+        coherence.startAndWait();
+
+        NamedTopic<?> topic    = coherence.getSession().getTopic(f_sName);
         if (f_sGroup != null && !f_sGroup.isEmpty())
             {
             Logger.info("Ensuring subscriber group " + f_sGroup + " for topic " + f_sName);
