@@ -124,7 +124,7 @@ public class TopicChannelCountRecoveryTests
                                                         SystemProperty.of("test.log.level", "9"),
                                                         SystemProperty.of("test.log", "stderr"),
                                                         SystemProperty.of("coherence.distributed.partitioncount", "13"),
-                                                        StabilityPredicate.none(),
+                                                        StabilityPredicate.of(CoherenceCluster.Predicates.isReady()),
                                                         LocalStorage.enabled(fStorage),
                                                         Logging.atMax(),
                                                         JMXManagementMode.ALL,
