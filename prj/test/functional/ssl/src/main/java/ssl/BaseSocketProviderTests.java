@@ -36,6 +36,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 
 /**

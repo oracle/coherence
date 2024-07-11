@@ -9,13 +9,13 @@
 <socket-provider>
   <ssl>
     <identity-manager>
-      <key system-property="coherence.security.client.key"/>
-      <cert system-property="coherence.security.client.cert"/>
+      <key system-property="coherence.security.server.key"/>
+      <cert system-property="coherence.security.server.cert"/>
     </identity-manager>
     <trust-manager>
-      <algorithm>PeerX509</algorithm>
-      <cert system-property="coherence.security.client.cert"/>
-      <cert system-property="coherence.security.server.cert"/>
+      <cert system-property="coherence.security.server.ca.cert"/>
+      <cert system-property="coherence.security.client.ca.cert"/>
     </trust-manager>
+    <client-auth>required</client-auth>
   </ssl>
 </socket-provider>
