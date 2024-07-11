@@ -736,10 +736,9 @@ public class StorageManagerModel
             }
 
         // added in 14.1.2.0.0 / 26.06.7 / 23.09.1
-        if ((ExternalizableHelper.isVersionCompatible(in, VersionHelper.VERSION_14_1_2_0)
-            && !ExternalizableHelper.isVersionCompatible(in, VersionHelper.VERSION_23_09))  // exclude reading from 23.09 as it doesn't contain the attribute
-            || ExternalizableHelper.isPatchCompatible(in, VersionHelper.VERSION_14_1_1_2206_7)
-            || ExternalizableHelper.isPatchCompatible(in, VersionHelper.VERSION_23_09_1))
+        if (ExternalizableHelper.isVersionCompatible(in, VersionHelper.VERSION_23_09_1)
+            || ExternalizableHelper.isPatchCompatible(in, VersionHelper.VERSION_14_1_2_0)
+            || ExternalizableHelper.isPatchCompatible(in, VersionHelper.VERSION_14_1_1_2206_7))
             {
             mapSnapshot.put("ClearCount", ExternalizableHelper.readLong(in));
             }
@@ -935,10 +934,9 @@ public class StorageManagerModel
             }
 
         // added in 14.1.2.0.0 / 22.06.7 / 23.09.1
-        if ((ExternalizableHelper.isVersionCompatible(out, VersionHelper.VERSION_14_1_2_0)
-            && !ExternalizableHelper.isVersionCompatible(out, VersionHelper.VERSION_23_09))  // exclude writing to 23.09 as it doesn't contain the attribute
-            || ExternalizableHelper.isPatchCompatible(out, VersionHelper.VERSION_14_1_1_2206_7)
-            || ExternalizableHelper.isPatchCompatible(out, VersionHelper.VERSION_23_09_1))
+        if (ExternalizableHelper.isVersionCompatible(out, VersionHelper.VERSION_23_09_1)
+            || ExternalizableHelper.isPatchCompatible(out, VersionHelper.VERSION_14_1_2_0)
+            || ExternalizableHelper.isPatchCompatible(out, VersionHelper.VERSION_14_1_1_2206_7))
             {
             ExternalizableHelper.writeLong(out, getClearCount());
             }

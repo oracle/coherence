@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2024 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -95,7 +95,7 @@ public class VersioningTest
 
         // if year is 23 or greater, then 03 will be encoded
         nFeaturePack = ServiceMemberSet.encodeVersion(23, 3, 0);
-        assertThat(toVersionString(nFeaturePack), is("14.1.1.2303.0"));
+        assertThat(toVersionString(nFeaturePack), is("14.1.2.2303.0"));
 
         // if year is 21 or less 06 and 12 will be encoded
         nFeaturePack = ServiceMemberSet.encodeVersion(21, 12, 0);

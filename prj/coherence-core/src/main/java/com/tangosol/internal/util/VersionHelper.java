@@ -84,6 +84,10 @@ public class VersionHelper
             {
             return encodeVersion(15, 0, 0, 0, 0);
             }
+        else if (nYear == 23)
+            {
+            return encodeVersion(14, 1, 2, 0, 0);
+            }
         return encodeVersion(14, 1, 1, 0, 0);
         }
 

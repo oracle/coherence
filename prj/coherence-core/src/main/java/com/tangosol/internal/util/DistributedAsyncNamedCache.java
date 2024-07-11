@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -31,6 +31,7 @@ import java.util.function.Consumer;
 import java.util.function.IntPredicate;
 
 import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_1_2206_6;
+import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_2_0;
 import static com.tangosol.internal.util.VersionHelper.VERSION_23_09;
 import static com.tangosol.internal.util.VersionHelper.isPatchCompatible;
 import static com.tangosol.internal.util.VersionHelper.isVersionCompatible;
@@ -277,8 +278,9 @@ public class DistributedAsyncNamedCache<K, V>
      */
     protected static boolean isBinaryProcessorCompatible(int nVersion)
         {
-        // >= 23.09.0 or >= 14.1.1.2206.6 ok
+        // >= 23.09.0 or >= 14.1.1.2206.6 or >= 14.1.2
         return isVersionCompatible(VERSION_23_09, nVersion)
+                || isPatchCompatible(VERSION_14_1_2_0, nVersion)
                 || isPatchCompatible(VERSION_14_1_1_2206_6, nVersion);
         }
 
