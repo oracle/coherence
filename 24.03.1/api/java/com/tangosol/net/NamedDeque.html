@@ -132,6 +132,11 @@ extends <a href="NamedQueue.html" title="interface in com.tangosol.net">NamedQue
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Return the Service that this NamedCollection is a part of.</div>
 </div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>long</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#prepend(E)" class="member-name-link">prepend</a><wbr>(<a href="NamedDeque.html" title="type parameter in NamedDeque">E</a>&nbsp;e)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Insert an element to head of this <a href="NamedDeque.html" title="interface in com.tangosol.net"><code>NamedDeque</code></a>.</div>
+</div>
 </div>
 </div>
 </div>
@@ -149,7 +154,7 @@ extends <a href="NamedQueue.html" title="interface in com.tangosol.net">NamedQue
 <code><a href="NamedCollection.html#destroy()">destroy</a>, <a href="NamedCollection.html#getName()">getName</a>, <a href="NamedCollection.html#isDestroyed()">isDestroyed</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-com.tangosol.net.NamedQueue">Methods inherited from interface&nbsp;com.tangosol.net.<a href="NamedQueue.html" title="interface in com.tangosol.net">NamedQueue</a></h3>
-<code><a href="NamedQueue.html#getQueueNameHash()">getQueueNameHash</a>, <a href="NamedQueue.html#getQueueStatistics()">getQueueStatistics</a>, <a href="NamedQueue.html#isActive()">isActive</a>, <a href="NamedQueue.html#isReady()">isReady</a></code></div>
+<code><a href="NamedQueue.html#append(E)">append</a>, <a href="NamedQueue.html#getQueueNameHash()">getQueueNameHash</a>, <a href="NamedQueue.html#getQueueStatistics()">getQueueStatistics</a>, <a href="NamedQueue.html#isActive()">isActive</a>, <a href="NamedQueue.html#isReady()">isReady</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-com.tangosol.util.ObservableCollection">Methods inherited from interface&nbsp;com.tangosol.util.<a href="../util/ObservableCollection.html" title="interface in com.tangosol.util">ObservableCollection</a></h3>
 <code><a href="../util/ObservableCollection.html#addListener(com.tangosol.util.CollectionListener)">addListener</a>, <a href="../util/ObservableCollection.html#addListener(com.tangosol.util.CollectionListener,com.tangosol.util.Filter,boolean)">addListener</a>, <a href="../util/ObservableCollection.html#removeListener(com.tangosol.util.CollectionListener)">removeListener</a>, <a href="../util/ObservableCollection.html#removeListener(com.tangosol.util.CollectionListener,com.tangosol.util.Filter)">removeListener</a></code></div>
@@ -180,6 +185,19 @@ extends <a href="NamedQueue.html" title="interface in com.tangosol.net">NamedQue
 <dd><code><a href="NamedQueue.html#getService()">getService</a></code>&nbsp;in interface&nbsp;<code><a href="NamedQueue.html" title="interface in com.tangosol.net">NamedQueue</a>&lt;<a href="NamedDeque.html" title="type parameter in NamedDeque">E</a>&gt;</code></dd>
 <dt>Returns:</dt>
 <dd>the Service</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="prepend(E)">
+<h3 id="prepend(java.lang.Object)">prepend</h3>
+<div class="member-signature"><span class="return-type">long</span>&nbsp;<span class="element-name">prepend</span><wbr><span class="parameters">(<a href="NamedDeque.html" title="type parameter in NamedDeque">E</a>&nbsp;e)</span></div>
+<div class="block">Insert an element to head of this <a href="NamedDeque.html" title="interface in com.tangosol.net"><code>NamedDeque</code></a>.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>e</code> - the element to insert</dd>
+<dt>Returns:</dt>
+<dd>the identifier for the inserted element, or <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html#MIN_VALUE" title="class or interface in java.lang" class="external-link"><code>Long.MIN_VALUE</code></a> if the element could not be inserted</dd>
 </dl>
 </section>
 </li>

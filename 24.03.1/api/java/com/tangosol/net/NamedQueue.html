@@ -127,29 +127,34 @@ extends <a href="NamedCollection.html" title="interface in com.tangosol.net">Nam
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>int</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getQueueNameHash()" class="member-name-link">getQueueNameHash</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>long</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#append(E)" class="member-name-link">append</a><wbr>(<a href="NamedQueue.html" title="type parameter in NamedQueue">E</a>&nbsp;e)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Insert an element to the tail this <a href="NamedQueue.html" title="interface in com.tangosol.net"><code>NamedQueue</code></a>.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>int</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getQueueNameHash()" class="member-name-link">getQueueNameHash</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Return the consistent hash of the queue name.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>com.tangosol.net.queue.QueueStatistics</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getQueueStatistics()" class="member-name-link">getQueueStatistics</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>com.tangosol.net.queue.QueueStatistics</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getQueueStatistics()" class="member-name-link">getQueueStatistics</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Returns the current statistics for this queue.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="QueueService.html" title="interface in com.tangosol.net">QueueService</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getService()" class="member-name-link">getService</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="QueueService.html" title="interface in com.tangosol.net">QueueService</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getService()" class="member-name-link">getService</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Return the Service that this NamedCollection is a part of.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isActive()" class="member-name-link">isActive</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isActive()" class="member-name-link">isActive</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Returns <code>true</code> if this map is not released or destroyed.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isReady()" class="member-name-link">isReady</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isReady()" class="member-name-link">isReady</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Returns whether this <code>NamedMap</code> is ready to be used.</div>
 </div>
 </div>
@@ -250,6 +255,19 @@ extends <a href="NamedCollection.html" title="interface in com.tangosol.net">Nam
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>the consistent hash of the queue name</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="append(E)">
+<h3 id="append(java.lang.Object)">append</h3>
+<div class="member-signature"><span class="return-type">long</span>&nbsp;<span class="element-name">append</span><wbr><span class="parameters">(<a href="NamedQueue.html" title="type parameter in NamedQueue">E</a>&nbsp;e)</span></div>
+<div class="block">Insert an element to the tail this <a href="NamedQueue.html" title="interface in com.tangosol.net"><code>NamedQueue</code></a>.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>e</code> - the element to insert</dd>
+<dt>Returns:</dt>
+<dd>the identifier for the inserted element, or <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html#MIN_VALUE" title="class or interface in java.lang" class="external-link"><code>Long.MIN_VALUE</code></a> if the element could not be inserted</dd>
 </dl>
 </section>
 </li>

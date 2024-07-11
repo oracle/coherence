@@ -213,20 +213,30 @@ extends <a href="TopicService.html" title="interface in com.tangosol.net">TopicS
 <div class="block">Return a <code>PagedTopicSubscription</code>.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>long</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getSubscriptionId(java.lang.String,com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId)" class="member-name-link">getSubscriptionId</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName,
- com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId&nbsp;groupId)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getSubscriptionCount(java.lang.String)" class="member-name-link">getSubscriptionCount</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Returns the count of subscriptions for the specified topic.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>long</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getSubscriptionId(java.lang.String,com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId)" class="member-name-link">getSubscriptionId</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName,
+ com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId&nbsp;groupId)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Return the subscription id for a subscriber group.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getTopicBackingMapManager()" class="member-name-link">getTopicBackingMapManager</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getTopicBackingMapManager()" class="member-name-link">getTopicBackingMapManager</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Return the <a href="topic/TopicBackingMapManager.html" title="class in com.tangosol.net.topic"><code>TopicBackingMapManager</code></a> for this service.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getTopicStatistics(java.lang.String)" class="member-name-link">getTopicStatistics</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getTopicStatistics(java.lang.String)" class="member-name-link">getTopicStatistics</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Returns the <code>PagedTopicStatistics</code> for a topic.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#hasSubscribers(java.lang.String)" class="member-name-link">hasSubscribers</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Returns <code>true</code> if the specified topic has subscribers or subscriber groups.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#hasSubscription(long)" class="member-name-link">hasSubscription</a><wbr>(long&nbsp;lSubscriptionId)</code></div>
@@ -519,6 +529,32 @@ extends <a href="TopicService.html" title="interface in com.tangosol.net">TopicS
 <dt>Returns:</dt>
 <dd>the <code>subscriber ids</code> known to this service and
          subscribed to a subscriber group for a topic</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="hasSubscribers(java.lang.String)">
+<h3>hasSubscribers</h3>
+<div class="member-signature"><span class="return-type">boolean</span>&nbsp;<span class="element-name">hasSubscribers</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName)</span></div>
+<div class="block">Returns <code>true</code> if the specified topic has subscribers or subscriber groups.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>sTopicName</code> - the name of the topic</dd>
+<dt>Returns:</dt>
+<dd><code>true</code> if the specified topic has subscribers or subscriber groups</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getSubscriptionCount(java.lang.String)">
+<h3>getSubscriptionCount</h3>
+<div class="member-signature"><span class="return-type">long</span>&nbsp;<span class="element-name">getSubscriptionCount</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName)</span></div>
+<div class="block">Returns the count of subscriptions for the specified topic.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>sTopicName</code> - the name of the topic</dd>
+<dt>Returns:</dt>
+<dd>the count of subscriptions for the specified topic</dd>
 </dl>
 </section>
 </li>

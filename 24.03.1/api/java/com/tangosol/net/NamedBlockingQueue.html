@@ -50,7 +50,7 @@ loadScripts(document, 'script');</script>
 <ul>
 <li>Field</li>
 <li>Constr</li>
-<li>Method</li>
+<li><a href="#method-detail">Method</a></li>
 </ul>
 </li>
 </ul>
@@ -68,7 +68,7 @@ loadScripts(document, 'script');</script>
 <li>Detail:&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
-<li>Method</li>
+<li><a href="#method-detail">Method</a></li>
 </ul>
 </div>
 <div class="nav-list-search"><a href="../../../search.html">SEARCH</a>
@@ -120,6 +120,30 @@ extends <a href="NamedQueue.html" title="interface in com.tangosol.net">NamedQue
 <li>
 <section class="method-summary" id="method-summary">
 <h2>Method Summary</h2>
+<div id="method-summary-table">
+<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab3" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab3', 3)" class="table-tab">Abstract Methods</button></div>
+<div id="method-summary-table.tabpanel" role="tabpanel">
+<div class="summary-table three-column-summary" aria-labelledby="method-summary-table-tab0">
+<div class="table-header col-first">Modifier and Type</div>
+<div class="table-header col-second">Method</div>
+<div class="table-header col-last">Description</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>long</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#append(E,long,java.util.concurrent.TimeUnit)" class="member-name-link">append</a><wbr>(<a href="NamedBlockingQueue.html" title="type parameter in NamedBlockingQueue">E</a>&nbsp;e,
+ long&nbsp;timeout,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/TimeUnit.html" title="class or interface in java.util.concurrent" class="external-link">TimeUnit</a>&nbsp;unit)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Inserts the specified element at the end of this <a href="NamedBlockingQueue.html" title="interface in com.tangosol.net"><code>NamedBlockingQueue</code></a>,
+ waiting if necessary for space to become available.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>long</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#appendLast(E)" class="member-name-link">appendLast</a><wbr>(<a href="NamedBlockingQueue.html" title="type parameter in NamedBlockingQueue">E</a>&nbsp;e)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Inserts the specified element at the end of this <a href="NamedBlockingDeque.html" title="interface in com.tangosol.net"><code>NamedBlockingDeque</code></a>,
+ waiting if necessary for space to become available.</div>
+</div>
+</div>
+</div>
+</div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-java.util.concurrent.BlockingQueue">Methods inherited from interface&nbsp;java.util.concurrent.<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/BlockingQueue.html" title="class or interface in java.util.concurrent" class="external-link">BlockingQueue</a></h3>
 <code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/BlockingQueue.html#add(E)" title="class or interface in java.util.concurrent" class="external-link">add</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/BlockingQueue.html#contains(java.lang.Object)" title="class or interface in java.util.concurrent" class="external-link">contains</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/BlockingQueue.html#drainTo(java.util.Collection)" title="class or interface in java.util.concurrent" class="external-link">drainTo</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/BlockingQueue.html#drainTo(java.util.Collection,int)" title="class or interface in java.util.concurrent" class="external-link">drainTo</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/BlockingQueue.html#offer(E)" title="class or interface in java.util.concurrent" class="external-link">offer</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/BlockingQueue.html#offer(E,long,java.util.concurrent.TimeUnit)" title="class or interface in java.util.concurrent" class="external-link">offer</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/BlockingQueue.html#poll(long,java.util.concurrent.TimeUnit)" title="class or interface in java.util.concurrent" class="external-link">poll</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/BlockingQueue.html#put(E)" title="class or interface in java.util.concurrent" class="external-link">put</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/BlockingQueue.html#remainingCapacity()" title="class or interface in java.util.concurrent" class="external-link">remainingCapacity</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/BlockingQueue.html#remove(java.lang.Object)" title="class or interface in java.util.concurrent" class="external-link">remove</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/BlockingQueue.html#take()" title="class or interface in java.util.concurrent" class="external-link">take</a></code></div>
@@ -134,7 +158,7 @@ extends <a href="NamedQueue.html" title="interface in com.tangosol.net">NamedQue
 <code><a href="NamedCollection.html#destroy()">destroy</a>, <a href="NamedCollection.html#getName()">getName</a>, <a href="NamedCollection.html#isDestroyed()">isDestroyed</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-com.tangosol.net.NamedQueue">Methods inherited from interface&nbsp;com.tangosol.net.<a href="NamedQueue.html" title="interface in com.tangosol.net">NamedQueue</a></h3>
-<code><a href="NamedQueue.html#getQueueNameHash()">getQueueNameHash</a>, <a href="NamedQueue.html#getQueueStatistics()">getQueueStatistics</a>, <a href="NamedQueue.html#getService()">getService</a>, <a href="NamedQueue.html#isActive()">isActive</a>, <a href="NamedQueue.html#isReady()">isReady</a></code></div>
+<code><a href="NamedQueue.html#append(E)">append</a>, <a href="NamedQueue.html#getQueueNameHash()">getQueueNameHash</a>, <a href="NamedQueue.html#getQueueStatistics()">getQueueStatistics</a>, <a href="NamedQueue.html#getService()">getService</a>, <a href="NamedQueue.html#isActive()">isActive</a>, <a href="NamedQueue.html#isReady()">isReady</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-com.tangosol.util.ObservableCollection">Methods inherited from interface&nbsp;com.tangosol.util.<a href="../util/ObservableCollection.html" title="interface in com.tangosol.util">ObservableCollection</a></h3>
 <code><a href="../util/ObservableCollection.html#addListener(com.tangosol.util.CollectionListener)">addListener</a>, <a href="../util/ObservableCollection.html#addListener(com.tangosol.util.CollectionListener,com.tangosol.util.Filter,boolean)">addListener</a>, <a href="../util/ObservableCollection.html#removeListener(com.tangosol.util.CollectionListener)">removeListener</a>, <a href="../util/ObservableCollection.html#removeListener(com.tangosol.util.CollectionListener,com.tangosol.util.Filter)">removeListener</a></code></div>
@@ -144,6 +168,57 @@ extends <a href="NamedQueue.html" title="interface in com.tangosol.net">NamedQue
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-com.tangosol.net.Releasable">Methods inherited from interface&nbsp;com.tangosol.net.<a href="Releasable.html" title="interface in com.tangosol.net">Releasable</a></h3>
 <code><a href="Releasable.html#close()">close</a>, <a href="Releasable.html#isReleased()">isReleased</a>, <a href="Releasable.html#release()">release</a></code></div>
+</section>
+</li>
+</ul>
+</section>
+<section class="details">
+<ul class="details-list">
+<!-- ============ METHOD DETAIL ========== -->
+<li>
+<section class="method-details" id="method-detail">
+<h2>Method Details</h2>
+<ul class="member-list">
+<li>
+<section class="detail" id="append(E,long,java.util.concurrent.TimeUnit)">
+<h3 id="append(java.lang.Object,long,java.util.concurrent.TimeUnit)">append</h3>
+<div class="member-signature"><span class="return-type">long</span>&nbsp;<span class="element-name">append</span><wbr><span class="parameters">(<a href="NamedBlockingQueue.html" title="type parameter in NamedBlockingQueue">E</a>&nbsp;e,
+ long&nbsp;timeout,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/TimeUnit.html" title="class or interface in java.util.concurrent" class="external-link">TimeUnit</a>&nbsp;unit)</span>
+     throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/InterruptedException.html" title="class or interface in java.lang" class="external-link">InterruptedException</a></span></div>
+<div class="block">Inserts the specified element at the end of this <a href="NamedBlockingQueue.html" title="interface in com.tangosol.net"><code>NamedBlockingQueue</code></a>,
+ waiting if necessary for space to become available.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>e</code> - the element to insert</dd>
+<dd><code>timeout</code> - how long to wait before giving up, in units of <code>unit</code></dd>
+<dd><code>unit</code> - a <code>TimeUnit</code> determining how to interpret the
+                 <code>timeout</code> parameter</dd>
+<dt>Returns:</dt>
+<dd>the identifier for the inserted element, or <code>-1L</code> if the element could not be inserted</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/InterruptedException.html" title="class or interface in java.lang" class="external-link">InterruptedException</a></code> - if interrupted while waiting</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="appendLast(E)">
+<h3 id="appendLast(java.lang.Object)">appendLast</h3>
+<div class="member-signature"><span class="return-type">long</span>&nbsp;<span class="element-name">appendLast</span><wbr><span class="parameters">(<a href="NamedBlockingQueue.html" title="type parameter in NamedBlockingQueue">E</a>&nbsp;e)</span>
+         throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/InterruptedException.html" title="class or interface in java.lang" class="external-link">InterruptedException</a></span></div>
+<div class="block">Inserts the specified element at the end of this <a href="NamedBlockingDeque.html" title="interface in com.tangosol.net"><code>NamedBlockingDeque</code></a>,
+ waiting if necessary for space to become available.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>e</code> - the element to insert</dd>
+<dt>Returns:</dt>
+<dd>the identifier for the inserted element, or <code>-1L</code> if the element could not be inserted</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/InterruptedException.html" title="class or interface in java.lang" class="external-link">InterruptedException</a></code> - if interrupted while waiting</dd>
+</dl>
+</section>
+</li>
+</ul>
 </section>
 </li>
 </ul>
