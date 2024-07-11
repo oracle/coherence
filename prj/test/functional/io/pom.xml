@@ -144,36 +144,5 @@
         <skipTests>false</skipTests>
       </properties>
     </profile>
-
-    <profile>
-      <id>code-coverage</id>
-      <activation>
-        <property>
-          <name>code.coverage.enabled</name>
-          <value>true</value>
-        </property>
-      </activation>
-      <properties>
-        <skip.pof.generation>true</skip.pof.generation>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <skip>true</skip>
-            </configuration>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-failsafe-plugin</artifactId>
-            <configuration>
-              <skip>true</skip>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
   </profiles>
 </project>
