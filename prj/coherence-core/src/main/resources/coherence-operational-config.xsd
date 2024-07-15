@@ -1644,8 +1644,7 @@
                 Valid values are "dynamic" and "static".
 
                 It is optional to provide a value for this element.
-                The default value is calculated based on the value of coherence license mode:
-                "static" for production mode and "dynamic" for eval/dev mode.
+                The default value is "dynamic".
 
                 Used in: cluster-config
             </xsd:documentation>
