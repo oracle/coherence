@@ -2766,6 +2766,7 @@ public abstract class ExternalizableHelper
             ObjectInput streamObj = getObjectInput(in, loader);
             try
                 {
+                s_tloInEHDeserialize.set(true); // mark that we are in EH managed deserialization
                 o = streamObj.readObject();
                 if (o instanceof SerializerAware)
                     {
@@ -2782,6 +2783,10 @@ public abstract class ExternalizableHelper
                     "readObject failed: " + e +
                     "\n" + getStackTrace(e) +
                     "\nClassLoader: " + loader);
+                }
+            finally
+                {
+                s_tloInEHDeserialize.remove();
                 }
             }
 
@@ -7578,4 +7583,12 @@ public abstract class ExternalizableHelper
      * Cache of JVM-wide serial filter factory.
      */
     private static BinaryOperator m_serialFilterFactory;
+
+    /**
+     * Flag to indicate whether this thread is in ExternalizableHelper initiated deserialization.
+     * See {@link ExternalizableHelper#readSerializable(DataInput, ClassLoader)}.
+     *
+     * @since 12.2.1.4.23
+     */
+    public static ThreadLocal<Boolean> s_tloInEHDeserialize = ThreadLocal.withInitial(() -> Boolean.FALSE);
     }

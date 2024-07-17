@@ -17,6 +17,7 @@ import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.ValueExtractor;
 
 import java.io.DataInput;
@@ -464,9 +465,9 @@ public class ReflectionExtractor<T, E>
      */
     private void readObject(ObjectInputStream inputStream) throws ClassNotFoundException, IOException
         {
-        if (inputStream instanceof ResolvingObjectInputStream)
+        if (inputStream instanceof ResolvingObjectInputStream || ExternalizableHelper.s_tloInEHDeserialize.get())
             {
-            // the input stream was created by ExternalizableHelper; proceed with deserialization
+            // deserialization was initiated via ExternalizableHelper; proceed
             inputStream.defaultReadObject();
             }
         else
