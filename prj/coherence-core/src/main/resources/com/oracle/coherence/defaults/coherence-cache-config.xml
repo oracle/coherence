@@ -98,7 +98,7 @@ class path, or module path, of the JVM.
       <service-name>RemoteCache</service-name>
       <proxy-service-name system-property="coherence.extend.proxy.service">Proxy</proxy-service-name>
       <initiator-config>
-        <serializer>${coherence.extend.serializer ${coherence.serializer java}}</serializer>
+        <serializer>${coherence.extend.serializer ${coherence.serializer}}</serializer>
       </initiator-config>
       <defer-key-association-check system-property="coherence.extend.defer.key.association"/>
     </remote-cache-scheme>
@@ -257,7 +257,7 @@ class path, or module path, of the JVM.
             <port system-property="coherence.extend.port"/>
           </local-address>
         </tcp-acceptor>
-        <serializer>${coherence.extend.serializer ${coherence.serializer java}}</serializer>
+        <serializer>${coherence.extend.serializer ${coherence.serializer}}</serializer>
       </acceptor-config>
       <autostart system-property="coherence.proxy.enabled">true</autostart>
     </proxy-scheme>
