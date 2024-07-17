@@ -127,9 +127,9 @@ public class ScriptValueExtractor<T, E>
     @java.io.Serial
     private void readObject(ObjectInputStream inputStream) throws ClassNotFoundException, IOException
         {
-        if (inputStream instanceof ResolvingObjectInputStream)
+        if (inputStream instanceof ResolvingObjectInputStream || ExternalizableHelper.s_tloInEHDeserialize.get())
             {
-            // the input stream was created by ExternalizableHelper; proceed with deserialization
+            // deserialization was initiated via ExternalizableHelper; proceed
             inputStream.defaultReadObject();
             }
         else
