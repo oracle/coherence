@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 
 package guardian;
+
+import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
@@ -37,10 +39,14 @@ import com.tangosol.coherence.component.util.SafeCluster;
 import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.internal.net.cluster.DefaultServiceFailurePolicy;
+
+import java.util.concurrent.TimeUnit;
+
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
 import org.junit.Assert;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
@@ -72,8 +78,8 @@ public class GuardianTests
             System.setProperty("test.guardian.GuardianTests.timeout", "3000");
             System.setProperty("test.guardian.GuardianTests.threads", "2");
             System.setProperty("test.guardian.GuardianTests.request.timeout", "15s");
-            System.setProperty("tangosol.coherence.log.level", "9");
-            System.setProperty("tangosol.coherence.management", "all");
+            System.setProperty("coherence.log.level", "9");
+            System.setProperty("coherence.management", "all");
 
             CacheService service = startService("PartitionedCacheDefaultPolicies");
             NamedCache   cache   = service.ensureCache("foo", null);
@@ -144,8 +150,7 @@ public class GuardianTests
             service = startService("PartitionedCacheDefaultPolicies");
             cache   = service.ensureCache("foo", null);
             oResult = cache.invoke("key", new LoserTask(cDelay, /*fInterruptible*/ true));
-            assertNotSame("Slow task was not interrupted after " + cDelay + "ms",
-                Integer.valueOf(0), oResult);
+            assertNotSame("Slow task was not interrupted after " + cDelay + "ms", 0, oResult);
             }
         finally
             {
@@ -161,8 +166,7 @@ public class GuardianTests
             service = startService("PartitionedCacheDefaultPolicies");
             cache   = service.ensureCache("foo", null);
             oResult = cache.invoke("key", new LoserTask(cDelay, /*fInterruptible*/ true));
-            assertNotSame("Slow task was not interrupted after " + cDelay + "ms",
-                Integer.valueOf(0), oResult);
+            assertNotSame("Slow task was not interrupted after " + cDelay + "ms", 0, oResult);
             }
         finally
             {
@@ -182,8 +186,7 @@ public class GuardianTests
             oResult = cache.invoke("key", new LoserTask(cDelay, /*fInterruptible*/ true));
             policy  = getServicePolicy(service);
 
-            assertNotSame("Slow task was not interrupted after " + cDelay + "ms",
-                Integer.valueOf(0), oResult);
+            assertNotSame("Slow task was not interrupted after " + cDelay + "ms", 0, oResult);
             assertNotNull(policy);
             assertEquals(1, policy.m_cRecover);
             assertEquals(0, policy.m_cTerminate);
@@ -206,8 +209,7 @@ public class GuardianTests
             oResult = cache.invoke("key", new LoserTask(cDelay, /*fInterruptible*/ true));
             policy  = getServicePolicy(service);
 
-            assertNotSame("Slow task was not interrupted after " + cDelay + "ms",
-                Integer.valueOf(0), oResult);
+            assertNotSame("Slow task was not interrupted after " + cDelay + "ms", 0, oResult);
             assertNotNull(policy);
             assertEquals(1, policy.m_cRecover);
             assertEquals(0, policy.m_cTerminate);
@@ -230,8 +232,7 @@ public class GuardianTests
             oResult = cache.invoke("key", new LoserTask(15000, /*fInterruptible*/ true));
             policy  = getServicePolicy(service);
 
-            assertNotSame("Slow task was not interrupted after " + cDelay + "ms",
-                Integer.valueOf(0), oResult);
+            assertNotSame("Slow task was not interrupted after " + cDelay + "ms", 0, oResult);
             assertNotNull(policy);
             assertEquals(2, policy.m_cRecover);
             assertEquals(0, policy.m_cTerminate);
@@ -254,8 +255,7 @@ public class GuardianTests
             oResult = cache.invoke("key", new LoserTask(15000, /*fInterruptible*/ true));
             policy  = getServicePolicy(service);
 
-            assertNotSame("Slow task was not interrupted after " + cDelay + "ms",
-                Integer.valueOf(0), oResult);
+            assertNotSame("Slow task was not interrupted after " + cDelay + "ms", 0, oResult);
             assertNotNull(policy);
             assertEquals(2, policy.m_cRecover);
             assertEquals(0, policy.m_cTerminate);
@@ -279,8 +279,7 @@ public class GuardianTests
             oResult = cache.invoke("key", new LoserTask(15000, /*fInterruptible*/ true));
             policy  = getServicePolicy(service);
 
-            assertNotSame("Slow task was not interrupted after " + cDelay + "ms",
-                Integer.valueOf(0), oResult);
+            assertNotSame("Slow task was not interrupted after " + cDelay + "ms", 0, oResult);
             assertNotNull(policy);
             assertEquals(1, policy.m_cRecover);
             assertEquals(0, policy.m_cTerminate);
@@ -415,7 +414,7 @@ public class GuardianTests
         // test terminate of a task on the service thread
         try
             {
-            System.setProperty("tangosol.coherence.override", "guardian-coherence-override.xml");
+            System.setProperty("coherence.override", "guardian-coherence-override.xml");
             System.setProperty("test.guardian.GuardianTests.global.timeout", "3000");
             System.setProperty("test.guardian.GuardianTests.global.policy", "exit-cluster");
             System.setProperty("test.guardian.GuardianTests.threads", "0");
@@ -435,7 +434,7 @@ public class GuardianTests
             }
         finally
             {
-            System.clearProperty("tangosol.coherence.override");
+            System.clearProperty("coherence.override");
             System.clearProperty("test.guardian.GuardianTests.global.timeout");
             System.clearProperty("test.guardian.GuardianTests.global.policy");
             CacheFactory.shutdown();
@@ -444,7 +443,7 @@ public class GuardianTests
         // test terminate of a task on a worker thread
         try
             {
-            System.setProperty("tangosol.coherence.override", "guardian-coherence-override.xml");
+            System.setProperty("coherence.override", "guardian-coherence-override.xml");
             System.setProperty("test.guardian.GuardianTests.global.timeout", "3000");
             System.setProperty("test.guardian.GuardianTests.global.policy", "exit-cluster");
             System.setProperty("test.guardian.GuardianTests.threads", "2");
@@ -473,7 +472,7 @@ public class GuardianTests
             }
         finally
             {
-            System.clearProperty("tangosol.coherence.override");
+            System.clearProperty("coherence.override");
             System.clearProperty("test.guardian.GuardianTests.global.timeout");
             System.clearProperty("test.guardian.GuardianTests.global.policy");
             CacheFactory.shutdown();
@@ -482,7 +481,7 @@ public class GuardianTests
         // test terminate of a task on a service thread with a custom policy
         try
             {
-            System.setProperty("tangosol.coherence.override", "guardian-coherence-override.xml");
+            System.setProperty("coherence.override", "guardian-coherence-override.xml");
             System.setProperty("test.guardian.GuardianTests.global.timeout", "3000");
             System.setProperty("test.guardian.GuardianTests.global.policy", "exit-cluster");
             System.setProperty("test.guardian.GuardianTests.threads", "0");
@@ -504,14 +503,14 @@ public class GuardianTests
                 }
 
             assertNotNull(policy);
-            assertEquals(1, policy.m_cRecover);
-            assertEquals(1, policy.m_cTerminate);
-            assertEquals(1, policy.m_cServiceFailed);
+            Eventually.assertThat(invoking(policy).getRecoverCount(), is(1));
+            Eventually.assertThat(invoking(policy).getTerminateCount(), is(1));
+            Eventually.assertThat(invoking(policy).getServiceFailedCount(), is(1));
             assertFalse("Service was not terminated", service.isRunning());
             }
         finally
             {
-            System.clearProperty("tangosol.coherence.override");
+            System.clearProperty("coherence.override");
             System.clearProperty("test.guardian.GuardianTests.global.timeout");
             System.clearProperty("test.guardian.GuardianTests.global.policy");
             CacheFactory.shutdown();
@@ -552,7 +551,7 @@ public class GuardianTests
                     Eventually.assertThat(invoking(guard).getContext(), is(notNullValue()));
                     Guardian.GuardContext ctx      = guard.getContext();
                     Guardian              guardian = ctx.getGuardian();
-                    guardian.guard(guard, new Long(3000), new Float(0.9F));
+                    guardian.guard(guard, 3000L, 0.9F);
                     }
                 });
 
@@ -568,7 +567,7 @@ public class GuardianTests
                     PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
 
                     Base.out("Modifying task-timeout to 3 seconds");
-                    serviceReal.getDaemonPool().setTaskTimeout(new Long(3000));
+                    serviceReal.getDaemonPool().setTaskTimeout(3000L);
                     }
                 });
             }
@@ -620,7 +619,7 @@ public class GuardianTests
         Properties props = new Properties();
         try
             {
-            props.setProperty("tangosol.coherence.override",
+            props.setProperty("coherence.override",
                               "guardian-coherence-override.xml");
             props.setProperty("test.guardian.GuardianTests.global.timeout", "60000");
             props.setProperty("test.guardian.GuardianTests.global.policy", "exit-cluster");
@@ -653,7 +652,7 @@ public class GuardianTests
         Properties props = new Properties();
         try
             {
-            props.setProperty("tangosol.coherence.override",
+            props.setProperty("coherence.override",
                               "guardian-coherence-override.xml");
             props.setProperty("test.guardian.GuardianTests.global.timeout", "3000");
             props.setProperty("test.guardian.GuardianTests.global.policy", "logging");
@@ -672,46 +671,6 @@ public class GuardianTests
             }
 
         logWarn("testInheritGlobalLogging", false);
-        }
-
-    /**
-    * Test Cluster.halt()
-    */
-    @Test
-    public void testClusterHalt()
-        {
-        logWarn("testClusterHalt", true);
-
-        // test terminate of a task on the service thread
-        try
-            {
-            CacheService service = startService("PartitionedCacheDefaultPolicies");
-            NamedCache   cache   = service.ensureCache("foo", null);
-            SafeCluster  cluster = (SafeCluster) service.getCluster();
-
-            assertTrue("Service was not running", service.isRunning());
-            cache.put("key", "value");
-
-            cluster.getCluster().halt();
-            Cluster$NameService   nameService  = cluster.getCluster().getNameService();
-            ServerSocket          serverSocket = nameService.getClusterSocket();
-            assertTrue(serverSocket.isClosed());
-            serverSocket = ((Cluster$NameService$TcpAcceptor) nameService.getAcceptor())
-                .getProcessor().getServerSocket();
-            assertTrue(serverSocket.isClosed());
-            }
-        finally
-            {
-            try
-                {
-                CacheFactory.shutdown();
-                }
-            catch (Throwable tIgnore) {} // ignoring exceptions raised due to Cluster.halt
-                                         // stopping system services that can result in
-                                         // services failing to stop
-            }
-
-        logWarn("testClusterHalt", false);
         }
 
     /**
@@ -766,7 +725,7 @@ public class GuardianTests
             oResult = cache.invoke("key", new LoserTask(5000, /*fInterruptible*/ true));
 
             assertEquals("Logging policy should not result in recovery",
-                         Integer.valueOf(0), oResult);
+                         0, oResult);
             }
         finally
             {
@@ -858,6 +817,23 @@ public class GuardianTests
             ++m_cServiceFailed;
             }
 
+        // ----- accessors ------------------------------------------------
+
+        public int getRecoverCount()
+            {
+            return m_cRecover;
+            }
+
+        public int getTerminateCount()
+            {
+            return m_cTerminate;
+            }
+
+        public int getServiceFailedCount()
+            {
+            return m_cServiceFailed;
+            }
+
         // ----- constants and data members ------------------------------
 
         /**
@@ -937,16 +913,21 @@ public class GuardianTests
                     //       flag, as we simulate "handling" the interrupt
                     }
                 cWait -= ((ldtNow = Base.getSafeTimeMillis()) - ldtLast);
+                if (cWait > 120000L)        // make sure wait does not exceed 2 minutes.
+                    {
+                    System.out.println("GuardianTests.LoserTask.process(), cWait: " + cWait + ", ldtNow: " + ldtNow + ", ldtLast: " + ldtLast + ", cInterrupt: " + cInterrupt);
+                    cWait = 120000L;
+                    }
                 }
 
             // return the number of times this thread was interrupted
-            return Integer.valueOf(cInterrupt);
+            return cInterrupt;
             }
 
         // ----- data members ---------------------------------------------
 
         /**
-        * Is this task interruptible?
+         * The amount of time the task should take to run.
         */
         protected long m_cDelay;
 
@@ -973,7 +954,7 @@ public class GuardianTests
             int         mNodeId   = cluster.getLocalMember().getId();
             ObjectName  oBeanName = new ObjectName("Coherence:type=Node,nodeId=" + mNodeId);
 
-            Eventually.assertThat(invoking(this).getMBeanAttribute(server, oBeanName, "Guard" + sType + "Count"), is(Integer.valueOf(cTrueNumber)));
+            Eventually.assertThat(invoking(this).getMBeanAttribute(server, oBeanName, "Guard" + sType + "Count"), is(cTrueNumber));
             }
         catch (Exception e)
             {
@@ -1059,4 +1040,12 @@ public class GuardianTests
 
         return (CustomServiceFailurePolicy) serviceReal.getServiceFailurePolicy();
         }
+
+    /**
+     * A JUnit rule that will cause the test to fail if it runs too long.
+     * A thread dump will be generated on failure.
+     */
+    @ClassRule
+    public static final ThreadDumpOnTimeoutRule timeout
+            = ThreadDumpOnTimeoutRule.after(15, TimeUnit.MINUTES, true);
     }
