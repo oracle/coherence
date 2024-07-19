@@ -5,6 +5,7 @@
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.extractor;
+
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.ResolvingObjectInputStream;
 
@@ -13,6 +14,7 @@ import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.util.ClassHelper;
+import com.tangosol.util.ExternalizableHelper;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -222,9 +224,9 @@ public class ReflectionUpdater
      */
     private void readObject(ObjectInputStream inputStream) throws ClassNotFoundException, IOException
         {
-        if (inputStream instanceof ResolvingObjectInputStream)
+        if (inputStream instanceof ResolvingObjectInputStream || ExternalizableHelper.s_tloInEHDeserialize.get())
             {
-            // the input stream was created by ExternalizableHelper; proceed with deserialization
+            // deserialization was initiated via ExternalizableHelper; proceed
             inputStream.defaultReadObject();
             }
         else

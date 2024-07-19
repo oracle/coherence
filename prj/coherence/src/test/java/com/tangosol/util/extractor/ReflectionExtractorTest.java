@@ -1,14 +1,10 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
-
 package com.tangosol.util.extractor;
-
-
-import data.extractor.InvokeTestClass;
 
 import com.tangosol.io.WriteBuffer;
 
@@ -24,15 +20,23 @@ import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryWriteBuffer;
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.WrapperException;
+
+import data.extractor.InvokeTestClass;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 import org.junit.Test;
 
-import java.io.IOException;
-
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
 
 /**
 * Unit test of the {@link ReflectionExtractor}.
@@ -150,5 +154,54 @@ public class ReflectionExtractorTest
             {
             throw e.getOriginalException();
             }
+        }
+
+    @Test(expected = NotSerializableException.class)
+    public void testUnmanagedDeserialization()
+            throws IOException, ClassNotFoundException
+        {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream    oos  = new ObjectOutputStream(baos);
+
+        oos.writeObject(new ReflectionExtractor("foo"));
+        oos.close();
+
+        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray())).readObject();
+        }
+
+    @Test
+    public void testEHManagedJavaDeserialization()
+            throws IOException
+        {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream    oos  = new ObjectOutputStream(baos);
+
+        oos.writeObject(new MyReflectionExtractorHolder());
+        oos.close();
+
+        ExternalizableHelper.readSerializable(new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray())));
+        }
+
+    // ----- inner class: MyReflectionExtractorHolder -----------------------
+
+    /**
+     * Java Serializable wrapper class to force Java, as opposed to
+     * ExternalizableLite, deserialization of a ReflectionExtractor.
+     */
+    public static class MyReflectionExtractorHolder
+            implements Serializable
+        {
+        public MyReflectionExtractorHolder()
+            {
+            }
+
+        public String toString()
+            {
+            return "MyReflectionExtractorHolder{" +
+                   "m_extractor=" + m_extractor +
+                   '}';
+            }
+
+        final ValueExtractor m_extractor = new ReflectionExtractor("foo");
         }
     }
