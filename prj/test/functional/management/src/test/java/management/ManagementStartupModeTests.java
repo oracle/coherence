@@ -230,18 +230,20 @@ public class ManagementStartupModeTests
                    AttributeNotFoundException, InstanceNotFoundException,
                    MBeanException
         {
-        String port = "44444";
+        AvailablePortIterator availablePortIterator = new AvailablePortIterator(31050, 31060);
+        int                   nMgmtPort             = availablePortIterator.next();
+
         System.setProperty("coherence.management", "all");
         System.setProperty("coherence.management.http", "inherit");
         System.setProperty("coherence.management.remote", "true");
-        System.setProperty("coherence.management.http.override-port", port);
+        System.setProperty("coherence.management.http.override-port", String.valueOf(nMgmtPort));
         try
             {
             AbstractFunctionalTest._startup();
             MBeanServer serverJMX = MBeanHelper.findMBeanServer();
             String      attr      = (String) serverJMX.getAttribute(new ObjectName("Coherence:type=ConnectionManager,name=ManagementHttpProxy,nodeId=1"), "HostIP");
             assertNotNull(attr);
-            assertTrue("Management HTTP port", attr.endsWith(":" + port));
+            assertTrue("Management HTTP port", attr.endsWith(":" + nMgmtPort));
             }
         finally
             {
