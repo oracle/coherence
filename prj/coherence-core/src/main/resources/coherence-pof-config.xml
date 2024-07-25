@@ -1758,6 +1758,14 @@ descriptor: pof-config.xsd.
       </serializer>
     </user-type>
 
+    <user-type>
+      <type-id>909</type-id>
+      <class-name>java.util.UUID</class-name>
+      <serializer>
+        <class-name>com.tangosol.io.pof.UuidSerializer</class-name>
+      </serializer>
+    </user-type>
+
     <!-- java.util.collections (920 - 929) -->
 
     <user-type>
