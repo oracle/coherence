@@ -23856,7 +23856,7 @@ public abstract class PartitionedService
             super.write(output);
             
             getPartitions().writeExternal(output);
-            
+
             if (getService().isVersionCompatible(getFromMember(), 22, 6, 0))
                 {
                 output.writeBoolean(isPrimary());
@@ -24256,13 +24256,16 @@ public abstract class PartitionedService
                 setSnapshotToRecover(input.readUTF());
                 }
 
-            int      cSize         = input.readInt();
-            String[] asGUIDToClean = new String[cSize];
-            for (int i = 0; i < cSize; i++)
+            if (getService().isVersionCompatible(OwnershipResponse::isLazyOpenCompatible))
                 {
-                asGUIDToClean[i] = input.readUTF();
+                int cSize = input.readInt();
+                String[] asGUIDToClean = new String[cSize];
+                for (int i = 0; i < cSize; i++)
+                    {
+                    asGUIDToClean[i] = input.readUTF();
+                    }
+                setInvalidPersistentIds(asGUIDToClean);
                 }
-            setInvalidPersistentIds(asGUIDToClean);
             }
         
         /**
@@ -24482,13 +24485,16 @@ public abstract class PartitionedService
                 output.writeUTF(sSnapshot);
                 }
 
-            String[] asInvalidGUIDs = getInvalidPersistentIds();
-            int      cSize          = asInvalidGUIDs == null ? 0 : asInvalidGUIDs.length;
-
-            output.writeInt(cSize);
-            for (int i = 0; i < cSize; i++)
+            if (getService().isVersionCompatible(OwnershipResponse::isLazyOpenCompatible))
                 {
-                output.writeUTF(asInvalidGUIDs[i]);
+                String[] asInvalidGUIDs = getInvalidPersistentIds();
+                int cSize = asInvalidGUIDs == null ? 0 : asInvalidGUIDs.length;
+
+                output.writeInt(cSize);
+                for (int i = 0; i < cSize; i++)
+                    {
+                    output.writeUTF(asInvalidGUIDs[i]);
+                    }
                 }
             }
 
