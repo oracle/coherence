@@ -26896,7 +26896,12 @@ public abstract class PartitionedService
                 }
             catch (PersistenceException e)
                 {
-                onActivePersistenceFailure(e);
+                if (e.getPersistentStore() != null)
+                    {
+                    onActivePersistenceFailure(e);
+                    }
+
+                // don't fail, partition could have moved out
                 }
             
             return NullImplementation.getPersistentStore();
