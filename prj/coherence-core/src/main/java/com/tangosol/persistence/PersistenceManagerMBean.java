@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.persistence;
 
@@ -140,7 +140,7 @@ public interface PersistenceManagerMBean
      * Proceed with recovery despite the dynamic quorum policy objections.
      */
     @Description("Proceed with recovery despite the dynamic quorum policy objections. " +
-                 "This may lead to the partial or full data loss at the corresponding cache service")
+                 "This may lead to the partial or full data loss of the corresponding cache service.")
     public void forceRecovery();
 
     /**
