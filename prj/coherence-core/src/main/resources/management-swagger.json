@@ -3383,6 +3383,29 @@
         }
       }
     },
+    "/management/coherence/cluster/services/{serviceName}/persistence/forceRecovery": {
+      "post": {
+        "tags": [
+          "Persistence"
+        ],
+        "summary": "Force Recovery",
+        "description": "Use this endpoint to proceed with recovery despite the dynamic quorum policy objections. This may lead to the partial or full data loss of the corresponding cache service.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/persistence/forceRecovery POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation successful"
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/services/{serviceName}/persistence/snapshots": {
       "get": {
         "tags": [
