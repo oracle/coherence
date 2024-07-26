@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2024 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.guides.queries;
 
@@ -16,14 +16,17 @@ import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.Session;
 import com.tangosol.net.cache.ContinuousQueryCache;
+
 import com.tangosol.util.Filter;
+import com.tangosol.util.Filters;
 import com.tangosol.util.MapListener;
+
 import com.tangosol.util.aggregator.BigDecimalSum;
-import com.tangosol.util.aggregator.ReducerAggregator;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
-import com.tangosol.util.filter.GreaterEqualsFilter;
+
 import com.tangosol.util.listener.SimpleMapListener;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -72,7 +75,7 @@ class ViewTests {
     void testGreaterEqualsFilterWithChanges() {
 
         NamedCache<String, Country> map = getMap("countries"); // <1>
-        Filter filter = new GreaterEqualsFilter("getPopulation", 60.0); // <2>
+        Filter<Country> filter = Filters.greaterEqual(Country::getPopulation, 60.0); // <2>
 
         Set<Map.Entry<String, Country>> results = map.entrySet(filter); // <3>
 
@@ -91,7 +94,7 @@ class ViewTests {
     void testGreaterEqualsFilterWithContinuousQueryCache() {
 
         NamedCache<String, Country> map = getMap("countries"); // <1>
-        Filter filter = new GreaterEqualsFilter("getPopulation", 60.0); // <2>
+        Filter<Country> filter = Filters.greaterEqual(Country::getPopulation, 60.0); // <2>
 
         ContinuousQueryCache results = new ContinuousQueryCache(map, filter); // <3>
 
@@ -109,7 +112,7 @@ class ViewTests {
     void testContinuousQueryCacheWithListener() {
 
         NamedCache<String, Country> map = getMap("countries");
-        Filter filter = new GreaterEqualsFilter("getPopulation", 60.0);
+        Filter<Country> filter = Filters.greaterEqual(Country::getPopulation, 60.0); // <2>
 
         ContinuousQueryCache results = new ContinuousQueryCache(map, filter);
 
@@ -137,7 +140,7 @@ class ViewTests {
     void testAggregate() {
 
         NamedCache<String, Country> map = getMap("countries");
-        Filter filter = new GreaterEqualsFilter("getPopulation", 60.0);
+        Filter<Country> filter = Filters.greaterEqual(Country::getPopulation, 60.0); // <2>
         ReflectionExtractor<Country, Double> extractor = new ReflectionExtractor<>("getPopulation");
         ContinuousQueryCache<String, Country, Double> results = new ContinuousQueryCache(map, filter, extractor);
 
