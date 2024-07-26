@@ -1,8 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2022, Oracle and/or its affiliates.
+    Copyright (c) 2022, 2024 Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
-    http://oss.oracle.com/licenses/upl.
+    https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Querying Caches
 :description: Provides a guide for querying Coherence caches
@@ -207,10 +207,12 @@ we will use a `Filter`:
 include::src/test/java/com/oracle/coherence/guides/queries/QueryTests.java[tag=testGreaterEqualsFilter]
 ----
 <1> Get the `countries` Map
-<2> We create a Filter that will select only countries with more than 60 million people using a `GreaterEqualsFilter`
+<2> We create a Filter that will select only countries with more than 60 million people using the `Filters` helper class via `Filters.greaterEqual`. 
 <3> Apply the `Filter` by invoking `entrySet(filter)` on the Map
 <4> The result should be 2 countries only
 <5> Assert that only France and Germany were selected
+
+NOTE: The best practice for ValueExtractors is to use the method reference, e.g. `Country::getPopulation`, to extract falues as this provides compile time type checking.
 
 [#value-extractor]
 ==== ValueExtractor
@@ -228,7 +230,7 @@ where the key is the key of the cache entry and the value is the extracted value
 include::src/test/java/com/oracle/coherence/guides/queries/QueryTests.java[tag=testValueExtractor]
 ----
 <1> Get the `countries` Map
-<2> We create the same `GreaterEqualsFilter` as in the previous test (Select countries with more than 60 million people, only)
+<2> We create the same filter as in the previous test (Select countries with more than 60 million people, only)
 <3> Create a `ReducerAggregator` instance and specify that we only want the name of the countries returned
 <4> Apply the `Filter` and `Aggregator`
 <5> Verify that only the two country names `France` and `Germany` are returned as filtered values
@@ -244,8 +246,8 @@ million but instead of returning the countries, we will return the sum of the po
 include::src/test/java/com/oracle/coherence/guides/queries/QueryTests.java[tag=testAggregator]
 ----
 <1> Get the `countries` Map
-<2> We create the same `GreaterEqualsFilter` as in the previous test (Select countries with more than 60 million people, only)
-<3> We will use a different `Aggregator`. `BigDecimalSum` will aggregate the population and return a `Bigecimal` value
+<2> We create the same filter as in the previous test (Select countries with more than 60 million people, only)
+<3> We will use a different `Aggregator`. `BigDecimalSum` will aggregate the population and return a `Bigecimal` value. This shows that you can use a method name (not recommended) as well as method reference
 <4> Apply the `Filter` and `Aggregator`
 <5> For assertion purposes we will convert the `BigDecimal` value to a `String`
 <6> The generated String shall not have any trailing zeros

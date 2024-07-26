@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2024 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,10 +12,13 @@ import com.tangosol.net.Coherence;
 
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
+
 import com.tangosol.util.Filter;
+import com.tangosol.util.Filters;
+
 import com.tangosol.util.aggregator.BigDecimalSum;
 import com.tangosol.util.aggregator.ReducerAggregator;
-import com.tangosol.util.filter.GreaterEqualsFilter;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -54,7 +57,7 @@ class QueryTests {
     void testGreaterEqualsFilter() {
 
         NamedMap<String, Country> map = getMap("countries"); // <1>
-        Filter filter = new GreaterEqualsFilter("getPopulation", 60.0); // <2>
+        Filter<Country> filter = Filters.greaterEqual(Country::getPopulation, 60.0); // <2>
 
         final Set<Map.Entry<String, Country>> results = map.entrySet(filter); // <3>
 
@@ -72,10 +75,10 @@ class QueryTests {
     void testValueExtractor() {
 
         NamedMap<String, Country> map = getMap("countries"); // <1>
-        Filter filter = new GreaterEqualsFilter("getPopulation", 60.0); // <2>
+        Filter<Country> filter = Filters.greaterEqual(Country::getPopulation, 60.0); // <2>
 
-        ReducerAggregator<String, Country, String, String> aggregator
-                = new ReducerAggregator<>("getName"); // <3>
+        ReducerAggregator<String, Country, Country, String> aggregator
+                = new ReducerAggregator<>(Country::getName); // <3>
 
         Map<String, String> result = map.aggregate(filter, aggregator); // <4>
 
@@ -91,8 +94,8 @@ class QueryTests {
     void testAggregate() {
 
         NamedMap<String, Country> map = getMap("countries"); // <1>
-        Filter filter = new GreaterEqualsFilter("getPopulation", 60.0); // <2>
-        BigDecimalSum<BigDecimal> aggregator = new BigDecimalSum("getPopulation"); // <3>
+        Filter<Country> filter = Filters.greaterEqual(Country::getPopulation, 60.0); // <2>
+        BigDecimalSum<BigDecimal> aggregator = new BigDecimalSum<>("getPopulation"); // <3>
         BigDecimal result = map.aggregate(filter, aggregator); // <4>
         String resultAsString = result.setScale(2, RoundingMode.HALF_UP) // <5>
                 .stripTrailingZeros() // <6>

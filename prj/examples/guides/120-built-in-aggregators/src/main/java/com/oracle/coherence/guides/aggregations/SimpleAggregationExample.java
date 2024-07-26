@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.guides.aggregations;
@@ -111,8 +111,7 @@ public class SimpleAggregationExample {
      * Constructor.
      */
     public SimpleAggregationExample() {
-        CoherenceConfiguration cfg = CoherenceConfiguration.builder()
-                               .build();
+        CoherenceConfiguration cfg = CoherenceConfiguration.builder().build();
         Coherence coherence = Coherence.clusterMember(cfg);
         coherence.start().join();
         Session session = coherence.getSession();
@@ -159,7 +158,7 @@ public class SimpleAggregationExample {
         Logger.info("Total Order Value " + formatMoney(totalOrders));
 
         // get the average order value across all orders - requires index to be efficient
-        Double averageOrderValue = orders.aggregate(Aggregators.sum(Order::getOrderTotal));
+        Double averageOrderValue = orders.aggregate(Aggregators.average(Order::getOrderTotal));
         Logger.info("Average Order Value " + formatMoney(averageOrderValue));
 
         // get the minimum order value where then is only 1 order line - requires index on Order::getOrderLineCount to be efficient
