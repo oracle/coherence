@@ -90,6 +90,12 @@
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-protobuf</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-rest</artifactId>
       <version>${project.version}</version>
     </dependency>
