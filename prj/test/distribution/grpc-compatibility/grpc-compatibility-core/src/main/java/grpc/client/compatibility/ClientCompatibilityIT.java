@@ -60,10 +60,8 @@ import grpc.client.AbstractGrpcClientIT;
 import grpc.client.IsGrpcProxyRunning;
 
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
@@ -75,7 +73,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
-import java.lang.reflect.Method;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -99,6 +96,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 
+@SuppressWarnings("resource")
 public class ClientCompatibilityIT
         extends AbstractGrpcClientIT
     {
@@ -230,33 +228,9 @@ public class ClientCompatibilityIT
         Coherence.closeAll();
         if (sClusterExtension != null)
             {
+            CoherenceCluster cluster = sClusterExtension.getCluster();
+            cluster.close();
             sClusterExtension.afterAll(null);
-            }
-        }
-
-    @BeforeEach
-    public void logStart(TestInfo info)
-        {
-        String       sClass  = info.getTestClass().map(Class::toString).orElse("");
-        String       sMethod = info.getTestMethod().map(Method::toString).orElse("");
-        String       sMsg    = ">>>>>>> Starting test " + sClass + "." + sMethod + " - " + info.getDisplayName();
-        MemberLogger logger  = new MemberLogger(sMsg);
-        for (CoherenceClusterMember member : sClusterExtension.getCluster())
-            {
-            member.submit(logger).join();
-            }
-        }
-
-    @AfterEach
-    public void logEnd(TestInfo info)
-        {
-        String       sClass  = info.getTestClass().map(Class::toString).orElse("");
-        String       sMethod = info.getTestMethod().map(Method::toString).orElse("");
-        String       sMsg    = ">>>>>>> Finished test " + sClass + "." + sMethod + " - " + info.getDisplayName();
-        MemberLogger logger  = new MemberLogger(sMsg);
-        for (CoherenceClusterMember member : sClusterExtension.getCluster())
-            {
-            member.submit(logger).join();
             }
         }
 

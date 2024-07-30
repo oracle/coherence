@@ -834,7 +834,7 @@ public class NamedCacheProxyProtocolIT
                 .filter(m -> m.getType() == ResponseType.Destroyed)
                 .findFirst();
 
-        assertThat(cache.isDestroyed(), is(true));
+        Eventually.assertDeferred(cache::isDestroyed, is(true));
         assertThat(destroyedEvent.isPresent(), is(true));
         }
 
