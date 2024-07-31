@@ -110,7 +110,7 @@
      <maven.gpg.plugin.version>3.1.0</maven.gpg.plugin.version>
      <maven.install.plugin.version>3.1.1</maven.install.plugin.version>
      <!-- NOTE: this version should ideally be in sync' with that used by Helidon -->
-     <maven.jandex.plugin.version>${jandex.version}</maven.jandex.plugin.version>
+     <maven.jandex.plugin.version>3.1.2</maven.jandex.plugin.version>
      <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
      <maven.javadoc.plugin.version>3.5.0</maven.javadoc.plugin.version>
      <maven.jib.plugin.version>2.5.2</maven.jib.plugin.version>
@@ -210,7 +210,6 @@
     <jakarta.ws.rs.version>3.1.0</jakarta.ws.rs.version>
     <!-- Helidon version.lib.jakarta.xml.bind-api -->
     <jakarta.xml.bind.version>4.0.0</jakarta.xml.bind.version>
-    <jandex.version>3.1.2</jandex.version>
     <javax.cache.version>1.1.1</javax.cache.version>
     <javax.cache.tck.version>1.1.1</javax.cache.tck.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon -->
@@ -678,13 +677,6 @@
         <groupId>org.jboss.weld</groupId>
         <artifactId>weld-junit5</artifactId>
         <version>${weld-junit.version}</version>
-      </dependency>
-
-      <!-- jandex -->
-      <dependency>
-        <groupId>io.smallrye</groupId>
-        <artifactId>jandex</artifactId>
-        <version>${jandex.version}</version>
       </dependency>
 
       <!-- rxjava -->
