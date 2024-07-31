@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -2178,7 +2178,11 @@ public class ViewMap
 
     protected Object resultStreaming(com.tangosol.util.InvocableMap.StreamingAggregator aggregator)
         {
-        Object oResult = aggregator.finalizeResult();
+        Converter convUp = isPassThrough() ?
+                           getService().getBackingMapContext().getValueFromInternalConverter() :
+                           getFromBinaryConverter();
+
+        Object oResult = aggregator.finalizeResult(convUp);
 
         return isPassThrough() ?
                getService().getBackingMapContext().getValueToInternalConverter().convert(oResult) :
