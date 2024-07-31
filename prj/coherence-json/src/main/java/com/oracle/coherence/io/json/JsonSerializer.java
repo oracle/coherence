@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -30,6 +30,7 @@ import com.oracle.coherence.io.json.genson.reflect.VisibilityFilter;
 
 import com.oracle.coherence.io.json.genson.stream.ValueType;
 
+import com.oracle.coherence.io.json.internal.BitSetConverter;
 import com.oracle.coherence.io.json.internal.ClassConverter;
 import com.oracle.coherence.io.json.internal.ComparableConverter;
 import com.oracle.coherence.io.json.internal.EnumConverter;
@@ -76,6 +77,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import java.nio.charset.StandardCharsets;
+import java.util.BitSet;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -162,6 +164,7 @@ public class JsonSerializer
                 .useConstructorWithArguments(true)
                 .setSkipNull(true)
                 .withSerializer(VersionableSerializer.INSTANCE, Versionable.class)
+                .withConverter(BitSetConverter.INSTANCE, BitSet.class)
                 .withConverter(InetAddressConverter.INSTANCE, InetAddress.class)
                 .withConverter(InetAddressConverter.INSTANCE, Inet4Address.class)
                 .withConverter(InetAddressConverter.INSTANCE, Inet6Address.class)

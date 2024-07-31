@@ -152,6 +152,7 @@
     <eclipse.mp.health.version>4.0.1</eclipse.mp.health.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
     <eclipse.mp.metrics.version>5.0.1</eclipse.mp.metrics.version>
+    <fastutil.version>8.5.12</fastutil.version>
     <felix.version>6.0.4</felix.version>
     <glassfish.el.version>4.0.2</glassfish.el.version>
     <google-error-prone.version>2.3.3</google-error-prone.version>
@@ -390,6 +391,12 @@
         <groupId>org.apache.felix</groupId>
         <artifactId>org.apache.felix.main</artifactId>
         <version>${felix.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>it.unimi.dsi</groupId>
+        <artifactId>fastutil-core</artifactId>
+        <version>${fastutil.version}</version>
       </dependency>
 
       <!-- graal -->

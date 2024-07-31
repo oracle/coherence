@@ -28,16 +28,11 @@
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-ai</artifactId>
+      <artifactId>coherence</artifactId>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-grpc-proxy-common</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>io.jhdf</groupId>
-      <artifactId>jhdf</artifactId>
+      <artifactId>coherence-json</artifactId>
     </dependency>
 
     <dependency>

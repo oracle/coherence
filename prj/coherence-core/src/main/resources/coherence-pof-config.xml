@@ -1786,6 +1786,41 @@ descriptor: pof-config.xsd.
       </serializer>
     </user-type>
 
+    <!-- 925 - 939 Coherence AI -->
+    <user-type>
+      <type-id>925</type-id>
+      <class-name>com.oracle.coherence.ai.search.SimilaritySearch</class-name>
+    </user-type>
+    <user-type>
+      <type-id>926</type-id>
+      <class-name>com.oracle.coherence.ai.search.BinaryQueryResult</class-name>
+    </user-type>
+    <user-type>
+      <type-id>927</type-id>
+      <class-name>com.oracle.coherence.ai.distance.CosineDistance</class-name>
+    </user-type>
+    <user-type>
+      <type-id>928</type-id>
+      <class-name>com.oracle.coherence.ai.distance.InnerProductDistance</class-name>
+    </user-type>
+    <user-type>
+      <type-id>929</type-id>
+      <class-name>com.oracle.coherence.ai.distance.L2SquaredDistance</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>930</type-id>
+      <class-name>com.oracle.coherence.ai.BitVector</class-name>
+    </user-type>
+    <user-type>
+      <type-id>932</type-id>
+      <class-name>com.oracle.coherence.ai.Int8Vector</class-name>
+    </user-type>
+    <user-type>
+      <type-id>935</type-id>
+      <class-name>com.oracle.coherence.ai.Float32Vector</class-name>
+    </user-type>
+
     <!-- java.time (940 - 949) -->
 
     <user-type>
@@ -1877,6 +1912,18 @@ descriptor: pof-config.xsd.
         <class-name>com.tangosol.io.pof.SubjectPofSerializer</class-name>
       </serializer>
     </user-type>
+
+    <!-- 951 - 958 Coherence AI -->
+    <user-type>
+      <type-id>951</type-id>
+      <class-name>com.oracle.coherence.ai.DocumentChunk</class-name>
+    </user-type>
+    <user-type>
+      <type-id>952</type-id>
+      <class-name>com.oracle.coherence.ai.DocumentChunk$Id</class-name>
+    </user-type>
+
+    <!-- 959 used by HNSWIndex -->
 
     <!-- external (atomics):  java.util.concurrent.atomic (960 - 969) -->
 

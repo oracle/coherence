@@ -33,10 +33,6 @@
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-ai</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-concurrent</artifactId>
     </dependency>
     <dependency>

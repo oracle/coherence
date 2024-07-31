@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2024, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ https://oss.oracle.com/licenses/upl.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -344,6 +344,7 @@
                   <include>org.ow2.asm:asm-tree</include>
                   <include>org.ow2.asm:asm-util</include>
                   <include>io.smallrye:jandex</include>
+                  <include>it.unimi.dsi:fastutil-core</include>
                   <include>com.sleepycat:je</include>
                   <include>${coherence.group.id}:coherence-discovery</include>
                   <include>${coherence.group.id}:coherence-core</include>
@@ -387,6 +388,10 @@
                 </filter>
               </filters>
               <relocations>
+                <relocation>
+                  <pattern>it.unimi.dsi.fastutil</pattern>
+                  <shadedPattern>com.tangosol.internal.fastutil</shadedPattern>
+                </relocation>
                 <relocation>
                   <pattern>org.jboss.jandex</pattern>
                   <shadedPattern>com.tangosol.internal.jandex</shadedPattern>
