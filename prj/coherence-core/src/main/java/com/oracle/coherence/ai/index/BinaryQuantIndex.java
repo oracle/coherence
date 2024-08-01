@@ -12,21 +12,24 @@ import com.oracle.coherence.ai.VectorIndex;
 import com.oracle.coherence.ai.VectorIndexExtractor;
 import com.oracle.coherence.ai.search.BinaryQueryResult;
 import com.oracle.coherence.ai.util.Vectors;
+
 import com.tangosol.io.AbstractEvolvable;
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.pof.EvolvablePortableObject;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
+
 import com.tangosol.net.BackingMapContext;
+
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
-import com.tangosol.util.InflatableSet;
 import com.tangosol.util.InvocableMapHelper;
 import com.tangosol.util.MapIndex;
 import com.tangosol.util.NullImplementation;
 import com.tangosol.util.ValueExtractor;
+
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectSortedMap;
 import it.unimi.dsi.fastutil.ints.IntIterator;
@@ -34,12 +37,16 @@ import it.unimi.dsi.fastutil.ints.IntIterator;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -51,6 +58,11 @@ import java.util.concurrent.ConcurrentMap;
  * @param <K>  the type of the cache key
  * @param <V>  the type of the cache value
  * @param <T>  the type of the vector
+ *
+ * @author Aleks Seovic     2024.07.24
+ * @author Jonathan Knight  2024.07.26
+ * 
+ * @since 24.09
  */
 public class BinaryQuantIndex<K, V, T>
         extends AbstractEvolvable
@@ -70,7 +82,7 @@ public class BinaryQuantIndex<K, V, T>
      */
     public BinaryQuantIndex(ValueExtractor<V, Vector<T>> extractor)
         {
-        m_extractor = ValueExtractor.of(Objects.requireNonNull(extractor));
+        f_extractor = ValueExtractor.of(Objects.requireNonNull(extractor));
         }
 
     /**
@@ -97,7 +109,7 @@ public class BinaryQuantIndex<K, V, T>
     public MapIndex<K, V, Vector<T>> createIndex(boolean b, Comparator comparator, Map<ValueExtractor<V, Vector<T>>, MapIndex> map, BackingMapContext backingMapContext)
         {
         BinaryQuantMapIndex mapIndex = new BinaryQuantMapIndex(backingMapContext);
-        map.put(m_extractor, mapIndex);
+        map.put(f_extractor, mapIndex);
         return mapIndex;
         }
 
@@ -105,7 +117,7 @@ public class BinaryQuantIndex<K, V, T>
     @Override
     public MapIndex<K, V, Vector<T>> destroyIndex(Map<ValueExtractor<V, Vector<T>>, MapIndex> map)
         {
-        return map.remove(m_extractor);
+        return map.remove(f_extractor);
         }
 
     @Override
@@ -124,20 +136,20 @@ public class BinaryQuantIndex<K, V, T>
             return false;
             }
         BinaryQuantIndex<?, ?, ?> that = (BinaryQuantIndex<?, ?, ?>) o;
-        return Objects.equals(m_extractor, that.m_extractor);
+        return Objects.equals(f_extractor, that.f_extractor);
         }
 
     @Override
     public int hashCode()
         {
-        return Objects.hash(super.hashCode(), m_extractor);
+        return Objects.hash(super.hashCode(), f_extractor);
         }
 
     @Override
     public String toString()
         {
         return "BinaryQuantIndex{" +
-               "extractor=" + m_extractor +
+               "extractor=" + f_extractor +
                '}';
         }
 
@@ -150,28 +162,28 @@ public class BinaryQuantIndex<K, V, T>
     @Override
     public void readExternal(PofReader in) throws IOException
         {
-        m_extractor           = in.readObject(0);
+        f_extractor           = in.readObject(0);
         m_nOversamplingFactor = in.readInt(1);
         }
 
     @Override
     public void writeExternal(PofWriter out) throws IOException
         {
-        out.writeObject(0, m_extractor);
+        out.writeObject(0, f_extractor);
         out.writeInt(1, m_nOversamplingFactor);
         }
 
     @Override
     public void readExternal(DataInput in) throws IOException
         {
-        m_extractor           = ExternalizableHelper.readObject(in);
+        f_extractor           = ExternalizableHelper.readObject(in);
         m_nOversamplingFactor = in.readInt();
         }
 
     @Override
     public void writeExternal(DataOutput out) throws IOException
         {
-        ExternalizableHelper.writeObject(out, m_extractor);
+        ExternalizableHelper.writeObject(out, f_extractor);
         out.writeInt(m_nOversamplingFactor);
         }
 
@@ -197,7 +209,7 @@ public class BinaryQuantIndex<K, V, T>
         @Override
         public ValueExtractor<V, Vector<T>> getValueExtractor()
             {
-            return m_extractor;
+            return f_extractor;
             }
 
         @Override
@@ -233,7 +245,7 @@ public class BinaryQuantIndex<K, V, T>
         @Override
         public void insert(Map.Entry<? extends K, ? extends V> entry)
             {
-            Vector<?> v = InvocableMapHelper.extractFromEntry(m_extractor, entry);
+            Vector<?> v = InvocableMapHelper.extractFromEntry(f_extractor, entry);
             if (v != null)
                 {
                 Object oKey = entry instanceof BinaryEntry
@@ -246,7 +258,7 @@ public class BinaryQuantIndex<K, V, T>
         @Override
         public void update(Map.Entry<? extends K, ? extends V> entry)
             {
-            Vector<?> v = InvocableMapHelper.extractFromEntry(m_extractor, entry);
+            Vector<?> v = InvocableMapHelper.extractFromEntry(f_extractor, entry);
             if (v != null)
                 {
                 Object oKey = entry instanceof BinaryEntry
@@ -272,19 +284,19 @@ public class BinaryQuantIndex<K, V, T>
         @Override
         public BinaryQueryResult[] query(Vector<T> vector, int k, Filter<?> filter)
             {
-            BitSet                           bitSet       = Objects.requireNonNull(vector).binaryQuant().get();
-            Int2ObjectSortedMap<Set<Binary>> mapDistances = new Int2ObjectAVLTreeMap<>();
+            BitSet                            bitSet       = Objects.requireNonNull(vector).binaryQuant().get();
+            Int2ObjectSortedMap<List<Binary>> mapDistances = new Int2ObjectAVLTreeMap<>();
 
             for (Map.Entry<K, BitSet> entry : f_mapIndex.entrySet())
                 {
                 int d = Vectors.hammingDistance(bitSet, entry.getValue());
-                Set<Binary> setKeys = mapDistances.get(d);
-                if (setKeys == null)
+                List<Binary> lstKeys = mapDistances.get(d);
+                if (lstKeys == null)
                     {
-                    setKeys = new InflatableSet();
-                    mapDistances.put(d, setKeys);
+                    lstKeys = new LinkedList<>();
+                    mapDistances.put(d, lstKeys);
                     }
-                setKeys.add((Binary) entry.getKey());
+                lstKeys.add((Binary) entry.getKey());
                 }
 
             int                 cAdded   = 0;
@@ -293,10 +305,10 @@ public class BinaryQuantIndex<K, V, T>
 
             for (IntIterator it = mapDistances.keySet().intIterator(); it.hasNext() && cAdded < cResults; )
                 {
-                int         d       = it.nextInt();
-                Set<Binary> setKeys = mapDistances.get(d);
+                int          d       = it.nextInt();
+                List<Binary> lstKeys = mapDistances.get(d);
 
-                for (Binary binKey : setKeys)
+                for (Binary binKey : lstKeys)
                     {
                     BinaryEntry<K, V> entry = f_backingMapContext.getReadOnlyEntry(binKey).asBinaryEntry();
                     if (filter == null || InvocableMapHelper.evaluateEntry(filter, entry))
@@ -339,7 +351,7 @@ public class BinaryQuantIndex<K, V, T>
     /**
      * The {@link ValueExtractor} to use to extract the {@link Vector}.
      */
-    private ValueExtractor<V, Vector<T>> m_extractor;
+    private ValueExtractor<V, Vector<T>> f_extractor;
 
     /**
      * The oversampling factor to use.

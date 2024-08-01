@@ -10,13 +10,17 @@ package com.oracle.coherence.ai.search;
 import com.oracle.coherence.ai.DistanceAlgorithm;
 import com.oracle.coherence.ai.QueryResult;
 import com.oracle.coherence.ai.Vector;
+
 import com.oracle.coherence.ai.VectorIndex;
 import com.oracle.coherence.ai.distance.CosineDistance;
 import com.oracle.coherence.ai.index.BinaryQuantIndex;
+
 import com.tangosol.io.ExternalizableLite;
+
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
+
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
@@ -31,12 +35,14 @@ import com.tangosol.util.MapIndex;
 import com.tangosol.util.SortedBag;
 import com.tangosol.util.Streamer;
 import com.tangosol.util.ValueExtractor;
+
 import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.json.bind.annotation.JsonbTransient;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -50,6 +56,11 @@ import java.util.Objects;
  * @param <K>  the type of the cache key
  * @param <V>  the type of the cache value
  * @param <T>  the type of the vector
+ *
+ * @author Jonathan Knight  2024.07.19
+ * @author Aleks Seovic     2024.07.25
+ *
+ * @since 24.09
  */
 @SuppressWarnings({"unused", "rawtypes"})
 public class SimilaritySearch<K, V, T>
@@ -166,10 +177,6 @@ public class SimilaritySearch<K, V, T>
     @Override
     public int characteristics()
         {
-        if (m_fBruteForce)
-            {
-            return PARALLEL | ALLOW_INCONSISTENCIES;
-            }
         return PARALLEL | BY_PARTITION | ALLOW_INCONSISTENCIES;
         }
 
@@ -187,7 +194,7 @@ public class SimilaritySearch<K, V, T>
             // we are not using the index, so brute force by iterating over all the entries
             return bruteForce(streamer, null);
             }
-        
+
         // As we have BY_PARTITION characteristics, the streamer should contain entries from a single partition.
         // This allows us to just look at a single entry to get the partition and then execute the query on
         // the index for just that partition.
@@ -229,7 +236,7 @@ public class SimilaritySearch<K, V, T>
                 m_results.removeLast();
                 }
             }
-        
+
         return true;
         }
 
