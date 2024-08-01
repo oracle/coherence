@@ -502,6 +502,7 @@
     <cpe>cpe:2.3:a:graphql-java:graphql-java</cpe>
     <cpe>cpe:2.3:a:graphql-java_project:graphql-java</cpe>
     <cve>CVE-2023-28867</cve>
+    <cve>CVE-2024-40094</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[
