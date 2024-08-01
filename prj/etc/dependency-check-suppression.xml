@@ -466,4 +466,14 @@
     <cve>CVE-2023-5763</cve>
   </suppress>
 
+  <suppress>
+    <notes><![CDATA[
+    file name: graphql-java-18.3.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.graphql\-java/graphql\-java@.*$</packageUrl>
+    <cpe>cpe:2.3:a:graphql-java:graphql-java</cpe>
+    <cpe>cpe:2.3:a:graphql-java_project:graphql-java</cpe>
+    <cve>CVE-2023-28867</cve>
+    <cve>CVE-2024-40094</cve>
+  </suppress>
 </suppressions>
