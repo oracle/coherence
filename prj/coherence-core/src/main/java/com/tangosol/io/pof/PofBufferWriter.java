@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io.pof;
 
@@ -471,6 +471,15 @@ public class PofBufferWriter
     public void writeByteArray(int iProp, byte[] ab)
             throws IOException
         {
+        writeByteArray(iProp, ab, 0, ab == null ? 0 : ab.length);
+        }
+
+    /**
+    * {@inheritDoc}
+    */
+    public void writeByteArray(int iProp, byte[] ab, int of, int cb)
+            throws IOException
+        {
         beginProperty(iProp);
         try
             {
@@ -482,9 +491,9 @@ public class PofBufferWriter
             else
                 {
                 handler.registerIdentity(-1);
-                handler.beginUniformArray(iProp, ab.length, T_OCTET);
+                handler.beginUniformArray(iProp, cb, T_OCTET);
 
-                getBufferOutput().write(ab);
+                getBufferOutput().write(ab, of, cb);
 
                 handler.endComplexValue();
                 }

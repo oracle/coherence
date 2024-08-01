@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io.pof;
@@ -109,12 +109,13 @@ public class PofPrimitiveArrayTest
     public void testByteArray()
             throws IOException
         {
-        byte[]   ab1  = new byte[]{1, 22, 0, Byte.MIN_VALUE, Byte.MAX_VALUE};
+        byte[]   ab1  = new byte[] {1, 22, 0, Byte.MIN_VALUE, Byte.MAX_VALUE};
         List     list = new ArrayList(0);
-        Object[] ao   = new Object[]{(byte) 1, (byte) 127, (byte) -128};
+        Object[] ao   = new Object[] {(byte) 1, (byte) 127, (byte) -128};
 
         initPOFWriter();
         m_writer.writeByteArray(0, ab1);
+        m_writer.writeByteArray(0, ab1, 1, 2);
         m_writer.writeByteArray(0, null);
         m_writer.writeCollection(0, list);
         m_writer.writeObjectArray(0, ao);
@@ -128,6 +129,12 @@ public class PofPrimitiveArrayTest
         assertEquals(ab2[1], ab1[1]);
         assertEquals(ab2[2], ab1[2]);
         assertEquals(ab2[3], ab1[3]);
+
+        // partial
+        ab2 = m_reader.readByteArray(0);
+        assertEquals(ab2.length, 2);
+        assertEquals(ab2[0], ab1[1]);
+        assertEquals(ab2[1], ab1[2]);
 
         // null
         ab2 = m_reader.readByteArray(0);

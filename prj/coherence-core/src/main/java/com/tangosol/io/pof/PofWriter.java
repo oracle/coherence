@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io.pof;
@@ -232,6 +232,20 @@ public interface PofWriter
     * @throws IOException  if an I/O error occurs
     */
     public void writeByteArray(int iProp, byte[] ab)
+            throws IOException;
+
+    /**
+    * Write a <tt>byte[]</tt> property to the POF stream.
+    *
+    * @param iProp  the property index
+    * @param ab     the <tt>byte[]</tt> property value to write
+    *
+    * @throws IllegalArgumentException  if the property index is invalid, or
+    *         is less than or equal to the index of the previous property
+    *         written to the POF stream
+    * @throws IOException  if an I/O error occurs
+    */
+    public void writeByteArray(int iProp, byte[] ab, int of, int cb)
             throws IOException;
 
     /**
