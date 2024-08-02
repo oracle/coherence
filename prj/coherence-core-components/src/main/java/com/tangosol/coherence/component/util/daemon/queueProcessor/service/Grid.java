@@ -47,6 +47,7 @@ import com.tangosol.internal.net.service.grid.DefaultGridDependencies;
 import com.tangosol.internal.net.service.grid.GridDependencies;
 import com.tangosol.internal.tracing.Scope;
 import com.tangosol.internal.tracing.Span;
+import com.tangosol.internal.tracing.SpanContext;
 import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.internal.util.MessagePublisher;
 import com.tangosol.internal.util.NullMessagePublisher;
@@ -3145,11 +3146,17 @@ public abstract class Grid
                
                 if (fTracing)
                     {
-                    span = newTracingSpan(msg instanceof Runnable ? "dispatch" : "process", msg)
-                            .setParent(((RequestMessage) msg).getTracingSpanContext())
+                    SpanContext  ctx     = msg.getTracingSpanContext();
+                    Span.Builder builder = newTracingSpan(msg instanceof Runnable ? "dispatch" : "process", msg)
                             .withMetadata("member.source",
-                                Long.valueOf(memberFrom == null ? -1 : memberFrom.getId()).longValue())
-                            .startSpan();
+                                          Long.valueOf(memberFrom == null ? -1 : memberFrom.getId()).longValue());
+
+                    if (!TracingHelper.isNoop(ctx))
+                        {
+                        builder.setParent(ctx);
+                        }
+
+                    span  = builder.startSpan();
                     scope = TracingHelper.getTracer().withSpan(span);
                     }
         
