@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -461,9 +461,14 @@ public class SSLContextDependencies
                        ? "none"
                        : m_aKeyManager == null
                          ? "one-way client"
-                         : m_aTrustManagers == null ? "one-way server" : "two-way";
+                         : m_aTrustManagers == null ? "one-way server"
+                            : m_clientAuthMode == SSLSocketProvider.ClientAuthMode.none ? "one-way" : "two-way";
 
-        m_deps.setDescription(sbDesc.insert(0, "SSLSocketProvider(auth=" + sAuth + ", ").append(')').toString());
+        sbDesc.insert(0, "SSLSocketProvider(auth=" + sAuth + ", ")
+                .append(", clientAuth=").append(m_clientAuthMode)
+                .append(')');
+
+        m_deps.setDescription(sbDesc.toString());
         Logger.fine("instantiated SSLSocketProviderDependencies: " + sbDesc);
         }
 

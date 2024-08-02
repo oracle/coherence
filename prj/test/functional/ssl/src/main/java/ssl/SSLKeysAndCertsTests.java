@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.testing.net.EchoClient;
 import com.oracle.coherence.testing.net.EchoServer;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -42,9 +43,9 @@ public class SSLKeysAndCertsTests
         File fileBuild = MavenProjectFileUtils.locateBuildFolder(SSLKeysAndCertsTests.class);
 
         s_serverCACert     = KeyTool.createCACert(fileBuild,"server-ca", "PKCS12");
-        s_serverKeyAndCert = KeyTool.createKeyCertPair(fileBuild, s_serverCACert, "server");
+        s_serverKeyAndCert = KeyTool.createKeyCertPair(fileBuild, s_serverCACert, "server", "serverAuth");
         s_clientCACert     = KeyTool.createCACert(fileBuild,"client-ca", "PKCS12");
-        s_clientKeyAndCert = KeyTool.createKeyCertPair(fileBuild, s_clientCACert, "client");
+        s_clientKeyAndCert = KeyTool.createKeyCertPair(fileBuild, s_clientCACert, "client", "clientAuth");
         s_badCACert        = KeyTool.createCACert(fileBuild,"bad-ca", "PKCS12");
         s_badKeyAndCert    = KeyTool.createKeyCertPair(fileBuild, s_badCACert, "bad");
         }
@@ -58,11 +59,18 @@ public class SSLKeysAndCertsTests
         System.setProperty("coherence.security.client.password", s_clientKeyAndCert.keyPasswordString());
         System.setProperty("coherence.security.client.cert", s_clientKeyAndCert.getCertURI());
         System.setProperty("coherence.security.client.ca.cert", s_clientCACert.getCertURI());
+
         System.setProperty("coherence.security.server.key", s_serverKeyAndCert.getKeyPEMNoPassURI());
         System.setProperty("coherence.security.server.encrypted.key", s_serverKeyAndCert.getKeyPEMURI());
         System.setProperty("coherence.security.server.password", s_serverKeyAndCert.keyPasswordString());
         System.setProperty("coherence.security.server.cert", s_serverKeyAndCert.getCertURI());
         System.setProperty("coherence.security.server.ca.cert", s_serverCACert.getCertURI());
+
+        System.setProperty("coherence.security.server.keystore", s_serverKeyAndCert.getKeystoreURI());
+        System.setProperty("coherence.security.server.keystore.password", s_serverKeyAndCert.storePasswordString());
+        System.setProperty("coherence.security.server.key.password", s_serverKeyAndCert.keyPasswordString());
+        System.setProperty("coherence.security.server.truststore", s_serverCACert.getKeystoreURI());
+        System.setProperty("coherence.security.server.truststore.password", s_serverCACert.storePasswordString());
 
 		int port;
 		
@@ -78,12 +86,177 @@ public class SSLKeysAndCertsTests
         }
 
     @Test
-    public void testSimpleConfig()
+    public void testOneWayClientHasTrustConfig()
             throws IOException
         {
         EchoClient client = createNIOClient("provider-config-client-ca-cert.xml");
         EchoServer server = createNIOServer("provider-config-server-key-and-cert.xml");
         trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testOneWayConfigWithIdentityAndTrustAndServerOnlyCerts()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-identity-and-trust-client-auth-none.xml");
+        EchoServer server = createServer("provider-config-identity-and-trust-client-auth-none.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testOneWayConfigWithIdentityAndTrustAndServerOnlyCertsInKeystores()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-identity-and-trust-keystores-client-auth-none.xml");
+        EchoServer server = createServer("provider-config-identity-and-trust-keystores-client-auth-none.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testOneWayServerHasTrustConfig()
+        {
+        EchoClient client = createNIOClient("provider-config-client-key-and-cert.xml");
+        EchoServer server = createNIOServer("provider-config-server-ca-cert.xml");
+        Assert.assertThrows(IOException.class, () -> trustedServerConfigTest(client, server));
+        }
+
+    @Test
+    public void testOneWayServerOnlyNoTrustConfig()
+        {
+        EchoClient client = createNIOClient("provider-config-server-key-and-cert.xml");
+        EchoServer server = createNIOServer("provider-config-server-key-and-cert.xml");
+        Assert.assertThrows(IOException.class, () -> trustedServerConfigTest(client, server));
+        }
+
+    @Test
+    public void testTwoWayConfig()
+            throws IOException
+        {
+        EchoClient client = createNIOClient("provider-config-client-key-cert-and-ca-cert.xml");
+        EchoServer server = createNIOServer("provider-config-server-key-cert-and-ca-cert.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testTwoWayClientHasNoIdentity()
+        {
+        EchoClient client = createNIOClient("provider-config-client-ca-cert.xml");
+        EchoServer server = createNIOServer("provider-config-server-key-cert-and-ca-cert.xml");
+        Assert.assertThrows(IOException.class, () -> trustedServerConfigTest(client, server));
+        }
+
+    @Test
+    public void testClientAuthRequired()
+            throws IOException
+        {
+        EchoClient client = createNIOClient("provider-config-client-key-cert-and-ca-cert.xml");
+        EchoServer server = createNIOServer("provider-config-server-key-cert-and-ca-cert-auth-required.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testClientAuthRequiredClientHasNoIdentity()
+        {
+        EchoClient client = createNIOClient("provider-config-client-ca-cert.xml");
+        EchoServer server = createNIOServer("provider-config-server-key-cert-and-ca-cert-auth-required.xml");
+        Assert.assertThrows(IOException.class, () -> trustedServerConfigTest(client, server));
+        }
+
+    @Test
+    public void testClientAuthWanted()
+            throws IOException
+        {
+        EchoClient client = createNIOClient("provider-config-client-key-cert-and-ca-cert.xml");
+        EchoServer server = createNIOServer("provider-config-server-key-cert-and-ca-cert-auth-wanted.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testClientAuthWantedClientHasNoIdentity()
+            throws IOException
+        {
+        EchoClient client = createNIOClient("provider-config-client-ca-cert.xml");
+        EchoServer server = createNIOServer("provider-config-server-key-cert-and-ca-cert-auth-wanted.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testClientAuthNone()
+            throws IOException
+        {
+        EchoClient client = createNIOClient("provider-config-client-key-cert-and-ca-cert.xml");
+        EchoServer server = createNIOServer("provider-config-server-key-cert-and-ca-cert-auth-none.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testClientAuthNoneClientHasNoIdentity()
+            throws IOException
+        {
+        EchoClient client = createNIOClient("provider-config-client-ca-cert.xml");
+        EchoServer server = createNIOServer("provider-config-server-key-cert-and-ca-cert-auth-none.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testCustomKeyAndCertLoaders()
+            throws IOException
+        {
+        EchoClient client = createNIOClient("provider-config-client-custom-key-and-cert.xml");
+        EchoServer server = createNIOServer("provider-config-server-key-cert-and-ca-cert.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testTrustedServerConfigEncryptedKeys()
+            throws IOException
+        {
+        EchoClient client = createNIOClient("provider-config-client-encrypted-key-cert-and-ca-cert.xml");
+        EchoServer server = createNIOServer("provider-config-server-encrypted-key-cert-and-ca-cert.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testClientAndServerPeerX509Config()
+            throws IOException
+        {
+        EchoClient client = createNIOClient("provider-config-client-key-and-cert-peer.xml");
+        EchoServer server = createNIOServer("provider-config-server-key-and-cert-peer.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testClientOnlyPeerX509Config()
+            throws IOException
+        {
+        EchoClient client = createNIOClient("provider-config-client-key-and-cert-peer.xml");
+        EchoServer server = createNIOServer("provider-config-client-key-and-cert-peer.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testServerOnlyPeerX509Config()
+            throws IOException
+        {
+        EchoClient client = createNIOClient("provider-config-server-key-and-cert-peer.xml");
+        EchoServer server = createNIOServer("provider-config-server-key-and-cert-peer.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testClientHasServerOnlyCertificate()
+        {
+        EchoClient client = createNIOClient("provider-config-server-key-cert-and-ca-cert.xml");
+        EchoServer server = createNIOServer("provider-config-server-key-cert-and-ca-cert.xml");
+        Assert.assertThrows(IOException.class, () -> trustedServerConfigTest(client, server));
+        }
+
+    @Test
+    public void testServerHasClientOnlyCertificate()
+        {
+        EchoClient client = createNIOClient("provider-config-client-key-cert-and-ca-cert.xml");
+        EchoServer server = createNIOServer("provider-config-client-key-cert-and-ca-cert.xml");
+        Assert.assertThrows(IOException.class, () -> trustedServerConfigTest(client, server));
         }
 
     @Test
@@ -139,42 +312,6 @@ public class SSLKeysAndCertsTests
             client.disconnect();
             server.stop();
             }
-        }
-
-    @Test
-    public void testTrustedServerConfig()
-            throws IOException
-        {
-        EchoClient client = createNIOClient("provider-config-client-key-cert-and-ca-cert.xml");
-        EchoServer server = createNIOServer("provider-config-server-key-cert-and-ca-cert.xml");
-        trustedServerConfigTest(client, server);
-        }
-
-    @Test
-    public void testCustomKeyAndCertLoaders()
-            throws IOException
-        {
-        EchoClient client = createNIOClient("provider-config-client-custom-key-and-cert.xml");
-        EchoServer server = createNIOServer("provider-config-server-key-cert-and-ca-cert.xml");
-        trustedServerConfigTest(client, server);
-        }
-
-    @Test
-    public void testTrustedServerConfigEncryptedKeys()
-            throws IOException
-        {
-        EchoClient client = createNIOClient("provider-config-client-encrypted-key-cert-and-ca-cert.xml");
-        EchoServer server = createNIOServer("provider-config-server-encrypted-key-cert-and-ca-cert.xml");
-        trustedServerConfigTest(client, server);
-        }
-
-    @Test
-    public void testMutualTrustConfig()
-            throws IOException
-        {
-        EchoClient client = createNIOClient("provider-config-client-key-and-cert-peer.xml");
-        EchoServer server = createNIOServer("provider-config-server-key-and-cert-peer.xml");
-        trustedServerConfigTest(client, server);
         }
 
     // ----- helper methods -------------------------------------------------
