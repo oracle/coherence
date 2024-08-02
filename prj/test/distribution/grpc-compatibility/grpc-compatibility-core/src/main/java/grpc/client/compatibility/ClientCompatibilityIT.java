@@ -145,7 +145,7 @@ public class ClientCompatibilityIT
                                 Logging.atMax(),
                                 LocalHost.only(),
                                 IPv4Preferred.yes(),
-                                StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()),
+                                StabilityPredicate.none(),
                                 TEST_LOGS)
                         .include(CLUSTER_SIZE, CoherenceClusterMember.class);
 

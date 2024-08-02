@@ -59,11 +59,18 @@ public class SSLKeysAndCertsTests
         System.setProperty("coherence.security.client.password", s_clientKeyAndCert.keyPasswordString());
         System.setProperty("coherence.security.client.cert", s_clientKeyAndCert.getCertURI());
         System.setProperty("coherence.security.client.ca.cert", s_clientCACert.getCertURI());
+
         System.setProperty("coherence.security.server.key", s_serverKeyAndCert.getKeyPEMNoPassURI());
         System.setProperty("coherence.security.server.encrypted.key", s_serverKeyAndCert.getKeyPEMURI());
         System.setProperty("coherence.security.server.password", s_serverKeyAndCert.keyPasswordString());
         System.setProperty("coherence.security.server.cert", s_serverKeyAndCert.getCertURI());
         System.setProperty("coherence.security.server.ca.cert", s_serverCACert.getCertURI());
+
+        System.setProperty("coherence.security.server.keystore", s_serverKeyAndCert.getKeystoreURI());
+        System.setProperty("coherence.security.server.keystore.password", s_serverKeyAndCert.storePasswordString());
+        System.setProperty("coherence.security.server.key.password", s_serverKeyAndCert.keyPasswordString());
+        System.setProperty("coherence.security.server.truststore", s_serverCACert.getKeystoreURI());
+        System.setProperty("coherence.security.server.truststore.password", s_serverCACert.storePasswordString());
 
 		int port;
 		
@@ -84,6 +91,24 @@ public class SSLKeysAndCertsTests
         {
         EchoClient client = createNIOClient("provider-config-client-ca-cert.xml");
         EchoServer server = createNIOServer("provider-config-server-key-and-cert.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testOneWayConfigWithIdentityAndTrustAndServerOnlyCerts()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-identity-and-trust-client-auth-none.xml");
+        EchoServer server = createServer("provider-config-identity-and-trust-client-auth-none.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testOneWayConfigWithIdentityAndTrustAndServerOnlyCertsInKeystores()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-identity-and-trust-keystores-client-auth-none.xml");
+        EchoServer server = createServer("provider-config-identity-and-trust-keystores-client-auth-none.xml");
         trustedServerConfigTest(client, server);
         }
 
