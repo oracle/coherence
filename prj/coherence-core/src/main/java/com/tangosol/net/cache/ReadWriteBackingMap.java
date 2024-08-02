@@ -3665,21 +3665,25 @@ public class ReadWriteBackingMap
                 {
                 SpanContext   entryContext   = entrySpan.getContext();
                 Span          currentSpan    = TracingHelper.getActiveSpan();
-                //noinspection ConstantConditions
-                SpanContext   currentContext = currentSpan.getContext();
-                StringBuilder sb             = new StringBuilder(128);
-                sb.append("Span")
-                        .append("[trace-id=")
-                        .append(entryContext.getTraceId())
-                        .append(", span-id=")
-                        .append(entryContext.getSpanId())
-                        .append("] associated with this queued entry has been updated by this operation")
-                        .append("[trace-id=")
-                        .append(currentContext.getTraceId())
-                        .append(", span-id=")
-                        .append(currentContext.getSpanId())
-                        .append("] prior to flush.");
-                currentSpan.log(sb.toString());
+
+                if (currentSpan != null)
+                    {
+                    //noinspection ConstantConditions
+                    SpanContext currentContext = currentSpan.getContext();
+                    StringBuilder sb = new StringBuilder(128);
+                    sb.append("Span")
+                            .append("[trace-id=")
+                            .append(entryContext.getTraceId())
+                            .append(", span-id=")
+                            .append(entryContext.getSpanId())
+                            .append("] associated with this queued entry has been updated by this operation")
+                            .append("[trace-id=")
+                            .append(currentContext.getTraceId())
+                            .append(", span-id=")
+                            .append(currentContext.getSpanId())
+                            .append("] prior to flush.");
+                    currentSpan.log(sb.toString());
+                    }
                 }
 
             if (m_fTrackChanges)
