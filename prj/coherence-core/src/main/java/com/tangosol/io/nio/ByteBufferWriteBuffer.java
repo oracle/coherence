@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io.nio;
@@ -376,6 +376,23 @@ public final class ByteBufferWriteBuffer
             super(of);
             }
 
+        // ----- BufferOutput methods -----------------------------------
+
+        /**
+        * {@inheritDoc}
+        */
+        public ByteBuffer getByteBuffer(int cb)
+            {
+            ByteBuffer buf      = getByteBuffer();
+            int        ofStream = m_ofWrite;
+            int        ofFinal  = ofStream + cb;
+
+            buf.position(ofFinal);
+            m_ofWrite = ofFinal;
+
+            return buf.slice(ofStream, cb);
+            }
+
         // ----- DataOutput methods -------------------------------------
 
         /**
@@ -538,6 +555,13 @@ public final class ByteBufferWriteBuffer
                 buf.putDouble(ofStream, dfl);
                 }
             m_ofWrite = ofFinal;
+            }
+
+        // ---- helpers -----------------------------------------------------
+
+        private ByteBuffer getByteBuffer()
+            {
+            return ByteBufferWriteBuffer.this.getByteBuffer();
             }
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.ObjectOutput;
 import java.io.OutputStream;
 
+import java.nio.ByteBuffer;
 
 /**
 * This is an imitation BufferOutput implementation that provides the
@@ -223,6 +224,14 @@ public class WrapperBufferOutput
 
 
     // ----- BufferOutput interface -----------------------------------------
+
+    /**
+    * {@inheritDoc}
+    */
+    public ByteBuffer getByteBuffer(int cb)
+        {
+        return m_bufOut == null ? null : m_bufOut.getByteBuffer(cb);
+        }
 
     /**
     * {@inheritDoc}

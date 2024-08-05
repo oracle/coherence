@@ -195,14 +195,6 @@ public abstract class AbstractWriteBuffer
     /**
     * {@inheritDoc}
     */
-    public BufferOutput getBufferOutput(int of)
-        {
-        return new AbstractBufferOutput(of);
-        }
-
-    /**
-    * {@inheritDoc}
-    */
     public BufferOutput getAppendingBufferOutput()
         {
         return getBufferOutput(length());
@@ -491,7 +483,7 @@ public abstract class AbstractWriteBuffer
     *
     * @author cp  2005.03.24
     */
-    public class AbstractBufferOutput
+    public abstract class AbstractBufferOutput
             extends OutputStream
             implements WriteBuffer.BufferOutput
         {

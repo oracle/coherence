@@ -319,6 +319,21 @@ public interface PofWriter
             throws IOException;
 
     /**
+     * Write a <tt>float[]</tt> property to the POF stream.
+     *
+     * @param iProp the property index
+     * @param afl   the <tt>float[]</tt> property value to write
+     *
+     * @throws IllegalArgumentException if the property index is invalid, or is
+     *                                  less than or equal to the index of the
+     *                                  previous property written to the POF
+     *                                  stream
+     * @throws IOException              if an I/O error occurs
+     */
+    public void writeRawFloatArray(int iProp, float[] afl)
+            throws IOException;
+
+    /**
     * Write a <tt>double[]</tt> property to the POF stream.
     *
     * @param iProp  the property index

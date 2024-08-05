@@ -286,6 +286,20 @@ public interface PofReader
             throws IOException;
 
     /**
+    * Read a <tt>float[]</tt> property from the POF stream.
+    *
+    * @param iProp  the property index to read
+    *
+    * @return the <tt>float[]</tt> property value; may be null
+    *
+    * @throws IllegalStateException  if the POF stream has already
+    *         advanced past the desired property
+    * @throws IOException  if an I/O error occurs
+    */
+    public float[] readRawFloatArray(int iProp)
+            throws IOException;
+
+    /**
     * Read a <tt>double[]</tt> property from the POF stream.
     *
     * @param iProp  the property index to read

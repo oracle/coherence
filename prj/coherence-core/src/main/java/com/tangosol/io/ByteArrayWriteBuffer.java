@@ -14,9 +14,8 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.UTFDataFormatException;
 
+import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-
-import java.util.Arrays;
 
 /**
 * ByteArrayWriteBuffer is an implementation of WriteBuffer on a byte array.
@@ -795,6 +794,18 @@ public class ByteArrayWriteBuffer
             }
 
         // ----- BufferOutput methods -----------------------------------
+
+        /**
+        * {@inheritDoc}
+        */
+        public ByteBuffer getByteBuffer(int cb)
+            {
+            int of = m_ofWrite;
+            checkBounds(of, cb);
+            moveOffset(cb);
+
+            return ByteBuffer.wrap(m_ab, of, cb);
+            }
 
         /**
         * {@inheritDoc}

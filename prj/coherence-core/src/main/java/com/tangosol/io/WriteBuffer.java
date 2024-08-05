@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io;
-
 
 import com.tangosol.util.Binary;
 
@@ -14,6 +13,7 @@ import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.IOException;
 
+import java.nio.ByteBuffer;
 
 /**
 * The WriteBuffer interface represents an in-memory block of binary data
@@ -636,6 +636,20 @@ public interface WriteBuffer
         * @return the underlying WriteBuffer object
         */
         public WriteBuffer getBuffer();
+
+        /**
+         * Ensure that there are at least {@code cb} bytes of capacity left in
+         * this {@link BufferOutput}, and return a mutable {@link ByteBuffer} of
+         * {@code cb} bytes, starting at the current offset.
+         *
+         * @param cb  the size of the {@link ByteBuffer} to return
+         *
+         * @return a mutable {@link ByteBuffer} of {@code cb} bytes, starting
+         *         at the current offset
+         *
+         * @since 24.09
+         */
+        ByteBuffer getByteBuffer(int cb);
 
         /**
         * Write a variable-length encoded UTF packed String. The major

@@ -17,10 +17,11 @@ import com.tangosol.util.WrapperException;
 
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.Serializable;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+
+import java.nio.ByteBuffer;
 
 import java.sql.Timestamp;
 
@@ -665,6 +666,41 @@ public class PofBufferWriter
                     {
                     handler.onFloat32(i, afl[i]);
                     }
+                handler.endComplexValue();
+                }
+            }
+        catch (Exception e)
+            {
+            onException(e);
+            }
+        endProperty(iProp);
+        }
+
+    /**
+    * {@inheritDoc}
+    */
+    public void writeRawFloatArray(int iProp, float[] afl)
+            throws IOException
+        {
+        beginProperty(iProp);
+        try
+            {
+            PofHandler handler = getPofHandler();
+            if (afl == null)
+                {
+                handler.onNullReference(iProp);
+                }
+            else
+                {
+                int cElements = afl.length;
+                int cb        = cElements * 4;
+
+                handler.registerIdentity(-1);
+                handler.beginUniformArray(iProp, cElements, T_FLOAT32);
+
+                ByteBuffer bb = getBufferOutput().getByteBuffer(cb);
+                bb.asFloatBuffer().put(afl);
+
                 handler.endComplexValue();
                 }
             }
