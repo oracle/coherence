@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,6 +16,7 @@ import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.config.ParameterList;
 import com.tangosol.coherence.config.ResolvableParameterList;
 
+import com.tangosol.config.ConfigurationException;
 import com.tangosol.config.annotation.Injectable;
 import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
@@ -76,6 +77,19 @@ public class PersistenceEnvironmentParamBuilder
     public PersistenceEnvironment<ReadBuffer> realize(ParameterResolver resolver, ClassLoader loader,
             ParameterList listParameters)
         {
+        if (!getPersistenceMode().equalsIgnoreCase(PersistenceDependencies.MODE_ACTIVE) &&
+            !getPersistenceMode().equalsIgnoreCase(PersistenceDependencies.MODE_ACTIVE_BACKUP) &&
+            !getPersistenceMode().equalsIgnoreCase(PersistenceDependencies.MODE_ACTIVE_ASYNC) &&
+            !getPersistenceMode().equalsIgnoreCase(PersistenceDependencies.MODE_ON_DEMAND))
+            {
+            throw new ConfigurationException("Invalid persistence mode: '" + getPersistenceMode() + "'.",
+                                             "Valid values are: '" +
+                                             PersistenceDependencies.MODE_ACTIVE + "', '" +
+                                             PersistenceDependencies.MODE_ACTIVE_BACKUP + "', '" +
+                                             PersistenceDependencies.MODE_ACTIVE_ASYNC + "' and '" +
+                                             PersistenceDependencies.MODE_ON_DEMAND + "'");
+            }
+
         String sServiceName = getValueAsString(resolver, "service-name");
         String sClusterName = getValueAsString(resolver, "cluster-name");
 
