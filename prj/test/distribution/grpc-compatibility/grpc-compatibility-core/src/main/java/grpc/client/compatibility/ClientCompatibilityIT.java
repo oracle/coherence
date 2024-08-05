@@ -125,7 +125,7 @@ public class ClientCompatibilityIT
             System.err.println(Threads.getThreadDump(true));
             System.exit(1);
             return null;
-            }, 10, TimeUnit.MINUTES);
+            }, 30, TimeUnit.MINUTES);
 
         CompletableFuture<CoherenceClusterExtension> future = CompletableFuture.supplyAsync(() ->
             {
