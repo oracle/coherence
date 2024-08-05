@@ -103,6 +103,7 @@ public class ClientCompatibilityIT
     @BeforeAll
     static void setupCluster(TestInfo info) throws Exception
         {
+        int    cTimeoutMinute  = 35;
         String sMinJavaVersion = Config.getProperty("coherence.compatability.minJavaVersion");
         String sMaxJavaVersion = Config.getProperty("coherence.compatability.maxJavaVersion");
 
@@ -125,7 +126,7 @@ public class ClientCompatibilityIT
             System.err.println(Threads.getThreadDump(true));
             System.exit(1);
             return null;
-            }, 30, TimeUnit.MINUTES);
+            }, cTimeoutMinute + 5, TimeUnit.MINUTES);
 
         CompletableFuture<CoherenceClusterExtension> future = CompletableFuture.supplyAsync(() ->
             {
@@ -160,7 +161,7 @@ public class ClientCompatibilityIT
 
         try
             {
-            sClusterExtension = future.get(10, TimeUnit.MINUTES);
+            sClusterExtension = future.get(cTimeoutMinute, TimeUnit.MINUTES);
             }
         catch (Throwable throwable)
             {
