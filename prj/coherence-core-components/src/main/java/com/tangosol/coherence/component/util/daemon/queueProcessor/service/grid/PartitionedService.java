@@ -2866,6 +2866,7 @@ public abstract class PartitionedService
             com.tangosol.net.Member member = getOwnershipSenior();
             sb.append(", CoordinatorId=")
               .append(member == null ? "n/a" : String.valueOf(member.getId()));
+            sb.append(", PersistenceMode=").append(getPersistenceMode());
         
             return sb.toString();
             }
