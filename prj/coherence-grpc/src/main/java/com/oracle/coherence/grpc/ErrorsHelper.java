@@ -179,17 +179,27 @@ public final class ErrorsHelper
             }
         else
             {
-            boolean fLog = true;
+            boolean     fLog = true;
+            Status.Code code = null;
+
             if (t instanceof StatusRuntimeException sre)
                 {
-                Status.Code code = sre.getStatus().getCode();
-                fLog = code != Status.Code.CANCELLED && code != Status.Code.UNIMPLEMENTED;
+                code = sre.getStatus().getCode();
                 }
             else if (t instanceof StatusException se)
                 {
-                Status.Code code = se.getStatus().getCode();
-                fLog = code != Status.Code.CANCELLED && code != Status.Code.UNIMPLEMENTED;
+                code = se.getStatus().getCode();
                 }
+
+            if (code == Status.Code.UNAVAILABLE)
+                {
+                fLog = !t.getMessage().equals("Channel shutdownNow invoked");
+                }
+            else
+                {
+                fLog = code != null && code != Status.Code.CANCELLED && code != Status.Code.UNIMPLEMENTED;
+                }
+
             if (fLog)
                 {
                 Logger.err(t);
