@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
@@ -56,13 +56,6 @@ Use Java 21 virtual threads within Coherence.
 [icon=fa-sort-alpha-asc,link=docs/core/07_sorted_views.adoc]
 --
 Create sorted client-side views of cached data.
---
-
-[CARD]
-.Secured Production Mode
-[icon=fa-expeditedssl,link=docs/core/08_secured_production.adoc]
---
-Run Coherence in secured production mode.
 --
 
 ====

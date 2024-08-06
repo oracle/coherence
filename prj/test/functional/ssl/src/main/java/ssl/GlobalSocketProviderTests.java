@@ -293,54 +293,6 @@ public class GlobalSocketProviderTests
             }
         }
 
-    @Test
-    public void shouldUseGlobalSocketProviderWithSecuredProduction() throws Exception
-        {
-        LocalPlatform platform = LocalPlatform.get();
-
-        OptionsByType optionsByType = OptionsByType.of(
-                OperationalOverride.of("global-ssl-test-override.xml"),
-                SystemProperty.of(SocketProviderFactory.PROP_GLOBAL_PROVIDER, "one"),
-                ClusterName.of(m_sClusterName),
-                ClusterPort.of(m_nClusterPort),
-                JMXManagementMode.ALL,
-                JmxProfile.enabled(),
-                WellKnownAddress.of("127.0.0.1"),
-                LocalHost.only(),
-                IPv4Preferred.yes(),
-                m_logs,
-                DisplayName.of("storage"),
-                SystemProperty.of("coherence.mode", "prod"),
-                SystemProperty.of("coherence.secured.production", "true"));
-
-        optionsByType.addAll(m_exOptionsByType);
-        CoherenceClusterBuilder clusterBuilder = new CoherenceClusterBuilder()
-                .include(3, CoherenceClusterMember.class, optionsByType.asArray());
-
-        try (CoherenceCluster cluster = clusterBuilder.build(platform))
-            {
-            Eventually.assertDeferred(cluster::isReady, is(true));
-
-            for (CoherenceClusterMember member : cluster)
-                {
-                assertThat(member.getClusterSize(), is(3));
-                }
-
-            CoherenceClusterMember member     = cluster.getAny();
-            JmxFeature             jmxFeature = member.get(JmxFeature.class);
-            int                    nId        = member.getLocalMemberId();
-            ObjectName             objectName = new ObjectName("Coherence:type=Node,nodeId=" + nId);
-            String                 sStatus    = jmxFeature.getMBeanAttribute(objectName, "TransportStatus", String.class);
-
-            assertThat(sStatus, containsString("tmbs://"));
-            assertThat(member.invoke(new IsSecureUDP()), is(true));
-            // health should not be secure
-            String sServiceName = "$SYS:HealthHttpProxy";
-            Eventually.assertDeferred(() -> member.isServiceRunning(sServiceName), is(true));
-            assertThat(member.invoke(new IsSecureProxy(sServiceName)), is(false));
-            }
-        }
-
     // ----- inner class: IsSecureUDP ---------------------------------------
 
     public static class IsSecureUDP

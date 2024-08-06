@@ -684,15 +684,6 @@ public interface ClusterDependencies
     public String getLambdasSerializationMode();
 
     /**
-     * Determine whether the secured-production mode is enabled.
-     *
-     * @return true if secured-production mode is enabled
-     *
-     * @since 23.09
-     */
-    public boolean isSecuredProduction();
-
-    /**
      * Determine whether using virtual threads is enabled.
      *
      * @return true if using virtual threads is enabled

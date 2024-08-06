@@ -2252,13 +2252,7 @@
     <xsd:element name="secured-production" type="coherence-boolean-type">
         <xsd:annotation>
             <xsd:documentation>
-                The secured-production element specifies whether or not this
-                cluster enables secure mode.  It is only applicable in
-                production mode.
-
-                Legal values are: true or false.
-
-                Used in: cluster-config
+                This element is deprecated since 14.1.2.0 and has no effect.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>

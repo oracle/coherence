@@ -41,7 +41,6 @@ import com.tangosol.net.CompositeAddressProvider;
 import com.tangosol.net.ConfigurableAddressProviderFactory;
 import com.tangosol.net.InetAddressHelper;
 import com.tangosol.net.SocketOptions;
-import com.tangosol.net.SocketProviderFactory;
 
 import com.tangosol.net.internal.SubstitutionAddressProvider;
 
@@ -150,6 +149,9 @@ public class LegacyXmlClusterDependencies
         ctxPasswordProviders.processDocument(xmlPasswordProviders);
         ctxPasswordProviders.close();
 
+        // process the <license-mode> element.
+        String sMode = xml.getSafeElement("license-mode").getString("dev");
+        setMode(translateModeName(sMode));
         // process the <socket-providers> definitions.  could be referenced in unicast-listener/socket-provider.
         XmlElement xmlSocketProviders = xml.getSafeElement("socket-providers");
         DefaultProcessingContext ctxSocketProviders = new DefaultProcessingContext(ctxClusterConfig, xmlSocketProviders);
@@ -212,21 +214,6 @@ public class LegacyXmlClusterDependencies
         String sMode = xml.getSafeElement("license-mode").getString("dev");
         setMode(translateModeName(sMode));
         setLambdasSerializationMode(xml.getSafeElement("lambdas-serialization").getString());
-
-        if (getMode() == ClusterDependencies.LICENSE_MODE_PRODUCTION)
-            {
-            boolean fIsSecuredProd = xml.getSafeElement("secured-production").getBoolean(isSecuredProduction());
-
-            setSecuredProduction(fIsSecuredProd);
-            if (fIsSecuredProd && SocketProviderFactory.getGlobalSocketProviderBuilder() == null)
-                {
-                xmlGlobalSocketProvider = xml.getSafeElement("global-socket-provider");
-                xmlGlobalSocketProvider.setString("ssl");
-                ctxGlobalSocketProvider = new DefaultProcessingContext(ctxClusterConfig, xmlGlobalSocketProvider);
-                ctxGlobalSocketProvider.processDocument(xmlGlobalSocketProvider);
-                ctxGlobalSocketProvider.close();
-                }
-            }
 
         // ------------------------------------------------------------------------
         // RESUME: Use CODI to parse the operational configuration (this shouldn't be here!)

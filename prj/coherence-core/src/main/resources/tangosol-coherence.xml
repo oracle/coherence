@@ -1012,8 +1012,6 @@ to find specific notes on changes suggested for production use.
       </storage-authorizer>
     </storage-authorizers>
 
-    <secured-production system-property="coherence.secured.production">false</secured-production>
-
     <common-daemon-pool>
       <thread-count system-property="coherence.common.pool.threads"/>
       <thread-count-max system-property="coherence.common.pool.max.threads"/>

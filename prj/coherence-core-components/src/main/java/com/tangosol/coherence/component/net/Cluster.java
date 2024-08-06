@@ -1148,7 +1148,7 @@ public class Cluster
         
         DatagramSocketProvider provider = bldrUnicastSocketProvider.getDatagramSocketProvider(
             com.oracle.coherence.common.internal.net.MultiplexedSocketProvider.WellKnownSubPorts.COHERENCE_TCMP_DATAGRAM.getSubPort());
-        
+
         // set socket provider for UnicastUdpSocket
         manager.setUnicastUdpSocketProvider(provider);
         

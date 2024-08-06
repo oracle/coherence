@@ -73,8 +73,6 @@ public class ClusterOneWayServerOnlyCertsTests
                         SystemProperty.of("coherence.security.server.key.password", s_serverKeyAndCert.keyPasswordString()),
                         SystemProperty.of("coherence.security.server.truststore", s_serverCACert.getKeystoreURI()),
                         SystemProperty.of("coherence.security.server.truststore.password", s_serverCACert.storePasswordString()),
-                        SystemProperty.of("coherence.mode", "prod"),
-                        SystemProperty.of("coherence.secured.production", "true"),
                         ClusterName.of("ClusterOneWayServerOnlyCertsTests"),
                         ClusterPort.of(ports.next()),
                         WellKnownAddress.loopback(),
