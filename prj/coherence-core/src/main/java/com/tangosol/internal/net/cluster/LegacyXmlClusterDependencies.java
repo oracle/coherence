@@ -152,6 +152,7 @@ public class LegacyXmlClusterDependencies
         // process the <license-mode> element.
         String sMode = xml.getSafeElement("license-mode").getString("dev");
         setMode(translateModeName(sMode));
+
         // process the <socket-providers> definitions.  could be referenced in unicast-listener/socket-provider.
         XmlElement xmlSocketProviders = xml.getSafeElement("socket-providers");
         DefaultProcessingContext ctxSocketProviders = new DefaultProcessingContext(ctxClusterConfig, xmlSocketProviders);
@@ -211,8 +212,6 @@ public class LegacyXmlClusterDependencies
         String sEdition = xml.getSafeElement("edition-name").getString("CE");
         setEdition(translateEditionName(sEdition));
 
-        String sMode = xml.getSafeElement("license-mode").getString("dev");
-        setMode(translateModeName(sMode));
         setLambdasSerializationMode(xml.getSafeElement("lambdas-serialization").getString());
 
         // ------------------------------------------------------------------------
