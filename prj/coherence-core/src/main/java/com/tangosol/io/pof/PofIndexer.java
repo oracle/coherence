@@ -188,6 +188,10 @@ public class PofIndexer
             final ClassAnnotationSeeker.Dependencies jarFileDeps = new ClassAnnotationSeeker.Dependencies();
             jarFileDeps.setDiscoverer(new ClassPathResourceDiscoverer.InformedResourceDiscoverer(
                     urls.toArray(new URL[urls.size()])));
+            if (!m_packagesToScan.isEmpty())
+                {
+                jarFileDeps.setPackages(m_packagesToScan);
+                }
             final ClassAnnotationSeeker simpleSeeker  = new ClassAnnotationSeeker(jarFileDeps);
             final Set<String> setJarClassNames = simpleSeeker.findClassNames(PortableType.class);
             for (String className : setJarClassNames)
@@ -213,6 +217,11 @@ public class PofIndexer
                         throw new RuntimeException(e);
                         }
                     }).collect(Collectors.toSet()).toArray(new URL[m_classFiles.size()])));
+
+            if (!m_packagesToScan.isEmpty())
+                {
+                classFileDeps.setPackages(m_packagesToScan);
+                }
 
             final ClassAnnotationSeeker simpleSeeker  = new ClassAnnotationSeeker(classFileDeps);
             final Set<String> setClassFilesClassNames = simpleSeeker.findClassNames(PortableType.class);
@@ -241,6 +250,11 @@ public class PofIndexer
                             throw new RuntimeException(e);
                             }
                         }).collect(Collectors.toSet()).toArray(new URL[m_classesDirectories.size()])));
+
+            if (!m_packagesToScan.isEmpty())
+                {
+                classFileDeps.setPackages(m_packagesToScan);
+                }
 
             final ClassAnnotationSeeker simpleSeeker  = new ClassAnnotationSeeker(classFileDeps);
             final Set<String> setClassFilesClassNames = simpleSeeker.findClassNames(PortableType.class);

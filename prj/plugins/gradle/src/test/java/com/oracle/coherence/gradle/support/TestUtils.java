@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -27,7 +28,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
+import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -204,6 +209,36 @@ public class TestUtils
             {
             throw Exceptions.ensureRuntimeException(e);
             }
+        }
+
+    public static Set<String> getPofIndexedClasses(File gradleProjectRootDirectory, String baseDirectory)
+        {
+        File fileClassDirectory = new File(gradleProjectRootDirectory, baseDirectory);
+
+        assertThat(String.format("classDirectory %s does not exist.", fileClassDirectory.getAbsolutePath()), fileClassDirectory.exists(), is(true));
+        assertThat(fileClassDirectory.isDirectory(), is(true));
+
+        URL url;
+        try
+        {
+            url = fileClassDirectory.toURI().toURL();
+        }
+        catch (MalformedURLException e)
+        {
+            throw new RuntimeException(e);
+        }
+
+        Properties pofIndexProperties = new Properties();
+        try
+            {
+            pofIndexProperties.load(new FileInputStream(new File(fileClassDirectory, "META-INF/pof.idx")));
+            }
+        catch (IOException e)
+            {
+            throw new RuntimeException(e);
+            }
+
+        return pofIndexProperties.keySet().stream().map(Object::toString).collect(Collectors.toSet());
         }
 
     public static void assertThatClassIsPofInstrumented(Class<?> pofClass)

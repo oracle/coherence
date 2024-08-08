@@ -163,6 +163,11 @@ public abstract class PortableTypeMojo
                     pofIndexer.setIncludeFilterPatterns(m_sPofIndexIncludeFilterPatterns);
                     }
 
+                if (m_sPofIndexPackages != null && !m_sPofIndexPackages.isEmpty())
+                    {
+                    pofIndexer.setPackagesToScan(m_sPofIndexPackages);
+                    }
+
                 pofIndexer.createIndexInDirectory(getClassesDirectories()[0]);
                 }
             else
@@ -286,6 +291,19 @@ public abstract class PortableTypeMojo
     public void setPofIndexIncludes(Set<String> pofIndexIncludes)
         {
         m_sPofIndexIncludeFilterPatterns = pofIndexIncludes;
+        }
+
+    /**
+     * Allows you to include one or more packages when indexing {@link PortableType} annotated classes. This is an optional
+     * property but limiting the scanning of {@link PortableType} annotated classes to a set of packages may speed up
+     * indexing substantially.
+     * <p>
+     * Important: The filter is applied as part of scanning process for {@link PortableType} annotated classes and as such
+     * this property DOES affect scanning performance.
+     */
+    public void setPofIndexPackages(Set<String> pofIndexPackages)
+        {
+        m_sPofIndexPackages = pofIndexPackages;
         }
 
     // ----- helper methods -------------------------------------------------
@@ -460,12 +478,27 @@ public abstract class PortableTypeMojo
     private String m_sPofIndexFileName = "META-INF/pof.idx";
 
     /**
-     * Whether to index {@link PortableType} annotated classes in an index file at {@code META-INF/pof.idx}.
-     * If not specified, this property defaults to {@code true}.
+     * Allows to set regular expressions for classes to be included. E.g. if you want to have only classes included
+     * in the POF that end in Address, specify a regular expression string of {code .*Address$}.
+     * <p>
+     * Important: The filter is applied AFTER the retrieval of {@link PortableType} annotated classes and as such
+     * this property does not affect scanning performance.
      */
     @Parameter(name      = "pofIndexIncludes",
-            property     = "pof.index.includes")
+               property  = "pof.index.includes")
     private Set<String> m_sPofIndexIncludeFilterPatterns;
+
+    /**
+     * Allows you to include one or more packages when indexing {@link PortableType} annotated classes. This is an optional
+     * property but limiting the scanning of {@link PortableType} annotated classes to a set of packages may speed up
+     * indexing substantially.
+     * <p>
+     * Important: The filter is applied as part of scanning process for {@link PortableType} annotated classes and as such
+     * this property DOES affect scanning performance.
+     */
+    @Parameter(name      = "pofIndexPackages",
+               property  = "pof.index.packages")
+    private Set<String> m_sPofIndexPackages;
 
     /**
      * A flag indicating whether this is test classes instrumentation.

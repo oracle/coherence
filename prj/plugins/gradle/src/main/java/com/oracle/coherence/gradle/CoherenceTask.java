@@ -24,8 +24,11 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 
 import org.gradle.api.logging.Logger;
+
 import org.gradle.api.plugins.JavaPlugin;
+
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -40,10 +43,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.oracle.coherence.common.schema.ClassFileSchemaSource.Filters.hasAnnotation;
 
@@ -110,6 +110,17 @@ abstract class CoherenceTask
     @Input
     @Optional
     public abstract Property<Boolean> getIndexPofClasses();
+
+    /**
+     * Allows you to include one or more packages when indexing {@link PortableType} annotated classes. This is an optional
+     * property but limiting the scanning of {@link PortableType} annotated classes to a set of packages may speed up
+     * indexing substantially.
+     *
+     * @return a Gradle SetProperty wrapping a String values
+     */
+    @Input
+    @Optional
+    public abstract SetProperty<String> getPofIndexPackages();
 
     /**
      * Sets the project's resources directory. This is an optional property.
@@ -328,12 +339,17 @@ abstract class CoherenceTask
             {
             try {
                 logger.warn("Creating POF index in directory " + outputDirectory.getCanonicalPath());
-                new PofIndexer()
-                        .ignoreClasspath(true)
+                final PofIndexer pofIndexer = new PofIndexer();
+                pofIndexer.ignoreClasspath(true)
                         .withClassesFromDirectory(listInstrument)
-                        .withClassesFromJarFile(classesFromJarFile)
-                        .createIndexInDirectory(outputDirectory);
-                }
+                        .withClassesFromJarFile(classesFromJarFile);
+
+                if (!this.getPofIndexPackages().getOrElse(Collections.EMPTY_SET).isEmpty())
+                    {
+                    pofIndexer.setPackagesToScan(this.getPofIndexPackages().get());
+                    }
+                pofIndexer.createIndexInDirectory(outputDirectory);
+            }
             catch (IOException e)
                 {
                     throw Exceptions.ensureRuntimeException(e);

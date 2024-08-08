@@ -16,3 +16,8 @@ repositories {
 dependencies {
     implementation '%s:coherence:%s'
 }
+
+coherencePof {
+    indexPofClasses = true
+    pofIndexPackages = project.hasProperty('pofIndexPackages') ? [project.getProperty('pofIndexPackages')] : []
+}

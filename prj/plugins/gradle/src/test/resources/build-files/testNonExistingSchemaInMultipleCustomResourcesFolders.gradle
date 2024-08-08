@@ -31,4 +31,5 @@ sourceSets {
 
 coherencePof {
     usePofSchemaXml = true
+    indexPofClasses = false
 }

@@ -71,6 +71,10 @@ public abstract class AbstractCoherenceTaskRegistrationAction implements Action<
             {
             coherencePofTask.getIndexPofClasses().set(coherenceExtension.getIndexPofClasses());
             }
+        if (coherenceExtension.getPofIndexPackages().isPresent())
+            {
+            coherencePofTask.getPofIndexPackages().set(coherenceExtension.getPofIndexPackages());
+            }
         }
 
 

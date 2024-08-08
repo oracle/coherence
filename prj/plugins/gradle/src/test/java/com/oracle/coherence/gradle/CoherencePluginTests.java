@@ -43,11 +43,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import java.util.Properties;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import static org.hamcrest.text.StringContainsInOrder.stringContainsInOrder;
@@ -55,9 +57,11 @@ import static org.hamcrest.text.StringContainsInOrder.stringContainsInOrder;
 import static com.oracle.coherence.gradle.support.TestUtils.assertThatClassIsPofInstrumented;
 import static com.oracle.coherence.gradle.support.TestUtils.copyFileTo;
 import static com.oracle.coherence.gradle.support.TestUtils.getPofClass;
+import static com.oracle.coherence.gradle.support.TestUtils.getPofIndexedClasses;
 import static com.oracle.coherence.gradle.support.TestUtils.setupGradleBuildFile;
 import static com.oracle.coherence.gradle.support.TestUtils.setupGradlePropertiesFile;
 import static com.oracle.coherence.gradle.support.TestUtils.setupGradleSettingsFile;
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -164,7 +168,7 @@ public class CoherencePluginTests
                              f_coherenceBuildTimeProperties.getCoherenceVersion());
 
         copyFileTo("/Foo.txt", m_gradleProjectRootDirectory,
-                   "/src/main/java", "Foo.java");
+                   "/src/main/java/foo", "Foo.java");
 
         BuildResult gradleResult = GradleRunner.create()
                 .withProjectDir(m_gradleProjectRootDirectory)
@@ -178,9 +182,9 @@ public class CoherencePluginTests
         assertSuccess(gradleResult, ":build");
 
         String sOutput = gradleResult.getOutput();
-        assertThat(sOutput, containsString("Instrumenting type Foo"));
+        assertThat(sOutput, containsString("Instrumenting type foo.Foo"));
 
-        Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "Foo", "build/classes/java/main/");
+        Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "foo.Foo", "build/classes/java/main/");
         assertThatClassIsPofInstrumented(foo);
         }
 
@@ -210,9 +214,9 @@ public class CoherencePluginTests
         assertSuccess(gradleResult, ":build");
 
         String sOutput = gradleResult.getOutput();
-        assertThat(sOutput, containsString("Instrumenting type Foo"));
+        assertThat(sOutput, containsString("Instrumenting type foo.Foo"));
 
-        Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "Foo", "build/classes/java/main/");
+        Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "foo.Foo", "build/classes/java/main/");
         assertThatClassIsPofInstrumented(foo);
 
         BuildResult gradleResult2 = GradleRunner.create()
@@ -229,7 +233,7 @@ public class CoherencePluginTests
         String sOutput2 = gradleResult2.getOutput();
         assertThat(sOutput2, containsString("Skipping task ':compileJava' as it is up-to-date"));
 
-        Class<?> foo2 = getPofClass(this.m_gradleProjectRootDirectory, "Foo", "build/classes/java/main/");
+        Class<?> foo2 = getPofClass(this.m_gradleProjectRootDirectory, "foo.Foo", "build/classes/java/main/");
         assertThatClassIsPofInstrumented(foo2);
         }
 
@@ -259,9 +263,9 @@ public class CoherencePluginTests
         assertSuccess(gradleResult, ":build");
 
         String sOutput = gradleResult.getOutput();
-        assertThat(sOutput, containsString("Instrumenting type Foo"));
+        assertThat(sOutput, containsString("Instrumenting type foo.Foo"));
 
-        Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "Foo", "build/classes/java/main/");
+        Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "foo.Foo", "build/classes/java/main/");
         assertThatClassIsPofInstrumented(foo);
 
         copyFileTo("/Bar.txt", m_gradleProjectRootDirectory,
@@ -282,10 +286,10 @@ public class CoherencePluginTests
 
         String sOutput2 = gradleResult2.getOutput();
         assertThat(sOutput2, containsString("Instrumenting type Bar"));
-        assertThat(sOutput2, containsString("Skipping type Foo. Type is already instrumented"));
+        assertThat(sOutput2, containsString("Skipping type foo.Foo. Type is already instrumented"));
         assertThat(sOutput2, containsString("Skipping type Color. Type does not exist in the schema or PofType extension is not defined"));
 
-        Class<?> foo2 = getPofClass(this.m_gradleProjectRootDirectory, "Foo", "build/classes/java/main/");
+        Class<?> foo2 = getPofClass(this.m_gradleProjectRootDirectory, "foo.Foo", "build/classes/java/main/");
         assertThatClassIsPofInstrumented(foo2);
 
         Class<?> bar = getPofClass(this.m_gradleProjectRootDirectory, "Bar", "build/classes/java/main/");
@@ -304,7 +308,7 @@ public class CoherencePluginTests
                 f_coherenceBuildTimeProperties.getCoherenceVersion());
 
         copyFileTo("/Foo.txt", m_gradleProjectRootDirectory,
-                "/src/main/java", "Foo.java");
+                "/src/main/java/foo", "Foo.java");
 
         BuildResult gradleResult = GradleRunner.create()
                 .withProjectDir(m_gradleProjectRootDirectory)
@@ -318,9 +322,9 @@ public class CoherencePluginTests
         assertSuccess(gradleResult, ":build");
 
         String sOutput = gradleResult.getOutput();
-        assertThat(sOutput, containsString("Instrumenting type Foo"));
+        assertThat(sOutput, containsString("Instrumenting type foo.Foo"));
 
-        Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "Foo", "build/classes/java/main/");
+        Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "foo.Foo", "build/classes/java/main/");
         assertThatClassIsPofInstrumented(foo);
 
         File pofIndexFile = new File(m_gradleProjectRootDirectory, "build/classes/java/main/META-INF/pof.idx");
@@ -331,8 +335,8 @@ public class CoherencePluginTests
         properties.load(new FileReader(pofIndexFile));
 
         assertFalse(properties.isEmpty());
-        assertTrue(properties.containsKey("Foo"));
-        assertTrue(properties.get("Foo").equals(""));
+        assertTrue(properties.containsKey("foo.Foo"));
+        assertTrue(properties.get("foo.Foo").equals(""));
 
         }
 
@@ -347,7 +351,7 @@ public class CoherencePluginTests
                 f_coherenceBuildTimeProperties.getCoherenceVersion());
 
         copyFileTo("/Foo.txt", m_gradleProjectRootDirectory,
-                "/src/main/java", "Foo.java");
+                "/src/main/java/foo", "Foo.java");
 
         BuildResult gradleResult = GradleRunner.create()
                 .withProjectDir(m_gradleProjectRootDirectory)
@@ -361,9 +365,9 @@ public class CoherencePluginTests
         assertSuccess(gradleResult, ":build");
 
         String sOutput = gradleResult.getOutput();
-        assertThat(sOutput, containsString("Instrumenting type Foo"));
+        assertThat(sOutput, containsString("Instrumenting type foo.Foo"));
 
-        Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "Foo", "build/classes/java/main/"); // "build/classes/java/main/"
+        Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "foo.Foo", "build/classes/java/main/"); // "build/classes/java/main/"
         assertThatClassIsPofInstrumented(foo);
 
         File pofIndexFile = new File(m_gradleProjectRootDirectory, "build/classes/java/main/META-INF/pof.idx");
@@ -382,7 +386,7 @@ public class CoherencePluginTests
                              f_coherenceBuildTimeProperties.getCoherenceVersion());
 
         copyFileTo("/Foo.txt", m_gradleProjectRootDirectory,
-                   "/src/main/java", "Foo.java");
+                   "/src/main/java/foo", "Foo.java");
 
         copyFileTo("/Bar.txt", m_gradleProjectRootDirectory,
                    "/src/test/java", "Bar.java");
@@ -420,7 +424,7 @@ public class CoherencePluginTests
                              f_coherenceBuildTimeProperties.getCoherenceVersion());
 
         copyFileTo("/Foo.txt", m_gradleProjectRootDirectory,
-                   "/src2", "Foo.java");
+                   "/src2/foo", "Foo.java");
         copyFileTo("/Bar.txt", m_gradleProjectRootDirectory,
                    "/src2", "Bar.java");
         copyFileTo("/Color.txt", m_gradleProjectRootDirectory,
@@ -447,10 +451,10 @@ public class CoherencePluginTests
         assertThat(sOutput, stringContainsInOrder("Add XmlSchemaSource", expectedSchema));
         assertThat(sOutput, containsString(expectedSchema));
         assertThat(sOutput, containsString("Instrumenting type Bar"));
-        assertThat(sOutput, containsString("Instrumenting type Foo"));
+        assertThat(sOutput, containsString("Instrumenting type foo.Foo"));
         assertThat(sOutput, containsString("SUCCESS"));
 
-        Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "Foo", expectedMain);
+        Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "foo.Foo", expectedMain);
         assertThatClassIsPofInstrumented(foo);
 
         Class<?> bar = getPofClass(this.m_gradleProjectRootDirectory, "Bar", expectedMain);
@@ -469,7 +473,7 @@ public class CoherencePluginTests
                 f_coherenceBuildTimeProperties.getCoherenceVersion());
 
         copyFileTo("/Foo.txt", m_gradleProjectRootDirectory,
-                "/src2", "Foo.java");
+                "/src2/foo", "Foo.java");
         copyFileTo("/Bar.txt", m_gradleProjectRootDirectory,
                 "/src2", "Bar.java");
         copyFileTo("/Color.txt", m_gradleProjectRootDirectory,
@@ -535,10 +539,10 @@ public class CoherencePluginTests
         assertThat(sOutput, stringContainsInOrder("Add XmlSchemaSource", expectedSchema));
         assertThat(sOutput, containsString(expectedSchema));
         assertThat(sOutput, containsString("Instrumenting type Bar"));
-        assertThat(sOutput, containsString("Instrumenting type Foo"));
+        assertThat(sOutput, containsString("Instrumenting type foo.Foo"));
         assertThat(sOutput, containsString("SUCCESS"));
 
-        Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "Foo", expectedMain);
+        Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "foo.Foo", expectedMain);
         assertThatClassIsPofInstrumented(foo);
 
         Class<?> bar = getPofClass(this.m_gradleProjectRootDirectory, "Bar", expectedMain);
@@ -647,7 +651,57 @@ public class CoherencePluginTests
         assertThat(gradleResult.getOutput(), containsString("Instrumenting type coherence.pof.core.FooClass"));
         assertThat(gradleResult.getOutput(), containsString("Instrumenting type coherence.pof.app.PofClass"));
         assertThat(gradleResult.getOutput(), containsString("core.jar to schema"));
+
+        final Class<?> fooClass = getPofClass(this.m_gradleProjectRootDirectory, "coherence.pof.core.FooClass", "core/build/classes/java/main");
+        assertThatClassIsPofInstrumented(fooClass);
+
+        final Class<?> publisherClass = getPofClass(this.m_gradleProjectRootDirectory, "coherence.pof.support.Publisher", "core/build/classes/java/main");
+        assertThatClassIsPofInstrumented(publisherClass);
+
+        final Class<?> pofClass = getPofClass(this.m_gradleProjectRootDirectory, "coherence.pof.app.PofClass", "app/build/classes/java/main");
+        assertThatClassIsPofInstrumented(pofClass);
+
+        Set<String> pofIndexedClasses = getPofIndexedClasses(this.m_gradleProjectRootDirectory, "core/build/classes/java/main");
+        assertThat(pofIndexedClasses.size(), is(2));
+        assertThat(pofIndexedClasses, containsInAnyOrder("coherence.pof.core.FooClass", "coherence.pof.support.Publisher"));
         }
+
+    @Test
+    @DisabledOnOs(value = OS.WINDOWS, disabledReason =
+            "GradleRunner does not seem to release all file handles. See https://github.com/gradle/gradle/issues/12535")
+    void verifyCoherenceGradlePluginWithMultiProjectAndPackageFilter() throws IOException
+    {
+    final String projectFolder = "test-multi-project";
+    LOGGER.info("Copy '{}' to '{}'.", projectFolder, m_gradleProjectRootDirectory.getAbsolutePath());
+    copyDirectory(projectFolder, m_gradleProjectRootDirectory.getAbsolutePath());
+
+    BuildResult gradleResult = GradleRunner.create()
+            .withProjectDir(m_gradleProjectRootDirectory)
+            .withArguments("clean", "build", "--debug", "-PpofIndexPackages=coherence.pof.support")
+            .withDebug(true)
+            .withPluginClasspath()
+            .build();
+    logOutput(gradleResult);
+    assertSuccess(gradleResult, ":core:compileJava");
+    assertSuccess(gradleResult, ":app:compileJava");
+
+    assertThat(gradleResult.getOutput(), containsString("Instrumenting type coherence.pof.core.FooClass"));
+    assertThat(gradleResult.getOutput(), containsString("Instrumenting type coherence.pof.app.PofClass"));
+    assertThat(gradleResult.getOutput(), containsString("core.jar to schema"));
+
+    final Class<?> fooClass = getPofClass(this.m_gradleProjectRootDirectory, "coherence.pof.core.FooClass", "core/build/classes/java/main");
+    assertThatClassIsPofInstrumented(fooClass);
+
+    final Class<?> publisherClass = getPofClass(this.m_gradleProjectRootDirectory, "coherence.pof.support.Publisher", "core/build/classes/java/main");
+    assertThatClassIsPofInstrumented(publisherClass);
+
+    final Class<?> pofClass = getPofClass(this.m_gradleProjectRootDirectory, "coherence.pof.app.PofClass", "app/build/classes/java/main");
+    assertThatClassIsPofInstrumented(pofClass);
+
+    Set<String> pofIndexedClasses = getPofIndexedClasses(this.m_gradleProjectRootDirectory, "core/build/classes/java/main");
+    assertThat(pofIndexedClasses.size(), is(1));
+    assertThat(pofIndexedClasses, containsInAnyOrder("coherence.pof.support.Publisher"));
+    }
 
     // ----- helper methods -------------------------------------------------
 
@@ -727,6 +781,7 @@ public class CoherencePluginTests
         assertThat(outcome, is(notNullValue()));
         assertThat(outcome.name(), is("UP_TO_DATE"));
         }
+
 
     void logOutput(BuildResult gradleResult)
         {

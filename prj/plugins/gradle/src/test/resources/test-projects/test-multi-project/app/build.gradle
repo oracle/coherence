@@ -18,3 +18,8 @@ dependencies {
     implementation '%s:coherence:%s'
     implementation project(':core')
 }
+
+coherencePof {
+    indexPofClasses = true
+    pofIndexPackages = ['coherence.pof.app']
+}

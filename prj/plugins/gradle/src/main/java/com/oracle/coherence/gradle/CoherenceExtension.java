@@ -9,6 +9,7 @@ package com.oracle.coherence.gradle;
 import com.tangosol.io.pof.schema.annotation.PortableType;
 
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 
 /**
  * A Gradle extension object, that contains all settings and properties for the Coherence Gradle plugin.
@@ -69,4 +70,13 @@ public abstract class CoherenceExtension
      * @return Gradle container object wrapping a Boolean property
      */
     public abstract Property<Boolean> getIndexPofClasses();
+
+    /**
+     * Allows you to include one or more packages when indexing {@link PortableType} annotated classes. This is an optional
+     * property but limiting the scanning of {@link PortableType} annotated classes to a set of packages may speed up
+     * indexing substantially.
+     *
+     * @return Gradle ListProperty wrapping a String values
+     */
+    public abstract SetProperty<String> getPofIndexPackages();
     }
