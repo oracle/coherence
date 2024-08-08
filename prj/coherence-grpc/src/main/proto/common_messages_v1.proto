@@ -20,7 +20,7 @@ option java_package = "com.oracle.coherence.grpc.messages.common.v1";
 
 // An error message
 message ErrorMessage {
-    // The test of the error message
+    // The text of the error message
     string message = 1;
     // An optional Exception serialized using the client's serializer
     optional bytes error = 2;
