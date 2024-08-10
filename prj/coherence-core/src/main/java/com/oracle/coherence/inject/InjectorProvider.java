@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.inject;
 
-import javax.annotation.Priority;
+import com.oracle.coherence.common.schema.util.AsmUtils;
 
+import java.util.Map;
 import java.util.ServiceLoader;
 
 /**
@@ -48,11 +49,11 @@ class InjectorProvider
 
         for (Injector instance : ServiceLoader.load(Injector.class))
             {
-            Priority priority = instance.getClass().getAnnotation(Priority.class);
-            if (priority != null && priority.value() > nPriority)
+            Integer nPriorityFromAnno = getPriority(instance);
+            if (nPriorityFromAnno != null && nPriorityFromAnno > nPriority)
                 {
                 injector  = instance;
-                nPriority = priority.value();
+                nPriority = nPriorityFromAnno;
                 }
             else if (nPriority == Integer.MIN_VALUE)
                 {
@@ -60,6 +61,28 @@ class InjectorProvider
                 }
             }
         return injector;
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Get the value of the {@code Priority} annotation (either {@code javax}
+     * or {@code jakarta}) from the provided {@link Injector}.
+     *
+     * @param instance  the {@link Injector} instance to scan for the
+     *                  {@code Priority} annotation
+     *
+     * @return  the priority of the {@link Injector} or {@code null} if the
+     *          {@code Priority} annotation is not found
+     *
+     * @since 22.06.10
+     */
+    static protected Integer getPriority(Injector instance)
+        {
+        Map<String, Object> attributes = AsmUtils.getAnnotationValues(instance.getClass(),
+                ANNOTATIONS, ANNOTATION_ATTRIBUTE_ARRAY);
+
+        return (Integer) (attributes.isEmpty() ? null : attributes.get(VALUE_ATTRIBUTE));
         }
 
     // ----- inner class: LazyHolder ----------------------------------------
@@ -78,4 +101,32 @@ class InjectorProvider
      * A no-op {@link Injector}.
      */
     private static final Injector INSTANCE = (target) -> {};
+
+    /**
+     * The array of {@code Priority} annotations to scan for.
+     *
+     * @since 22.06.10
+     */
+    private static final String[] ANNOTATIONS =
+            {
+            "javax.annotation.Priority",
+            "jakarta.annotation.Priority"
+            };
+
+    /**
+     * The {@code value} attribute on either the {@code javax} or
+     * {@code jakarta} annotations.
+     *
+     * @since 22.06.10
+     */
+    private static final String VALUE_ATTRIBUTE = "value";
+
+    /**
+     * The annotation attributes of interest.
+     *
+     * @since 22.06.10
+     */
+    private static final String[] ANNOTATION_ATTRIBUTE_ARRAY = { VALUE_ATTRIBUTE };
+
+
     }
