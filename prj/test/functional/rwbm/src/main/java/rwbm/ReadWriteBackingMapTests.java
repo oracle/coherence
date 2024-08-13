@@ -199,18 +199,19 @@ public class ReadWriteBackingMapTests
 
         try
             {
-            // Sleep so we should be in-between store calls
             rwbm.flush();
-            definiteSleep(cMillis / 2);
 
             cache.put("Key4", "Value4");
             cache.put("Key5", "Value5");
 
-            // wait until the write-behind delay has elapsed
-            definiteSleep(cMillis * 2);
+            // write batch factor of 1 implies that the store write should be immediate
+            // we'll sleep minimally to ensure store has been called
+            definiteSleep(100L);
 
             assertThat(map.size(), is(2));
-            verifyStoreStats("putWithWriteBatchFactorOne-" + sCacheName, store, 0, 0, 0, 0, 1, 0);
+            
+            // we expect to see 2 individual store calls, as batching is effectively turned off
+            verifyStoreStats("putWithWriteBatchFactorOne-" + sCacheName, store, 0, 2, 0, 0, 0, 0);
             }
         finally
             {
@@ -323,15 +324,19 @@ public class ReadWriteBackingMapTests
             {
             map.clear();
             cache.put("Key1", "Value1");
-            definiteSleep(20L);
+            definiteSleep(100L);
             assertEquals("put() caused an immediate store.", map.size(), 0);
 
-            // wait until the write-behind delay has elapsed
-            definiteSleep(cMillis + 50L);
+            definiteSleep(cMillis);
             assertEquals("write did not occur.", map.size(), 1);
-
-            // verify the store store() method was called once
             verifyStoreStats("readThroughBasic-" + sCacheName, store, 0, 1, 0, 0, 0, 0);
+
+            cache.put("Key2", "Value2");
+            cache.put("Key3", "Value3");
+
+            definiteSleep(cMillis + 100L);
+            assertEquals("write did not occur.", map.size(), 3);
+            verifyStoreStats("readThroughBasic-" + sCacheName, store, 0, 1, 0, 0, 1, 0);
             }
         finally
             {

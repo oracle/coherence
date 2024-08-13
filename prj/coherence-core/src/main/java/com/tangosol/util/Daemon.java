@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -178,7 +178,7 @@ public abstract class Daemon
             // Adjust the timeout given by the guard contract; only
             // wait for a fraction of that time between heartbeats
             long cTimeoutMillis = context.getSoftTimeoutMillis();
-            cMaxWaitMillis = Math.min(1000L, Math.max(1L, cTimeoutMillis >> 2));
+            cMaxWaitMillis = Math.min(cDefaultMillis, Math.max(1L, cTimeoutMillis >> 2));
             }
         return cMaxWaitMillis;
         }

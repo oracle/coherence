@@ -3234,7 +3234,7 @@ public class ReadWriteBackingMap
 
                 // cap the wait time so that during shutdown the
                 // thread will eventually recheck the active flag
-                long cWait = (cMillis < 0L || cMillis > 1000L) ? 1000L : cMillis;
+                long cWait = (cMillis < 0L || cMillis > 0xFFL) ? 0xFFL : cMillis;
                 waitFor(this, cWait);
 
                 if (cMillis > 0L)
@@ -3549,7 +3549,7 @@ public class ReadWriteBackingMap
             while (!queue.getPendingMap().isEmpty())
                 {
                 queue.setWaitingOnPending(true);
-                waitFor(queue, 1000L);
+                waitFor(queue, 0xFFL);
                 }
             }
         }
@@ -3922,14 +3922,23 @@ public class ReadWriteBackingMap
 
             if (entry == null)
                 {
-                LongArray arrayRipe = getRipeArray();
-                boolean   fWasEmpty = arrayRipe.isEmpty();
-                long      ldtRipe   = getSafeTimeMillis()
-                                        + Math.max(getDelayMillis(), cDelay);
+                cDelay = Math.max(getDelayMillis(), cDelay);
+
+                LongArray arrayRipe   = getRipeArray();
+                boolean   fWasEmpty   = arrayRipe.isEmpty();
+                long      ldtNow      = getSafeTimeMillis();
+                long      ldtRipe     = (ldtNow + cDelay) & ~0xFFL;
+                long      ldtSoftRipe = ldtNow + (long) (cDelay * (1 - getWriteBatchFactor()));
+
                 if (!fWasEmpty)
                     {
-                    long ldtLast = arrayRipe.getLastIndex();
-                    if (ldtLast > ldtRipe)
+                    long ldtFirst = arrayRipe.getFirstIndex();
+                    long ldtLast  = arrayRipe.getLastIndex();
+                    if (ldtSoftRipe <= ldtFirst)
+                        {
+                        ldtRipe = ldtFirst;
+                        }
+                    else if (ldtLast > ldtRipe)
                         {
                         // due to requeueing, there are entries beyond the
                         // standard "ripe" time; move the insert point there
@@ -3958,7 +3967,7 @@ public class ReadWriteBackingMap
                 entryNew.setRipeMillis(ldtRipe);
                 map.put(binKey, entryNew);
                 listKeys.add(binKey);
-
+                
                 if (fWasEmpty)
                     {
                     this.notify(); // @see remove()
@@ -4036,7 +4045,7 @@ public class ReadWriteBackingMap
                 {
                 long lIndex   = arrayRipe.getFirstIndex();
                 List listKeys = (List) arrayRipe.get(lIndex);
-                if (listKeys.size() > 0)
+                if (!listKeys.isEmpty())
                     {
                     Object oKey = listKeys.remove(0);
 
@@ -4059,7 +4068,7 @@ public class ReadWriteBackingMap
         */
         public Entry remove()
             {
-            return remove(-1l);
+            return remove(-1L);
             }
 
         /**
@@ -4084,18 +4093,19 @@ public class ReadWriteBackingMap
                     return null;
                     }
 
-                long ldtNow = getSafeTimeMillis();
-                long lIndex = arrayRipe.getFirstIndex();
+                long ldtNow      = getSafeTimeMillis();
+                long lIndex      = arrayRipe.getFirstIndex();
+                long ldtSoftRipe = lIndex - (long) (getDelayMillis() * getWriteBatchFactor());
 
-                if (lIndex > 0 && (lIndex <= ldtNow || m_fFlush))
+                if (lIndex > 0 && (ldtSoftRipe <= ldtNow || m_fFlush))
                     {
                     List listKeys = (List) arrayRipe.get(lIndex);
-                    if (listKeys.size() > 0)
+                    if (!listKeys.isEmpty())
                         {
                         Object oKey  = listKeys.remove(0);
                         Entry  entry = (Entry) getEntryMap().remove(oKey);
 
-                        if (listKeys.size() == 0)
+                        if (listKeys.isEmpty())
                             {
                             arrayRipe.remove(lIndex);
                             }
@@ -4118,7 +4128,7 @@ public class ReadWriteBackingMap
 
                 // cap the wait time so that during shutdown the
                 // thread will eventually re-check the active flag
-                long cWait = (cMillis <= 0L || cMillis > 1000L) ? 1000L : cMillis;
+                long cWait = (cMillis <= 0L || cMillis > 0xFFL) ? 0xFFL : cMillis;
 
                 if (lIndex > ldtNow)
                     {
@@ -4166,12 +4176,14 @@ public class ReadWriteBackingMap
                     }
                 else
                     {
+                    long ldtNow = getSafeTimeMillis();
                     long lIndex = arrayRipe.getFirstIndex();
-                    if (m_fFlush || lIndex <= getSafeTimeMillis() + (long)
-                        (getWriteBatchFactor() * getWriteBehindSeconds() * 1000L))
+                    long ldtSoftRipe = lIndex - (long) (getDelayMillis() * getWriteBatchFactor());
+
+                    if (m_fFlush || ldtSoftRipe <= ldtNow)
                         {
                         List listKeys = (List) arrayRipe.get(lIndex);
-                        if (listKeys.size() > 0)
+                        if (!listKeys.isEmpty())
                             {
                             Object binKey = listKeys.remove(0);
                             Entry  entry  = (Entry) getEntryMap().remove(binKey);
@@ -4397,20 +4409,20 @@ public class ReadWriteBackingMap
         * determine if something is or is not already queued, and actually
         * holds the value and when-added time information.
         */
-        private Map       m_mapQueuedWrites = new SafeHashMap();
+        private final Map       m_mapQueuedWrites = new SafeHashMap();
 
         /**
         * The queue (ordered list) of entry keys where the index indicates when
         * an entry is ripe. The entry itself is a List of items that ripens
         * at the same time.
         */
-        private LongArray m_arrQueue       = new SparseArray();
+        private final LongArray m_arrQueue       = new SparseArray();
 
         /**
         * Map of entries removed from the queue, but not yet persisted to the
         * underlying datastore.
         */
-        private Map       m_mapPending     = new HashMap();
+        private final Map       m_mapPending     = new HashMap();
 
         /**
         * Number of milliseconds to delay before allowing items to be removed off
@@ -4421,7 +4433,7 @@ public class ReadWriteBackingMap
         /**
          * Entries that will ripe within this interval won't be accelerated.
          */
-        private static final long ACCELERATE_MIN = 1000;
+        private static final long ACCELERATE_MIN = 0xFFL;
 
         /**
         * Flag indicating whether there are threads waiting for the store
@@ -4592,7 +4604,7 @@ public class ReadWriteBackingMap
 
             ConcurrentMap mapControl  = getControlMap();
             ReadQueue     queue       = getReadQueue();
-            long          cWaitMillis = getMaxWaitMillis(1000L);
+            long          cWaitMillis = getMaxWaitMillis(0xFFL);
 
             try
                 {
@@ -4892,7 +4904,7 @@ public class ReadWriteBackingMap
                     {
                     WriteQueue   queue = getWriteQueue();
                     StoreWrapper store = getCacheStore();
-                    long         cWait = getMaxWaitMillis(1000L);
+                    long         cWait = getMaxWaitMillis(0xFFL);
 
                     if (m_fRefreshContext)
                         {
