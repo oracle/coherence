@@ -73,7 +73,7 @@ public final class Float32Vector
     @Override
     public void writeExternal(PofWriter out) throws IOException
         {
-        out.writeFloatArray(0, m_array);
+        out.writeFloatArray(0, m_array, true);
         }
 
     @Override

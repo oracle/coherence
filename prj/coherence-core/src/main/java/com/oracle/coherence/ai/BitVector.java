@@ -96,7 +96,7 @@ public final class BitVector
     @Override
     public void writeExternal(PofWriter out) throws IOException
         {
-        out.writeLongArray(0, m_bits.toLongArray());
+        out.writeLongArray(0, m_bits.toLongArray(), true);
         }
 
     @Override
