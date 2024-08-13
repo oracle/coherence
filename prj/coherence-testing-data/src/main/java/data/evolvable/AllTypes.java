@@ -97,15 +97,15 @@ public class AllTypes
     private boolean[] m_booleanArray = new boolean[]{true, false};
     @Portable
     private byte[] m_byteArray = new byte[]{Byte.MIN_VALUE, Byte.MAX_VALUE};
-    @Portable
+    @PortableArray(useRawEncoding = true)
     private char[] m_charArray = new char[]{Character.MIN_VALUE, Character.MAX_VALUE};
     @Portable
     private short[] m_shortArray = new short[]{Short.MIN_VALUE, Short.MAX_VALUE};
-    @Portable
+    @PortableArray(useRawEncoding = true)
     private int[] m_intArray = new int[]{Integer.MIN_VALUE, Integer.MAX_VALUE};
     @Portable
     private long[] m_longArray = new long[]{Long.MIN_VALUE, Long.MAX_VALUE};
-    @Portable
+    @PortableArray(useRawEncoding = true)
     private float[] m_floatArray = new float[]{Float.MIN_VALUE, Float.MAX_VALUE};
     @Portable
     private double[] m_doubleArray = new double[]{Double.MIN_VALUE, Double.MAX_VALUE};

@@ -117,7 +117,8 @@ public class ClassFileHandler
                 if (an.desc.endsWith("PortableArray;"))
                     {
                     property.setInfo(new PofArray(
-                            ((Type) getAnnotationAttribute(an, "elementClass")).getClassName()
+                            ((Type)   getAnnotationAttribute(an, "elementClass")).getClassName(),
+                            (Boolean) getAnnotationAttribute(an, "useRawEncoding")
                     ));
                     }
                 if (an.desc.endsWith("PortableCollection;"))

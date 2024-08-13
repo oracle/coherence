@@ -76,6 +76,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -593,6 +594,20 @@ public class PortableTypeGenerator
                 mn.visitVarInsn(ALOAD, 0);
                 mn.visitFieldInsn(GETFIELD, m_classNode.name, field.name, field.desc);
 
+                // push raw encoding flag on stack if the array type supports it
+                if (isRawEncodingSupported(type))
+                    {
+                    if (property.isArray())
+                        {
+                        PofArray pofArray = property.asArray();
+                        mn.visitLdcInsn(pofArray.isUseRawEncoding());
+                        }
+                    else
+                        {
+                        mn.visitLdcInsn(false);
+                        }
+                    }
+                
                 WriteMethod writeMethod = getWriteMethod(property, type);
                 writeMethod.pushUniformTypes(mn);
                 mn.visitMethodInsn(INVOKEINTERFACE,
@@ -628,6 +643,21 @@ public class PortableTypeGenerator
             m_classNode.methods.add(mn);
             }
         m_log.debug("Implemented method: " + mn.name);
+        }
+
+    /**
+     * Return {@code true} if the specified type represents an array type that
+     * supports raw encoding.
+     *
+     * @param type  the array type to check
+     *
+     * @return {@code true} if the specified type represents an array type that
+     *         supports raw encoding
+     */
+    private boolean isRawEncodingSupported(Type type)
+        {
+        return type.getSort() == Type.ARRAY &&
+               RAW_ENCODING_TYPES.contains(type.getElementType().getSort());
         }
 
     // ---- static entry points ---------------------------------------------
@@ -1605,27 +1635,27 @@ public class PortableTypeGenerator
                     }
                 if ("[C".equals(type.getDescriptor()))
                     {
-                    return new WriteMethod("writeCharArray", "(I[C)V");
+                    return new WriteMethod("writeCharArray", "(I[CZ)V");
                     }
                 if ("[D".equals(type.getDescriptor()))
                     {
-                    return new WriteMethod("writeDoubleArray", "(I[D)V");
+                    return new WriteMethod("writeDoubleArray", "(I[DZ)V");
                     }
                 if ("[F".equals(type.getDescriptor()))
                     {
-                    return new WriteMethod("writeFloatArray", "(I[F)V");
+                    return new WriteMethod("writeFloatArray", "(I[FZ)V");
                     }
                 if ("[I".equals(type.getDescriptor()))
                     {
-                    return new WriteMethod("writeIntArray", "(I[I)V");
+                    return new WriteMethod("writeIntArray", "(I[IZ)V");
                     }
                 if ("[J".equals(type.getDescriptor()))
                     {
-                    return new WriteMethod("writeLongArray", "(I[J)V");
+                    return new WriteMethod("writeLongArray", "(I[JZ)V");
                     }
                 if ("[S".equals(type.getDescriptor()))
                     {
-                    return new WriteMethod("writeShortArray", "(I[S)V");
+                    return new WriteMethod("writeShortArray", "(I[SZ)V");
                     }
                 return getObjectArrayWriteMethod(property, type);
 
@@ -1851,6 +1881,12 @@ public class PortableTypeGenerator
      * Object type constant.
      */
     private static final Type OBJECT_TYPE = Type.getType(Object.class);
+
+    /**
+     * The set of array types that support raw encoding.
+     */
+    private static final Set<Integer> RAW_ENCODING_TYPES =
+            Set.of(Type.CHAR, Type.SHORT, Type.INT, Type.LONG, Type.FLOAT, Type.DOUBLE);
 
     /**
      * JsonbTransient annotation.

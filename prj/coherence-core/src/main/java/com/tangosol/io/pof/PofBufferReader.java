@@ -607,11 +607,22 @@ public class PofBufferReader
                     int nElementType = in.readPackedInt();
                     int cElements    = in.readPackedInt();
                     ach = new char[cElements];
-                    for (int i = 0; i < cElements; ++i)
+
+                    if (nElementType == T_OCTET)
                         {
-                        ach[i] = nElementType == T_CHAR
-                                 ? readChar(in)
-                                 : (char) readAsInt(in, nElementType);
+                        // raw encoding (since 24.09)
+                        int        cb = cElements * 2;
+                        ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
+                        bb.asCharBuffer().get(ach, 0, cElements);
+                        }
+                    else
+                        {
+                        for (int i = 0; i < cElements; ++i)
+                            {
+                            ach[i] = nElementType == T_CHAR
+                                     ? readChar(in)
+                                     : (char) readAsInt(in, nElementType);
+                            }
                         }
                     }
                     break;
@@ -725,6 +736,12 @@ public class PofBufferReader
                                 {
                                 an[i] = (short) in.readPackedInt();
                                 }
+                            break;
+
+                        case T_OCTET:  // raw encoding (since 24.09)
+                            int        cb = cElements * 2;
+                            ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
+                            bb.asShortBuffer().get(an, 0, cElements);
                             break;
 
                         default:
@@ -867,6 +884,12 @@ public class PofBufferReader
                                 }
                             break;
 
+                        case T_OCTET:  // raw encoding (since 24.09)
+                            int        cb = cElements * 4;
+                            ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
+                            bb.asIntBuffer().get(an, 0, cElements);
+                            break;
+
                         default:
                             for (int i = 0; i < cElements; ++i)
                                 {
@@ -1007,6 +1030,12 @@ public class PofBufferReader
                                 }
                             break;
 
+                        case T_OCTET:  // raw encoding (since 24.09)
+                            int        cb = cElements * 8;
+                            ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
+                            bb.asLongBuffer().get(an, 0, cElements);
+                            break;
+
                         default:
                             for (int i = 0; i < cElements; ++i)
                                 {
@@ -1135,11 +1164,22 @@ public class PofBufferReader
                     int nElementType = in.readPackedInt();
                     int cElements    = in.readPackedInt();
                     afl = new float[cElements];
-                    for (int i = 0; i < cElements; ++i)
+
+                    if (nElementType == T_OCTET)
                         {
-                        afl[i] = nElementType == T_FLOAT32
-                                 ? in.readFloat()
-                                 : readAsFloat(in, nElementType);
+                        // raw encoding (since 24.09)
+                        int        cb = cElements * 4;
+                        ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
+                        bb.asFloatBuffer().get(afl, 0, cElements);
+                        }
+                    else
+                        {
+                        for (int i = 0; i < cElements; ++i)
+                            {
+                            afl[i] = nElementType == T_FLOAT32
+                                     ? in.readFloat()
+                                     : readAsFloat(in, nElementType);
+                            }
                         }
                     }
                     break;
@@ -1183,123 +1223,6 @@ public class PofBufferReader
 
                 default:
                     throw new IOException("unable to convert field " + iProp + " of type " 
-                            + PofConstants.getTypeName(nType)
-                                          + " to an array type");
-                }
-            }
-        complete(iProp);
-
-        return afl;
-        }
-
-    /**
-    * {@inheritDoc}
-    */
-    public float[] readRawFloatArray(int iProp)
-            throws IOException
-        {
-        float[] afl = null;
-
-        if (advanceTo(iProp))
-            {
-            ReadBuffer.BufferInput in = m_in;
-            int nType = in.readPackedInt();
-            switch (nType)
-                {
-                case T_IDENTITY:
-                    {
-                    int nId = in.readPackedInt();
-                    afl = readRawFloatArray(iProp);
-                    registerIdentity(nId, afl);
-                    }
-                    break;
-
-                case T_REFERENCE:
-                    afl = (float[]) lookupIdentity(in.readPackedInt());
-                    break;
-
-                case V_REFERENCE_NULL:
-                    break;
-
-                case V_COLLECTION_EMPTY:
-                    afl = FLOAT_ARRAY_EMPTY;
-                    break;
-
-                case T_COLLECTION:
-                case T_ARRAY:
-                    {
-                    int cElements = in.readPackedInt();
-                    afl = new float[cElements];
-                    for (int i = 0; i < cElements; ++i)
-                        {
-                        afl[i] = readAsFloat(in, in.readPackedInt());
-                        }
-                    }
-                    break;
-
-                case T_UNIFORM_COLLECTION:
-                case T_UNIFORM_ARRAY:
-                    {
-                    int nElementType = in.readPackedInt();
-                    int cElements    = in.readPackedInt();
-
-                    afl = new float[cElements];
-
-                    if (nElementType == T_FLOAT32)
-                        {
-                        int cb = cElements * 4;
-                        ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
-                        bb.asFloatBuffer().get(afl, 0, cElements);
-                        }
-                    else
-                        {
-                        for (int i = 0; i < cElements; ++i)
-                            {
-                            afl[i] = readAsFloat(in, in.readPackedInt());
-                            }
-                        }
-                    }
-                    break;
-
-                case T_SPARSE_ARRAY:
-                    {
-                    int cElements = in.readPackedInt();
-                    afl = new float[cElements];
-                    do
-                        {
-                        int iElement = in.readPackedInt();
-                        if (iElement < 0)
-                            {
-                            break;
-                            }
-                        afl[iElement] = readAsFloat(in, in.readPackedInt());
-                        }
-                    while (--cElements >= 0);
-                    }
-                    break;
-
-                case T_UNIFORM_SPARSE_ARRAY:
-                    {
-                    int nElementType = in.readPackedInt();
-                    int cElements    = in.readPackedInt();
-                    afl = new float[cElements];
-                    do
-                        {
-                        int iElement = in.readPackedInt();
-                        if (iElement < 0)
-                            {
-                            break;
-                            }
-                        afl[iElement] = nElementType == T_FLOAT32
-                                 ? in.readFloat()
-                                 : readAsFloat(in, nElementType);
-                        }
-                    while (--cElements >= 0);
-                    }
-                    break;
-
-                default:
-                    throw new IOException("unable to convert field " + iProp + " of type "
                             + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
@@ -1360,11 +1283,22 @@ public class PofBufferReader
                     int nElementType = in.readPackedInt();
                     int cElements    = in.readPackedInt();
                     adfl = new double[cElements];
-                    for (int i = 0; i < cElements; ++i)
+
+                    if (nElementType == T_OCTET)
                         {
-                        adfl[i] = nElementType == T_FLOAT64
-                                  ? in.readDouble()
-                                  : readAsDouble(in, nElementType);
+                        // raw encoding (since 24.09)
+                        int        cb = cElements * 8;
+                        ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
+                        bb.asDoubleBuffer().get(adfl, 0, cElements);
+                        }
+                    else
+                        {
+                        for (int i = 0; i < cElements; ++i)
+                            {
+                            adfl[i] = nElementType == T_FLOAT64
+                                      ? in.readDouble()
+                                      : readAsDouble(in, nElementType);
+                            }
                         }
                     }
                     break;

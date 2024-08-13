@@ -193,6 +193,7 @@ public class PofPrimitiveArrayTest
 
         initPOFWriter();
         m_writer.writeCharArray(0, ach1);
+        m_writer.writeCharArray(0, ach1, true);
         m_writer.writeCharArray(0, ach2);
         m_writer.writeCharArray(0, null);
         m_writer.writeObjectArray(0, ao);
@@ -202,6 +203,14 @@ public class PofPrimitiveArrayTest
         initPOFReader();
         // ach1
         char[] ach = m_reader.readCharArray(0);
+        assertEquals(ach.length, ach1.length);
+        for (int i = 0; i < ach.length; i++)
+            {
+            assertEquals(ach[i], ach1[i]);
+            }
+
+        // ach1 (raw encoding)
+        ach = m_reader.readCharArray(0);
         assertEquals(ach.length, ach1.length);
         for (int i = 0; i < ach.length; i++)
             {
@@ -278,6 +287,7 @@ public class PofPrimitiveArrayTest
 
         initPOFWriter();
         m_writer.writeShortArray(0, an1);
+        m_writer.writeShortArray(0, an1, true);
         m_writer.writeShortArray(0, an2);
         m_writer.writeShortArray(0, null);
         m_writer.writeObjectArray(0, ao);
@@ -287,6 +297,14 @@ public class PofPrimitiveArrayTest
         initPOFReader();
         // an1
         short[] an = m_reader.readShortArray(0);
+        assertEquals(an.length, an1.length);
+        for (int i = 0; i < an.length; i++)
+            {
+            assertEquals(an[i], an1[i]);
+            }
+
+        // an1 (raw encoding)
+        an = m_reader.readShortArray(0);
         assertEquals(an.length, an1.length);
         for (int i = 0; i < an.length; i++)
             {
@@ -357,6 +375,7 @@ public class PofPrimitiveArrayTest
 
         initPOFWriter();
         m_writer.writeIntArray(0, an1);
+        m_writer.writeIntArray(0, an1, true);
         m_writer.writeIntArray(0, an2);
         m_writer.writeIntArray(0, null);
         m_writer.writeObjectArray(0, ao);
@@ -366,6 +385,14 @@ public class PofPrimitiveArrayTest
         initPOFReader();
         // an1
         int[] an = m_reader.readIntArray(0);
+        assertEquals(an.length, an1.length);
+        for (int i = 0; i < an.length; i++)
+            {
+            assertEquals(an[i], an1[i]);
+            }
+
+        // an1 (raw encoding)
+        an = m_reader.readIntArray(0);
         assertEquals(an.length, an1.length);
         for (int i = 0; i < an.length; i++)
             {
@@ -436,6 +463,7 @@ public class PofPrimitiveArrayTest
 
         initPOFWriter();
         m_writer.writeLongArray(0, al1);
+        m_writer.writeLongArray(0, al1, true);
         m_writer.writeLongArray(0, al2);
         m_writer.writeLongArray(0, (long[]) null);
         m_writer.writeObjectArray(0, ao);
@@ -451,6 +479,14 @@ public class PofPrimitiveArrayTest
         initPOFReader();
         // al1
         long[] al = m_reader.readLongArray(0);
+        assertEquals(al.length, al1.length);
+        for (int i = 0; i < al.length; i++)
+            {
+            assertEquals(al[i], al1[i]);
+            }
+
+        // al1 (raw encoding)
+        al = m_reader.readLongArray(0);
         assertEquals(al.length, al1.length);
         for (int i = 0; i < al.length; i++)
             {
@@ -535,6 +571,7 @@ public class PofPrimitiveArrayTest
 
         initPOFWriter();
         m_writer.writeFloatArray(0, afl1);
+        m_writer.writeFloatArray(0, afl1, true);
         m_writer.writeFloatArray(0, afl2);
         m_writer.writeFloatArray(0, null);
         m_writer.writeFloatArray(0, afl3);
@@ -544,6 +581,15 @@ public class PofPrimitiveArrayTest
         initPOFReader();
         // afl1
         float[] afl = m_reader.readFloatArray(0);
+        assertEquals(afl.length, afl1.length);
+        for (int i = 0; i < afl.length; i++)
+            {
+            // REVIEW
+            assertEquals(Float.valueOf(afl[i]), Float.valueOf(afl1[i]));
+            }
+
+        // afl1 (raw encoding)
+        afl = m_reader.readFloatArray(0);
         assertEquals(afl.length, afl1.length);
         for (int i = 0; i < afl.length; i++)
             {
@@ -615,6 +661,7 @@ public class PofPrimitiveArrayTest
 
         initPOFWriter();
         m_writer.writeDoubleArray(0, adfl1);
+        m_writer.writeDoubleArray(0, adfl1, true);
         m_writer.writeDoubleArray(0, adfl2);
         m_writer.writeDoubleArray(0, null);
         m_writer.writeDoubleArray(0, adfl3);
@@ -625,6 +672,15 @@ public class PofPrimitiveArrayTest
         initPOFReader();
         // adfl1
         double[] adfl = m_reader.readDoubleArray(0);
+        assertEquals(adfl.length, adfl1.length);
+        for (int i = 0; i < adfl.length; i++)
+            {
+            // REVIEW
+            assertEquals(Double.valueOf(adfl[i]), Double.valueOf(adfl1[i]));
+            }
+
+        // adfl1 (raw encoding)
+        adfl = m_reader.readDoubleArray(0);
         assertEquals(adfl.length, adfl1.length);
         for (int i = 0; i < adfl.length; i++)
             {

@@ -469,15 +469,6 @@ public class PofBufferWriter
     /**
     * {@inheritDoc}
     */
-    public void writeByteArray(int iProp, byte[] ab)
-            throws IOException
-        {
-        writeByteArray(iProp, ab, 0, ab == null ? 0 : ab.length);
-        }
-
-    /**
-    * {@inheritDoc}
-    */
     public void writeByteArray(int iProp, byte[] ab, int of, int cb)
             throws IOException
         {
@@ -509,7 +500,7 @@ public class PofBufferWriter
     /**
     * {@inheritDoc}
     */
-    public void writeCharArray(int iProp, char[] ach)
+    public void writeCharArray(int iProp, char[] ach, boolean fRaw)
             throws IOException
         {
         beginProperty(iProp);
@@ -525,10 +516,20 @@ public class PofBufferWriter
                 int cElements = ach.length;
 
                 handler.registerIdentity(-1);
-                handler.beginUniformArray(iProp, cElements, T_CHAR);
-                for (int i = 0; i < cElements; ++i)
+                handler.beginUniformArray(iProp, cElements, fRaw ? T_OCTET : T_CHAR);
+
+                if (fRaw)
                     {
-                    handler.onChar(i, ach[i]);
+                    int        cb = cElements * 2;
+                    ByteBuffer bb = getBufferOutput().getByteBuffer(cb);
+                    bb.asCharBuffer().put(ach);
+                    }
+                else
+                    {
+                    for (int i = 0; i < cElements; ++i)
+                        {
+                        handler.onChar(i, ach[i]);
+                        }
                     }
                 handler.endComplexValue();
                 }
@@ -543,7 +544,7 @@ public class PofBufferWriter
     /**
     * {@inheritDoc}
     */
-    public void writeShortArray(int iProp, short[] an)
+    public void writeShortArray(int iProp, short[] an, boolean fRaw)
             throws IOException
         {
         beginProperty(iProp);
@@ -559,10 +560,20 @@ public class PofBufferWriter
                 int cElements = an.length;
 
                 handler.registerIdentity(-1);
-                handler.beginUniformArray(iProp, cElements, T_INT16);
-                for (int i = 0; i < cElements; ++i)
+                handler.beginUniformArray(iProp, cElements, fRaw ? T_OCTET : T_INT16);
+
+                if (fRaw)
                     {
-                    handler.onInt16(i, an[i]);
+                    int        cb = cElements * 2;
+                    ByteBuffer bb = getBufferOutput().getByteBuffer(cb);
+                    bb.asShortBuffer().put(an);
+                    }
+                else
+                    {
+                    for (int i = 0; i < cElements; ++i)
+                        {
+                        handler.onInt16(i, an[i]);
+                        }
                     }
                 handler.endComplexValue();
                 }
@@ -577,7 +588,7 @@ public class PofBufferWriter
     /**
     * {@inheritDoc}
     */
-    public void writeIntArray(int iProp, int[] an)
+    public void writeIntArray(int iProp, int[] an, boolean fRaw)
             throws IOException
         {
         beginProperty(iProp);
@@ -593,10 +604,20 @@ public class PofBufferWriter
                 int cElements = an.length;
 
                 handler.registerIdentity(-1);
-                handler.beginUniformArray(iProp, cElements, T_INT32);
-                for (int i = 0; i < cElements; ++i)
+                handler.beginUniformArray(iProp, cElements, fRaw ? T_OCTET : T_INT32);
+
+                if (fRaw)
                     {
-                    handler.onInt32(i, an[i]);
+                    int        cb = cElements * 4;
+                    ByteBuffer bb = getBufferOutput().getByteBuffer(cb);
+                    bb.asIntBuffer().put(an);
+                    }
+                else
+                    {
+                    for (int i = 0; i < cElements; ++i)
+                        {
+                        handler.onInt32(i, an[i]);
+                        }
                     }
                 handler.endComplexValue();
                 }
@@ -611,7 +632,7 @@ public class PofBufferWriter
     /**
     * {@inheritDoc}
     */
-    public void writeLongArray(int iProp, long[] an)
+    public void writeLongArray(int iProp, long[] an, boolean fRaw)
             throws IOException
         {
         beginProperty(iProp);
@@ -627,10 +648,20 @@ public class PofBufferWriter
                 int cElements = an.length;
 
                 handler.registerIdentity(-1);
-                handler.beginUniformArray(iProp, cElements, T_INT64);
-                for (int i = 0; i < cElements; ++i)
+                handler.beginUniformArray(iProp, cElements, fRaw ? T_OCTET : T_INT64);
+
+                if (fRaw)
                     {
-                    handler.onInt64(i, an[i]);
+                    int        cb = cElements * 8;
+                    ByteBuffer bb = getBufferOutput().getByteBuffer(cb);
+                    bb.asLongBuffer().put(an);
+                    }
+                else
+                    {
+                    for (int i = 0; i < cElements; ++i)
+                        {
+                        handler.onInt64(i, an[i]);
+                        }
                     }
                 handler.endComplexValue();
                 }
@@ -645,7 +676,7 @@ public class PofBufferWriter
     /**
     * {@inheritDoc}
     */
-    public void writeFloatArray(int iProp, float[] afl)
+    public void writeFloatArray(int iProp, float[] afl, boolean fRaw)
             throws IOException
         {
         beginProperty(iProp);
@@ -661,10 +692,20 @@ public class PofBufferWriter
                 int cElements = afl.length;
 
                 handler.registerIdentity(-1);
-                handler.beginUniformArray(iProp, cElements, T_FLOAT32);
-                for (int i = 0; i < cElements; ++i)
+                handler.beginUniformArray(iProp, cElements, fRaw ? T_OCTET : T_FLOAT32);
+
+                if (fRaw)
                     {
-                    handler.onFloat32(i, afl[i]);
+                    int        cb = cElements * 4;
+                    ByteBuffer bb = getBufferOutput().getByteBuffer(cb);
+                    bb.asFloatBuffer().put(afl);
+                    }
+                else
+                    {
+                    for (int i = 0; i < cElements; ++i)
+                        {
+                        handler.onFloat32(i, afl[i]);
+                        }
                     }
                 handler.endComplexValue();
                 }
@@ -679,42 +720,7 @@ public class PofBufferWriter
     /**
     * {@inheritDoc}
     */
-    public void writeRawFloatArray(int iProp, float[] afl)
-            throws IOException
-        {
-        beginProperty(iProp);
-        try
-            {
-            PofHandler handler = getPofHandler();
-            if (afl == null)
-                {
-                handler.onNullReference(iProp);
-                }
-            else
-                {
-                int cElements = afl.length;
-                int cb        = cElements * 4;
-
-                handler.registerIdentity(-1);
-                handler.beginUniformArray(iProp, cElements, T_FLOAT32);
-
-                ByteBuffer bb = getBufferOutput().getByteBuffer(cb);
-                bb.asFloatBuffer().put(afl);
-
-                handler.endComplexValue();
-                }
-            }
-        catch (Exception e)
-            {
-            onException(e);
-            }
-        endProperty(iProp);
-        }
-
-    /**
-    * {@inheritDoc}
-    */
-    public void writeDoubleArray(int iProp, double[] adfl)
+    public void writeDoubleArray(int iProp, double[] adfl, boolean fRaw)
             throws IOException
         {
         beginProperty(iProp);
@@ -730,10 +736,20 @@ public class PofBufferWriter
                 int cElements = adfl.length;
 
                 handler.registerIdentity(-1);
-                handler.beginUniformArray(iProp, cElements, T_FLOAT64);
-                for (int i = 0; i < cElements; ++i)
+                handler.beginUniformArray(iProp, cElements, fRaw ? T_OCTET : T_FLOAT64);
+
+                if (fRaw)
                     {
-                    handler.onFloat64(i, adfl[i]);
+                    int        cb = cElements * 8;
+                    ByteBuffer bb = getBufferOutput().getByteBuffer(cb);
+                    bb.asDoubleBuffer().put(adfl);
+                    }
+                else
+                    {
+                    for (int i = 0; i < cElements; ++i)
+                        {
+                        handler.onFloat64(i, adfl[i]);
+                        }
                     }
                 handler.endComplexValue();
                 }

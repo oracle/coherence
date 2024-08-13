@@ -136,11 +136,6 @@ class VersionedPofReader implements PofReader
         return f_fRead ? f_in.readFloatArray(iProp) : null;
         }
 
-    public float[] readRawFloatArray(int iProp) throws IOException
-        {
-        return f_fRead ? f_in.readRawFloatArray(iProp) : null;
-        }
-
     public double[] readDoubleArray(int iProp) throws IOException
         {
         return f_fRead ? f_in.readDoubleArray(iProp) : null;
