@@ -1273,7 +1273,7 @@ public abstract class BaseManagementInfoResourceTests
         List<Map> listItemMaps = (List<Map>) mapResponse.get("items");
         assertThat(listItemMaps, notNullValue());
         listItemMaps.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
-        assertThat(listItemMaps.size(), is(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
+        assertThat(listItemMaps.size(), greaterThanOrEqualTo(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
 
         String sDistServiceName  = null;
         String sProxyServiceName = null;
@@ -2790,7 +2790,7 @@ public abstract class BaseManagementInfoResourceTests
         List<Map> listMembers = (List<Map>) membersResponseMap.get("items");
         listMembers.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
         assertThat(listMembers, notNullValue());
-        assertThat(listMembers.size(), is(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
+        assertThat(listMembers.size(), greaterThanOrEqualTo(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
 
         for (Map mapMember : listMembers)
             {
@@ -2834,12 +2834,16 @@ public abstract class BaseManagementInfoResourceTests
         listServices.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
 
         assertThat(listServices, notNullValue());
-        assertThat(listServices.size(), is(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
+        assertThat(listServices.size(), greaterThanOrEqualTo(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
 
         for (Map mapService : listServices)
             {
             assertThat(mapService.size(), greaterThan(ATTRIBUTES_COUNT));
-            assertThat(mapService.get(NAME), is(oneOf(getQuotedScopedServiceList())));
+            // for a wls-management metrics test, we need to enable metrics.  So, exclude it here.
+            if (((String) mapService.get(NAME)).compareToIgnoreCase("MetricsHttpProxy") != 0)
+                {
+                assertThat(mapService.get(NAME), is(oneOf(getQuotedScopedServiceList())));
+                }
             assertThat(mapService.get("type"), notNullValue());
             assertThat(mapService.get("memberCount"), notNullValue());
             assertThat(((Map<String, Number>) mapService.get("running")).get("true").intValue(), greaterThanOrEqualTo(1));
@@ -2900,7 +2904,7 @@ public abstract class BaseManagementInfoResourceTests
         List<Map> listMembers = (List<Map>) membersResponseMap.get("items");
         listMembers.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
         assertThat(listMembers, notNullValue());
-        assertThat(listMembers.size(), is(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
+        assertThat(listMembers.size(), greaterThanOrEqualTo(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
 
         for (Map mapServiceMember : listMembers)
             {
@@ -2979,7 +2983,7 @@ public abstract class BaseManagementInfoResourceTests
         List<Map> listMembers = (List<Map>) mapMembersResponse.get("items");
         listMembers.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
         assertThat(listMembers, notNullValue());
-        assertThat(listMembers.size(), is(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
+        assertThat(listMembers.size(), greaterThanOrEqualTo(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
 
         for (Map mapService : listMembers)
             {

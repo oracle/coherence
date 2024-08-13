@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -76,7 +76,7 @@ public class MetricsHttpHandler
      *
      * @param format the format to use for metric names and tag keys.
      */
-    MetricsHttpHandler(Format format)
+    protected MetricsHttpHandler(Format format)
         {
         f_format = format;
         }
@@ -455,7 +455,7 @@ public class MetricsHttpHandler
      * @return the lst of metrics matching the predicate, or all metrics if
      *         the predicate is {@code null}
      */
-    private List<MBeanMetric> getMetrics(Predicate<MBeanMetric> predicate)
+    protected List<MBeanMetric> getMetrics(Predicate<MBeanMetric> predicate)
         {
         try
             {
@@ -498,7 +498,7 @@ public class MetricsHttpHandler
     /**
      * A {@link Predicate} that can be used to restrict the metrics returned by a request.
      */
-    private static class MetricPredicate
+    protected static class MetricPredicate
             implements Predicate<MBeanMetric>
         {
         /**
@@ -507,7 +507,7 @@ public class MetricsHttpHandler
          * @param sName   the value to use to match a metric name
          * @param mapTags the values to use to match a metric tags
          */
-        private MetricPredicate(String sName, Map<String, List<String>> mapTags)
+        public MetricPredicate(String sName, Map<String, List<String>> mapTags)
             {
             f_sName = sName;
             f_mapTags = mapTags.entrySet()
@@ -589,7 +589,7 @@ public class MetricsHttpHandler
      * A {@link MetricsFormatter} implementation that writes metrics
      * in a Prometheus format.
      */
-    static class PrometheusFormatter
+    protected static class PrometheusFormatter
             implements MetricsFormatter
         {
         // ---- constructors ------------------------------------------------
@@ -602,7 +602,7 @@ public class MetricsHttpHandler
          * @param format       the format to use for metric names and tag keys.
          * @param listMetrics  the list of metrics to write
          */
-        PrometheusFormatter(boolean fExtended, Format format, List<MBeanMetric> listMetrics)
+        public PrometheusFormatter(boolean fExtended, Format format, List<MBeanMetric> listMetrics)
             {
             f_fExtended   = fExtended;
             f_format      = format;
@@ -767,7 +767,7 @@ public class MetricsHttpHandler
      * A {@link MetricsFormatter} implementation that writes metrics
      * in a JSON format.
      */
-    static class JsonFormatter
+    protected static class JsonFormatter
             implements MetricsFormatter
         {
         // ---- constructors ------------------------------------------------
@@ -779,7 +779,7 @@ public class MetricsHttpHandler
          *                   and description into the output
          * @param metrics    the list of metrics to write
          */
-        JsonFormatter(boolean fExtended, List<MBeanMetric> metrics)
+        public JsonFormatter(boolean fExtended, List<MBeanMetric> metrics)
             {
             f_fExtended = fExtended;
             f_metrics   = metrics;
@@ -949,13 +949,13 @@ public class MetricsHttpHandler
      * The System property to use to determine whether to always include
      * extended information (type and/or description) when publishing metrics.
      */
-    private static final String PROP_EXTENDED = "coherence.metrics.extended";
+    protected static final String PROP_EXTENDED = "coherence.metrics.extended";
 
     /**
      * A flag to determine whether to always include help information when
      * publishing metrics.
      */
-    private static final boolean f_fAlwaysUseExtended
+    protected static final boolean f_fAlwaysUseExtended
             = Boolean.parseBoolean(System.getProperty(PROP_EXTENDED, "false"));
 
     /**
@@ -1000,7 +1000,7 @@ public class MetricsHttpHandler
     /**
      * The format to use for metric names and tag keys.
      */
-    private final Format f_format;
+    protected Format f_format;
 
     /**
      * The context root path.
