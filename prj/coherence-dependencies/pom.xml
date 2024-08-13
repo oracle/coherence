@@ -221,6 +221,7 @@
     <jettison.version>1.5.4</jettison.version>
     <jhdf.version>0.7.0-alpha</jhdf.version>
     <jline.version>3.25.0</jline.version>
+    <jna.version>5.14.0</jna.version>
     <log4j2.version>2.18.0</log4j2.version>
     <micrometer.version>1.11.3</micrometer.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
@@ -600,6 +601,13 @@
         <artifactId>jakarta.json</artifactId>
         <version>${jakarta.json.impl.version}</version>
         <classifier>module</classifier>
+      </dependency>
+
+      <!--  JNA -->
+      <dependency>
+        <groupId>net.java.dev.jna</groupId>
+        <artifactId>jna</artifactId>
+        <version>${jna.version}</version>
       </dependency>
 
       <!-- log4j2 -->

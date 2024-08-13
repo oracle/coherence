@@ -148,6 +148,7 @@
         <module>grpc-client-netty-21</module>
         <module>guardian</module>
         <module>health</module>
+        <module>hnsw-index</module>
         <module>http</module>
         <module>http-config</module>
         <module>http-netty</module>

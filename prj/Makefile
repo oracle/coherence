@@ -13,6 +13,8 @@
 
 ARGS            ?=
 CURRENT_VERSION ?= $(shell mvn help:evaluate -Dexpression=project.version -q -DforceStdout -nsu)
+OS_NAME         ?= $(shell mvn help:evaluate -Dexpression=os.name -q -DforceStdout -nsu)
+OS_ARCH         ?= $(shell mvn help:evaluate -Dexpression=os.arch -q -DforceStdout -nsu)
 
 # ======================================================================================================================
 # Makefile targets start here
@@ -85,6 +87,79 @@ endef
 define mvn_build_modules
 	mvn clean install -T 1.5C -nsu -Pmodules,-coherence -Dgradle.skip.test=true -DskipTests $(1) $(ARGS)
 endef
+
+# ======================================================================================================================
+# HNSW targets
+# ======================================================================================================================
+
+HNSW_CPP_FILES = $(shell find ./coherence-hnsw/src/main/cpp -type f)
+
+##@ HNSW
+.PHONY: hnsw
+hnsw: hnsw-macos-arm hnsw-macos-x86 hnsw-linux-arm hnsw-linux-x86 hnsw-windows-x86 ## Build the native C++ library and JNA bindings
+	echo $(OS_NAME)
+	echo $(OS_ARCH)
+
+.PHONY: hnsw-macos-arm
+hnsw-macos-arm: coherence-hnsw/src/main/resources/libhnswlib-aarch64.dylib
+
+coherence-hnsw/src/main/resources/libhnswlib-aarch64.dylib: $(HNSW_CPP_FILES)
+    ifeq ($(OS_NAME),Mac OS X)
+    ifeq ($(OS_ARCH),aarch64)
+		echo "Building HNSW library for MacOS Arm64"
+		clang++ -O3 -shared -std=c++11 coherence-hnsw/src/main/cpp/bindings.cpp -I coherence-hnsw/src/main/cpp/hnswlib -o coherence-hnsw/src/main/resources/libhnswlib-aarch64.dylib
+    endif
+    endif
+
+.PHONY: hnsw-macos-x86
+hnsw-macos-x86: coherence-hnsw/src/main/resources/libhnswlib-x86-64.dylib
+
+coherence-hnsw/src/main/resources/libhnswlib-x86-64.dylib: $(HNSW_CPP_FILES)
+    ifeq ($(OS_NAME),Mac OS X)
+    ifeq ($(OS_ARCH),x86-64)
+		echo "Building HNSW library for MacOS x86_64"
+		clang++ -O3 -shared -std=c++11 coherence-hnsw/src/main/cpp/bindings.cpp -I coherence-hnsw/src/main/cpp/hnswlib -o coherence-hnsw/src/main/resources/libhnswlib-x86-64.dylib
+    endif
+    endif
+
+.PHONY: hnsw-linux-arm
+hnsw-linux-arm: coherence-hnsw/src/main/resources/libhnswlib-aarch64.so
+
+coherence-hnsw/src/main/resources/libhnswlib-aarch64.so: $(HNSW_CPP_FILES)
+    ifeq ($(OS_NAME),Linux)
+    ifeq ($(OS_ARCH),aarch64)
+		echo "Building HNSW library for Linux Arm64"
+		clang++ -O3 -fPIC -shared -std=c++11 coherence-hnsw/src/main/cpp/bindings.cpp -I coherence-hnsw/src/main/cpp/hnswlib -o coherence-hnsw/src/main/resources/libhnswlib-aarch64.so
+    endif
+    endif
+
+# To build on Oracle Linux 7
+# $ yum install -y make
+# $ yum install -y oraclelinux-developer-release-el7 oracle-softwarecollection-release-el7
+# $ yum install -y llvm-toolset-7
+# $ export PATH=$PATH:/opt/rh/llvm-toolset-7/root/usr/bin
+# $ export LD_LIBRARY_PATH=/opt/rh/llvm-toolset-7/root/usr/lib64
+
+.PHONY: hnsw-linux-x86
+hnsw-linux-x86: coherence-hnsw/src/main/resources/libhnswlib-x86-64.so
+
+coherence-hnsw/src/main/resources/libhnswlib-x86-64.so: $(HNSW_CPP_FILES)
+    ifeq ($(UNAME_S),Linux)
+    ifeq ($(OS_ARCH),x86-64)
+		echo "Building HNSW library for Linux x86_64"
+		clang++ -O3 -fPIC -shared -std=c++11 coherence-hnsw/src/main/cpp/bindings.cpp -I coherence-hnsw/src/main/cpp/hnswlib -o coherence-hnsw/src/main/resources/libhnswlib-x86-64.so
+    endif
+    endif
+
+.PHONY: hnsw-windows-x86
+hnsw-windows-x86: coherence-hnsw/src/main/resources/libhnswlib-x86-64.dll
+
+coherence-hnsw/src/main/resources/libhnswlib-x86-64.dll: $(HNSW_CPP_FILES)
+    ifeq ($(OS),Windows_NT)
+		echo "Building HNSW library for Windows x86_64"
+		clang++ -O3 -shared -std=c++11 coherence-hnsw/src/main/cpp/bindings.cpp -I coherence-hnsw/src/main/cpp/hnswlib -o coherence-hnsw/src/main/resources/libhnswlib-x86-64.dll
+    endif
+
 
 # ======================================================================================================================
 # Run targets

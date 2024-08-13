@@ -411,6 +411,7 @@
         <module>coherence-grpc-client-helidon</module>
         <module>coherence-java-client</module>
         <module>coherence-concurrent</module>
+        <module>coherence-hnsw</module>
         <module>plugins</module>
 
         <module>test/unit</module>
@@ -478,6 +479,7 @@
         <module>coherence-grpc-client-helidon</module>
         <module>coherence-java-client</module>
         <module>coherence-concurrent</module>
+        <module>coherence-hnsw</module>
         <module>plugins</module>
 
         <module>examples</module>

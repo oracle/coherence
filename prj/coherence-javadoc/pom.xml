@@ -51,6 +51,13 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- HNSW -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-hnsw</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- Coherence CDI -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>

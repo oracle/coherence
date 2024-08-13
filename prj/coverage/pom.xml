@@ -140,6 +140,11 @@
           <artifactId>coherence-java-client</artifactId>
           <version>${project.version}</version>
         </dependency>
+          <dependency>
+            <groupId>${coherence.group.id}</groupId>
+            <artifactId>coherence-hnsw</artifactId>
+            <version>${project.version}</version>
+          </dependency>
         <dependency>
           <groupId>${coherence.group.id}</groupId>
           <artifactId>coherence-http-netty</artifactId>
