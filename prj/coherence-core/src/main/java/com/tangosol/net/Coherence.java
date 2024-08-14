@@ -37,12 +37,15 @@ import com.tangosol.net.events.InterceptorRegistry;
 import com.tangosol.net.events.internal.CoherenceEventDispatcher;
 import com.tangosol.net.events.internal.Registry;
 
+import com.tangosol.run.xml.XmlHelper;
 import com.tangosol.util.Base;
 import com.tangosol.util.CopyOnWriteMap;
 import com.tangosol.util.HealthCheck;
 import com.tangosol.util.RegistrationBehavior;
 import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.SimpleResourceRegistry;
+
+import java.io.File;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -64,6 +67,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -1436,7 +1440,36 @@ public class Coherence
      */
     public static void main(String[] args)
         {
-        if (args.length > 0 && args[0].equals("--version"))
+        boolean fShowVersion = false;
+
+        for (String sArg : args)
+            {
+            if ("--version".equals(sArg))
+                {
+                fShowVersion = true;
+                }
+            else if (sArg.endsWith(".xml"))
+                {
+                CacheFactory.getCacheFactoryBuilder().setCacheConfiguration(null,
+                    XmlHelper.loadFileOrResource(sArg, "cache configuration", null));
+                }
+            else if (sArg.endsWith(".gar") || sArg.contains(File.separator) || ".".equals(sArg))
+                {
+                // GAR is not supported in CE
+                throw new IllegalArgumentException("Invalid argument " + sArg
+                        + " running a GAR is not supported in CE");
+                }
+            else if (Pattern.matches("[0-9]*", sArg))
+                {
+                // numeric arguments are ignored, this is here to be compatible with DCS.main()
+                }
+            else
+                {
+                // GAR is not supported in CE
+                }
+            }
+
+        if (fShowVersion)
             {
             System.out.println(CacheFactory.VERSION);
             if (args.length == 1)
@@ -1468,6 +1501,7 @@ public class Coherence
             }
 
         coherence.start();
+
         // block forever (or until the Coherence instance is shutdown)
         coherence.whenClosed().join();
         }
