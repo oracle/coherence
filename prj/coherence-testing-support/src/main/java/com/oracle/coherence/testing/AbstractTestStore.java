@@ -1,25 +1,25 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.testing;
 
 
 import com.oracle.coherence.common.base.Blocking;
-
 import com.oracle.coherence.common.base.Logger;
+
+import com.tangosol.net.cache.ReadWriteBackingMap;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
-import com.tangosol.util.ConcurrentMap;
 import com.tangosol.util.ObservableMap;
-import com.tangosol.util.SegmentedConcurrentMap;
 
 import java.util.Date;
-
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
 * Abstract base class for testing {@link ReadWriteBackingMap} CacheStore and
@@ -156,7 +156,7 @@ public abstract class AbstractTestStore
 
         azzert(mapStorage != null, "Storage Map cannot be null.");
         m_mapStorage = mapStorage;
-        m_mapStats   = new SegmentedConcurrentMap();
+        m_mapStats   = new ConcurrentHashMap<>();
         }
 
 
@@ -267,20 +267,7 @@ public abstract class AbstractTestStore
     */
     protected void logMethodInvocation(String sMethod)
         {
-        ConcurrentMap mapStats = getStatsMap();
-
-        mapStats.lock(sMethod, -1L);
-        try
-            {
-            Integer ICount = (Integer) mapStats.get(sMethod);
-            ICount = Integer.valueOf(ICount == null ? 1 : ICount.intValue() + 1);
-
-            mapStats.put(sMethod, ICount);
-            }
-        finally
-            {
-            mapStats.unlock(sMethod);
-            }
+        getStatsMap().compute(sMethod, (k, v) -> v == null ? 1 : v + 1);
         }
 
 
@@ -741,7 +728,7 @@ public abstract class AbstractTestStore
     *
     * @return the Map used to log method invocations.
     */
-    public ConcurrentMap getStatsMap()
+    public ConcurrentMap<String, Integer> getStatsMap()
         {
         return m_mapStats;
         }
@@ -853,11 +840,11 @@ public abstract class AbstractTestStore
     /**
     * The ObservableMap used to load, store, and erase objects.
     */
-    private ObservableMap m_mapStorage;
+    private final ObservableMap m_mapStorage;
 
     /**
     * The Map<String sMethod, Integer cInvokes> used to track method
     * invocation stats.
     */
-    private ConcurrentMap m_mapStats;
+    private final ConcurrentMap<String, Integer> m_mapStats;
     }

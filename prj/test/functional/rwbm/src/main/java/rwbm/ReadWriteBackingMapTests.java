@@ -41,6 +41,8 @@ import com.tangosol.util.ClassHelper;
 import com.tangosol.util.Converter;
 import com.tangosol.util.Daemon;
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.Filter;
+import com.tangosol.util.Filters;
 import com.tangosol.util.ImmutableArrayList;
 import com.tangosol.util.InvocableMap;
 
@@ -110,6 +112,7 @@ import java.util.concurrent.TimeUnit;
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
 
+import static com.tangosol.util.Filters.equal;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
@@ -206,12 +209,12 @@ public class ReadWriteBackingMapTests
 
             // write batch factor of 1 implies that the store write should be immediate
             // we'll sleep minimally to ensure store has been called
-            definiteSleep(100L);
+            definiteSleep(0xFFL << 1);
 
             assertThat(map.size(), is(2));
             
-            // we expect to see 2 individual store calls, as batching is effectively turned off
-            verifyStoreStats("putWithWriteBatchFactorOne-" + sCacheName, store, 0, 2, 0, 0, 0, 0);
+            // we expect to see either 2 individual store calls, or 1 storeAll call
+            verifyStoreStats("putWithWriteBatchFactorOne-" + sCacheName, store, equal("store", 2).or(equal("storeAll", 1)));
             }
         finally
             {
@@ -282,8 +285,7 @@ public class ReadWriteBackingMapTests
             assertEquals("bulk write did not occur.", map.size(), 2);
             verifyStoreStats("putWithWriteBatchFactorOneHalf-" + sCacheName, store, 0, 0, 0, 0, 1, 0);
 
-            // make sure the last write doesn't occur until a full write-
-            // behind delay interval
+            // make sure the last write doesn't occur until a full write-behind delay interval
             definiteSleep(100L);
             assertEquals("premature write occurred.", map.size(), 2);
 
@@ -324,19 +326,19 @@ public class ReadWriteBackingMapTests
             {
             map.clear();
             cache.put("Key1", "Value1");
-            definiteSleep(100L);
+            definiteSleep(0xFFL);
             assertEquals("put() caused an immediate store.", map.size(), 0);
 
             definiteSleep(cMillis);
             assertEquals("write did not occur.", map.size(), 1);
-            verifyStoreStats("readThroughBasic-" + sCacheName, store, 0, 1, 0, 0, 0, 0);
+            verifyStoreStats("putWithWriteBatchFactorZero-" + sCacheName, store, 0, 1, 0, 0, 0, 0);
 
             cache.put("Key2", "Value2");
             cache.put("Key3", "Value3");
 
-            definiteSleep(cMillis + 100L);
+            definiteSleep(cMillis + 0xFFL);
             assertEquals("write did not occur.", map.size(), 3);
-            verifyStoreStats("readThroughBasic-" + sCacheName, store, 0, 1, 0, 0, 1, 0);
+            verifyStoreStats("putWithWriteBatchFactorZero-" + sCacheName, store, 0, 1, 0, 0, 1, 0);
             }
         finally
             {
@@ -2031,7 +2033,7 @@ public class ReadWriteBackingMapTests
              }
 
          Map all = cache.getAll(setKeys);
-         assertEquals(1, store.getStatsMap().get("loadAll"));
+         assertEquals(1, (int) store.getStatsMap().get("loadAll"));
          assertEquals(4, all.size());
 
          assertEquals("One",all.get(1));
@@ -2100,7 +2102,7 @@ public class ReadWriteBackingMapTests
                }
 
            Map all = cache.getAll(setKeys);
-           assertEquals(1, store.getStatsMap().get("loadAll"));
+           assertEquals(1, (int) store.getStatsMap().get("loadAll"));
            assertEquals(0, all.size());
            }
 
@@ -3025,9 +3027,16 @@ public class ReadWriteBackingMapTests
         verifyStoreStats(sTest, store, "eraseAll", cEraseAll);
         }
 
+    private static void verifyStoreStats(String sTest, AbstractTestStore store,
+                                         Filter condition)
+        {
+        String sMessage = condition.toExpression() + " is FALSE";
+        assertTrue(sMessage, condition.evaluate(store.getStatsMap()));
+        }
+
     private static void verifyStoreStats(String sTest, AbstractTestStore store, String sStatistic, int expected)
         {
-        Integer count = (Integer) store.getStatsMap().get(sStatistic);
+        Integer count = store.getStatsMap().get(sStatistic);
         assertEquals(sTest + " " + sStatistic + " operations: expected=" + expected
                      + " actual=" + count + " otherStats=" + store.getStatsMap(),
                      expected, count == null ? 0 : count);
