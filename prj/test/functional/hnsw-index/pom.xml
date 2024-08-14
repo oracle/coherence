@@ -24,6 +24,7 @@
   <properties>
     <module.name>hnsw</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+    <failsafe.max.heap>2g</failsafe.max.heap>
   </properties>
 
   <dependencies>
