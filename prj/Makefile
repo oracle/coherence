@@ -93,71 +93,72 @@ endef
 # ======================================================================================================================
 
 HNSW_CPP_FILES = $(shell find ./coherence-hnsw/src/main/cpp -type f)
+HNSW_LIB_DIR   ?= coherence-hnsw/src/main/resources
 
 ##@ HNSW
 .PHONY: hnsw
-hnsw: hnsw-macos-arm hnsw-macos-x86 hnsw-linux-arm hnsw-linux-x86 hnsw-windows-x86 ## Build the native C++ library and JNA bindings
-	echo $(OS_NAME)
-	echo $(OS_ARCH)
+hnsw: hnsw-info hnsw-macos-arm hnsw-macos-x86 hnsw-linux-aarch64 hnsw-linux-x86 hnsw-windows-x86 ## Build the HNSW native C++ library and JNA bindings for the current O/S
+	@echo "Done"
+
+.PHONY: hnsw-info
+hnsw-info:
+	@echo "Building HNSW shared libraries: OS is \"$(OS_NAME)\" Arch is \"$(OS_ARCH)\""
+
+.PHONY: hnsw-setup
+hnsw-setup:
+	mkdir -p $(HNSW_LIB_DIR) || true
 
 .PHONY: hnsw-macos-arm
-hnsw-macos-arm: coherence-hnsw/src/main/resources/libhnswlib-aarch64.dylib
+hnsw-macos-arm: $(HNSW_LIB_DIR)/libhnswlib-aarch64.dylib
 
-coherence-hnsw/src/main/resources/libhnswlib-aarch64.dylib: $(HNSW_CPP_FILES)
+$(HNSW_LIB_DIR)/libhnswlib-aarch64.dylib: $(HNSW_CPP_FILES) hnsw-setup
     ifeq ($(OS_NAME),Mac OS X)
     ifeq ($(OS_ARCH),aarch64)
-		echo "Building HNSW library for MacOS Arm64"
-		clang++ -O3 -shared -std=c++11 coherence-hnsw/src/main/cpp/bindings.cpp -I coherence-hnsw/src/main/cpp/hnswlib -o coherence-hnsw/src/main/resources/libhnswlib-aarch64.dylib
+		echo "Building HNSW library for MacOS Arm64: $(HNSW_LIB_DIR)/libhnswlib-aarch64.dylib"
+		g++ -O3 -shared -std=c++11 coherence-hnsw/src/main/cpp/bindings.cpp -I coherence-hnsw/src/main/cpp/hnswlib -o $(HNSW_LIB_DIR)/libhnswlib-aarch64.dylib
     endif
     endif
 
 .PHONY: hnsw-macos-x86
-hnsw-macos-x86: coherence-hnsw/src/main/resources/libhnswlib-x86-64.dylib
+hnsw-macos-x86: $(HNSW_LIB_DIR)/libhnswlib-x86-64.dylib
 
-coherence-hnsw/src/main/resources/libhnswlib-x86-64.dylib: $(HNSW_CPP_FILES)
+$(HNSW_LIB_DIR)/libhnswlib-x86-64.dylib: $(HNSW_CPP_FILES) hnsw-setup
     ifeq ($(OS_NAME),Mac OS X)
     ifeq ($(OS_ARCH),x86-64)
-		echo "Building HNSW library for MacOS x86_64"
-		clang++ -O3 -shared -std=c++11 coherence-hnsw/src/main/cpp/bindings.cpp -I coherence-hnsw/src/main/cpp/hnswlib -o coherence-hnsw/src/main/resources/libhnswlib-x86-64.dylib
+		echo "Building HNSW library for MacOS x86_64: $(HNSW_LIB_DIR)/libhnswlib-x86-64.dylib"
+		g++ -O3 -shared -std=c++11 coherence-hnsw/src/main/cpp/bindings.cpp -I coherence-hnsw/src/main/cpp/hnswlib -o $(HNSW_LIB_DIR)/libhnswlib-x86-64.dylib
     endif
     endif
 
-.PHONY: hnsw-linux-arm
-hnsw-linux-arm: coherence-hnsw/src/main/resources/libhnswlib-aarch64.so
+.PHONY: hnsw-linux-aarch64
+hnsw-linux-aarch64: $(HNSW_LIB_DIR)/libhnswlib-aarch64.so
 
-coherence-hnsw/src/main/resources/libhnswlib-aarch64.so: $(HNSW_CPP_FILES)
+$(HNSW_LIB_DIR)/libhnswlib-aarch64.so: $(HNSW_CPP_FILES) hnsw-setup
     ifeq ($(OS_NAME),Linux)
     ifeq ($(OS_ARCH),aarch64)
-		echo "Building HNSW library for Linux Arm64"
-		clang++ -O3 -fPIC -shared -std=c++11 coherence-hnsw/src/main/cpp/bindings.cpp -I coherence-hnsw/src/main/cpp/hnswlib -o coherence-hnsw/src/main/resources/libhnswlib-aarch64.so
+		echo "Building HNSW library for Linux aarch64: $(HNSW_LIB_DIR)/libhnswlib-aarch64.so"
+		g++ -O3 -fPIC -shared -std=c++11 coherence-hnsw/src/main/cpp/bindings.cpp -I coherence-hnsw/src/main/cpp/hnswlib -o $(HNSW_LIB_DIR)/libhnswlib-aarch64.so
     endif
     endif
-
-# To build on Oracle Linux 7
-# $ yum install -y make
-# $ yum install -y oraclelinux-developer-release-el7 oracle-softwarecollection-release-el7
-# $ yum install -y llvm-toolset-7
-# $ export PATH=$PATH:/opt/rh/llvm-toolset-7/root/usr/bin
-# $ export LD_LIBRARY_PATH=/opt/rh/llvm-toolset-7/root/usr/lib64
 
 .PHONY: hnsw-linux-x86
-hnsw-linux-x86: coherence-hnsw/src/main/resources/libhnswlib-x86-64.so
+hnsw-linux-x86: $(HNSW_LIB_DIR)/libhnswlib-x86-64.so
 
-coherence-hnsw/src/main/resources/libhnswlib-x86-64.so: $(HNSW_CPP_FILES)
+$(HNSW_LIB_DIR)/libhnswlib-x86-64.so: $(HNSW_CPP_FILES) hnsw-setup
     ifeq ($(UNAME_S),Linux)
     ifeq ($(OS_ARCH),x86-64)
-		echo "Building HNSW library for Linux x86_64"
-		clang++ -O3 -fPIC -shared -std=c++11 coherence-hnsw/src/main/cpp/bindings.cpp -I coherence-hnsw/src/main/cpp/hnswlib -o coherence-hnsw/src/main/resources/libhnswlib-x86-64.so
+		echo "Building HNSW library for Linux x86_64: $(HNSW_LIB_DIR)/libhnswlib-x86-64.so"
+		g++ -O3 -fPIC -shared -std=c++11 coherence-hnsw/src/main/cpp/bindings.cpp -I coherence-hnsw/src/main/cpp/hnswlib -o $(HNSW_LIB_DIR)/libhnswlib-x86-64.so
     endif
     endif
 
 .PHONY: hnsw-windows-x86
-hnsw-windows-x86: coherence-hnsw/src/main/resources/libhnswlib-x86-64.dll
+hnsw-windows-x86: $(HNSW_LIB_DIR)/libhnswlib-x86-64.dll
 
-coherence-hnsw/src/main/resources/libhnswlib-x86-64.dll: $(HNSW_CPP_FILES)
+$(HNSW_LIB_DIR)/libhnswlib-x86-64.dll: $(HNSW_CPP_FILES) hnsw-setup
     ifeq ($(OS),Windows_NT)
-		echo "Building HNSW library for Windows x86_64"
-		clang++ -O3 -shared -std=c++11 coherence-hnsw/src/main/cpp/bindings.cpp -I coherence-hnsw/src/main/cpp/hnswlib -o coherence-hnsw/src/main/resources/libhnswlib-x86-64.dll
+		echo "Building HNSW library for Windows x86_64: $(HNSW_LIB_DIR)/libhnswlib-x86-64.dll"
+		g++ -O3 -shared -std=c++11 coherence-hnsw/src/main/cpp/bindings.cpp -I coherence-hnsw/src/main/cpp/hnswlib -o $(HNSW_LIB_DIR)/libhnswlib-x86-64.dll
     endif
 
 
