@@ -25,7 +25,6 @@
     <module.name>hnsw</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
     <failsafe.max.heap>2g</failsafe.max.heap>
-    <is.linux.aarch64>false</is.linux.aarch64>
   </properties>
 
   <dependencies>
@@ -57,19 +56,7 @@
     <profile>
       <id>stage1</id>
       <properties>
-        <skipTests>${is.linux.aarch64}</skipTests>
-      </properties>
-    </profile>
-    <profile>
-      <id>IsLinuxArm</id>
-      <activation>
-        <os>
-          <family>Linux</family>
-          <arch>aarch64</arch>
-        </os>
-      </activation>
-      <properties>
-        <is.linux.aarch64>true</is.linux.aarch64>
+        <skipTests>false</skipTests>
       </properties>
     </profile>
   </profiles>
