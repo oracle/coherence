@@ -103,12 +103,25 @@ public class TopicChannelCountRecoveryTests
         SubscriberId subscriberId = future.get(5, TimeUnit.MINUTES);
         assertThat(subscriberId, is(notNullValue()));
 
+        // the topic in the subscriber JVM should eventually have the correct channel count
+        Eventually.assertDeferred(() -> CreateSubscriber.apply(memberSub, subscriberId, Subscriber::getChannelCount),
+                is(cChannelIncreased));
+
+        // call receive on the subscriber so that we ensure it is connected and should be allocated all channels
+        CreateSubscriber.apply(memberSub, subscriberId, sub ->
+            {
+            sub.receive();
+            return null;
+            });
+
+        // The subscriber should be allocated the correct count of channels
         Eventually.assertDeferred(() -> CreateSubscriber.apply(memberSub, subscriberId, sub ->
                     {
                     int[] anChannel = sub.getChannels();
                     return anChannel == null ? 0 : anChannel.length;
                     }),
                 is(cChannelIncreased));
+
         }
 
 
