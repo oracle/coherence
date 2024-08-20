@@ -934,6 +934,7 @@ to find specific notes on changes suggested for production use.
             <password>${coherence.security.key.password ${coherence.security.password}}</password>
           </identity-manager>
           <trust-manager>
+            <algorithm system-property="coherence.security.algorithm">PeerX509</algorithm>
             <key-store>
               <url>${coherence.security.truststore ${coherence.security.keystore file:keystore.jks}}</url>
               <password>${coherence.security.truststore.password ${coherence.security.password}}</password>
