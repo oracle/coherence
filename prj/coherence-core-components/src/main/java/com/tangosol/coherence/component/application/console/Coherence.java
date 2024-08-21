@@ -10,6 +10,7 @@
 
 package com.tangosol.coherence.component.application.console;
 
+import com.oracle.coherence.common.util.Threads;
 import com.tangosol.coherence.Component;
 import com.tangosol.coherence.component.net.Member;
 import com.tangosol.coherence.component.net.MemberSet;
@@ -4167,6 +4168,19 @@ public class Coherence
 
         // instantiate the Coherence singleton (necessary for logging)
         get_Instance();
+
+        if (Config.getBoolean("coherence.debug.operational.config"))
+            {
+            StringBuilder       sbTrace    = new StringBuilder("Loading Coherence operational configuration, call stack:\n");
+            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+            for (int i = 1; i < stackTrace.length; i++)
+                {
+                sbTrace.append("\tat ")
+                        .append(stackTrace[i])
+                        .append("\n");
+                }
+            _trace(sbTrace.toString());
+            }
 
         Map         mapConfig    = getServiceConfigMap();
         XmlDocument xmlCoherence = XmlHelper.loadResource(FILE_CFG_COHERENCE,
