@@ -103,6 +103,12 @@
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-discovery</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-rest</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -476,6 +482,9 @@
                     <resource>
                       <directory>../coherence-java-client/src/main/java</directory>
                     </resource>
+                  <resource>
+                      <directory>../coherence-discovery/src/main/java</directory>
+                    </resource>
                   </resources>
 
                   <!-- always start clean -->
@@ -547,6 +556,7 @@
                     <include>com/tangosol/coherence/config/xml/preprocessor/*.java</include>
                     <include>com/tangosol/coherence/config/xml/processor/*.java</include>
 
+<include>com/tangosol/discovery/*.java</include>
                     <include>com/oracle/coherence/concurrent/atomic/*.java</include>
                     <include>com/oracle/coherence/concurrent/cdi/*.java</include>
                     <include>com/oracle/coherence/concurrent/executor/RemoteExecutor.java</include>
@@ -760,7 +770,11 @@
                           com.tangosol.coherence.dsl*
                       </packages>
                     </group>
-                    <group>
+
+                        <group>
+                          <title>Discovery</title>
+                          <packages>com.tangosol.discovery*</packages>
+</group>                    <group>
                       <title>JCache</title>
                       <packages>com.tangosol.coherence.jcache*</packages>
                     </group>
