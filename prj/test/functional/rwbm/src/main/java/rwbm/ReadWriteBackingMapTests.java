@@ -338,7 +338,10 @@ public class ReadWriteBackingMapTests
 
             definiteSleep(cMillis + 0xFFL);
             assertEquals("write did not occur.", map.size(), 3);
-            verifyStoreStats("putWithWriteBatchFactorZero-" + sCacheName, store, 0, 1, 0, 0, 1, 0);
+            // we expect to see either 3 individual store calls, or 1 store and 1 storeAll call
+            verifyStoreStats("putWithWriteBatchFactorZero-" + sCacheName, store,
+                        equal("store", 1).and(equal("storeAll", 1))
+                    .or(equal("store", 3).and(equal("storeAll", 0))));
             }
         finally
             {
