@@ -8,6 +8,7 @@ package com.tangosol.io.pof;
 
 
 import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.io.ClassLoaderAware;
@@ -16,6 +17,7 @@ import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.WriteBuffer;
 
 import com.tangosol.io.pof.annotation.Portable;
+
 import com.tangosol.io.pof.schema.annotation.PortableType;
 
 import com.tangosol.run.xml.SimpleElement;

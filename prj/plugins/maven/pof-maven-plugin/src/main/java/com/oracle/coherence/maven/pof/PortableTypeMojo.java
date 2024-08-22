@@ -152,7 +152,7 @@ public abstract class PortableTypeMojo
 
             if (m_fIndexPofClasses)
                 {
-                PofIndexer pofIndexer = new PofIndexer()
+                PofIndexer pofIndexer = new PofIndexer(log)
                     .ignoreClasspath(true)
                     .withClassesFromDirectory(listInstrument)
                     .withClassesFromJarFile(listDeps)

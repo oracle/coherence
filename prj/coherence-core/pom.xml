@@ -61,6 +61,12 @@
       <artifactId>fastutil-core</artifactId>
     </dependency>
 
+    <!-- classgraph -->
+    <dependency>
+      <groupId>io.github.classgraph</groupId>
+      <artifactId>classgraph</artifactId>
+    </dependency>
+
     <!-- optional dependencies -->
 
     <!-- graal -->

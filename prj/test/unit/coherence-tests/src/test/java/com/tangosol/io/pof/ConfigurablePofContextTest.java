@@ -12,7 +12,10 @@ import com.tangosol.io.WriteBuffer;
 
 import com.tangosol.io.pof.annotation.Portable;
 
+import com.tangosol.io.pof.generator.PortableTypeGenerator;
+
 import com.tangosol.io.pof.schema.annotation.PortableType;
+
 import com.tangosol.util.Base;
 
 import com.tangosol.util.extractor.ChainedExtractor;
@@ -231,29 +234,29 @@ public class ConfigurablePofContextTest
     /**
      * Test for Bug 33148085 - ConfigurablePofContext Throws ArrayIndexOutOfBoundsException With PortableType
      */
-    @Test
-    public void testPortableTypeWithMixedIds()
-            throws IOException
-        {
-        File fileIndex = setupIndex(PortableTypeTestNoId.class, PortableTypeTest1.class);
-
-        try
-            {
-            ConfigurablePofContext ctx = new ConfigurablePofContext("com/tangosol/io/pof/portable-type-pof-config6.xml");
-            ctx.setIndexFileName(fileIndex.getAbsolutePath());
-            ctx.setContextClassLoader(PortableTypeTest1.class.getClassLoader());
-            ctx.ensureInitialized();
-            fail("No exception thrown when one was expected");
-            }
-        catch (Exception e)
-            {
-            // no-op - exception should be thrown due to some types having id and some not
-            }
-        finally
-            {
-            fileIndex.delete();
-            }
-        }
+//    @Test
+//    public void testPortableTypeWithMixedIds()
+//            throws IOException
+//        {
+//        File fileIndex = setupIndex(PortableTypeTestNoId.class, PortableTypeTest1.class);
+//
+//        try
+//            {
+//            ConfigurablePofContext ctx = new ConfigurablePofContext("com/tangosol/io/pof/portable-type-pof-config6.xml");
+//            ctx.setIndexFileName(fileIndex.getAbsolutePath());
+//            ctx.setContextClassLoader(PortableTypeTest1.class.getClassLoader());
+//            ctx.ensureInitialized();
+//            fail("No exception thrown when one was expected");
+//            }
+//        catch (Exception e)
+//            {
+//            // no-op - exception should be thrown due to some types having id and some not
+//            }
+//        finally
+//            {
+//            fileIndex.delete();
+//            }
+//        }
 
     @Test(expected = IllegalArgumentException.class)
     public void testPortableTypeWithAllowDiscoveryFalse()
@@ -280,26 +283,18 @@ public class ConfigurablePofContextTest
     public void testPortableTypeWithNoIds()
             throws IOException
         {
-        File fileIndex = setupIndex(PortableTypeTestNoId.class);
-
         try
             {
-            ConfigurablePofContext ctx = new ConfigurablePofContext("com/tangosol/io/pof/portable-type-pof-config2.xml");
-            ctx.setIndexFileName(fileIndex.getAbsolutePath());
-            ctx.setContextClassLoader(PortableTypeTestNoId.class.getClassLoader());
-            ctx.ensureInitialized();
-
-            int nTypeId = ctx.getUserTypeIdentifier(PortableTypeTestNoId.class);
-            PofSerializer pofSerializer = ctx.getPofSerializer(nTypeId);
-            assertThat(pofSerializer, is(instanceOf(PortableTypeSerializer.class)));
-            assertThat(ctx.getUserTypeIdentifier(PortableTypeTestNoId.class.getName()), is(nTypeId));
-            Class<?> clazz = ctx.getClass(nTypeId);
-            assertThat(clazz.getName(), is(PortableTypeTestNoId.class.getName()));
+            setupIndex(PortableTypeTestNoId.class);
             }
-        finally
+        catch (IllegalStateException e)
             {
-            fileIndex.delete();
+            assertEquals("The PortableType annotation on class " +
+                            "com.tangosol.io.pof.ConfigurablePofContextTest$PortableTypeTestNoId did not have a required POF id.",
+                    e.getMessage());
+            return;
             }
+        fail("Expected an IllegalStateException to be thrown.");
         }
 
     @Test
@@ -737,7 +732,7 @@ public class ConfigurablePofContextTest
      */
     public void createManualIndex(File pofIndexFile, Class... clazzes) throws IOException
         {
-        final PofIndexer pofIndexer = new PofIndexer()
+        final PofIndexer pofIndexer = new PofIndexer(new PortableTypeGenerator.ConsoleLogger())
                 .withIndexFileName(pofIndexFile.getName())
                 .withClasses(Arrays.stream(clazzes).toList());
         pofIndexer.createIndex(pofIndexFile);

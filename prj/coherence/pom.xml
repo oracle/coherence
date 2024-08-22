@@ -338,6 +338,7 @@
                   <include>org.ow2.asm:asm-commons</include>
                   <include>org.ow2.asm:asm-tree</include>
                   <include>org.ow2.asm:asm-util</include>
+                  <include>io.github.classgraph:classgraph</include>
                   <include>it.unimi.dsi:fastutil-core</include>
                   <include>com.sleepycat:je</include>
                   <include>${coherence.group.id}:coherence-discovery</include>
@@ -356,6 +357,7 @@
                   <artifact>*:*</artifact>
                   <excludes>
                     <exclude>module-info*</exclude>
+                    <exclude>META-INF/versions/9/module-info.class</exclude>
                     <exclude>META-INF/MANIFEST.MF</exclude>
                     <exclude>META-INF/maven/**/*</exclude>
                   </excludes>
@@ -395,6 +397,14 @@
                 <relocation>
                   <pattern>org.objectweb.asm.util</pattern>
                   <shadedPattern>com.tangosol.internal.asm.util</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>io.github.classgraph</pattern>
+                  <shadedPattern>com.tangosol.internal.classgraph</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>nonapi.io.github.classgraph</pattern>
+                  <shadedPattern>com.tangosol.internal.classgraph.nonapi</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>com.sleepycat</pattern>
@@ -464,6 +474,10 @@
                 <exclusion>
                   <groupId>com.sleepycat</groupId>
                   <artifactId>je</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.github.classgraph</groupId>
+                  <artifactId>classgraph</artifactId>
                 </exclusion>
                 <!-- can't exclude ASM, because it's required by org.graalvm.js -->
               </exclusions>

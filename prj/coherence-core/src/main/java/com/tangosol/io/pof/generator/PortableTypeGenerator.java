@@ -121,6 +121,7 @@ import static org.objectweb.asm.Opcodes.RETURN;
  * them implement {@link PortableObject} and {@link EvolvableObject}.
  *
  * @author as  2013.07.18
+ * @author Gunnar Hillert  2024.08.15
  */
 @SuppressWarnings({"unchecked", "WeakerAccess", "unused"})
 public class PortableTypeGenerator
@@ -153,7 +154,7 @@ public class PortableTypeGenerator
     public PortableTypeGenerator(Schema schema, InputStream in, boolean fDebug)
             throws IOException
         {
-        this(schema, in, fDebug, new NullLogger());
+        this(schema, in, fDebug, new CoherenceLogger());
         }
 
     /**
@@ -1187,6 +1188,28 @@ public class PortableTypeGenerator
         @Override
         public void info(String message)
             {
+            }
+        }
+
+    // ----- inner class: CoherenceLogger -------------------------------------
+
+    /**
+     * A {@link Logger} implementation that logs using the Coherence
+     * {@link com.oracle.coherence.common.base.Logger}.
+     */
+    public static class CoherenceLogger
+                implements Logger
+        {
+        @Override
+        public void debug(String message)
+            {
+            com.oracle.coherence.common.base.Logger.finer(message);
+            }
+
+        @Override
+        public void info(String message)
+            {
+            com.oracle.coherence.common.base.Logger.info(message);
             }
         }
 

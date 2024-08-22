@@ -336,7 +336,7 @@ public class CoherencePluginTests
 
         assertFalse(properties.isEmpty());
         assertTrue(properties.containsKey("foo.Foo"));
-        assertTrue(properties.get("foo.Foo").equals(""));
+        assertTrue(properties.get("foo.Foo").equals("1000"));
 
         }
 

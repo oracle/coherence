@@ -7,12 +7,14 @@
 package com.oracle.coherence.gradle;
 
 import com.oracle.coherence.common.base.Exceptions;
+
 import com.oracle.coherence.common.schema.ClassFileSchemaSource;
 import com.oracle.coherence.common.schema.Schema;
 import com.oracle.coherence.common.schema.SchemaBuilder;
 import com.oracle.coherence.common.schema.XmlSchemaSource;
 
 import com.tangosol.io.pof.PofIndexer;
+
 import com.tangosol.io.pof.generator.PortableTypeGenerator;
 
 import com.tangosol.io.pof.schema.annotation.PortableType;
@@ -43,7 +45,11 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static com.oracle.coherence.common.schema.ClassFileSchemaSource.Filters.hasAnnotation;
 
@@ -339,7 +345,7 @@ abstract class CoherenceTask
             {
             try {
                 logger.warn("Creating POF index in directory " + outputDirectory.getCanonicalPath());
-                final PofIndexer pofIndexer = new PofIndexer();
+                final PofIndexer pofIndexer = new PofIndexer(new GradleLogger(logger));
                 pofIndexer.ignoreClasspath(true)
                         .withClassesFromDirectory(listInstrument)
                         .withClassesFromJarFile(classesFromJarFile);

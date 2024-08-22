@@ -8,6 +8,8 @@ package com.tangosol.io.pof.testdata.pkg;
 
 import com.tangosol.io.pof.schema.annotation.PortableType;
 
+import com.tangosol.io.pof.testdata.PortableTypeTestBase;
+
 @PortableType(id = 1000)
 public class PortableTypeTest1
         extends PortableTypeTestBase

@@ -10,18 +10,19 @@ package com.tangosol.io.pof;
 import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Logger;
 
-import com.tangosol.dev.introspect.ClassAnnotationSeeker;
-import com.tangosol.dev.introspect.ClassPathResourceDiscoverer;
-
+import com.oracle.coherence.common.collections.NullableConcurrentMap;
+import com.tangosol.io.pof.generator.PortableTypeGenerator;
 import com.tangosol.io.pof.schema.annotation.PortableType;
 
 import com.tangosol.util.LiteMap;
 import com.tangosol.util.Resources;
 import com.tangosol.util.SafeHashMap;
 
-import com.tangosol.util.extractor.KeyExtractor;
-
-import com.tangosol.util.filter.InFilter;
+import io.github.classgraph.AnnotationParameterValue;
+import io.github.classgraph.AnnotationParameterValueList;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfo;
+import io.github.classgraph.ScanResult;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -42,8 +43,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 
 /**
 * This class is responsible for creating or reading POF index files.
@@ -61,7 +60,17 @@ public class PofIndexer
      */
     public PofIndexer()
         {
-        this(Classes.getContextClassLoader());
+        this(Classes.getContextClassLoader(), new PortableTypeGenerator.CoherenceLogger());
+        }
+
+    /**
+     * Constructor with the ability to pass a {@link  PortableTypeGenerator.Logger}.
+     *
+     * @param logger the {@link  PortableTypeGenerator.Logger} to use
+     */
+    public PofIndexer(PortableTypeGenerator.Logger logger)
+        {
+        this(Classes.getContextClassLoader(), logger);
         }
 
     /**
@@ -71,7 +80,20 @@ public class PofIndexer
      */
     public PofIndexer(ClassLoader classLoader)
         {
+        this(classLoader, new PortableTypeGenerator.CoherenceLogger());
+        }
+
+    /**
+     * Constructor that allows to specify a custom {@link ClassLoader} as well as
+     * a {@link  PortableTypeGenerator.Logger}.
+     *
+     * @param classLoader the ClassLoader to set
+     * @param logger the {@link  PortableTypeGenerator.Logger} to use
+     */
+    public PofIndexer(ClassLoader classLoader, PortableTypeGenerator.Logger logger)
+        {
         m_classLoader = classLoader == null ? PofIndexer.class.getClassLoader() : classLoader;
+        m_log    = logger;
         }
 
     // ----- Pof Indexer implementation --------------------------------------
@@ -91,7 +113,7 @@ public class PofIndexer
                     pofIndexFileDirectory.getAbsolutePath()));
             }
 
-        final File pofIndexFile = new File(pofIndexFileDirectory, m_sIndexFileName);
+        File pofIndexFile = new File(pofIndexFileDirectory, m_sIndexFileName);
         pofIndexFile.getParentFile().mkdirs();
 
         createIndex(pofIndexFile);
@@ -104,14 +126,12 @@ public class PofIndexer
      */
     public void createIndex(File pofIndexFile)
         {
-        Logger.info(String.format("Creating POF index file at '%s'.", pofIndexFile.getAbsolutePath()));
 
-        final Map<String, Integer> portableClasses = discoverPortableTypes();
+        m_log.info(String.format("Creating POF index file at '%s'.", pofIndexFile.getAbsolutePath()));
+        Map<String, Integer> portableClasses = discoverPortableTypes();
+        m_log.info(String.format("Discovered %s class(es) annotated with `%s`.", portableClasses, PortableType.class.getName()));
 
-        Logger.info(String.format("Discovered %s class(es) annotated with `%s`.", portableClasses, PortableType.class.getName()));
-
-        final Properties pofProperties = new Properties();
-
+        Properties pofProperties = new Properties();
         for (Map.Entry<String, Integer> entry : portableClasses.entrySet())
             {
             pofProperties.put(entry.getKey(), entry.getValue() != null ? String.valueOf(entry.getValue()) : "");
@@ -134,7 +154,7 @@ public class PofIndexer
         }
 
     /**
-     * Scans for {@link PortableType} annotated classes using the {@link ClassAnnotationSeeker}. The returned {@link Map}
+     * Scans for {@link PortableType} annotated classes. The returned {@link Map}
      * contains the class name as the key and the POF id as its value. Keep in mind that the POF id can currently only be
      * returned for classes obtained via the classpath but not from actual class files or JAR files.
      *
@@ -142,130 +162,77 @@ public class PofIndexer
      */
     protected Map<String, Integer> discoverPortableTypes()
         {
+        Map<String, Integer> mapPortableTypes = new NullableConcurrentMap<>();
+        ClassGraph classGraph = new ClassGraph()
+                .enableAnnotationInfo()
+                .overrideClassLoaders(m_classLoader);
 
-        final Map<String, Integer> mapPortableTypes = new SafeHashMap<>();
+        if (!m_packagesToScan.isEmpty())
+            {
+            classGraph.acceptPackages(m_packagesToScan.toArray(new String[0]));
+            }
+        if (!m_classes.isEmpty())
+            {
+            classGraph.acceptClasses(m_classes.stream().map(Class::getName).toArray(String[]::new));
+            }
+
+        List<URL> classPathUris = new ArrayList<>();
 
         if (!m_fIgnoreClasspath)
             {
-            final ClassAnnotationSeeker.Dependencies simpleDeps = new ClassAnnotationSeeker.Dependencies();
-
-            simpleDeps.setContextClassLoader(m_classLoader);
-            if (!m_packagesToScan.isEmpty())
-                {
-                simpleDeps.setPackages(m_packagesToScan);
-                }
-
-            if (!m_classes.isEmpty())
-                {
-                simpleDeps.setFilter(new InFilter(new KeyExtractor(), m_classes.stream().map(Class::getName).collect(Collectors.toSet())));
-                if (m_packagesToScan.isEmpty())
-                    {
-                    final Set<String> packagesToScan = new HashSet<>();
-                    for (Class classToScan : m_classes)
-                        {
-                        packagesToScan.add(classToScan.getPackageName());
-                        }
-                        simpleDeps.setPackages(packagesToScan);
-                    }
-                }
-
-            final ClassAnnotationSeeker classAnnotationSeeker  = new ClassAnnotationSeeker(simpleDeps);
-            final Set<String> setClassNames                    = classAnnotationSeeker.findClassNames(PortableType.class);
-
-            for (String classname : setClassNames)
-                {
-                int portableTypeId = getPortableTypeIdForClassName(classname);
-                mapPortableTypes.put(classname, portableTypeId);
-                }
+            classPathUris.addAll(classGraph.getClasspathURLs());
             }
-
-        // Jar File
 
         if (!m_jarFiles.isEmpty())
             {
-            final List<URL> urls = m_jarFiles.stream().map(this::createJarURL).toList();
-
-            final ClassAnnotationSeeker.Dependencies jarFileDeps = new ClassAnnotationSeeker.Dependencies();
-            jarFileDeps.setDiscoverer(new ClassPathResourceDiscoverer.InformedResourceDiscoverer(
-                    urls.toArray(new URL[urls.size()])));
-            if (!m_packagesToScan.isEmpty())
-                {
-                jarFileDeps.setPackages(m_packagesToScan);
-                }
-            final ClassAnnotationSeeker simpleSeeker  = new ClassAnnotationSeeker(jarFileDeps);
-            final Set<String> setJarClassNames = simpleSeeker.findClassNames(PortableType.class);
-            for (String className : setJarClassNames)
-                {
-                mapPortableTypes.put(className, null);
-                }
+            List<URL> urls = m_jarFiles.stream().map(this::createJarURL).toList();
+            classPathUris.addAll(urls);
             }
-
-        // Class Files
-
-        if (!m_classFiles.isEmpty())
-            {
-            final ClassAnnotationSeeker.Dependencies classFileDeps = new ClassAnnotationSeeker.Dependencies();
-            classFileDeps.setDiscoverer(new ClassPathResourceDiscoverer.InformedResourceDiscoverer(
-                m_classFiles.stream().map(file ->
-                    {
-                    try
-                        {
-                        return file.toURI().toURL();
-                        }
-                    catch (MalformedURLException e)
-                        {
-                        throw new RuntimeException(e);
-                        }
-                    }).collect(Collectors.toSet()).toArray(new URL[m_classFiles.size()])));
-
-            if (!m_packagesToScan.isEmpty())
-                {
-                classFileDeps.setPackages(m_packagesToScan);
-                }
-
-            final ClassAnnotationSeeker simpleSeeker  = new ClassAnnotationSeeker(classFileDeps);
-            final Set<String> setClassFilesClassNames = simpleSeeker.findClassNames(PortableType.class);
-
-            for (String className : setClassFilesClassNames)
-                {
-                mapPortableTypes.put(className, null);
-                }
-
-            }
-
-        // Class Dirs
 
         if (!m_classesDirectories.isEmpty())
             {
-            final ClassAnnotationSeeker.Dependencies classFileDeps = new ClassAnnotationSeeker.Dependencies();
-            classFileDeps.setDiscoverer(new ClassPathResourceDiscoverer.InformedResourceDiscoverer(
-                    m_classesDirectories.stream().map(file ->
-                        {
-                        try
-                            {
-                            return file.toURI().toURL();
-                            }
-                        catch (MalformedURLException e)
-                            {
-                            throw new RuntimeException(e);
-                            }
-                        }).collect(Collectors.toSet()).toArray(new URL[m_classesDirectories.size()])));
-
-            if (!m_packagesToScan.isEmpty())
+            classPathUris.addAll(m_classesDirectories.stream().map(file ->
                 {
-                classFileDeps.setPackages(m_packagesToScan);
-                }
-
-            final ClassAnnotationSeeker simpleSeeker  = new ClassAnnotationSeeker(classFileDeps);
-            final Set<String> setClassFilesClassNames = simpleSeeker.findClassNames(PortableType.class);
-
-            for (String className : setClassFilesClassNames)
-                {
-                mapPortableTypes.put(className, null);
-                }
-
+                try
+                    {
+                    return file.toURL();
+                    }
+                catch (MalformedURLException e)
+                    {
+                    throw new RuntimeException(e);
+                    }
+                }).toList());
             }
+        classGraph.overrideClasspath(classPathUris);
 
+        try (ScanResult result = classGraph.scan())
+            {
+            for (ClassInfo classInfo : result.getClassesWithAnnotation(PortableType.class))
+                {
+                AnnotationParameterValueList annotationParameterValues = classInfo.getAnnotationInfo(PortableType.class).getParameterValues();
+                AnnotationParameterValue idValue = annotationParameterValues.get("id");
+
+                int portableTypeId;
+
+                if (idValue != null)
+                    {
+                    portableTypeId = (int) idValue.getValue();
+
+                    // Can be removed once Bug 36955929 is implemented
+                    if (portableTypeId == -1)
+                        {
+                        throw new IllegalStateException("The PortableType annotation on class "
+                                + classInfo.getName() + " did not have a required POF id.");
+                        }
+                    }
+                else
+                    {
+                    throw new IllegalStateException("The PortableType annotation on class "
+                            + classInfo.getName() + " did not have a required POF id.");
+                    }
+                mapPortableTypes.put(classInfo.getName(), portableTypeId);
+                }
+            }
         if (m_includeFilterPatterns.isEmpty())
             {
             return mapPortableTypes;
@@ -321,12 +288,12 @@ public class PofIndexer
      */
      public Map<URL, Properties> loadIndexes()
         {
-        final Map<URL, Properties> mapIndexes     = new LiteMap<>();
-        final String               sIndexFileName = m_sIndexFileName;
+        Map<URL, Properties> mapIndexes     = new LiteMap<>();
+        String               sIndexFileName = m_sIndexFileName;
 
         try
             {
-            final Iterable<URL> iterUrls = Resources.findResources(sIndexFileName, m_classLoader);
+            Iterable<URL> iterUrls = Resources.findResources(sIndexFileName, m_classLoader);
 
             // loop through each URL and load the index
             for (URL url : iterUrls)
@@ -418,7 +385,7 @@ public class PofIndexer
          */
         public URL createJarURL(File jarFile)
             {
-            final URI jarUri = createJarURI(jarFile);
+            URI jarUri = createJarURI(jarFile);
             try
                 {
                 return jarUri.toURL();
@@ -468,19 +435,6 @@ public class PofIndexer
     public PofIndexer withClassesFromJarFile(List<File> jarFiles)
         {
         m_jarFiles.addAll(jarFiles);
-        return this;
-        }
-
-    /**
-     * Add the individual class file on the file system to import.
-     *
-     * @param classFile the name of the class file on the file system to import
-     *
-     * @return this {@code PofIndexer}
-     */
-    public PofIndexer withClassFile(File classFile)
-        {
-        this.m_classFiles.add(classFile);
         return this;
         }
 
@@ -550,11 +504,6 @@ public class PofIndexer
     private List<Class> m_classes = new ArrayList<>();
 
     /**
-     * A List of individual class {@link File}s on the file system to scan.
-     */
-    private List<File> m_classFiles = new ArrayList<>();
-
-    /**
      * A List of individual JAR {@link File}s on the file system to scan for classes that contain clases annotated
      * with {@link PortableType} annotations.
      */
@@ -572,4 +521,9 @@ public class PofIndexer
      * only classes included in the POF that end in Address, specify a regular expression string of {code .*Address$}.
      */
     private List<Pattern> m_includeFilterPatterns = new ArrayList<>();
+
+    /**
+     * The {@link PortableTypeGenerator.Logger} to use.
+     */
+    private PortableTypeGenerator.Logger m_log;
     }

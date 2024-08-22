@@ -4,9 +4,10 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package com.tangosol.io.pof.testdata.pkg;
+package com.tangosol.io.pof.testdata.invalid;
 
 import com.tangosol.io.pof.schema.annotation.PortableType;
+import com.tangosol.io.pof.testdata.PortableTypeTestBase;
 
 @PortableType
 public class PortableTypeTestNoId

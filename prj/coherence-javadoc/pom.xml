@@ -119,6 +119,12 @@
       <artifactId>je</artifactId>
     </dependency>
 
+    <!-- classgraph -->
+    <dependency>
+      <groupId>io.github.classgraph</groupId>
+      <artifactId>classgraph</artifactId>
+    </dependency>
+
     <!-- IMPORTANT: intentional dependency on old versions of Servlet and JSP specs,
                     as that's what Coherence*Web currently supports -->
     <!-- TODO: upgrade to Java EE 8 spec versions -->
