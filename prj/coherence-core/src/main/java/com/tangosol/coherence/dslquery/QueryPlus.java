@@ -42,6 +42,9 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * QueryPlus implements a simple command line processor for a sql like
  * language.
@@ -70,6 +73,7 @@ public class QueryPlus
         f_dependencies = dependencies;
         f_executor     = dependencies.getStatementExecutor();
         f_context      = new ExecutionContext();
+        f_fEcho        = dependencies.isEcho();
 
         f_context.setTimeout(dependencies.getTimeout());
         f_context.setTraceEnabled(dependencies.isTraceEnabled());
@@ -149,8 +153,38 @@ public class QueryPlus
                 writer.flush();
 
                 String sLine = reader.readLine();
+                if (sLine == null || sLine.length() == 0)
+                    {
+                    fWorking = false;
+                    }
+                else
+                    {
+                    boolean  fContainsEOS = sLine.contains(END_OF_STATEMENT);
+                    String[] statements   = sLine.split(END_OF_STATEMENT);
 
-                fWorking = sLine != null && evalLine(sLine);
+                    for (String statement : statements)
+                        {
+                        statement = statement.trim();
+                        if (statement.isEmpty())
+                            {
+                            continue;
+                            }
+
+                        // equivalent of printing shell commands as they are read.
+                        if (f_fEcho)
+                            {
+                            StringBuffer sb = new StringBuffer(statement);
+
+                            if (fContainsEOS)
+                                {
+                                sb.append(END_OF_STATEMENT);
+                                }
+                            writer.println(sb.toString());
+                            writer.flush();
+                            }
+                        fWorking = statement != null && evalLine(statement);
+                        }
+                    }
                 }
             catch (IOException e)
                 {
@@ -388,6 +422,7 @@ public class QueryPlus
 
             return new BufferedReader(new InputStreamReader(input))
                 {
+                @Override
                 public String readLine()
                         throws IOException
                     {
@@ -400,6 +435,15 @@ public class QueryPlus
                         }
                     catch (Throwable e)
                         {
+                        Throwable eCause     = e.getCause();
+                        String    eCauseName = eCause == null ? "" : eCause.getClass().getName();
+                        if (e.getClass().getName().contains("InvocationTargetException"))
+                            if (eCauseName.contains("EndOfFileException") || eCauseName.contains("org.jline.reader.UserInterruptException"))
+                                {
+                                // JLine 3.x JLineReader.readLine() method throws exceptions for EOF and ^C by console user.
+                                // Method being overridden, java.BufferedReader#readLine(), is documented to return null on eof.
+                                return null;
+                            }
                         throw Base.ensureRuntimeException(e);
                         }
                     }
@@ -486,6 +530,16 @@ public class QueryPlus
          *         added to the statements list have been executed
          */
         public boolean isExitWhenProcessingComplete();
+
+        /**
+         * Return true if echo is on, resulting in each input statement being written to output as it is read.
+         * Default is false.
+         *
+         * @return if echo is on.
+         *
+         * @since 24.09
+         */
+        public boolean isEcho();
 
         /**
          * Return the list of statements that should be executed prior to the
@@ -641,6 +695,22 @@ public class QueryPlus
         public boolean isSanityChecking()
             {
             return m_fSanity;
+            }
+
+        /**
+         * Set echo mode.
+         *
+         * @since 24.09
+         */
+        public void setEcho(boolean fEcho)
+            {
+            m_fEcho = fEcho;
+            }
+
+        @Override
+        public boolean isEcho()
+            {
+            return m_fEcho;
             }
 
         /**
@@ -927,6 +997,13 @@ public class QueryPlus
          * The timeout value to use for CohQL statement execution.
          */
         protected Duration m_timeout = new Duration(1, Duration.Magnitude.MINUTE);
+
+        /**
+         * When {@code true}, echo input statement to output as it is read. Defaults to {@code false}.
+         *
+         * @since 24.09
+         */
+        protected boolean m_fEcho = false;
         }
 
     // ----- inner class: DependenciesHelper --------------------------------
@@ -955,7 +1032,7 @@ public class QueryPlus
                                                CoherenceQueryLanguage language, String[] asArgs)
             {
             String[] asValidArgs = new String[]{"c", "e", "extend", "f", "l", "s", "t", "trace", "nojline",
-                    "g", "a", "dp", "timeout"};
+                    "g", "a", "dp", "timeout", "jlinedebug", "v"};
 
             try
                 {
@@ -966,11 +1043,18 @@ public class QueryPlus
 
                 if (!fExitOnCompletion && !map.containsKey("nojline"))
                     {
+                    if (map.containsKey("jlinedebug"))
+                        {
+                        // enable debug JLine dumbterminal warning
+                        final Logger logger = Logger.getLogger("org.jline");
+
+                        logger.setLevel(Level.FINER);
+                        }
                     reader = getJlineReader(System.out, inputStream, fSilent);
                     }
 
                 if (reader == null)
-                        {
+                    {
                     reader = new BufferedReader(new InputStreamReader(inputStream));
                     }
 
@@ -1022,6 +1106,10 @@ public class QueryPlus
                         }
                     }
 
+                if (map.containsKey("v"))
+                    {
+                    deps.setEcho(true);
+                    }
                 return deps;
                 }
             catch (IllegalArgumentException e)
@@ -1040,8 +1128,8 @@ public class QueryPlus
         public static void usage(PrintWriter writer)
             {
             writer.println("java "
-                    + QueryPlus.class.getCanonicalName() + " [-t] [-c] [-s] [-e] [-l <cmd>]*\n"
-                    + "    [-f <file>]* [-g <garFile>] [-a <appName>] [-dp <parition-list>] [-timeout <value>]");
+                    + QueryPlus.class.getCanonicalName() + " [-t] [-c] [-s] [-e] [-v] [-l <cmd>]*\n"
+                    + "    [-f <file>]* [-g <garFile>] [-a <appName>] [-dp <parition-list>] [-timeout <value>] [-nojline] [-jlinedebug]");
 
             /**
              * The lines below should try not to exceed 80 characters
@@ -1078,9 +1166,20 @@ public class QueryPlus
                 "                 current partition. The -dp argument is only applicable in\n" +
                 "                 combination with the -g argument.\n" +
                 "-timeout <value> Specifies the timeout value for CohQL statements in\n" +
-                "                 milli-seconds.");
+                "                 milli-seconds.\n" +
+                "-v               verbose mode. Echo each input statement as it is read.\n" +
+                "-nojline         do not use jline console\n" +
+                "-jlinedebug      enable FINER logging to debug jline\n");
             }
         }
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * End of statement constant.
+     *
+     * @since 24.09
+     */
+    private static final String END_OF_STATEMENT = ";";
 
     // ----- data members ---------------------------------------------------
 
@@ -1098,4 +1197,13 @@ public class QueryPlus
      * The {@link StatementExecutor} to use to execute statements.
      */
     protected final StatementExecutor f_executor;
+
+    /**
+     * {@code true} iff input statement should be echoed to output as it is read.
+     * Equivalent to {@code echo on} when running an OS shell script.
+     * Defaults to {@code false}.
+     *
+     * @since 24.09
+     */
+    protected final boolean f_fEcho;
     }
