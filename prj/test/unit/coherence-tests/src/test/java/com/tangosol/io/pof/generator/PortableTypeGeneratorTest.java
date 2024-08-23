@@ -14,13 +14,9 @@ import com.tangosol.io.pof.PortableObject;
 import com.tangosol.io.pof.PortableTypeSerializer;
 import com.tangosol.io.pof.SimplePofContext;
 
-import com.tangosol.io.pof.generator.data.Simple;
-import com.tangosol.io.pof.generator.data.TestClassWithNoId;
-
 import com.tangosol.io.pof.reflect.PofValue;
 import com.tangosol.io.pof.reflect.PofValueParser;
 
-import com.tangosol.io.pof.schema.annotation.PortableType;
 import com.tangosol.io.pof.schema.annotation.internal.Instrumented;
 
 import com.tangosol.util.Base;
@@ -48,7 +44,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.tangosol.io.pof.reflect.PofReflectionHelper.getPofNavigator;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -276,59 +271,6 @@ public class PortableTypeGeneratorTest
 
         Schema schema = PortableTypeGenerator.createSchema(fileClass, env);
         assertThat(schema, is(notNullValue()));
-        }
-
-    @Test
-    @SuppressWarnings("rawtypes")
-    public void shouldInstrumentClassWithNoId() throws Exception
-        {
-        String         sClassName   = TestClassWithNoId.class.getName();
-        URL            url          = getClass().getResource("/" + sClassName.replaceAll("\\.", "/") + ".class");
-        File           fileClass    = new File(url.toURI());
-        byte[]         abBytes      = Files.readAllBytes(fileClass.toPath());
-        Properties     properties   = new Properties();
-        Map<String, ?> env          = new HashMap<>();
-        byte[]         instrumented = PortableTypeGenerator.instrumentClass(fileClass, abBytes, 0, abBytes.length, properties, env);
-
-        SimplePofContext ctx = new SimplePofContext();
-
-        ByteArrayClassLoader loader = new ByteArrayClassLoader(Collections.singletonMap(sClassName, instrumented));
-        Class<?> instrumentedClass = loader.findClass(TestClassWithNoId.class.getName());
-        int nTypeId = instrumentedClass.getAnnotation(PortableType.class).id();
-
-        ctx.registerUserType(nTypeId, instrumentedClass, new PortableTypeSerializer(nTypeId, instrumentedClass));
-
-        Object testClass = instrumentedClass.getDeclaredConstructor(String.class).newInstance("value");
-
-        Binary            binTestClass  = ExternalizableHelper.toBinary(testClass, ctx);
-        Object            result        = ExternalizableHelper.fromBinary(binTestClass, ctx);
-        assertThat(result, is(equalTo(testClass)));
-        }
-
-    @Test
-    @SuppressWarnings("rawtypes")
-    public void testBug35038656() throws Exception
-        {
-        String         sClassName   = Simple.class.getName();
-        URL            url          = getClass().getResource("/" + sClassName.replaceAll("\\.", "/") + ".class");
-        File           fileClass    = new File(url.toURI());
-        byte[]         abBytes      = Files.readAllBytes(fileClass.toPath());
-        Properties     properties   = new Properties();
-        Map<String, ?> env          = new HashMap<>();
-        byte[]         instrumented = PortableTypeGenerator.instrumentClass(fileClass, abBytes, 0, abBytes.length, properties, env);
-
-        SimplePofContext ctx = new SimplePofContext();
-
-        ByteArrayClassLoader loader = new ByteArrayClassLoader(Collections.singletonMap(sClassName, instrumented));
-        Class<?> instrumentedClass = loader.findClass(sClassName);
-        int nTypeId = instrumentedClass.getAnnotation(PortableType.class).id();
-
-        ctx.registerUserType(nTypeId, instrumentedClass, new PortableTypeSerializer(nTypeId, instrumentedClass));
-
-        Object testClass = instrumentedClass.getDeclaredConstructor(String.class, Integer.TYPE).newInstance("name", 10);
-        Binary            binTestClass  = ExternalizableHelper.toBinary(testClass, ctx);
-        Object            result        = ExternalizableHelper.fromBinary(binTestClass, ctx);
-        assertThat(result, is(equalTo(testClass)));
         }
 
     @Test

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -80,9 +80,7 @@
                 object class that can be communicated among systems regardless of
                 language, OS, hardware and location.
 
-                Within the user-type element, the type-id element is optional, but its use
-                is strongly suggested in order to support schema versioning and
-                evolution.
+                Within the user-type element, the type-id element is mandatory.
 
                 Within the user-type element, the class-name element is required, and
                 specifies the fully qualified name of the Java class or interface
@@ -97,7 +95,7 @@
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
-                <xsd:element ref="type-id" minOccurs="0" />
+                <xsd:element ref="type-id" />
                 <xsd:element ref="class-name" />
                 <xsd:element ref="serializer" minOccurs="0" />
             </xsd:sequence>
@@ -125,13 +123,7 @@
                 The type-id element specifies an integer value (n >= 0) that uniquely
                 identifies the user type.
 
-                If none of the user-type elements contains a type-id element, then the
-                type IDs for the user types will be based on the order in which they
-                appear in the user-type-list, with the first user type being assigned
-                the type ID 0, the second user type being assigned the type ID 1, and so on.
-
-                However, it is strongly recommended that user types IDs always be specified,
-                in order to support schema versioning and evolution.
+                Type IDs are mandatory in order to support schema versioning and evolution.
 
                 Used in: user-type
             </xsd:documentation>

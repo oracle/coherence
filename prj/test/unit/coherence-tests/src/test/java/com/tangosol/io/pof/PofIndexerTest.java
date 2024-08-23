@@ -39,7 +39,6 @@ import java.util.zip.ZipInputStream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
 * Test for the {@link PofIndexer} class.
@@ -65,7 +64,7 @@ public class PofIndexerTest
         {
         PofIndexer pofIndexer = new PofIndexer();
         List<Class> classesToIndex = List.of(PortableTypesInnerClass.class.getDeclaredClasses())
-                .stream().filter(clazz -> !clazz.getName().endsWith("PortableTypeTestNoId")).map(clazz->(Class) clazz).toList();
+                .stream().map(clazz->(Class) clazz).toList();
         pofIndexer.withClasses(classesToIndex);
         Map<String, Integer> portableTypes = pofIndexer.discoverPortableTypes();
         assertEquals(4, portableTypes.size());
@@ -74,47 +73,6 @@ public class PofIndexerTest
         assertEquals(Integer.valueOf(1000), portableTypes.get("com.tangosol.io.pof.testdata.PortableTypesInnerClass$PortableTypeTest1"));
         assertEquals(Integer.valueOf(2000), portableTypes.get("com.tangosol.io.pof.testdata.PortableTypesInnerClass$PortableTypeTestInterface"));
         assertEquals(Integer.valueOf(1234), portableTypes.get("com.tangosol.io.pof.testdata.PortableTypesInnerClass$TestEnum"));
-        }
-
-    @Test
-    public void testTheDiscoveryOfPortableTypesInASingleClassWithMissingPofId() throws Exception
-        {
-        PofIndexer pofIndexer = new PofIndexer();
-        List<Class> classesToIndex = List.of(PortableTypesInnerClass.class.getDeclaredClasses())
-                .stream().filter(clazz -> clazz.getName().endsWith("PortableTypeTestNoId")).map(clazz->(Class) clazz).toList();
-        pofIndexer.withClasses(classesToIndex);
-
-        try
-            {
-            pofIndexer.discoverPortableTypes();
-            }
-        catch (IllegalStateException e)
-            {
-            assertEquals("The PortableType annotation on class " +
-                    "com.tangosol.io.pof.testdata.PortableTypesInnerClass$PortableTypeTestNoId did not have a required POF id.",
-                    e.getMessage());
-            return;
-            }
-        fail("Expected an IllegalStateException to be thrown.");
-        }
-
-    @Test
-    public void testTheDiscoveryOfPortableForPackageWithMissingPofId() throws Exception
-        {
-        PofIndexer pofIndexer = new PofIndexer();
-        pofIndexer.setPackagesToScan(Set.of("com.tangosol.io.pof.testdata.invalid"));
-        try
-            {
-            pofIndexer.discoverPortableTypes();
-            }
-        catch (IllegalStateException e)
-            {
-            assertEquals("The PortableType annotation on class " +
-                            "com.tangosol.io.pof.testdata.invalid.PortableTypeTestNoId did not have a required POF id.",
-                    e.getMessage());
-            return;
-            }
-        fail("Expected an IllegalStateException to be thrown.");
         }
 
     @Test

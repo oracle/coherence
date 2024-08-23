@@ -231,33 +231,6 @@ public class ConfigurablePofContextTest
             }
         }
 
-    /**
-     * Test for Bug 33148085 - ConfigurablePofContext Throws ArrayIndexOutOfBoundsException With PortableType
-     */
-//    @Test
-//    public void testPortableTypeWithMixedIds()
-//            throws IOException
-//        {
-//        File fileIndex = setupIndex(PortableTypeTestNoId.class, PortableTypeTest1.class);
-//
-//        try
-//            {
-//            ConfigurablePofContext ctx = new ConfigurablePofContext("com/tangosol/io/pof/portable-type-pof-config6.xml");
-//            ctx.setIndexFileName(fileIndex.getAbsolutePath());
-//            ctx.setContextClassLoader(PortableTypeTest1.class.getClassLoader());
-//            ctx.ensureInitialized();
-//            fail("No exception thrown when one was expected");
-//            }
-//        catch (Exception e)
-//            {
-//            // no-op - exception should be thrown due to some types having id and some not
-//            }
-//        finally
-//            {
-//            fileIndex.delete();
-//            }
-//        }
-
     @Test(expected = IllegalArgumentException.class)
     public void testPortableTypeWithAllowDiscoveryFalse()
             throws IOException
@@ -277,24 +250,6 @@ public class ConfigurablePofContextTest
             {
             fileIndex.delete();
             }
-        }
-
-    @Test
-    public void testPortableTypeWithNoIds()
-            throws IOException
-        {
-        try
-            {
-            setupIndex(PortableTypeTestNoId.class);
-            }
-        catch (IllegalStateException e)
-            {
-            assertEquals("The PortableType annotation on class " +
-                            "com.tangosol.io.pof.ConfigurablePofContextTest$PortableTypeTestNoId did not have a required POF id.",
-                    e.getMessage());
-            return;
-            }
-        fail("Expected an IllegalStateException to be thrown.");
         }
 
     @Test
@@ -699,21 +654,6 @@ public class ConfigurablePofContextTest
     @PortableType(id = 2000)
     public interface PortableTypeTestInterface
         {
-        }
-
-    @PortableType
-    public static class PortableTypeTestNoId
-        extends PortableTypeTestBase
-        {
-        public PortableTypeTestNoId()
-            {
-            super();
-            }
-
-        public PortableTypeTestNoId(int nId, String sString)
-             {
-             super(nId, sString);
-             }
         }
 
     @PortableType(id = 1234)

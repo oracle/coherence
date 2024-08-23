@@ -9,99 +9,85 @@ package com.tangosol.io.pof.testdata;
 import com.tangosol.io.pof.ConfigurablePofContextTest;
 import com.tangosol.io.pof.schema.annotation.PortableType;
 
-public class PortableTypesInnerClass {
+public class PortableTypesInnerClass
+    {
 
     public static abstract class PortableTypeTestBase
-    {
+        {
         private int m_nId;
         private String m_sString;
 
         public PortableTypeTestBase()
-        {
-        }
+            {
+            }
 
         public PortableTypeTestBase(int nId, String sString)
-        {
+            {
             m_nId     = nId;
             m_sString = sString;
-        }
+            }
 
         public int getId()
-        {
+            {
             return m_nId;
-        }
+            }
 
         public void setId(int nId)
-        {
+            {
             this.m_nId = nId;
-        }
+            }
 
         public String getString()
-        {
+            {
             return m_sString;
-        }
+            }
 
         public void setString(String sString)
-        {
+            {
             this.m_sString = sString;
-        }
-    }
+            }
+       }
 
     @PortableType(id = 1000)
     public static class PortableTypeTest1
             extends ConfigurablePofContextTest.PortableTypeTestBase
-    {
+        {
 
         public PortableTypeTest1()
-        {
+            {
             super();
-        }
+            }
 
         public PortableTypeTest1(int nId, String sString)
-        {
+            {
             super(nId, sString);
+           }
         }
-    }
 
     @PortableType(id = 1)
     public static class PortableTypeTestConflicting
             extends ConfigurablePofContextTest.PortableTypeTestBase
-    {
-        public PortableTypeTestConflicting()
         {
+        public PortableTypeTestConflicting()
+            {
             super();
-        }
+            }
 
         public PortableTypeTestConflicting(int nId, String sString)
-        {
+            {
             super(nId, sString);
+            }
         }
-    }
 
     @PortableType(id = 2000)
     public interface PortableTypeTestInterface
-    {
-    }
-
-    @PortableType
-    public static class PortableTypeTestNoId
-            extends ConfigurablePofContextTest.PortableTypeTestBase
-    {
-        public PortableTypeTestNoId()
         {
-            super();
         }
-
-        public PortableTypeTestNoId(int nId, String sString)
-        {
-            super(nId, sString);
-        }
-    }
 
     @PortableType(id = 1234)
     public enum TestEnum
-    {
+        {
         BRONZE, SILVER, GOLD
-    }
+        }
 
-}
+    }
