@@ -148,11 +148,11 @@
     <classgraph.version>4.8.174</classgraph.version>
     <com.oracle.ipc.version>12.1.4-150528</com.oracle.ipc.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
-    <eclipse.mp.config.version>3.0.3</eclipse.mp.config.version>
+    <eclipse.mp.config.version>3.1</eclipse.mp.config.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
     <eclipse.mp.health.version>4.0.1</eclipse.mp.health.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
-    <eclipse.mp.metrics.version>5.0.1</eclipse.mp.metrics.version>
+    <eclipse.mp.metrics.version>5.1.1</eclipse.mp.metrics.version>
     <fastutil.version>8.5.12</fastutil.version>
     <felix.version>6.0.4</felix.version>
     <glassfish.el.version>4.0.2</glassfish.el.version>
@@ -177,9 +177,9 @@
     This is not always possible if we need to bump versions for CVE's
     -->
     <!-- When running tests with Java 21 we will use Helidon 4 -->
-    <helidon.version.4>4.0.6</helidon.version.4>
+    <helidon.version.4>4.1.0</helidon.version.4>
     <!-- When running tests with Java 17 we will use Helidon 3 (this will be set using the helidon3 profile) -->
-    <helidon.version.3>3.2.7</helidon.version.3>
+    <helidon.version.3>3.2.9</helidon.version.3>
     <!-- This is the property that sets the version used by other modules (we default to Helidon 4) -->
     <helidon.version>${helidon.version.4}</helidon.version>
 
