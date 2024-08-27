@@ -3030,11 +3030,12 @@ public class ReadWriteBackingMapTests
         verifyStoreStats(sTest, store, "eraseAll", cEraseAll);
         }
 
-    private static void verifyStoreStats(String sTest, AbstractTestStore store,
-                                         Filter condition)
+    private static void verifyStoreStats(String sTest, AbstractTestStore store, Filter condition)
         {
-        String sMessage = condition.toExpression() + " is FALSE";
-        assertTrue(sMessage, condition.evaluate(store.getStatsMap()));
+        boolean fResult = condition.evaluate(store.getStatsMap());
+        String sMessage = condition.toExpression() + " is " + String.valueOf(fResult).toUpperCase() + "; stats=" + store.getStatsMap();
+        assertTrue(sMessage, fResult);
+        System.out.println(sMessage);
         }
 
     private static void verifyStoreStats(String sTest, AbstractTestStore store, String sStatistic, int expected)
