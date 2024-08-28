@@ -9,22 +9,19 @@ package queues;
 
 
 import com.google.common.collect.testing.QueueTestSuiteBuilder;
-import com.google.common.collect.testing.TestQueueGenerator;
 import com.google.common.collect.testing.TestStringQueueGenerator;
 import com.google.common.collect.testing.features.CollectionFeature;
 import com.google.common.collect.testing.features.CollectionSize;
+import com.tangosol.internal.net.queue.NamedCacheDeque;
 import com.tangosol.internal.net.queue.model.QueueKey;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
-import com.tangosol.net.NamedMap;
-import com.tangosol.net.NamedQueue;
 import com.tangosol.net.Session;
 import junit.framework.TestFailure;
 import junit.framework.TestResult;
 import junit.framework.TestSuite;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.function.Executable;
 
@@ -37,8 +34,6 @@ import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class QueueCertTests
@@ -68,18 +63,18 @@ public class QueueCertTests
                     @Override
                     public Queue<String> create(String... asValue)
                         {
-                        String                     sName = "test-" + m_queueId.getAndIncrement();
-                        NamedMap<QueueKey, String> cache = m_session.getMap(sName);
-                        int                        nHash = QueueKey.calculateQueueHash(sName);
-                        QueueKey                   key   = new QueueKey(nHash, 0);
-                        Map<QueueKey, String>      map   = new HashMap<>();
+                        String                       sName = "test-" + m_queueId.getAndIncrement();
+                        NamedCache<QueueKey, String> cache = m_session.getCache(sName);
+                        int                          nHash = QueueKey.calculateQueueHash(sName);
+                        QueueKey                     key   = new QueueKey(nHash, 0);
+                        Map<QueueKey, String>        map   = new HashMap<>();
                         for (String sValue : asValue)
                             {
                             map.put(key, sValue);
                             key = key.next();
                             }
                         cache.putAll(map);
-                        return m_session.getQueue(sName);
+                        return new NamedCacheDeque<>(sName, cache);
                         }
                     })
                 .named("NamedQueue Tests")

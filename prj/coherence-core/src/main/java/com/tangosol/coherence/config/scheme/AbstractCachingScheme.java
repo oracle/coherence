@@ -22,6 +22,7 @@ import com.tangosol.internal.net.queue.NamedCacheDeque;
 import com.tangosol.internal.net.queue.NamedCacheDequeBuilder;
 import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.CacheService;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
@@ -177,16 +178,6 @@ public abstract class AbstractCachingScheme<D extends ServiceDependencies>
             }
         }
 
-    @Override
-    public NamedCollectionBuilder getNamedCollectionBuilder(Class<? extends NamedCollection> clz, Options<NamedCollection.Option> options)
-        {
-        if (NamedDeque.class.isAssignableFrom(clz))
-            {
-            return new CacheDequeBuilder();
-            }
-        return null;
-        }
-
     // ----- internal -------------------------------------------------------
 
     /**
@@ -221,39 +212,6 @@ public abstract class AbstractCachingScheme<D extends ServiceDependencies>
         super.validate();
 
         Base.checkNotNull(resolver, "ParameterResolver");
-        }
-
-    // ----- inner class: NamedCacheDequeBuilder ----------------------------
-
-    public class CacheDequeBuilder
-            implements NamedCollectionBuilder<NamedCacheDeque>
-        {
-        @Override
-        @SuppressWarnings("unchecked")
-        public <E> NamedCacheDeque realize(ValueTypeAssertion<E> typeConstraint, ParameterResolver resolver, Dependencies dependencies)
-            {
-            NamedCacheDequeBuilder builder   = NamedCacheDequeBuilder.DEFAULT;
-            Parameter              parameter = resolver.resolve("options");
-            if (parameter != null)
-                {
-                Value value = parameter.evaluate(resolver);
-                if (value != null)
-                    {
-                    Options<NamedCollection.Option> options = (Options<NamedCollection.Option>) value.get();
-                    builder = options.get(NamedCacheDequeBuilder.class, builder);
-                    }
-                }
-
-            NamedCache cache      = realizeCache(resolver, dependencies);
-            String     sQueueName = builder.getCollectionName(cache.getCacheName());
-            return builder.build(sQueueName, cache);
-            }
-
-        @Override
-        public <T extends NamedCollection> boolean realizes(Class<T> type)
-            {
-            return type.isAssignableFrom(NamedCacheDeque.class);
-            }
         }
 
     // ----- data members  --------------------------------------------------

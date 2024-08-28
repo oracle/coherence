@@ -102,30 +102,6 @@ public class CoherenceSession
         }
 
     @Override
-    public <E> NamedQueue<E> getQueue(String sName)
-        {
-        return getQueue(sName, new NamedQueue.Option[0]);
-        }
-
-    @Override
-    public <E> NamedQueue<E> getQueue(String sName, NamedQueue.Option... options)
-        {
-        return m_session.getQueue(sName, options);
-        }
-
-    @Override
-    public <E> NamedDeque<E> getDeque(String sName)
-        {
-        return getDeque(sName, new NamedQueue.Option[0]);
-        }
-
-    @Override
-    public <E> NamedDeque<E> getDeque(String sName, NamedQueue.Option... options)
-        {
-        return m_session.getDeque(sName, options);
-        }
-
-    @Override
     public void close(NamedCollection col)
         {
         m_session.close(col);

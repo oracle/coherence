@@ -71,6 +71,12 @@ public abstract class AbstractCollectionTests<NC extends NamedCollection, C exte
     public abstract C getCollection(Session session, String sName);
 
     @Override
+    public NamedCache getCollectionCache(NC col)
+        {
+        return getCollectionCache(col.getName());
+        }
+
+    @Override
     public NamedCache getCollectionCache(String sName)
         {
         return getSession().getCache(sName);
@@ -146,15 +152,6 @@ public abstract class AbstractCollectionTests<NC extends NamedCollection, C exte
         }
 
     @Test
-    public void shouldGetSameQueue()
-        {
-        String sName   = getNewName();
-        NC     col1    = getNamedCollection(sName);
-        NC     col2    = getNamedCollection(sName);
-        assertThat(col2, is(sameInstance(col1)));
-        }
-
-    @Test
     public void shouldGetNewInstanceOfReleasedQueue()
         {
         String sName = getNewName();
@@ -170,7 +167,7 @@ public abstract class AbstractCollectionTests<NC extends NamedCollection, C exte
         String sName = getNewName();
         NC     col1  = getNamedCollection(sName);
         assertThat(col1.isActive(), is(true));
-        getSession().destroy(col1);
+        col1.destroy();
         assertThat(col1.isDestroyed(), is(true));
         NC col2 = getNamedCollection(sName);
         assertThat(col2, is(not(sameInstance(col1))));

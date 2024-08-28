@@ -8,13 +8,15 @@
 package concurrent.queues;
 
 import com.oracle.coherence.concurrent.Queues;
-import com.tangosol.internal.net.queue.NamedCacheBlockingDeque;
+
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedBlockingDeque;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+
 import queues.LocalDequeTests;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
@@ -40,12 +42,18 @@ public class LocalBlockingDequeTests<QueueType extends NamedBlockingDeque>
     @Override
     public QueueType getNamedCollection(Session session, String sName)
         {
-        return (QueueType) session.getDeque(sName, Queues.BUILDER);
+        return (QueueType) Queues.blockingDeque(sName, session);
+        }
+
+    @Override
+    public NamedCache getCollectionCache(QueueType col)
+        {
+        return super.getCollectionCache(col);
         }
 
     @Override
     public NamedCache getCollectionCache(String sName)
         {
-        return super.getCollectionCache(NamedCacheBlockingDeque.Builder.getCacheName(Queues.QUEUE_CACHE_PREFIX, sName));
+        return super.getCollectionCache(Queues.QUEUE_CACHE_PREFIX + sName);
         }
     }

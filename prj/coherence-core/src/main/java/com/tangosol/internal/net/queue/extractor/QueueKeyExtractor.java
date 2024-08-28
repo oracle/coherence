@@ -12,6 +12,8 @@ import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.net.queue.NamedCacheQueue;
 import com.tangosol.internal.net.queue.model.QueueKey;
 
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
 import com.tangosol.net.BackingMapContext;
 
 import com.tangosol.net.cache.BinaryMemoryCalculator;
@@ -24,6 +26,9 @@ import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.extractor.EntryExtractor;
 import com.tangosol.util.extractor.IndexAwareExtractor;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
@@ -193,7 +198,7 @@ public class QueueKeyExtractor
          *
          * @param nDefault  the default value to return if the queue is empty
          *
-         * @return the head of the queue, or {@link null} i
+         * @return the head of the queue, or {@code  null} if the queue is empty
          */
         public long head(long nDefault)
             {

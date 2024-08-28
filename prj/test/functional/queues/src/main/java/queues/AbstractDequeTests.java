@@ -7,6 +7,7 @@
 
 package queues;
 
+import com.tangosol.internal.net.queue.NamedCacheDeque;
 import com.tangosol.internal.net.queue.QueuePageIterator;
 import com.tangosol.internal.net.queue.model.QueueKey;
 import com.tangosol.net.NamedCache;
@@ -37,14 +38,16 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     @SuppressWarnings("unchecked")
     public DequeType getNamedCollection(Session session, String sName)
         {
-        return (DequeType) session.getDeque(sName);
+        NamedCache<QueueKey, ?> cache     = session.getCache(sName);
+        return (DequeType) new NamedCacheDeque<>(sName, cache);
         }
 
     @Override
     @SuppressWarnings("unchecked")
     public DequeType getCollection(Session session, String sName)
         {
-        return (DequeType) session.getDeque(sName);
+        NamedCache<QueueKey, ?> cache     = session.getCache(sName);
+        return (DequeType) new NamedCacheDeque<>(sName, cache);
         }
 
     // ----- test prepend() method ------------------------------------------

@@ -32,7 +32,6 @@ import com.tangosol.coherence.config.builder.NamedCollectionBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilderRegistry;
 import com.tangosol.coherence.config.builder.ServiceBuilder;
-import com.tangosol.coherence.config.builder.SubscriberGroupBuilder;
 
 import com.tangosol.coherence.config.scheme.AbstractCompositeScheme;
 import com.tangosol.coherence.config.scheme.AbstractLocalCachingScheme;
@@ -64,8 +63,6 @@ import com.tangosol.config.expression.SystemPropertyParameterResolver;
 
 import com.tangosol.config.xml.DocumentProcessor;
 
-import com.tangosol.internal.net.queue.NamedCacheDeque;
-import com.tangosol.internal.net.queue.model.QueueKey;
 import com.tangosol.io.BinaryStore;
 import com.tangosol.io.ClassLoaderAware;
 
@@ -112,7 +109,6 @@ import com.tangosol.run.xml.XmlHelper;
 import com.tangosol.run.xml.XmlValue;
 
 import com.tangosol.util.Base;
-import com.tangosol.util.ChainedResourceResolver;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.MapSet;
@@ -122,7 +118,6 @@ import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.Resources;
 import com.tangosol.util.SafeHashMap;
 import com.tangosol.util.SimpleResourceRegistry;
-import com.tangosol.util.SimpleResourceResolver;
 
 import java.io.File;
 
@@ -203,9 +198,6 @@ public class ExtensibleConfigurableCacheFactory
 
         f_storeTopics   = new ScopedReferenceStore<>(NamedTopic.class, NamedTopic::isActive,
                                                    NamedTopic::getName, NamedTopic::getService);
-
-        f_storeQueues   = new ScopedReferenceStore<>(NamedDeque.class, NamedDeque::isActive,
-                                                   NamedDeque::getName, NamedDeque::getService);
 
         m_fActivated    = false;
         m_fDisposed     = false;
@@ -412,26 +404,6 @@ public class ExtensibleConfigurableCacheFactory
 
         PrivilegedAction<NamedTopic> action =
             () -> ensureCollectionInternal(sName, NamedTopic.class, loader, f_storeTopics, TopicMapping.class, options);
-
-        return AccessController.doPrivileged(new DoAsAction<>(action));
-        }
-
-    @Override
-    public <E> NamedQueue<E> ensureQueue(String sName, ClassLoader loader, NamedQueue.Option... options)
-        {
-        return ensureDeque(sName, loader, options);
-        }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <E> NamedDeque<E> ensureDeque(String sName, ClassLoader loader, NamedCollection.Option... options)
-        {
-        assertNotDisposed();
-
-        Base.checkNotEmpty(sName, "name");
-
-        PrivilegedAction<NamedDeque<E>> action =
-            () -> ensureCollectionInternal(sName, NamedDeque.class, loader, f_storeQueues, CacheMapping.class, options);
 
         return AccessController.doPrivileged(new DoAsAction<>(action));
         }
@@ -1301,18 +1273,6 @@ public class ExtensibleConfigurableCacheFactory
                 + " was created using a different factory; that same"
                 + " factory should be used to release the collection.");
             }
-        }
-
-    @Override
-    public void releaseQueue(NamedQueue<?> queue)
-        {
-        releaseCollection(queue, false, f_storeQueues);
-        }
-
-    @Override
-    public void destroyQueue(NamedQueue<?> queue)
-        {
-        releaseCollection(queue, true, f_storeQueues);
         }
 
     /**
@@ -2706,13 +2666,6 @@ public class ExtensibleConfigurableCacheFactory
      * if configured, Subject.
      */
     protected final ScopedReferenceStore<NamedTopic> f_storeTopics;
-
-    /**
-     * Store of queue references with subject scoping if configured.
-     */
-    @SuppressWarnings({"rawtypes"})
-    private final ScopedReferenceStore<NamedDeque> f_storeQueues;
-
 
     /**
      * ConfigurableCacheFactoryDispatcher linked to this cache factory.

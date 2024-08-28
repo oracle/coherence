@@ -52,6 +52,8 @@ interface CollectionTests<NC extends NamedCollection, C extends Collection>
 
     C getCollection(Session session, String sName);
 
+    NamedCache getCollectionCache(NC col);
+
     NamedCache getCollectionCache(String sName);
     
     C getNewCollection();

@@ -235,6 +235,7 @@
             <backing-map-scheme>
                 <local-scheme>
                     <high-units>{back-limit-bytes 0}</high-units>
+                    <unit-calculator>BINARY</unit-calculator>
                 </local-scheme>
             </backing-map-scheme>
             <autostart>true</autostart>
@@ -249,6 +250,7 @@
             <backing-map-scheme>
                 <local-scheme>
                     <high-units>{back-limit-bytes 0}</high-units>
+                    <unit-calculator>BINARY</unit-calculator>
                 </local-scheme>
             </backing-map-scheme>
             <autostart>true</autostart>
@@ -263,6 +265,7 @@
             <backing-map-scheme>
                 <local-scheme>
                     <high-units>{back-limit-bytes 0}</high-units>
+                    <unit-calculator>BINARY</unit-calculator>
                 </local-scheme>
             </backing-map-scheme>
             <autostart>true</autostart>

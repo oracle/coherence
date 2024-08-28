@@ -20,8 +20,6 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedDeque;
 import com.tangosol.net.NamedQueue;
 
-import com.tangosol.util.Binary;
-import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Extractors;
 import com.tangosol.util.Filters;
 

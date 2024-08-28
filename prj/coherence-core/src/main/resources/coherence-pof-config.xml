@@ -1580,8 +1580,53 @@ descriptor: pof-config.xsd.
     <!-- com.tangosol.coherence.jcache package (610-699) -->
     <!-- defined in coherence-jcache-pof-config.xml within coherence-jcache.jar -->
 
-    <!-- com.tangosol.coherence.transaction commercial product package (700-799) -->
+    <!-- com.tangosol.coherence.transaction commercial product package (700-779) -->
     <!-- defined in txn-pof-config.xml within coherence.jar -->
+
+    <user-type>
+      <type-id>780</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.Bucket</class-name>
+    </user-type>
+    <user-type>
+      <type-id>781</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.PagedQueueKey</class-name>
+    </user-type>
+    <user-type>
+      <type-id>782</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.QueueInfo</class-name>
+    </user-type>
+    <user-type>
+      <type-id>783</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.QueueVersionInfo</class-name>
+    </user-type>
+    <user-type>
+      <type-id>784</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.QueueOfferTailProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>785</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.QueuePollPeekHeadProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>786</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.InitialiseQueueInfoProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>787</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.RemoveBucketElementProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>788</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.HeadIncrementProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>789</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.TailIncrementProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>790</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.PeekWholeBucketAggregator</class-name>
+    </user-type>
 
     <!-- com.tangosol.coherence.rest package (800-820) -->
     <!-- defined in coherence-rest-pof-config.xml within coherence-rest.jar -->

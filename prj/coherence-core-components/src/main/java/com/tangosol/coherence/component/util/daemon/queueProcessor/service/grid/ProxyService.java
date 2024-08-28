@@ -36,9 +36,6 @@ import com.tangosol.net.Member;
 import com.tangosol.net.NameService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedCollection;
-import com.tangosol.net.NamedDeque;
-import com.tangosol.net.NamedMap;
-import com.tangosol.net.NamedQueue;
 import com.tangosol.net.OperationalContext;
 import com.tangosol.net.RequestPolicyException;
 import com.tangosol.net.Session;
@@ -1213,18 +1210,6 @@ public class ProxyService
     public com.tangosol.net.topic.NamedTopic getTopic(String Param_1, com.tangosol.net.NamedCollection.Option[] Param_2)
         {
         return null;
-        }
-
-    @Override
-    public <E> NamedQueue<E> getQueue(String sName, NamedQueue.Option... options)
-        {
-        throw new UnsupportedOperationException();
-        }
-
-    @Override
-    public <E> NamedDeque<E> getDeque(String sName, NamedQueue.Option... options)
-        {
-        throw new UnsupportedOperationException();
         }
 
     @Override

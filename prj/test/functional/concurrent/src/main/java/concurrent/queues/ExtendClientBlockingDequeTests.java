@@ -11,7 +11,6 @@ import com.oracle.coherence.concurrent.Queues;
 import com.tangosol.coherence.component.net.extend.remoteService.RemoteCacheService;
 import com.tangosol.coherence.component.util.safeService.SafeCacheService;
 import com.tangosol.internal.net.queue.CacheQueueService;
-import com.tangosol.internal.net.queue.NamedCacheBlockingDeque;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedBlockingDeque;
@@ -50,13 +49,13 @@ public class ExtendClientBlockingDequeTests<QueueType extends NamedBlockingDeque
     @Override
     public QueueType getNamedCollection(Session session, String sName)
         {
-        return (QueueType) session.getDeque(sName, Queues.BUILDER);
+        return (QueueType) Queues.blockingDeque(sName, session);
         }
 
     @Override
     public NamedCache getCollectionCache(String sName)
         {
-        return super.getCollectionCache(NamedCacheBlockingDeque.Builder.getCacheName(Queues.QUEUE_CACHE_PREFIX, sName));
+        return super.getCollectionCache(Queues.QUEUE_CACHE_PREFIX + sName);
         }
 
     @Test

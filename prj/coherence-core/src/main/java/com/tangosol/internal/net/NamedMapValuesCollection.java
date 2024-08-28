@@ -195,7 +195,7 @@ public abstract class NamedMapValuesCollection<K, V>
             }
         }
 
-    protected void assertNotSameCollection(Collection<?> c, String sMsg)
+    public void assertNotSameCollection(Collection<?> c, String sMsg)
         {
         if (this.equals(Objects.requireNonNull(c)))
             {
@@ -217,12 +217,6 @@ public abstract class NamedMapValuesCollection<K, V>
                 {
                 throw new IllegalArgumentException(sMsg);
                 }
-            }
-
-        if (c instanceof SessionNamedDeque<?,?>)
-            {
-            c = ((SessionNamedDeque<?, ?>) c).getInternalNamedDeque();
-            assertNotSameCollection(c, sMsg);
             }
         }
 

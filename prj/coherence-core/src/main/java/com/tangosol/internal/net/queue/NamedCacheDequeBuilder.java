@@ -7,19 +7,13 @@
 
 package com.tangosol.internal.net.queue;
 
-import com.tangosol.internal.net.ConfigurableCacheFactorySession;
-import com.tangosol.internal.net.SessionNamedDeque;
 import com.tangosol.internal.net.queue.model.QueueKey;
 import com.tangosol.net.NamedCache;
-import com.tangosol.net.NamedCollection;
 import com.tangosol.net.NamedDeque;
-import com.tangosol.net.Session;
-import com.tangosol.net.ValueTypeAssertion;
-
-import java.util.ServiceLoader;
+import com.tangosol.net.NamedQueue;
 
 public interface NamedCacheDequeBuilder
-        extends NamedCollection.Option
+        extends NamedQueueBuilder
     {
     /**
      * Return the cache name to use for a given collection name.
@@ -39,11 +33,7 @@ public interface NamedCacheDequeBuilder
      */
     String getCollectionName(String sCacheName);
 
-    <E> NamedCacheDeque<E> build(String sName, NamedCache<QueueKey, E> cache);
-
-
-    <E> SessionNamedDeque<E, ?> wrapForSession(Session session, NamedDeque<E> deque,
-            ClassLoader loader, ValueTypeAssertion<E> typeAssertion);
+    <E> NamedDeque<E> build(String sName, NamedCache<QueueKey, E> cache);
 
     // ----- inner class: DefaultNamedCacheDequeBuilder ---------------------
 
@@ -66,24 +56,16 @@ public interface NamedCacheDequeBuilder
             }
 
         @Override
-        public <E> NamedCacheDeque<E> build(String sName, NamedCache<QueueKey, E> cache)
+        public <E> NamedDeque<E> build(String sName, NamedCache<QueueKey, E> cache)
             {
             return new NamedCacheDeque<>(sName, cache);
             }
 
-        /**
-         * Create a {@link SessionNamedDeque} wrapper for a {@link NamedDeque}.
-         *
-         * @param session  the {@link ConfigurableCacheFactorySession} that produced this {@link SessionNamedDeque}
-         * @param deque          the {@link NamedDeque} to wrap
-         * @param loader         the {@link ClassLoader} associated with the deque
-         * @param typeAssertion  the {@link ValueTypeAssertion} for the NamedDeque
-         */
         @Override
-        public <E> SessionNamedDeque<E, ?> wrapForSession(Session session, NamedDeque<E> deque,
-                ClassLoader loader, ValueTypeAssertion<E> typeAssertion)
+        @SuppressWarnings("rawtypes")
+        public boolean realizes(Class<? extends NamedQueue> clz)
             {
-            return new SessionNamedDeque<>(session, deque, loader, typeAssertion);
+            return clz.isAssignableFrom(NamedCacheDeque.class);
             }
         }
 

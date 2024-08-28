@@ -79,6 +79,11 @@
       <cache-name>Queue$*</cache-name>
       <scheme-name>queue-concurrent</scheme-name>
     </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>PagedQueue$*</cache-name>
+      <scheme-name>queue-concurrent</scheme-name>
+    </cache-mapping>
   </caching-scheme-mapping>
 
   <caching-schemes>

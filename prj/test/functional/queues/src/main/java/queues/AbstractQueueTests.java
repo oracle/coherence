@@ -9,6 +9,7 @@ package queues;
 
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Randoms;
+import com.tangosol.internal.net.queue.NamedCacheDeque;
 import com.tangosol.internal.net.queue.QueuePageIterator;
 import com.tangosol.internal.net.queue.extractor.QueueKeyExtractor;
 import com.tangosol.internal.net.queue.model.QueueKey;
@@ -51,14 +52,16 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
     @SuppressWarnings("unchecked")
     public QueueType getNamedCollection(Session session, String sName)
         {
-        return (QueueType) session.getQueue(sName);
+        NamedCache<QueueKey, ?> cache     = session.getCache(sName);
+        return (QueueType) new NamedCacheDeque<>(sName, cache);
         }
 
     @Override
     @SuppressWarnings("unchecked")
     public QueueType getCollection(Session session, String sName)
         {
-        return (QueueType) session.getQueue(sName);
+        NamedCache<QueueKey, ?> cache     = session.getCache(sName);
+        return (QueueType) new NamedCacheDeque<>(sName, cache);
         }
 
 
@@ -75,14 +78,7 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
         NamedCache<?, ?> cache = getCollectionCache(queue.getName());
         assertThat(cache.size(), is(1));
 
-        Object oKey = cache.keySet().iterator().next();
-        assertThat(oKey, is(instanceOf(QueueKey.class)));
-
-        QueueKey queueKey = (QueueKey) oKey;
-        int      nHash    = queue.getQueueNameHash();
-        assertThat(queueKey.getHash(), is(nHash));
-        assertThat(queueKey.getAssociatedKey(), is(nHash));
-
+        Object oKey   = cache.keySet().iterator().next();
         Object oValue = cache.get(oKey);
         assertThat(oValue, is(sValue));
         }
@@ -104,11 +100,11 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
         NamedCache<?, ?> cache = getCollectionCache(queue.getName());
         assertThat(cache.size(), is(cMessage));
 
-        TreeSet<QueueKey> setKey = (TreeSet<QueueKey>) new TreeSet<>(cache.keySet());
+        TreeSet<?> setKey = new TreeSet<>(cache.keySet());
         assertThat(setKey.size(), is(cMessage));
 
         int i = 0;
-        for (QueueKey key : setKey)
+        for (Object key : setKey)
             {
             String sExpected = sPrefix + i;
             assertThat(cache.get(key), is(sExpected));
@@ -135,15 +131,13 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
         assertThat(nId3, is(greaterThan(Long.MIN_VALUE)));
 
         NamedCache<?, ?> cache = getCollectionCache(queue.getName());
-        int              nHash = queue.getQueueNameHash();
 
-        QueueKey queueKey1 = new QueueKey(nHash, nId1);
-        QueueKey queueKey2 = new QueueKey(nHash, nId2);
-        QueueKey queueKey3 = new QueueKey(nHash, nId3);
+        List<?> listKey = cache.keySet().stream().sorted().toList();
+        assertThat(listKey.size(), is(3));
 
-        assertThat(cache.get(queueKey1), is(sValue1));
-        assertThat(cache.get(queueKey2), is(sValue2));
-        assertThat(cache.get(queueKey3), is(sValue3));
+        assertThat(cache.get(listKey.get(0)), is(sValue1));
+        assertThat(cache.get(listKey.get(1)), is(sValue2));
+        assertThat(cache.get(listKey.get(2)), is(sValue3));
         }
 
     // ----- test offer() method --------------------------------------------
@@ -159,14 +153,7 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
         NamedCache<?, ?> cache = getCollectionCache(queue.getName());
         assertThat(cache.size(), is(1));
 
-        Object oKey = cache.keySet().iterator().next();
-        assertThat(oKey, is(instanceOf(QueueKey.class)));
-
-        QueueKey queueKey = (QueueKey) oKey;
-        int      nHash    = queue.getQueueNameHash();
-        assertThat(queueKey.getHash(), is(nHash));
-        assertThat(queueKey.getAssociatedKey(), is(nHash));
-
+        Object oKey   = cache.keySet().iterator().next();
         Object oValue = cache.get(oKey);
         assertThat(oValue, is(sValue));
         }
@@ -188,11 +175,11 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
         NamedCache<?, ?> cache = getCollectionCache(queue.getName());
         assertThat(cache.size(), is(cMessage));
 
-        TreeSet<QueueKey> setKey = (TreeSet<QueueKey>) new TreeSet<>(cache.keySet());
+        TreeSet<?> setKey = new TreeSet<>(cache.keySet());
         assertThat(setKey.size(), is(cMessage));
 
         int i = 0;
-        for (QueueKey key : setKey)
+        for (Object key : setKey)
             {
             String sExpected = sPrefix + i;
             assertThat(cache.get(key), is(sExpected));
@@ -216,10 +203,9 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
         {
         QueueType  queue  = getNewCollection(sSerializer);
         NamedCache cache  = getCollectionCache(queue.getName());
-        QueueKey   key    = new QueueKey(queue.getQueueNameHash(), 0L);
         String     sValue = "message-1";
 
-        cache.put(key, sValue);
+        queue.offer(sValue);
 
         Object oValue = queue.remove();
         assertThat(oValue, is(sValue));
@@ -241,8 +227,7 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
 
         for (long i = 0; i < cMessage; i++)
             {
-            QueueKey key = new QueueKey(nHash, i);
-            cache.put(key, sPrefix + i);
+            queue.offer(sPrefix + i);
             }
 
         for (long i = 0; i < cMessage; i++)
@@ -251,35 +236,6 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
             assertThat(oValue, is(sPrefix + i));
             }
 
-        assertThat(queue.isEmpty(), is(true));
-        assertThat(cache.isEmpty(), is(true));
-        Assertions.assertThrows(NoSuchElementException.class, queue::remove);
-        }
-
-    @ParameterizedTest(name = "{index} serializer={0}")
-    @MethodSource("serializers")
-    public void shouldRemoveFromQueueInOrderWithGaps(String sSerializer)
-        {
-        QueueType  queue    = getNewCollection(sSerializer);
-        NamedCache cache    = getCollectionCache(queue.getName());
-        String     sPrefix  = "message-";
-        long       cMessage = 100L;
-        long       nId      = Math.abs(m_random.nextLong());
-        int        nHash    = queue.getQueueNameHash();
-
-        for (long i = 0; i < cMessage; i++)
-            {
-            QueueKey key = new QueueKey(nHash, nId);
-            cache.put(key, sPrefix + i);
-            nId += m_random.nextLong(10L) + 1L; // we add one to make sure we do not re-use the last key!
-            }
-
-        for (long i = 0; i < cMessage; i++)
-            {
-            Object oValue = queue.remove();
-            assertThat(oValue, is(sPrefix + i));
-            }
-        
         assertThat(queue.isEmpty(), is(true));
         assertThat(cache.isEmpty(), is(true));
         Assertions.assertThrows(NoSuchElementException.class, queue::remove);
@@ -302,10 +258,9 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
         {
         QueueType  queue  = getNewCollection(sSerializer);
         NamedCache cache  = getCollectionCache(queue.getName());
-        QueueKey   key    = new QueueKey(queue.getQueueNameHash(), 0L);
         String     sValue = "message-1";
 
-        cache.put(key, sValue);
+        queue.offer(sValue);
 
         Object oValue = queue.poll();
         assertThat(oValue, is(sValue));
@@ -322,43 +277,12 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
         {
         QueueType  queue    = getNewCollection(sSerializer);
         NamedCache cache    = getCollectionCache(queue.getName());
-        int        nHash    = queue.getQueueNameHash();
         String     sPrefix  = "message-";
         long       cMessage = 100L;
 
         for (long i = 0; i < cMessage; i++)
             {
-            QueueKey key = new QueueKey(nHash, i);
-            cache.put(key, sPrefix + i);
-            }
-
-        for (long i = 0; i < cMessage; i++)
-            {
-            Object oValue = queue.poll();
-            assertThat(oValue, is(sPrefix + i));
-            }
-
-        assertThat(queue.isEmpty(), is(true));
-        assertThat(cache.isEmpty(), is(true));
-        assertThat(queue.poll(), is(nullValue()));
-        }
-
-    @ParameterizedTest(name = "{index} serializer={0}")
-    @MethodSource("serializers")
-    public void shouldPollFromQueueInOrderWithGaps(String sSerializer)
-        {
-        QueueType  queue    = getNewCollection(sSerializer);
-        NamedCache cache    = getCollectionCache(queue.getName());
-        String     sPrefix  = "message-";
-        long       cMessage = 100L;
-        long       nId      = Math.abs(m_random.nextLong());
-        int        nHash    = queue.getQueueNameHash();
-
-        for (long i = 0; i < cMessage; i++)
-            {
-            QueueKey key = new QueueKey(nHash, nId);
-            cache.put(key, sPrefix + i);
-            nId += m_random.nextLong(10L) + 1L; // we add one to make sure we do not re-use the last key!
+            queue.offer(sPrefix + i);
             }
 
         for (long i = 0; i < cMessage; i++)
@@ -388,16 +312,14 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
         {
         QueueType  queue  = getNewCollection(sSerializer);
         NamedCache cache  = getCollectionCache(queue.getName());
-        QueueKey   key    = new QueueKey(queue.getQueueNameHash(), 0L);
         String     sValue = "message-1";
 
-        cache.put(key, sValue);
+        queue.offer(sValue);
 
         Object oValue = queue.element();
         assertThat(oValue, is(sValue));
         assertThat(queue.isEmpty(), is(false));
         assertThat(cache.isEmpty(), is(false));
-        assertThat(cache.get(key), is(sValue));
 
         oValue = queue.element();
         assertThat(oValue, is(sValue));
@@ -420,16 +342,17 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
         {
         QueueType  queue  = getNewCollection(sSerializer);
         NamedCache cache  = getCollectionCache(queue.getName());
-        QueueKey   key    = new QueueKey(queue.getQueueNameHash(), 0L);
         String     sValue = "message-1";
 
-        cache.put(key, sValue);
+        queue.offer(sValue);
+
+        Object oKey = cache.keySet().iterator().next();
 
         Object oValue = queue.peek();
         assertThat(oValue, is(sValue));
         assertThat(queue.isEmpty(), is(false));
         assertThat(cache.isEmpty(), is(false));
-        assertThat(cache.get(key), is(sValue));
+        assertThat(cache.get(oKey), is(sValue));
 
         oValue = queue.peek();
         assertThat(oValue, is(sValue));
@@ -443,15 +366,15 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
         {
         QueueType                    queue  = getNewCollection(sSerializer);
         NamedCache<QueueKey, String> cache  = getCollectionCache(queue.getName());
-        QueueKey                     key    = QueueKey.head(queue.getName());
+        QueueKey                     key    = QueueKey.head(cache.getCacheName());
         long                         cMax   = 100000;
         int                          cBytes = 100;
         long                         cEntry = cMax / cBytes;
 
         assertThat(cache.invoke(key, entry -> AbstractQueueTests.setMaxQueueSize(entry, cMax)), is(true));
+        assertThat(cache.invoke(key, AbstractQueueTests::getMaxQueueSize), is(cMax));
 
         String sPad     = Randoms.getRandomString(cBytes, cBytes, true);
-        int    cElement = 0;
         for (int i = 0; i < (cEntry * 2); i++)
             {
             String sElement = sPad + "-" + i;
@@ -459,7 +382,6 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
                 {
                 break;
                 }
-            cElement++;
             }
 
         // should be <= max queue size
@@ -482,6 +404,14 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
         QueueKeyExtractor.QueueIndex queueIndex = (QueueKeyExtractor.QueueIndex) index;
         queueIndex.setMaxQueueSize(cMaxSize);
         return true;
+        }
+
+    public static long getMaxQueueSize(InvocableMap.Entry<?, ?> entry)
+        {
+        MapIndex index = entry.asBinaryEntry().getIndexMap().get(QueueKeyExtractor.INSTANCE);
+        assertThat(index, is(instanceOf(QueueKeyExtractor.QueueIndex.class)));
+        QueueKeyExtractor.QueueIndex queueIndex = (QueueKeyExtractor.QueueIndex) index;
+        return queueIndex.getMaxQueueSize();
         }
 
     @SuppressWarnings({"deprecation", "PatternVariableCanBeUsed"})
@@ -606,20 +536,18 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
         {
         QueueType    queue    = getNewCollection(sSerializer);
         NamedCache   cache    = getCollectionCache(queue.getName());
-        int          nHash    = queue.getQueueNameHash();
         String       sPrefix  = "message-";
         int          cMessage = (QueuePageIterator.DEFAULT_PAGE_SIZE * 2) + 5;
         List<String> expected = new ArrayList<>();
 
         for (long i = 0; i < cMessage; i++)
             {
-            QueueKey key = new QueueKey(nHash, i);
-            String   sValue = sPrefix + i;
-            cache.put(key, sValue);
+            String sValue = sPrefix + i;
+            queue.offer(sValue);
             expected.add(sValue);
             }
 
-        Iterator<String>  iterator = queue.iterator();
+        Iterator<String> iterator = queue.iterator();
         assertThat(iterator.hasNext(), is(true));
 
         List<String> actual = new ArrayList<>();
@@ -648,17 +576,14 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
     public void shouldGetArrayFromQueueInOrder(String sSerializer)
         {
         NamedQueue<String> queue    = getNewCollection(sSerializer);
-        NamedCache         cache    = getCollectionCache(queue.getName());
-        int                nHash    = queue.getQueueNameHash();
         String             sPrefix  = "message-";
         int                cMessage = (QueuePageIterator.DEFAULT_PAGE_SIZE * 2) + 5;
         String[]           expected = new String[cMessage];
 
         for (int i = 0; i < cMessage; i++)
             {
-            QueueKey key = new QueueKey(nHash, i);
-            String   sValue = sPrefix + i;
-            cache.put(key, sValue);
+            String sValue = sPrefix + i;
+            queue.offer(sValue);
             expected[i] = sValue;
             }
 
@@ -672,17 +597,14 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
     public void shouldGetObjectArrayFromQueueInOrder(String sSerializer)
         {
         NamedQueue<String> queue    = getNewCollection(sSerializer);
-        NamedCache         cache    = getCollectionCache(queue.getName());
-        int                nHash    = queue.getQueueNameHash();
         String             sPrefix  = "message-";
         int                cMessage = (QueuePageIterator.DEFAULT_PAGE_SIZE * 2) + 5;
         Object[]           expected = new String[cMessage];
 
         for (int i = 0; i < cMessage; i++)
             {
-            QueueKey key = new QueueKey(nHash, i);
-            String   sValue = sPrefix + i;
-            cache.put(key, sValue);
+            String sValue = sPrefix + i;
+            queue.offer(sValue);
             expected[i] = sValue;
             }
 

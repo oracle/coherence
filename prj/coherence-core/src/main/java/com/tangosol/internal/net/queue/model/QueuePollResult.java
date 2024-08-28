@@ -40,6 +40,29 @@ public class QueuePollResult
     /**
      * Create a {@link QueuePollResult}.
      *
+     * @param id  the id of the polled element
+     */
+    public QueuePollResult(long id)
+        {
+        this(id, null);
+        }
+
+    /**
+     * Create a {@link QueuePollResult}.
+     *
+     * @param idMSB       the most significant bits of the id of the polled element
+     * @param idLSB       the least significant bits of the id of the polled element
+     * @param binElement  the serialized {@link Binary} value polled from the queue
+     *                    or {@code null} if the queue was empty
+     */
+    public QueuePollResult(int idMSB, int idLSB, Binary binElement)
+        {
+        this((((long) idMSB) << 32) | (idLSB & 0xffffffffL), binElement);
+        }
+
+    /**
+     * Create a {@link QueuePollResult}.
+     *
      * @param id          the id of the polled element
      * @param binElement  the serialized {@link Binary} value polled from the queue
      *                    or {@code null} if the queue was empty
@@ -152,7 +175,33 @@ public class QueuePollResult
             }
         }
 
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Return an empty {@link QueuePollResult}.
+     *
+     * @return an empty {@link QueuePollResult}
+     */
+    public static QueuePollResult empty()
+        {
+        return new QueuePollResult(RESULT_EMPTY);
+        }
+
+    /**
+     * Return a poll next page {@link QueuePollResult}.
+     *
+     * @return a poll next page {@link QueuePollResult}
+     */
+    public static QueuePollResult nextPage()
+        {
+        return new QueuePollResult(RESULT_POLL_NEXT_PAGE);
+        }
+
     // ----- constants ------------------------------------------------------
+
+    public static final long RESULT_EMPTY = Long.MIN_VALUE;
+
+    public static final long RESULT_POLL_NEXT_PAGE = Long.MIN_VALUE + 1;
 
     /**
      * The {@link EvolvablePortableObject} version of this class.

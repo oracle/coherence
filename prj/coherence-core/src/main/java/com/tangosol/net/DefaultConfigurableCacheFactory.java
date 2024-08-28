@@ -426,30 +426,6 @@ public class DefaultConfigurableCacheFactory
         throw new UnsupportedOperationException("NamedTopic is not supported by DefaultConfigurableCacheFactory");
         }
 
-    @Override
-    public <V> NamedQueue<V> ensureQueue(String sName, ClassLoader loader, NamedQueue.Option... options)
-        {
-        throw new UnsupportedOperationException("NamedQueue is not supported by DefaultConfigurableCacheFactory");
-        }
-
-    @Override
-    public <V> NamedDeque<V> ensureDeque(String sName, ClassLoader loader, NamedQueue.Option... options)
-        {
-        throw new UnsupportedOperationException("NamedDeque is not supported by DefaultConfigurableCacheFactory");
-        }
-
-    @Override
-    public void releaseQueue(NamedQueue<?> queue)
-        {
-        throw new UnsupportedOperationException("NamedQueue is not supported by DefaultConfigurableCacheFactory");
-        }
-
-    @Override
-    public void destroyQueue(NamedQueue<?> queue)
-        {
-        throw new UnsupportedOperationException("NamedQueue is not supported by DefaultConfigurableCacheFactory");
-        }
-
     /**
     * {@inheritDoc}
     */

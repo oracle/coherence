@@ -173,56 +173,6 @@ public interface Session extends AutoCloseable
         }
 
     /**
-     * Acquire a {@link NamedQueue}.
-     *
-     * @param sName  the name of the {@link NamedQueue}
-     *
-     * @param <E>  the type of elements in the {@link NamedQueue}
-     *
-     * @return a {@link NamedQueue}
-     */
-    default <E> NamedQueue<E> getQueue(String sName)
-        {
-        return getQueue(sName, new NamedQueue.Option[0]);
-        }
-
-    /**
-     * Acquire a {@link NamedQueue}.
-     *
-     * @param sName  the name of the {@link NamedQueue}
-     *
-     * @param <E>  the type of elements in the {@link NamedQueue}
-     *
-     * @return a {@link NamedQueue}
-     */
-    <E> NamedQueue<E> getQueue(String sName, NamedQueue.Option... options);
-
-    /**
-     * Acquire a {@link NamedDeque}.
-     *
-     * @param sName  the name of the {@link NamedDeque}
-     *
-     * @param <E>  the type of elements in the {@link NamedDeque}
-     *
-     * @return a {@link NamedQueue}
-     */
-    default <E> NamedDeque<E> getDeque(String sName)
-        {
-        return getDeque(sName, new NamedQueue.Option[0]);
-        }
-
-    /**
-     * Acquire a {@link NamedDeque}.
-     *
-     * @param sName  the name of the {@link NamedDeque}
-     *
-     * @param <E>  the type of elements in the {@link NamedDeque}
-     *
-     * @return a {@link NamedQueue}
-     */
-    <E> NamedDeque<E> getDeque(String sName, NamedQueue.Option... options);
-
-    /**
      * Close and release the a {@link NamedCollection}.
      *
      * @param col  the {@link NamedCollection} to close

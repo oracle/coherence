@@ -232,30 +232,6 @@ public class CoherenceSession
         }
 
     @Override
-    public <E> NamedQueue<E> getQueue(String sName)
-        {
-        throw new UnsupportedOperationException();
-        }
-
-    @Override
-    public <E> NamedQueue<E> getQueue(String sName, NamedQueue.Option... options)
-        {
-        throw new UnsupportedOperationException();
-        }
-
-    @Override
-    public <E> NamedDeque<E> getDeque(String sName)
-        {
-        throw new UnsupportedOperationException();
-        }
-
-    @Override
-    public <E> NamedDeque<E> getDeque(String sName, NamedQueue.Option... options)
-        {
-        throw new UnsupportedOperationException();
-        }
-
-    @Override
     public void close(NamedCollection col)
         {
         col.close();

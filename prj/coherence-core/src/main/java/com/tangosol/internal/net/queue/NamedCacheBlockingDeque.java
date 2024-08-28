@@ -7,32 +7,33 @@
 
 package com.tangosol.internal.net.queue;
 
-import com.tangosol.internal.net.SessionNamedBlockingDeque;
-import com.tangosol.internal.net.SessionNamedDeque;
-
 import com.tangosol.internal.net.queue.model.QueueKey;
 
 import com.tangosol.net.NamedBlockingDeque;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedDeque;
-import com.tangosol.net.Session;
-import com.tangosol.net.ValueTypeAssertion;
+import com.tangosol.net.NamedMap;
+import com.tangosol.net.NamedQueue;
+
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
+
 import com.tangosol.util.filter.AlwaysFilter;
 
 import java.util.Collection;
+import java.util.Objects;
+
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * A {@link NamedBlockingDeque} implementation that wraps a {@link NamedCache}.
+ * A {@link NamedBlockingDeque} implementation that wraps a {@link NamedCacheDeque}.
  *
  * @param <E> the type of elements held in this queue
  */
 public class NamedCacheBlockingDeque<E>
-        extends NamedCacheDeque<E>
+        extends WrapperNamedCacheDeque<E>
         implements NamedBlockingDeque<E>, MapListener<QueueKey, E>
     {
     /**
@@ -43,39 +44,31 @@ public class NamedCacheBlockingDeque<E>
      */
     public NamedCacheBlockingDeque(String sName, NamedCache<QueueKey, E> cache)
         {
-        super(sName, cache);
-        cache.addMapListener(this, AlwaysFilter.INSTANCE(), true);
-        }
-
-    // ----- factory methods ------------------------------------------------
-
-    /**
-     * Create a {@link Builder} option.
-     * <p>
-     * The {@link Builder} can be passed as an option to the
-     * {@link Session#getDeque(String, Option...)} method to return
-     * a {@link NamedBlockingDeque} instead of a {@link NamedDeque}.
-     */
-    public Builder builder()
-        {
-        return builder("");
+        this(sName, new NamedCacheDeque<>(sName, cache));
         }
 
     /**
-     * Create a {@link Builder} option.
-     * <p>
-     * The {@link Builder} can be passed as an option to the
-     * {@link Session#getDeque(String, Option...)} method to return
-     * a {@link NamedBlockingDeque} instead of a {@link NamedDeque}.
+     * Create a {@link NamedCacheBlockingDeque} that delegates to
+     * the specified {@link NamedCacheDeque}.
      *
-     * @param sNamePrefix  the prefix to add to queue cache names
+     * @param sName     the name of the deque
+     * @param delegate  the {@link NamedCacheDeque} to delegate to
      */
-    public Builder builder(String sNamePrefix)
+    public NamedCacheBlockingDeque(String sName, NamedCacheDeque<E> delegate)
         {
-        return new Builder(sNamePrefix);
+        super(sName, delegate);
+        delegate.getCache().addMapListener(this, AlwaysFilter.INSTANCE(), true);
+        m_nHash = QueueKey.calculateQueueHash(delegate.getName());
         }
 
     // ----- BlockingDeque methods ------------------------------------------
+
+    @Override
+    public void release()
+        {
+        f_delegate.getCache().removeMapListener(this);
+        super.release();
+        }
 
     @Override
     public long prepend(E e, long timeout, TimeUnit unit) throws InterruptedException
@@ -379,7 +372,7 @@ public class NamedCacheBlockingDeque<E>
         {
         assertNotSameCollection(c, "Queue cannot be drained to the same underlying cache");
 
-        QueuePageIterator<E> iterator = QueuePageIterator.headPolling(m_keyHead.getHash(), m_cache);
+        QueuePageIterator<E> iterator = QueuePageIterator.headPolling(m_nHash, getCache());
         int                  cPolled  = 0;
         while (iterator.hasNext())
             {
@@ -394,7 +387,7 @@ public class NamedCacheBlockingDeque<E>
         {
         assertNotSameCollection(c, "Queue cannot be drained to the same underlying cache");
 
-        QueuePageIterator<E> iterator = QueuePageIterator.headPolling(m_keyHead.getHash(), m_cache, maxElements);
+        QueuePageIterator<E> iterator = QueuePageIterator.headPolling(m_nHash, getCache(), maxElements);
         int                  cPolled  = 0;
         while (iterator.hasNext())
             {
@@ -439,80 +432,25 @@ public class NamedCacheBlockingDeque<E>
             }
         }
 
-    // ----- inner class Builder --------------------------------------------
+    // ----- helper methods -------------------------------------------------
 
     /**
-     * A {@link NamedCacheDequeBuilder} to build a blocking deque.
+     * Obtain the underlying cache.
+     *
+     * @return the underlying cache
      */
-    public static class Builder
-            implements NamedCacheDequeBuilder
+    public NamedMap<QueueKey, E> getCache()
         {
-        /**
-         * Create a {@link Builder}.
-         *
-         * @param sNamePrefix  the prefix to add to queue cache names
-         */
-        public Builder(String sNamePrefix)
+        return f_delegate.getCache();
+        }
+
+    private void assertNotSameCollection(Collection<?> c, String sMsg)
+        {
+        if (this.equals(Objects.requireNonNull(c)))
             {
-            f_sNamePrefix = sNamePrefix == null ? "" : sNamePrefix;
+            throw new IllegalArgumentException(sMsg);
             }
-
-        @Override
-        public String getCacheName(String sName)
-            {
-            return getCacheName(f_sNamePrefix, sName);
-            }
-
-        /**
-         * Return the cache name for a queue.
-         *
-         * @param sPrefix  the cache name prefix
-         * @param sName    the queue name
-         *
-         * @return  the cache name for a queue
-         */
-        public static String getCacheName(String sPrefix, String sName)
-            {
-            return sPrefix + sName;
-            }
-
-        @Override
-        public String getCollectionName(String sCacheName)
-            {
-            if (sCacheName.startsWith(f_sNamePrefix))
-                {
-                return sCacheName.substring(f_sNamePrefix.length());
-                }
-            return sCacheName;
-            }
-
-        @Override
-        public <E> NamedCacheDeque<E> build(String sName, NamedCache<QueueKey, E> cache)
-            {
-            return new NamedCacheBlockingDeque<>(sName, cache);
-            }
-
-        @Override
-        public <E> SessionNamedDeque<E, ?> wrapForSession(Session session, NamedDeque<E> deque,
-                ClassLoader loader, ValueTypeAssertion<E> typeAssertion)
-            {
-            NamedBlockingDeque<E> blockingDeque = (NamedBlockingDeque<E>) deque;
-            return new SessionNamedBlockingDeque<>(session, blockingDeque, loader, typeAssertion);
-            }
-
-        // -----constants -------------------------------------------------------
-
-        /**
-         * The singleton instance of the default {@link Builder}.
-         */
-        public static Builder DEFAULT = new Builder("");
-
-        // ----- data members ---------------------------------------------------
-
-        /**
-         * The prefix to use for cache names.
-         */
-        private final String f_sNamePrefix;
+        f_delegate.assertNotSameCollection(c, sMsg);
         }
 
     // ----- data members ---------------------------------------------------
@@ -531,4 +469,9 @@ public class NamedCacheBlockingDeque<E>
      * The Condition for waiting puts.
      */
     private final Condition m_notFull = m_lock.newCondition();
+
+    /**
+     * The hash of the queue.
+     */
+    private final int m_nHash;
     }

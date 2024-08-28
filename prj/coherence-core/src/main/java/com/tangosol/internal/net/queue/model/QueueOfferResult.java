@@ -26,6 +26,11 @@ public class QueueOfferResult
         {
         }
 
+    public QueueOfferResult(int idMSB, int idLSB, int nResult)
+        {
+        this((((long) idMSB) << 32) | (idLSB & 0xffffffffL), nResult);
+        }
+
     public QueueOfferResult(long id, int nResult)
         {
         m_nId     = id;
@@ -85,6 +90,8 @@ public class QueueOfferResult
     public static final int RESULT_SUCCESS = 1;
 
     public static final int RESULT_FAILED_CAPACITY = 2;
+
+    public static final int RESULT_FAILED_RETRY = 3;
 
     // ----- data members ---------------------------------------------------
 

@@ -10,7 +10,6 @@ package com.tangosol.internal.net.queue.processor;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 
-import com.tangosol.internal.net.queue.NamedCacheQueue;
 import com.tangosol.internal.net.queue.extractor.QueueKeyExtractor;
 import com.tangosol.internal.net.queue.extractor.QueueKeyExtractor.QueueIndex;
 
@@ -29,13 +28,11 @@ import com.tangosol.net.BackingMapManagerContext;
 
 import com.tangosol.net.cache.BinaryMemoryCalculator;
 
-import com.tangosol.net.cache.ConfigurableCacheMap;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.Converter;
 import com.tangosol.util.MapIndex;
 
-import com.tangosol.util.ObservableMap;
 import com.tangosol.util.processor.AbstractProcessor;
 
 /**
@@ -66,7 +63,7 @@ public abstract class AbstractQueueProcessor<K, V, R>
             entryHead.remove(false);
             return new QueuePollResult(entryHead.getKey().getId(), binResult);
             }
-        return new QueuePollResult(Long.MIN_VALUE, null);
+        return QueuePollResult.empty();
         }
 
     /**
@@ -85,7 +82,7 @@ public abstract class AbstractQueueProcessor<K, V, R>
             entryTail.remove(false);
             return new QueuePollResult(entryTail.getKey().getId(), binResult);
             }
-        return new QueuePollResult(Long.MIN_VALUE, null);
+        return QueuePollResult.empty();
         }
 
     /**
@@ -104,7 +101,7 @@ public abstract class AbstractQueueProcessor<K, V, R>
             Binary binResult = entryHead.getBinaryValue();
             return new QueuePollResult(entryHead.getKey().getId(), binResult);
             }
-        return new QueuePollResult(Long.MIN_VALUE, null);
+        return QueuePollResult.empty();
         }
 
     /**
@@ -123,7 +120,7 @@ public abstract class AbstractQueueProcessor<K, V, R>
             Binary binResult = entryTail.getBinaryValue();
             return new QueuePollResult(entryTail.getKey().getId(), binResult);
             }
-        return new QueuePollResult(Long.MIN_VALUE, null);
+        return QueuePollResult.empty();
         }
 
     /**
@@ -220,11 +217,24 @@ public abstract class AbstractQueueProcessor<K, V, R>
         QueueIndex index         = assertQueueIndex(entry);
         long       cMaxBytes     = index.getMaxQueueSize();
         long       cCurrentBytes = index.getQueueSize();
-        long       cBytes        = cCurrentBytes + (binKey.length() + binValue.length()
-                                        + ((long) BinaryMemoryCalculator.SIZE_BINARY * 2)
-                                        + (long) BinaryMemoryCalculator.SIZE_ENTRY);
+        return exceedsSizeLimit(binKey, binValue, cMaxBytes, cCurrentBytes);
+        }
+
+    public boolean exceedsSizeLimit(BinaryEntry<? extends QueueKey, ?> entry, Binary binKey, Binary binValue, long cMaxBytes)
+        {
+        QueueIndex index         = assertQueueIndex(entry);
+        long       cCurrentBytes = index.getQueueSize();
+        return exceedsSizeLimit(binKey, binValue, cMaxBytes, cCurrentBytes);
+        }
+
+    private boolean exceedsSizeLimit(Binary binKey, Binary binValue, long cMaxBytes, long cCurrentBytes)
+        {
+        long cBytes = cCurrentBytes + (binKey.length() + binValue.length()
+                                    + ((long) BinaryMemoryCalculator.SIZE_BINARY * 2)
+                                    + (long) BinaryMemoryCalculator.SIZE_ENTRY);
         return cBytes > cMaxBytes;
         }
+
 
     /**
      * Enlist the head entry of the queue.

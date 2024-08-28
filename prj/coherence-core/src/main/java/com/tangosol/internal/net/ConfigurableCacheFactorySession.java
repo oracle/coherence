@@ -10,15 +10,12 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.common.util.Options;
 
-import com.tangosol.internal.net.queue.NamedCacheDequeBuilder;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedCollection;
-import com.tangosol.net.NamedDeque;
 import com.tangosol.net.NamedMap;
-import com.tangosol.net.NamedQueue;
 import com.tangosol.net.Service;
 import com.tangosol.net.Session;
 import com.tangosol.net.ValueTypeAssertion;
@@ -83,7 +80,6 @@ public class ConfigurableCacheFactorySession
         f_sName           = sName;
         f_mapCaches       = new ConcurrentHashMap<>();
         f_mapTopics       = new ConcurrentHashMap<>();
-        f_mapDeques       = new ConcurrentHashMap<>();
         f_eventDispatcher = new SessionEventDispatcher(this);
         f_registry        = f_ccf.getResourceRegistry();
 
@@ -241,77 +237,6 @@ public class ConfigurableCacheFactorySession
         }
 
     @Override
-    public  <E> NamedQueue<E> getQueue(String sName)
-        {
-        return getQueue(sName, new NamedQueue.Option[0]);
-        }
-
-    @Override
-    public  <E> NamedQueue<E> getQueue(String sName, NamedQueue.Option... options)
-        {
-        return getDeque(sName, options);
-        }
-
-    @Override
-    public  <E> NamedDeque<E> getDeque(String sName)
-        {
-        return getDeque(sName, new NamedQueue.Option[0]);
-        }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public  <E> NamedDeque<E> getDeque(String sName, NamedQueue.Option... options)
-        {
-        if (!m_fClosed)
-            {
-            // ensure we have a reference counter for the named deque
-            f_registry.registerResource(
-                    NamedDequeReferenceCounter.class, sName,
-                    NamedDequeReferenceCounter::new,
-                    RegistrationBehavior.IGNORE, null);
-
-            // grab the map of deques organized by the type assertion, creating if necessary
-            ConcurrentHashMap<ValueTypeAssertion, SessionNamedDeque> mapDequesByTypeAssertion =
-                    f_mapDeques.computeIfAbsent(sName, any -> new ConcurrentHashMap<>());
-
-            // grab the type assertion and ClassLoader from the provided options
-            Options<NamedDeque.Option> optionSet     = Options.from(NamedDeque.Option.class, options);
-            ValueTypeAssertion<E>      typeAssertion = optionSet.get(ValueTypeAssertion.class);
-            ClassLoader                loader        = optionSet.get(WithClassLoader.class,
-                                                                     WithClassLoader.using(f_classLoader))
-                                                                .getClassLoader();
-
-            // grab the session-based named deque for the type of assertion, creating one if necessary
-            return mapDequesByTypeAssertion.compute(typeAssertion, (key, value) ->
-                {
-                // only return a valid session-based named deque
-                if (value != null
-                    && !value.isDestroyed()
-                    && !value.isReleased()
-                    && value.getContextClassLoader() == loader) // compare loaders to prevent returning incorrect deque
-                    {
-                    return value;
-                    }
-
-                NamedCacheDequeBuilder builder    = optionSet.get(NamedCacheDequeBuilder.class, NamedCacheDequeBuilder.DEFAULT);
-                String                 sCacheName = builder.getCacheName(sName);
-
-                // request an underlying NamedDeque from the CCF
-                NamedDeque<E> dequeUnderlying = f_ccf.ensureDeque(sCacheName, loader, options);
-
-                SessionNamedDeque<E, ?> deque   = builder.wrapForSession(this, dequeUnderlying,
-                                                            loader, typeAssertion);
-
-                // increment the reference count for the underlying NamedDeque
-                f_registry.getResource(NamedDequeReferenceCounter.class, sName).incrementAndGet();
-
-                return deque;
-                });
-            }
-        throw new IllegalStateException("Session " + getName() + " is closed");
-        }
-
-    @Override
     public void close(NamedCollection col)
         {
         if (col instanceof SessionNamedCache<?,?>)
@@ -321,10 +246,6 @@ public class ConfigurableCacheFactorySession
         else if (col instanceof SessionNamedTopic<?>)
             {
             onClose((SessionNamedTopic<?>) col);
-            }
-        else if (col instanceof SessionNamedDeque<?, ?>)
-            {
-            onClose((SessionNamedDeque<?, ?>) col);
             }
         }
 
@@ -338,10 +259,6 @@ public class ConfigurableCacheFactorySession
         else if (col instanceof SessionNamedTopic<?>)
             {
             onDestroy((SessionNamedTopic<?>) col);
-            }
-        else if (col instanceof SessionNamedDeque<?, ?>)
-            {
-            onDestroy((SessionNamedDeque<?, ?>) col);
             }
         }
 
@@ -548,48 +465,6 @@ public class ConfigurableCacheFactorySession
             }
         }
 
-    <V> void onClose(SessionNamedDeque<V, ?> deque)
-        {
-        dropNamedTopic(deque);
-
-        deque.onClosing();
-
-        // decrement the reference count for the underlying NamedTopic
-        if (f_registry.getResource(NamedDequeReferenceCounter.class, deque.getName()).decrementAndGet() == 0)
-            {
-            f_ccf.releaseQueue(deque.getInternalNamedDeque());
-            }
-
-        deque.onClosed();
-        }
-
-    <V> void onDestroy(SessionNamedDeque<V, ?> deque)
-        {
-        dropNamedTopic(deque);
-
-        deque.onDestroying();
-
-        // reset the reference count for the underlying NamedCache
-        f_registry.getResource(NamedDequeReferenceCounter.class, deque.getName()).reset();
-
-        f_ccf.destroyQueue(deque.getInternalNamedDeque());
-
-        deque.onDestroyed();
-        }
-
-    @SuppressWarnings({"rawtypes", "resource"})
-    private <V> void dropNamedTopic(SessionNamedDeque<V, ?> deque)
-        {
-        // drop the NamedTopic from this session
-        ConcurrentHashMap<ValueTypeAssertion, SessionNamedDeque> mapQueuesByTypeAssertion =
-                f_mapDeques.get(deque.getName());
-
-        if (mapQueuesByTypeAssertion != null)
-            {
-            mapQueuesByTypeAssertion.remove(deque.getTypeAssertion());
-            }
-        }
-
     protected boolean isClosed()
         {
         return m_fClosed;
@@ -644,14 +519,6 @@ public class ConfigurableCacheFactorySession
      * against the same {@link ConfigurableCacheFactory} (by using reference counting)
      */
     protected static class NamedTopicReferenceCounter
-            extends ReferenceCounter
-        {}
-
-    /**
-     * Tracks use of individual {@link NamedDeque} instances by all {@link Session}s
-     * against the same {@link ConfigurableCacheFactory} (by using reference counting)
-     */
-    protected static class NamedDequeReferenceCounter
             extends ReferenceCounter
         {}
 
@@ -736,12 +603,6 @@ public class ConfigurableCacheFactorySession
      * (so we close them when the session closes).
      */
     private final ConcurrentHashMap<String, ConcurrentHashMap<ValueTypeAssertion, SessionNamedTopic>> f_mapTopics;
-
-    /**
-     * The {@link NamedDeque}s created by this {@link Session}
-     * (so we close them when the session closes).
-     */
-    private final ConcurrentHashMap<String, ConcurrentHashMap<ValueTypeAssertion, SessionNamedDeque>> f_mapDeques;
 
     /**
      * The event dispatcher for lifecycle events.

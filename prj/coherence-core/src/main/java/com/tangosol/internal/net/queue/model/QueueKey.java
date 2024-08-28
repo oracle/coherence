@@ -242,8 +242,8 @@ public class QueueKey
     // ----- data members ---------------------------------------------------
 
     @JsonbProperty("hash")
-    private int m_nHash;
+    protected int m_nHash;
 
     @JsonbProperty("id")
-    private long m_nId;
+    protected long m_nId;
     }

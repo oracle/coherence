@@ -8,7 +8,6 @@
 package concurrent.queues;
 
 import com.oracle.coherence.concurrent.Queues;
-import com.tangosol.internal.net.queue.NamedCacheBlockingDeque;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedBlockingDeque;
 import com.tangosol.net.NamedCache;
@@ -40,12 +39,12 @@ public class ClusteredBlockingDequeTests<QueueType extends NamedBlockingDeque>
     @Override
     public QueueType getNamedCollection(Session session, String sName)
         {
-        return (QueueType) session.getDeque(sName, Queues.BUILDER);
+        return (QueueType) Queues.blockingDeque(sName, session);
         }
 
     @Override
     public NamedCache getCollectionCache(String sName)
         {
-        return super.getCollectionCache(NamedCacheBlockingDeque.Builder.getCacheName(Queues.QUEUE_CACHE_PREFIX, sName));
+        return super.getCollectionCache(Queues.QUEUE_CACHE_PREFIX + sName);
         }
     }

@@ -9,7 +9,6 @@ package concurrent.queues;
 
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.concurrent.Queues;
-import com.tangosol.internal.net.SessionNamedBlockingDeque;
 import com.tangosol.internal.net.queue.NamedCacheBlockingDeque;
 import com.tangosol.internal.net.queue.NamedCacheQueue;
 import com.tangosol.internal.net.queue.model.QueueKey;
@@ -56,14 +55,6 @@ public interface NamedBlockingDequeTests<DequeType extends NamedBlockingDeque>
         String                     sName = getNewName();
         NamedBlockingDeque<String> deque = Queues.blockingDeque(sName);
         assertThat(deque.getName(), is(sName));
-        if (deque instanceof SessionNamedBlockingDeque<String>)
-            {
-            deque = (NamedBlockingDeque<String>) ((SessionNamedBlockingDeque) deque).getInternalNamedDeque();
-            }
-        if (deque instanceof NamedCacheBlockingDeque<String>)
-            {
-            assertThat(((NamedCacheBlockingDeque<?>) deque).getCache().getName(), is(Queues.QUEUE_CACHE_PREFIX + sName));
-            }
         }
 
     /*
