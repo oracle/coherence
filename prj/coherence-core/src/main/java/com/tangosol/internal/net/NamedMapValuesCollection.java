@@ -7,6 +7,7 @@
 
 package com.tangosol.internal.net;
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.NamedCollection;
 
@@ -74,13 +75,13 @@ public abstract class NamedMapValuesCollection<K, V>
     @Override
     public void destroy()
         {
-        m_cache.destroy();
+        destroy(m_cache);
         }
 
     @Override
     public void release()
         {
-        m_cache.release();
+        release(m_cache);
         }
 
     // ----- Collection methods ---------------------------------------------
@@ -216,6 +217,36 @@ public abstract class NamedMapValuesCollection<K, V>
             if (m_cache.equals(map))
                 {
                 throw new IllegalArgumentException(sMsg);
+                }
+            }
+        }
+
+    protected void release(NamedMap<?, ?> map)
+        {
+        if (map != null && !map.isReleased() && !map.isDestroyed())
+            {
+            try
+                {
+                map.release();
+                }
+            catch (Exception e)
+                {
+                Logger.err(e);
+                }
+            }
+        }
+
+    protected void destroy(NamedMap<?, ?> map)
+        {
+        if (map != null && !map.isReleased() && !map.isDestroyed())
+            {
+            try
+                {
+                map.destroy();
+                }
+            catch (Exception e)
+                {
+                Logger.err(e);
                 }
             }
         }

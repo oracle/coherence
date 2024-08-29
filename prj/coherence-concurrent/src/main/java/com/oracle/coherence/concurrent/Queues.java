@@ -59,9 +59,9 @@ public class Queues
      *
      * @return a {@link NamedBlockingDeque} with the specified name
      */
-    public static <E> NamedBlockingDeque<E> blockingDeque(String sName)
+    public static <E> NamedBlockingDeque<E> deque(String sName)
         {
-        return blockingDeque(sName, session());
+        return deque(sName, session());
         }
 
     /**
@@ -78,7 +78,7 @@ public class Queues
      *
      * @return a {@link NamedBlockingDeque} with the specified name
      */
-    public static <E> NamedBlockingDeque<E> blockingDeque(String sName, Session session)
+    public static <E> NamedBlockingDeque<E> deque(String sName, Session session)
         {
         SimpleDequeScheme  scheme     = new SimpleDequeScheme();
         String             sCacheName = QUEUE_CACHE_PREFIX + sName;
@@ -99,9 +99,9 @@ public class Queues
      *
      * @return a {@link NamedBlockingQueue} with the specified name
      */
-    public static <E> NamedBlockingQueue<E> blocking(String sName)
+    public static <E> NamedBlockingQueue<E> queue(String sName)
         {
-        return blocking(sName, session());
+        return queue(sName, session());
         }
 
     /**
@@ -118,9 +118,9 @@ public class Queues
      *
      * @return a {@link NamedBlockingQueue} with the specified name
      */
-    public static <E> NamedBlockingQueue<E> blocking(String sName, Session session)
+    public static <E> NamedBlockingQueue<E> queue(String sName, Session session)
         {
-        return blockingDeque(sName, session);
+        return deque(sName, session);
         }
 
     /**
@@ -136,9 +136,9 @@ public class Queues
      *
      * @return a {@link NamedBlockingQueue} with the specified name
      */
-    public static <E> NamedBlockingQueue<E> pagedBlockingQueue(String sName)
+    public static <E> NamedBlockingQueue<E> pagedQueue(String sName)
         {
-        return pagedBlockingQueue(sName, session());
+        return pagedQueue(sName, session());
         }
 
     /**
@@ -161,7 +161,7 @@ public class Queues
      *
      * @return a {@link NamedBlockingQueue} with the specified name
      */
-    public static <E> NamedBlockingQueue<E> pagedBlockingQueue(String sName, Session session)
+    public static <E> NamedBlockingQueue<E> pagedQueue(String sName, Session session)
         {
         PagedQueueScheme   scheme     = new PagedQueueScheme();
         String             sCacheName = PAGED_QUEUE_CACHE_PREFIX + sName;
@@ -172,9 +172,9 @@ public class Queues
     // ----- helper methods -------------------------------------------------
 
     /**
-     * Return Coherence {@link Session} for the Semaphore module.
+     * Return Coherence {@link Session} for the concurrent module.
      *
-     * @return Coherence {@link Session} for the Semaphore module
+     * @return Coherence {@link Session} for the concurrent module
      */
     protected static Session session()
         {

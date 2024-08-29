@@ -49,7 +49,7 @@ public class ExtendClientBlockingDequeTests<QueueType extends NamedBlockingDeque
     @Override
     public QueueType getNamedCollection(Session session, String sName)
         {
-        return (QueueType) Queues.blockingDeque(sName, session);
+        return (QueueType) Queues.deque(sName, session);
         }
 
     @Override

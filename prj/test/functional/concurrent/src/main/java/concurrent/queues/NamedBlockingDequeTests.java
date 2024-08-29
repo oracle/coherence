@@ -53,7 +53,7 @@ public interface NamedBlockingDequeTests<DequeType extends NamedBlockingDeque>
     default void shouldHaveCorrectName()
         {
         String                     sName = getNewName();
-        NamedBlockingDeque<String> deque = Queues.blockingDeque(sName);
+        NamedBlockingDeque<String> deque = Queues.deque(sName);
         assertThat(deque.getName(), is(sName));
         }
 

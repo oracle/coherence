@@ -51,7 +51,7 @@ public interface NamedBlockingQueueTests<QueueType extends NamedBlockingQueue>
     default void shouldHaveCorrectName()
         {
         String                     sName = getNewName();
-        NamedBlockingQueue<String> queue = Queues.blocking(sName);
+        NamedBlockingQueue<String> queue = Queues.queue(sName);
         assertThat(queue.getName(), is(sName));
         }
 

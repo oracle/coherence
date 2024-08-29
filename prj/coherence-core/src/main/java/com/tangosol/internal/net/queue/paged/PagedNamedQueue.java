@@ -37,7 +37,7 @@ public class PagedNamedQueue<E>
         extends BaseNamedCacheQueue<PagedQueueKey, E>
         implements PagedQueue<E>
     {
-    @SuppressWarnings({"unchecked", "resource"})
+    @SuppressWarnings({"unchecked"})
     public PagedNamedQueue(String sName, NamedCache<PagedQueueKey, E> cache)
         {
         super(sName, cache);
@@ -47,10 +47,10 @@ public class PagedNamedQueue<E>
         ClassLoader  loader       = cache.getCacheService().getContextClassLoader();
 
 
-        m_elementCache    = cache;
-        m_underlyingCache = cacheService.ensureCache(PagedQueueCacheNames.Buckets.getCacheName(sCacheName), loader);
-        m_queueInfoCache  = cacheService.ensureCache(PagedQueueCacheNames.Info.getCacheName(sCacheName), loader);
-        cacheService.ensureCache(PagedQueueCacheNames.Version.getCacheName(sCacheName), loader);
+        m_elementCache   = cache;
+        m_bucketCache    = cacheService.ensureCache(PagedQueueCacheNames.Buckets.getCacheName(sCacheName), loader);
+        m_queueInfoCache = cacheService.ensureCache(PagedQueueCacheNames.Info.getCacheName(sCacheName), loader);
+        m_versionCache   = cacheService.ensureCache(PagedQueueCacheNames.Version.getCacheName(sCacheName), loader);
 
         m_queueInfo = m_queueInfoCache.invoke(sName, instantateInitialiseQueueInfoProcessor());
 
@@ -58,6 +58,24 @@ public class PagedNamedQueue<E>
         }
 
     // ----- BaseNamedCacheQueue methods ------------------------------------
+
+    @Override
+    public void release()
+        {
+        super.release();
+        release(m_bucketCache);
+        release(m_queueInfoCache);
+        release(m_versionCache);
+        }
+
+    @Override
+    public void destroy()
+        {
+        super.destroy();
+        destroy(m_bucketCache);
+        destroy(m_queueInfoCache);
+        destroy(m_versionCache);
+        }
 
     @Override
     public Iterator<E> iterator()
@@ -81,7 +99,7 @@ public class PagedNamedQueue<E>
         Binary                  binary       = ExternalizableHelper.toBinary(e, getSerializer());
         int                     tailBucketId = m_queueInfo.getTailBucketId();
         QueueOfferTailProcessor processor    = instantiateTailOfferProcessor(binary, m_queueInfo);
-        QueueOfferResult        result       = m_underlyingCache.invoke(tailBucketId, processor);
+        QueueOfferResult        result       = m_bucketCache.invoke(tailBucketId, processor);
 
         while (result.getResult() == QueueOfferResult.RESULT_FAILED_RETRY)
             {
@@ -99,7 +117,7 @@ public class PagedNamedQueue<E>
                     }
                 }
             tailBucketId = m_queueInfo.getTailBucketId();
-            result = m_underlyingCache.invoke(tailBucketId, processor);
+            result = m_bucketCache.invoke(tailBucketId, processor);
             }
 
         return result;
@@ -136,7 +154,7 @@ public class PagedNamedQueue<E>
         int                        headId    = m_queueInfo.getHeadBucketId();
         QueueVersionInfo           version   = m_queueInfo.getVersion();
         QueuePollPeekHeadProcessor processor = instantiatePollPeekHeadProcessor(fPoll, version);
-        QueuePollResult            result    = m_underlyingCache.invoke(headId, processor);
+        QueuePollResult            result    = m_bucketCache.invoke(headId, processor);
 
         while (result.getId() == QueuePollResult.RESULT_POLL_NEXT_PAGE && !m_elementCache.isEmpty())
             {
@@ -146,7 +164,7 @@ public class PagedNamedQueue<E>
             headId      = m_queueInfo.getHeadBucketId();
 
             processor.setVersion(version);
-            result = m_underlyingCache.invoke(headId, processor);
+            result = m_bucketCache.invoke(headId, processor);
             }
 
         return result.getBinaryElement();
@@ -195,7 +213,7 @@ public class PagedNamedQueue<E>
      */
     protected Iterator<Binary> peekAtBucket(int bucketId, boolean fHeadFirst)
         {
-        List<Binary> results = m_underlyingCache.aggregate(Collections.singleton(bucketId),
+        List<Binary> results = m_bucketCache.aggregate(Collections.singleton(bucketId),
                            new PeekWholeBucketAggregator<>(fHeadFirst));
 
         if (results == null || results.isEmpty())
@@ -307,7 +325,7 @@ public class PagedNamedQueue<E>
      */
     protected Serializer getSerializer()
         {
-        return m_underlyingCache.getCacheService().getSerializer();
+        return m_bucketCache.getCacheService().getSerializer();
         }
 
     /**
@@ -548,7 +566,12 @@ public class PagedNamedQueue<E>
     /**
      * The cache that holds the buckets.
      */
-    protected NamedCache<Integer,Bucket> m_underlyingCache;
+    protected NamedCache<Integer,Bucket> m_bucketCache;
+
+    /**
+     * The cache that holds the versions.
+     */
+    protected NamedCache<?, ?> m_versionCache;
 
     /**
      * The cache that holds the Queue elements

@@ -58,4 +58,26 @@ Use Java 21 virtual threads within Coherence.
 Create sorted client-side views of cached data.
 --
 
+[CARD]
+.Queues
+[icon=line_weight,link=docs/core/09_queues.adoc]
+--
+Use Coherence blocking queue implementations.
+--
+
+
+[CARD]
+.gRPC
+[icon=control_camera,link=docs/core/10_grpc.adoc]
+--
+Use Coherence with gRPC clients
+--
+
+[CARD]
+.Open Telemetry
+[icon=speed,link=docs/core/11_otel.adoc]
+--
+Use Coherence wth Open Telemetry.
+--
+
 ====

@@ -45,7 +45,7 @@ public class ClusteredPagedBlockingQueueTests<QueueType extends NamedBlockingQue
     @Override
     public QueueType getNamedCollection(Session session, String sName)
         {
-        return (QueueType) Queues.pagedBlockingQueue(sName, session);
+        return (QueueType) Queues.pagedQueue(sName, session);
         }
 
     @Override
