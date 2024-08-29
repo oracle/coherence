@@ -86,6 +86,7 @@ import java.util.concurrent.atomic.AtomicLong;
 * @author cp 2002.11.25
 * @author jh 2005.02.08
 */
+@SuppressWarnings("unchecked")
 public class ReadWriteBackingMap
         extends AbstractMap
         implements CacheMap
@@ -1175,8 +1176,7 @@ public class ReadWriteBackingMap
 
             cancelOutstandingReads(oKey);
 
-            // similar to put(), but removes cannot be queued, so there are only
-            // two possibilities:
+            // there are three possibilities:
             // (1) read-only: remove in memory only; no CacheStore ops
             // (2) write-through: immediate erase through CacheStore
             // (3) write-behind: queued remove to CacheStore or failover
@@ -1188,7 +1188,7 @@ public class ReadWriteBackingMap
             Object       oValue  = getCachedOrPending(oKey);
             WriteQueue   queue   = getWriteQueue();
             StoreWrapper store   = getCacheStore();
-            boolean      fUpdate = false;
+            boolean      fQueued = false;
 
             if (store != null)
                 {
@@ -1198,7 +1198,7 @@ public class ReadWriteBackingMap
                 if (!fBlind && oValue == null && fOwned)
                     {
                     Entry entry = store.load(oKey);
-                    oValue =  entry == null ? null : entry.getBinaryValue();
+                    oValue = entry == null ? null : entry.getBinaryValue();
 
                     // if there is nothing to remove, then return immediately
                     if (oValue == null)
@@ -1217,8 +1217,9 @@ public class ReadWriteBackingMap
                             {
                             // set the value to BIN_ERASE_PENDING
                             queue.add(instantiateEntry(oKey, BIN_ERASE_PENDING, oValue, 0L), 0L);
-                            oValue = BIN_ERASE_PENDING;
-                            fUpdate = true;
+                            getInternalCache().put(oKey, BIN_ERASE_PENDING);
+                            getPendingRemoves().add(oKey);
+                            fQueued = true;
                             }
                         else
                             {
@@ -1228,13 +1229,7 @@ public class ReadWriteBackingMap
                     }
                 }
 
-            if (fUpdate)
-                {
-                // write-behind, update the internal cache with decorated value
-                getInternalCache().put(oKey, oValue);
-                getPendingRemoves().add(oKey);
-                }
-            else
+            if (!fQueued)
                 {
                 // the remove from the internal cache comes last
                 getInternalCache().remove(oKey);
@@ -3839,6 +3834,7 @@ public class ReadWriteBackingMap
     *
     * @author cp 2002.10.22
     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public class WriteQueue
             extends CoherenceCommunityEdition
         {
@@ -4921,115 +4917,71 @@ public class ReadWriteBackingMap
                             continue;
                             }
 
-                        if (store.isStoreAllSupported())
+                        // populate a set of ripe and soft-ripe entries
+                        boolean    fStoreAll   = store.isStoreAllSupported();
+                        boolean    fEraseAll   = store.isEraseAllSupported();
+                        int        cEntries    = 0;
+                        int        cMaxEntries = getWriteMaxBatchSize();
+                        Set<Entry> setStore    = fStoreAll ? new LinkedHashSet<>(cMaxEntries, 0.75f) : null;
+                        Set<Entry> setErase    = fEraseAll ? new LinkedHashSet<>(cMaxEntries, 0.75f) : null;
+
+                        while (entry != null)
                             {
-                            // populate a set of ripe and soft-ripe entries
-                            Entry   entryFirst  = null;
-                            Entry   entryLast   = null;
-                            Set     setEntries  = null;
-                            int     cEntries    = 0;
-                            int     cMaxEntries = getWriteMaxBatchSize();
-                            boolean fIsRemove   = false;
+                            boolean fRemove = equals(entry.getBinaryValue(), BIN_ERASE_PENDING);
 
-                            while (entry != null)
+                            if (fRemove)
                                 {
-                                boolean fEntryRemove = false;
-
-                                if (entry.getValue() == null)
+                                if (fEraseAll)
                                     {
-                                    fEntryRemove = equals(entry.getBinaryValue(), BIN_ERASE_PENDING);
-                                    }
-
-                                if (cEntries > 0 && (fIsRemove != fEntryRemove))
-                                    {
-                                    entryLast = entry;
-                                    break;
-                                    }
-
-                                // optimization: only create and populate
-                                // the entry map if there is more than
-                                // one ripe and/or soft-ripe entry in the
-                                // queue
-                                switch (cEntries)
-                                    {
-                                    case 0:
-                                        entryFirst = entry;
-                                        if (fEntryRemove)
-                                            {
-                                            fIsRemove = true;
-                                            }
-                                        break;
-
-                                    case 1:
-                                        setEntries = new LinkedHashSet();
-                                        setEntries.add(entryFirst);
-                                        // fall through
-                                    default:
-                                        setEntries.add(entry);
-                                        break;
-                                    }
-
-                                if (++cEntries >= cMaxEntries)
-                                    {
-                                    break;
-                                    }
-                                // remove all ripe and soft-ripe entries
-                                entry = queue.removeNoWait();
-                                }
-
-                            switch (cEntries)
-                                {
-                                case 0:
-                                    // NO-OP: no entries
-                                    break;
-
-                                case 1:
-                                    // a single entry
-                                    if (fIsRemove)
-                                        {
-                                        store.erase(entryFirst);
-                                        }
-                                    else
-                                        {
-                                        store.store(entryFirst, true);
-                                        }
-                                    break;
-
-                                default:
-                                    // multiple entries
-                                    if (fIsRemove)
-                                        {
-                                        store.eraseAll(setEntries);
-                                        }
-                                    else
-                                        {
-                                        store.storeAll(setEntries);
-                                        }
-                                    break;
-                                }
-
-                            if (entryLast != null)
-                                {
-                                if (fIsRemove)
-                                    {
-                                    store.store(entryLast, true);
+                                    setErase.add(entry);
                                     }
                                 else
                                     {
-                                    store.erase(entryLast);
+                                    store.erase(entry);
                                     }
-                                }
-                            }
-                        else
-                            {
-                            if (equals(entry.getBinaryValue(), BIN_ERASE_PENDING))
-                                {
-                                store.erase(entry);
                                 }
                             else
                                 {
-                                // issue the CacheStore Store operation
-                                store.store(entry, true);
+                                if (fStoreAll)
+                                    {
+                                    setStore.add(entry);
+                                    }
+                                else
+                                    {
+                                    store.store(entry, true);
+                                    }
+                                }
+
+                            if (++cEntries >= cMaxEntries)
+                                {
+                                break;
+                                }
+
+                            // remove next ripe or soft-ripe entry, if available
+                            entry = queue.removeNoWait();
+                            }
+
+                        if (fEraseAll && !setErase.isEmpty())
+                            {
+                            if (setErase.size() == 1)
+                                {
+                                store.erase(setErase.iterator().next());
+                                }
+                            else
+                                {
+                                store.eraseAll(setErase);
+                                }
+                            }
+
+                        if (fStoreAll && !setStore.isEmpty())
+                            {
+                            if (setStore.size() == 1)
+                                {
+                                store.store(setStore.iterator().next(), true);
+                                }
+                            else
+                                {
+                                store.storeAll(setStore);
                                 }
                             }
                         }
@@ -7021,7 +6973,14 @@ public class ReadWriteBackingMap
         */
         public String toString()
             {
-            return "CacheStoreWrapper(" + m_store.getClass().getName() + ')';
+            Class<?> clzStore = m_store.getClass();
+            // if the cache store is CDI bean, clzStore will be a Weld proxy,
+            // so we need to find the first parent class that isn't synthetic
+            while (clzStore.isSynthetic())
+                {
+                clzStore = clzStore.getSuperclass();
+                }
+            return "Store=" + clzStore.getName();
             }
 
         // ----- data members -------------------------------------------
@@ -7378,8 +7337,14 @@ public class ReadWriteBackingMap
         */
         public String toString()
             {
-            return "NonBlockingEntryStoreWrapper(" +
-                   f_storeNonBlocking.getClass().getName() + ')';
+            Class<?> clzStore = f_storeNonBlocking.getClass();
+            // if the cache store is CDI bean, clzStore will be a Weld proxy,
+            // so we need to find the first parent class that isn't synthetic
+            while (clzStore.isSynthetic())
+                {
+                clzStore = clzStore.getSuperclass();
+                }
+            return "NonBlockingStore=" + clzStore.getName();
             }
 
         /**
@@ -8047,8 +8012,14 @@ public class ReadWriteBackingMap
         */
         public String toString()
             {
-            return "BinaryEntryStoreWrapper(" +
-                    m_storeBinary.getClass().getName() + ')';
+            Class<?> clzStore = m_storeBinary.getClass();
+            // if the cache store is CDI bean, clzStore will be a Weld proxy,
+            // so we need to find the first parent class that isn't synthetic
+            while (clzStore.isSynthetic())
+                {
+                clzStore = clzStore.getSuperclass();
+                }
+            return "BinaryStore=" + clzStore.getName();
             }
 
         // ----- data members -------------------------------------------
