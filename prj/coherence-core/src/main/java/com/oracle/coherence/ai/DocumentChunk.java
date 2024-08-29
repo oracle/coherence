@@ -8,18 +8,23 @@
 package com.oracle.coherence.ai;
 
 import com.oracle.coherence.common.base.Classes;
+
 import com.tangosol.io.AbstractEvolvable;
 import com.tangosol.io.ExternalizableLite;
+
 import com.tangosol.io.pof.EvolvablePortableObject;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
+
 import com.tangosol.util.ExternalizableHelper;
+
 import jakarta.json.bind.annotation.JsonbProperty;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -54,7 +59,7 @@ public final class DocumentChunk
      * @param text    the chunk of text extracted from a document
      * @param vector  the vector associated with the document chunk
      */
-    public DocumentChunk(String text, Float32Vector vector)
+    public DocumentChunk(String text, Vector<float[]> vector)
         {
         this(text, null, vector);
         }
@@ -77,7 +82,7 @@ public final class DocumentChunk
      * @param metadata optional document metadata
      * @param vector   the vector associated with the document chunk
      */
-    public DocumentChunk(String text, Map<String, Object> metadata, Float32Vector vector)
+    public DocumentChunk(String text, Map<String, Object> metadata, Vector<float[]> vector)
         {
         m_text        = text;
         m_mapMetadata = metadata == null ? new LinkedHashMap<>() : metadata;
@@ -140,7 +145,7 @@ public final class DocumentChunk
      *
      * @param vector the float vector for this chunk
      */
-    public DocumentChunk setVector(Float32Vector vector)
+    public DocumentChunk setVector(Vector<float[]> vector)
         {
         m_vector = vector;
         return this;
@@ -385,5 +390,5 @@ public final class DocumentChunk
      * The float array vector.
      */
     @JsonbProperty("vector")
-    private Float32Vector m_vector;
+    private Vector<float[]> m_vector;
     }

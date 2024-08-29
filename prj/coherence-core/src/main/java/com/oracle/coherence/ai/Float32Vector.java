@@ -11,6 +11,7 @@ import com.oracle.coherence.ai.util.Vectors;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.util.ExternalizableHelper;
+import jakarta.json.bind.annotation.JsonbProperty;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -123,5 +124,6 @@ public final class Float32Vector
     /**
      * The actual float vector.
      */
+    @JsonbProperty("array")
     private float[] m_array;
     }

@@ -33,6 +33,7 @@ import com.tangosol.util.ValueExtractor;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectSortedMap;
 import it.unimi.dsi.fastutil.ints.IntIterator;
+import jakarta.json.bind.annotation.JsonbProperty;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -351,10 +352,12 @@ public class BinaryQuantIndex<K, V, T>
     /**
      * The {@link ValueExtractor} to use to extract the {@link Vector}.
      */
+    @JsonbProperty("extractor")
     private ValueExtractor<V, Vector<T>> f_extractor;
 
     /**
      * The oversampling factor to use.
      */
+    @JsonbProperty("oversamplingFactor")
     private int m_nOversamplingFactor = 3;
     }
