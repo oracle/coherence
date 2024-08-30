@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -64,6 +64,7 @@ import static com.tangosol.internal.util.VersionHelper.VERSION_12_2_1_4_20;
 import static com.tangosol.internal.util.VersionHelper.VERSION_12_2_1_6_6;
 import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_1_0_16;
 import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_1_2206_7;
+import static com.tangosol.internal.util.VersionHelper.VERSION_23_09;
 import static com.tangosol.internal.util.VersionHelper.VERSION_23_09_1;
 import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_2_0;
 import static com.tangosol.internal.util.VersionHelper.isPatchCompatible;
@@ -2341,7 +2342,7 @@ public class BinaryMap
      */
     protected static boolean isPartitionedQueryCompatible(int nVersion)
         {
-        return isVersionCompatible(VERSION_14_1_2_0, nVersion)
+        return (isVersionCompatible(VERSION_14_1_2_0, nVersion) && nVersion != VERSION_23_09)
                || isPatchCompatible(VERSION_23_09_1, nVersion)
                || isPatchCompatible(VERSION_14_1_1_2206_7, nVersion)
                || isPatchCompatible(VERSION_14_1_1_0_16, nVersion)
