@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,6 +12,7 @@ import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
 import com.oracle.bedrock.junit.SessionBuilders;
 
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
+import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
 
 import com.tangosol.coherence.config.Config;
@@ -45,8 +46,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.hasItem;
 
 import static org.junit.Assert.assertThat;
-
 import static util.CollectionUtils.asList;
+import static org.junit.Assert.assertTrue;
+
 
 
 /**
@@ -63,6 +65,7 @@ public class QueryPlusTests
         m_ccf = m_clusterRunner.getSessionFor(SessionBuilders.storageDisabledMember());
 
         m_queryPlusRunner.setConfigurableCacheFactory(m_ccf);
+        m_queryPlusEchoRunner.setConfigurableCacheFactory(m_ccf);
 
         m_simpleCache = m_ccf.ensureCache("dist-simple", null);
         m_simpleCache.clear();
@@ -316,6 +319,66 @@ public class QueryPlusTests
         shouldDropIndex(cacheName, command, extractor);
         }
 
+    @Test
+    public void shouldEchoStatementWithQueryPlusEchoOn() throws Exception
+        {
+        List<String> out = m_queryPlusEchoRunner.runCommand("ensure cache 'dist-people'");
+
+        out = m_queryPlusEchoRunner.runCommand("ensure cache 'dist-simple'");
+
+        // reported regression use multistatements on one line and always used END_OF_STATEMENT.
+        String sCount1    = "select count() from 'dist-people';";
+        String sCount2    = "select count() from 'dist-simple';";
+        String sMultiLine = sCount1 + sCount2 + sCount1;
+
+        // validate a multi-statment command line
+        out = m_queryPlusEchoRunner.runCommand(sMultiLine);
+
+        String[] arLine = new String[out.size()];
+        out.toArray(arLine);
+
+        // verify each CohQL statement is echo'ed to output along with expected result
+        int cStatement = 0;
+        int cPrompt    = 0;
+        for (int i = 0; i < arLine.length; i++)
+            {
+            if (arLine[i].contains(sCount1) || arLine[i].contains(sCount2))
+                {
+                cStatement++;
+                assertTrue("assert will not go beyond end of file", i + 2 < arLine.length);
+                assertThat("asserting " + arLine[i] + "\"Results\"", arLine[i + 1], is("Results"));
+                assertThat("asserting " + arLine[i] + " expected result of \"10\"", arLine[i + 2], is("10"));
+                }
+            else if (arLine[i].contains("CohQL>"))
+                {
+                cPrompt++;
+                }
+            }
+        assertThat("assure number of statements in multistatement line", cStatement, is(3));
+        assertThat("assure number of results matches number of commands", cPrompt, is(1));
+
+        // validate a single statement command line
+        out = m_queryPlusEchoRunner.runCommand(sCount1);
+        cStatement = 0;
+        cPrompt    = 0;
+        arLine = new String[out.size()];
+        out.toArray(arLine);
+        assertTrue(arLine[0].contains(sCount1));
+        assertTrue(arLine[1].contains("Results"));
+        assertTrue(arLine[2].contains("10"));
+        assertTrue(arLine[4].contains("CohQL>"));
+
+        out = m_queryPlusEchoRunner.runCommand(sCount2);
+        cStatement = 0;
+        cPrompt    = 0;
+        arLine = new String[out.size()];
+        out.toArray(arLine);
+        assertTrue(arLine[0].contains(sCount2));
+        assertTrue(arLine[1].contains("Results"));
+        assertTrue(arLine[2].contains("10"));
+        assertTrue(arLine[4].contains("CohQL>"));
+        }
+
     protected void shouldDropIndex(String cacheName, String command, ValueExtractor extractor) throws Exception
         {
         NamedCache<Object,Object>        cache     = m_ccf.ensureCache(cacheName, null);
@@ -353,6 +416,10 @@ public class QueryPlusTests
     /** JUnit rule to start a QueryPlus session */
     @ClassRule
     public static QueryPlusRunner m_queryPlusRunner = new QueryPlusRunner();
+
+    /** JUnit rule to start a QueryPlus session with "-v" argument - enable echo of statement as read on standard output */
+    @ClassRule
+    public static QueryPlusRunner m_queryPlusEchoRunner = new QueryPlusRunner(new String[] {"-v"});
 
     /** Test cache containing data.pof.PortablePerson instances */
     protected NamedCache m_peopleCache;
