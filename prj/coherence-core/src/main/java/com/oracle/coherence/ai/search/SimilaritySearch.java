@@ -90,7 +90,7 @@ public class SimilaritySearch<K, V, T>
      * @param vector      the vector to calculate similarity with
      * @param maxResults  the maximum number of results to return
      */
-    public SimilaritySearch(ValueExtractor<V, Vector<T>> extractor, Vector<T> vector, int maxResults)
+    public SimilaritySearch(ValueExtractor<? super V, ? extends Vector<T>> extractor, Vector<T> vector, int maxResults)
         {
         m_extractor   = ValueExtractor.of(Objects.requireNonNull(extractor));
         m_vector      = Objects.requireNonNull(vector);
