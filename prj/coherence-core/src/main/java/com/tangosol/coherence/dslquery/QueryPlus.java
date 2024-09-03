@@ -153,7 +153,7 @@ public class QueryPlus
                 writer.flush();
 
                 String sLine = reader.readLine();
-                if (sLine == null || sLine.length() == 0)
+                if (sLine == null)
                     {
                     fWorking = false;
                     }
@@ -456,6 +456,7 @@ public class QueryPlus
                 PrintWriter writer = new PrintWriter(output);
                 writer.println("jline library cannot be loaded, so you cannot "
                         + "use the arrow keys for line editing and history.");
+                writer.flush();
                 }
 
             return null;
