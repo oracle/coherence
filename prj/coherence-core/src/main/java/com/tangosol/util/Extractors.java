@@ -38,6 +38,7 @@ import java.util.Objects;
  *
  * @author lh, hr, as, mf  2018.06.14
  */
+@SuppressWarnings("rawtypes")
 public class Extractors
     {
     /**
@@ -47,7 +48,7 @@ public class Extractors
      *
      * @return an extractor that always returns its input argument
      */
-    public static <T> ValueExtractor<T, T> identity()
+    public static <T> IdentityExtractor<T> identity()
         {
         return IdentityExtractor.INSTANCE();
         }
@@ -255,7 +256,7 @@ public class Extractors
      *
      * @return an extractor that extracts the value of the specified field
      */
-    public static <T> ValueExtractor<T, ?> fromPof(int... indexes)
+    public static <T> PofExtractor<T, ?> fromPof(int... indexes)
         {
         return fromPof(null, indexes);
         }
@@ -273,7 +274,7 @@ public class Extractors
      *
      * @throws  NullPointerException  if the indexes parameter is null
      */
-    public static <T, E> ValueExtractor<T, E> fromPof(Class<E> cls, int... indexes)
+    public static <T, E> PofExtractor<T, E> fromPof(Class<E> cls, int... indexes)
         {
         return fromPof(cls, new SimplePofPath(Objects.requireNonNull(indexes)));
         }
@@ -298,7 +299,7 @@ public class Extractors
      * @throws  IllegalArgumentException  if the specified class isn't a portable
      *          type, or the specified property path doesn't exist
      */
-    public static <T, E> ValueExtractor<T, E> fromPof(Class<T> clsFrom, String sPath)
+    public static <T, E> PofExtractor<T, E> fromPof(Class<T> clsFrom, String sPath)
         {
         return fromPof(null, PofReflectionHelper.getPofNavigator(clsFrom, sPath));
         }
@@ -316,7 +317,7 @@ public class Extractors
      *
      * @throws  NullPointerException  if the indexes parameter is null
      */
-    public static <T, E> ValueExtractor<T, E> fromPof(Class<E> cls, PofNavigator navigator)
+    public static <T, E> PofExtractor<T, E> fromPof(Class<E> cls, PofNavigator navigator)
         {
         return new PofExtractor<>(cls, navigator);
         }
@@ -340,7 +341,7 @@ public class Extractors
      *
      * @since 14.1.1.0
      */
-    public static <T, E> ValueExtractor<T, E> script(String sLanguage, String sScriptPath, Object... aoArgs)
+    public static <T, E> ScriptValueExtractor<T, E> script(String sLanguage, String sScriptPath, Object... aoArgs)
         {
         return new ScriptValueExtractor<>(sLanguage, sScriptPath, aoArgs);
         }
@@ -356,7 +357,7 @@ public class Extractors
      *         target object
      */
     @SafeVarargs
-    public static <T> ValueExtractor<T, Fragment<T>> fragment(ValueExtractor<? super T, ?>... aExtractors)
+    public static <T> FragmentExtractor<T> fragment(ValueExtractor<? super T, ?>... aExtractors)
         {
         return new FragmentExtractor<>(aExtractors);
         }
@@ -373,7 +374,7 @@ public class Extractors
      *         target object's property
      */
     @SafeVarargs
-    public static <T, E> ValueExtractor<T, Fragment<E>> fragment(ValueExtractor<? super T, E> from, ValueExtractor<? super E, ?>... aExtractors)
+    public static <T, E> ChainedFragmentExtractor<T, E> fragment(ValueExtractor<? super T, E> from, ValueExtractor<? super E, ?>... aExtractors)
         {
         return new ChainedFragmentExtractor<>(from, aExtractors);
         }
