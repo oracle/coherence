@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.processor;
 
@@ -25,18 +25,18 @@ import java.io.IOException;
  * @author as  2015.01.16
  * @since 12.2.1
  */
-public class TouchProcessor
-        implements InvocableMap.EntryProcessor,
+public class TouchProcessor<K, V, R>
+        implements InvocableMap.EntryProcessor<K, V, R>,
                    ExternalizableLite, PortableObject
     {
     // ---- EntryProcessor interface ----------------------------------------
 
     @Override
-    public Object process(InvocableMap.Entry entry)
+    public R process(InvocableMap.Entry<K, V> entry)
         {
         if (entry.isPresent())
             {
-            BinaryEntry binaryEntry = (BinaryEntry) entry;
+            BinaryEntry<K, V> binaryEntry = entry.asBinaryEntry();
             binaryEntry.updateBinaryValue(binaryEntry.getBinaryValue());
             }
         return null;
