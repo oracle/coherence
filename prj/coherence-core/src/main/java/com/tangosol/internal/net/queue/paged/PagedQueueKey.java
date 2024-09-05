@@ -37,7 +37,7 @@ public class PagedQueueKey
      * @param bucketId  the id of the bucket this key belongs to
      * @param elementId the id of the element within the bucket
      */
-    public PagedQueueKey(int bucketId, int elementId)
+    public PagedQueueKey(int bucketId, long elementId)
         {
         super(bucketId, elementId);
         }
@@ -86,15 +86,6 @@ public class PagedQueueKey
         }
 
     // ----- constants ------------------------------------------------------
-//
-//    /** The POF id of the bucket id */
-//    public static final int POF_BUCKET_ID = 0;
-//
-//    /** The POF id of the element id */
-//    public static final int POF_ELEMENT_ID = 1;
-//
-//    /** static helper field for navigating to the bucket id from a PofValue */
-//    public static final PofNavigator BUCKET_ID_NAVIGATOR  = new SimplePofPath(POF_BUCKET_ID);
 
     /** static helper field for extracting the bucket id from a cache entry */
     public static final UniversalExtractor<PagedQueueKey, Integer> BUCKET_ID_EXTRACTOR

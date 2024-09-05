@@ -10,45 +10,53 @@ package com.tangosol.internal.net.queue;
 import com.tangosol.internal.net.queue.model.QueueKey;
 import com.tangosol.internal.net.queue.model.QueuePageResult;
 import com.tangosol.internal.net.queue.processor.QueuePage;
+import com.tangosol.io.Serializer;
 import com.tangosol.net.NamedMap;
+import com.tangosol.util.Binary;
+import com.tangosol.util.Converter;
+import com.tangosol.util.ConverterCollections;
+import com.tangosol.util.ExternalizableHelper;
 
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 
 /**
  * An {@link Iterator} that returns the ordered contents of a
- * {@link NamedCacheQueue} page by page.
+ * {@link NamedMapQueue} page by page.
  *
  * @param <E>  the type of elements in the queue
  */
-public class QueuePageIterator<E>
+public class QueuePageIterator<K extends QueueKey, E>
         implements Iterator<E>
     {
     /**
      * Create a {@link QueuePageIterator}.
      *
-     * @param nQueueHash    the queue name hash
+     * @param fnKey         a {@link Function} to return a key with a given id value
      * @param fHead         {@code true} if the iteration starts at the head
      * @param fPoll         {@code true} to remove iterated entries
      * @param cache         the {@link NamedMap} containing the queue data
      * @param nPageSize     the size of the page to retrieve
      * @param cMaxElements  the maximum number of elements to return
      */
-    private QueuePageIterator(int nQueueHash, boolean fHead, boolean fPoll,
-                              NamedMap<QueueKey, E> cache, int nPageSize, int cMaxElements)
+    private QueuePageIterator(Function<Long, K> fnKey, boolean fHead, boolean fPoll,
+                              NamedMap<K, E> cache, int nPageSize, int cMaxElements)
         {
-        m_nQueueHash         = nQueueHash;
-        m_fHead              = fHead;
-        m_fPoll              = fPoll;
-        m_cache              = cache;
-        m_nLastId            = fHead ? Long.MIN_VALUE : Long.MAX_VALUE;
-        m_fHasNext           = true;
-        m_iterator           = Collections.emptyIterator();
+        m_fnKey      = fnKey;
+        m_fHead      = fHead;
+        m_fPoll      = fPoll;
+        m_cache      = cache;
+        m_nLastId    = fHead ? Long.MIN_VALUE : Long.MAX_VALUE;
+        m_fHasNext   = true;
+        m_iterator   = Collections.emptyIterator();
         m_nPageSize  = nPageSize;
         m_cRemaining = cMaxElements;
+        Serializer serializer = cache.getService().getSerializer();
+        m_converter = bin -> ExternalizableHelper.fromBinary(bin, serializer);
         }
 
     // ----- Iterator methods -----------------------------------------------
@@ -91,11 +99,11 @@ public class QueuePageIterator<E>
             m_lock.lock();
             try
                 {
-                int                nPage  = Math.min(m_nPageSize, m_cRemaining);
-                QueueKey           key    = new QueueKey(m_nQueueHash, Long.MAX_VALUE - 1);
-                QueuePageResult<E> result = m_cache.invoke(key, new QueuePage<>(m_fHead, nPage, m_nLastId, m_fPoll));
-                List<E>            list   = result.getList();
-                if (list.isEmpty())
+                int             nPage  = Math.min(m_nPageSize, m_cRemaining);
+                K               key    = m_fnKey.apply(Long.MAX_VALUE - 1);
+                QueuePageResult result = m_cache.invoke(key, new QueuePage<>(m_fHead, nPage, m_nLastId, m_fPoll));
+                List<Binary>    list   = result.getBinaryList();
+                if (list == null || list.isEmpty())
                     {
                     m_fHasNext = false;
                     m_iterator = Collections.emptyIterator();
@@ -103,7 +111,7 @@ public class QueuePageIterator<E>
                 else
                     {
                     m_cRemaining -= list.size();
-                    m_iterator   = list.iterator();
+                    m_iterator   = ConverterCollections.getIterator(list.iterator(), m_converter);
                     m_fHasNext   = true;
                     m_nLastId    = result.getKey();
                     }
@@ -118,75 +126,75 @@ public class QueuePageIterator<E>
     /**
      * Return a {@link QueuePageIterator} that iterates from head to tail.
      *
-     * @param nQueueHash  the queue name hash
-     * @param cache       the {@link NamedMap} containing the queue contents
-     * @param <E>         the type of element in the queue
+     * @param fnKey  a {@link Function} to return a key with a given id value
+     * @param cache  the {@link NamedMap} containing the queue contents
+     * @param <E>    the type of element in the queue
      *
      * @return a {@link QueuePageIterator} that iterates from head to tail
      */
-    public static <E> QueuePageIterator<E> head(int nQueueHash, NamedMap<QueueKey, E> cache)
+    public static <K extends QueueKey, E> QueuePageIterator<K, E> head(Function<Long, K> fnKey, NamedMap<K, E> cache)
         {
-        return new QueuePageIterator<>(nQueueHash, true, false, cache, DEFAULT_PAGE_SIZE, Integer.MAX_VALUE);
+        return new QueuePageIterator<>(fnKey, true, false, cache, DEFAULT_PAGE_SIZE, Integer.MAX_VALUE);
         }
 
     /**
      * Return a {@link QueuePageIterator} that iterates from tail to head.
      *
-     * @param nQueueHash  the queue name hash
-     * @param cache       the {@link NamedMap} containing the queue contents
-     * @param <E>         the type of element in the queue
+     * @param fnKey  a {@link Function} to return a key with a given id value
+     * @param cache  the {@link NamedMap} containing the queue contents
+     * @param <E>    the type of element in the queue
      *
      * @return a {@link QueuePageIterator} that iterates from head to tail
      */
-    public static <E> QueuePageIterator<E> tail(int nQueueHash, NamedMap<QueueKey, E> cache)
+    public static <K extends QueueKey, E> QueuePageIterator<K, E> tail(Function<Long, K> fnKey, NamedMap<K, E> cache)
         {
-        return new QueuePageIterator<>(nQueueHash, false, false, cache, DEFAULT_PAGE_SIZE, Integer.MAX_VALUE);
+        return new QueuePageIterator<>(fnKey, false, false, cache, DEFAULT_PAGE_SIZE, Integer.MAX_VALUE);
         }
 
     /**
      * Return a {@link QueuePageIterator} that iterates from head to tail and removes
      * the values from the queue as each page is returned.
      *
-     * @param nQueueHash  the queue name hash
-     * @param cache       the {@link NamedMap} containing the queue contents
-     * @param <E>         the type of element in the queue
+     * @param fnKey  a {@link Function} to return a key with a given id value
+     * @param cache  the {@link NamedMap} containing the queue contents
+     * @param <E>    the type of element in the queue
      *
      * @return a {@link QueuePageIterator} that iterates from head to tail
      */
-    public static <E> QueuePageIterator<E> headPolling(int nQueueHash, NamedMap<QueueKey, E> cache)
+    public static <K extends QueueKey, E> QueuePageIterator<K, E> headPolling(Function<Long, K> fnKey, NamedMap<K, E> cache)
         {
-        return headPolling(nQueueHash, cache, Integer.MAX_VALUE);
+        return headPolling(fnKey, cache, Integer.MAX_VALUE);
         }
 
     /**
      * Return a {@link QueuePageIterator} that iterates from head to tail and removes
      * the values from the queue as each page is returned.
      *
-     * @param nQueueHash  the queue name hash
-     * @param cache       the {@link NamedMap} containing the queue contents
-     * @param cMax        the maximum number of entries to retrieve
-     * @param <E>         the type of element in the queue
+     * @param fnKey  a {@link Function} to return a key with a given id value
+     * @param cache  the {@link NamedMap} containing the queue contents
+     * @param cMax   the maximum number of entries to retrieve
+     * @param <E>    the type of element in the queue
      *
      * @return a {@link QueuePageIterator} that iterates from head to tail
      */
-    public static <E> QueuePageIterator<E> headPolling(int nQueueHash, NamedMap<QueueKey, E> cache, int cMax)
+    public static <K extends QueueKey, E> QueuePageIterator<K, E> headPolling(Function<Long, K> fnKey, NamedMap<K, E> cache, int cMax)
         {
-        return new QueuePageIterator<>(nQueueHash, true, true, cache, DEFAULT_PAGE_SIZE, cMax);
+        return new QueuePageIterator<>(fnKey, true, true, cache, DEFAULT_PAGE_SIZE, cMax);
         }
 
     /**
      * Return a {@link QueuePageIterator} that iterates from tail to head and removes
      * the values from the queue as each page is returned.
      *
-     * @param nQueueHash  the queue name hash
-     * @param cache       the {@link NamedMap} containing the queue contents
-     * @param <E>         the type of element in the queue
+     * @param fnKey  a {@link Function} to return a key with a given id value
+     * @param cache  the {@link NamedMap} containing the queue contents
+     * @param <E>    the type of element in the queue
      *
      * @return a {@link QueuePageIterator} that iterates from head to tail
      */
-    public static <E> QueuePageIterator<E> tailPolling(int nQueueHash, NamedMap<QueueKey, E> cache)
+    public static <K extends QueueKey, E> QueuePageIterator<K, E> tailPolling(Function<Long, K> fnKey, NamedMap<K, E> cache)
         {
-        return new QueuePageIterator<>(nQueueHash, false, true, cache, DEFAULT_PAGE_SIZE, Integer.MAX_VALUE);
+        return new QueuePageIterator<>(fnKey, false, true, cache, DEFAULT_PAGE_SIZE, Integer.MAX_VALUE);
         }
 
     // ----- data members ---------------------------------------------------
@@ -197,14 +205,14 @@ public class QueuePageIterator<E>
     public static final int DEFAULT_PAGE_SIZE = 100;
 
     /**
-     * The queue name hash.
+     * A {@link Function} to return a key with a given id value.
      */
-    private final int m_nQueueHash;
-
+    private final Function<Long, K> m_fnKey;
+    
     /**
      * The {@link NamedMap} containing the queue data.
      */
-    private final NamedMap<QueueKey, E> m_cache;
+    private final NamedMap<K, E> m_cache;
 
     /**
      * {@code true} to iterate from head to tail, or {@link false}
@@ -216,6 +224,11 @@ public class QueuePageIterator<E>
      * {@code true} to remove the values in each page as they are returned.
      */
     private final boolean m_fPoll;
+
+    /**
+     * The converter to convert from serialized binary values to the queue element value.
+     */
+    private final Converter<Binary, E> m_converter;
 
     /**
      * The last queue key id returned.

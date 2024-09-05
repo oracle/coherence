@@ -22,7 +22,7 @@ import com.tangosol.coherence.component.net.extend.remoteService.RemoteCacheServ
 import com.tangosol.coherence.component.util.safeService.SafeCacheService;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
-import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.NamedQueue;
 import com.tangosol.net.Session;
 import org.junit.jupiter.api.BeforeAll;
@@ -68,8 +68,8 @@ public class ExtendClientQueueTests<QueueType extends NamedQueue>
     @Test
     public void shouldBeRemoteClient()
         {
-        NamedCache test = getCollectionCache("test");
-        CacheService service = test.getCacheService();
+        NamedMap     test    = getCollectionCache("test");
+        CacheService service = test.getService();
         if (service instanceof SafeCacheService)
             {
             service = ((SafeCacheService) service).getRunningCacheService();

@@ -6,32 +6,22 @@
  */
 package com.tangosol.coherence.config.scheme;
 
-import com.oracle.coherence.common.util.Options;
-import com.tangosol.coherence.config.builder.NamedCollectionBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 
 import com.tangosol.config.annotation.Injectable;
 import com.tangosol.config.expression.NullParameterResolver;
-import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
-import com.tangosol.config.expression.Value;
 import com.tangosol.config.injection.Injector;
 import com.tangosol.config.injection.SimpleInjector;
 
-import com.tangosol.internal.net.queue.NamedCacheDeque;
-import com.tangosol.internal.net.queue.NamedCacheDequeBuilder;
 import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.CacheService;
-import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
-import com.tangosol.net.NamedCollection;
-import com.tangosol.net.NamedDeque;
 import com.tangosol.net.Service;
 
 import com.tangosol.net.ServiceDependencies;
-import com.tangosol.net.ValueTypeAssertion;
 import com.tangosol.net.cache.BundlingNamedCache;
 import com.tangosol.util.Base;
 import com.tangosol.util.MapListener;

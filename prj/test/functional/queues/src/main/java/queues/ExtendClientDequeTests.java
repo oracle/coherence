@@ -8,7 +8,6 @@
 package queues;
 
 import com.oracle.bedrock.junit.CoherenceClusterExtension;
-import com.oracle.bedrock.junit.SessionBuilders;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
@@ -20,13 +19,11 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
 import com.tangosol.coherence.component.net.extend.remoteService.RemoteCacheService;
-import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.safeService.SafeCacheService;
-import com.tangosol.internal.net.queue.NamedCacheDeque;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
-import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedDeque;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -36,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 
@@ -72,8 +68,8 @@ public class ExtendClientDequeTests<QueueType extends NamedDeque>
     @Test
     public void shouldBeRemoteClient()
         {
-        NamedCache test = getCollectionCache("test");
-        CacheService service = test.getCacheService();
+        NamedMap     test    = getCollectionCache("test");
+        CacheService service = test.getService();
         if (service instanceof SafeCacheService)
             {
             service = ((SafeCacheService) service).getRunningCacheService();

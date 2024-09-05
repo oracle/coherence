@@ -12,23 +12,35 @@ import com.tangosol.net.NamedDeque;
 
 import java.util.Iterator;
 
-public class WrapperNamedCacheDeque<E>
-        extends AbstractWrapperNamedCacheQueue<E, QueueKey, NamedCacheDeque<E>>
+/**
+ * A {@link NamedDeque} implementation that wraps a {@link NamedMapDeque}.
+ *
+ * @param <K>  the type of the underlying cache key
+ * @param <E>  the type of the elements stored in the queue
+ */
+public class WrapperNamedMapDeque<K extends QueueKey, E>
+        extends AbstractWrapperNamedMapQueue<QueueKey, E, NamedMapDeque<K, E>>
         implements NamedDeque<E>
     {
-    public WrapperNamedCacheDeque(NamedCacheDeque<E> delegate)
+    /**
+     * Create a {@link WrapperNamedMapDeque}.
+     *
+     * @param delegate  the {@link NamedMapDeque} to delegate to
+     */
+    public WrapperNamedMapDeque(NamedMapDeque<K, E> delegate)
         {
         super(null, delegate);
         }
 
-    public WrapperNamedCacheDeque(String sName, NamedCacheDeque<E> delegate)
+    /**
+     * Create a {@link WrapperNamedMapDeque}.
+     *
+     * @param sName     the name of this queue
+     * @param delegate  the {@link NamedMapDeque} to delegate to
+     */
+    public WrapperNamedMapDeque(String sName, NamedMapDeque<K, E> delegate)
         {
         super(sName, delegate);
-        }
-
-    public NamedCacheDeque<E> getDelegate()
-        {
-        return f_delegate;
         }
 
     @Override

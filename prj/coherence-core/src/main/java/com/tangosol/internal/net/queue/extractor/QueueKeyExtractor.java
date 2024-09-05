@@ -9,11 +9,9 @@ package com.tangosol.internal.net.queue.extractor;
 
 import com.oracle.coherence.common.base.Logger;
 
-import com.tangosol.internal.net.queue.NamedCacheQueue;
+import com.tangosol.internal.net.queue.NamedMapQueue;
 import com.tangosol.internal.net.queue.model.QueueKey;
 
-import com.tangosol.io.pof.PofReader;
-import com.tangosol.io.pof.PofWriter;
 import com.tangosol.net.BackingMapContext;
 
 import com.tangosol.net.cache.BinaryMemoryCalculator;
@@ -26,9 +24,6 @@ import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.extractor.EntryExtractor;
 import com.tangosol.util.extractor.IndexAwareExtractor;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
@@ -94,7 +89,7 @@ public class QueueKeyExtractor
                     + INSTANCE + " which was not a " + QueueIndex.class);
             }
 
-        long          cBytesMax  = NamedCacheQueue.MAX_QUEUE_SIZE;
+        long          cBytesMax  = NamedMapQueue.MAX_QUEUE_SIZE;
         ObservableMap backingMap = ctx.getBackingMap();
         if (backingMap instanceof ConfigurableCacheMap)
             {
@@ -190,7 +185,7 @@ public class QueueKeyExtractor
          */
         public void setMaxQueueSize(long cBytesMax)
             {
-            m_cBytesMax = Math.min(NamedCacheQueue.MAX_QUEUE_SIZE, cBytesMax);
+            m_cBytesMax = Math.min(NamedMapQueue.MAX_QUEUE_SIZE, cBytesMax);
             }
 
         /**

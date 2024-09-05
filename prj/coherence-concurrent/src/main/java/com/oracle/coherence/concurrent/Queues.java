@@ -22,10 +22,12 @@ import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 
-import com.tangosol.internal.net.queue.NamedCacheBlockingDeque;
-import com.tangosol.internal.net.queue.NamedCacheBlockingQueue;
-import com.tangosol.internal.net.queue.NamedCacheDeque;
+import com.tangosol.internal.net.queue.NamedMapBlockingDeque;
+import com.tangosol.internal.net.queue.NamedMapBlockingQueue;
+import com.tangosol.internal.net.queue.NamedMapDeque;
 
+import com.tangosol.internal.net.queue.PagedQueue;
+import com.tangosol.internal.net.queue.model.QueueKey;
 import com.tangosol.internal.net.queue.paged.PagedNamedQueue;
 import com.tangosol.io.ClassLoaderAware;
 
@@ -41,9 +43,9 @@ import com.tangosol.net.internal.ScopedReferenceStore;
 
 /**
  * A factory to obtain various types of {@link NamedBlockingQueue}
- * and {@link NamedCacheBlockingDeque}.
+ * and {@link NamedMapBlockingDeque}.
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({"rawtypes", "unchecked", "resource"})
 public class Queues
     {
     /**
@@ -80,10 +82,14 @@ public class Queues
      */
     public static <E> NamedBlockingDeque<E> deque(String sName, Session session)
         {
-        SimpleDequeScheme  scheme     = new SimpleDequeScheme();
-        String             sCacheName = QUEUE_CACHE_PREFIX + sName;
-        NamedCacheDeque<E> deque      = ensureCollectionInternal(sCacheName, NamedCacheDeque.class, scheme, session);
-        return new NamedCacheBlockingDeque<>(sName, deque);
+        if (session == null)
+            {
+            session = session();
+            }
+        NamedQueueScheme           scheme     = SimpleDequeScheme.INSTANCE;
+        String                     sCacheName = isConcurrent(session) ? cacheNameForDeque(sName) : sName;
+        NamedMapDeque<QueueKey, E> deque      = ensureCollectionInternal(sCacheName, NamedMapDeque.class, scheme, session);
+        return new NamedMapBlockingDeque<>(sName, deque);
         }
 
     /**
@@ -163,12 +169,52 @@ public class Queues
      */
     public static <E> NamedBlockingQueue<E> pagedQueue(String sName, Session session)
         {
-        PagedQueueScheme   scheme     = new PagedQueueScheme();
-        String             sCacheName = PAGED_QUEUE_CACHE_PREFIX + sName;
-        PagedNamedQueue<E> queue      = ensureCollectionInternal(sCacheName, PagedNamedQueue.class, scheme, session);
-        return new NamedCacheBlockingQueue<>(sName, queue);
+        if (session == null)
+            {
+            session = session();
+            }
+        PagedQueueScheme   scheme     = PagedQueueScheme.INSTANCE;
+        String             sCacheName = isConcurrent(session) ? cacheNameForPagedQueue(sName) : sName;
+        PagedNamedQueue<E> queue      = (PagedNamedQueue<E>) ensureCollectionInternal(sCacheName, PagedQueue.class, scheme, session);
+        return new NamedMapBlockingQueue<>(sName, queue);
         }
 
+    /**
+     * Return the name of the cache used to hold queue content fpr a given queue name.
+     *
+     * @param sName  the name of the queue
+     *
+     * @return the name of the cache used to hold queue content fpr a given queue name
+     */
+    public static String cacheNameForQueue(String sName)
+        {
+        return QUEUE_CACHE_PREFIX + sName;
+        }
+
+    /**
+     * Return the name of the cache used to hold queue content fpr a given deque name.
+     *
+     * @param sName  the name of the queue
+     *
+     * @return the name of the cache used to hold queue content fpr a given deque name
+     */
+    public static String cacheNameForDeque(String sName)
+        {
+        return QUEUE_CACHE_PREFIX + sName;
+        }
+
+    /**
+     * Return the name of the cache used to hold queue content fpr a given paged queue name.
+     *
+     * @param sName  the name of the queue
+     *
+     * @return the name of the cache used to hold queue content fpr a given paged queue name
+     */
+    public static String cacheNameForPagedQueue(String sName)
+        {
+        return PAGED_QUEUE_CACHE_PREFIX + sName;
+        }
+    
     // ----- helper methods -------------------------------------------------
 
     /**
@@ -183,6 +229,11 @@ public class Queues
         }
 
     // ----- helper methods -------------------------------------------------
+
+    private static boolean isConcurrent(Session session)
+        {
+        return SESSION_NAME.equals(session.getName());
+        }
 
     private static <Q extends NamedQueue> Q ensureCollectionInternal(String sName, Class<Q> clzQueue,
             NamedQueueScheme<Q> scheme, Session session)

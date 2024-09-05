@@ -27,8 +27,8 @@ import com.tangosol.coherence.component.util.safeService.SafeCacheService;
 
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
-import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedDeque;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -74,8 +74,8 @@ public class GrpcClientDequeTests<QueueType extends NamedDeque>
     @Test
     public void shouldBeRemoteClient()
         {
-        NamedCache   test    = getCollectionCache("test");
-        CacheService service = test.getCacheService();
+        NamedMap     test    = getCollectionCache("test");
+        CacheService service = test.getService();
         if (service instanceof SafeCacheService)
             {
             service = ((SafeCacheService) service).getRunningCacheService();

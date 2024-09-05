@@ -10,8 +10,9 @@ package concurrent.queues;
 import com.oracle.coherence.concurrent.Queues;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedBlockingQueue;
-import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
+import com.tangosol.util.Binary;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -49,8 +50,14 @@ public class ClusteredPagedBlockingQueueTests<QueueType extends NamedBlockingQue
         }
 
     @Override
-    public NamedCache getCollectionCache(String sName)
+    public NamedMap getCollectionCache(String sName)
         {
         return super.getCollectionCache(Queues.PAGED_QUEUE_CACHE_PREFIX + sName);
+        }
+
+    @Override
+    public NamedMap<Binary, Binary> getCollectionBinaryCache(String sName)
+        {
+        return super.getCollectionBinaryCache(Queues.PAGED_QUEUE_CACHE_PREFIX + sName);
         }
     }

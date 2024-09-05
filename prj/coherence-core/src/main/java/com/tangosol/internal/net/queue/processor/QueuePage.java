@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 
-public class QueuePage<E>
-        extends AbstractQueueProcessor<QueueKey, E, QueuePageResult<E>>
+public class QueuePage<K extends QueueKey, E>
+        extends AbstractQueueProcessor<K, E, QueuePageResult>
         implements EvolvablePortableObject, ExternalizableLite
     {
     /**
@@ -52,9 +52,9 @@ public class QueuePage<E>
 
     @Override
     @SuppressWarnings({"unchecked", "deprecation"})
-    public QueuePageResult<E> process(InvocableMap.Entry<QueueKey, E> entry)
+    public QueuePageResult process(InvocableMap.Entry<K, E> entry)
         {
-        BinaryEntry<QueueKey, E>      binaryEntry = entry.asBinaryEntry();
+        BinaryEntry<K, E>             binaryEntry = entry.asBinaryEntry();
         QueueKeyExtractor.QueueIndex  index       = assertQueueIndex(binaryEntry);
         BackingMapContext             context     = binaryEntry.getBackingMapContext();
         ObservableMap<Object, Binary> backingMap  = context.getBackingMap();
@@ -98,7 +98,7 @@ public class QueuePage<E>
                 }
             }
 
-        return new QueuePageResult<>(lastId, listBinary, fromBinary, toBinary);
+        return new QueuePageResult(lastId, listBinary);
         }
 
     @Override

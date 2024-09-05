@@ -12,7 +12,7 @@ import com.google.common.collect.testing.QueueTestSuiteBuilder;
 import com.google.common.collect.testing.TestStringQueueGenerator;
 import com.google.common.collect.testing.features.CollectionFeature;
 import com.google.common.collect.testing.features.CollectionSize;
-import com.tangosol.internal.net.queue.NamedCacheDeque;
+import com.tangosol.coherence.config.scheme.SimpleDequeScheme;
 import com.tangosol.internal.net.queue.model.QueueKey;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
@@ -55,12 +55,19 @@ public class QueueCertTests
         return m_session;
         }
 
+    @SuppressWarnings("unchecked")
+    protected Queue<String> createQueue(String sName, Session session)
+        {
+        return SimpleDequeScheme.INSTANCE.realize(sName, session);
+        }
+
     @TestFactory
     Iterable<DynamicTest> shouldDoSomething()
         {
         TestSuite suite = QueueTestSuiteBuilder.using(new TestStringQueueGenerator()
                     {
                     @Override
+                    @SuppressWarnings("unchecked")
                     public Queue<String> create(String... asValue)
                         {
                         String                       sName = "test-" + m_queueId.getAndIncrement();
@@ -74,7 +81,7 @@ public class QueueCertTests
                             key = key.next();
                             }
                         cache.putAll(map);
-                        return new NamedCacheDeque<>(sName, cache);
+                        return createQueue(sName, m_session);
                         }
                     })
                 .named("NamedQueue Tests")

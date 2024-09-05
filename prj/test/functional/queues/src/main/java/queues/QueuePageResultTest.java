@@ -30,65 +30,61 @@ public class QueuePageResultTest
     public void shouldHavePOFBinaryList()
         {
         List<String>            list       = Arrays.asList("one", "two", "three");
-        List<Binary>            listBinary = list.stream().map(m_converterToPof::convert).collect(Collectors.toList());
-        QueuePageResult<String> result     = new QueuePageResult(1234L, listBinary, m_converterFromPof, m_converterToPof);
+        List<Binary>    listBinary = list.stream().map(m_converterToPof::convert).collect(Collectors.toList());
+        QueuePageResult result     = new QueuePageResult(1234L, listBinary);
 
         assertThat(result.getKey(), is(1234L));
         assertThat(result.getBinaryList(), is(listBinary));
-        assertThat(result.getList(), is(list));
         }
 
     @Test
     public void shouldHaveJavaBinaryList()
         {
         List<String>            list       = Arrays.asList("one", "two", "three");
-        List<Binary>            listBinary = list.stream().map(m_converterToJava::convert).collect(Collectors.toList());
-        QueuePageResult<String> result     = new QueuePageResult(1234L, listBinary, m_converterFromJava, m_converterToJava);
+        List<Binary>    listBinary = list.stream().map(m_converterToJava::convert).collect(Collectors.toList());
+        QueuePageResult result     = new QueuePageResult(1234L, listBinary);
 
         assertThat(result.getKey(), is(1234L));
         assertThat(result.getBinaryList(), is(listBinary));
-        assertThat(result.getList(), is(list));
         }
 
     @Test
     public void shouldRoundTripAsPOF()
         {
         List<String>            list       = Arrays.asList("one", "two", "three");
-        List<Binary>            listBinary = list.stream().map(m_converterToPof::convert).collect(Collectors.toList());
-        QueuePageResult<String> original   = new QueuePageResult(1234L, listBinary, m_converterFromPof, m_converterToPof);
+        List<Binary>    listBinary = list.stream().map(m_converterToPof::convert).collect(Collectors.toList());
+        QueuePageResult original   = new QueuePageResult(1234L, listBinary);
 
-        Binary                  binary = ExternalizableHelper.toBinary(original, m_pofSerializer);
-        QueuePageResult<String> result = ExternalizableHelper.fromBinary(binary, m_pofSerializer);
+        Binary          binary = ExternalizableHelper.toBinary(original, m_pofSerializer);
+        QueuePageResult result = ExternalizableHelper.fromBinary(binary, m_pofSerializer);
 
         assertThat(result.getKey(), is(1234L));
         assertThat(result.getBinaryList(), is(listBinary));
-        assertThat(result.getList(), is(list));
         }
 
     @Test
     public void shouldRoundTripAsJava()
         {
         List<String>            list       = Arrays.asList("one", "two", "three");
-        List<Binary>            listBinary = list.stream().map(m_converterToJava::convert).collect(Collectors.toList());
-        QueuePageResult<String> original   = new QueuePageResult(1234L, listBinary, m_converterFromJava, m_converterToJava);
+        List<Binary>    listBinary = list.stream().map(m_converterToJava::convert).collect(Collectors.toList());
+        QueuePageResult original   = new QueuePageResult(1234L, listBinary);
 
-        Binary                  binary = ExternalizableHelper.toBinary(original, m_javaSerializer);
-        QueuePageResult<String> result = ExternalizableHelper.fromBinary(binary, m_javaSerializer);
+        Binary          binary = ExternalizableHelper.toBinary(original, m_javaSerializer);
+        QueuePageResult result = ExternalizableHelper.fromBinary(binary, m_javaSerializer);
 
         assertThat(result.getKey(), is(1234L));
         assertThat(result.getBinaryList(), is(listBinary));
-        assertThat(result.getList(), is(list));
         }
 
     @Test
     public void shouldRoundTripAsPofJavaPof()
         {
         List<String>            list       = Arrays.asList("one", "two", "three");
-        List<Binary>            listBinary = list.stream().map(m_converterToPof::convert).collect(Collectors.toList());
-        QueuePageResult<String> original   = new QueuePageResult(1234L, listBinary, m_converterFromPof, m_converterToPof);
+        List<Binary>    listBinary = list.stream().map(m_converterToPof::convert).collect(Collectors.toList());
+        QueuePageResult original   = new QueuePageResult(1234L, listBinary);
 
-        Binary                  binary = ExternalizableHelper.toBinary(original, m_pofSerializer);
-        QueuePageResult<String> result = ExternalizableHelper.fromBinary(binary, m_pofSerializer);
+        Binary          binary = ExternalizableHelper.toBinary(original, m_pofSerializer);
+        QueuePageResult result = ExternalizableHelper.fromBinary(binary, m_pofSerializer);
 
         binary = ExternalizableHelper.toBinary(result, m_javaSerializer);
         result = ExternalizableHelper.fromBinary(binary, m_javaSerializer);
@@ -97,7 +93,6 @@ public class QueuePageResultTest
 
         assertThat(result.getKey(), is(1234L));
         assertThat(result.getBinaryList(), is(listBinary));
-        assertThat(result.getList(), is(list));
         }
 
     // ----- data members ---------------------------------------------------

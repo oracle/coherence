@@ -14,15 +14,18 @@ import com.tangosol.internal.net.queue.model.QueueKey;
 import com.tangosol.internal.net.queue.model.QueueOfferResult;
 import com.tangosol.internal.net.queue.model.QueuePollResult;
 
+import com.tangosol.io.Serializer;
 import com.tangosol.net.CacheService;
-import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.NamedQueue;
 import com.tangosol.net.QueueService;
 
 import com.tangosol.net.queue.MutableQueueStatistics;
 import com.tangosol.net.queue.QueueStatistics;
 
+import com.tangosol.util.Binary;
 import com.tangosol.util.CollectionListener;
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 
 import com.tangosol.util.transformer.MapListenerCollectionListener;
@@ -34,28 +37,29 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 
 /**
- * A base class for {@link NamedQueue} implementations that wraps a {@link NamedCache}.
+ * A base class for {@link NamedQueue} implementations that wraps a {@link NamedMap}.
  *
  * @param <E> the type of elements held in this queue
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
-public abstract class BaseNamedCacheQueue<K extends QueueKey, E>
+public abstract class BaseNamedMapQueue<K extends QueueKey, E>
         extends NamedMapValuesCollection<K, E>
-        implements NamedQueue<E>
+        implements NamedMapQueue<K, E>
     {
     /**
-     * Create a {@link BaseNamedCacheQueue} that wrap s a {@link NamedCache}.
+     * Create a {@link BaseNamedMapQueue} that wrap s a {@link NamedMap}.
      *
      * @param sName    the name of the cache to wrap
-     * @param cache    the {@link NamedCache} to wrap
+     * @param cache    the {@link NamedMap} to wrap
      *
      * @throws NullPointerException      if either of the {@code name} or {@code cache} parameters is {@code null}
      * @throws IllegalArgumentException  if the name is blank
      */
-    public BaseNamedCacheQueue(String sName, NamedCache<K, E> cache)
+    public BaseNamedMapQueue(String sName, NamedMap<K, E> cache)
         {
         super(Objects.requireNonNull(sName), Objects.requireNonNull(cache));
-        m_service    = ensureQueueService(cache.getCacheService());
+        m_service    = ensureQueueService(cache.getService());
+        m_serializer = m_service.getSerializer();
         m_statistics = new SimpleQueueStatistics();
         m_keyHead    = QueueKey.head(m_sName);
         m_keyTail    = QueueKey.tail(m_sName);
@@ -64,6 +68,12 @@ public abstract class BaseNamedCacheQueue<K extends QueueKey, E>
         }
 
     // ----- NamedQueue methods ---------------------------------------------
+
+    @Override
+    public K createKey(long id)
+        {
+        return (K) new QueueKey(m_keyHead.getHash(), id);
+        }
 
     @Override
     public QueueService getService()
@@ -136,8 +146,9 @@ public abstract class BaseNamedCacheQueue<K extends QueueKey, E>
     @Override
     public E element()
         {
-        QueuePollResult result = peekAtHeadInternal();
-        E element = result.getElement();
+        QueuePollResult result  = peekAtHeadInternal();
+        Binary          binary  = result.getBinaryElement();
+        E               element = binary == null ? null : ExternalizableHelper.fromBinary(binary, m_serializer);
         if (element != null)
             {
             m_statistics.registerHit();
@@ -175,7 +186,8 @@ public abstract class BaseNamedCacheQueue<K extends QueueKey, E>
     public E peek()
         {
         QueuePollResult result = peekAtHeadInternal();
-        E               oValue = result.getElement();
+        Binary          binary = result.getBinaryElement();
+        E               oValue = binary == null ? null : ExternalizableHelper.fromBinary(binary, m_serializer);
         if (oValue == null)
             {
             m_statistics.registerMiss();
@@ -191,7 +203,8 @@ public abstract class BaseNamedCacheQueue<K extends QueueKey, E>
     public E poll()
         {
         QueuePollResult result = pollFromHeadInternal();
-        E               oValue = result.getElement();
+        Binary          binary = result.getBinaryElement();
+        E               oValue = binary == null ? null : ExternalizableHelper.fromBinary(binary, m_serializer);
         if (oValue == null)
             {
             m_statistics.registerMiss();
@@ -207,7 +220,8 @@ public abstract class BaseNamedCacheQueue<K extends QueueKey, E>
     public E remove()
         {
         QueuePollResult result  = pollFromHeadInternal();
-        E               element = result.getElement();
+        Binary          binary  = result.getBinaryElement();
+        E               element = binary == null ? null : ExternalizableHelper.fromBinary(binary, m_serializer);
         if (element != null)
             {
             m_statistics.registerHit();
@@ -308,6 +322,11 @@ public abstract class BaseNamedCacheQueue<K extends QueueKey, E>
      * The {@link QueueService}.
      */
     protected final QueueService m_service;
+
+    /**
+     * The service serializer.
+     */
+    protected final Serializer m_serializer;
 
     /**
      * The {@link MutableQueueStatistics} to use.

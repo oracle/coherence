@@ -23,5 +23,5 @@ public interface NamedMapCollection<K, V, E>
      *
      * @return the wrapped {@link NamedMap}
      */
-    NamedMap<K, V> getCache();
+    NamedMap<K, V> getNamedMap();
     }

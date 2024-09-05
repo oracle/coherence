@@ -227,11 +227,16 @@ public abstract class AbstractQueueProcessor<K, V, R>
         return exceedsSizeLimit(binKey, binValue, cMaxBytes, cCurrentBytes);
         }
 
-    private boolean exceedsSizeLimit(Binary binKey, Binary binValue, long cMaxBytes, long cCurrentBytes)
+    protected long entrySize(Binary binKey, Binary binValue)
         {
-        long cBytes = cCurrentBytes + (binKey.length() + binValue.length()
-                                    + ((long) BinaryMemoryCalculator.SIZE_BINARY * 2)
-                                    + (long) BinaryMemoryCalculator.SIZE_ENTRY);
+        return (binKey.length() + binValue.length()
+                + ((long) BinaryMemoryCalculator.SIZE_BINARY * 2)
+                + (long) BinaryMemoryCalculator.SIZE_ENTRY);
+        }
+
+    protected boolean exceedsSizeLimit(Binary binKey, Binary binValue, long cMaxBytes, long cCurrentBytes)
+        {
+        long cBytes = cCurrentBytes + entrySize(binKey, binValue);
         return cBytes > cMaxBytes;
         }
 

@@ -14,9 +14,10 @@ import com.tangosol.internal.net.queue.CacheQueueService;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedBlockingDeque;
-import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.QueueService;
 import com.tangosol.net.Session;
+import com.tangosol.util.Binary;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -53,9 +54,15 @@ public class ExtendClientBlockingDequeTests<QueueType extends NamedBlockingDeque
         }
 
     @Override
-    public NamedCache getCollectionCache(String sName)
+    public NamedMap getCollectionCache(String sName)
         {
         return super.getCollectionCache(Queues.QUEUE_CACHE_PREFIX + sName);
+        }
+
+    @Override
+    public NamedMap<Binary, Binary> getCollectionBinaryCache(String sName)
+        {
+        return super.getCollectionBinaryCache(Queues.QUEUE_CACHE_PREFIX + sName);
         }
 
     @Test

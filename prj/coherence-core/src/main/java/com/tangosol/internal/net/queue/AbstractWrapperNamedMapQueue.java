@@ -17,21 +17,44 @@ import com.tangosol.util.Filter;
 import java.util.Collection;
 import java.util.Iterator;
 
-public abstract class AbstractWrapperNamedCacheQueue<E, K extends QueueKey, D extends BaseNamedCacheQueue<K, E>>
+/**
+ * A base class for wrappers around a {@link NamedMapQueue}.
+ *
+ * @param <E>  the type of element stored in the queue
+ * @param <K>  the type of the underlying cache key
+ * @param <D>  the type of the wrapped {@link NamedMapQueue}
+ */
+public abstract class AbstractWrapperNamedMapQueue<K extends QueueKey, E, D extends NamedMapQueue<? extends K, E>>
         implements NamedQueue<E>
     {
-    public AbstractWrapperNamedCacheQueue(D delegate)
+    /**
+     * Create a {@link AbstractWrapperNamedMapQueue}.
+     *
+     * @param delegate  the {@link NamedMapQueue} to wrap
+     */
+    protected AbstractWrapperNamedMapQueue(D delegate)
         {
         this(null, delegate);
         }
 
-    public AbstractWrapperNamedCacheQueue(String sName, D delegate)
+    /**
+     * Create a {@link AbstractWrapperNamedMapQueue}.
+     *
+     * @param sName     the name of this queue
+     * @param delegate  the {@link NamedMapQueue} to wrap
+     */
+    protected AbstractWrapperNamedMapQueue(String sName, D delegate)
         {
         f_sName    = sName == null || sName.isBlank() ? null : sName;
         f_delegate = delegate;
         }
 
-    public BaseNamedCacheQueue<K, E> getDelegate()
+    /**
+     * Return the wrapped {@link NamedMapQueue}.
+     *
+     * @return the wrapped {@link NamedMapQueue}
+     */
+    public D getDelegate()
         {
         return f_delegate;
         }
@@ -237,7 +260,7 @@ public abstract class AbstractWrapperNamedCacheQueue<E, K extends QueueKey, D ex
     // ----- data members ---------------------------------------------------
 
     /**
-     * The wrapped {@link NamedCacheQueue}.
+     * The wrapped {@link NamedMapQueue}.
      */
     protected final D f_delegate;
 

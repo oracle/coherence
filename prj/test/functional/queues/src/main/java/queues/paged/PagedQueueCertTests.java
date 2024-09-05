@@ -13,11 +13,10 @@ import com.google.common.collect.testing.TestStringQueueGenerator;
 import com.google.common.collect.testing.features.CollectionFeature;
 import com.google.common.collect.testing.features.CollectionSize;
 
-import com.tangosol.internal.net.queue.paged.PagedNamedQueue;
-import com.tangosol.internal.net.queue.paged.PagedQueueKey;
+import com.tangosol.coherence.config.scheme.PagedQueueScheme;
+import com.tangosol.internal.net.queue.PagedQueue;
 
 import com.tangosol.net.Coherence;
-import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
 
 import junit.framework.TestFailure;
@@ -40,7 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class QueueCertTests
+public class PagedQueueCertTests
     {
     @BeforeAll
     static void setup() throws Exception
@@ -65,11 +64,11 @@ public class QueueCertTests
         TestSuite suite = QueueTestSuiteBuilder.using(new TestStringQueueGenerator()
                     {
                     @Override
+                    @SuppressWarnings("unchecked")
                     public Queue<String> create(String... asValue)
                         {
-                        String                            sName = "test-" + m_queueId.getAndIncrement();
-                        NamedCache<PagedQueueKey, String> cache = m_session.getCache(sName);
-                        PagedNamedQueue<String>           queue = new PagedNamedQueue<>(sName, cache);
+                        String             sName = "test-" + m_queueId.getAndIncrement();
+                        PagedQueue<String> queue = PagedQueueScheme.INSTANCE.realize(sName, m_session);
 
                         for (String sValue : asValue)
                             {

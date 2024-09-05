@@ -7,20 +7,21 @@
 
 package com.tangosol.internal.net.queue.paged;
 
-import com.tangosol.internal.net.queue.BaseNamedMapQueue;
-
+import com.tangosol.internal.net.queue.BaseBinaryNamedMapQueue;
 import com.tangosol.internal.net.queue.PagedQueue;
 import com.tangosol.internal.net.queue.model.QueueOfferResult;
 import com.tangosol.internal.net.queue.model.QueuePollResult;
-
 import com.tangosol.io.Serializer;
-
 import com.tangosol.net.CacheService;
+import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.NamedQueue;
-
+import com.tangosol.net.Session;
+import com.tangosol.net.options.WithClassLoader;
 import com.tangosol.util.Binary;
-import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.InvocableMap;
+import com.tangosol.util.NullImplementation;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -30,27 +31,50 @@ import java.util.NoSuchElementException;
 /**
  * A {@link NamedQueue} implementation that stores data distributed over
  * a cluster in pages.
- *
- * @param <E>  the type of elements the queue contains
  */
-public class PagedNamedQueue<E>
-        extends BaseNamedMapQueue<PagedQueueKey, E>
-        implements PagedQueue<E>
+@SuppressWarnings({"rawtypes", "unchecked"})
+public class BinaryPagedNamedQueue
+        extends BaseBinaryNamedMapQueue
+        implements PagedQueue<Binary>
     {
-    @SuppressWarnings({"unchecked"})
-    public PagedNamedQueue(String sName, NamedCache<PagedQueueKey, E> cache)
+    /**
+     * Create a {@link BinaryPagedNamedQueue}.
+     *
+     * @param sName    the name of the queue
+     * @param session  the {@link Session} to obtain the underlying binary pass-thru cache
+     */
+    public BinaryPagedNamedQueue(String sName, Session session)
+        {
+        this(sName, session.getCache(sName, WithClassLoader.nullImplementation()));
+        }
+
+    /**
+     * Create a {@link BinaryPagedNamedQueue}.
+     *
+     * @param sName  the name of the queue
+     * @param eccf   the {@link ExtensibleConfigurableCacheFactory} to obtain the underlying binary pass-thru cache
+     */
+    public BinaryPagedNamedQueue(String sName, ExtensibleConfigurableCacheFactory eccf)
+        {
+        this(sName, eccf.ensureCache(sName, NullImplementation.getClassLoader()));
+        }
+
+    /**
+     * Create a {@link BinaryPagedNamedQueue}.
+     *
+     * @param sName  the name of the queue
+     * @param cache  the underlying binary pass-thru cache
+     */
+    public BinaryPagedNamedQueue(String sName, NamedCache<Binary, Binary> cache)
         {
         super(sName, cache);
 
-        CacheService cacheService = cache.getCacheService();
-        String       sCacheName   = cache.getCacheName();
-        ClassLoader  loader       = cache.getCacheService().getContextClassLoader();
-
+        CacheService cacheService  = cache.getCacheService();
 
         m_elementCache   = cache;
-        m_bucketCache    = cacheService.ensureCache(PagedQueueCacheNames.Buckets.getCacheName(sCacheName), loader);
-        m_queueInfoCache = cacheService.ensureCache(PagedQueueCacheNames.Info.getCacheName(sCacheName), loader);
-        m_versionCache   = cacheService.ensureCache(PagedQueueCacheNames.Version.getCacheName(sCacheName), loader);
+        m_bucketCache    = PagedQueueCacheNames.Buckets.ensureBinaryMap(sName, cacheService);
+        m_versionCache   = PagedQueueCacheNames.Version.ensureBinaryMap(sName, cacheService);
+        m_queueInfoCache = PagedQueueCacheNames.Info.ensureBinaryMap(sName, cacheService);
 
         m_queueInfo = m_queueInfoCache.invoke(sName, instantateInitialiseQueueInfoProcessor());
 
@@ -58,12 +82,6 @@ public class PagedNamedQueue<E>
         }
 
     // ----- BaseNamedCacheQueue methods ------------------------------------
-
-    @Override
-    public PagedQueueKey createKey(long id)
-        {
-        return new PagedQueueKey(m_keyHead.getHash(), id);
-        }
 
     @Override
     public void release()
@@ -84,36 +102,35 @@ public class PagedNamedQueue<E>
         }
 
     @Override
-    public Iterator<E> iterator()
+    public Iterator<Binary> iterator()
         {
         if (size() == 0)
             {
             return Collections.emptyIterator();
             }
 
-        return new QueueIterator<>(this, m_queueInfo.getMaxBucketId());
+        return new BinaryQueueIterator(this, m_queueInfo.getMaxBucketId());
         }
 
     @Override
-    protected QueueOfferResult offerToTailInternal(E e)
+    protected QueueOfferResult offerToTailInternal(Binary binary)
         {
-        if (e == null)
+        if (binary == null)
             {
             throw new NullPointerException("Null elements are not supported");
             }
 
-        Binary                  binary       = ExternalizableHelper.toBinary(e, getSerializer());
-        int                     tailBucketId = m_queueInfo.getTailBucketId();
-        QueueOfferTailProcessor processor    = instantiateTailOfferProcessor(binary, m_queueInfo);
-        QueueOfferResult        result       = m_bucketCache.invoke(tailBucketId, processor);
+        int                         tailBucketId = m_queueInfo.getTailBucketId();
+        InvocableMap.EntryProcessor processor    = instantiateTailOfferProcessor(binary, m_queueInfo);
+        Binary                      binKey       = m_converterKeyToInternal.convert(tailBucketId);
+        Binary                      binResult    = (Binary) m_bucketCache.invoke(binKey, processor);
+        QueueOfferResult            result       = (QueueOfferResult) m_converterValueFromInternal.convert(binResult);
 
         while (result.getResult() == QueueOfferResult.RESULT_FAILED_RETRY)
             {
-            System.err.println("****** Offer to tail " + tailBucketId + " failed " + result);
             long                   version     = m_queueInfo.getVersion().getTailOfferVersion();
             TailIncrementProcessor incrementor = new TailIncrementProcessor(tailBucketId, version);
             m_queueInfo = m_queueInfoCache.invoke(m_sName, incrementor);
-            System.err.println("****** Incremented tail " + m_queueInfo);
             if (m_queueInfo.isQueueFull())
                 {
                 //noinspection ResultOfMethodCallIgnored
@@ -125,7 +142,9 @@ public class PagedNamedQueue<E>
                     }
                 }
             tailBucketId = m_queueInfo.getTailBucketId();
-            result = m_bucketCache.invoke(tailBucketId, processor);
+            binKey       = m_converterKeyToInternal.convert(tailBucketId);
+            binResult    = (Binary) m_bucketCache.invoke(binKey, processor);
+            result       = (QueueOfferResult) m_converterValueFromInternal.convert(binResult);
             }
 
         return result;
@@ -134,33 +153,35 @@ public class PagedNamedQueue<E>
     @Override
     protected QueuePollResult pollFromHeadInternal()
         {
-        Binary binary = pollOrPeekHead(true);
+        com.tangosol.util.Binary binary = pollOrPeekHead(true);
         return toResult(binary);
         }
 
     @Override
     protected QueuePollResult peekAtHeadInternal()
         {
-        Binary binary = pollOrPeekHead(false);
+        com.tangosol.util.Binary binary = pollOrPeekHead(false);
         return toResult(binary);
         }
 
-    protected QueuePollResult toResult(Binary binary)
+    protected QueuePollResult toResult(com.tangosol.util.Binary binary)
         {
         return new QueuePollResult(1, binary);
         }
 
-    protected Binary pollOrPeekHead(boolean fPoll)
+    protected com.tangosol.util.Binary pollOrPeekHead(boolean fPoll)
         {
         if (m_elementCache.isEmpty())
             {
             return null;
             }
 
-        int                        headId    = m_queueInfo.getHeadBucketId();
-        QueueVersionInfo           version   = m_queueInfo.getVersion();
-        QueuePollPeekHeadProcessor processor = instantiatePollPeekHeadProcessor(fPoll, version);
-        QueuePollResult            result    = m_bucketCache.invoke(headId, processor);
+        int                         headId    = m_queueInfo.getHeadBucketId();
+        QueueVersionInfo            version   = m_queueInfo.getVersion();
+        QueuePollPeekHeadProcessor  processor = instantiatePollPeekHeadProcessor(fPoll, version);
+        Binary                      binKey    = m_converterKeyToInternal.convert(headId);
+        Binary                      binResult = (Binary) m_bucketCache.invoke(binKey, (InvocableMap.EntryProcessor) processor);
+        QueuePollResult             result    = (QueuePollResult) m_converterValueFromInternal.convert(binResult);
 
         while (result.getId() == QueuePollResult.RESULT_POLL_NEXT_PAGE && !m_elementCache.isEmpty())
             {
@@ -168,9 +189,11 @@ public class PagedNamedQueue<E>
             m_queueInfo = m_queueInfoCache.invoke(m_sName, incrementor);
             version     = m_queueInfo.getVersion();
             headId      = m_queueInfo.getHeadBucketId();
+            binKey      = m_converterKeyToInternal.convert(headId);
 
             processor.setVersion(version);
-            result = m_bucketCache.invoke(headId, processor);
+            binResult = (Binary) m_bucketCache.invoke(binKey, (InvocableMap.EntryProcessor) processor);
+            result    = (QueuePollResult) m_converterValueFromInternal.convert(binResult);
             }
 
         return result.getBinaryElement();
@@ -183,7 +206,7 @@ public class PagedNamedQueue<E>
         return InitialiseQueueInfoProcessor.INSTANCE;
         }
 
-    protected QueueOfferTailProcessor instantiateTailOfferProcessor(Binary binElement, QueueInfo queueInfo)
+    protected QueueOfferTailProcessor instantiateTailOfferProcessor(com.tangosol.util.Binary binElement, QueueInfo queueInfo)
         {
         QueueVersionInfo version    = queueInfo.getVersion();
         int              bucketSize = queueInfo.getBucketSize();
@@ -204,11 +227,18 @@ public class PagedNamedQueue<E>
      *
      * @return an {@link Iterator} over the contents of the specified bucket or null if the bucket does not exist
      */
-    protected Iterator<Binary> peekAtBucket(int bucketId, boolean fHeadFirst)
+    protected Iterator<com.tangosol.util.Binary> peekAtBucket(int bucketId, boolean fHeadFirst)
         {
-        List<Binary> results = m_bucketCache.aggregate(Collections.singleton(bucketId),
-                           new PeekWholeBucketAggregator<>(fHeadFirst));
+        Binary                       binKey     = m_converterKeyToInternal.convert(bucketId);
+        InvocableMap.EntryAggregator aggregator = new PeekWholeBucketAggregator<>(fHeadFirst);
+        Binary                       binResult  = (Binary) m_bucketCache.aggregate(Collections.singleton(binKey), aggregator);
 
+        if (binResult == null)
+            {
+            return null;
+            }
+
+        List<com.tangosol.util.Binary> results = (List<Binary>) m_converterValueFromInternal.convert(binResult);
         if (results == null || results.isEmpty())
             {
             return null;
@@ -318,7 +348,7 @@ public class PagedNamedQueue<E>
      */
     protected Serializer getSerializer()
         {
-        return m_bucketCache.getCacheService().getSerializer();
+        return m_bucketCache.getService().getSerializer();
         }
 
     /**
@@ -329,27 +359,27 @@ public class PagedNamedQueue<E>
      */
     protected void removeElement(int bucketId, int elementId)
         {
-        m_elementCache.remove(new PagedQueueKey(bucketId, elementId));
+        m_elementCache.remove(m_converterKeyToInternal.convert(new PagedQueueKey(bucketId, elementId)));
         }
 
     // ----- Inner Iterator Base class --------------------------------------
 
     /**
-     * Ths class is an {@link Iterator} to iterate over the contents of this {@link PagedNamedQueue} in the correct
+     * Ths class is an {@link Iterator} to iterate over the contents of this {@link BinaryPagedNamedQueue} in the correct
      * order.
      */
-    protected abstract static class BaseQueueIterator<E> implements Iterator<E>
+    protected abstract static class BaseBinaryQueueIterator implements Iterator<Binary>
         {
 
         // ----- constructor -------------------------------------------------
 
         /**
-         * Construct a new {@link BaseQueueIterator} to iterate over this {@link PagedNamedQueue}.
-         * The {@link BaseQueueIterator}
-         * is initialised in the constructor to point to the head bucket or if this {@link PagedNamedQueue} is empty then
+         * Construct a new {@link BaseBinaryQueueIterator} to iterate over this {@link BinaryPagedNamedQueue}.
+         * The {@link BaseBinaryQueueIterator}
+         * is initialised in the constructor to point to the head bucket or if this {@link BinaryPagedNamedQueue} is empty then
          * is initialised to an empty {@link Iterator}.
          */
-        public BaseQueueIterator(PagedNamedQueue<E> queue, boolean fHeadFirst, int maxBucketId)
+        public BaseBinaryQueueIterator(BinaryPagedNamedQueue queue, boolean fHeadFirst, int maxBucketId)
             {
             m_queue       = queue;
             m_fHeadFirst  = fHeadFirst;
@@ -416,7 +446,7 @@ public class PagedNamedQueue<E>
          * @throws NoSuchElementException if the iteration has no more elements
          */
         @Override
-        public E next()
+        public Binary next()
             {
             if (m_iterator != null)
                 {
@@ -429,7 +459,7 @@ public class PagedNamedQueue<E>
                         }
                     }
                 m_currentBinary = m_iterator.next();
-                return ExternalizableHelper.fromBinary(m_currentBinary, m_serializer);
+                return m_currentBinary;
                 }
             throw new NoSuchElementException("Iterator is exhausted");
             }
@@ -437,9 +467,9 @@ public class PagedNamedQueue<E>
         // ----- data members ---------------------------------------------------
 
         /**
-         * The {@link PagedNamedQueue} this {@link QueueIterator} iterates over
+         * The {@link BinaryPagedNamedQueue} this {@link BinaryQueueIterator} iterates over
          */
-        protected PagedNamedQueue<E> m_queue;
+        protected BinaryPagedNamedQueue m_queue;
 
         /**
          * The maximum bucket ID allowed in the Queue being iterated over
@@ -459,7 +489,7 @@ public class PagedNamedQueue<E>
         /**
          * The {@link Iterator} to iterate over the current bucket elements
          */
-        protected Iterator<Binary> m_iterator;
+        protected Iterator<com.tangosol.util.Binary> m_iterator;
 
         /**
          * The {@link Serializer} to use to deserialize elements of the queue
@@ -469,26 +499,26 @@ public class PagedNamedQueue<E>
         /**
          * The current Binary element
          */
-        protected Binary m_currentBinary;
+        protected com.tangosol.util.Binary m_currentBinary;
         }
 
     // ----- Inner Forward Iterator class ----------------------------------
 
     /**
      * Ths class is an {@link Iterator} to iterate over the contents of
-     * a given {@link PagedNamedQueue} in head first order.
+     * a given {@link BinaryPagedNamedQueue} in head first order.
      */
-    protected static class QueueIterator<E> extends BaseQueueIterator<E>
+    protected static class BinaryQueueIterator extends BaseBinaryQueueIterator
         {
         // ----- constructor -----------------------------------------------
 
         /**
-         * Construct a new {@link QueueIterator} to iterate over this {@link PagedNamedQueue}.
-         * The {@link QueueIterator} is initialised in the constructor to point to the head
-         * bucket or if the {@link PagedNamedQueue} is empty then is initialised to an
+         * Construct a new {@link BinaryQueueIterator} to iterate over this {@link BinaryPagedNamedQueue}.
+         * The {@link BinaryQueueIterator} is initialised in the constructor to point to the head
+         * bucket or if the {@link BinaryPagedNamedQueue} is empty then is initialised to an
          * empty {@link Iterator}.
          */
-        public QueueIterator(PagedNamedQueue<E> queue, int maxBucketId)
+        public BinaryQueueIterator(BinaryPagedNamedQueue queue, int maxBucketId)
             {
             super(queue, true, maxBucketId);
             }
@@ -509,67 +539,27 @@ public class PagedNamedQueue<E>
             }
         }
 
-    // ----- Inner Forward Iterator class ----------------------------------
-
-    /**
-     * Ths class is an {@link Iterator} to iterate over the contents of
-     * a given {@link PagedNamedQueue} in tail first order.
-     */
-    protected static class QueueReverseIterator<E> extends BaseQueueIterator<E>
-        {
-        // ----- constructor -----------------------------------------------
-
-        /**
-         * Construct a new {@link QueueIterator} to iterate over this {@link PagedNamedQueue}.
-         * The {@link QueueIterator} is initialised in the constructor to point to the tail
-         * bucket or if the {@link PagedNamedQueue} is empty then is initialised to an
-         * empty {@link Iterator}.
-         */
-        public QueueReverseIterator(PagedNamedQueue<E> queue, int maxBucketId)
-            {
-            super(queue, false, maxBucketId);
-            }
-
-        // ----- BaseQueueIterator methods ---------------------------------
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        protected void moveToNextBucketId()
-            {
-            if (m_currentBucketId == 0)
-                {
-                m_currentBucketId = m_maxBucketId;
-                }
-            else
-                {
-                m_currentBucketId--;
-                }
-            }
-        }
-
     // ----- data members ---------------------------------------------------
 
     /**
      * The cache that holds the Queue information
      */
-    protected NamedCache<String,QueueInfo> m_queueInfoCache;
+    protected NamedMap<String,QueueInfo> m_queueInfoCache;
 
     /**
      * The cache that holds the buckets.
      */
-    protected NamedCache<Integer,Bucket> m_bucketCache;
+    protected NamedMap<Binary, Binary> m_bucketCache;
 
     /**
      * The cache that holds the versions.
      */
-    protected NamedCache<?, ?> m_versionCache;
+    protected NamedMap<?, ?> m_versionCache;
 
     /**
      * The cache that holds the Queue elements
      */
-    protected NamedCache<PagedQueueKey,E> m_elementCache;
+    protected NamedMap<Binary, Binary> m_elementCache;
 
     /**
      * The {@link QueueInfo} for this queue

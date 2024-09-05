@@ -7,7 +7,6 @@
 
 package queues;
 
-import com.tangosol.internal.net.queue.NamedCacheDeque;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedDeque;
 import com.tangosol.net.Session;
@@ -39,5 +38,5 @@ public class LocalDequeTests<QueueType extends NamedDeque>
 
     // ----- data members ---------------------------------------------------
 
-    private static Session m_session;
+    protected static Session m_session;
     }

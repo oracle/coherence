@@ -7,13 +7,14 @@
 
 package queues.paged;
 
-import com.tangosol.internal.net.queue.paged.PagedNamedQueue;
+import com.tangosol.coherence.config.scheme.PagedQueueScheme;
 import com.tangosol.internal.net.queue.paged.PagedQueueCacheNames;
 import com.tangosol.net.Coherence;
-import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.NamedQueue;
 import com.tangosol.net.QueueService;
 import com.tangosol.net.Session;
+import com.tangosol.util.Binary;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -73,12 +74,11 @@ public class LocalPagedQueueTests<QueueType extends NamedQueue>
         NamedQueue<String> queue      = getNamedCollection(sName);
         Session            session    = getSession();
 
-        Map<PagedQueueCacheNames, NamedCache<?, ?>> mapCaches = new HashMap<>();
+        Map<PagedQueueCacheNames, NamedMap<?, ?>> mapCaches = new HashMap<>();
 
         for (PagedQueueCacheNames name : PagedQueueCacheNames.values())
             {
-            String           sCacheName = name.getCacheName(sName);
-            NamedCache<?, ?> cache      = session.getCache(sCacheName);
+            NamedMap<?, ?> cache = getQueueCache(sName, name, session);
             mapCaches.put(name, cache);
             assertThat(cache.isActive(), is(true));
             }
@@ -87,7 +87,7 @@ public class LocalPagedQueueTests<QueueType extends NamedQueue>
 
         for (PagedQueueCacheNames name : PagedQueueCacheNames.values())
             {
-            NamedCache<?, ?> cache = mapCaches.get(name);
+            NamedMap<?, ?> cache = mapCaches.get(name);
             assertThat("Cache " + name + " should have been released", cache.isReleased(), is(true));
             }
         }
@@ -99,12 +99,11 @@ public class LocalPagedQueueTests<QueueType extends NamedQueue>
         NamedQueue<String> queue      = getNamedCollection(sName);
         Session            session    = getSession();
 
-        Map<PagedQueueCacheNames, NamedCache<?, ?>> mapCaches = new HashMap<>();
+        Map<PagedQueueCacheNames, NamedMap<?, ?>> mapCaches = new HashMap<>();
 
         for (PagedQueueCacheNames name : PagedQueueCacheNames.values())
             {
-            String           sCacheName = name.getCacheName(sName);
-            NamedCache<?, ?> cache      = session.getCache(sCacheName);
+            NamedMap<?, ?> cache = getQueueCache(sName, name, session);
             mapCaches.put(name, cache);
             assertThat(cache.isActive(), is(true));
             }
@@ -113,11 +112,16 @@ public class LocalPagedQueueTests<QueueType extends NamedQueue>
 
         for (PagedQueueCacheNames name : PagedQueueCacheNames.values())
             {
-            NamedCache<?, ?> cache = mapCaches.get(name);
+            NamedMap<?, ?> cache = mapCaches.get(name);
             assertThat("Cache " + name + " should have been destroyed", cache.isDestroyed(), is(true));
             }
         }
 
+    protected NamedMap<?, ?> getQueueCache(String sQueueName, PagedQueueCacheNames name, Session session)
+        {
+        String sCacheName = name.getCacheName(sQueueName);
+        return session.getCache(sCacheName);
+        }
 
     @Override
     @Disabled("Paged queue is not size limited")
@@ -135,20 +139,26 @@ public class LocalPagedQueueTests<QueueType extends NamedQueue>
     @SuppressWarnings("unchecked")
     public QueueType getNamedCollection(Session session, String sName)
         {
-        return (QueueType) new PagedNamedQueue<>(sName, session.getCache(sName));
+        return (QueueType) PagedQueueScheme.INSTANCE.realize(sName, session);
         }
 
     @Override
     @SuppressWarnings("unchecked")
     public QueueType getCollection(Session session, String sName)
         {
-        return (QueueType) new PagedNamedQueue<>(sName, session.getCache(sName));
+        return (QueueType) PagedQueueScheme.INSTANCE.realize(sName, session);
         }
 
     @Override
-    public NamedCache getCollectionCache(String sName)
+    public NamedMap getCollectionCache(String sName)
         {
         return super.getCollectionCache(PagedQueueCacheNames.Elements.getCacheName(sName));
+        }
+
+    @Override
+    public NamedMap<Binary, Binary> getCollectionBinaryCache(String sName)
+        {
+        return super.getCollectionBinaryCache(PagedQueueCacheNames.Elements.getCacheName(sName));
         }
 
     // ----- data members ---------------------------------------------------

@@ -7,8 +7,11 @@
 
 package com.tangosol.internal.net.queue;
 
+import com.tangosol.internal.net.NamedMapCollection;
 import com.tangosol.internal.net.queue.model.QueueKey;
 
+import com.tangosol.net.CacheService;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedBlockingQueue;
 import com.tangosol.net.NamedMap;
 import com.tangosol.util.MapEvent;
@@ -17,32 +20,31 @@ import com.tangosol.util.MapListener;
 import com.tangosol.util.filter.AlwaysFilter;
 
 import java.util.Collection;
-import java.util.Objects;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * A {@link NamedBlockingQueue} implementation that wraps a {@link NamedCacheQueue}.
+ * A {@link NamedBlockingQueue} implementation that wraps a {@link NamedMapQueue}.
  *
  * @param <E> the type of elements held in this queue
  */
-public class NamedCacheBlockingQueue<K extends QueueKey, E>
-        extends WrapperNamedCacheQueue<K, E>
+public class NamedMapBlockingQueue<K extends QueueKey, E>
+        extends WrapperNamedMapQueue<K, E>
         implements NamedBlockingQueue<E>, MapListener<K, E>
     {
     /**
-     * Create a {@link NamedCacheBlockingQueue} that delegates to
-     * the specified {@link NamedCacheQueue}.
+     * Create a {@link NamedMapBlockingQueue} that delegates to
+     * the specified {@link NamedMapQueue}.
      *
      * @param sName     the name of the queue
-     * @param delegate  the {@link NamedCacheQueue} to delegate to
+     * @param delegate  the {@link NamedMapQueue} to delegate to
      */
-    public NamedCacheBlockingQueue(String sName, BaseNamedCacheQueue<K, E> delegate)
+    public NamedMapBlockingQueue(String sName, NamedMapQueue<K, E> delegate)
         {
         super(sName, delegate);
-        delegate.getCache().addMapListener(this, AlwaysFilter.INSTANCE(), true);
+        delegate.getNamedMap().addMapListener(this, AlwaysFilter.INSTANCE(), true);
         m_nHash = QueueKey.calculateQueueHash(delegate.getName());
         }
 
@@ -51,7 +53,7 @@ public class NamedCacheBlockingQueue<K extends QueueKey, E>
     @Override
     public void release()
         {
-        f_delegate.getCache().removeMapListener(this);
+        f_delegate.getNamedMap().removeMapListener(this);
         super.release();
         }
 
@@ -275,17 +277,42 @@ public class NamedCacheBlockingQueue<K extends QueueKey, E>
      */
     public NamedMap<K, E> getCache()
         {
-        return f_delegate.getCache();
+        return f_delegate.getNamedMap();
         }
 
     private void assertNotSameCollection(Collection<?> c, String sMsg)
         {
-        if (this.equals(Objects.requireNonNull(c)))
+        if (c == null)
+            {
+            throw new NullPointerException("target collection cannot be null");
+            }
+        if (this == c)
             {
             throw new IllegalArgumentException(sMsg);
             }
-        f_delegate.assertNotSameCollection(c, sMsg);
+        if (c instanceof NamedMapCollection)
+            {
+            NamedMap<K, E> mapThis  = f_delegate.getNamedMap();
+            NamedMap<?, ?> mapOther = ((NamedMapCollection<?, ?, ?>) c).getNamedMap();
+            if (mapThis.getName().equals(mapOther.getName()))
+                {
+                CacheService serviceThis  = mapThis.getService();
+                String       sNameThis    = serviceThis.getInfo().getServiceName();
+                CacheService serviceOther = mapOther.getService();
+                String       sNameOther   = serviceOther.getInfo().getServiceName();
+                if (sNameThis.equals(sNameOther))
+                    {
+                    ConfigurableCacheFactory ccfThis  = serviceThis.getBackingMapManager().getCacheFactory();
+                    ConfigurableCacheFactory ccfOther = serviceOther.getBackingMapManager().getCacheFactory();
+                    if (ccfThis.equals(ccfOther))
+                        {
+                        throw new IllegalArgumentException(sMsg);
+                        }
+                    }
+                }
+            }
         }
+
 
     // ----- data members ---------------------------------------------------
 

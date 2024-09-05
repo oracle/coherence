@@ -8,9 +8,10 @@
 package queues;
 
 import com.tangosol.io.Serializer;
-import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedCollection;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
+import com.tangosol.util.Binary;
 import org.junit.jupiter.params.provider.Arguments;
 
 import java.util.ArrayList;
@@ -52,10 +53,14 @@ interface CollectionTests<NC extends NamedCollection, C extends Collection>
 
     C getCollection(Session session, String sName);
 
-    NamedCache getCollectionCache(NC col);
+    NamedMap getCollectionCache(NC col);
 
-    NamedCache getCollectionCache(String sName);
-    
+    NamedMap getCollectionCache(String sName);
+
+    NamedMap<Binary, Binary> getCollectionBinaryCache(NC col);
+
+    NamedMap<Binary, Binary> getCollectionBinaryCache(String sName);
+
     C getNewCollection();
 
     C getNewCollection(String sPrefix);

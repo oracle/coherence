@@ -42,13 +42,6 @@ public class QueuePollResultSerializerTest
         QueuePollResult deserialized = ExternalizableHelper.fromBinary(binary, serializer);
         assertThat(deserialized.getId(), is(19L));
         assertThat(deserialized.getBinaryElement(), is(binValue));
-
-        // re-serialize as json
-        Binary          binJson          = ExternalizableHelper.toBinary(deserialized, m_jsonSerializer);
-        QueuePollResult jsonDeserialized = ExternalizableHelper.fromBinary(binJson, m_jsonSerializer);
-        assertThat(jsonDeserialized.getId(), is(19L));
-        assertThat(jsonDeserialized.getBinaryElement(), is(nullValue()));
-        assertThat(jsonDeserialized.getElement(), is("foo"));
         }
 
     static Stream<Arguments> serializers()
@@ -58,8 +51,4 @@ public class QueuePollResultSerializerTest
         list.add(Arguments.of(new ConfigurablePofContext()));
         return list.stream();
         }
-
-    // ----- constants ------------------------------------------------------
-
-    public static final JsonSerializer m_jsonSerializer = new JsonSerializer();
     }

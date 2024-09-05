@@ -7,7 +7,6 @@
 
 package queues;
 
-import com.tangosol.internal.net.queue.NamedCacheQueue;
 import com.tangosol.net.NamedQueue;
 import com.tangosol.net.Session;
 

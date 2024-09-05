@@ -9,15 +9,11 @@ package com.tangosol.internal.net.queue.model;
 
 import com.tangosol.io.AbstractEvolvable;
 import com.tangosol.io.ExternalizableLite;
-import com.tangosol.io.Serializer;
-import com.tangosol.io.SerializerAware;
 import com.tangosol.io.pof.EvolvablePortableObject;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
-import jakarta.json.bind.annotation.JsonbProperty;
-import jakarta.json.bind.annotation.JsonbTransient;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -28,7 +24,7 @@ import java.io.IOException;
  */
 public class QueuePollResult
         extends AbstractEvolvable
-        implements ExternalizableLite, EvolvablePortableObject, SerializerAware
+        implements ExternalizableLite, EvolvablePortableObject
     {
     /**
      * Default constructor for serialization.
@@ -95,29 +91,6 @@ public class QueuePollResult
         return m_binElement;
         }
 
-    /**
-     * Return the deserialized object form of the polled element,
-     * or {@code null} if the queue was empty.
-     *
-     * @return the deserialized object form of the polled element,
-     *         or {@code null} if the queue was empty.
-     */
-    @SuppressWarnings("unchecked")
-    public <E> E getElement()
-        {
-        return (E) m_oElement;
-        }
-
-    /**
-     * Return {@code true} if this result has a deserialized value.
-     *
-     * @return {@code true} if this result has a deserialized value
-     */
-    public boolean isPresent()
-        {
-        return m_fPresent;
-        }
-
     // ----- EvolvablePortableObject methods --------------------------------
 
     @Override
@@ -154,25 +127,6 @@ public class QueuePollResult
         {
         out.writeLong(m_id);
         ExternalizableHelper.writeObject(out, m_binElement);
-        }
-
-    // ----- SerializerAware methods ----------------------------------------
-
-    @Override
-    public Serializer getContextSerializer()
-        {
-        return m_serializer;
-        }
-
-    @Override
-    public void setContextSerializer(Serializer serializer)
-        {
-        m_serializer = serializer;
-        if (m_binElement != null)
-            {
-            m_oElement = ExternalizableHelper.fromBinary(m_binElement, m_serializer);
-            m_fPresent = true;
-            }
         }
 
     // ----- helper methods -------------------------------------------------
@@ -213,29 +167,10 @@ public class QueuePollResult
     /**
      * The serialized binary polled element.
      */
-    @JsonbTransient
     private Binary m_binElement;
 
     /**
      * The id of the polled element.
      */
-    @JsonbProperty("id")
     private long m_id;
-
-    /**
-     * The serializer used to serialize or deserialize this instance.
-     */
-    private transient Serializer m_serializer;
-
-    /**
-     * The Object version of the element;
-     */
-    @JsonbProperty("element")
-    private transient Object m_oElement;
-
-    /**
-     * Indicates if a deserialized value is present in the {@link #m_oElement} field.
-     */
-    @JsonbProperty("present")
-    private transient boolean m_fPresent;
     }

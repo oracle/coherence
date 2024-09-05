@@ -24,6 +24,8 @@ import com.tangosol.config.injection.SimpleInjector;
 
 import com.tangosol.internal.net.queue.DefaultPagedQueueDependencies;
 import com.tangosol.internal.net.queue.PagedQueue;
+import com.tangosol.internal.net.queue.model.QueueKey;
+import com.tangosol.internal.net.queue.paged.BinaryPagedNamedQueue;
 import com.tangosol.internal.net.queue.paged.PagedNamedQueue;
 import com.tangosol.internal.net.queue.paged.PagedQueueKey;
 import com.tangosol.internal.net.service.grid.DefaultPagedQueueServiceDependencies;
@@ -38,6 +40,8 @@ import com.tangosol.net.Service;
 import com.tangosol.net.QueueService;
 import com.tangosol.net.ValueTypeAssertion;
 
+import com.tangosol.net.cache.NearCache;
+import com.tangosol.util.NullImplementation;
 import com.tangosol.util.ResourceResolver;
 import com.tangosol.util.ResourceResolverHelper;
 
@@ -49,7 +53,7 @@ import java.util.List;
 @SuppressWarnings("rawtypes")
 public class PagedQueueScheme
         extends DistributedScheme
-        implements NamedQueueScheme<PagedNamedQueue>
+        implements NamedQueueScheme<PagedQueue>
     {
     // ----- constructors ---------------------------------------------------
 
@@ -125,14 +129,30 @@ public class PagedQueueScheme
     // ----- ServiceScheme methods ------------------------------------------
 
     @Override
-    public <V> PagedNamedQueue<V> realize(ValueTypeAssertion<V> typeConstraint, ParameterResolver resolver, Dependencies deps)
+    @SuppressWarnings("unchecked")
+    public <V> PagedQueue<V> realize(ValueTypeAssertion<V> typeConstraint, ParameterResolver resolver, Dependencies deps)
         {
         ExtensibleConfigurableCacheFactory eccf =
                 (ExtensibleConfigurableCacheFactory) deps.getConfigurableCacheFactory();
 
-        String                       sQueueName = deps.getCacheName();
-        NamedCache<PagedQueueKey, V> cache      = eccf.ensureCache(sQueueName, null);
-        return new PagedNamedQueue<>(sQueueName, cache);
+        PagedQueue<V> pagedQueue;
+
+        String sQueueName = deps.getCacheName();
+        if (NullImplementation.getClassLoader().equals(deps.getClassLoader()))
+            {
+            pagedQueue = (PagedQueue<V>) new BinaryPagedNamedQueue(sQueueName, eccf);
+            }
+        else
+            {
+            NamedCache<PagedQueueKey, V> cache = eccf.ensureCache(sQueueName, null);
+            if (cache instanceof NearCache)
+                {
+                // optimize out the NearCache as we do not do plain gets for a queue
+                cache = ((NearCache<PagedQueueKey, V>) cache).getBackCache();
+                }
+            pagedQueue = new PagedNamedQueue<>(sQueueName, cache);
+            }
+        return pagedQueue;
         }
 
     // ----- helper methods -------------------------------------------------
@@ -214,28 +234,8 @@ public class PagedQueueScheme
 
         DefaultPagedQueueDependencies dependencies = new DefaultPagedQueueDependencies();
         dependencies.setPageCapacity((int) cbPage);
+
         return dependencies;
-        }
-
-    /**
-     * Obtain the builder for the unit calculator.
-     *
-     * @param resolver  the {@link ParameterResolver} to use
-     *
-     * @return the builder for the unit calculator
-     */
-    @SuppressWarnings("unchecked")
-    private UnitCalculatorBuilder getUnitCalculatorBuilder(ParameterResolver resolver)
-        {
-        UnitCalculatorBuilder bldr  = new UnitCalculatorBuilder();
-        Parameter             param = resolver.resolve("unit-calculator");
-        Expression<String>    expr  = param == null
-                ? new LiteralExpression<>("BINARY")
-                : param.evaluate(resolver).as(Expression.class);
-
-        bldr.setUnitCalculatorType(expr);
-
-        return bldr;
         }
 
     // ----- data members ---------------------------------------------------
@@ -244,4 +244,9 @@ public class PagedQueueScheme
      * The page capacity
      */
     private Expression<Units> m_exprPageSize = new LiteralExpression<>(new Units(new MemorySize(PagedQueue.DEFAULT_PAGE_CAPACITY_BYTES)));
+
+    /**
+     * A singleton instance of the {@link PagedQueueScheme}.
+     */
+    public static final PagedQueueScheme INSTANCE = new PagedQueueScheme();
     }

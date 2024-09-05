@@ -97,7 +97,7 @@ public class Bucket
      * @param capacity  the maximum number of elements that this
      *                  bucket can contain.
      */
-    public Bucket(int bucketId, QueueVersionInfo version, int capacity)
+    public Bucket(int bucketId, QueueVersionInfo version, long capacity)
         {
         m_id              = bucketId;
         m_version         = version;
@@ -134,7 +134,7 @@ public class Bucket
      * @return the maximum number of elements that this
      *         {@link Bucket} should contain.
      */
-    public int getMaxCapacity()
+    public long getMaxCapacity()
         {
         return m_capacity;
         }
@@ -186,8 +186,9 @@ public class Bucket
      */
     public void markEmpty()
         {
-        m_head = EMPTY;
-        m_tail = EMPTY;
+        m_head      = EMPTY;
+        m_tail      = EMPTY;
+        m_bytesUsed = 0;
         }
 
     /**
@@ -220,6 +221,48 @@ public class Bucket
         m_acceptingOffers = acceptingOffers;
         }
 
+    /**
+     * Return the number of bytes consumed by this bucket.
+     *
+     * @return the number of bytes consumed by this bucket
+     */
+    public long getBytesUsed()
+        {
+        return m_bytesUsed;
+        }
+
+    /**
+     * Increase the number of bytes consumed by this bucket only if the
+     * bucket would not go above its maximum capacity.
+     *
+     * @param n the number of bytes to add
+     *
+     * @return {@code true} if the size was incremented, or {@code false}
+     *         if incrementing the size would have taken the bucket above
+     *         its maximum capacity
+     */
+    public boolean increaseBytesUsed(long n)
+        {
+        long nSize = m_bytesUsed + n;
+        if (nSize > m_capacity)
+            {
+            return false;
+            }
+        m_bytesUsed = nSize;
+        return true;
+        }
+
+    /**
+     * Decrease the number of bytes consumed by this bucket.
+     *
+     * @param n the number of bytes to remove
+     */
+    public void decreaseBytesUsed(long n)
+        {
+        long nSize = m_bytesUsed - n;
+        m_bytesUsed = Math.max(0L, nSize);
+        }
+
     // ----- Object methods -------------------------------------------------
 
     /**
@@ -229,9 +272,9 @@ public class Bucket
      */
     public String toString()
         {
-        return ClassHelper.getSimpleName(getClass()) + '(' + "id=" + m_id + ", capacity=" + m_capacity + ", head="
-               + m_head + ", tail=" + m_tail + ", acceptingOffers=" + m_acceptingOffers + ", version=" + m_version
-               + ')';
+        return ClassHelper.getSimpleName(getClass()) + '(' + "id=" + m_id + ", capacity=" + m_capacity
+                + ", bytesUsed=" + m_bytesUsed + ", head=" + m_head + ", tail=" + m_tail
+                + ", acceptingOffers=" + m_acceptingOffers + ", version=" + m_version + ')';
         }
 
     /**
@@ -475,10 +518,11 @@ public class Bucket
         {
         m_id              = in.readInt(0);
         m_version         = in.readObject(1);
-        m_capacity        = in.readInt(2);
+        m_capacity        = in.readLong(2);
         m_head            = in.readInt(3);
         m_tail            = in.readInt(4);
         m_acceptingOffers = in.readObject(5);
+        m_bytesUsed       = in.readLong(6);
         }
 
     @Override
@@ -486,10 +530,11 @@ public class Bucket
         {
         out.writeInt(0, m_id);
         out.writeObject(1, m_version);
-        out.writeInt(2, m_capacity);
+        out.writeLong(2, m_capacity);
         out.writeInt(3, m_head);
         out.writeInt(4, m_tail);
         out.writeObject(5, m_acceptingOffers);
+        out.writeLong(6, m_bytesUsed);
         }
 
     // ----- ExternalizableLite methods -------------------------------------
@@ -499,10 +544,11 @@ public class Bucket
         {
         m_id              = ExternalizableHelper.readInt(in);
         m_version         = ExternalizableHelper.readObject(in);
-        m_capacity        = ExternalizableHelper.readInt(in);
+        m_capacity        = ExternalizableHelper.readLong(in);
         m_head            = ExternalizableHelper.readInt(in);
         m_tail            = ExternalizableHelper.readInt(in);
         m_acceptingOffers = ExternalizableHelper.readObject(in);
+        m_bytesUsed       = ExternalizableHelper.readLong(in);
         }
 
     @Override
@@ -510,10 +556,11 @@ public class Bucket
         {
         ExternalizableHelper.writeInt(out, m_id);
         ExternalizableHelper.writeObject(out, m_version);
-        ExternalizableHelper.writeInt(out, m_capacity);
+        ExternalizableHelper.writeLong(out, m_capacity);
         ExternalizableHelper.writeInt(out, m_head);
         ExternalizableHelper.writeInt(out, m_tail);
         ExternalizableHelper.writeObject(out, m_acceptingOffers);
+        ExternalizableHelper.writeLong(out, m_bytesUsed);
         }
 
     // ----- constants ------------------------------------------------------
@@ -537,9 +584,9 @@ public class Bucket
     protected QueueVersionInfo m_version;
 
     /**
-     * The maximum number of elements that this bucket should contain
+     * The maximum number of bytes that this bucket should contain
      */
-    protected int m_capacity = 0;
+    protected long m_capacity = 0;
 
     /**
      * The id of the current head element of this {@link Bucket}
@@ -555,4 +602,9 @@ public class Bucket
      * A flag indicating whether this bucket can accept offers
      */
     protected boolean m_acceptingOffers = true;
+
+    /**
+     * The current size of the bucket.
+     */
+    protected long m_bytesUsed;
     }

@@ -9,7 +9,6 @@ package com.tangosol.internal.net;
 
 import com.oracle.coherence.common.base.Logger;
 import com.tangosol.net.NamedMap;
-import com.tangosol.net.NamedCollection;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -42,8 +41,7 @@ public abstract class NamedMapValuesCollection<K, V>
 
     // ----- accessors ------------------------------------------------------
 
-    @Override
-    public NamedMap<K, V> getCache()
+    public NamedMap<K, V> getNamedMap()
         {
         return m_cache;
         }
@@ -205,7 +203,7 @@ public abstract class NamedMapValuesCollection<K, V>
 
         if (c instanceof NamedMapCollection<?,?,?>)
             {
-            NamedMap<?, ?> map = ((NamedMapCollection<?,?,?>) c).getCache();
+            NamedMap<?, ?> map = ((NamedMapCollection<?,?,?>) c).getNamedMap();
             if (m_cache.equals(map))
                 {
                 throw new IllegalArgumentException(sMsg);

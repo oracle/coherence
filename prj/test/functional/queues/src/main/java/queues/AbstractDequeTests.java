@@ -7,10 +7,10 @@
 
 package queues;
 
-import com.tangosol.internal.net.queue.NamedCacheDeque;
+import com.tangosol.coherence.config.scheme.SimpleDequeScheme;
 import com.tangosol.internal.net.queue.QueuePageIterator;
 import com.tangosol.internal.net.queue.model.QueueKey;
-import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.NamedDeque;
 import com.tangosol.net.Session;
 import org.junit.jupiter.api.Assertions;
@@ -38,16 +38,13 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     @SuppressWarnings("unchecked")
     public DequeType getNamedCollection(Session session, String sName)
         {
-        NamedCache<QueueKey, ?> cache     = session.getCache(sName);
-        return (DequeType) new NamedCacheDeque<>(sName, cache);
+        return (DequeType) SimpleDequeScheme.INSTANCE.realize(sName, session);
         }
 
     @Override
-    @SuppressWarnings("unchecked")
     public DequeType getCollection(Session session, String sName)
         {
-        NamedCache<QueueKey, ?> cache     = session.getCache(sName);
-        return (DequeType) new NamedCacheDeque<>(sName, cache);
+        return (DequeType) SimpleDequeScheme.INSTANCE.realize(sName, session);
         }
 
     // ----- test prepend() method ------------------------------------------
@@ -68,8 +65,8 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
         assertThat(nId2, is(greaterThan(Long.MIN_VALUE)));
         assertThat(nId3, is(greaterThan(Long.MIN_VALUE)));
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
-        int              nHash = deque.getQueueNameHash();
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
+        int            nHash = deque.getQueueNameHash();
 
         QueueKey queueKey1 = new QueueKey(nHash, nId1);
         QueueKey queueKey2 = new QueueKey(nHash, nId2);
@@ -91,7 +88,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
 
         deque.addFirst(sValue);
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(1));
 
         Object oKey = cache.keySet().iterator().next();
@@ -121,7 +118,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
             deque.addFirst(sValue);
             }
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(cMessage));
 
         TreeSet<QueueKey> setKey = (TreeSet<QueueKey>) new TreeSet<>(cache.keySet());
@@ -147,7 +144,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
 
         deque.addLast(sValue);
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(1));
 
         Object oKey = cache.keySet().iterator().next();
@@ -176,7 +173,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
             deque.addLast(sValue);
             }
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(cMessage));
 
         TreeSet<QueueKey> setKey = (TreeSet<QueueKey>) new TreeSet<>(cache.keySet());
@@ -201,7 +198,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
         String    sValue = "message-1";
         assertThat(deque.offerFirst(sValue), is(true));
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(1));
 
         Object oKey = cache.keySet().iterator().next();
@@ -230,7 +227,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
             assertThat(deque.offerFirst(sValue), is(true));
             }
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(cMessage));
 
         TreeSet<QueueKey> setKey = (TreeSet<QueueKey>) new TreeSet<>(cache.keySet());
@@ -255,7 +252,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
         String    sValue = "message-1";
         assertThat(deque.offerLast(sValue), is(true));
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(1));
 
         Object oKey = cache.keySet().iterator().next();
@@ -284,7 +281,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
             assertThat(deque.offerLast(sValue), is(true));
             }
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(cMessage));
 
         TreeSet<QueueKey> setKey = (TreeSet<QueueKey>) new TreeSet<>(cache.keySet());
@@ -314,7 +311,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldRemoveFirstFromDeque(String sSerializer)
         {
         DequeType  deque  = getNewCollection(sSerializer);
-        NamedCache cache  = getCollectionCache(deque.getName());
+        NamedMap cache  = getCollectionCache(deque.getName());
         QueueKey   key    = new QueueKey(deque.getQueueNameHash(), 0L);
         String     sValue = "message-1";
 
@@ -333,7 +330,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldRemoveFirstFromDequeInOrder(String sSerializer)
         {
         DequeType  deque    = getNewCollection(sSerializer);
-        NamedCache cache    = getCollectionCache(deque.getName());
+        NamedMap cache    = getCollectionCache(deque.getName());
         String     sPrefix  = "message-";
         long       cMessage = 100L;
         int        nHash    = deque.getQueueNameHash();
@@ -360,7 +357,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldRemoveFirstFromDequeInOrderWithGaps(String sSerializer)
         {
         DequeType  deque    = getNewCollection(sSerializer);
-        NamedCache cache    = getCollectionCache(deque.getName());
+        NamedMap cache    = getCollectionCache(deque.getName());
         String     sPrefix  = "message-";
         long       cMessage = 100L;
         long       nId      = Math.abs(m_random.nextLong());
@@ -399,7 +396,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldRemoveLastFromDeque(String sSerializer)
         {
         DequeType  deque  = getNewCollection(sSerializer);
-        NamedCache cache  = getCollectionCache(deque.getName());
+        NamedMap cache  = getCollectionCache(deque.getName());
         QueueKey   key    = new QueueKey(deque.getQueueNameHash(), 0L);
         String     sValue = "message-1";
 
@@ -419,7 +416,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldRemoveLastFromDequeInOrder(String sSerializer)
         {
         DequeType  deque    = getNewCollection(sSerializer);
-        NamedCache cache    = getCollectionCache(deque.getName());
+        NamedMap cache    = getCollectionCache(deque.getName());
         String     sPrefix  = "message-";
         long       cMessage = 100L;
         int        nHash    = deque.getQueueNameHash();
@@ -446,7 +443,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldRemoveLastFromDequeInOrderWithGaps(String sSerializer)
         {
         DequeType  deque    = getNewCollection(sSerializer);
-        NamedCache cache    = getCollectionCache(deque.getName());
+        NamedMap cache    = getCollectionCache(deque.getName());
         String     sPrefix  = "message-";
         long       cMessage = 100L;
         long       nId      = Math.abs(m_random.nextLong());
@@ -486,7 +483,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldPollFirstFromDeque(String sSerializer)
         {
         DequeType  deque  = getNewCollection(sSerializer);
-        NamedCache cache  = getCollectionCache(deque.getName());
+        NamedMap cache  = getCollectionCache(deque.getName());
         QueueKey   key    = new QueueKey(deque.getQueueNameHash(), 0L);
         String     sValue = "message-1";
 
@@ -506,7 +503,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldPollFirstFromDequeInOrder(String sSerializer)
         {
         DequeType  deque    = getNewCollection(sSerializer);
-        NamedCache cache    = getCollectionCache(deque.getName());
+        NamedMap cache    = getCollectionCache(deque.getName());
         int        nHash    = deque.getQueueNameHash();
         String     sPrefix  = "message-";
         long       cMessage = 100L;
@@ -533,7 +530,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldPollFirstFromDequeInOrderWithGaps(String sSerializer)
         {
         DequeType  deque    = getNewCollection(sSerializer);
-        NamedCache cache    = getCollectionCache(deque.getName());
+        NamedMap cache    = getCollectionCache(deque.getName());
         String     sPrefix  = "message-";
         long       cMessage = 100L;
         long       nId      = Math.abs(m_random.nextLong());
@@ -573,7 +570,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldPollLastFromDeque(String sSerializer)
         {
         DequeType  deque  = getNewCollection(sSerializer);
-        NamedCache cache  = getCollectionCache(deque.getName());
+        NamedMap cache  = getCollectionCache(deque.getName());
         QueueKey   key    = new QueueKey(deque.getQueueNameHash(), 0L);
         String     sValue = "message-1";
 
@@ -593,7 +590,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldPollLastFromDequeInOrder(String sSerializer)
         {
         DequeType  deque    = getNewCollection(sSerializer);
-        NamedCache cache    = getCollectionCache(deque.getName());
+        NamedMap cache    = getCollectionCache(deque.getName());
         int        nHash    = deque.getQueueNameHash();
         String     sPrefix  = "message-";
         long       cMessage = 100L;
@@ -620,7 +617,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldPollLastFromDequeInOrderWithGaps(String sSerializer)
         {
         DequeType  deque    = getNewCollection(sSerializer);
-        NamedCache cache    = getCollectionCache(deque.getName());
+        NamedMap cache    = getCollectionCache(deque.getName());
         String     sPrefix  = "message-";
         long       cMessage = 100L;
         long       nId      = Math.abs(m_random.nextLong());
@@ -660,7 +657,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldGetFirstFromDeque(String sSerializer)
         {
         DequeType  degue  = getNewCollection(sSerializer);
-        NamedCache cache  = getCollectionCache(degue.getName());
+        NamedMap cache  = getCollectionCache(degue.getName());
         QueueKey   key    = new QueueKey(degue.getQueueNameHash(), 0L);
         String     sValue = "message-1";
 
@@ -678,7 +675,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldGetFirstFromDequeInOrder(String sSerializer)
         {
         DequeType  deque    = getNewCollection(sSerializer);
-        NamedCache cache    = getCollectionCache(deque.getName());
+        NamedMap cache    = getCollectionCache(deque.getName());
         int        nHash    = deque.getQueueNameHash();
         String     sPrefix  = "message-";
         long       cMessage = 100L;
@@ -706,7 +703,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldGetFirstFromDequeInOrderWithGaps(String sSerializer)
         {
         DequeType  deque    = getNewCollection(sSerializer);
-        NamedCache cache    = getCollectionCache(deque.getName());
+        NamedMap cache    = getCollectionCache(deque.getName());
         String     sPrefix  = "message-";
         long       cMessage = 100L;
         long       nId      = Math.abs(m_random.nextLong());
@@ -747,7 +744,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldGetLastFromDeque(String sSerializer)
         {
         DequeType  degue  = getNewCollection(sSerializer);
-        NamedCache cache  = getCollectionCache(degue.getName());
+        NamedMap cache  = getCollectionCache(degue.getName());
         QueueKey   key    = new QueueKey(degue.getQueueNameHash(), 0L);
         String     sValue = "message-1";
 
@@ -765,7 +762,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldGetLastFromDequeInOrder(String sSerializer)
         {
         DequeType  deque    = getNewCollection(sSerializer);
-        NamedCache cache    = getCollectionCache(deque.getName());
+        NamedMap cache    = getCollectionCache(deque.getName());
         int        nHash    = deque.getQueueNameHash();
         String     sPrefix  = "message-";
         long       cMessage = 100L;
@@ -793,7 +790,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldGetLastFromDequeInOrderWithGaps(String sSerializer)
         {
         DequeType  deque    = getNewCollection(sSerializer);
-        NamedCache cache    = getCollectionCache(deque.getName());
+        NamedMap cache    = getCollectionCache(deque.getName());
         String     sPrefix  = "message-";
         long       cMessage = 100L;
         long       nId      = Math.abs(m_random.nextLong());
@@ -834,7 +831,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldPeekFirstAtDeque(String sSerializer)
         {
         DequeType  deque  = getNewCollection(sSerializer);
-        NamedCache cache  = getCollectionCache(deque.getName());
+        NamedMap cache  = getCollectionCache(deque.getName());
         QueueKey   key    = new QueueKey(deque.getQueueNameHash(), 0L);
         String     sValue = "message-1";
 
@@ -855,7 +852,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldPeekFirstFromDequeInOrder(String sSerializer)
         {
         DequeType  deque    = getNewCollection(sSerializer);
-        NamedCache cache    = getCollectionCache(deque.getName());
+        NamedMap cache    = getCollectionCache(deque.getName());
         int        nHash    = deque.getQueueNameHash();
         String     sPrefix  = "message-";
         long       cMessage = 100L;
@@ -883,7 +880,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldPeekFirstFromDequeInOrderWithGaps(String sSerializer)
         {
         DequeType  deque    = getNewCollection(sSerializer);
-        NamedCache cache    = getCollectionCache(deque.getName());
+        NamedMap cache    = getCollectionCache(deque.getName());
         String     sPrefix  = "message-";
         long       cMessage = 100L;
         long       nId      = Math.abs(m_random.nextLong());
@@ -924,7 +921,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldPeekLastAtDeque(String sSerializer)
         {
         DequeType  deque  = getNewCollection(sSerializer);
-        NamedCache cache  = getCollectionCache(deque.getName());
+        NamedMap cache  = getCollectionCache(deque.getName());
         QueueKey   key    = new QueueKey(deque.getQueueNameHash(), 0L);
         String     sValue = "message-1";
 
@@ -945,7 +942,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldPeekLastFromDequeInOrder(String sSerializer)
         {
         DequeType  deque    = getNewCollection(sSerializer);
-        NamedCache cache    = getCollectionCache(deque.getName());
+        NamedMap cache    = getCollectionCache(deque.getName());
         int        nHash    = deque.getQueueNameHash();
         String     sPrefix  = "message-";
         long       cMessage = 100L;
@@ -973,7 +970,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldPeekLastFromDequeInOrderWithGaps(String sSerializer)
         {
         DequeType  deque    = getNewCollection(sSerializer);
-        NamedCache cache    = getCollectionCache(deque.getName());
+        NamedMap cache    = getCollectionCache(deque.getName());
         String     sPrefix  = "message-";
         long       cMessage = 100L;
         long       nId      = Math.abs(m_random.nextLong());
@@ -1014,7 +1011,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldRemoveFirstOccurrenceFromDequeWithOneValue(String sSerializer)
         {
         DequeType  deque  = getNewCollection(sSerializer);
-        NamedCache cache  = getCollectionCache(deque.getName());
+        NamedMap cache  = getCollectionCache(deque.getName());
         QueueKey   key    = new QueueKey(deque.getQueueNameHash(), 0L);
         String     sValue = "foo";
 
@@ -1032,7 +1029,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldRemoveFirstOccurrenceFromDequeWithMultipleValue(String sSerializer)
         {
         DequeType  deque  = getNewCollection(sSerializer);
-        NamedCache cache  = getCollectionCache(deque.getName());
+        NamedMap cache  = getCollectionCache(deque.getName());
         QueueKey   key    = new QueueKey(deque.getQueueNameHash(), 0L);
 
         cache.put(key = key.next(), "One");
@@ -1068,7 +1065,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldRemoveLastOccurrenceFromDequeWithOneValue(String sSerializer)
         {
         DequeType  deque  = getNewCollection(sSerializer);
-        NamedCache cache  = getCollectionCache(deque.getName());
+        NamedMap cache  = getCollectionCache(deque.getName());
         QueueKey   key    = new QueueKey(deque.getQueueNameHash(), 0L);
         String     sValue = "foo";
 
@@ -1086,7 +1083,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldRemoveLastOccurrenceFromDequeWithMultipleValue(String sSerializer)
         {
         DequeType  deque  = getNewCollection(sSerializer);
-        NamedCache cache  = getCollectionCache(deque.getName());
+        NamedMap cache  = getCollectionCache(deque.getName());
         QueueKey   key    = new QueueKey(deque.getQueueNameHash(), 0L);
 
         cache.put(key = key.next(), "One");
@@ -1122,7 +1119,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
     public void shouldGetDescendingIteratorFromDequeInOrder(String sSerializer)
         {
         DequeType    deque    = getNewCollection(sSerializer);
-        NamedCache   cache    = getCollectionCache(deque.getName());
+        NamedMap   cache    = getCollectionCache(deque.getName());
         int          nHash    = deque.getQueueNameHash();
         String       sPrefix  = "message-";
         int          cMessage = (QueuePageIterator.DEFAULT_PAGE_SIZE * 2) + 5;

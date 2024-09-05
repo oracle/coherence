@@ -10,18 +10,19 @@ package com.tangosol.internal.net.queue;
 import com.tangosol.internal.net.queue.model.QueueKey;
 import com.tangosol.internal.net.queue.model.QueueOfferResult;
 import com.tangosol.internal.net.queue.model.QueuePollResult;
-
 import com.tangosol.internal.net.queue.processor.QueueOffer;
 import com.tangosol.internal.net.queue.processor.QueuePeek;
 import com.tangosol.internal.net.queue.processor.QueuePoll;
-
 import com.tangosol.internal.net.queue.processor.QueueRemove;
-import com.tangosol.net.NamedCache;
-import com.tangosol.net.NamedDeque;
+import com.tangosol.net.ExtensibleConfigurableCacheFactory;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.NamedQueue;
-
+import com.tangosol.net.Session;
+import com.tangosol.net.options.WithClassLoader;
+import com.tangosol.util.Binary;
 import com.tangosol.util.Extractors;
 import com.tangosol.util.Filters;
+import com.tangosol.util.NullImplementation;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -29,24 +30,51 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 
 /**
- * A {@link NamedQueue} implementation that wraps a {@link NamedCache}.
- *
- * @param <E> the type of elements held in this queue
+ * A {@link NamedQueue} implementation that wraps a {@link NamedMap}.
  */
-public class NamedCacheDeque<E>
-        extends NamedCacheQueue<E>
-        implements NamedDeque<E>
+@SuppressWarnings({"rawtypes", "unchecked"})
+public class BinaryNamedMapDeque
+        extends BinaryNamedMapQueue
+        implements NamedMapDeque<Binary, Binary>
     {
     /**
-     * Create a {@link NamedCacheDeque} that wrap s a {@link NamedCache}.
+     * Create a {@link BinaryNamedMapDeque} that wrap s a {@link NamedMap}.
+     *
+     * @param sName    the name of the cache to wrap
+     * @param session  the {@link Session} to obtain the underlying cache
+     *
+     * @throws NullPointerException      if either of the {@code name} or {@code cache} parameters is {@code null}
+     * @throws IllegalArgumentException  if the name is blank
+     */
+    public BinaryNamedMapDeque(String sName, Session session)
+        {
+        this(sName, session.getCache(sName, WithClassLoader.nullImplementation()));
+        }
+
+    /**
+     * Create a {@link BinaryNamedMapDeque} that wrap s a {@link NamedMap}.
      *
      * @param sName  the name of the cache to wrap
-     * @param cache  the {@link NamedCache} to wrap
+     * @param eccf   the {@link ExtensibleConfigurableCacheFactory} to obtain the underlying cache
+     *
+     * @throws NullPointerException      if either of the {@code name} or {@code cache} parameters is {@code null}
+     * @throws IllegalArgumentException  if the name is blank
+     */
+    public BinaryNamedMapDeque(String sName, ExtensibleConfigurableCacheFactory eccf)
+        {
+        this(sName, eccf.ensureCache(sName, NullImplementation.getClassLoader()));
+        }
+
+    /**
+     * Create a {@link BinaryNamedMapDeque} that wrap s a {@link NamedMap}.
+     *
+     * @param sName  the name of the cache to wrap
+     * @param cache  the {@link NamedMap} to wrap
      *
      * @throws NullPointerException      if either of the {@code name} or {@code service} parameters is {@code null}
      * @throws IllegalArgumentException  if the name is blank
      */
-    public NamedCacheDeque(String sName, NamedCache<QueueKey, E> cache)
+    public BinaryNamedMapDeque(String sName, NamedMap<Binary, Binary> cache)
         {
         super(Objects.requireNonNull(sName), Objects.requireNonNull(cache));
         }
@@ -54,7 +82,7 @@ public class NamedCacheDeque<E>
     // ----- NamedDeque methods ---------------------------------------------
 
     @Override
-    public long prepend(E e)
+    public long prepend(Binary e)
         {
         QueueOfferResult result = offerToHeadInternal(e);
         boolean fSuccess = result.getResult() == QueueOfferResult.RESULT_SUCCESS;
@@ -70,7 +98,7 @@ public class NamedCacheDeque<E>
         }
 
     @Override
-    public void addFirst(E e)
+    public void addFirst(Binary e)
         {
         QueueOfferResult result  = offerToHeadInternal(e);
         int              nStatus = result.getResult();
@@ -83,7 +111,7 @@ public class NamedCacheDeque<E>
         }
 
     @Override
-    public void addLast(E e)
+    public void addLast(Binary e)
         {
         QueueOfferResult result  = offerToTailInternal(e);
         int              nStatus = result.getResult();
@@ -96,7 +124,7 @@ public class NamedCacheDeque<E>
         }
 
     @Override
-    public boolean offerFirst(E e)
+    public boolean offerFirst(Binary e)
         {
         QueueOfferResult result = offerToHeadInternal(e);
         boolean fSuccess = result.getResult() == QueueOfferResult.RESULT_SUCCESS;
@@ -112,15 +140,15 @@ public class NamedCacheDeque<E>
         }
 
     @Override
-    public boolean offerLast(E e)
+    public boolean offerLast(Binary e)
         {
         return offer(e);
         }
 
     @Override
-    public E removeFirst()
+    public Binary removeFirst()
         {
-        E e = poll();
+        Binary e = poll();
         if (e == null)
             {
             throw new NoSuchElementException();
@@ -129,9 +157,9 @@ public class NamedCacheDeque<E>
         }
 
     @Override
-    public E removeLast()
+    public Binary removeLast()
         {
-        E e = pollLast();
+        Binary e = pollLast();
         if (e == null)
             {
             throw new NoSuchElementException();
@@ -140,17 +168,17 @@ public class NamedCacheDeque<E>
         }
 
     @Override
-    public E pollFirst()
+    public Binary pollFirst()
         {
         return poll();
         }
 
     @Override
-    public E pollLast()
+    public Binary pollLast()
         {
         QueuePollResult result = pollFromTailInternal();
-        E               oValue = result.getElement();
-        if (oValue == null)
+        Binary          binary = result.getBinaryElement();
+        if (binary == null)
             {
             m_statistics.registerMiss();
             }
@@ -158,13 +186,13 @@ public class NamedCacheDeque<E>
             {
             m_statistics.registerHit();
             }
-        return oValue;
+        return binary;
         }
 
     @Override
-    public E getFirst()
+    public Binary getFirst()
         {
-        E e = peek();
+        Binary e = peek();
         if (e == null)
             {
             throw new NoSuchElementException();
@@ -173,9 +201,9 @@ public class NamedCacheDeque<E>
         }
 
     @Override
-    public E getLast()
+    public Binary getLast()
         {
-        E e = peekLast();
+        Binary e = peekLast();
         if (e == null)
             {
             throw new NoSuchElementException();
@@ -184,17 +212,17 @@ public class NamedCacheDeque<E>
         }
 
     @Override
-    public E peekFirst()
+    public Binary peekFirst()
         {
         return peek();
         }
 
     @Override
-    public E peekLast()
+    public Binary peekLast()
         {
         QueuePollResult result = peekAtTailInternal();
-        E               oValue = result.getElement();
-        if (oValue == null)
+        Binary          binary = result.getBinaryElement();
+        if (binary == null)
             {
             m_statistics.registerMiss();
             }
@@ -202,59 +230,62 @@ public class NamedCacheDeque<E>
             {
             m_statistics.registerHit();
             }
-        return oValue;
+        return binary;
         }
 
     @Override
     public boolean removeFirstOccurrence(Object o)
         {
-        Map<QueueKey, Boolean> map = m_cache.invokeAll(Filters.equal(Extractors.identity(), o),
-                QueueRemove.removeFirst());
+        QueueRemove           remove = QueueRemove.removeFirst();
+        Map<QueueKey, Binary> map    = m_cache.invokeAll(Filters.equal(Extractors.identity(), o),
+                remove);
         if (map.isEmpty())
             {
             return false;
             }
-        return map.values().iterator().next();
+        return (Boolean) m_converterValueFromInternal.convert(map.values().iterator().next());
         }
 
     @Override
     public boolean removeLastOccurrence(Object o)
         {
-        Map<QueueKey, Boolean> map = m_cache.invokeAll(Filters.equal(Extractors.identity(), o),
-                QueueRemove.removeLast());
+        QueueRemove           remove = QueueRemove.removeLast();
+        Map<QueueKey, Binary> map    = m_cache.invokeAll(Filters.equal(Extractors.identity(), o), remove);
         if (map.isEmpty())
             {
             return false;
             }
-        return map.values().iterator().next();
+        return (Boolean) m_converterValueFromInternal.convert(map.values().iterator().next());
         }
 
     @Override
-    public void push(E e)
+    public void push(Binary e)
         {
         addFirst(e);
         }
 
     @Override
-    public E pop()
+    public Binary pop()
         {
         return removeFirst();
         }
 
     @Override
-    public Iterator<E> descendingIterator()
+    public Iterator<Binary> descendingIterator()
         {
-        return QueuePageIterator.tail(m_keyHead.getHash(), m_cache);
+        return BinaryQueuePageIterator.tail(m_keyHead.getHash(), m_cache);
         }
 
     // ----- helper methods -------------------------------------------------
 
-    protected QueueOfferResult offerToHeadInternal(E e)
+    protected QueueOfferResult offerToHeadInternal(Binary e)
         {
         long             lStart    = System.nanoTime();
-        QueueOffer<E>    processor = new QueueOffer<>(e);
-        QueueOfferResult result    = m_cache.invoke(m_keyHead.randomHead(), processor);
-        long                   lEnd      = System.nanoTime();
+        QueueOffer       processor = new QueueOffer<>(e);
+        Binary           binKey    = m_converterKeyToInternal.convert(m_keyHead.randomHead());
+        Binary           binary    = (Binary) m_cache.invoke(binKey, processor);
+        QueueOfferResult result    = (QueueOfferResult) m_converterValueFromInternal.convert(binary);
+        long             lEnd      = System.nanoTime();
         m_statistics.offered(lEnd - lStart);
         return result;
         }
@@ -262,18 +293,22 @@ public class NamedCacheDeque<E>
 
     protected QueuePollResult pollFromTailInternal()
         {
-        long            lStart  = System.nanoTime();
-        QueuePollResult result = m_cache.invoke(m_keyTail, QueuePoll.instance());
-        long            lEnd   = System.nanoTime();
+        long              lStart   = System.nanoTime();
+        QueuePoll       poll = QueuePoll.instance();
+        Binary binary   = (Binary) m_cache.invoke(m_binKeyTail, poll);
+        QueuePollResult   result    = (QueuePollResult) m_converterValueFromInternal.convert(binary);
+        long              lEnd     = System.nanoTime();
         m_statistics.polled(lEnd - lStart);
         return result;
         }
 
     protected QueuePollResult peekAtTailInternal()
         {
-        long            lStart = System.nanoTime();
-        QueuePollResult result = m_cache.invoke(m_keyTail, QueuePeek.instance());
-        long            lEnd   = System.nanoTime();
+        long             lStart = System.nanoTime();
+        QueuePeek        peek   = QueuePeek.instance();
+        Binary           binary = (Binary) m_cache.invoke(m_binKeyTail, peek);
+        QueuePollResult  result = (QueuePollResult) m_converterValueFromInternal.convert(binary);
+        long             lEnd   = System.nanoTime();
         m_statistics.polled(lEnd - lStart);
         return result;
         }

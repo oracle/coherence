@@ -13,11 +13,11 @@ import com.tangosol.coherence.config.builder.MapBuilder;
 import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.internal.net.queue.DefaultNamedQueueDependencies;
-import com.tangosol.internal.net.queue.NamedCacheDeque;
+import com.tangosol.internal.net.queue.NamedMapDeque;
 import com.tangosol.internal.net.queue.NamedQueueDependencies;
 
+import com.tangosol.internal.net.queue.SimpleNamedMapDeque;
 import com.tangosol.internal.net.queue.model.QueueKey;
-
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
@@ -26,16 +26,17 @@ import com.tangosol.net.NamedQueue;
 import com.tangosol.net.QueueService;
 import com.tangosol.net.Service;
 import com.tangosol.net.ValueTypeAssertion;
+import com.tangosol.net.cache.NearCache;
 
 /**
  * A {@link SimpleDequeScheme} is responsible for building a simple
- * {@link NamedCacheDeque} where the queue contents are stored in a
+ * {@link NamedMapDeque} where the queue contents are stored in a
  * single partition.
  */
 @SuppressWarnings("rawtypes")
 public class SimpleDequeScheme
         extends DistributedScheme
-        implements NamedQueueScheme<NamedCacheDeque>
+        implements NamedQueueScheme<NamedMapDeque>
     {
     // ----- constructors ---------------------------------------------------
 
@@ -63,7 +64,7 @@ public class SimpleDequeScheme
     @Override
     public <T extends NamedCollection> boolean realizes(Class<T> type)
         {
-        return type.isAssignableFrom(NamedCacheDeque.class);
+        return type.isAssignableFrom(NamedMapDeque.class);
         }
 
     @Override
@@ -79,16 +80,19 @@ public class SimpleDequeScheme
     // ----- ServiceScheme methods ------------------------------------------
 
     @Override
-    @SuppressWarnings("rawtypes")
-    public <V> NamedCacheDeque realize(ValueTypeAssertion<V> typeConstraint,
-                                               ParameterResolver resolver, Dependencies deps)
+    public <V> NamedMapDeque realize(ValueTypeAssertion<V> typeConstraint, ParameterResolver resolver, Dependencies deps)
         {
         ExtensibleConfigurableCacheFactory eccf =
                 (ExtensibleConfigurableCacheFactory) deps.getConfigurableCacheFactory();
 
         String                  sQueueName = deps.getCacheName();
         NamedCache<QueueKey, ?> cache      = eccf.ensureCache(sQueueName, null);
-        return new NamedCacheDeque<>(sQueueName, cache);
+        if (cache instanceof NearCache)
+            {
+            // optimize out the NearCache as we do not do plain gets for a queue
+            cache = ((NearCache<QueueKey, ?>) cache).getBackCache();
+            }
+        return new SimpleNamedMapDeque<>(sQueueName, cache);
         }
 
     // ----- helper methods -------------------------------------------------
@@ -152,4 +156,11 @@ public class SimpleDequeScheme
         {
         return new DefaultNamedQueueDependencies();
         }
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * A singleton instance of a {@link SimpleDequeScheme}.
+     */
+    public static final SimpleDequeScheme INSTANCE = new SimpleDequeScheme();
     }

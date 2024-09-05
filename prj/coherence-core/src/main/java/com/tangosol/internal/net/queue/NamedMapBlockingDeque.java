@@ -7,57 +7,44 @@
 
 package com.tangosol.internal.net.queue;
 
+import com.tangosol.internal.net.NamedMapCollection;
 import com.tangosol.internal.net.queue.model.QueueKey;
 
+import com.tangosol.net.CacheService;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedBlockingDeque;
-import com.tangosol.net.NamedCache;
-import com.tangosol.net.NamedDeque;
 import com.tangosol.net.NamedMap;
-import com.tangosol.net.NamedQueue;
 
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
-
 import com.tangosol.util.filter.AlwaysFilter;
 
 import java.util.Collection;
-import java.util.Objects;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * A {@link NamedBlockingDeque} implementation that wraps a {@link NamedCacheDeque}.
+ * A {@link NamedBlockingDeque} implementation that wraps a {@link NamedMapDeque}.
  *
  * @param <E> the type of elements held in this queue
  */
-public class NamedCacheBlockingDeque<E>
-        extends WrapperNamedCacheDeque<E>
-        implements NamedBlockingDeque<E>, MapListener<QueueKey, E>
+public class NamedMapBlockingDeque<K extends QueueKey, E>
+        extends WrapperNamedMapDeque<K, E>
+        implements NamedBlockingDeque<E>, MapListener<K, E>
     {
     /**
-     * Create a {@link NamedCacheBlockingDeque} that wrap s a {@link NamedCache}.
-     *
-     * @param sName  the name of this queue
-     * @param cache  the {@link NamedCache} to wrap
-     */
-    public NamedCacheBlockingDeque(String sName, NamedCache<QueueKey, E> cache)
-        {
-        this(sName, new NamedCacheDeque<>(sName, cache));
-        }
-
-    /**
-     * Create a {@link NamedCacheBlockingDeque} that delegates to
-     * the specified {@link NamedCacheDeque}.
+     * Create a {@link NamedMapBlockingDeque} that delegates to
+     * the specified {@link NamedMapDeque}.
      *
      * @param sName     the name of the deque
-     * @param delegate  the {@link NamedCacheDeque} to delegate to
+     * @param delegate  the {@link NamedMapDeque} to delegate to
      */
-    public NamedCacheBlockingDeque(String sName, NamedCacheDeque<E> delegate)
+    public NamedMapBlockingDeque(String sName, NamedMapDeque<K, E> delegate)
         {
         super(sName, delegate);
-        delegate.getCache().addMapListener(this, AlwaysFilter.INSTANCE(), true);
+        delegate.getNamedMap().addMapListener(this, AlwaysFilter.INSTANCE(), true);
         m_nHash = QueueKey.calculateQueueHash(delegate.getName());
         }
 
@@ -66,7 +53,7 @@ public class NamedCacheBlockingDeque<E>
     @Override
     public void release()
         {
-        f_delegate.getCache().removeMapListener(this);
+        f_delegate.getNamedMap().removeMapListener(this);
         super.release();
         }
 
@@ -372,8 +359,8 @@ public class NamedCacheBlockingDeque<E>
         {
         assertNotSameCollection(c, "Queue cannot be drained to the same underlying cache");
 
-        QueuePageIterator<E> iterator = QueuePageIterator.headPolling(m_nHash, getCache());
-        int                  cPolled  = 0;
+        QueuePageIterator<K, E> iterator = QueuePageIterator.headPolling(f_delegate::createKey, getNamedMap());
+        int                     cPolled  = 0;
         while (iterator.hasNext())
             {
             cPolled++;
@@ -387,8 +374,8 @@ public class NamedCacheBlockingDeque<E>
         {
         assertNotSameCollection(c, "Queue cannot be drained to the same underlying cache");
 
-        QueuePageIterator<E> iterator = QueuePageIterator.headPolling(m_nHash, getCache(), maxElements);
-        int                  cPolled  = 0;
+        QueuePageIterator<K, E> iterator = QueuePageIterator.headPolling(f_delegate::createKey, getNamedMap(), maxElements);
+        int                     cPolled  = 0;
         while (iterator.hasNext())
             {
             cPolled++;
@@ -400,7 +387,7 @@ public class NamedCacheBlockingDeque<E>
     // ----- MapListener methods --------------------------------------------
 
     @Override
-    public void entryInserted(MapEvent<QueueKey, E> evt)
+    public void entryInserted(MapEvent<K, E> evt)
         {
         m_lock.lock();
         try
@@ -414,12 +401,12 @@ public class NamedCacheBlockingDeque<E>
         }
 
     @Override
-    public void entryUpdated(MapEvent<QueueKey, E> evt)
+    public void entryUpdated(MapEvent<K, E> evt)
         {
         }
 
     @Override
-    public void entryDeleted(MapEvent<QueueKey, E> evt)
+    public void entryDeleted(MapEvent<K, E> evt)
         {
         m_lock.lock();
         try
@@ -439,18 +426,42 @@ public class NamedCacheBlockingDeque<E>
      *
      * @return the underlying cache
      */
-    public NamedMap<QueueKey, E> getCache()
+    public NamedMap<K, E> getNamedMap()
         {
-        return f_delegate.getCache();
+        return f_delegate.getNamedMap();
         }
 
     private void assertNotSameCollection(Collection<?> c, String sMsg)
         {
-        if (this.equals(Objects.requireNonNull(c)))
+        if (c == null)
+            {
+            throw new NullPointerException("target collection cannot be null");
+            }
+        if (this == c)
             {
             throw new IllegalArgumentException(sMsg);
             }
-        f_delegate.assertNotSameCollection(c, sMsg);
+        if (c instanceof NamedMapCollection)
+            {
+            NamedMap<K, E> mapThis  = f_delegate.getNamedMap();
+            NamedMap<?, ?> mapOther = ((NamedMapCollection<?, ?, ?>) c).getNamedMap();
+            if (mapThis.getName().equals(mapOther.getName()))
+                {
+                CacheService serviceThis  = mapThis.getService();
+                String       sNameThis    = serviceThis.getInfo().getServiceName();
+                CacheService serviceOther = mapOther.getService();
+                String       sNameOther   = serviceOther.getInfo().getServiceName();
+                if (sNameThis.equals(sNameOther))
+                    {
+                    ConfigurableCacheFactory ccfThis      = serviceThis.getBackingMapManager().getCacheFactory();
+                    ConfigurableCacheFactory ccfOther     = serviceOther.getBackingMapManager().getCacheFactory();
+                    if (ccfThis.equals(ccfOther))
+                        {
+                        throw new IllegalArgumentException(sMsg);
+                        }
+                    }
+                }
+            }
         }
 
     // ----- data members ---------------------------------------------------

@@ -9,11 +9,12 @@ package concurrent.queues;
 
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.concurrent.Queues;
-import com.tangosol.internal.net.queue.NamedCacheBlockingDeque;
-import com.tangosol.internal.net.queue.NamedCacheQueue;
+import com.tangosol.internal.net.queue.NamedMapBlockingDeque;
+import com.tangosol.internal.net.queue.NamedMapDeque;
+import com.tangosol.internal.net.queue.SimpleNamedMapDeque;
 import com.tangosol.internal.net.queue.model.QueueKey;
 import com.tangosol.net.NamedBlockingDeque;
-import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -46,7 +47,7 @@ public interface NamedBlockingDequeTests<DequeType extends NamedBlockingDeque>
         extends DequeTests<DequeType>
     {
     /**
-     * {@link NamedCacheBlockingDeque} that comes from the {@link Queues}
+     * {@link NamedMapBlockingDeque} that comes from the {@link Queues}
      * utility will have a different name to the cache.
      */
     @Test
@@ -79,7 +80,7 @@ public interface NamedBlockingDequeTests<DequeType extends NamedBlockingDeque>
 
         deque.putFirst(sValue);
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(1));
 
         Object oKey = cache.keySet().iterator().next();
@@ -108,7 +109,7 @@ public interface NamedBlockingDequeTests<DequeType extends NamedBlockingDeque>
             deque.putFirst(sValue);
             }
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(cMessage));
 
         TreeSet<QueueKey> setKey = (TreeSet<QueueKey>) new TreeSet<>(cache.keySet());
@@ -134,7 +135,7 @@ public interface NamedBlockingDequeTests<DequeType extends NamedBlockingDeque>
 
         deque.putLast(sValue);
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(1));
 
         Object oKey = cache.keySet().iterator().next();
@@ -163,7 +164,7 @@ public interface NamedBlockingDequeTests<DequeType extends NamedBlockingDeque>
             deque.putLast(sValue);
             }
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(cMessage));
 
         TreeSet<QueueKey> setKey = (TreeSet<QueueKey>) new TreeSet<>(cache.keySet());
@@ -204,7 +205,7 @@ public interface NamedBlockingDequeTests<DequeType extends NamedBlockingDeque>
 
         deque.put(sValue);
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(1));
 
         Object oKey = cache.keySet().iterator().next();
@@ -233,7 +234,7 @@ public interface NamedBlockingDequeTests<DequeType extends NamedBlockingDeque>
             deque.put(sValue);
             }
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(cMessage));
 
         TreeSet<QueueKey> setKey = (TreeSet<QueueKey>) new TreeSet<>(cache.keySet());
@@ -777,7 +778,7 @@ public interface NamedBlockingDequeTests<DequeType extends NamedBlockingDeque>
 
         assertThat(deque.offerFirst(sValue, 10, TimeUnit.SECONDS), is(true));
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(1));
 
         Object oKey = cache.keySet().iterator().next();
@@ -806,7 +807,7 @@ public interface NamedBlockingDequeTests<DequeType extends NamedBlockingDeque>
             assertThat(deque.offerFirst(sValue, 10, TimeUnit.SECONDS), is(true));
             }
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(cMessage));
 
         TreeSet<QueueKey> setKey = (TreeSet<QueueKey>) new TreeSet<>(cache.keySet());
@@ -832,7 +833,7 @@ public interface NamedBlockingDequeTests<DequeType extends NamedBlockingDeque>
 
         assertThat(deque.offerLast(sValue, 10, TimeUnit.SECONDS), is(true));
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(1));
 
         Object oKey = cache.keySet().iterator().next();
@@ -861,7 +862,7 @@ public interface NamedBlockingDequeTests<DequeType extends NamedBlockingDeque>
             assertThat(deque.offerLast(sValue, 10, TimeUnit.SECONDS), is(true));
             }
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(cMessage));
 
         TreeSet<QueueKey> setKey = (TreeSet<QueueKey>) new TreeSet<>(cache.keySet());
@@ -905,7 +906,7 @@ public interface NamedBlockingDequeTests<DequeType extends NamedBlockingDeque>
 
         assertThat(deque.offerLast(sValue, 10, TimeUnit.SECONDS), is(true));
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(1));
 
         Object oKey = cache.keySet().iterator().next();
@@ -934,7 +935,7 @@ public interface NamedBlockingDequeTests<DequeType extends NamedBlockingDeque>
             assertThat(deque.offerLast(sValue, 10, TimeUnit.SECONDS), is(true));
             }
 
-        NamedCache<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(cMessage));
 
         TreeSet<QueueKey> setKey = (TreeSet<QueueKey>) new TreeSet<>(cache.keySet());
@@ -962,9 +963,9 @@ public interface NamedBlockingDequeTests<DequeType extends NamedBlockingDeque>
     @Test
     default void shouldNotDrainToSameCache()
         {
-        DequeType       deque = getNewCollection();
-        NamedCache      cache = getCollectionCache(deque.getName());
-        NamedCacheQueue queue = new NamedCacheQueue("foo", cache);
+        DequeType     deque = getNewCollection();
+        NamedMap      cache = getCollectionBinaryCache(deque);
+        NamedMapDeque queue = new SimpleNamedMapDeque("foo", cache);
         Assertions.assertThrows(IllegalArgumentException.class, () -> deque.drainTo(queue));
         }
 
@@ -979,9 +980,9 @@ public interface NamedBlockingDequeTests<DequeType extends NamedBlockingDeque>
     @Test
     default void shouldNotDrainMaxToSameCache()
         {
-        DequeType       deque = getNewCollection();
-        NamedCache      cache = getCollectionCache(deque.getName());
-        NamedCacheQueue queue = new NamedCacheQueue("foo", cache);
+        DequeType     deque = getNewCollection();
+        NamedMap      cache = getCollectionCache(deque.getName());
+        NamedMapDeque queue = new SimpleNamedMapDeque("foo", cache);
         Assertions.assertThrows(IllegalArgumentException.class, () -> deque.drainTo(queue, 100));
         }
 

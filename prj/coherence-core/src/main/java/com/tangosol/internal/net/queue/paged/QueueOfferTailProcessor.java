@@ -121,17 +121,18 @@ public class QueueOfferTailProcessor
             PagedQueueKey key          = new PagedQueueKey(bucketId, tailId);
             Binary        binKey       = (Binary) keyConverter.convert(key);
             BinaryEntry   elementEntry = (BinaryEntry) elementMapContext.getBackingMapEntry(binKey);
+            long          nSize        = entrySize(binKey, m_binElement);
 
-            if (exceedsSizeLimit(elementEntry, binKey, m_binElement, bucket.getMaxCapacity()))
-                {
-                bucket.setAcceptingOffers(false);
-                nResult = QueueOfferResult.RESULT_FAILED_RETRY;
-                }
-            else
+            if (bucket.increaseBytesUsed(nSize))
                 {
                 elementEntry.updateBinaryValue(m_binElement);
                 bucket.setTail(tailId);
                 nResult = QueueOfferResult.RESULT_SUCCESS;
+                }
+            else
+                {
+                bucket.setAcceptingOffers(false);
+                nResult = QueueOfferResult.RESULT_FAILED_RETRY;
                 }
             }
         else

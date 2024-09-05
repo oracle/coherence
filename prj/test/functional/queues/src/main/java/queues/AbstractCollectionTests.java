@@ -9,13 +9,16 @@ package queues;
 
 import com.oracle.coherence.common.util.Threads;
 import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
+import com.tangosol.internal.net.queue.NamedMapQueue;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.pof.ConfigurablePofContext;
-import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedCollection;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
 
+import com.tangosol.net.options.WithClassLoader;
+import com.tangosol.util.Binary;
 import org.junit.ClassRule;
 import org.junit.jupiter.api.AfterEach;
 
@@ -71,15 +74,31 @@ public abstract class AbstractCollectionTests<NC extends NamedCollection, C exte
     public abstract C getCollection(Session session, String sName);
 
     @Override
-    public NamedCache getCollectionCache(NC col)
+    public NamedMap getCollectionCache(NC col)
         {
+        if (col instanceof NamedMapQueue)
+            {
+            return ((NamedMapQueue) col).getNamedMap();
+            }
         return getCollectionCache(col.getName());
         }
 
     @Override
-    public NamedCache getCollectionCache(String sName)
+    public NamedMap getCollectionCache(String sName)
         {
         return getSession().getCache(sName);
+        }
+
+    @Override
+    public NamedMap<Binary, Binary> getCollectionBinaryCache(NC col)
+        {
+        return getCollectionBinaryCache(col.getName());
+        }
+
+    @Override
+    public NamedMap<Binary, Binary> getCollectionBinaryCache(String sName)
+        {
+        return getSession().getCache(sName, WithClassLoader.nullImplementation());
         }
 
     @AfterEach
@@ -179,7 +198,7 @@ public abstract class AbstractCollectionTests<NC extends NamedCollection, C exte
         String sName = getNewName();
         NC     queue = getNamedCollection(sName);
         assertThat(queue.isActive(), is(true));
-        NamedCache<?, ?> cache = getCollectionCache(sName);
+        NamedMap<?, ?> cache = getCollectionCache(queue);
         cache.release();
         assertThat(queue.isActive(), is(cache.isActive()));
         }
@@ -192,7 +211,7 @@ public abstract class AbstractCollectionTests<NC extends NamedCollection, C exte
 
         assertThat(collection.isReleased(), is(false));
 
-        NamedCache<?, ?> cache = getCollectionCache(sName);
+        NamedMap<?, ?> cache = getCollectionCache(collection);
         assertThat(cache.isReleased(), is(false));
 
         collection.release();
@@ -211,7 +230,7 @@ public abstract class AbstractCollectionTests<NC extends NamedCollection, C exte
 
         assertThat(collection.isReleased(), is(false));
 
-        NamedCache<?, ?> cache = getCollectionCache(sName);
+        NamedMap<?, ?> cache = getCollectionCache(collection);
         assertThat(cache.isReleased(), is(false));
 
         collection.close();
@@ -229,7 +248,7 @@ public abstract class AbstractCollectionTests<NC extends NamedCollection, C exte
         NC     queue = getNamedCollection(sName);
         assertThat(queue.isDestroyed(), is(false));
 
-        NamedCache<?, ?> cache = getCollectionCache(sName);
+        NamedMap<?, ?> cache = getCollectionCache(queue);
         assertThat(cache.isDestroyed(), is(false));
 
         queue.destroy();
@@ -261,7 +280,7 @@ public abstract class AbstractCollectionTests<NC extends NamedCollection, C exte
     public void shouldAddToCollection(String sSerializer)
         {
         Collection collection = getNewCollection(sSerializer);
-        NamedCache cache      = getCollectionCache(getCurrentName(sSerializer));
+        NamedMap   cache      = getCollectionCache(getCurrentName(sSerializer));
         String     sMessage   = "message-1";
 
         assertThat(collection.add(sMessage), is(true));

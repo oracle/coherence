@@ -193,9 +193,9 @@ public abstract class BasePollPeekProcessor
         BackingMapContext        backingMapContext = binaryEntry.getBackingMapContext();
         String                   elementCacheName  = PagedQueueCacheNames.Elements.getCacheName(backingMapContext);
         BackingMapContext        elementMapContext = context.getBackingMapContext(elementCacheName);
-        Converter     keyConverter = context.getKeyToInternalConverter();
-        PagedQueueKey queueKey     = firstQueueKey(bucket);
-        Binary        binaryKey    = (Binary) keyConverter.convert(queueKey);
+        Converter                keyConverter      = context.getKeyToInternalConverter();
+        PagedQueueKey            queueKey          = firstQueueKey(bucket);
+        Binary                   binaryKey         = (Binary) keyConverter.convert(queueKey);
         BinaryEntry              elementEntry      = (BinaryEntry) elementMapContext.getBackingMapEntry(binaryKey);
 
         while (!elementEntry.isPresent())
@@ -217,6 +217,9 @@ public abstract class BasePollPeekProcessor
 
         if (m_fPoll)
             {
+            Binary binKey = elementEntry.getBinaryKey();
+            long   nSize  = entrySize(binKey, binElement);
+            bucket.decreaseBytesUsed(nSize);
             elementEntry.remove(false);
             poll(bucket, queueKey);
             }

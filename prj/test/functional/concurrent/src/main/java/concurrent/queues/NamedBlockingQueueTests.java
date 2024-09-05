@@ -9,10 +9,11 @@ package concurrent.queues;
 
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.concurrent.Queues;
-import com.tangosol.internal.net.queue.NamedCacheBlockingQueue;
-import com.tangosol.internal.net.queue.NamedCacheQueue;
+import com.tangosol.internal.net.queue.NamedMapBlockingQueue;
+import com.tangosol.internal.net.queue.NamedMapQueue;
+import com.tangosol.internal.net.queue.SimpleNamedMapQueue;
 import com.tangosol.net.NamedBlockingQueue;
-import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -44,7 +45,7 @@ public interface NamedBlockingQueueTests<QueueType extends NamedBlockingQueue>
         extends QueueTests<QueueType>
     {
     /**
-     * {@link NamedCacheBlockingQueue} that comes from the {@link Queues}
+     * {@link NamedMapBlockingQueue} that comes from the {@link Queues}
      * utility will have a different name to the cache.
      */
     @Test
@@ -81,7 +82,7 @@ public interface NamedBlockingQueueTests<QueueType extends NamedBlockingQueue>
 
         queue.put(sValue);
 
-        NamedCache<?, ?> cache = getCollectionCache(queue.getName());
+        NamedMap<?, ?> cache = getCollectionCache(queue.getName());
         assertThat(cache.size(), is(1));
 
         Object oKey   = cache.keySet().iterator().next();
@@ -103,7 +104,7 @@ public interface NamedBlockingQueueTests<QueueType extends NamedBlockingQueue>
             queue.put(sValue);
             }
 
-        NamedCache<?, ?> cache = getCollectionCache(queue.getName());
+        NamedMap<?, ?> cache = getCollectionCache(queue.getName());
         assertThat(cache.size(), is(cMessage));
 
         TreeSet<?> setKey = new TreeSet<>(cache.keySet());
@@ -306,9 +307,9 @@ public interface NamedBlockingQueueTests<QueueType extends NamedBlockingQueue>
     @Test
     default void shouldNotDrainToSameCache()
         {
-        QueueType       queue = getNewCollection();
-        NamedCache      cache = getCollectionCache(queue.getName());
-        NamedCacheQueue ncq   = new NamedCacheQueue("foo", cache);
+        QueueType     queue = getNewCollection();
+        NamedMap      cache = getCollectionCache(queue.getName());
+        NamedMapQueue ncq   = new SimpleNamedMapQueue("foo", cache);
         Assertions.assertThrows(IllegalArgumentException.class, () -> queue.drainTo(ncq));
         }
 
@@ -323,9 +324,9 @@ public interface NamedBlockingQueueTests<QueueType extends NamedBlockingQueue>
     @Test
     default void shouldNotDrainMaxToSameCache()
         {
-        QueueType       queue = getNewCollection();
-        NamedCache      cache = getCollectionCache(queue.getName());
-        NamedCacheQueue ncq   = new NamedCacheQueue("foo", cache);
+        QueueType     queue = getNewCollection();
+        NamedMap      cache = getCollectionCache(queue.getName());
+        NamedMapQueue ncq   = new SimpleNamedMapQueue("foo", cache);
         Assertions.assertThrows(IllegalArgumentException.class, () -> queue.drainTo(ncq, 100));
         }
 
