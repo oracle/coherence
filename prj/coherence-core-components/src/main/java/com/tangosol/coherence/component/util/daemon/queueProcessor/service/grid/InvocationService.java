@@ -531,6 +531,15 @@ public class InvocationService
         {
         __m_PendingProcess = map;
         }
+        
+    /**
+     * @return the description of the service
+     */
+    @Override
+    public String getDescription()
+        {
+        return super.getDescription() + ", Serializer=" + getSerializer().getName();
+        }
 
     // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.InvocationService$InvocationMessage
     

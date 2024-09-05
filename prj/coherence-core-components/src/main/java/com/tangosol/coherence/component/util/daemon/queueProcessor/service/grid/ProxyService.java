@@ -1328,6 +1328,15 @@ public class ProxyService
         
         return false;
         }
+
+    /**
+     * @return the description of the service
+     */
+    @Override
+    public String getDescription()
+        {
+        return super.getDescription() + ", Serializer=" + getSerializer().getName();
+        }
     
     // From interface: com.tangosol.net.Session
     public boolean isTopicActive(String Param_1, ClassLoader Param_2)
