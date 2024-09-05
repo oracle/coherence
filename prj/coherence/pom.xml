@@ -257,14 +257,6 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- jakarta.activation -->
-    <dependency>
-      <groupId>com.sun.activation</groupId>
-      <artifactId>jakarta.activation</artifactId>
-      <version>${jakarta.activation.version}</version>
-      <optional>true</optional>
-    </dependency>
-
     <!--
     Bedrock is temporarily here to force a download of snapshot dependencies,
     which the two-step Coherence CI builds will not do.

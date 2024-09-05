@@ -65,6 +65,7 @@ import com.tangosol.util.filter.MapEventFilter;
 import com.tangosol.util.listener.SimpleMapListener;
 import com.tangosol.util.processor.ExtractorProcessor;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;

@@ -22,7 +22,7 @@ class NamedCacheClientIT
             .setProperty("coherence.ttl", "0")
             .setProperty("coherence.wka", "127.0.0.1")
             .setProperty("coherence.localhost", "127.0.0.1")
-            .setProperty("coherence.clustername", "NamedCacheClientIT")
+            .setProperty("coherence.cluster", "NamedCacheClientIT")
             .setProperty("coherence.override", "coherence-json-override.xml")
             .setProperty("coherence.pof.config", "test-pof-config.xml")
             .setProperty("coherence.cacheconfig", "coherence-config.xml");

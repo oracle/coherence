@@ -67,26 +67,27 @@ public class GrpcClientFailoverTests
                 .include(3, CoherenceClusterMember.class, LocalStorage.enabled(),
                         ClusterName.of(CLUSTER_NAME),
                         WellKnownAddress.loopback(),
-                        LocalHost.only(),
+                        LocalHost.loopback(),
                         LaunchLogging.disabled(),
                         CacheConfig.of("coherence-cache-config.xml"),
                         DisplayName.of("storage"),
-                        StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()),
+                        StabilityPredicate.of(CoherenceCluster.Predicates.isReady()),
                         RoleName.of("storage"),
                         Logging.atFinest(),
                         s_testLogs);
 
         try (CoherenceCluster cluster = builder.build())
             {
-            Session                  session = s_coherence.getSession();
-            NamedMap<String, String> map     = session.getMap("test");
-            String                   sKey    = "key-1";
-            String                   sValue  = "value-1";
+            try (Session session = s_coherence.getSession())
+                {
+                NamedMap<String, String> map     = session.getMap("test");
+                String                   sKey    = "key-1";
+                String                   sValue  = "value-1";
 
-            map.put(sKey, sValue);
-            assertThat(map.get(sKey), is(sValue));
+                map.put(sKey, sValue);
+                assertThat(map.get(sKey), is(sValue));
 
-            RetryingCacheGet<String, String> retryingCacheGet = new RetryingCacheGet<>(map, sKey);
+                RetryingCacheGet<String, String> retryingCacheGet = new RetryingCacheGet<>(map, sKey);
 
 //            try (Concurrent.Assertion assertion = Concurrently.assertThat(retryingCacheGet, is(sValue)))
 //                {
@@ -97,8 +98,8 @@ public class GrpcClientFailoverTests
 
 //                assertion.check();
 //                }
-
-            assertThat(map.get(sKey), is(sValue));
+                assertThat(map.get(sKey), is(sValue));
+                }
             }
         }
 

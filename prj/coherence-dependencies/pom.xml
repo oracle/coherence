@@ -166,7 +166,15 @@
     <graal.version>19.3.1</graal.version>
     <!-- the tag of the Graal image at ghcr.io/graalvm/graalvm-ce -->
     <graal.image.tag>ol8-java17-22.1.0</graal.image.tag>
-    <grpc.version>1.60.0</grpc.version>
+    <grpc.version>1.66.0</grpc.version>
+    <!--
+    This is a workaround for the fact that newer versions of the gRPC ProtoBuf compiler do not work on
+    Oracle Linux 7 so the builds fail in RQ and Jenkins.
+    Ideally this version should really be the same as the grpc.version property above, but it seems we
+    are stuck on this version.
+    This is only used for gRPC code generation at build time, it is not a runtime dependency.
+     -->
+    <grpc.protoc.version>1.62.2</grpc.protoc.version>
     <!--
     NOTE: changing this version may mean updating other dependencies to match versions that Helidon uses:
     eclipse.mp.config.version
@@ -177,7 +185,7 @@
     This is not always possible if we need to bump versions for CVE's
     -->
     <!-- When running tests with Java 21 we will use Helidon 4 -->
-    <helidon.version.4>4.1.0</helidon.version.4>
+    <helidon.version.4>4.1.1</helidon.version.4>
     <!-- When running tests with Java 17 we will use Helidon 3 (this will be set using the helidon3 profile) -->
     <helidon.version.3>3.2.9</helidon.version.3>
     <!-- This is the property that sets the version used by other modules (we default to Helidon 4) -->
@@ -191,7 +199,7 @@
     <jacoco.version>0.8.11</jacoco.version>
     <jaeger.version>1.8.1</jaeger.version>
     <!-- NOTE: these Jakarta versions should ideally be in sync' with that used by Helidon -->
-    <jakarta.activation.version>2.0.1</jakarta.activation.version>
+    <jakarta.activation.version>2.1.3</jakarta.activation.version>
     <jakarta.annotation.version>2.1.1</jakarta.annotation.version>
     <jakarta.enterprise.cdi.version>4.0.1</jakarta.enterprise.cdi.version>
     <jakarta.inject.version>2.0.1</jakarta.inject.version>
@@ -218,7 +226,7 @@
     <jaxb-impl.version>4.0.3</jaxb-impl.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
-    <jersey.version>3.1.5</jersey.version>
+    <jersey.version>3.1.7</jersey.version>
     <jettison.version>1.5.4</jettison.version>
     <jhdf.version>0.7.0-alpha</jhdf.version>
     <jline.version>3.25.0</jline.version>
@@ -227,7 +235,7 @@
     <micrometer.version>1.11.3</micrometer.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
-    <netty.version>4.1.108.Final</netty.version>
+    <netty.version>4.1.111.Final</netty.version>
     <opentelemetry.version>1.29.0</opentelemetry.version>
     <opentelemetry.proto.version>1.0.0-alpha</opentelemetry.proto.version>
     <opentracing.grpc.version>0.2.3</opentracing.grpc.version>
@@ -236,7 +244,7 @@
     <oracle.db.version>11.2.0.3.0</oracle.db.version>
     <!-- make sure this version of parsson-media is in sync with Helidon -->
     <parsson-media.version>1.1.5</parsson-media.version>
-    <protobuf.version>3.21.12</protobuf.version>
+    <protobuf.version>3.25.4</protobuf.version>
     <resin.version>3.0</resin.version>
     <rxjava.version>3.0.2</rxjava.version>
     <sdoapi.version>12.2.0.1.0</sdoapi.version>
@@ -1095,7 +1103,7 @@
           <configuration>
             <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
             <pluginId>grpc-java</pluginId>
-            <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
+            <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.protoc.version}:exe:${os.detected.classifier}</pluginArtifact>
           </configuration>
         </plugin>
 

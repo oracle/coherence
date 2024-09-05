@@ -22,11 +22,15 @@ import com.tangosol.net.OperationalContext;
 
 import com.tangosol.net.grpc.GrpcChannelDependencies;
 
+import com.tangosol.net.grpc.GrpcDependencies;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ChannelCredentials;
 import io.grpc.ClientCall;
 import io.grpc.EquivalentAddressGroup;
+import io.grpc.ForwardingClientCall;
+import io.grpc.ForwardingClientCallListener;
+import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.NameResolver;
 import io.grpc.Status;
@@ -35,14 +39,17 @@ import io.helidon.common.tls.TlsConfig;
 
 import io.helidon.http.HeaderNames;
 
-import io.helidon.webclient.api.WebClient;
-import io.helidon.webclient.api.WebClientConfig;
+import io.helidon.webclient.grpc.GrpcClient;
+import io.helidon.webclient.grpc.GrpcClientConfig;
+import io.helidon.webclient.grpc.GrpcClientProtocolConfig;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
+
+import java.time.Duration;
 
 import java.util.Collections;
 import java.util.List;
@@ -74,21 +81,25 @@ public class HelidonGrpcChannelFactory
     @Override
     public Channel getChannel(GrpcRemoteService<?> service)
         {
-        RemoteGrpcServiceDependencies depsService = service.getDependencies();
-        OperationalContext            ctx         = (OperationalContext) service.getCluster();
-        String                        sService    = service.getServiceName();
+        RemoteGrpcServiceDependencies depsService    = service.getDependencies();
+        OperationalContext            ctx            = (OperationalContext) service.getCluster();
+        String                        sService       = service.getServiceName();
         String                        sKey           = GrpcServiceInfo.createKey(service);
         String                        sRemoteService = depsService.getRemoteServiceName();
         String                        sRemoteCluster = depsService.getRemoteClusterName();
         GrpcChannelDependencies       depsChannel    = depsService.getChannelDependencies();
         GrpcServiceInfo               info           = new GrpcServiceInfo(ctx, sService, sRemoteService, sRemoteCluster, depsChannel);
 
+        long nDeadline = depsService.getDeadline();
+        if (nDeadline <= 0)
+            {
+            nDeadline = GrpcDependencies.DEFAULT_DEADLINE_MILLIS;
+            }
+
         m_mapServiceInfo.put(sKey, info);
 
         AddressProviderNameResolver resolver = new AddressProviderNameResolver(depsChannel, info, null);
-        ChannelWrapper              wrapper  = new ChannelWrapper();
-
-        resolver.start(wrapper.getListener());
+        ChannelWrapper              wrapper  = new ChannelWrapper(resolver, nDeadline);
 
         HelidonCredentialsHelper.createTlsConfig(depsChannel.getSocketProviderBuilder())
                 .ifPresent(wrapper::tlsConfig);
@@ -116,16 +127,59 @@ public class HelidonGrpcChannelFactory
     protected static class ChannelWrapper
             extends Channel
         {
-        public ChannelWrapper()
+        public ChannelWrapper(AddressProviderNameResolver resolver, long nDeadline)
             {
-            m_listener = new Listener();
+            m_listener  = new Listener();
+            m_resolver  = resolver;
+            m_nDeadline = nDeadline;
             }
 
         @Override
         public <RequestT, ResponseT> ClientCall<RequestT, ResponseT>
                 newCall(MethodDescriptor<RequestT, ResponseT> descriptor, CallOptions options)
             {
-            return ensureChannel().newCall(descriptor, options);
+            ClientCall<RequestT, ResponseT> call = ensureChannel().newCall(descriptor, options);
+            return new ForwardingClientCall<>()
+                {
+                @Override
+                public void start(Listener<ResponseT> listener, Metadata headers)
+                    {
+                    Listener<ResponseT> forwardingListener = new ForwardingClientCallListener<>()
+                        {
+                        @Override
+                        protected Listener<ResponseT> delegate()
+                            {
+                            return listener;
+                            }
+
+                        @Override
+                        public void onClose(Status status, Metadata trailers)
+                            {
+                            super.onClose(status, trailers);
+                            Channel channel = m_channel;
+                            f_lock.lock();
+                            try
+                                {
+                                if (channel != null && channel == m_channel)
+                                    {
+                                    m_channel = null;
+                                    }
+                                }
+                            finally
+                                {
+                                f_lock.unlock();
+                                }
+                            }
+                        };
+                    super.start(forwardingListener, headers);
+                    }
+
+                @Override
+                protected ClientCall<RequestT, ResponseT> delegate()
+                    {
+                    return call;
+                    }
+                };
             }
 
         @Override
@@ -149,7 +203,7 @@ public class HelidonGrpcChannelFactory
         protected Channel ensureChannel()
             {
             Channel channel = m_channel;
-            if (channel == null)
+            if (m_channel == null)
                 {
                 f_lock.lock();
                 try
@@ -157,13 +211,21 @@ public class HelidonGrpcChannelFactory
                     channel = m_channel;
                     if (channel == null)
                         {
+                        m_resolver.start(m_listener);
                         URI uri = m_listAddress.stream()
-                                            .map(this::toURI)
-                                            .filter(Objects::nonNull)
-                                            .findFirst()
-                                            .orElseThrow(() -> new IllegalStateException("No remote addresses are available"));
+                                .map(this::toURI)
+                                .filter(Objects::nonNull)
+                                .findFirst()
+                                .orElseThrow(() -> new IllegalStateException("No remote addresses are available"));
 
-                        WebClientConfig.Builder builder = WebClient.builder()
+                        GrpcClientProtocolConfig config = GrpcClientProtocolConfig.builder()
+                                .pollWaitTime(Duration.ofSeconds(10))
+                                .heartbeatPeriod(Duration.ofSeconds(5))
+                                .abortPollTimeExpired(false)
+                                .build();
+
+                        GrpcClientConfig.Builder builder = GrpcClient.builder()
+                                .protocolConfig(config)
                                 .baseUri(uri)
                                 .addHeader(HeaderNames.USER_AGENT, "Coherence Java Client");
 
@@ -172,11 +234,8 @@ public class HelidonGrpcChannelFactory
                             builder.tls(m_tlsConfig);
                             }
 
-throw new UnsupportedOperationException("Implement me!");
-//                        WebClient  webClient = builder.build();
-//                        GrpcClient client    = webClient.client(GrpcClient.PROTOCOL);
-//
-//                        channel = m_channel = client.channel();
+                        GrpcClient client = builder.build();
+                        channel = m_channel = client.channel();
                         }
                     }
                 finally
@@ -266,6 +325,11 @@ throw new UnsupportedOperationException("Implement me!");
         // ----- data members -----------------------------------------------
 
         /**
+         * The endpoint address resolver.
+         */
+        private final AddressProviderNameResolver m_resolver;
+
+        /**
          * The {@link Listener} to receive name service lookup results.
          */
         private final Listener m_listener;
@@ -299,5 +363,7 @@ throw new UnsupportedOperationException("Implement me!");
          * The list of addresses resolved by the name service.
          */
         private List<EquivalentAddressGroup> m_listAddress = Collections.emptyList();
+
+        private long m_nDeadline = GrpcDependencies.DEFAULT_DEADLINE_MILLIS;
         }
     }
