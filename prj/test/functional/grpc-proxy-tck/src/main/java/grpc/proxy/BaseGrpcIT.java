@@ -114,7 +114,8 @@ public abstract class BaseGrpcIT
                 }
             });
 
-        CoherenceConfiguration.Builder builder = CoherenceConfiguration.builder();
+        CoherenceConfiguration.Builder builder = CoherenceConfiguration.builder()
+                .discoverSessions();
 
         Arrays.stream(getTestScopeNames())
                 .filter(Objects::nonNull)

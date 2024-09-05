@@ -610,6 +610,68 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
         assertThat(array, is(expected));
         }
 
+    // ----- test clear() method --------------------------------------------
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldClearQueue(String sSerializer)
+        {
+        QueueType queue  = getNewCollection(sSerializer);
+        String    sValue = "message-1";
+        assertThat(queue.offer(sValue), is(true));
+
+        queue.clear();
+        assertThat(queue.isEmpty(), is(true));
+        assertThat(queue.size(), is(0));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldClearLargeQueue(String sSerializer)
+        {
+        QueueType queue  = getNewCollection(sSerializer);
+        int       oneMB  = 1024 * 1024;
+        String    sValue = Randoms.getRandomString(oneMB, oneMB, true);
+
+        for (int i = 0; i < 30; i++)
+            {
+            assertThat(queue.offer(sValue), is(true));
+            }
+
+        queue.clear();
+        assertThat(queue.isEmpty(), is(true));
+        assertThat(queue.size(), is(0));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldOfferAndPollAfterClearingLargeQueue(String sSerializer)
+        {
+        QueueType queue  = getNewCollection(sSerializer);
+        int       oneMB  = 1024 * 1024;
+        String    sValue = Randoms.getRandomString(oneMB, oneMB, true);
+        int       nCount = 33;
+
+        for (int i = 0; i < nCount; i++)
+            {
+            assertThat(queue.offer(sValue), is(true));
+            }
+
+        queue.clear();
+        assertThat(queue.isEmpty(), is(true));
+        assertThat(queue.size(), is(0));
+
+        for (int i = 0; i < nCount; i++)
+            {
+            assertThat(queue.offer("message-" + i), is(true));
+            }
+
+        for (int i = 0; i < nCount; i++)
+            {
+            assertThat(queue.poll(), is("message-" + i));
+            }
+        }
+
     // ----- inner class: OfferRunnable -------------------------------------
 
     /**

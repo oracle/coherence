@@ -84,6 +84,12 @@ public class BinaryPagedNamedQueue
     // ----- BaseNamedCacheQueue methods ------------------------------------
 
     @Override
+    public void clear()
+        {
+        m_bucketCache.invokeAll((InvocableMap.EntryProcessor) new ClearQueueProcessor());
+        }
+
+    @Override
     public void release()
         {
         super.release();

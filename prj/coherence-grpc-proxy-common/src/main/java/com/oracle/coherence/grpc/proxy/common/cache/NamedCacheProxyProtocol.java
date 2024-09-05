@@ -8,13 +8,7 @@
 package com.oracle.coherence.grpc.proxy.common.cache;
 
 import com.google.protobuf.Any;
-import com.google.protobuf.BoolValue;
-import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
-import com.google.protobuf.Int32Value;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.Message;
-import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.GrpcService;
 import com.oracle.coherence.grpc.NamedCacheProtocol;
@@ -37,14 +31,12 @@ import com.oracle.coherence.grpc.messages.cache.v1.ResponseType;
 import com.oracle.coherence.grpc.messages.common.v1.BinaryKeyAndValue;
 import com.oracle.coherence.grpc.messages.common.v1.CollectionOfBytesValues;
 import com.oracle.coherence.grpc.messages.common.v1.OptionalValue;
-import com.oracle.coherence.grpc.messages.proxy.v1.InitRequest;
 
-import com.tangosol.application.ContainerContext;
-import com.tangosol.application.Context;
+import com.oracle.coherence.grpc.messages.proxy.v1.InitRequest;
+import com.oracle.coherence.grpc.proxy.common.BaseProxyProtocol;
 import com.tangosol.coherence.component.net.extend.Channel;
 import com.tangosol.coherence.component.net.extend.Connection;
 
-import com.tangosol.coherence.component.net.extend.message.Request;
 import com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory;
 import com.tangosol.coherence.component.net.extend.proxy.NamedCacheProxy;
 import com.tangosol.coherence.component.net.extend.proxy.serviceProxy.CacheServiceProxy;
@@ -59,13 +51,11 @@ import com.tangosol.internal.util.processor.CacheProcessors;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.AsyncNamedCache;
-import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.CacheMap;
 
 import com.tangosol.net.messaging.ConnectionManager;
-import com.tangosol.net.messaging.Response;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
@@ -75,9 +65,9 @@ import com.tangosol.util.LongArray;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapTrigger;
 import com.tangosol.util.SimpleMapEntry;
+
 import com.tangosol.util.SparseArray;
 import com.tangosol.util.UUID;
-
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.filter.AlwaysFilter;
 
@@ -86,14 +76,11 @@ import io.grpc.stub.StreamObserver;
 
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.LongStream;
@@ -102,6 +89,7 @@ import java.util.stream.LongStream;
  * The server side {@link NamedCacheProtocol} implementation.
  */
 public class NamedCacheProxyProtocol
+        extends BaseProxyProtocol<NamedCacheRequest, NamedCacheResponse>
         implements NamedCacheProtocol<NamedCacheRequest, NamedCacheResponse>
     {
     @Override
@@ -123,50 +111,34 @@ public class NamedCacheProxyProtocol
         }
 
     @Override
-    public void init(GrpcService service, InitRequest request, int nVersion, UUID clientUUID, StreamObserver<NamedCacheResponse> observer)
+    public void close()
         {
-        f_lock.lock();
-        try
-            {
-            String sScope  = request.getScope();
-            String sFormat = request.getFormat();
-
-            m_service       = service;
-            m_context       = service.getDependencies().getContext().orElse(null);
-            m_ccf           = (ExtensibleConfigurableCacheFactory) service.getCCF(sScope);
-            m_serializer    = service.getSerializer(sFormat, m_ccf.getConfigClassLoader());
-            m_proxy         = new CacheServiceProxy();
-            m_connection    = new Connection();
-            m_eventObserver = observer;
-
-            m_connection.setId(clientUUID);
-
-            m_proxy.setCacheFactory(m_ccf);
-            m_proxy.setSerializer(m_serializer);
-            }
-        finally
-            {
-            f_lock.unlock();
-            }
+        m_aProxy.clear();
+        super.close();
         }
 
     @Override
-    public void onRequest(NamedCacheRequest request, StreamObserver<NamedCacheResponse> observer)
+    protected void initInternal(GrpcService service, InitRequest request, int nVersion, UUID clientUUID)
         {
-        // If we are inside a container (i.e. WLS Managed Coherence) then we must run
-        // inside the correct container context
-        ContainerContext containerContext = m_context == null ? null : m_context.getContainerContext();
-        if (containerContext != null)
-            {
-            containerContext.runInDomainPartitionContext(() -> onRequestInternal(request, observer));
-            }
-        else
-            {
-            onRequestInternal(request, observer);
-            }
         }
 
-    private void onRequestInternal(NamedCacheRequest request, StreamObserver<NamedCacheResponse> observer)
+    @Override
+    protected NamedCacheResponse response(int id, Any any)
+        {
+        return NamedCacheResponse.newBuilder()
+                .setType(ResponseType.Message)
+                .setMessage(any)
+                .build();
+        }
+
+    @Override
+    protected Any getMessage(NamedCacheRequest request)
+        {
+        return request.getMessage();
+        }
+
+    @Override
+    protected void onRequestInternal(NamedCacheRequest request, StreamObserver<NamedCacheResponse> observer)
         {
         NamedCacheRequestType requestType = request.getType();
         int                   cacheId     = request.getCacheId();
@@ -284,12 +256,6 @@ public class NamedCacheProxyProtocol
             }
         }
 
-    @Override
-    public void close()
-        {
-
-        }
-
     // ----- helper methods -------------------------------------------------
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -305,7 +271,7 @@ public class NamedCacheProxyProtocol
                 {
                 Binary binKey    = BinaryHelper.toBinary(keysOrFilter.getKey());
                 Binary binResult = (Binary) proxy.aggregate(List.of(binKey), aggregator);
-                completeKeyValue(binKey, binResult, proxy, observer);
+                completeKeyValue(binKey, binResult, proxy.getCacheId(), observer);
                 }
             else if (keysOrFilter.hasKeys())
                 {
@@ -315,24 +281,24 @@ public class NamedCacheProxyProtocol
                                                         .toList();
 
                 Binary binResult = (Binary) proxy.aggregate(listKeys, aggregator);
-                complete(binResult, proxy, observer);
+                complete(binResult, proxy.getCacheId(), observer);
                 }
             else if (keysOrFilter.hasFilter())
                 {
                 Filter<?> filter    = fromByteString(keysOrFilter.getFilter());
                 Binary    binResult = (Binary) proxy.aggregate(Objects.requireNonNullElse(filter, AlwaysFilter.INSTANCE()), aggregator);
-                complete(binResult, proxy, observer);
+                complete(binResult, proxy.getCacheId(), observer);
                 }
             else
                 {
                 Binary    binResult = (Binary) proxy.aggregate(aggregator);
-                complete(binResult, proxy, observer);
+                complete(binResult, proxy.getCacheId(), observer);
                 }
             }
         else
             {
             Binary    binResult = (Binary) proxy.aggregate(aggregator);
-            complete(binResult, proxy, observer);
+            complete(binResult, proxy.getCacheId(), observer);
             }
         }
 
@@ -348,19 +314,19 @@ public class NamedCacheProxyProtocol
         Binary            binKey      = BinaryHelper.toBinary(keyAndValue.getKey());
         Binary            binValue    = BinaryHelper.toBinary(keyAndValue.getValue());
         boolean           fContains   = proxy.entrySet().contains(new SimpleMapEntry<>(binKey, binValue));
-        complete(fContains, proxy, observer);
+        complete(fContains, proxy.getCacheId(), observer);
         }
 
     protected void onContainsKey(NamedCacheProxy proxy, NamedCacheRequest request, StreamObserver<NamedCacheResponse> observer)
         {
         Binary binKey = unpackBinary(request);
-        complete(proxy.containsKey(binKey), proxy, observer);
+        complete(proxy.containsKey(binKey), proxy.getCacheId(), observer);
         }
 
     protected void onContainsValue(NamedCacheProxy proxy, NamedCacheRequest request, StreamObserver<NamedCacheResponse> observer)
         {
         Binary binValue = unpackBinary(request);
-        complete(proxy.containsValue(binValue), proxy, observer);
+        complete(proxy.containsValue(binValue), proxy.getCacheId(), observer);
         }
 
     @SuppressWarnings("resource")
@@ -520,7 +486,7 @@ public class NamedCacheProxyProtocol
             {
             Binary binKey   = BinaryHelper.toBinary(keysOrFilter.getKey());
             Binary binValue = (Binary) proxy.invoke(binKey, processor);
-            completeKeyValue(binKey, binValue, proxy, observer);
+            completeKeyValue(binKey, binValue, proxy.getCacheId(), observer);
             }
         else if (type == KeysOrFilter.KeyOrFilterCase.KEYS)
             {
@@ -529,7 +495,7 @@ public class NamedCacheProxyProtocol
                                                     .map(BinaryHelper::toBinary)
                                                     .toList();
             Map<Binary, Binary> map = proxy.invokeAll(listKeys, processor);
-            completeMapStream(map, proxy, observer);
+            completeMapStream(map, proxy.getCacheId(), observer);
             }
         else // either a Filter or nothing specified (i.e. AlwaysFilter)
             {
@@ -538,18 +504,18 @@ public class NamedCacheProxyProtocol
                     : AlwaysFilter.INSTANCE();
 
             Map<Binary, Binary> map = proxy.invokeAll(filter, processor);
-            completeMapStream(map, proxy, observer);
+            completeMapStream(map, proxy.getCacheId(), observer);
             }
         }
 
     protected void onIsEmpty(NamedCacheProxy proxy, StreamObserver<NamedCacheResponse> observer)
         {
-        complete(proxy.isEmpty(), proxy, observer);
+        complete(proxy.isEmpty(), proxy.getCacheId(), observer);
         }
 
     protected void onIsReady(NamedCacheProxy proxy, StreamObserver<NamedCacheResponse> observer)
         {
-        complete(proxy.isReady(), proxy, observer);
+        complete(proxy.isReady(), proxy.getCacheId(), observer);
         }
 
     protected void onMapListener(NamedCacheProxy proxy, NamedCacheRequest request, StreamObserver<NamedCacheResponse> observer)
@@ -658,7 +624,7 @@ public class NamedCacheProxyProtocol
                 .setMessage(Any.pack(BinaryHelper.toBytesValue(cookie)))
                 .build());
 
-        completeMapStream(map, proxy, observer);
+        completeMapStream(map, proxy.getCacheId(), observer);
         }
 
     @SuppressWarnings("unchecked")
@@ -702,7 +668,7 @@ public class NamedCacheProxyProtocol
                 .setMessage(Any.pack(BinaryHelper.toBytesValue(cookie)))
                 .build());
 
-        completeSetStream(set, proxy, observer);
+        completeSetStream(set, proxy.getCacheId(), observer);
         }
 
     protected void onPut(NamedCacheProxy proxy, NamedCacheRequest request, StreamObserver<NamedCacheResponse> observer)
@@ -712,7 +678,7 @@ public class NamedCacheProxyProtocol
         Binary     binKey     = BinaryHelper.toBinary(putRequest.getKey());
         Binary     binValue   = BinaryHelper.toBinary(putRequest.getValue());
         Binary     binResult  = (Binary) proxy.put(binKey, binValue, ttl);
-        complete(binResult, proxy, observer);
+        complete(binResult, proxy.getCacheId(), observer);
         }
 
     @SuppressWarnings("unchecked")
@@ -757,7 +723,7 @@ public class NamedCacheProxyProtocol
             {
             binResult = (Binary) proxy.putIfAbsent(binKey, fromBinary(binValue));
             }
-        complete(binResult, proxy, observer);
+        complete(binResult, proxy.getCacheId(), observer);
         }
 
     @SuppressWarnings("unchecked")
@@ -847,7 +813,7 @@ public class NamedCacheProxyProtocol
         {
         Binary binKey    = unpackBinary(request);
         Binary binResult = (Binary) proxy.remove(binKey);
-        complete(binResult, proxy, observer);
+        complete(binResult, proxy.getCacheId(), observer);
         }
 
     protected void onRemoveMapping(NamedCacheProxy proxy, NamedCacheRequest request, StreamObserver<NamedCacheResponse> observer)
@@ -857,7 +823,7 @@ public class NamedCacheProxyProtocol
         Object            oValue      = fromByteString(keyAndValue.getValue());
         Binary            binResult   = (Binary) proxy.invoke(binKey, CacheProcessors.remove(oValue));
         Boolean           fRemoved    = fromBinary(binResult);
-        complete(fRemoved, proxy, observer);
+        complete(fRemoved, proxy.getCacheId(), observer);
         }
 
     @SuppressWarnings("unchecked")
@@ -868,7 +834,7 @@ public class NamedCacheProxyProtocol
         Binary            binValue    = BinaryHelper.toBinary(keyAndValue.getValue());
         Object            oValue      = fromBinary(binValue);
         Binary            binResult   = (Binary) proxy.replace(binKey, oValue);
-        complete(binResult, proxy, observer);
+        complete(binResult, proxy.getCacheId(), observer);
         }
 
     protected void onReplaceMapping(NamedCacheProxy proxy, NamedCacheRequest request, StreamObserver<NamedCacheResponse> observer)
@@ -882,12 +848,12 @@ public class NamedCacheProxyProtocol
 
         Binary  binResult = (Binary) proxy.invoke(binKey, CacheProcessors.replace(oValuePrev, oValueNew));
         boolean fReplaced = fromBinary(binResult);
-        complete(fReplaced, proxy, observer);
+        complete(fReplaced, proxy.getCacheId(), observer);
         }
 
     protected void onSize(NamedCacheProxy proxy, StreamObserver<NamedCacheResponse> observer)
         {
-        complete(proxy.size(), proxy, observer);
+        complete(proxy.size(), proxy.getCacheId(), observer);
         }
 
     protected void onTruncate(NamedCacheProxy proxy, StreamObserver<NamedCacheResponse> observer)
@@ -928,221 +894,6 @@ public class NamedCacheProxyProtocol
         }
 
     /**
-     * Send a {@link NamedCacheResponse} containing a {@link BoolValue} to
-     * a {@link StreamObserver} and then complete the observer.
-     *
-     * @param f         the boolean value to use to send a response before completing
-     * @param proxy     the {@link NamedCacheProxy} to use to obtain a cache identifier
-     * @param observer  the {@link StreamObserver} to complete
-     */
-    protected void complete(boolean f, NamedCacheProxy proxy, StreamObserver<NamedCacheResponse> observer)
-        {
-        complete(BoolValue.of(f), proxy, observer);
-        }
-
-    /**
-     * Send a {@link NamedCacheResponse} containing an {@link Int32Value} to
-     * a {@link StreamObserver} and then complete the observer.
-     *
-     * @param n         the int value to use to send a response before completing
-     * @param proxy     the {@link NamedCacheProxy} to use to obtain a cache identifier
-     * @param observer  the {@link StreamObserver} to complete
-     */
-    protected void complete(int n, NamedCacheProxy proxy, StreamObserver<NamedCacheResponse> observer)
-        {
-        complete(Int32Value.of(n), proxy, observer);
-        }
-
-    /**
-     * Send a {@link NamedCacheResponse} containing a {@link BytesValue} to
-     * a {@link StreamObserver} and then complete the observer.
-     *
-     * @param binary   the binary value to use to send a response before completing
-     * @param proxy     the {@link NamedCacheProxy} to use to obtain a cache identifier
-     * @param observer  the {@link StreamObserver} to complete
-     */
-    protected void complete(Binary binary, NamedCacheProxy proxy, StreamObserver<NamedCacheResponse> observer)
-        {
-        complete(BinaryHelper.toBytesValue(binary), proxy, observer);
-        }
-
-    /**
-     * Send a {@link NamedCacheResponse} containing a {@link BinaryKeyAndValue} to
-     * a {@link StreamObserver} and then complete the observer.
-     *
-     * @param request   the {@link Request} containing the result
-     * @param observer  the {@link StreamObserver} to complete
-     */
-    protected void complete(Request request, StreamObserver<NamedCacheResponse> observer)
-        {
-        Response response = request.ensureResponse();
-        if (response.isFailure())
-            {
-            observer.onError((Throwable) response.getResult());
-            }
-        else
-            {
-            observer.onCompleted();
-            }
-        }
-
-    /**
-     * Send a {@link NamedCacheResponse} containing a {@link BinaryKeyAndValue} to
-     * a {@link StreamObserver} and then complete the observer.
-     *
-     * @param binKey    the binary key to use to send a response before completing
-     * @param request   the {@link Request} containing the result
-     * @param proxy     the {@link NamedCacheProxy} to use to obtain a cache identifier
-     * @param observer  the {@link StreamObserver} to complete
-     */
-    protected void complete(Binary binKey, Request request, NamedCacheProxy proxy, StreamObserver<NamedCacheResponse> observer)
-        {
-        Response response = request.ensureResponse();
-        if (response.isFailure())
-            {
-            observer.onError((Throwable) response.getResult());
-            }
-        else
-            {
-            Binary binValue = (Binary) response.getResult();
-            completeKeyValue(binKey, binValue, proxy, observer);
-            }
-        }
-
-    /**
-     * Send a {@link NamedCacheResponse} containing a {@link BinaryKeyAndValue} to
-     * a {@link StreamObserver} and then complete the observer.
-     *
-     * @param binKey    the binary key to use to send a response before completing
-     * @param binValue  the {@link Binary} value
-     * @param proxy     the {@link NamedCacheProxy} to use to obtain a cache identifier
-     * @param observer  the {@link StreamObserver} to complete
-     */
-    protected void completeKeyValue(Binary binKey, Binary binValue, NamedCacheProxy proxy, StreamObserver<NamedCacheResponse> observer)
-        {
-        BinaryKeyAndValue keyAndValue = BinaryKeyAndValue.newBuilder()
-                .setKey(BinaryHelper.toByteString(binKey))
-                .setValue(BinaryHelper.toByteString(binValue))
-                .build();
-        complete(keyAndValue, proxy, observer);
-        }
-
-    /**
-     * Send a {@link NamedCacheResponse} containing a {@link BytesValue} to
-     * a {@link StreamObserver} and then complete the observer.
-     *
-     * @param message   the {@link Message} value to use to send a response before completing
-     * @param proxy     the {@link NamedCacheProxy} to use to obtain a cache identifier
-     * @param observer  the {@link StreamObserver} to complete
-     */
-    protected void complete(Message message, NamedCacheProxy proxy, StreamObserver<NamedCacheResponse> observer)
-        {
-        observer.onNext(response(proxy.getCacheId())
-                .setType(ResponseType.Message)
-                .setMessage(Any.pack(message))
-                .build());
-        observer.onCompleted();
-        }
-
-    /**
-     * Send a {@link NamedCacheResponse} containing a stream of
-     * {@link BinaryKeyAndValue} to a {@link StreamObserver}
-     * and then complete the observer.
-     *
-     * @param request   the {@link Request} containing the result
-     * @param proxy     the {@link NamedCacheProxy} to use to obtain a cache identifier
-     * @param observer  the {@link StreamObserver} to complete
-     */
-    @SuppressWarnings("unchecked")
-    protected void completeMapStream(Request request, NamedCacheProxy proxy, StreamObserver<NamedCacheResponse> observer)
-        {
-        Response response = request.ensureResponse();
-        if (response.isFailure())
-            {
-            observer.onError((Throwable) response.getResult());
-            }
-        else
-            {
-            Map<Binary, Binary> map = (Map<Binary, Binary>) response.getResult();
-            completeMapStream(map, proxy, observer);
-            }
-        }
-
-    /**
-     * Send a {@link NamedCacheResponse} containing a stream of
-     * {@link BinaryKeyAndValue} to a {@link StreamObserver}
-     * and then complete the observer.
-     *
-     * @param map       the map of binary keys and values to stream to the observer
-     * @param proxy     the {@link NamedCacheProxy} to use to obtain a cache identifier
-     * @param observer  the {@link StreamObserver} to complete
-     */
-    protected void completeMapStream(Map<Binary, Binary> map, NamedCacheProxy proxy, StreamObserver<NamedCacheResponse> observer)
-        {
-        int cacheId = proxy.getCacheId();
-        for (Map.Entry<Binary, Binary> entry : map.entrySet())
-            {
-            BinaryKeyAndValue keyAndValue = BinaryKeyAndValue.newBuilder()
-                    .setKey(BinaryHelper.toByteString(entry.getKey()))
-                    .setValue(BinaryHelper.toByteString(entry.getValue()))
-                    .build();
-
-            observer.onNext(response(cacheId)
-                    .setType(ResponseType.Message)
-                    .setMessage(Any.pack(keyAndValue))
-                    .build());
-
-            }
-        observer.onCompleted();
-        }
-
-    /**
-     * Send a {@link NamedCacheResponse} containing a stream of
-     * {@link BinaryKeyAndValue} to a {@link StreamObserver}
-     * and then complete the observer.
-     *
-     * @param request   the {@link Request} containing the result
-     * @param proxy     the {@link NamedCacheProxy} to use to obtain a cache identifier
-     * @param observer  the {@link StreamObserver} to complete
-     */
-    @SuppressWarnings("unchecked")
-    protected void completeSetStream(Request request, NamedCacheProxy proxy, StreamObserver<NamedCacheResponse> observer)
-        {
-        Response response = request.ensureResponse();
-        if (response.isFailure())
-            {
-            observer.onError((Throwable) response.getResult());
-            }
-        else
-            {
-            completeSetStream((Set<Binary>) response.getResult(), proxy, observer);
-            }
-        }
-
-    /**
-     * Send a {@link NamedCacheResponse} containing a stream of
-     * {@link BinaryKeyAndValue} to a {@link StreamObserver}
-     * and then complete the observer.
-     *
-     * @param set       the set of binary instances to stream to the observer
-     * @param proxy     the {@link NamedCacheProxy} to use to obtain a cache identifier
-     * @param observer  the {@link StreamObserver} to complete
-     */
-    protected void completeSetStream(Set<Binary> set, NamedCacheProxy proxy, StreamObserver<NamedCacheResponse> observer)
-        {
-        int cacheId = proxy.getCacheId();
-        for (Binary binary : set)
-            {
-            observer.onNext(response(cacheId)
-                    .setType(ResponseType.Message)
-                    .setMessage(Any.pack(BinaryHelper.toBytesValue(binary)))
-                    .build());
-
-            }
-        observer.onCompleted();
-        }
-
-    /**
      * Obtain an async version of a {@link NamedCacheProxy}.
      *
      * @param proxy  the {@link NamedCacheProxy} to get the async cache for
@@ -1176,83 +927,6 @@ public class NamedCacheProxyProtocol
         {
         BytesValue binaryValue = unpack(request, BytesValue.class);
         return BinaryHelper.toBinary(binaryValue.getValue());
-        }
-
-    /**
-     * Unpack the message field from a {@link NamedCacheRequest}.
-     *
-     * @param request  the {@link NamedCacheRequest} to get the message from
-     * @param type     the expected type of the message
-     * @param <T>      the expected type of the message
-     *
-     * @return the unpacked message
-     */
-    protected <T extends Message> T unpack(NamedCacheRequest request, Class<T> type)
-        {
-        try
-            {
-            Any any = request.getMessage();
-            return any.unpack(type);
-            }
-        catch (InvalidProtocolBufferException e)
-            {
-            throw Exceptions.ensureRuntimeException(e, "Could not unpack message field of type " + type.getName());
-            }
-        }
-
-    /**
-     * Deserialize a {@link Binary} value using this proxy's serializer.
-     *
-     * @param binary  the {@link Binary} to deserialize
-     * @param <T>     the expected deserialized type
-     *
-     * @return the deserialized value or {@code null} if the binary value is {@code null}
-     */
-    protected <T> T fromBinary(Binary binary)
-        {
-        if (binary == null)
-            {
-            return null;
-            }
-        return BinaryHelper.fromBinary(binary, m_serializer);
-        }
-
-    /**
-     * Deserialize a {@link ByteString} value using this proxy's serializer.
-     *
-     * @param bytes  the {@link ByteString} to deserialize
-     * @param <T>    the expected deserialized type
-     *
-     * @return the deserialized value or {@code null} if the {@link ByteString} value is {@code null}
-     */
-    protected <T> T fromByteString(ByteString bytes)
-        {
-        if (bytes.isEmpty())
-            {
-            return null;
-            }
-        return BinaryHelper.fromByteString(bytes, m_serializer);
-        }
-
-    /**
-     * Deserialize a {@link ByteString} value using this proxy's serializer,
-     * or a default value if the deserialized result is {@code null}.
-     *
-     * @param bytes         the {@link ByteString} to deserialize
-     * @param defaultValue  the default value to return if the deserialized value is null
-     * @param <T>    the expected deserialized type
-     *
-     * @return the deserialized value or the default value if the
-     *         deserialized value is {@code null}
-     */
-    protected <T> T fromByteString(ByteString bytes, T defaultValue)
-        {
-        if (bytes.isEmpty())
-            {
-            return defaultValue;
-            }
-        T oResult = BinaryHelper.fromByteString(bytes, m_serializer);
-        return  oResult == null ? defaultValue : oResult;
         }
 
     // ----- inner class: ChannelStub ---------------------------------------
@@ -1464,56 +1138,10 @@ public class NamedCacheProxyProtocol
         private final int m_cacheId;
         }
 
-
     // ----- data members ---------------------------------------------------
-
-    /**
-     * The lock to control access to state.
-     */
-    private static final Lock f_lock = new ReentrantLock();
-
-    /**
-     * The parent {@link GrpcService}.
-     */
-    private GrpcService m_service;
-
-    /**
-     * The {@link ExtensibleConfigurableCacheFactory} owning the cache.
-     */
-    private ExtensibleConfigurableCacheFactory m_ccf;
-
-    /**
-     * The client's serializer.
-     */
-    private Serializer m_serializer;
-
-    /**
-     * The {@link Connection} to use to send responses.
-     */
-    private Connection m_connection;
-
-    /**
-     * The {@link CacheServiceProxy}.
-     */
-    private CacheServiceProxy m_proxy;
 
     /**
      * An array of {@link NamedCacheProxy} instances indexed by the cache identifier.
      */
-    private final LongArray<NamedCacheProxy> m_aProxy = new SparseArray<>();
-
-    /**
-     * A bit-set containing destroyed cache identifiers.
-     */
-    private final Set<Integer> m_destroyedIds = new HashSet<>();
-
-    /**
-     * A {@link StreamObserver} for processing event messages.
-     */
-    private StreamObserver<NamedCacheResponse> m_eventObserver;
-
-    /**
-     * The optional container {@link Context} for this protocol.
-     */
-    private Context m_context;
+    protected final LongArray<NamedCacheProxy> m_aProxy = new SparseArray<>();
     }

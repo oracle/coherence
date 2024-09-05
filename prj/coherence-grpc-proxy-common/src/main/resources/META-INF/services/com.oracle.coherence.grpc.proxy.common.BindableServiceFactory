@@ -5,5 +5,4 @@
 # https://oss.oracle.com/licenses/upl.
 #
 
-com.oracle.coherence.grpc.proxy.common.cache.NamedCacheProxyProtocol
-com.oracle.coherence.grpc.proxy.common.concurrent.queue.NamedQueueProxyProtocol
+com.oracle.coherence.grpc.proxy.common.concurrent.ConcurrentServiceFactory

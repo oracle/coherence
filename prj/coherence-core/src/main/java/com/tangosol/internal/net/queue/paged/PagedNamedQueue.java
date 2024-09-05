@@ -66,6 +66,12 @@ public class PagedNamedQueue<E>
         }
 
     @Override
+    public void clear()
+        {
+        m_bucketCache.invokeAll(new ClearQueueProcessor());
+        }
+
+    @Override
     public void release()
         {
         super.release();
@@ -109,11 +115,9 @@ public class PagedNamedQueue<E>
 
         while (result.getResult() == QueueOfferResult.RESULT_FAILED_RETRY)
             {
-            System.err.println("****** Offer to tail " + tailBucketId + " failed " + result);
             long                   version     = m_queueInfo.getVersion().getTailOfferVersion();
             TailIncrementProcessor incrementor = new TailIncrementProcessor(tailBucketId, version);
             m_queueInfo = m_queueInfoCache.invoke(m_sName, incrementor);
-            System.err.println("****** Incremented tail " + m_queueInfo);
             if (m_queueInfo.isQueueFull())
                 {
                 //noinspection ResultOfMethodCallIgnored

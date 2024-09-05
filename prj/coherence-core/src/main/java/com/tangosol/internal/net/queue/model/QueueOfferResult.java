@@ -18,30 +18,59 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+/**
+ * The result of offering an element to a queue.
+ */
 public class QueueOfferResult
         extends AbstractEvolvable
         implements ExternalizableLite, EvolvablePortableObject
     {
+    /**
+     * Default constructor for serialization.
+     */
     public QueueOfferResult()
         {
         }
 
+    /**
+     * Create a result.
+     *
+     * @param idMSB    the least significant bits of the long id value
+     * @param idLSB    the most significant bits of the long id value
+     * @param nResult  the result value
+     */
     public QueueOfferResult(int idMSB, int idLSB, int nResult)
         {
         this((((long) idMSB) << 32) | (idLSB & 0xffffffffL), nResult);
         }
 
+    /**
+     * Create a result.
+     *
+     * @param id       the result identifier
+     * @param nResult  the result value
+     */
     public QueueOfferResult(long id, int nResult)
         {
         m_nId     = id;
         m_nResult = nResult;
         }
 
+    /**
+     * Get the result identifier.
+     *
+     * @return  the result identifier
+     */
     public long getId()
         {
         return m_nId;
         }
 
+    /**
+     * Get the actual result of the offer.
+     *
+     * @return the actual result of the offer
+     */
     public int getResult()
         {
         return m_nResult;
@@ -83,6 +112,15 @@ public class QueueOfferResult
         {
         out.writeLong(m_nId);
         out.writeInt(m_nResult);
+        }
+
+    @Override
+    public String toString()
+        {
+        return "QueueOfferResult{" +
+                "id=" + m_nId +
+                ", result=" + m_nResult +
+                '}';
         }
 
     // ----- constants ------------------------------------------------------
