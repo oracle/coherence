@@ -389,7 +389,8 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
 
         // the queue should be full so an offer should fail
         assertThat(queue.offer(sPad + "-X"), is(false));
-        // poll one then the next offer should succeed
+        // poll two then the next offer should succeed
+        assertThat(queue.poll(), is(notNullValue()));
         assertThat(queue.poll(), is(notNullValue()));
         // the queue should NOT be full so an offer should succeed
         assertThat(queue.offer(sPad + "-X"), is(true));
