@@ -324,7 +324,7 @@ public class VersionHelper
 
     /**
      * Return the actual patch set value to use for a given version.
-     * <p/>
+     * <p>
      * This method will map Fusion Apps versions to the correct Coherence version.
      *
      * @param nMajor     the major version number
