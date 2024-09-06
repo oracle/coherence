@@ -30,7 +30,6 @@ import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfigura
 
 import com.oracle.coherence.grpc.client.common.GrpcRemoteCacheService;
 import com.oracle.coherence.grpc.proxy.NettyGrpcAcceptorController;
-import com.oracle.coherence.grpc.proxy.helidon.HelidonGrpcAcceptorController;
 import com.oracle.coherence.io.json.genson.GensonBuilder;
 
 import com.tangosol.coherence.component.net.extend.remoteService.RemoteCacheService;
@@ -51,7 +50,6 @@ import com.tangosol.net.Session;
 import com.tangosol.net.grpc.GrpcAcceptorController;
 import com.tangosol.net.messaging.ConnectionAcceptor;
 import io.grpc.Status;
-import org.junit.Assume;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -84,7 +82,6 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.fail;
 
 
@@ -145,22 +142,6 @@ public class DockerImageTests
         assertCoherenceClient(sImageName, "grpc-fixed",
                 new CheckGrpcCacheAccess(),
                 new CheckGrpcControllerType(NettyGrpcAcceptorController.class));
-        }
-
-    @ParameterizedTest(name = "[{index}] {0}")
-    @MethodSource("getImageNames")
-    void shouldStartGrpcServerAndConnectWithHelidonGrpc(String sImageName)
-        {
-        String sJavaVersion = ImageNames.imageLabel(sImageName, "com.oracle.coherence.java.vm.specification.version");
-        assertThat(sJavaVersion, is(notNullValue()));
-        int nVersion = Integer.parseInt(sJavaVersion);
-        Assume.assumeThat(nVersion, is(greaterThanOrEqualTo(21)));
-
-        String   sCP   = "/coherence/ext/conf:/coherence/ext/lib/*:/app/resources:/app/classes:/app/libs/*:app/helidon-grpc/libs/*";
-        String[] asCmd = {"-cp", sCP, Coherence.class.getName()};
-        assertCoherenceClient(sImageName, "grpc-fixed", asCmd,
-                new CheckGrpcCacheAccess(),
-                new CheckGrpcControllerType(HelidonGrpcAcceptorController.class));
         }
 
     @SuppressWarnings("unchecked")

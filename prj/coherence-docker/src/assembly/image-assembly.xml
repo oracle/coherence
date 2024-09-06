@@ -38,34 +38,6 @@
       <fileMode>755</fileMode>
       <unpack>false</unpack>
       <useProjectArtifact>false</useProjectArtifact>
-      <excludes>
-        <exclude>${coherence.group.id}:coherence-ai</exclude>
-      </excludes>
-    </dependencySet>
-
-    <!-- Java 21+ dependencies -->
-    <dependencySet>
-      <outputDirectory>java21/app/libs</outputDirectory>
-      <directoryMode>755</directoryMode>
-      <fileMode>755</fileMode>
-      <unpack>false</unpack>
-      <useProjectArtifact>false</useProjectArtifact>
-      <includes>
-        <include>${coherence.group.id}:coherence-ai</include>
-      </includes>
-    </dependencySet>
-    <!--
-    Helidon gRPC is marked as provided so that it is not
-    on the class path by default. Instead, we put it and
-    dependencies into a separate directory.
-    -->
-    <dependencySet>
-      <outputDirectory>app/helidon-grpc/libs</outputDirectory>
-      <directoryMode>755</directoryMode>
-      <fileMode>755</fileMode>
-      <unpack>false</unpack>
-      <useProjectArtifact>false</useProjectArtifact>
-      <scope>provided</scope>
     </dependencySet>
   </dependencySets>
 </assembly>

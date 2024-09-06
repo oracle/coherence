@@ -54,21 +54,6 @@
       <classifier>module</classifier>
     </dependency>
 
-    <!--
-    Helidon gRPC is marked as provided so that it is not
-    on the class path by default
-    -->
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-grpc-proxy-helidon</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-grpc-client-helidon</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
     <!-- tracing dependencies -->
     <dependency>
       <groupId>io.jaegertracing</groupId>

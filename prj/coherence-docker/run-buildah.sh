@@ -154,6 +154,6 @@ else
       -e HTTP_PROXY="${HTTP_PROXY}" -e HTTPS_PROXY="${HTTPS_PROXY}" -e NO_PROXY="${NO_PROXY}" \
       -e http_proxy="${http_proxy}" -e https_proxy="${https_proxy}" -e no_proxy="${no_proxy}" \
       --name buildah \
-      quay.io/buildah/stable:v1.31.0 "${SCRIPT_NAME}"
+      quay.io/buildah/stable:v1.37.1 "${SCRIPT_NAME}"
 fi
 
