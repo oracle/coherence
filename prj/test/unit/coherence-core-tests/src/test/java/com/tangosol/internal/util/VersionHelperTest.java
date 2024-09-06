@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.hamcrest.number.OrderingComparison.lessThan;
 
 public class VersionHelperTest
@@ -131,6 +132,40 @@ public class VersionHelperTest
         int nOne = VersionHelper.encodeVersion(22, 6, 8);
         int nTwo = VersionHelper.parseVersion("22.06.8");
         assertThat(nOne, is(nTwo));
+        }
+
+    @Test
+    public void shouldEncodeFusionAppsVersions()
+        {
+        int nFAPatchZero  = VersionHelper.encodeVersion(14, 1, 2, 24, 0);
+        int nFAPatchOne   = VersionHelper.encodeVersion(14, 1, 2, 24, 1);
+        int nFAPatchTwo   = VersionHelper.encodeVersion(14, 1, 2, 24, 2);
+        int nCohPatchZero = VersionHelper.encodeVersion(14, 1, 2, 0, 0);
+        int nCohPatchOne  = VersionHelper.encodeVersion(14, 1, 2, 0, 1);
+        int nCohPatchTwo  = VersionHelper.encodeVersion(14, 1, 2, 0, 2);
+
+        assertThat(nFAPatchZero, is(nCohPatchZero));
+        assertThat(nFAPatchOne, is(nCohPatchOne));
+        assertThat(nFAPatchTwo, is(nCohPatchTwo));
+        assertThat(nFAPatchOne, is(greaterThan(nFAPatchZero)));
+        assertThat(nFAPatchTwo, is(greaterThan(nFAPatchOne)));
+        }
+
+    @Test
+    public void shouldParseFusionAppsVersions()
+        {
+        int nFAPatchZero  = VersionHelper.parseVersion("14.1.2.24.0");
+        int nFAPatchOne   = VersionHelper.parseVersion("14.1.2.24.1");
+        int nFAPatchTwo   = VersionHelper.parseVersion("14.1.2.24.2");
+        int nCohPatchZero = VersionHelper.parseVersion("14.1.2.0.0");
+        int nCohPatchOne  = VersionHelper.parseVersion("14.1.2.0.1");
+        int nCohPatchTwo  = VersionHelper.parseVersion("14.1.2.0.2");
+
+        assertThat(nFAPatchZero, is(nCohPatchZero));
+        assertThat(nFAPatchOne, is(nCohPatchOne));
+        assertThat(nFAPatchTwo, is(nCohPatchTwo));
+        assertThat(nFAPatchOne, is(greaterThan(nFAPatchZero)));
+        assertThat(nFAPatchTwo, is(greaterThan(nFAPatchOne)));
         }
 
     }
