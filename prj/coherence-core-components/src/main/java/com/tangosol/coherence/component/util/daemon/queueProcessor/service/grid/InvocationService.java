@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -501,6 +501,15 @@ public class InvocationService
     protected void setPendingProcess(java.util.Map map)
         {
         __m_PendingProcess = map;
+        }
+        
+    /**
+     * @return the description of the service
+     */
+    @Override
+    public String getDescription()
+        {
+        return super.getDescription() + ", Serializer=" + getSerializer().getName();
         }
 
     // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.InvocationService$InvocationMessage
