@@ -7,7 +7,9 @@
 
 package queues.paged;
 
+import com.oracle.coherence.common.base.Randoms;
 import com.tangosol.coherence.config.scheme.PagedQueueScheme;
+import com.tangosol.internal.net.queue.PagedQueue;
 import com.tangosol.internal.net.queue.paged.PagedQueueCacheNames;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedMap;
@@ -18,6 +20,8 @@ import com.tangosol.util.Binary;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import queues.AbstractQueueTests;
 
 import java.util.ArrayList;
@@ -115,6 +119,45 @@ public class LocalPagedQueueTests<QueueType extends NamedQueue>
             NamedMap<?, ?> cache = mapCaches.get(name);
             assertThat("Cache " + name + " should have been destroyed", cache.isDestroyed(), is(true));
             }
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldAcceptMessageSameAsMaxPageSize(String sSerializer)
+        {
+        QueueType queue  = getNewCollection(sSerializer);
+        String    sValue = Randoms.getRandomString(PagedQueue.DEFAULT_PAGE_CAPACITY_BYTES, PagedQueue.DEFAULT_PAGE_CAPACITY_BYTES, true);
+
+        assertThat(queue.add(sValue), is(true));
+
+        NamedMap<?, ?> cache = getCollectionCache(queue.getName());
+        assertThat(cache.size(), is(1));
+
+        Object oKey   = cache.keySet().iterator().next();
+        Object oValue = cache.get(oKey);
+        assertThat(oValue, is(sValue));
+
+        assertThat(queue.poll(), is(sValue));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldAcceptMessageBiggerThanMaxPageSize(String sSerializer)
+        {
+        QueueType queue  = getNewCollection(sSerializer);
+        int       nSize  = PagedQueue.DEFAULT_PAGE_CAPACITY_BYTES + 1000;
+        String    sValue = Randoms.getRandomString(nSize, nSize, true);
+
+        assertThat(queue.add(sValue), is(true));
+
+        NamedMap<?, ?> cache = getCollectionCache(queue.getName());
+        assertThat(cache.size(), is(1));
+
+        Object oKey   = cache.keySet().iterator().next();
+        Object oValue = cache.get(oKey);
+        assertThat(oValue, is(sValue));
+
+        assertThat(queue.poll(), is(sValue));
         }
 
     protected NamedMap<?, ?> getQueueCache(String sQueueName, PagedQueueCacheNames name, Session session)

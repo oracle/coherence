@@ -243,12 +243,11 @@ public class Bucket
      */
     public boolean increaseBytesUsed(long n)
         {
-        long nSize = m_bytesUsed + n;
-        if (nSize > m_capacity)
+        if (m_bytesUsed >= m_capacity)
             {
             return false;
             }
-        m_bytesUsed = nSize;
+        m_bytesUsed = m_bytesUsed + n;
         return true;
         }
 
