@@ -27,6 +27,7 @@ import com.oracle.coherence.grpc.messages.proxy.v1.InitRequest;
 import com.oracle.coherence.grpc.proxy.common.BaseProxyProtocol;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+import com.tangosol.internal.net.NamedCacheDeactivationListener;
 import com.tangosol.internal.net.queue.BinaryNamedMapDeque;
 import com.tangosol.internal.net.queue.BinaryNamedMapQueue;
 import com.tangosol.internal.net.queue.ConverterNamedMapDeque;
@@ -38,6 +39,7 @@ import com.tangosol.io.Serializer;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedDeque;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.NamedQueue;
 import com.tangosol.net.Session;
 import com.tangosol.util.Base;
@@ -45,10 +47,14 @@ import com.tangosol.util.Binary;
 import com.tangosol.util.Converter;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.LongArray;
+import com.tangosol.util.MapEvent;
 import com.tangosol.util.SparseArray;
 import com.tangosol.util.UUID;
 
 import io.grpc.stub.StreamObserver;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The server size {@link NamedQueueProtocol named queue protocol}.
@@ -171,76 +177,121 @@ public class NamedQueueProxyProtocol
 
     // ----- helper methods -------------------------------------------------
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     protected void onEnsureQueue(EnsureQueueRequest request, StreamObserver<NamedQueueResponse> observer)
         {
         f_lock.lock();
         try
             {
             int queueId;
-            do
+
+            String         sName = request.getQueue();
+            NamedQueueType type  = request.getType();
+
+            if (m_mapQueue.containsKey(sName))
                 {
-                queueId = Base.getRandom().nextInt(Integer.MAX_VALUE);
-                }
-            while (queueId == 0 || m_aQueue.get(queueId) != null || m_destroyedIds.contains(queueId));
-
-
-            String                        sName = request.getQueue();
-            NamedQueueType                type  = request.getType();
-            NamedMapQueue<Binary, Binary> queue;
-
-            switch (type)
-                {
-                case Queue:
-                    if (m_fConcurrentSession)
-                        {
-                        sName = Queues.cacheNameForQueue(sName);
-                        }
-                    queue = new BinaryNamedMapQueue(sName, m_session);
-                    break;
-                case Deque:
-                    if (m_fConcurrentSession)
-                        {
-                        sName = Queues.cacheNameForDeque(sName);
-                        }
-                    queue = new BinaryNamedMapDeque(sName, m_session);
-                    break;
-                case PagedQueue:
-                    if (m_fConcurrentSession)
-                        {
-                        sName = Queues.cacheNameForPagedQueue(sName);
-                        }
-                    queue = new BinaryPagedNamedQueue(sName, m_session);
-                    break;
-                case UNRECOGNIZED:
-                default:
-                    throw new IllegalArgumentException("Unrecognized queue type " + type);
-                }
-
-            Serializer serializerThis = m_proxy.getSerializer();
-            Serializer serializerThat = queue.getNamedMap().getService().getSerializer();
-            boolean    fCompatible    = ExternalizableHelper.isSerializerCompatible(serializerThis, serializerThat);
-
-            if (!fCompatible)
-                {
-                Converter<Binary, Object> cFromThat = bin -> ExternalizableHelper.fromBinary(bin, serializerThat);
-                Converter<Object, Binary> cToThat   = obj -> ExternalizableHelper.toBinary(obj, serializerThat);
-                Converter<Binary, Object> cFromThis = bin -> ExternalizableHelper.fromBinary(bin, serializerThis);
-                Converter<Object, Binary> cToThis   = obj -> ExternalizableHelper.toBinary(obj, serializerThis);
-                Converter<Binary, Binary> convUp    = bin -> bin == null ? null : cToThis.convert(cFromThat.convert(bin));
-                Converter<Binary, Binary> convDown  = bin -> bin == null ? null : cToThat.convert(cFromThis.convert(bin));
-
-                if (type == NamedQueueType.Deque)
+                // we have already ensured the same queue name
+                queueId = m_mapQueue.get(sName);
+                NamedQueue<Binary> queue = m_aQueue.get(queueId);
+                if (queue instanceof ConverterNamedMapQueue)
                     {
-                    queue = new ConverterNamedMapDeque<>((NamedMapDeque<Binary, Binary>) queue,
-                            convUp, convUp, convDown, convDown);
+                    queue = (NamedQueue<Binary>) ((ConverterNamedMapQueue) queue).getCollection();
                     }
-                else
+
+                switch (type)
                     {
-                    queue = new ConverterNamedMapQueue<>(queue, convUp, convUp, convDown, convDown);
+                    case Queue:
+                        // everything is a queue so do not check anything
+                        break;
+                    case Deque:
+                        // make sure the previously ensured queue is a Deque
+                        if (!(queue instanceof BinaryNamedMapDeque))
+                            {
+                            throw new IllegalArgumentException("Ensure queue is being called for a previously ensured queue of a different type. name=\""
+                                    + sName + "\" requested type \"" + type + "\" actual type \"" + queue.getClass() + "\"");
+                            }
+                        break;
+                    case PagedQueue:
+                        // make sure the previously ensured queue is a paged queue
+                        if (!(queue instanceof BinaryPagedNamedQueue))
+                            {
+                            throw new IllegalArgumentException("Ensure queue is being called for a previously ensured queue of a different type. name=\""
+                                    + sName + "\" requested type \"" + type + "\" actual type \"" + queue.getClass() + "\"");
+                            }
+                        break;
+                    case UNRECOGNIZED:
+                        throw new IllegalArgumentException("Unrecognized queue type " + type);
                     }
                 }
+            else
+                {
+                do
+                    {
+                    queueId = Base.getRandom().nextInt(Integer.MAX_VALUE);
+                    }
+                while (queueId == 0 || m_aQueue.get(queueId) != null || m_destroyedIds.contains(queueId));
 
-            m_aQueue.set(queueId, queue);
+                NamedMapQueue<Binary, Binary> queue;
+
+                switch (type)
+                    {
+                    case Queue:
+                        if (m_fConcurrentSession)
+                            {
+                            sName = Queues.cacheNameForQueue(sName);
+                            }
+                        queue = new BinaryNamedMapQueue(sName, m_session);
+                        break;
+                    case Deque:
+                        if (m_fConcurrentSession)
+                            {
+                            sName = Queues.cacheNameForDeque(sName);
+                            }
+                        queue = new BinaryNamedMapDeque(sName, m_session);
+                        break;
+                    case PagedQueue:
+                        if (m_fConcurrentSession)
+                            {
+                            sName = Queues.cacheNameForPagedQueue(sName);
+                            }
+                        queue = new BinaryPagedNamedQueue(sName, m_session);
+                        break;
+                    case UNRECOGNIZED:
+                    default:
+                        throw new IllegalArgumentException("Unrecognized queue type " + type);
+                    }
+
+                NamedMap<Binary, Binary> namedMap = queue.getNamedMap();
+                namedMap.addMapListener(new QueueCacheListener(queueId));
+
+                Serializer serializerThis = m_proxy.getSerializer();
+                Serializer serializerThat = queue.getNamedMap().getService().getSerializer();
+                boolean    fCompatible    = ExternalizableHelper.isSerializerCompatible(serializerThis, serializerThat);
+
+                if (!fCompatible)
+                    {
+                    Converter<Binary, Object> cFromThat = bin -> ExternalizableHelper.fromBinary(bin, serializerThat);
+                    Converter<Object, Binary> cToThat   = obj -> ExternalizableHelper.toBinary(obj, serializerThat);
+                    Converter<Binary, Object> cFromThis = bin -> ExternalizableHelper.fromBinary(bin, serializerThis);
+                    Converter<Object, Binary> cToThis   = obj -> ExternalizableHelper.toBinary(obj, serializerThis);
+                    Converter<Binary, Binary> convUp    = bin -> bin == null ? null : cToThis.convert(cFromThat.convert(bin));
+                    Converter<Binary, Binary> convDown  = bin -> bin == null ? null : cToThat.convert(cFromThis.convert(bin));
+
+                    if (type == NamedQueueType.Deque)
+                        {
+                        queue = new ConverterNamedMapDeque<>((NamedMapDeque<Binary, Binary>) queue,
+                                convUp, convUp, convDown, convDown);
+                        }
+                    else
+                        {
+                        queue = new ConverterNamedMapQueue<>(queue, convUp, convUp, convDown, convDown);
+                        }
+                    }
+
+                m_mapQueue.put(request.getQueue(), queueId);
+                m_aQueue.set(queueId, queue);
+                }
+
 
             observer.onNext(response(queueId).build());
             observer.onCompleted();
@@ -267,7 +318,9 @@ public class NamedQueueProxyProtocol
             NamedQueue<?> queue = m_aQueue.remove(nId);
             if (queue != null)
                 {
+                String sName = queue.getName();
                 queue.destroy();
+                m_mapQueue.remove(sName);
                 }
             m_destroyedIds.add(nId);
             }
@@ -425,8 +478,61 @@ public class NamedQueueProxyProtocol
         return BinaryHelper.toBinary(binaryValue.getValue());
         }
 
+    // ----- inner class: QueueListener -------------------------------------
+
+    /**
+     * A {@link NamedCacheDeactivationListener} to receive truncate and destroy
+     * events for the queue.
+     */
+    @SuppressWarnings("rawtypes")
+    protected class QueueCacheListener
+            implements NamedCacheDeactivationListener
+        {
+        public QueueCacheListener(int queueId)
+            {
+            m_queueId = queueId;
+            }
+
+        @Override
+        public void entryInserted(MapEvent evt)
+            {
+            // unused
+            }
+
+        @Override
+        public void entryUpdated(MapEvent evt)
+            {
+            // Queue truncated
+            send(NamedQueueResponseType.Truncated);
+            }
+
+        @Override
+        public void entryDeleted(MapEvent evt)
+            {
+            // Queue destroyed
+            send(NamedQueueResponseType.Destroyed);
+            }
+
+        private void send(NamedQueueResponseType type)
+            {
+            NamedQueueResponse event = NamedQueueResponse.newBuilder()
+                    .setQueueId(m_queueId)
+                    .setType(type)
+                    .build();
+            m_eventObserver.onNext(event);
+            }
+
+        /**
+         * The queue identifier.
+         */
+        private final int m_queueId;
+        }
+
     // ----- data members ---------------------------------------------------
 
+    /**
+     * The session for this proxy.
+     */
     private Session m_session;
 
     /**
@@ -438,4 +544,9 @@ public class NamedQueueProxyProtocol
      * An array of {@link NamedQueue} instances indexed by the queue identifier.
      */
     protected final LongArray<NamedQueue<Binary>> m_aQueue = new SparseArray<>();
+
+    /**
+     * The map of queue names to queue identifiers.
+     */
+    protected final Map<String, Integer> m_mapQueue = new ConcurrentHashMap<>();
     }

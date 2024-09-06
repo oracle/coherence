@@ -13,16 +13,21 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.concurrent.Queues;
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.NamedQueueProtocol;
+import com.oracle.coherence.grpc.messages.cache.v1.NamedCacheResponse;
+import com.oracle.coherence.grpc.messages.cache.v1.ResponseType;
 import com.oracle.coherence.grpc.messages.common.v1.ErrorMessage;
 import com.oracle.coherence.grpc.messages.common.v1.OptionalValue;
 import com.oracle.coherence.grpc.messages.concurrent.queue.v1.EnsureQueueRequest;
 import com.oracle.coherence.grpc.messages.concurrent.queue.v1.NamedQueueRequest;
 import com.oracle.coherence.grpc.messages.concurrent.queue.v1.NamedQueueRequestType;
 import com.oracle.coherence.grpc.messages.concurrent.queue.v1.NamedQueueResponse;
+import com.oracle.coherence.grpc.messages.concurrent.queue.v1.NamedQueueResponseType;
 import com.oracle.coherence.grpc.messages.concurrent.queue.v1.NamedQueueType;
 import com.oracle.coherence.grpc.messages.concurrent.queue.v1.QueueOfferResult;
 import com.oracle.coherence.grpc.messages.proxy.v1.InitRequest;
@@ -49,6 +54,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -105,6 +111,54 @@ public class NamedQueueProxyProtocolIT
 
     @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
+    public void shouldEnsureSimpleQueueTwice(String ignored, Serializer serializer, String sScope) throws Exception
+        {
+        String                            sQueueName = newQueueName();
+        TestStreamObserver<ProxyResponse> observer   = new TestStreamObserver<>();
+        StreamObserver<ProxyRequest>      channel    = openChannel(observer);
+
+        init(channel, observer, serializer, sScope);
+
+        int queueIdOne = ensureQueue(channel, observer, sQueueName, NamedQueueType.Queue);
+        int queueIdTwo = ensureQueue(channel, observer, sQueueName, NamedQueueType.Queue);
+        assertThat(queueIdOne, is(not(0)));
+        assertThat(queueIdTwo, is(queueIdOne));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
+    @MethodSource("serializers")
+    public void shouldEnsureSimpleDequeAfterQueue(String ignored, Serializer serializer, String sScope) throws Exception
+        {
+        String                            sQueueName = newQueueName();
+        TestStreamObserver<ProxyResponse> observer   = new TestStreamObserver<>();
+        StreamObserver<ProxyRequest>      channel    = openChannel(observer);
+
+        init(channel, observer, serializer, sScope);
+
+        int queueIdOne = ensureQueue(channel, observer, sQueueName, NamedQueueType.Queue);
+        assertThat(queueIdOne, is(not(0)));
+        assertThat(queueIdOne, is(not(0)));
+        assertThrows(AssertionError.class, () -> ensureQueue(channel, observer, sQueueName, NamedQueueType.Deque));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
+    @MethodSource("serializers")
+    public void shouldEnsurePagedQueueAfterQueue(String ignored, Serializer serializer, String sScope) throws Exception
+        {
+        String                            sQueueName = newQueueName();
+        TestStreamObserver<ProxyResponse> observer   = new TestStreamObserver<>();
+        StreamObserver<ProxyRequest>      channel    = openChannel(observer);
+
+        init(channel, observer, serializer, sScope);
+
+        int queueIdOne = ensureQueue(channel, observer, sQueueName, NamedQueueType.Queue);
+        assertThat(queueIdOne, is(not(0)));
+        assertThat(queueIdOne, is(not(0)));
+        assertThrows(AssertionError.class, () -> ensureQueue(channel, observer, sQueueName, NamedQueueType.PagedQueue));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
+    @MethodSource("serializers")
     public void shouldEnsureSimpleDeque(String ignored, Serializer serializer, String sScope) throws Exception
         {
         String                            sQueueName = newQueueName();
@@ -126,6 +180,54 @@ public class NamedQueueProxyProtocolIT
 
     @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
+    public void shouldEnsureSimpleDequeTwice(String ignored, Serializer serializer, String sScope) throws Exception
+        {
+        String                            sQueueName = newQueueName();
+        TestStreamObserver<ProxyResponse> observer   = new TestStreamObserver<>();
+        StreamObserver<ProxyRequest>      channel    = openChannel(observer);
+
+        init(channel, observer, serializer, sScope);
+
+        int queueIdOne = ensureQueue(channel, observer, sQueueName, NamedQueueType.Deque);
+        int queueIdTwo = ensureQueue(channel, observer, sQueueName, NamedQueueType.Deque);
+        assertThat(queueIdOne, is(not(0)));
+        assertThat(queueIdTwo, is(queueIdOne));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
+    @MethodSource("serializers")
+    public void shouldEnsureSimpleQueueAfterDeque(String ignored, Serializer serializer, String sScope) throws Exception
+        {
+        String                            sQueueName = newQueueName();
+        TestStreamObserver<ProxyResponse> observer   = new TestStreamObserver<>();
+        StreamObserver<ProxyRequest>      channel    = openChannel(observer);
+
+        init(channel, observer, serializer, sScope);
+
+        int queueIdOne = ensureQueue(channel, observer, sQueueName, NamedQueueType.Deque);
+        int queueIdTwo = ensureQueue(channel, observer, sQueueName, NamedQueueType.Queue);
+        assertThat(queueIdOne, is(not(0)));
+        assertThat(queueIdTwo, is(queueIdOne));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
+    @MethodSource("serializers")
+    public void shouldEnsurePagedQueueAfterDeque(String ignored, Serializer serializer, String sScope) throws Exception
+        {
+        String                            sQueueName = newQueueName();
+        TestStreamObserver<ProxyResponse> observer   = new TestStreamObserver<>();
+        StreamObserver<ProxyRequest>      channel    = openChannel(observer);
+
+        init(channel, observer, serializer, sScope);
+
+        int queueIdOne = ensureQueue(channel, observer, sQueueName, NamedQueueType.Deque);
+        assertThat(queueIdOne, is(not(0)));
+        assertThat(queueIdOne, is(not(0)));
+        assertThrows(AssertionError.class, () -> ensureQueue(channel, observer, sQueueName, NamedQueueType.PagedQueue));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
+    @MethodSource("serializers")
     public void shouldEnsurePagedQueue(String ignored, Serializer serializer, String sScope) throws Exception
         {
         String                            sQueueName = newQueueName();
@@ -143,6 +245,53 @@ public class NamedQueueProxyProtocolIT
         int queueId = ensureQueue(channel, observer, sQueueName, NamedQueueType.PagedQueue);
         assertThat(queueId, is(not(0)));
         assertThat(getCacheNames(service), is(cacheNames));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
+    @MethodSource("serializers")
+    public void shouldEnsurePagedQueueTwice(String ignored, Serializer serializer, String sScope) throws Exception
+        {
+        String                            sQueueName = newQueueName();
+        TestStreamObserver<ProxyResponse> observer   = new TestStreamObserver<>();
+        StreamObserver<ProxyRequest>      channel    = openChannel(observer);
+
+        init(channel, observer, serializer, sScope);
+
+        int queueIdOne = ensureQueue(channel, observer, sQueueName, NamedQueueType.PagedQueue);
+        int queueIdTwo = ensureQueue(channel, observer, sQueueName, NamedQueueType.PagedQueue);
+        assertThat(queueIdOne, is(not(0)));
+        assertThat(queueIdTwo, is(queueIdOne));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
+    @MethodSource("serializers")
+    public void shouldEnsureSimpleQueueAfterPagedQueue(String ignored, Serializer serializer, String sScope) throws Exception
+        {
+        String                            sQueueName = newQueueName();
+        TestStreamObserver<ProxyResponse> observer   = new TestStreamObserver<>();
+        StreamObserver<ProxyRequest>      channel    = openChannel(observer);
+
+        init(channel, observer, serializer, sScope);
+
+        int queueIdOne = ensureQueue(channel, observer, sQueueName, NamedQueueType.PagedQueue);
+        int queueIdTwo = ensureQueue(channel, observer, sQueueName, NamedQueueType.Queue);
+        assertThat(queueIdOne, is(not(0)));
+        assertThat(queueIdTwo, is(queueIdOne));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
+    @MethodSource("serializers")
+    public void shouldEnsureSimpleDequeAfterPagedQueue(String ignored, Serializer serializer, String sScope) throws Exception
+        {
+        String                            sQueueName = newQueueName();
+        TestStreamObserver<ProxyResponse> observer   = new TestStreamObserver<>();
+        StreamObserver<ProxyRequest>      channel    = openChannel(observer);
+
+        init(channel, observer, serializer, sScope);
+
+        int queueIdOne = ensureQueue(channel, observer, sQueueName, NamedQueueType.PagedQueue);
+        assertThat(queueIdOne, is(not(0)));
+        assertThrows(AssertionError.class, () -> ensureQueue(channel, observer, sQueueName, NamedQueueType.Deque));
         }
 
     @Test
@@ -607,9 +756,33 @@ public class NamedQueueProxyProtocolIT
         init(channel, observer, serializer, sScope);
         int queueId = ensureQueue(channel, observer, sQueueName);
 
+        int count = observer.valueCount();
         sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.Destroy, Empty.getDefaultInstance());
 
-        assertThat(queue.isDestroyed(), is(true));
+        Eventually.assertDeferred(queue::isDestroyed, is(true));
+
+        Optional<NamedQueueResponse> destroyedEvent = observer.values()
+                .stream()
+                .skip(count)
+                .filter(ProxyResponse::hasMessage)
+                .map(m ->
+                    {
+                    try
+                        {
+                        return m.getMessage().unpack(NamedQueueResponse.class);
+                        }
+                    catch (InvalidProtocolBufferException e)
+                        {
+                        throw new RuntimeException(e);
+                        }
+                    })
+                .filter(m -> m.getQueueId() == queueId)
+                .filter(m -> m.getType() == NamedQueueResponseType.Destroyed)
+                .findFirst();
+
+        Eventually.assertDeferred(queue::isDestroyed, is(true));
+        assertThat(destroyedEvent.isPresent(), is(true));
+
         }
 
     // ----- helper methods -------------------------------------------------
