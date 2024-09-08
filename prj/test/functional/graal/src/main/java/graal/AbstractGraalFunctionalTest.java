@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -121,11 +121,11 @@ public abstract class AbstractGraalFunctionalTest
                 }
 
             CoherenceClusterMember m1 = startCacheServer(
-                    getServerName(1),"graal-functional",
+                    getServerName(1),"functional/graal",
                     "coherence-cache-config.xml", props);
 
             CoherenceClusterMember m2 = startCacheServer(
-                    getServerName(2),"graal-functional",
+                    getServerName(2),"functional/graal",
                     "coherence-cache-config.xml", props);
 
             waitForServer(m1);

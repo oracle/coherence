@@ -1,0 +1,16 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild aggregators.mjs extractors.mjs filters.mjs processors.mjs --bundle --format=esm --charset=utf8 --outdir=../../../target/classes/scripts/js/ --out-extension:.js=.mjs "
+  },
+  "dependencies": {
+    "text-lower-case": "^1.0.4",
+    "upper-case": "^2.0.2"
+  },
+  "devDependencies": {
+    "esbuild": "0.23.1"
+  }
+}

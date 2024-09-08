@@ -69,31 +69,18 @@
 
     <!-- optional dependencies -->
 
-    <!-- graal -->
+    <!-- GraalVM Polyglot support -->
     <dependency>
-      <groupId>org.graalvm.sdk</groupId>
-      <artifactId>graal-sdk</artifactId>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>polyglot</artifactId>
+      <version>${graalvm.version}</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
-
     <dependency>
       <groupId>org.graalvm.js</groupId>
-      <artifactId>js</artifactId>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-
-    <dependency>
-      <groupId>org.graalvm.js</groupId>
-      <artifactId>js-scriptengine</artifactId>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-
-    <dependency>
-      <groupId>org.graalvm.js</groupId>
-      <artifactId>js-launcher</artifactId>
+      <artifactId>js-language</artifactId>
+      <version>${graalvm.version}</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>

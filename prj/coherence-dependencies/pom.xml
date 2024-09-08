@@ -105,6 +105,7 @@
      <maven.exec.plugin.version>3.1.0</maven.exec.plugin.version>
      <maven.flatten.plugin.version>1.2.2</maven.flatten.plugin.version>
      <maven.failsafe.plugin.version>3.1.2</maven.failsafe.plugin.version>
+     <maven.frontend.plugin.version>1.15.0</maven.frontend.plugin.version>
      <maven.gmaven.plugin.version>2.1.0</maven.gmaven.plugin.version>
      <maven.gmaven.providerSelection.version>1.8</maven.gmaven.providerSelection.version>
      <maven.gpg.plugin.version>3.1.0</maven.gpg.plugin.version>
@@ -158,14 +159,17 @@
     <glassfish.el.version>4.0.2</glassfish.el.version>
     <google-error-prone.version>2.3.3</google-error-prone.version>
     <!--
-    NOTE: The Graal version and the Graal image tag should ideally be kept as close as possible
-    When bumping the Graal version, check here https://github.com/graalvm/container/pkgs/container/graalvm-ce
-    to see what the latest corresponding image tag is. Sometimes the Graal version in Maven central is a later
-    patch than the latest available image tag.
+    The GraalVM image tag should be set to the latest patch release found at https://container-registry.oracle.com/ords/ocr/ba/graalvm/jdk.
+    The most specific (X.Y.Z-os-date) patch version tag should be used, to prevent accidental upgrades.
     -->
-    <graal.version>19.3.1</graal.version>
-    <!-- the tag of the Graal image at ghcr.io/graalvm/graalvm-ce -->
-    <graal.image.tag>ol8-java17-22.1.0</graal.image.tag>
+    <graalvm.image.tag>21.0.4-ol8-20240904</graalvm.image.tag>
+    <!--
+    The GraalVM version and the GraalVM image tag should be kept in sync, based on the GraalVM for JDK release notes.
+    For example, relase notes for GraalVM for JDK 21 (https://www.graalvm.org/release-notes/JDK_21/) document
+    that the compatible version of "Truffle languages and other components" is version 23.1.x, with x
+    typically matching the patch component of the GraalVM image tag above (ie. 21.0.4 => 23.1.4)
+    -->
+    <graalvm.version>23.1.4</graalvm.version>
     <grpc.version>1.66.0</grpc.version>
     <!--
     This is a workaround for the fact that newer versions of the gRPC ProtoBuf compiler do not work on
@@ -415,29 +419,16 @@
         <version>${fastutil.version}</version>
       </dependency>
 
-      <!-- graal -->
+      <!-- GraalVM Polyglot support -->
       <dependency>
-        <groupId>org.graalvm.sdk</groupId>
-        <artifactId>graal-sdk</artifactId>
-        <version>${graal.version}</version>
+        <groupId>org.graalvm.polyglot</groupId>
+        <artifactId>polyglot</artifactId>
+        <version>${graalvm.version}</version>
       </dependency>
-
       <dependency>
         <groupId>org.graalvm.js</groupId>
-        <artifactId>js</artifactId>
-        <version>${graal.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.graalvm.js</groupId>
-        <artifactId>js-scriptengine</artifactId>
-        <version>${graal.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.graalvm.js</groupId>
-        <artifactId>js-launcher</artifactId>
-        <version>${graal.version}</version>
+        <artifactId>js-language</artifactId>
+        <version>${graalvm.version}</version>
       </dependency>
 
       <!-- Helidon -->
@@ -1502,6 +1493,12 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>nbm-maven-plugin</artifactId>
           <version>${maven.nbm.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>com.github.eirslett</groupId>
+          <artifactId>frontend-maven-plugin</artifactId>
+          <version>${maven.frontend.plugin.version}</version>
         </plugin>
 
         <!-- OWASP dependency CVE checker -->

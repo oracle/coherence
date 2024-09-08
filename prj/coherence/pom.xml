@@ -194,10 +194,17 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- GraalVM JS -->
+    <!-- GraalVM Polyglot support -->
+    <dependency>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>polyglot</artifactId>
+      <version>${graalvm.version}</version>
+      <optional>true</optional>
+    </dependency>
     <dependency>
       <groupId>org.graalvm.js</groupId>
-      <artifactId>js</artifactId>
+      <artifactId>js-language</artifactId>
+      <version>${graalvm.version}</version>
       <optional>true</optional>
     </dependency>
 

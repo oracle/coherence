@@ -47,8 +47,13 @@
     </dependency>
 
     <dependency>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>polyglot</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.graalvm.js</groupId>
-      <artifactId>js</artifactId>
+      <artifactId>js-language</artifactId>
       <scope>test</scope>
     </dependency>
 

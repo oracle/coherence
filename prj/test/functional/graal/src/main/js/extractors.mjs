@@ -4,19 +4,14 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-
-// extractors.mjs
-var NameExtractor = class {
+export class NameExtractor {
   extract(value) {
     return value.name;
   }
-};
-var AgeExtractor = class {
+}
+
+export class AgeExtractor {
   extract(value) {
     return value.age;
   }
-};
-export {
-  AgeExtractor,
-  NameExtractor
-};
+}
