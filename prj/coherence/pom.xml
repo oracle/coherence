@@ -198,13 +198,11 @@
     <dependency>
       <groupId>org.graalvm.polyglot</groupId>
       <artifactId>polyglot</artifactId>
-      <version>${graalvm.version}</version>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js-language</artifactId>
-      <version>${graalvm.version}</version>
       <optional>true</optional>
     </dependency>
 
@@ -721,24 +719,14 @@
 
               <additionalDependencies>
                 <additionalDependency>
-                  <groupId>org.graalvm.sdk</groupId>
-                  <artifactId>graal-sdk</artifactId>
-                  <version>${graal.version}</version>
+                  <groupId>org.graalvm.js</groupId>
+                  <artifactId>js-language</artifactId>
+                  <version>${graalvm.version}</version>
                 </additionalDependency>
                 <additionalDependency>
-                  <groupId>org.graalvm.js</groupId>
-                  <artifactId>js</artifactId>
-                  <version>${graal.version}</version>
-                </additionalDependency>
-                <additionalDependency>
-                  <groupId>org.graalvm.js</groupId>
-                  <artifactId>js-scriptengine</artifactId>
-                  <version>${graal.version}</version>
-                </additionalDependency>
-                <additionalDependency>
-                  <groupId>org.graalvm.js</groupId>
-                  <artifactId>js-launcher</artifactId>
-                  <version>${graal.version}</version>
+                  <groupId>org.graalvm.polyglot</groupId>
+                  <artifactId>polyglot</artifactId>
+                  <version>${graalvm.version}</version>
                 </additionalDependency>
                 <additionalDependency>
                   <groupId>jakarta.enterprise</groupId>
