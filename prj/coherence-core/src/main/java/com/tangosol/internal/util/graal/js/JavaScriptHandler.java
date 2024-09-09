@@ -6,6 +6,8 @@
  */
 package com.tangosol.internal.util.graal.js;
 
+import com.tangosol.coherence.config.Config;
+
 import com.tangosol.internal.util.graal.AbstractScriptHandler;
 import com.tangosol.internal.util.graal.ScriptHandler;
 
@@ -34,8 +36,8 @@ public class JavaScriptHandler
     @Override
     public void configure(Context.Builder builder)
         {
-        builder.option("js.nashorn-compat", "true")              // allows JavaScript code to access getters and setters using simple property names
-               .option("js.ecmascript-version", "2023")
+        builder.option("js.nashorn-compat", "true")  // allows JavaScript code to access getters and setters using simple property names
+               .option("js.ecmascript-version", Config.getProperty("coherence.js.ecmascript.version", "2023"))
                .option("js.esm-eval-returns-exports", "true");
         }
 
