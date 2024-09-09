@@ -6,8 +6,6 @@
  */
 package com.oracle.coherence.docker;
 
-import com.github.dockerjava.api.command.CreateContainerCmd;
-import com.github.dockerjava.api.model.HealthCheck;
 import com.tangosol.internal.net.management.HttpHelper;
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 import com.tangosol.net.CacheFactory;
@@ -19,9 +17,10 @@ import org.testcontainers.images.ImagePullPolicy;
 import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.lang.reflect.Method;
-import java.time.Duration;
-import java.util.function.Consumer;
+import java.util.Arrays;
 
 
 /**
@@ -70,6 +69,26 @@ public abstract class BaseDockerImageTests
         File dir        = new File(fileTests, m_sTestMethod);
         dir.mkdirs();
         return dir;
+        }
+
+    protected File createJvmArgsFile(String... args)
+        {
+        try
+            {
+            File fileOutDir  = getOutputDirectory();
+            File fileArgs    = new File(fileOutDir, "jvm-args.txt");
+
+            try (PrintWriter writer = new PrintWriter(fileArgs))
+                {
+                Arrays.stream(args).forEach(writer::println);
+                }
+
+            return fileOutDir;
+            }
+        catch (FileNotFoundException e)
+            {
+            throw new RuntimeException(e);
+            }
         }
 
     // ----- inner class NeverPull ------------------------------------------

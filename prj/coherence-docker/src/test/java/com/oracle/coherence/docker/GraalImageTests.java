@@ -44,10 +44,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
 import java.net.URL;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -92,10 +94,14 @@ public class GraalImageTests
         URL  url       = Resources.findFileOrResource("scripts/js/processors.mjs", Classes.getContextClassLoader());
         File dirScript = new File(url.toURI()).getParentFile();
 
+        // disable truffle optimizing runtime due to use of virtual threads
+        File fileArgsDir = createJvmArgsFile("-Dtruffle.TruffleRuntime=com.oracle.truffle.api.impl.DefaultTruffleRuntime");
+
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
                 .withFileSystemBind(dirScript.getAbsolutePath(), "/app/classes/scripts/js", BindMode.READ_ONLY)
+                .withFileSystemBind(fileArgsDir.getAbsolutePath(), "/args", BindMode.READ_ONLY)
                 .withExposedPorts(EXTEND_PORT, CONCURRENT_EXTEND_PORT)))
             {
             Eventually.assertDeferred(container::isHealthy, is(true), Timeout.after(5, TimeUnit.MINUTES));

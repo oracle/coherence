@@ -62,8 +62,6 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 
 import java.net.URI;
 
@@ -72,7 +70,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -363,28 +360,6 @@ public class DockerImageTests
                     assertThat(nSize.intValue(), is(2));
                     }
                 }
-            }
-        }
-
-    // ----- helper methods -------------------------------------------------
-
-    private File createJvmArgsFile(String... args)
-        {
-        try
-            {
-            File fileOutDir  = getOutputDirectory();
-            File fileArgs    = new File(fileOutDir, "jvm-args.txt");
-
-            try (PrintWriter writer = new PrintWriter(fileArgs))
-                {
-                Arrays.stream(args).forEach(writer::println);
-                }
-
-            return fileOutDir;
-            }
-        catch (FileNotFoundException e)
-            {
-            throw new RuntimeException(e);
             }
         }
 
