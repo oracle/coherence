@@ -94,6 +94,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 
 @SuppressWarnings("resource")
@@ -128,12 +129,13 @@ public class ClientCompatibilityIT
             return null;
             }, cTimeoutMinute + 5, TimeUnit.MINUTES);
 
+        sClusterExtension = new CoherenceClusterExtension();
+
         CompletableFuture<CoherenceClusterExtension> future = CompletableFuture.supplyAsync(() ->
             {
             try
                 {
-                CoherenceClusterExtension extension = new CoherenceClusterExtension()
-                        .with(CacheConfig.of("coherence-config.xml"),
+                sClusterExtension.with(CacheConfig.of("coherence-config.xml"),
                                 OperationalOverride.of("test-coherence-override.xml"),
                                 createClasspath(),
                                 Pof.config("test-pof-config.xml"),
@@ -150,18 +152,19 @@ public class ClientCompatibilityIT
                                 TEST_LOGS)
                         .include(CLUSTER_SIZE, CoherenceClusterMember.class);
 
-                extension.beforeAll(null);
-                return extension;
+                sClusterExtension.beforeAll(null);
+                return sClusterExtension;
                 }
-            catch (Exception e)
+            catch (Throwable t)
                 {
-                throw new RuntimeException(e);
+                t.printStackTrace(System.err);
+                throw Exceptions.ensureRuntimeException(t);
                 }
             });
 
         try
             {
-            sClusterExtension = future.get(cTimeoutMinute, TimeUnit.MINUTES);
+            future.get(cTimeoutMinute, TimeUnit.MINUTES);
             }
         catch (Throwable throwable)
             {
@@ -224,14 +227,27 @@ public class ClientCompatibilityIT
         }
 
     @AfterAll
-    static void shutdownCoherence() throws Exception
+    static void shutdownCoherence()
         {
-        Coherence.closeAll();
+        try
+            {
+            Coherence.closeAll();
+            }
+        catch (Throwable t)
+            {
+            t.printStackTrace(System.err);
+            }
+
         if (sClusterExtension != null)
             {
-            CoherenceCluster cluster = sClusterExtension.getCluster();
-            cluster.close();
-            sClusterExtension.afterAll(null);
+            try
+                {
+                sClusterExtension.afterAll(null);
+                }
+            catch (Throwable t)
+                {
+                t.printStackTrace(System.err);
+                }
             }
         }
 
