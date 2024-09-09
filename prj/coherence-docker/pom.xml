@@ -66,6 +66,17 @@
       <artifactId>slf4j-simple</artifactId>
     </dependency>
 
+    <!-- GraalVM Polyglot support -->
+    <dependency>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>polyglot</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>js</artifactId>
+      <type>pom</type>
+    </dependency>
+
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-bedrock-testing-support</artifactId>
@@ -193,9 +204,9 @@
                      <IMAGE_ARCH>${docker.image.arch}</IMAGE_ARCH>
                      <AMD_BASE_IMAGE>${docker.base.image.name.amd}</AMD_BASE_IMAGE>
                      <ARM_BASE_IMAGE>${docker.base.image.name.arm}</ARM_BASE_IMAGE>
-                     <GRAAL_AMD_BASE_IMAGE>${graal.base.image.name.amd}</GRAAL_AMD_BASE_IMAGE>
-                     <GRAAL_ARM_BASE_IMAGE>${graal.base.image.name.arm}</GRAAL_ARM_BASE_IMAGE>
-                     <NO_GRAAL>${graal.image.skip}</NO_GRAAL>
+                     <GRAAL_AMD_BASE_IMAGE>${graalvm.base.image.name.amd}</GRAAL_AMD_BASE_IMAGE>
+                     <GRAAL_ARM_BASE_IMAGE>${graalvm.base.image.name.arm}</GRAAL_ARM_BASE_IMAGE>
+                     <NO_GRAAL>${graalvm.image.skip}</NO_GRAAL>
                      <PORT_EXTEND>${docker.port.extend}</PORT_EXTEND>
                      <PORT_CONCURRENT_EXTEND>${docker.port.concurrent.extend}</PORT_CONCURRENT_EXTEND>
                      <PORT_GRPC>${docker.port.grpc}</PORT_GRPC>
@@ -299,7 +310,7 @@
                    <environmentVariables>
                      <COHERENCE_VERSION>${project.version}</COHERENCE_VERSION>
                      <IMAGE_NAME>${docker.image.name}</IMAGE_NAME>
-                     <NO_GRAAL>${graal.image.skip}</NO_GRAAL>
+                     <NO_GRAAL>${graalvm.image.skip}</NO_GRAAL>
                      <DOCKER_REGISTRY>${env.DOCKER_REGISTRY}</DOCKER_REGISTRY>
                      <DOCKER_USERNAME>${env.DOCKER_USERNAME}</DOCKER_USERNAME>
                      <DOCKER_PASSWORD>${env.DOCKER_PASSWORD}</DOCKER_PASSWORD>
@@ -342,9 +353,9 @@
                      <IMAGE_ARCH>${docker.image.arch}</IMAGE_ARCH>
                      <AMD_BASE_IMAGE>${docker.base.image.name.amd}</AMD_BASE_IMAGE>
                      <ARM_BASE_IMAGE>${docker.base.image.name.arm}</ARM_BASE_IMAGE>
-                     <GRAAL_AMD_BASE_IMAGE>${graal.base.image.name.amd}</GRAAL_AMD_BASE_IMAGE>
-                     <GRAAL_ARM_BASE_IMAGE>${graal.base.image.name.arm}</GRAAL_ARM_BASE_IMAGE>
-                     <NO_GRAAL>${graal.image.skip}</NO_GRAAL>
+                     <GRAAL_AMD_BASE_IMAGE>${graalvm.base.image.name.amd}</GRAAL_AMD_BASE_IMAGE>
+                     <GRAAL_ARM_BASE_IMAGE>${graalvm.base.image.name.arm}</GRAAL_ARM_BASE_IMAGE>
+                     <NO_GRAAL>${graalvm.image.skip}</NO_GRAAL>
                      <PORT_EXTEND>${docker.port.extend}</PORT_EXTEND>
                      <PORT_CONCURRENT_EXTEND>${docker.port.concurrent.extend}</PORT_CONCURRENT_EXTEND>
                      <PORT_GRPC>${docker.port.grpc}</PORT_GRPC>

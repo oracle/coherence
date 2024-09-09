@@ -430,6 +430,12 @@
         <artifactId>js-language</artifactId>
         <version>${graalvm.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.graalvm.polyglot</groupId>
+        <artifactId>js</artifactId>
+        <version>${graalvm.version}</version>
+        <type>pom</type>
+      </dependency>
 
       <!-- Helidon -->
       <dependency>

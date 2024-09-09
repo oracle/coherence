@@ -89,13 +89,13 @@ public class GraalImageTests
         {
         ImageNames.verifyGraalTestAssumptions();
 
-        URL  url        = Resources.findFileOrResource("scripts/js/processors.js", Classes.getContextClassLoader());
-        File fileScript = new File(url.toURI()).getParentFile();
+        URL  url       = Resources.findFileOrResource("scripts/js/processors.mjs", Classes.getContextClassLoader());
+        File dirScript = new File(url.toURI()).getParentFile();
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
-                .withFileSystemBind(fileScript.getAbsolutePath(), "/app/classes/scripts/js", BindMode.READ_ONLY)
+                .withFileSystemBind(dirScript.getAbsolutePath(), "/app/classes/scripts/js", BindMode.READ_ONLY)
                 .withExposedPorts(EXTEND_PORT, CONCURRENT_EXTEND_PORT)))
             {
             Eventually.assertDeferred(container::isHealthy, is(true), Timeout.after(5, TimeUnit.MINUTES));
