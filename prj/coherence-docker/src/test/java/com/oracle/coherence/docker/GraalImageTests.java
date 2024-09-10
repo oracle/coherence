@@ -94,8 +94,8 @@ public class GraalImageTests
         URL  url       = Resources.findFileOrResource("scripts/js/processors.mjs", Classes.getContextClassLoader());
         File dirScript = new File(url.toURI()).getParentFile();
 
-        // disable truffle optimizing runtime due to use of virtual threads
-        File fileArgsDir = createJvmArgsFile("-Dtruffle.TruffleRuntime=com.oracle.truffle.api.impl.DefaultTruffleRuntime");
+        // disable use of virtual threads as they are not compatible with Graal/Truffle
+        File fileArgsDir = createJvmArgsFile("-Dcoherence.virtualthreads.enabled=false");
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
