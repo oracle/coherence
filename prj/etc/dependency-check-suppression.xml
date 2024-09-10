@@ -290,15 +290,6 @@
     <cve>CVE-2021-2428</cve>
   </suppress>
 
-  <!-- ICU4J - pulled in by org.graalvm.js -->
-  <suppress>
-     <notes><![CDATA[
-     file name: icu4j-64.2.jar
-     ]]></notes>
-     <packageUrl regex="true">^pkg:maven/com\.ibm\.icu/icu4j@.*$</packageUrl>
-     <cve>CVE-2020-21913</cve>
-  </suppress>
-
   <!-- Tomcat - for testing -->
   <suppress>
      <notes><![CDATA[
@@ -343,13 +334,6 @@
      file name: jakarta.transaction-api-1.3.2.jar
      ]]></notes>
      <packageUrl regex="true">^pkg:maven/jakarta\.transaction/jakarta\.transaction\-api@.*$</packageUrl>
-     <cve>CVE-2022-31569</cve>
-  </suppress>
-  <suppress>
-     <notes><![CDATA[
-     file name: truffle-api-19.3.1.jar
-     ]]></notes>
-     <packageUrl regex="true">^pkg:maven/org\.graalvm\.truffle/truffle\-api@.*$</packageUrl>
      <cve>CVE-2022-31569</cve>
   </suppress>
 
@@ -430,17 +414,34 @@
     <cve>CVE-2023-3635</cve>
   </suppress>
 
-  <!-- suppression for graal-sdk-19.3.1.jar CVE scan error -->
+  <!-- suppression for graalvm icu4j CVE scan error -->
   <suppress>
     <notes><![CDATA[
-    file name: graal-sdk-19.3.1.jar
+    file name: icu4j-23.1.4.jar
     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.graalvm\.sdk/graal\-sdk@.*$</packageUrl>
-    <cve>CVE-2023-22006</cve>
-    <cve>CVE-2023-22049</cve>
-    <cve>CVE-2024-20932</cve>
-    <cve>CVE-2024-21068</cve>
-    <cve>CVE-2024-21138</cve>
+    <packageUrl regex="true">^pkg:maven/org\.graalvm\.shadowed/icu4j@.*$</packageUrl>
+    <cpe>cpe:2.3:a:icu-project:international_components_for_unicode</cpe>
+    <cpe>cpe:2.3:a:unicode:international_components_for_unicode</cpe>
+    <cpe> cpe:2.3:a:unicode:unicode</cpe>
+    <cve>CVE-2014-9654</cve>
+    <cve>CVE-2014-9911</cve>
+    <cve>CVE-2016-6293</cve>
+    <cve>CVE-2016-7415</cve>
+    <cve>CVE-2017-14952</cve>
+    <cve>CVE-2017-17484</cve>
+    <cve>CVE-2015-5922</cve>
+    <cve>CVE-2020-10531</cve>
+    <cve>CVE-2011-4599</cve>
+    <cve>CVE-2014-7923</cve>
+    <cve>CVE-2014-7926</cve>
+    <cve>CVE-2014-7940</cve>
+    <cve>CVE-2014-8146</cve>
+    <cve>CVE-2014-8147</cve>
+    <cve>CVE-2017-7867</cve>
+    <cve>CVE-2017-7868</cve>
+    <cve>CVE-2017-15396</cve>
+    <cve>CVE-2017-15422</cve>
+    <cve>CVE-2020-21913</cve>
   </suppress>
 
   <!-- suppress plexus-classworlds, plexus-component-annotations- CVE-2022-4244,
