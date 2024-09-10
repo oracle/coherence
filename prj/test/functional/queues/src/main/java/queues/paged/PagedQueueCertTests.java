@@ -14,9 +14,9 @@ import com.google.common.collect.testing.features.CollectionFeature;
 import com.google.common.collect.testing.features.CollectionSize;
 
 import com.tangosol.coherence.config.scheme.PagedQueueScheme;
-import com.tangosol.internal.net.queue.PagedQueue;
 
 import com.tangosol.net.Coherence;
+import com.tangosol.net.NamedQueue;
 import com.tangosol.net.Session;
 
 import junit.framework.TestFailure;
@@ -68,7 +68,7 @@ public class PagedQueueCertTests
                     public Queue<String> create(String... asValue)
                         {
                         String             sName = "test-" + m_queueId.getAndIncrement();
-                        PagedQueue<String> queue = PagedQueueScheme.INSTANCE.realize(sName, m_session);
+                        NamedQueue<String> queue = PagedQueueScheme.INSTANCE.realize(sName, m_session);
 
                         for (String sValue : asValue)
                             {

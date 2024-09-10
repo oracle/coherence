@@ -8,6 +8,7 @@
 package com.tangosol.internal.net.queue;
 
 import com.tangosol.internal.net.queue.model.QueueKey;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.NamedQueue;
 
 /**
@@ -39,5 +40,15 @@ public class WrapperNamedMapQueue<K extends QueueKey, E>
     public WrapperNamedMapQueue(String sName, NamedMapQueue<K, E> delegate)
         {
         super(sName, delegate);
+        }
+
+    /**
+     * Obtain the underlying {@link NamedMap}.
+     *
+     * @return the underlying {@link NamedMap}
+     */
+    public NamedMap<K, E> getNamedMap()
+        {
+        return f_delegate.getNamedMap();
         }
     }

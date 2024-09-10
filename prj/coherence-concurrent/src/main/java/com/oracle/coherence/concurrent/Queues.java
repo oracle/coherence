@@ -22,24 +22,33 @@ import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 
+import com.tangosol.internal.net.NamedCacheDeactivationListener;
 import com.tangosol.internal.net.queue.NamedMapBlockingDeque;
 import com.tangosol.internal.net.queue.NamedMapBlockingQueue;
 import com.tangosol.internal.net.queue.NamedMapDeque;
 
+import com.tangosol.internal.net.queue.NamedMapQueue;
 import com.tangosol.internal.net.queue.PagedQueue;
 import com.tangosol.internal.net.queue.model.QueueKey;
 import com.tangosol.internal.net.queue.paged.PagedNamedQueue;
 import com.tangosol.io.ClassLoaderAware;
 
 import com.tangosol.net.Coherence;
+import com.tangosol.net.ConfigurableCacheFactory;
+import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedBlockingDeque;
 import com.tangosol.net.NamedBlockingQueue;
 import com.tangosol.net.NamedCollection;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.NamedQueue;
 import com.tangosol.net.Session;
 import com.tangosol.net.ValueTypeAssertion;
 
 import com.tangosol.net.internal.ScopedReferenceStore;
+import com.tangosol.util.MapEvent;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A factory to obtain various types of {@link NamedBlockingQueue}
@@ -175,7 +184,7 @@ public class Queues
             }
         PagedQueueScheme   scheme     = PagedQueueScheme.INSTANCE;
         String             sCacheName = isConcurrent(session) ? cacheNameForPagedQueue(sName) : sName;
-        PagedNamedQueue<E> queue      = (PagedNamedQueue<E>) ensureCollectionInternal(sCacheName, PagedQueue.class, scheme, session);
+        PagedNamedQueue<E> queue      = (PagedNamedQueue<E>) ensureCollectionInternal(sCacheName, NamedMapQueue.class, scheme, session);
         return new NamedMapBlockingQueue<>(sName, queue);
         }
 
@@ -235,8 +244,8 @@ public class Queues
         return SESSION_NAME.equals(session.getName());
         }
 
-    private static <Q extends NamedQueue> Q ensureCollectionInternal(String sName, Class<Q> clzQueue,
-            NamedQueueScheme<Q> scheme, Session session)
+    private static <Q extends NamedMapQueue> Q ensureCollectionInternal(String sName, Class<Q> clzQueue,
+                NamedQueueScheme<Q> scheme, Session session)
         {
         Q collection;
 
@@ -247,11 +256,14 @@ public class Queues
             sName = "Default";
             }
 
-        ClassLoader loader = Classes.getContextClassLoader();
+        ExtensibleConfigurableCacheFactory eccf     = (ExtensibleConfigurableCacheFactory) ccfSession.getConfigurableCacheFactory();
+        ClassLoader                        loader   = eccf.getConfigClassLoader();
+        String                             sSession = session.getName();
+        QueueReferenceStore                store    = f_mapStores.computeIfAbsent(sSession, k -> new QueueReferenceStore());
 
         do
             {
-            NamedQueue col = f_storeQueues.get(sName, loader);
+            NamedQueue col = store.get(sName, loader);
 
             if (col != null && col.isActive())
                 {
@@ -271,7 +283,7 @@ public class Queues
 
             // there are instances of sibling caches for different
             // class loaders; check for and clear invalid references
-            f_storeQueues.clearInactiveRefs(sName);
+            store.clearInactiveRefs(sName);
 
             if (scheme.realizes(clzQueue))
                 {
@@ -280,59 +292,17 @@ public class Queues
                                                   loader, sName,null);
 
                 collection = (Q) scheme.realize(ValueTypeAssertion.WITHOUT_TYPE_CHECKING, resolver, dependencies);
+                NamedMap map = collection.getNamedMap();
+                map.addMapListener(new DeactivationListener(collection, store));
                 }
             else
                 {
                 throw new IllegalArgumentException("The specified builder cannot build a queue of type " + clzQueue);
                 }
 
-            } while (f_storeQueues.putIfAbsent(collection, loader) != null);
+            } while (store.putIfAbsent(collection, loader) != null);
 
         return collection;
-        }
-
-    protected void releaseQueue(NamedQueue<?> queue)
-        {
-        releaseCollection(queue, false);
-        }
-
-    protected void destroyQueue(NamedQueue<?> queue)
-        {
-        releaseCollection(queue, true);
-        }
-
-    /**
-     * Release a {@link NamedCollection} managed by this factory, optionally destroying it.
-     *
-     * @param collection  the collection to release
-     * @param fDestroy     true to destroy the collection as well
-     */
-    private static void releaseCollection(NamedQueue<?> collection, boolean fDestroy)
-        {
-        String      sName   = collection.getName();
-        ClassLoader loader  = collection instanceof ClassLoaderAware
-                ? ((ClassLoaderAware) collection).getContextClassLoader()
-                : Classes.getContextClassLoader();
-
-        if (f_storeQueues.release(collection, loader)) // free the resources
-            {
-            // allow collection to release/destroy internal resources
-            if (fDestroy)
-                {
-                collection.destroy();
-                }
-            else
-                {
-                collection.release();
-                }
-            }
-        else if (collection.isActive())
-            {
-            // active, but not managed by this factory
-            throw new IllegalArgumentException("The collection " + sName
-                + " was created using a different factory; that same"
-                + " factory should be used to release the collection.");
-            }
         }
 
     // ----- inner class QueueReferenceStore --------------------------------
@@ -345,6 +315,38 @@ public class Queues
             {
             super(NamedQueue.class, NamedQueue::isActive, NamedQueue::getName, NamedQueue::getService);
             }
+        }
+
+    // ----- DeactivationListener -------------------------------------------
+
+    protected static class DeactivationListener
+            implements NamedCacheDeactivationListener
+        {
+        public DeactivationListener(NamedQueue<?> queue, QueueReferenceStore store)
+            {
+            m_queue = queue;
+            m_store = store;
+            }
+
+        @Override
+        public void entryInserted(MapEvent evt)
+            {
+            }
+
+        @Override
+        public void entryUpdated(MapEvent evt)
+            {
+            }
+
+        @Override
+        public void entryDeleted(MapEvent evt)
+            {
+            m_store.release(m_queue);
+            }
+
+        private final NamedQueue<?> m_queue;
+
+        private final QueueReferenceStore m_store;
         }
 
     // ----- constants ------------------------------------------------------
@@ -367,7 +369,7 @@ public class Queues
     // ----- data members ---------------------------------------------------
 
     /**
-     * Store of queue references with subject scoping if configured.
+     * The map of queue reference stores keyed by session name.
      */
-    private static final QueueReferenceStore f_storeQueues = new QueueReferenceStore();
+    private static final Map<String, QueueReferenceStore> f_mapStores = new ConcurrentHashMap<>();
     }

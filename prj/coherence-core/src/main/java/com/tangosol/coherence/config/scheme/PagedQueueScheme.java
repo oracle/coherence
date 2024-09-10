@@ -23,6 +23,7 @@ import com.tangosol.config.expression.ParameterResolver;
 import com.tangosol.config.injection.SimpleInjector;
 
 import com.tangosol.internal.net.queue.DefaultPagedQueueDependencies;
+import com.tangosol.internal.net.queue.NamedMapQueue;
 import com.tangosol.internal.net.queue.PagedQueue;
 import com.tangosol.internal.net.queue.model.QueueKey;
 import com.tangosol.internal.net.queue.paged.BinaryPagedNamedQueue;
@@ -53,7 +54,7 @@ import java.util.List;
 @SuppressWarnings("rawtypes")
 public class PagedQueueScheme
         extends DistributedScheme
-        implements NamedQueueScheme<PagedQueue>
+        implements NamedQueueScheme<NamedMapQueue>
     {
     // ----- constructors ---------------------------------------------------
 
@@ -130,17 +131,17 @@ public class PagedQueueScheme
 
     @Override
     @SuppressWarnings("unchecked")
-    public <V> PagedQueue<V> realize(ValueTypeAssertion<V> typeConstraint, ParameterResolver resolver, Dependencies deps)
+    public <V> NamedMapQueue<?, V> realize(ValueTypeAssertion<V> typeConstraint, ParameterResolver resolver, Dependencies deps)
         {
         ExtensibleConfigurableCacheFactory eccf =
                 (ExtensibleConfigurableCacheFactory) deps.getConfigurableCacheFactory();
 
-        PagedQueue<V> pagedQueue;
+        NamedMapQueue pagedQueue;
 
         String sQueueName = deps.getCacheName();
         if (NullImplementation.getClassLoader().equals(deps.getClassLoader()))
             {
-            pagedQueue = (PagedQueue<V>) new BinaryPagedNamedQueue(sQueueName, eccf);
+            pagedQueue = (NamedMapQueue) new BinaryPagedNamedQueue(sQueueName, eccf);
             }
         else
             {

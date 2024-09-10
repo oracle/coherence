@@ -270,16 +270,6 @@ public class NamedMapBlockingQueue<K extends QueueKey, E>
 
     // ----- helper methods -------------------------------------------------
 
-    /**
-     * Obtain the underlying cache.
-     *
-     * @return the underlying cache
-     */
-    public NamedMap<K, E> getCache()
-        {
-        return f_delegate.getNamedMap();
-        }
-
     private void assertNotSameCollection(Collection<?> c, String sMsg)
         {
         if (c == null)
