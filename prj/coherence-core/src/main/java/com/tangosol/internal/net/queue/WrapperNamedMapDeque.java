@@ -9,6 +9,7 @@ package com.tangosol.internal.net.queue;
 
 import com.tangosol.internal.net.queue.model.QueueKey;
 import com.tangosol.net.NamedDeque;
+import com.tangosol.net.NamedMap;
 
 import java.util.Iterator;
 
@@ -149,5 +150,15 @@ public class WrapperNamedMapDeque<K extends QueueKey, E>
     public Iterator<E> descendingIterator()
         {
         return f_delegate.descendingIterator();
+        }
+
+    /**
+     * Obtain the underlying {@link NamedMap}.
+     *
+     * @return the underlying {@link NamedMap}
+     */
+    public NamedMap<K, E> getNamedMap()
+        {
+        return f_delegate.getNamedMap();
         }
     }

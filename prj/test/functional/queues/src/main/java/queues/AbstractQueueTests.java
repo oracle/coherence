@@ -13,6 +13,8 @@ import com.tangosol.coherence.config.scheme.SimpleDequeScheme;
 import com.tangosol.internal.net.queue.QueuePageIterator;
 import com.tangosol.internal.net.queue.extractor.QueueKeyExtractor;
 import com.tangosol.internal.net.queue.model.QueueKey;
+import com.tangosol.net.CacheService;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.NamedQueue;
 import com.tangosol.net.Session;
@@ -671,6 +673,29 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
             {
             assertThat(queue.poll(), is("message-" + i));
             }
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    protected boolean isSameNamedMap(NamedMap<?, ?> mapThis, NamedMap<?, ?> mapOther)
+        {
+        if (mapThis.getName().equals(mapOther.getName()))
+            {
+            CacheService serviceThis = mapThis.getService();
+            String       sNameThis   = serviceThis.getInfo().getServiceName();
+            CacheService serviceOther = mapOther.getService();
+            String       sNameOther   = serviceOther.getInfo().getServiceName();
+            if (sNameThis.equals(sNameOther))
+                {
+                ConfigurableCacheFactory ccfThis  = serviceThis.getBackingMapManager().getCacheFactory();
+                ConfigurableCacheFactory ccfOther = serviceOther.getBackingMapManager().getCacheFactory();
+                if (ccfThis.equals(ccfOther))
+                    {
+                    return true;
+                    }
+                }
+            }
+        return false;
         }
 
     // ----- inner class: OfferRunnable -------------------------------------

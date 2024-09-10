@@ -9,6 +9,7 @@ package concurrent.queues;
 
 import com.oracle.coherence.concurrent.Queues;
 
+import com.tangosol.internal.net.queue.WrapperNamedMapDeque;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedBlockingDeque;
 import com.tangosol.net.NamedMap;
@@ -19,6 +20,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import queues.LocalDequeTests;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class LocalBlockingDequeTests<QueueType extends NamedBlockingDeque>
@@ -33,6 +37,32 @@ public class LocalBlockingDequeTests<QueueType extends NamedBlockingDeque>
         // the concurrent session. It does not matter for this as everything to do
         // with serialization is already tested by other tests.
         }
+
+    @SuppressWarnings("resource")
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldGetSameQueueAndDequeForSameName(String sSerializer)
+        {
+        String               sName = getNewName(sSerializer);
+        WrapperNamedMapDeque queue = (WrapperNamedMapDeque) Queues.queue(sName);
+        WrapperNamedMapDeque deque = (WrapperNamedMapDeque) Queues.deque(sName);
+
+        assertThat(isSameNamedMap(queue.getNamedMap(), deque.getNamedMap()), is(true));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldDifferentQueuesForSameNameDifferentSession(String sSerializer)
+        {
+        Session              sessionOne = Coherence.getInstance().getSession(Queues.SESSION_NAME);
+        Session              sessionTwo = Coherence.getInstance().getSession();
+        String               sName      = getNewName(sSerializer);
+        WrapperNamedMapDeque queue      = (WrapperNamedMapDeque) Queues.queue(sName, sessionOne);
+        WrapperNamedMapDeque deque      = (WrapperNamedMapDeque) Queues.deque(sName, sessionTwo);
+
+        assertThat(isSameNamedMap(queue.getNamedMap(), deque.getNamedMap()), is(false));
+        }
+
 
     @Override
     public Session getSession()
