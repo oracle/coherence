@@ -82,6 +82,20 @@ public class UniversalExtractorTest
         }
 
     @Test
+    public void testExtractorEquality()
+        {
+        UniversalExtractor  extractorUniversal1   = new UniversalExtractor("getFoo()");
+        UniversalExtractor  extractorUniversal2   = new UniversalExtractor("foo");
+        ReflectionExtractor extractorReflection1  = new ReflectionExtractor("getFoo");
+
+        assertTrue("u1=" + extractorUniversal1 + " u2=" + extractorUniversal2, extractorUniversal1.equals(extractorUniversal2));
+        assertTrue("u1=" + extractorUniversal1 + " r1=" + extractorReflection1, extractorUniversal1.equals(extractorReflection1));
+        assertTrue("u1=" + extractorUniversal1 + " r1=" + extractorReflection1, extractorReflection1.equals(extractorUniversal1));
+        assertTrue("u2=" + extractorUniversal2 + " r1=" + extractorReflection1, extractorUniversal2.equals(extractorReflection1));
+        assertTrue("u2=" + extractorUniversal2 + " r1=" + extractorReflection1, extractorReflection1.equals(extractorUniversal2));
+        }
+
+    @Test
     public void testOptionalParameters()
         {
         UniversalExtractor methodExtractor = new UniversalExtractor("getFoo()", new Object[]{5});

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,7 +13,7 @@ import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.extractor.AbstractExtractor;
 import com.tangosol.util.extractor.ChainedExtractor;
 import com.tangosol.util.extractor.PofExtractor;
-import com.tangosol.util.extractor.ReflectionExtractor;
+import com.tangosol.util.extractor.UniversalExtractor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -127,7 +127,7 @@ public class DummyPofExtractorBuilder
 
             if (info == null)
                 {
-                reflectionExtractors(listExtractors, i, asPath, nTarget);
+                universalExtractors(listExtractors, i, asPath, nTarget);
                 break;
                 }
 
@@ -224,19 +224,14 @@ public class DummyPofExtractorBuilder
                : null;
         }
 
-    protected void reflectionExtractors(List<ValueExtractor> listExtractors, int nIndex, String[] asPath, int nTarget)
+    protected void universalExtractors(List<ValueExtractor> listExtractors, int nIndex, String[] asPath, int nTarget)
         {
         for (int i = nIndex; i < asPath.length; i++)
             {
-            String        pathElement = asPath[i];
-            StringBuilder name        = new StringBuilder("get").append(Character.toUpperCase(pathElement.charAt(0)));
+            String pathElement = asPath[i];
+            StringBuilder name = new StringBuilder(pathElement);
 
-            if (pathElement.length() > 1)
-                {
-                name.append(pathElement.substring(1));
-                }
-
-            listExtractors.add(new ReflectionExtractor(name.toString(), null, nTarget));
+            listExtractors.add(new UniversalExtractor(name.toString(), null, nTarget));
             nTarget = AbstractExtractor.VALUE;
             }
         }

@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.extractor;
 
 import com.tangosol.io.pof.reflect.PofNavigator;
 
+import com.tangosol.util.Extractors;
 import com.tangosol.util.ValueExtractor;
 
 import org.junit.Test;
@@ -33,6 +34,18 @@ public class ChainedExtractorTest
 
         ChainedExtractor    chainExtractor  = new ChainedExtractor(ve);
         MultiExtractor      multiExtractor  = new MultiExtractor(ve);
+
+        assertNotEquals(chainExtractor, multiExtractor);
+        assertNotEquals(multiExtractor, chainExtractor);
+        assertNull(multiExtractor.getCanonicalName());
+        assertNotNull(chainExtractor.getCanonicalName());
+        }
+
+    @Test
+    public void testAgainstExtractorsMulti()
+        {
+        ValueExtractor chainExtractor  = Extractors.chained("bar", "blab", "foo");
+        ValueExtractor multiExtractor  = Extractors.multi("bar", "blah", "foo");
 
         assertNotEquals(chainExtractor, multiExtractor);
         assertNotEquals(multiExtractor, chainExtractor);
@@ -135,11 +148,14 @@ public class ChainedExtractorTest
         ChainedExtractor ce4 = new ChainedExtractor(ve4);
         ChainedExtractor ce5 = new ChainedExtractor(ve5);
         ChainedExtractor ce6 = new ChainedExtractor("getBar.getBlah.getFoo");
+        ValueExtractor   ce7 = Extractors.chained("bar", "blah", "foo");
+
 
         // Equivalent cases
         assertNotNull(ce1.getCanonicalName());
         assertNotNull(ce2.getCanonicalName());
         assertNotNull(ce6.getCanonicalName());
+        assertNotNull(ce7.getCanonicalName());
 
         assertEquals(ce1, ce2);
         assertEquals(ce1.hashCode(), ce2.hashCode());
@@ -149,6 +165,9 @@ public class ChainedExtractorTest
 
         assertEquals(ce6, ce1);
         assertEquals(ce6.hashCode(), ce1.hashCode());
+
+        assertEquals(ce7, ce1);
+        assertEquals(ce7.hashCode(), ce1.hashCode());
 
         assertEquals(ce6, ce2);
         assertEquals(ce6.hashCode(), ce2.hashCode());

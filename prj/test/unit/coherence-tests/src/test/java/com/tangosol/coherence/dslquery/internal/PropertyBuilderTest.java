@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.dslquery.internal;
 
+import com.tangosol.util.Extractors;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.ValueUpdater;
 import com.tangosol.util.extractor.ChainedExtractor;
 import com.tangosol.util.extractor.CompositeUpdater;
-import com.tangosol.util.extractor.ReflectionExtractor;
-import com.tangosol.util.extractor.ReflectionUpdater;
+import com.tangosol.util.extractor.UniversalExtractor;
+import com.tangosol.util.extractor.UniversalUpdater;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -30,7 +31,7 @@ public class PropertyBuilderTest
             throws Exception
         {
         String          name      = "foo";
-        ValueExtractor  expected  = new ReflectionExtractor("getFoo");
+        ValueExtractor  expected  = Extractors.extract("foo");
         PropertyBuilder builder   = new PropertyBuilder();
         ValueExtractor  extractor = builder.extractorFor(name);
 
@@ -54,7 +55,7 @@ public class PropertyBuilderTest
             throws Exception
         {
         String          name      = "foo1.foo2.bar";
-        ValueExtractor  expected  = new ChainedExtractor("getFoo1.getFoo2.getBar");
+        ValueExtractor  expected  = Extractors.chained("foo1.foo2.bar");
         PropertyBuilder builder   = new PropertyBuilder();
         ValueExtractor  extractor = builder.extractorFor(name);
 
@@ -66,7 +67,7 @@ public class PropertyBuilderTest
             throws Exception
         {
         String          name      = "foo1.foo2.bar";
-        ValueExtractor  expected  = new ChainedExtractor("getFoo2.getBar");
+        ValueExtractor  expected  = Extractors.chained("foo2.bar");
         PropertyBuilder builder   = new PropertyBuilder("foo1");
         ValueExtractor  extractor = builder.extractorFor(name);
 
@@ -78,7 +79,7 @@ public class PropertyBuilderTest
             throws Exception
         {
         String[]        name      = new String[] {"foo1", "foo2", "bar"};
-        ValueExtractor  expected  = new ChainedExtractor("getFoo1.getFoo2.getBar");
+        ValueExtractor  expected  = Extractors.chained("foo1.foo2.bar");
         PropertyBuilder builder   = new PropertyBuilder();
         ValueExtractor  extractor = builder.extractorFor(name);
 
@@ -90,7 +91,7 @@ public class PropertyBuilderTest
             throws Exception
         {
         String[]        name      = new String[] {"foo1", "foo2", "bar"};
-        ValueExtractor  expected  = new ChainedExtractor("getFoo2.getBar");
+        ValueExtractor  expected  = Extractors.chained("foo2.bar");
         PropertyBuilder builder   = new PropertyBuilder("foo1");
         ValueExtractor  extractor = builder.extractorFor(name);
 
@@ -104,7 +105,7 @@ public class PropertyBuilderTest
         String          name    = "foo";
         PropertyBuilder builder = new PropertyBuilder();
 
-        assertThat(builder.extractorStringFor(name), is("getFoo"));
+        assertThat(builder.extractorStringFor(name), is("getFoo()"));
         }
 
     @Test
@@ -124,7 +125,7 @@ public class PropertyBuilderTest
         String          name    = "foo1.foo2.bar";
         PropertyBuilder builder = new PropertyBuilder();
 
-        assertThat(builder.extractorStringFor(name), is("getFoo1.getFoo2.getBar"));
+        assertThat(builder.extractorStringFor(name), is("getFoo1().getFoo2().getBar()"));
         }
 
     @Test
@@ -135,7 +136,7 @@ public class PropertyBuilderTest
         String          name    = "bar";
         PropertyBuilder builder = new PropertyBuilder();
 
-        assertThat(builder.makeSimpleName(prefix, name), is("fooBar"));
+        assertThat(builder.makeSimpleName(prefix, name), is("fooBar()"));
         }
 
     @Test
@@ -146,7 +147,7 @@ public class PropertyBuilderTest
         String          name    = "foobar";
         PropertyBuilder builder = new PropertyBuilder();
 
-        assertThat(builder.makeSimpleName(prefix, name), is("fooBar"));
+        assertThat(builder.makeSimpleName(prefix, name), is("fooBar()"));
         }
 
     @Test
@@ -157,7 +158,7 @@ public class PropertyBuilderTest
         String          name    = "fooBar";
         PropertyBuilder builder = new PropertyBuilder();
 
-        assertThat(builder.makeSimpleName(prefix, name), is("fooBar"));
+        assertThat(builder.makeSimpleName(prefix, name), is("fooBar()"));
         }
 
     @Test
@@ -195,7 +196,7 @@ public class PropertyBuilderTest
     public void shouldGetPlainNameForStringPrefixedWithGet()
             throws Exception
         {
-        String          name    = "getFoo";
+        String          name    = "foo";
         PropertyBuilder builder = new PropertyBuilder();
 
         assertThat(builder.plainName(name), is("foo"));
@@ -218,7 +219,7 @@ public class PropertyBuilderTest
         String          name    = "foo";
         PropertyBuilder builder = new PropertyBuilder();
 
-        assertThat(builder.propertyStringFor(name), is("Foo"));
+        assertThat(builder.propertyStringFor(name), is("foo"));
         }
 
     @Test
@@ -238,7 +239,7 @@ public class PropertyBuilderTest
         String          name    = "foo.bar";
         PropertyBuilder builder = new PropertyBuilder();
 
-        assertThat(builder.propertyStringFor(name), is("Foo.Bar"));
+        assertThat(builder.propertyStringFor(name), is("foo.bar"));
         }
 
     @Test
@@ -248,7 +249,7 @@ public class PropertyBuilderTest
         String          name    = "foo.foo2.bar";
         PropertyBuilder builder = new PropertyBuilder("foo");
 
-        assertThat(builder.propertyStringFor(name), is("Foo2.Bar"));
+        assertThat(builder.propertyStringFor(name), is("foo2.bar"));
         }
 
     @Test
@@ -306,7 +307,7 @@ public class PropertyBuilderTest
         {
         String[]        input    = new String[] {"one", "two", "three"};
         String          prefix   = "foo";
-        String[]        expected = new String[] {"fooOne", "fooTwo", "fooThree"};
+        String[]        expected = new String[] {"fooOne()", "fooTwo()", "fooThree()"};
 
         PropertyBuilder builder  = new PropertyBuilder();
 
@@ -319,7 +320,7 @@ public class PropertyBuilderTest
         {
         String[]        input    = new String[] {"bar", "one", "two", "three"};
         String          prefix   = "foo";
-        String[]        expected = new String[] {"fooOne", "fooTwo", "fooThree"};
+        String[]        expected = new String[] {"fooOne()", "fooTwo()", "fooThree()"};
 
         PropertyBuilder builder  = new PropertyBuilder("bar");
 
@@ -353,7 +354,7 @@ public class PropertyBuilderTest
             throws Exception
         {
         String          name     = "foo";
-        ValueUpdater    expected = new ReflectionUpdater("setFoo");
+        ValueUpdater    expected = new UniversalUpdater("foo");
         PropertyBuilder builder  = new PropertyBuilder();
 
         assertThat(builder.updaterFor(name), is(expected));
@@ -364,8 +365,8 @@ public class PropertyBuilderTest
             throws Exception
         {
         String       name     = "foo.bar1.bar2";
-        ValueUpdater expected = new CompositeUpdater(new ChainedExtractor("getFoo.getBar1"),
-                                    new ReflectionUpdater("setBar2"));
+        ValueUpdater expected = new CompositeUpdater(Extractors.chained("foo.bar1"),
+                                    new UniversalUpdater("bar2"));
         PropertyBuilder builder = new PropertyBuilder();
 
         assertThat(builder.updaterFor(name), is(expected));
@@ -376,8 +377,8 @@ public class PropertyBuilderTest
             throws Exception
         {
         String          name     = "foo.bar1.bar2";
-        ValueUpdater    expected = new CompositeUpdater(new ChainedExtractor("getBar1"),
-                                       new ReflectionUpdater("setBar2"));
+        ValueUpdater    expected = new CompositeUpdater(Extractors.chained("bar1"),
+                                       new UniversalUpdater("bar2"));
         PropertyBuilder builder  = new PropertyBuilder("foo");
 
         assertThat(builder.updaterFor(name), is(expected));
@@ -389,8 +390,8 @@ public class PropertyBuilderTest
         {
         String[]        names    = new String[] {"foo", "bar1", "bar2"};
         PropertyBuilder builder  = new PropertyBuilder();
-        ValueUpdater    expected = new CompositeUpdater(new ChainedExtractor("getFoo.getBar1"),
-                                       new ReflectionUpdater("setBar2"));
+        ValueUpdater    expected = new CompositeUpdater(Extractors.chained("foo.bar1"),
+                                       new UniversalUpdater("bar2"));
 
         assertThat(builder.updaterFor(names), is(expected));
         }
@@ -401,8 +402,8 @@ public class PropertyBuilderTest
         {
         String[]        names    = new String[] {"foo", "bar1", "bar2"};
         PropertyBuilder builder  = new PropertyBuilder("foo");
-        ValueUpdater    expected = new CompositeUpdater(new ChainedExtractor("getBar1"),
-                                       new ReflectionUpdater("setBar2"));
+        ValueUpdater    expected = new CompositeUpdater(Extractors.chained("bar1"),
+                                       new UniversalUpdater("bar2"));
 
         assertThat(builder.updaterFor(names), is(expected));
         }
@@ -414,7 +415,7 @@ public class PropertyBuilderTest
         String          name    = "foo";
         PropertyBuilder builder = new PropertyBuilder();
 
-        assertThat(builder.updaterStringFor(name), is("setFoo"));
+        assertThat(builder.updaterStringFor(name), is("setFoo()"));
         }
 
     @Test
@@ -434,7 +435,7 @@ public class PropertyBuilderTest
         String          name    = "foo1.foo2.bar";
         PropertyBuilder builder = new PropertyBuilder();
 
-        assertThat(builder.updaterStringFor(name), is("setFoo1.setFoo2.setBar"));
+        assertThat(builder.updaterStringFor(name), is("setFoo1().setFoo2().setBar()"));
         }
 
     @Rule

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.dslquery;
 
@@ -27,7 +27,6 @@ import com.tangosol.util.Filter;
 import com.tangosol.util.ValueExtractor;
 
 import com.tangosol.util.extractor.AbstractExtractor;
-import com.tangosol.util.extractor.ReflectionExtractor;
 
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.NeverFilter;
@@ -380,7 +379,7 @@ public class FilterBuilder
      * <p>
      * This is used by the {@link CoherenceQueryLanguage language's} {@link
      * ExtractorBuilder} to map attribute names to POF indices. A null cache
-     * name results in the use of {@link ReflectionExtractor}s.
+     * name results in the use of {@link com.tangosol.util.extractor.UniversalExtractor UniversalExtractor}s.
      */
     protected String m_sCacheName;
 

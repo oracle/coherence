@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.dslquery;
 
@@ -645,7 +645,7 @@ public class CoherenceQueryLanguage
      */
     public void setExtractorBuilder(ExtractorBuilder builder)
         {
-        m_bldrExtractor = builder == null ? new ReflectionExtractorBuilder() : builder;
+        m_bldrExtractor = builder == null ? new UniversalExtractorBuilder() : builder;
         }
 
     /**
@@ -714,5 +714,5 @@ public class CoherenceQueryLanguage
      * The {@link ExtractorBuilder} that will be used to realize
      * {@link com.tangosol.util.ValueExtractor}s to be used by CohQL.
      */
-    protected ExtractorBuilder m_bldrExtractor = new ReflectionExtractorBuilder();
+    protected ExtractorBuilder m_bldrExtractor = new UniversalExtractorBuilder();
     }
