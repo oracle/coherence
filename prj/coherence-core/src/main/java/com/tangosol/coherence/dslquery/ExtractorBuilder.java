@@ -1,13 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.dslquery;
 
 import com.tangosol.util.ValueExtractor;
-
 /**
  * ExtractorBuilders provide a mechanism to construct a {@link ValueExtractor}
  * for a provided cache name, target and property chain ({@link
@@ -37,8 +36,8 @@ import com.tangosol.util.ValueExtractor;
  *   </tr>
  *   <tr>
  *     <td>{@code value().address.homeTel.areaCode}</td>
- *     <td>{@code ChainedExtractor(ReflectionExtractor(getAddress),
- *     ReflectionExtractor(getHomeTel), ReflectionExtractor(getAreaCode))}</td>
+ *     <td>{@code ChainedExtractor(UniversalExtractor(getAddress),
+ *     UniversalExtractor(getHomeTel), UniversalExtractor(getAreaCode))}</td>
  *     <td>{@code PofExtractor(PofNavigator(2, 5, 7))}</td>
  *   </tr>
  * </table>

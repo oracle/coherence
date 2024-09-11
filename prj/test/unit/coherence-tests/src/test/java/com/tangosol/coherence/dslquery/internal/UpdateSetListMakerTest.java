@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.dslquery.internal;
 
@@ -12,6 +12,7 @@ import com.tangosol.coherence.dsltools.termtrees.AtomicTerm;
 import com.tangosol.coherence.dsltools.termtrees.NodeTerm;
 import com.tangosol.coherence.dsltools.termtrees.Term;
 import com.tangosol.coherence.dsltools.termtrees.Terms;
+import com.tangosol.util.Extractors;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.ValueUpdater;
@@ -22,6 +23,8 @@ import com.tangosol.util.extractor.KeyExtractor;
 import com.tangosol.util.extractor.PofExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
 import com.tangosol.util.extractor.ReflectionUpdater;
+import com.tangosol.util.extractor.UniversalExtractor;
+import com.tangosol.util.extractor.UniversalUpdater;
 import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.filter.NotFilter;
 import com.tangosol.util.processor.CompositeProcessor;
@@ -188,7 +191,7 @@ public class UpdateSetListMakerTest
         {
         String             query              = "key(foo)";
         NodeTerm           term               = (NodeTerm) parse(query).termAt(1);
-        Object             expected           = new ReflectionExtractor("key", new Object[] {"foo"});
+        Object             expected           = new UniversalExtractor("key()", new Object[] {"foo"});
 
         UpdateSetListMaker updateSetListMaker = new UpdateSetListMaker(null, null, m_language);
 
@@ -488,7 +491,7 @@ public class UpdateSetListMakerTest
         {
         String             query              = "setList(binaryOperatorNode('==', identifier(foo), literal('bar')))";
         NodeTerm           term               = (NodeTerm) Terms.create(query);
-        Object             expected           = new UpdaterProcessor("setFoo", "bar");
+        Object             expected           = new UpdaterProcessor(new UniversalUpdater("foo"), "bar");
 
         UpdateSetListMaker updateSetListMaker = new UpdateSetListMaker(null, null, m_language);
 
@@ -509,8 +512,8 @@ public class UpdateSetListMakerTest
                        + "binaryOperatorNode('==', identifier(foo2), literal('bar2')))";
         NodeTerm term     = (NodeTerm) Terms.create(query);
         Object   expected = new CompositeProcessor(new InvocableMap.EntryProcessor[] {
-                                new UpdaterProcessor("setFoo", "bar"),
-                                new UpdaterProcessor("setFoo2", "bar2")});
+                                new UpdaterProcessor(new UniversalUpdater("foo"), "bar"),
+                                new UpdaterProcessor(new UniversalUpdater("foo2"), "bar2")});
 
         UpdateSetListMaker updateSetListMaker = new UpdateSetListMaker(null, null, m_language);
 
@@ -530,8 +533,8 @@ public class UpdateSetListMakerTest
         String query = "setList(binaryOperatorNode('==', identifier(foo), literal('bar')),"
                        + "binaryOperatorNode('==', identifier(foo2), literal('bar2')))";
         NodeTerm           term               = (NodeTerm) Terms.create(query);
-        Object             expected           = new Object[] {new UpdaterProcessor("setFoo", "bar"),
-                new UpdaterProcessor("setFoo2", "bar2")};
+        Object             expected           = new Object[] {new UpdaterProcessor(new UniversalUpdater("foo"), "bar"),
+                new UpdaterProcessor(new UniversalUpdater("setFoo2()"), "bar2")};
 
         UpdateSetListMaker updateSetListMaker = new UpdateSetListMaker(null, null, m_language);
 
@@ -550,7 +553,7 @@ public class UpdateSetListMakerTest
         {
         String             query              = "binaryOperatorNode('==', identifier(foo), literal('bar'))";
         NodeTerm           term               = (NodeTerm) Terms.create(query);
-        Object             expected           = new UpdaterProcessor("setFoo", "bar");
+        Object             expected           = new UpdaterProcessor(new UniversalUpdater("foo"), "bar");
 
         UpdateSetListMaker updateSetListMaker = new UpdateSetListMaker(null, null, m_language);
 
@@ -941,10 +944,10 @@ public class UpdateSetListMakerTest
         }
 
     @Test
-    public void shouldMakePathStringFromReflectionExtractor()
+    public void shouldMakePathStringFromUniversalExtractor()
             throws Exception
         {
-        Object             input              = new ReflectionExtractor("getFoo");
+        Object             input              = new UniversalExtractor("foo");
         String             expected           = "getFoo";
         UpdateSetListMaker updateSetListMaker = new UpdateSetListMaker(null, null, m_language);
 
@@ -955,7 +958,7 @@ public class UpdateSetListMakerTest
     public void shouldMakePathStringFromArray()
             throws Exception
         {
-        Object             input              = new Object[] {"foo", new ReflectionExtractor("bar"),
+        Object             input              = new Object[] {"foo", new UniversalExtractor("bar()"),
                 IdentityExtractor.INSTANCE};
         String             expected           = "foo.bar.null";
         UpdateSetListMaker updateSetListMaker = new UpdateSetListMaker(null, null, m_language);
@@ -1028,7 +1031,7 @@ public class UpdateSetListMakerTest
             throws Exception
         {
         Object             input              = "foo";
-        Object             expected           = new ReflectionUpdater("setFoo");
+        Object             expected           = new UniversalUpdater("foo");
 
         UpdateSetListMaker updateSetListMaker = new UpdateSetListMaker(null, null, m_language);
 
@@ -1036,11 +1039,11 @@ public class UpdateSetListMakerTest
         }
 
     @Test
-    public void shouldMakeValueUpdaterFromReflectionExtractor()
+    public void shouldMakeValueUpdaterFromUniversalExtractor()
             throws Exception
         {
-        Object             input              = new ReflectionExtractor("foo", new Object[] {1});
-        Object             expected           = new ReflectionUpdater("foo");
+        Object             input              = new UniversalExtractor("foo()", new Object[] {1});
+        Object             expected           = new UniversalUpdater("foo");
 
         UpdateSetListMaker updateSetListMaker = new UpdateSetListMaker(null, null, m_language);
 
@@ -1051,7 +1054,7 @@ public class UpdateSetListMakerTest
     public void shouldMakeValueUpdaterFromValueUpdater()
             throws Exception
         {
-        Object             input              = new ReflectionUpdater("foo");
+        Object             input              = new UniversalUpdater("foo");
 
         UpdateSetListMaker updateSetListMaker = new UpdateSetListMaker(null, null, m_language);
 
@@ -1062,7 +1065,7 @@ public class UpdateSetListMakerTest
     public void shouldMakeValueUpdaterFromArrayEndingInString()
             throws Exception
         {
-        Object             input              = new Object[] {"bar", new ReflectionExtractor("ram"), "ewe"};
+        Object             input              = new Object[] {"bar", new UniversalExtractor("ram"), "ewe"};
 
         UpdateSetListMaker updateSetListMaker = new UpdateSetListMaker(null, null, m_language);
         ValueUpdater       actual             = updateSetListMaker.makeValueUpdater(input);
@@ -1071,16 +1074,16 @@ public class UpdateSetListMakerTest
 
         CompositeUpdater cu = (CompositeUpdater) actual;
 
-        assertThat(cu.getExtractor(), is((Object) new ChainedExtractor("getBar.ram")));
-        assertThat(cu.getUpdater(), is((Object) new ReflectionUpdater("setEwe")));
+        assertThat(cu.getExtractor(), is((Object) Extractors.chained("bar.ram")));
+        assertThat(cu.getUpdater(), is((Object) new UniversalUpdater("ewe")));
         }
 
     @Test
-    public void shouldMakeValueUpdaterFromArrayEndingInReflectionExtractor()
+    public void shouldMakeValueUpdaterFromArrayEndingInUniversalExtractor()
             throws Exception
         {
-        Object             input              = new Object[] {"bar", new ReflectionExtractor("ram"),
-                new ReflectionExtractor("ewe")};
+        Object             input              = new Object[] {"bar", new UniversalExtractor("ram"),
+                new UniversalExtractor("ewe()")};
 
         UpdateSetListMaker updateSetListMaker = new UpdateSetListMaker(null, null, m_language);
         ValueUpdater       actual             = updateSetListMaker.makeValueUpdater(input);
@@ -1089,8 +1092,8 @@ public class UpdateSetListMakerTest
 
         CompositeUpdater cu = (CompositeUpdater) actual;
 
-        assertThat(cu.getExtractor(), is((Object) new ChainedExtractor("getBar.ram")));
-        assertThat(cu.getUpdater(), is((Object) new ReflectionUpdater("ewe")));
+        assertThat(cu.getExtractor(), is((Object) Extractors.chained("bar.ram")));
+        assertThat(cu.getUpdater(), is((Object) new UniversalUpdater("ewe")));
         }
 
     @Test

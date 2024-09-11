@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,6 +14,8 @@ import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
+import com.oracle.coherence.io.json.JsonObject;
+
 import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.dslquery.ExtractorBuilder;
 
@@ -24,6 +26,7 @@ import com.tangosol.net.NamedCache;
 
 import data.pof.Address;
 import data.pof.Person;
+import data.pof.PersonRecord;
 import data.pof.PhoneNumber;
 import data.pof.PortablePerson;
 
@@ -145,6 +148,34 @@ public class QueryPlusQueryTests
             m_peopleCache.put(person.getName(), person);
             }
 
+        m_personJsonValueCache = ccf.ensureCache("dist-person-jsonvalue", null, withTypes(String.class, JsonObject.class));
+        m_personJsonValueCache.clear();
+        for (int i=0; i<10; i++)
+            {
+            JsonObject value = new JsonObject();
+
+            value.put("name", "Person-" + i );
+            value.put("age", 20 + (i % 5));
+
+            String  city    = (i % 2 == 0) ? "London" : "Boston";
+            Address address = new Address(i + " Any Street", city, null, String.valueOf(99990 + i));
+
+            value.put("city", city);
+            value.put("address", address);
+            m_personJsonValueCache.put((String) value.get("name"), value);
+            }
+
+        m_personRecordCache = ccf.ensureCache("dist-person-record", null, withTypes(String.class, PersonRecord.class));
+        m_personRecordCache.clear();
+        for (int i=0; i<10; i++)
+            {
+            String sName = "Person-" + i;
+            String  city    = (i % 2 == 0) ? "London" : "Boston";
+            Address address = new Address(i + " Any Street", city, null, String.valueOf(99990 + i));
+
+            m_personRecordCache.put(sName, new PersonRecord(sName, 20 + (i % 5), city, address));
+            }
+
         m_queryPlusRunner.setExtendedLanguage(true);
         m_queryPlusRunner.setSanityCheck(true);
         m_queryPlusRunner.setTrace(false);
@@ -230,6 +261,8 @@ public class QueryPlusQueryTests
 
         queryMapper.addCacheNameToTypeMapping("dist-people", null, "Person");
         queryMapper.addCacheNameToTypeMapping("dist-phones", "PhoneNumber", null);
+        queryMapper.addCacheNameToTypeMapping("dist-person-jsonvalue", "String", "com.oracle.coherence.io.json.JsonObject");
+        queryMapper.addCacheNameToTypeMapping("dist-person-record", "String", "data.pof.PersonRecord");
 
         queryMapper.addAttributeMapping("Person", "name", null, PortablePerson.NAME);
         queryMapper.addAttributeMapping("Person", "dateOfBirth", null, PortablePerson.DOB);
@@ -243,6 +276,16 @@ public class QueryPlusQueryTests
         queryMapper.addAttributeMapping("Address", "city", null, Address.CITY);
         queryMapper.addAttributeMapping("Address", "state", null, Address.STATE);
         queryMapper.addAttributeMapping("Address", "zip", null, Address.ZIP);
+
+        queryMapper.addAttributeMapping("JsonObject", "name", null, 0);
+        queryMapper.addAttributeMapping("JsonObject", "age", null, 1);
+        queryMapper.addAttributeMapping("JsonObject", "city", null, 2);
+        queryMapper.addAttributeMapping("JsonObject", "address", null, 3);
+
+        queryMapper.addAttributeMapping("PersonRecord", "name", null, PersonRecord.NAME);
+        queryMapper.addAttributeMapping("PersonRecord", "age", null, PersonRecord.AGE);
+        queryMapper.addAttributeMapping("PersonRecord", "city", null, PersonRecord.CITY);
+        queryMapper.addAttributeMapping("PersonRecord", "address", null, PersonRecord.ADDRESS);
 
         queryMapper.addAttributeMapping("PhoneNumber", "countryCode", null, 0);
         queryMapper.addAttributeMapping("PhoneNumber", "phoneNumber", null, 1);
@@ -439,4 +482,10 @@ public class QueryPlusQueryTests
      */
     protected NamedCache<String,String> m_simpleCache;
 
+
+    /** Test cache containing String key/JsonObject value. */
+    protected NamedCache<String, JsonObject> m_personJsonValueCache;
+
+    /** Test cache containing String key/PersonRecord value. */
+    protected NamedCache<String, PersonRecord> m_personRecordCache;
     }

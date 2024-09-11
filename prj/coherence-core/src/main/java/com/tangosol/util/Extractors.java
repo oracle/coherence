@@ -18,6 +18,7 @@ import com.tangosol.util.extractor.ChainedExtractor;
 import com.tangosol.util.extractor.ChainedFragmentExtractor;
 import com.tangosol.util.extractor.FragmentExtractor;
 import com.tangosol.util.extractor.IdentityExtractor;
+import com.tangosol.util.extractor.KeyExtractor;
 import com.tangosol.util.extractor.MultiExtractor;
 import com.tangosol.util.extractor.PofExtractor;
 import com.tangosol.util.extractor.ScriptValueExtractor;
@@ -377,5 +378,54 @@ public class Extractors
     public static <T, E> ChainedFragmentExtractor<T, E> fragment(ValueExtractor<? super T, E> from, ValueExtractor<? super E, ?>... aExtractors)
         {
         return new ChainedFragmentExtractor<>(from, aExtractors);
+        }
+
+    /**
+     * Returns a {@link KeyExtractor} that extracts the specified fields
+     * where extraction occurs in a chain where the result of each
+     * field extraction is the input to the next extractor. The result
+     * returned is the result of the final extractor in the chain.
+     *
+     * @param fields  the field names to extract (if any field name contains a dot '.'
+     *                that field name is split into multiple field names delimiting on
+     *                the dots.
+     *
+     * @param <T> the type of the object to extract from
+     *
+     * @return a {@link KeyExtractor) that extracts the value(s) of the specified field(s)
+     *
+     * @throws IllegalArgumentException if the fields parameter is null or an
+     *         empty array
+     *
+     * @see UniversalExtractor
+     *
+     * @since 24.09
+     */
+    @SuppressWarnings("unchecked")
+    public static <T, R> ValueExtractor<T, R> key(String... fields)
+        {
+        if (fields == null || fields.length == 0)
+            {
+            throw new IllegalArgumentException("The fields parameter cannot be null or empty");
+            }
+
+        ValueExtractor[] aExtractor = Arrays.stream(fields)
+                .filter(Objects::nonNull)
+                .map(s -> s.split("\\."))
+                .flatMap(Arrays::stream)
+                .map(Extractors::extract)
+                .toArray(ValueExtractor[]::new);
+
+        if (aExtractor.length == 0)
+            {
+            throw new IllegalArgumentException("The fields parameter must contain at least one non-null element");
+            }
+
+        if (aExtractor.length == 1)
+            {
+            return new KeyExtractor(aExtractor[0]);
+            }
+
+        return new KeyExtractor<>(new ChainedExtractor<>(aExtractor));
         }
     }

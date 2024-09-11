@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -75,6 +75,8 @@ public class ChainedExtractor<T, E>
     * @param sName  a dot-delimited sequence of method names which results
     *                 in a ChainedExtractor that is based on an array of
     *                 corresponding {@link ReflectionExtractor} objects
+    *
+    * @deprecated use {@link com.tangosol.util.Extractors#chained(String...)}
     */
     public ChainedExtractor(String sName)
         {
@@ -260,6 +262,8 @@ public class ChainedExtractor<T, E>
     * @param sName  a dot-delimited sequence of method names
     *
     * @return an array of {@link ReflectionExtractor} objects
+    *
+    * @deprecated {@link com.tangosol.util.Extractors#chained(String...)} which uses {@link UniversalExtractor}
     */
     public static ValueExtractor[] createExtractors(String sName)
         {

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -39,6 +39,14 @@
     <user-type>
       <type-id>1100</type-id>
       <class-name>com.oracle.coherence.testing.processors.HasIndexProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1101</type-id>
+      <class-name>data.pof.PersonRecord</class-name>
+      <serializer>
+        <class-name>data.pof.PersonRecord$PofSerializer</class-name>
+      </serializer>
     </user-type>
 
   </user-type-list>

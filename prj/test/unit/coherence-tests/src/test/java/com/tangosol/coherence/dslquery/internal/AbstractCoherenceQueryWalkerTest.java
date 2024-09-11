@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.dslquery.internal;
 
@@ -18,6 +18,8 @@ import com.tangosol.config.expression.PropertiesParameterResolver;
 import com.tangosol.util.extractor.ChainedExtractor;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
+import com.tangosol.util.extractor.UniversalExtractor;
+
 import data.Person;
 import org.junit.Rule;
 import org.junit.Test;
@@ -259,7 +261,7 @@ public class AbstractCoherenceQueryWalkerTest
         String   packageName = "data";
         String   className   = "Person";
         Object[] args        = new Object[] {"1234567"};
-        Object[] aoResult    = new Object[] {packageName, new ReflectionExtractor(className, args)};
+        Object[] aoResult    = new Object[] {packageName, new UniversalExtractor(className + "()", args)};
 
         Walker   walker      = new Walker();
 
@@ -272,14 +274,14 @@ public class AbstractCoherenceQueryWalkerTest
         }
 
     @Test
-    public void shouldMakeObjectUsingConstructorWithReflectionExtractorParams()
+    public void shouldMakeObjectUsingConstructorWithUniversalExtractorParams()
             throws Exception
         {
         String   className = "data.Person";
         Object[] args      = new Object[] {"987654"};
 
         Walker   walker    = new Walker();
-        Object   result    = walker.reflectiveMakeObject(true, new ReflectionExtractor(className, args));
+        Object   result    = walker.reflectiveMakeObject(true, new UniversalExtractor(className + "()", args));
 
         assertThat(result, is(instanceOf(Person.class)));
         assertThat(((Person) result).getId(), is("987654"));
@@ -289,8 +291,8 @@ public class AbstractCoherenceQueryWalkerTest
     public void shouldMakeObjectUsingConstructorWithChainedExtractorParams()
             throws Exception
         {
-        ChainedExtractor chainedExtractor = new ChainedExtractor(new ReflectionExtractor("getData"),
-                                                new ReflectionExtractor("Person", new Object[] {"987654"}));
+        ChainedExtractor chainedExtractor = new ChainedExtractor(new UniversalExtractor("getData()"),
+                                                new UniversalExtractor("Person()", new Object[] {"987654"}));
 
         Walker walker = new Walker();
         Object result = walker.reflectiveMakeObject(true, chainedExtractor);
@@ -311,7 +313,7 @@ public class AbstractCoherenceQueryWalkerTest
 
         Walker   walker    = new Walker();
 
-        walker.reflectiveMakeObject(false, new ReflectionExtractor(className, args));
+        walker.reflectiveMakeObject(false, new UniversalExtractor(className + "()", args));
         }
 
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,6 +18,7 @@ import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
+import com.tangosol.util.Extractors;
 import com.tangosol.util.ValueExtractor;
 
 import java.io.DataInput;
@@ -96,6 +97,8 @@ public class KeyExtractor<T, E>
     *                 of method names which would result in a KeyExtractor
     *                 based on the {@link ChainedExtractor} that is based on
     *                 an array of corresponding ReflectionExtractor objects
+    *
+    * @deprecated use {@link Extractors#key(String...)} instead.
     */
     public KeyExtractor(String sMethod)
         {

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.dslquery;
 
@@ -21,6 +21,7 @@ import com.tangosol.coherence.dsltools.termtrees.Term;
 import com.tangosol.config.expression.NullParameterResolver;
 import com.tangosol.config.expression.Parameter;
 
+import com.tangosol.util.Extractors;
 import com.tangosol.util.Filter;
 import com.tangosol.util.ValueExtractor;
 
@@ -29,7 +30,7 @@ import com.tangosol.util.extractor.ChainedExtractor;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.KeyExtractor;
 import com.tangosol.util.extractor.PofExtractor;
-import com.tangosol.util.extractor.ReflectionExtractor;
+import com.tangosol.util.extractor.UniversalExtractor;
 
 import com.tangosol.util.filter.AllFilter;
 import com.tangosol.util.filter.AnyFilter;
@@ -197,7 +198,7 @@ public class FilterBuilderTest
             throws Exception
         {
         ExtractorBuilder builder       = mock(ExtractorBuilder.class);
-        ValueExtractor   extractor     = new ReflectionExtractor("getTest");
+        ValueExtractor   extractor     = new UniversalExtractor("getTest()");
         FilterBuilder    filterBuilder = new FilterBuilder(m_language);
         NodeTerm         term          = new NodeTerm("test",
                                              new Term[] {new NodeTerm("identifier", AtomicTerm.createString("foo")),
@@ -708,7 +709,7 @@ public class FilterBuilderTest
     public void shouldBuildFilterOnKeyField()
             throws Exception
         {
-        Filter expected = new EqualsFilter(new ReflectionExtractor("getFoo", null, ReflectionExtractor.KEY), 2);
+        Filter expected = new EqualsFilter(new UniversalExtractor("foo", null, UniversalExtractor.KEY), 2);
         Filter filter   = new FilterBuilder(m_language).makeFilter(parse("key(foo) = 2"));
 
         assertThat(filter, is(expected));
@@ -738,7 +739,7 @@ public class FilterBuilderTest
     public void shouldBuildFilterOnValueMethod()
             throws Exception
         {
-        Filter expected = new EqualsFilter("test", 2);
+        Filter expected = new EqualsFilter(new UniversalExtractor("test()"), 2);
         Filter filter   = new FilterBuilder(m_language).makeFilter(parse("test() = 2"));
 
         assertThat(filter, is(expected));
@@ -779,7 +780,7 @@ public class FilterBuilderTest
     public void shouldBuildValueExtractor()
             throws Exception
         {
-        ValueExtractor expected = new ReflectionExtractor("getFoo");
+        ValueExtractor expected = new UniversalExtractor("foo");
         ValueExtractor result   = new FilterBuilder(m_language).makeExtractor((NodeTerm) parse("foo"));
 
         assertThat(result, is(expected));
@@ -814,7 +815,7 @@ public class FilterBuilderTest
     public void shouldOptimizeUseOfValue()
         {
         {
-            Filter expected = new GreaterEqualsFilter(new ReflectionExtractor("getAge"), 20);
+            Filter expected = new GreaterEqualsFilter(new UniversalExtractor("age"), 20);
             Filter filter1  = new FilterBuilder(m_language).makeFilter(parse("value().age >= 20"));
             Filter filter2  = new FilterBuilder(m_language).makeFilter(parse("age >= 20"));
 
@@ -825,14 +826,13 @@ public class FilterBuilderTest
         {
             Filter expected = new AllFilter(new Filter[] {
                                    new NotEqualsFilter(IdentityExtractor.INSTANCE, null),
-                                   new EqualsFilter(new ReflectionExtractor("getAge"), 20)
+                                   new EqualsFilter(new UniversalExtractor("age"), 20)
                                  });
             Filter filter = new FilterBuilder(m_language).makeFilter(parse("value() is not null && value().age is 20"));
             assertThat(filter, is(expected));
         }
         {
-            Filter expected = new EqualsFilter(new ChainedExtractor(new ReflectionExtractor("getAddress"),
-                    new ReflectionExtractor("getCity")), "Boston"); 
+            Filter expected = new EqualsFilter(Extractors.chained("address", "city"), "Boston");
             Filter filter   = new FilterBuilder(m_language).makeFilter(parse("value().address.city == 'Boston'"));
             assertThat(filter, is(expected));
         }
