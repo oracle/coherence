@@ -1104,13 +1104,12 @@ public class Coherence
         // import java.io.File;
         // import java.io.InputStreamReader;
 
-        Object reader;
+        Object reader = null;
         Object jlineReaderBldr = null;
         try
             {
             Class clzJLineReaderBldr = Class.forName("org.jline.reader.LineReaderBuilder");
             jlineReaderBldr = ClassHelper.invokeStatic(clzJLineReaderBldr, "builder", null);
-            reader = ClassHelper.invoke(jlineReaderBldr, "build", null);
             }
         catch (Exception e) // ClassNotFoundException, ClassNoDefError
             {
@@ -1124,17 +1123,18 @@ public class Coherence
                 {
                 fileHistory.createNewFile();
                 }
-            Class clzJLineReader = Class.forName("org.jline.reader.LineReader");
-            String fieldHistoryFile = clzJLineReader.getField("HISTORY_FILE").getName();
+            Class  clzJLineReader   = Class.forName("org.jline.reader.LineReader");
+            String fieldHistoryFile = (String) clzJLineReader.getField("HISTORY_FILE").get(clzJLineReader);
             ClassHelper.invoke(jlineReaderBldr, "variable",
                  new Object[] {fieldHistoryFile, fileHistory});
+
+            return ClassHelper.invoke(jlineReaderBldr, "build", null);
             }
         catch (Exception e)
             {
-            System.out.println("failed to setup history: " + e);
+            System.out.println("failed to setup Jline history: " + e);
+            return new InputStreamReader(System.in);
             }
-
-        return reader;
         }
 
     // Declared at the super level
@@ -6248,7 +6248,7 @@ public class Coherence
         }
 
     /**
-     * Record a command in the histroy.
+     * Record a command in the history.
      */
     protected void recordCommand(String sCmd)
             throws java.lang.InterruptedException
