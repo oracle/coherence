@@ -26128,11 +26128,14 @@ public class PartitionedCache
                         //        even if the service has stopped, as it is our only mechanism to
                         //        unblock a potentially waiting client
                         // Note2: resubmit may not throw; any exceptions are reported via the context
-                
+                        // Note3: account for responded partitions to avoid "missing" a resend
+
+                        MemberSet setMembers = getRespondedMemberSet();
                         if (!coordinator.resubmitRequest((PartitionedCache.InvokeRequest) msgRequest.cloneMessage(),
-                                nPartition, /*fUpdatePart*/!getRespondedMemberSet().isEmpty()))
+                                nPartition, /*fUpdatePart*/!setMembers.isEmpty() &&
+                                                           !setMembers.contains(service.getPrimaryOwner(nPartition))))
                             {
-                            // an excepttion has already beed raised;
+                            // an exception has already been raised;
                             ((AsyncProcessorContext) msgRequest.getRequestContext()).processCompletion();
                             }
                         // this is either the service or a transport thread; no need to flush
