@@ -1115,11 +1115,10 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldSubscribeToAllEvents(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                                                            sCacheName = "test-events-" + System.currentTimeMillis();
+        String                                sCacheName = "test-events-" + System.currentTimeMillis();
         CollectingMapListener<String, String> listener   = new CollectingMapListener<>();
-
-        MapEventFilter<String, String> filter = new MapEventFilter<>(MapEventFilter.E_ALL, Filters.always());
-        NamedCache<String, String>     cache  = ensureEmptyCache(sScope, sCacheName);
+        MapEventFilter<String, String>        filter     = new MapEventFilter<>(MapEventFilter.E_ALL, Filters.always());
+        NamedCache<String, String>            cache      = ensureEmptyCache(sScope, sCacheName);
 
         cache.clear();
         cache.addMapListener(listener, filter, false);
@@ -1165,8 +1164,8 @@ public class NamedCacheProxyProtocolIT
             // wait for the events
             Eventually.assertDeferred(listener::count, is(30));
             Eventually.assertDeferred(listenerActual::count, is(30));
-            List<MapEvent<String, String>> expectedEvents = listener.values();
-            List<MapEvent<String, String>> actualEvents   = listenerActual.values();
+            List<MapEvent<String, String>> expectedEvents = listener.safeValues();
+            List<MapEvent<String, String>> actualEvents   = listenerActual.safeValues();
             assertThat(actualEvents, cacheEvents(expectedEvents));
             }
         finally
@@ -1213,8 +1212,8 @@ public class NamedCacheProxyProtocolIT
             // wait for the events
             Eventually.assertDeferred(listener::count, is(1));
             Eventually.assertDeferred(listenerActual::count, is(1));
-            List<MapEvent<String, String>> expectedEvents = listener.values();
-            List<MapEvent<String, String>> actualEvents   = listenerActual.values();
+            List<MapEvent<String, String>> expectedEvents = listener.safeValues();
+            List<MapEvent<String, String>> actualEvents   = listenerActual.safeValues();
             assertThat(actualEvents, cacheEvents(expectedEvents));
             }
         finally
@@ -1272,8 +1271,8 @@ public class NamedCacheProxyProtocolIT
             // wait for the events
             Eventually.assertDeferred(listener::count, is(3));
             Eventually.assertDeferred(listenerActual::count, is(3));
-            List<MapEvent<String, String>> expectedEvents = listener.values();
-            List<MapEvent<String, String>> actualEvents   = listenerActual.values();
+            List<MapEvent<String, String>> expectedEvents = listener.safeValues();
+            List<MapEvent<String, String>> actualEvents   = listenerActual.safeValues();
             assertThat(actualEvents, cacheEvents(expectedEvents));
             }
         finally
@@ -1314,7 +1313,7 @@ public class NamedCacheProxyProtocolIT
 
         Eventually.assertDeferred(listenerActual::count, is(1));
 
-        MapEvent<String, String> event = listenerActual.values().get(0);
+        MapEvent<String, String> event = listenerActual.safeValues().get(0);
         assertThat(event, is(instanceOf(CacheEvent.class)));
         CacheEvent<?, ?> cacheEvent = (CacheEvent<?, ?>) event;
 
@@ -1358,7 +1357,7 @@ public class NamedCacheProxyProtocolIT
 
         Eventually.assertDeferred(listenerActual::count, is(1));
 
-        MapEvent<String, String> event = listenerActual.values().get(0);
+        MapEvent<String, String> event = listenerActual.safeValues().get(0);
         assertThat(event, is(instanceOf(CacheEvent.class)));
         CacheEvent<?, ?> cacheEvent = (CacheEvent<?, ?>) event;
 
@@ -1478,8 +1477,8 @@ public class NamedCacheProxyProtocolIT
             // wait for the events
             Eventually.assertDeferred(listenerActual::count, is(6));
             Eventually.assertDeferred(listener::count, is(6));
-            List<MapEvent<String, String>> expectedEvents = listener.values();
-            List<MapEvent<String, String>> actualEvents   = listenerActual.values();
+            List<MapEvent<String, String>> expectedEvents = listener.safeValues();
+            List<MapEvent<String, String>> actualEvents   = listenerActual.safeValues();
             assertThat(actualEvents, cacheEvents(expectedEvents));
             }
         finally
@@ -1542,8 +1541,8 @@ public class NamedCacheProxyProtocolIT
             // wait for the events
             Eventually.assertDeferred(listener::count, is(20));
             Eventually.assertDeferred(listenerActual::count, is(20));
-            List<MapEvent<String, Integer>> expectedEvents = listener.values();
-            List<MapEvent<String, Integer>> actualEvents   = listenerActual.values();
+            List<MapEvent<String, Integer>> expectedEvents = listener.safeValues();
+            List<MapEvent<String, Integer>> actualEvents   = listenerActual.safeValues();
             assertThat(actualEvents, cacheEvents(expectedEvents));
             }
         finally
@@ -1609,9 +1608,9 @@ public class NamedCacheProxyProtocolIT
             Eventually.assertDeferred(listenerActual::count, is(2));
 
             List<MapEvent<String, Person>> expectedEvents = new ArrayList<>();
-            expectedEvents.addAll(listenerOne.values());
-            expectedEvents.addAll(listenerTwo.values());
-            List<MapEvent<String, Person>> actualEvents = listenerActual.values();
+            expectedEvents.addAll(listenerOne.safeValues());
+            expectedEvents.addAll(listenerTwo.safeValues());
+            List<MapEvent<String, Person>> actualEvents = listenerActual.safeValues();
             assertThat(actualEvents, cacheEvents(expectedEvents));
             }
         finally
@@ -1675,15 +1674,15 @@ public class NamedCacheProxyProtocolIT
             listenerOne.awaitCount(1);
             listenerTwo.awaitCount(1);
 
-            List<MapEventMessage> eventsOne = eventsFrom(observer.values(), nFilterIdOne);
-            List<MapEventMessage> eventsTwo = eventsFrom(observer.values(), nFilterIdTwo);
+            List<MapEventMessage> eventsOne = eventsFrom(observer.safeValues(), nFilterIdOne);
+            List<MapEventMessage> eventsTwo = eventsFrom(observer.safeValues(), nFilterIdTwo);
             assertThat(eventsOne.size(), is(1));
             assertThat(eventsTwo.size(), is(1));
 
             List<MapEvent<String, Person>> expectedEvents = new ArrayList<>();
-            expectedEvents.addAll(listenerOne.values());
-            expectedEvents.addAll(listenerTwo.values());
-            List<MapEvent<String, Person>> actualEvents = listenerActual.values();
+            expectedEvents.addAll(listenerOne.safeValues());
+            expectedEvents.addAll(listenerTwo.safeValues());
+            List<MapEvent<String, Person>> actualEvents = listenerActual.safeValues();
             assertThat(actualEvents, cacheEvents(expectedEvents));
             }
         finally
@@ -1748,8 +1747,8 @@ public class NamedCacheProxyProtocolIT
             listenerOne.awaitCount(2);
             listenerTwo.awaitCount(1);
 
-            List<MapEventMessage> eventsOne = eventsFrom(observer.values(), nFilterIdOne);
-            List<MapEventMessage> eventsTwo = eventsFrom(observer.values(), nFilterIdTwo);
+            List<MapEventMessage> eventsOne = eventsFrom(observer.safeValues(), nFilterIdOne);
+            List<MapEventMessage> eventsTwo = eventsFrom(observer.safeValues(), nFilterIdTwo);
             assertThat(eventsOne.size(), is(2));
             assertThat(eventsTwo.size(), is(1));
             }
@@ -1793,7 +1792,7 @@ public class NamedCacheProxyProtocolIT
 
         Eventually.assertDeferred(listenerActual::count, is(2));
         // priming events will be for a key and not have a filter id
-        List<MapEventMessage> events = eventsFrom(observer.values());
+        List<MapEventMessage> events = eventsFrom(observer.safeValues());
 
         assertThat(events.size(), is(2));
         MapEventMessage messageOne = events.stream()
@@ -1821,7 +1820,7 @@ public class NamedCacheProxyProtocolIT
         // insert a value for key-2 should receive another event
         cache.put("key-2", "value-2");
         Eventually.assertDeferred(listenerActual::count, is(3));
-        events = eventsFrom(observer.values());
+        events = eventsFrom(observer.safeValues());
         assertThat(events.size(), is(3));
 
         // remove the listener
@@ -1838,7 +1837,7 @@ public class NamedCacheProxyProtocolIT
         cache.put("key-2", "value-2.2");
         cache.put("key-4", "value-4.2");
         Eventually.assertDeferred(listenerActual::count, is(3));
-        events = eventsFrom(observer.values());
+        events = eventsFrom(observer.safeValues());
         assertThat(events.size(), is(3));
         }
 

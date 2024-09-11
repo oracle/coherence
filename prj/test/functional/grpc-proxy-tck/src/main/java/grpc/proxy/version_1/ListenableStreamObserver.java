@@ -61,6 +61,19 @@ public class ListenableStreamObserver
             }
         }
 
+    public List<ProxyResponse> safeValues()
+        {
+        lock.lock();
+        try
+            {
+            return new ArrayList<>(values);
+            }
+        finally
+            {
+            lock.unlock();
+            }
+        }
+
     public <K, V> void addListener(MapListener<K, V> listener, Serializer serializer)
         {
         addListener(new WrapperObservableMap<K, V>(Map.of()), listener, serializer);

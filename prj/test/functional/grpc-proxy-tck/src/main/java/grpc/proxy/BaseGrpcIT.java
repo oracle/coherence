@@ -45,6 +45,7 @@ import com.tangosol.util.MapListener;
 import com.tangosol.util.NullImplementation;
 import com.tangosol.util.ValueExtractor;
 
+import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import org.junit.jupiter.api.AfterAll;
@@ -68,6 +69,8 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -487,6 +490,33 @@ public abstract class BaseGrpcIT
             return values.size();
             }
 
+        public List<MapEvent<K, V>> safeValues()
+            {
+            lock.lock();
+            try
+                {
+                return new ArrayList<>(values);
+                }
+            finally
+                {
+                lock.unlock();
+                }
+            }
+
+        @Override
+        public void onNext(@NonNull MapEvent<K, V> kvMapEvent)
+            {
+            lock.lock();
+            try
+                {
+                super.onNext(kvMapEvent);
+                }
+            finally
+                {
+                lock.unlock();
+                }
+            }
+
         @Override
         public void entryInserted(MapEvent<K, V> mapEvent)
             {
@@ -515,6 +545,10 @@ public abstract class BaseGrpcIT
                 }
             return new MapEvent<>(event.getMap(), event.getId(), event.getKey(), event.getOldValue(), event.getNewValue());
             }
+
+        // ----- data members -----------------------------------------------
+
+        private final Lock lock = new ReentrantLock();
         }
 
     // ----- data members ---------------------------------------------------
