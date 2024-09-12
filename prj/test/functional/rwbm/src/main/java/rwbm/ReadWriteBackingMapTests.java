@@ -2181,7 +2181,7 @@ public class ReadWriteBackingMapTests
                 definiteSleep(cDelay);
                 }
             assertEquals(testName, 10, store.getStorageMap().size());
-            assertEquals(testName, 10, mapInternal.size());
+            Eventually.assertDeferred(testName, mapInternal::size, is(10));
 
             definiteSleep(cExpiryMillis + 100L);
 
