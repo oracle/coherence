@@ -139,8 +139,12 @@ public class QueryPlus
                 {
                 if (!fSilent)
                     {
-                    writer.println();
-                    writer.print("CohQL> ");
+                    if (s_fUsingJline == false)
+                        {
+                        // JLine readLine manages PROMPT as a parameter.
+                        writer.println();
+                        writer.print(PROMPT);
+                        }
                     }
 
                 writer.flush();
@@ -402,7 +406,7 @@ public class QueryPlus
             Class<?> clzJLineReader     = Class.forName("org.jline.reader.LineReader");
             Class<?> clzJLineReaderBldr = Class.forName("org.jline.reader.LineReaderBuilder");
             Object   builder            = ClassHelper.invokeStatic(clzJLineReaderBldr, "builder", null);
-            String   fieldHistoryFile   = clzJLineReader.getField("HISTORY_FILE").getName();
+            String   fieldHistoryFile   = (String) clzJLineReader.getField("HISTORY_FILE").get(clzJLineReader);
 
             File fileHistory = new File(".cohql-history");
             if (!fileHistory.exists())
@@ -413,6 +417,7 @@ public class QueryPlus
             builder = ClassHelper.invoke(builder, "variable", new Object[] {fieldHistoryFile, fileHistory});
             Object jlineReader = ClassHelper.invoke(builder, "build", null);
 
+            s_fUsingJline = true;
             return new BufferedReader(new InputStreamReader(input))
                 {
                 @Override
@@ -421,7 +426,9 @@ public class QueryPlus
                     {
                     try
                         {
-                        String sLine = (String) ClassHelper.invoke(jlineReader, "readLine", null);
+                        // to get up arrow with jline console history to work properly,
+                        // provide prompt to JLine readLine.
+                        String sLine = (String) ClassHelper.invoke(jlineReader, "readLine", new Object[] {PROMPT});
                         ClassHelper.invoke(jlineReader, "redrawLine", null);
                         ClassHelper.invoke(jlineReader, "flush", null);
                         return sLine;
@@ -466,6 +473,11 @@ public class QueryPlus
         PrintWriter            writer   = new PrintWriter(System.out);
         CoherenceQueryLanguage language = new CoherenceQueryLanguage();
         QueryPlus.Dependencies deps     = DependenciesHelper.newInstance(writer, System.in, language, asArgs);
+
+        if (deps == null)
+            {
+            return;
+            }
 
         new QueryPlus(deps).run();
         }
@@ -1025,7 +1037,7 @@ public class QueryPlus
         public static Dependencies newInstance(PrintWriter writer, InputStream inputStream,
                                                CoherenceQueryLanguage language, String[] asArgs)
             {
-            String[] asValidArgs = new String[]{"c", "e", "extend", "f", "l", "s", "t", "trace", "nojline",
+            String[] asValidArgs = new String[]{"c", "e", "extend", "help", "f", "l", "s", "t", "trace", "nojline",
                     "g", "a", "dp", "timeout", "jlinedebug", "v"};
 
             try
@@ -1034,6 +1046,13 @@ public class QueryPlus
                 boolean fExitOnCompletion = map.containsKey("c");
                 boolean fSilent           = map.containsKey("s");
                 BufferedReader reader     = null;
+
+                if (map.containsKey("help"))
+                    {
+                    usage(writer);
+                    writer.flush();
+                    return null;
+                    }
 
                 if (!fExitOnCompletion && !map.containsKey("nojline"))
                     {
@@ -1122,7 +1141,7 @@ public class QueryPlus
         public static void usage(PrintWriter writer)
             {
             writer.println("java "
-                    + QueryPlus.class.getCanonicalName() + " [-t] [-c] [-s] [-e] [-v] [-l <cmd>]*\n"
+                    + QueryPlus.class.getCanonicalName() + " [-t] [-c] [-s] [-e] [-v] [-help] [-l <cmd>]*\n"
                     + "    [-f <file>]* [-g <garFile>] [-a <appName>] [-dp <parition-list>] [-timeout <value>] [-nojline] [-jlinedebug]");
 
             /**
@@ -1149,6 +1168,7 @@ public class QueryPlus
                 "-g <value>       An optional GAR file to load before running QueryPlus.\n" +
                 "                 If the -a argument is not used the application name will be the\n" +
                 "                 GAR file name without the parent directory name.\n" +
+                "-help            Print command line arguments documention.\n" +
                 "-l <value>       Each instance of -l followed by a statement will execute one\n" +
                 "                 statement.\n" +
                 "-s               silent mode. Suppress prompts and result headings, read from\n" +
@@ -1175,6 +1195,13 @@ public class QueryPlus
      */
     private static final String END_OF_STATEMENT = ";";
 
+    /**
+     * CohQL console prompt.
+     *
+     * @since 24.09
+     */
+    private static final String PROMPT = "CohQL> ";
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -1200,4 +1227,11 @@ public class QueryPlus
      * @since 24.09
      */
     protected final boolean f_fEcho;
+
+    /**
+     * Set to {@code true} when using JLine console.
+     *
+     * @since 24.09
+     */
+    protected static boolean s_fUsingJline = false;
     }
