@@ -16,9 +16,10 @@ import com.tangosol.net.topic.TopicException;
 
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
-import com.tangosol.util.ImmutableArrayList;
 import com.tangosol.util.UUID;
 import com.tangosol.util.ValueExtractor;
+
+import it.unimi.dsi.fastutil.ints.IntSortedSets;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -405,20 +406,29 @@ public class PagedTopicSubscription
     @SuppressWarnings("unchecked")
     public SortedSet<Integer> getOwnedChannels(SubscriberId id)
         {
+        if (id == null)
+            {
+            return NO_CHANNELS;
+            }
+
         Object oValue;
         f_lock.lock();
         try
             {
-            oValue = id == null ? NO_CHANNELS : m_mapSubscriberChannels.getOrDefault(id, NO_CHANNELS);
+            oValue = m_mapSubscriberChannels.get(id);
             }
         finally
             {
             f_lock.unlock();
             }
 
-        if (oValue instanceof Integer)
+        if (oValue == null)
             {
-            return new ImmutableArrayList(Collections.singleton(oValue));
+            return NO_CHANNELS;
+            }
+        else if (oValue instanceof Integer)
+            {
+            return IntSortedSets.singleton((int) oValue);
             }
         return Collections.unmodifiableSortedSet((SortedSet<Integer>) oValue);
         }
@@ -778,8 +788,7 @@ public class PagedTopicSubscription
     /**
      * A singleton empty channel allocation array.
      */
-    @SuppressWarnings("unchecked")
-    public static final SortedSet<Integer> NO_CHANNELS = new ImmutableArrayList(Collections.emptyList());
+    public static final SortedSet<Integer> NO_CHANNELS = IntSortedSets.EMPTY_SET;
 
     /**
      * The clock to use to add timestamps to subscriptions.
