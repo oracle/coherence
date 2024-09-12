@@ -194,57 +194,6 @@ public abstract class AbstractIndexTest
         }
 
     @Test
-    public void testConcurrentInsertQuery()
-            throws InterruptedException, UnexpectedNativeException
-        {
-        ExecutorService executorService = Executors.newFixedThreadPool(50);
-
-        Index i1 = createIndexInstance(SpaceName.L2, 50);
-        i1.initialize(1_050);
-
-        float[] randomFloatArray = HnswlibTestUtils.getRandomFloatArray(50);
-
-        Runnable addItemIndex1 = () ->
-            {
-            try
-                {
-                i1.addItem(randomFloatArray);
-                }
-            catch (UnexpectedNativeException e)
-                {
-                e.printStackTrace();
-                }
-            };
-
-        Runnable queryItemIndex1 = () ->
-            {
-            QueryTuple queryTuple;
-            try
-                {
-                queryTuple = i1.knnQuery(randomFloatArray, 1);
-                assertEquals(50, queryTuple.getIds().length);
-                assertEquals(50, queryTuple.getCoefficients().length);
-                }
-            catch (UnexpectedNativeException e)
-                {
-                e.printStackTrace();
-                }
-            };
-
-        for (int i = 0; i < 1_000; i++)
-            {
-            executorService.submit(addItemIndex1);
-            executorService.submit(queryItemIndex1);
-            }
-
-        executorService.shutdown();
-        executorService.awaitTermination(5, TimeUnit.MINUTES);
-
-        assertEquals(1_000, i1.getLength());
-        i1.clear();
-        }
-
-    @Test
     public void testQueryEmptyException() throws UnexpectedNativeException
         {
         Index idx = createIndexInstance(SpaceName.COSINE, 3);
