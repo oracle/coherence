@@ -22,6 +22,9 @@
 
   <properties>
     <module.name>com.oracle.coherence.client.common</module.name>
+
+    <!--  this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
 
   <dependencies>

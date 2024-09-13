@@ -23,6 +23,9 @@
   <properties>
     <module.name>com.oracle.coherence.hnsw</module.name>
     <useModulePath>false</useModulePath>
+
+    <!--  this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
 
   <dependencies>
