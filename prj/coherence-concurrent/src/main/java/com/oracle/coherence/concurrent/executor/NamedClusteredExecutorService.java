@@ -154,7 +154,7 @@ public class NamedClusteredExecutorService
             Remote.Predicate<?> predExisting = m_strategyBuilder.m_predicate;
             if (predExisting != null)
                 {
-                predExisting.and((Remote.Predicate) predicate);
+                m_strategyBuilder.m_predicate = predExisting.and((Remote.Predicate) predicate);
                 }
             return this;
             }

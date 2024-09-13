@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.function;
 
@@ -64,9 +64,10 @@ public class Remote
         default Consumer<T> andThen(Consumer<? super T> after)
             {
             Objects.requireNonNull(after);
+            Consumer<T> self = this;
             return (T t) ->
                 {
-                accept(t);
+                self.accept(t);
                 after.accept(t);
                 };
             }
@@ -120,10 +121,10 @@ public class Remote
         default BiConsumer<T, U> andThen(BiConsumer<? super T, ? super U> after)
             {
             Objects.requireNonNull(after);
-
+            BiConsumer<T, U> self = this;
             return (l, r) ->
                 {
-                accept(l, r);
+                self.accept(l, r);
                 after.accept(l, r);
                 };
             }
@@ -176,9 +177,10 @@ public class Remote
         default DoubleConsumer andThen(DoubleConsumer after)
             {
             Objects.requireNonNull(after);
+            DoubleConsumer self = this;
             return (double t) ->
                 {
-                accept(t);
+                self.accept(t);
                 after.accept(t);
                 };
             }
@@ -228,9 +230,10 @@ public class Remote
         default IntConsumer andThen(IntConsumer after)
             {
             Objects.requireNonNull(after);
+            IntConsumer self = this;
             return (int t) ->
                 {
-                accept(t);
+                self.accept(t);
                 after.accept(t);
                 };
             }
@@ -281,9 +284,10 @@ public class Remote
         default LongConsumer andThen(LongConsumer after)
             {
             Objects.requireNonNull(after);
+            LongConsumer self = this;
             return (long t) ->
                 {
-                accept(t);
+                self.accept(t);
                 after.accept(t);
                 };
             }
@@ -434,7 +438,8 @@ public class Remote
         default <V> Function<V, R> compose(Function<? super V, ? extends T> before)
             {
             Objects.requireNonNull(before);
-            return (V v) -> apply(before.apply(v));
+            Function<T, R> self = this;
+            return (V v) -> self.apply(before.apply(v));
             }
 
         /**
@@ -456,7 +461,8 @@ public class Remote
         default <V> Function<T, V> andThen(Function<? super R, ? extends V> after)
             {
             Objects.requireNonNull(after);
-            return (T t) -> after.apply(apply(t));
+            Function<T, R> self = this;
+            return (T t) -> after.apply(self.apply(t));
             }
 
         /**
@@ -521,7 +527,8 @@ public class Remote
         default <V> BiFunction<T, U, V> andThen(Function<? super R, ? extends V> after)
             {
             Objects.requireNonNull(after);
-            return (T t, U u) -> after.apply(apply(t, u));
+            BiFunction<T, U, R> self = this;
+            return (T t, U u) -> after.apply(self.apply(t, u));
             }
         }
 
@@ -1057,7 +1064,8 @@ public class Remote
         default Predicate<T> and(Predicate<? super T> other)
             {
             Objects.requireNonNull(other);
-            return (t) -> test(t) && other.test(t);
+            Predicate<T> self = this;
+            return (t) -> self.test(t) && other.test(t);
             }
 
         /**
@@ -1069,7 +1077,8 @@ public class Remote
          */
         default Predicate<T> negate()
             {
-            return (t) -> !test(t);
+            Predicate<T> self = this;
+            return (t) -> !self.test(t);
             }
 
         /**
@@ -1093,7 +1102,8 @@ public class Remote
         default Predicate<T> or(Predicate<? super T> other)
             {
             Objects.requireNonNull(other);
-            return (t) -> test(t) || other.test(t);
+            Predicate<T> self = this;
+            return (t) -> self.test(t) || other.test(t);
             }
 
         /**
@@ -1111,7 +1121,7 @@ public class Remote
             {
             return (null == targetRef)
                    ? Objects::isNull
-                   : targetRef::equals;
+                   : o -> o.equals(targetRef);
             }
         }
 
@@ -1165,7 +1175,8 @@ public class Remote
         default BiPredicate<T, U> and(BiPredicate<? super T, ? super U> other)
             {
             Objects.requireNonNull(other);
-            return (T t, U u) -> test(t, u) && other.test(t, u);
+            BiPredicate<T, U> self = this;
+            return (T t, U u) -> self.test(t, u) && other.test(t, u);
             }
 
         /**
@@ -1177,7 +1188,8 @@ public class Remote
          */
         default BiPredicate<T, U> negate()
             {
-            return (T t, U u) -> !test(t, u);
+            BiPredicate<T, U> self = this;
+            return (T t, U u) -> !self.test(t, u);
             }
 
         /**
@@ -1201,7 +1213,8 @@ public class Remote
         default BiPredicate<T, U> or(BiPredicate<? super T, ? super U> other)
             {
             Objects.requireNonNull(other);
-            return (T t, U u) -> test(t, u) || other.test(t, u);
+            BiPredicate<T, U> self = this;
+            return (T t, U u) -> self.test(t, u) || other.test(t, u);
             }
         }
 
@@ -1254,7 +1267,8 @@ public class Remote
         default DoublePredicate and(DoublePredicate other)
             {
             Objects.requireNonNull(other);
-            return (value) -> test(value) && other.test(value);
+            DoublePredicate self = this;
+            return (value) -> self.test(value) && other.test(value);
             }
 
         /**
@@ -1266,7 +1280,8 @@ public class Remote
          */
         default DoublePredicate negate()
             {
-            return (value) -> !test(value);
+            DoublePredicate self = this;
+            return (value) -> !self.test(value);
             }
 
         /**
@@ -1290,7 +1305,8 @@ public class Remote
         default DoublePredicate or(DoublePredicate other)
             {
             Objects.requireNonNull(other);
-            return (value) -> test(value) || other.test(value);
+            DoublePredicate self = this;
+            return (value) -> self.test(value) || other.test(value);
             }
         }
 
@@ -1341,7 +1357,8 @@ public class Remote
         default IntPredicate and(IntPredicate other)
             {
             Objects.requireNonNull(other);
-            return (value) -> test(value) && other.test(value);
+            IntPredicate self = this;
+            return (value) -> self.test(value) && other.test(value);
             }
 
         /**
@@ -1353,7 +1370,8 @@ public class Remote
          */
         default IntPredicate negate()
             {
-            return (value) -> !test(value);
+            IntPredicate self = this;
+            return (value) -> !self.test(value);
             }
 
         /**
@@ -1377,7 +1395,8 @@ public class Remote
         default IntPredicate or(IntPredicate other)
             {
             Objects.requireNonNull(other);
-            return (value) -> test(value) || other.test(value);
+            IntPredicate self = this;
+            return (value) -> self.test(value) || other.test(value);
             }
         }
 
@@ -1428,7 +1447,8 @@ public class Remote
         default LongPredicate and(LongPredicate other)
             {
             Objects.requireNonNull(other);
-            return (value) -> test(value) && other.test(value);
+            LongPredicate self = this;
+            return (value) -> self.test(value) && other.test(value);
             }
 
         /**
@@ -1440,7 +1460,8 @@ public class Remote
          */
         default LongPredicate negate()
             {
-            return (value) -> !test(value);
+            LongPredicate self = this;
+            return (value) -> !self.test(value);
             }
 
         /**
@@ -1464,7 +1485,8 @@ public class Remote
         default LongPredicate or(LongPredicate other)
             {
             Objects.requireNonNull(other);
-            return (value) -> test(value) || other.test(value);
+            LongPredicate self = this;
+            return (value) -> self.test(value) || other.test(value);
             }
         }
 
@@ -1980,7 +2002,8 @@ public class Remote
         default DoubleUnaryOperator compose(DoubleUnaryOperator before)
             {
             Objects.requireNonNull(before);
-            return (double v) -> applyAsDouble(before.applyAsDouble(v));
+            DoubleUnaryOperator self = this;
+            return (double v) -> self.applyAsDouble(before.applyAsDouble(v));
             }
 
         /**
@@ -2000,7 +2023,8 @@ public class Remote
         default DoubleUnaryOperator andThen(DoubleUnaryOperator after)
             {
             Objects.requireNonNull(after);
-            return (double t) -> after.applyAsDouble(applyAsDouble(t));
+            DoubleUnaryOperator self = this;
+            return (double t) -> after.applyAsDouble(self.applyAsDouble(t));
             }
 
         /**
@@ -2057,7 +2081,8 @@ public class Remote
         default IntUnaryOperator compose(IntUnaryOperator before)
             {
             Objects.requireNonNull(before);
-            return (int v) -> applyAsInt(before.applyAsInt(v));
+            IntUnaryOperator self = this;
+            return (int v) -> self.applyAsInt(before.applyAsInt(v));
             }
 
         /**
@@ -2077,7 +2102,8 @@ public class Remote
         default IntUnaryOperator andThen(IntUnaryOperator after)
             {
             Objects.requireNonNull(after);
-            return (int t) -> after.applyAsInt(applyAsInt(t));
+            IntUnaryOperator self = this;
+            return (int t) -> after.applyAsInt(self.applyAsInt(t));
             }
 
         /**
@@ -2134,7 +2160,8 @@ public class Remote
         default LongUnaryOperator compose(LongUnaryOperator before)
             {
             Objects.requireNonNull(before);
-            return (long v) -> applyAsLong(before.applyAsLong(v));
+            LongUnaryOperator self = this;
+            return (long v) -> self.applyAsLong(before.applyAsLong(v));
             }
 
         /**
@@ -2154,7 +2181,8 @@ public class Remote
         default LongUnaryOperator andThen(LongUnaryOperator after)
             {
             Objects.requireNonNull(after);
-            return (long t) -> after.applyAsLong(applyAsLong(t));
+            LongUnaryOperator self = this;
+            return (long t) -> after.applyAsLong(self.applyAsLong(t));
             }
 
         /**
@@ -2260,7 +2288,7 @@ public class Remote
          */
         default Comparator<T> reversed()
             {
-            return new InverseComparator(this);
+            return new InverseComparator<>(this);
             }
 
         /**
@@ -2289,9 +2317,10 @@ public class Remote
         default Comparator<T> thenComparing(Comparator<? super T> other)
             {
             Objects.requireNonNull(other);
+            Comparator<T> self = this;
             return (c1, c2) ->
                 {
-                int res = compare(c1, c2);
+                int res = self.compare(c1, c2);
                 return (res != 0) ? res : other.compare(c1, c2);
                 };
             }
