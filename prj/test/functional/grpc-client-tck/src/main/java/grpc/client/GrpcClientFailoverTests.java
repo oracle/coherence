@@ -29,6 +29,7 @@ import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -63,6 +64,8 @@ public class GrpcClientFailoverTests
     @Test
     public void shouldFailOverOnProxyRestart() throws Exception
         {
+        Assumptions.assumeFalse(isHelidon(), () -> "Fail-over tests are currently skipped when using the Helidon client");
+        
         CoherenceClusterBuilder builder = new CoherenceClusterBuilder()
                 .include(3, CoherenceClusterMember.class, LocalStorage.enabled(),
                         ClusterName.of(CLUSTER_NAME),
@@ -101,6 +104,19 @@ public class GrpcClientFailoverTests
                 assertThat(map.get(sKey), is(sValue));
                 }
             }
+        }
+
+    protected boolean isHelidon()
+        {
+        try
+            {
+            Class.forName("io.helidon.webclient.grpc.GrpcClient");
+            return true;
+            }
+        catch (ClassNotFoundException ignored)
+            {
+            }
+        return false;
         }
 
     // ----- RetryingCacheGet -----------------------------------------------
