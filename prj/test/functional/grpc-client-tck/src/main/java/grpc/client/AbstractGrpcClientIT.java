@@ -629,7 +629,7 @@ public abstract class AbstractGrpcClientIT
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
-        long cMillisInitial = 50000L;
+        long cMillisInitial = 1500000L;
         long cExpireInitial = System.currentTimeMillis() + cMillisInitial - 1L;
 
         NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
@@ -641,7 +641,7 @@ public abstract class AbstractGrpcClientIT
 
         assertThat(cache.get("key-1"), is("value-1"));
 
-        long cMillisUpdate = 20000L;
+        long cMillisUpdate = 200000L;
         long cExpireUpdate = System.currentTimeMillis() + cMillisUpdate - 1L;
 
         // update the entry with a short TTL
