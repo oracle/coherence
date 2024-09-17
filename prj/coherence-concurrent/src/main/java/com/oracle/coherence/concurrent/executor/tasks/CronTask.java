@@ -1,13 +1,11 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent.executor.tasks;
-
-import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.TaskExecutorService;
@@ -20,13 +18,9 @@ import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.util.ExternalizableHelper;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 
 import java.time.Duration;
 
@@ -57,8 +51,21 @@ public class CronTask<T>
      * @param task      the task
      * @param sPattern  the crontab scheduling pattern
      */
-    @SuppressWarnings("unchecked")
     public CronTask(Task<T> task, String sPattern)
+        {
+        this(task, sPattern, true);
+        }
+
+    /**
+     * Constructs a {@link CronTask}.
+     *
+     * @param task      the task
+     * @param sPattern  the crontab scheduling pattern
+     * @param fClone    {@code true} (the default) if the given {@link Task}
+     *                  should be cloned after each successful execution
+     */
+    @SuppressWarnings("unchecked")
+    public CronTask(Task<T> task, String sPattern, boolean fClone)
         {
         if (task == null)
             {
@@ -70,8 +77,8 @@ public class CronTask<T>
             throw new IllegalArgumentException("Crontab pattern must be specified");
             }
 
-        m_origTask               = task;
-        m_task                   = (Task<T>) clone(task);
+        m_origTask               = fClone ? task : null;
+        m_task                   = fClone ? (Task<T>) clone(task) : task;
         m_sCronPattern           = sPattern;
         m_ldtNextExecutionMillis = 0;
         }
@@ -136,7 +143,10 @@ public class CronTask<T>
 
             context.setResult(result);
 
-            m_task = (Task<T>) clone(m_origTask);
+            if (m_fClone)
+                {
+                m_task = (Task<T>) clone(m_origTask);
+                }
 
             }
         finally
@@ -159,6 +169,11 @@ public class CronTask<T>
         m_task                   = ExternalizableHelper.readObject(in);
         m_sCronPattern           = ExternalizableHelper.readUTF(in);
         m_ldtNextExecutionMillis = ExternalizableHelper.readLong(in);
+
+        if (m_origTask == null)
+            {
+            m_fClone = true;
+            }
         }
 
     @Override
@@ -180,6 +195,11 @@ public class CronTask<T>
         m_task                   = in.readObject(1);
         m_sCronPattern           = in.readString(2);
         m_ldtNextExecutionMillis = in.readLong(3);
+
+        if (m_origTask == null)
+            {
+            m_fClone = true;
+            }
         }
 
     @Override
@@ -242,24 +262,7 @@ public class CronTask<T>
      */
     public static Object clone(Object object)
         {
-        try
-            {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
-
-            oos.writeObject(object);
-
-            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-            ObjectInputStream ois = new ObjectInputStream(bais);
-
-            return ois.readObject();
-            }
-        catch (Exception e)
-            {
-            Logger.finer("Unable to clone object", e);
-
-            return null;
-            }
+        return ExternalizableHelper.fromBinary(ExternalizableHelper.toBinary(object));
         }
 
     // ----- helper methods -------------------------------------------------
@@ -276,6 +279,22 @@ public class CronTask<T>
     public static <T> CronTask<T> of(Task<T> task, String sCronPattern)
         {
         return new CronTask<>(task, sCronPattern);
+        }
+
+    /**
+     * Obtains a {@link CronTask}.
+     *
+     * @param task          the task to be scheduled
+     * @param sCronPattern  the task schedule pattern
+     * @param fClone        should the task be cloned after each successful
+     *                      task execution
+     * @param <T>           the type of the {@link Task}
+     *
+     * @return a {@link CronTask}
+     */
+    public static <T> CronTask<T> of(Task<T> task, String sCronPattern, boolean fClone)
+        {
+        return new CronTask<>(task, sCronPattern, fClone);
         }
 
     // ----- data members ---------------------------------------------------
@@ -299,4 +318,10 @@ public class CronTask<T>
      * The next execution time.
      */
     protected long m_ldtNextExecutionMillis;
+
+    /**
+     * Flag indicating whether the task should be cloned after
+     * each execution;
+     */
+    protected boolean m_fClone;
     }
