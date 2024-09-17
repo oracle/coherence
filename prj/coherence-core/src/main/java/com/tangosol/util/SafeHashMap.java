@@ -1774,6 +1774,27 @@ public class SafeHashMap<K, V>
             }
 
         /**
+        * Removes all the specified elements from this Set of keys
+        * also removing any associated entry from the underlying
+        * Map.
+        *
+        * @param c  the collection of keys to be removed from this set
+        *
+        * @return true if the key set was modified
+        */
+        @Override
+        public boolean removeAll(Collection<?> c)
+            {
+            Objects.requireNonNull(c);
+            boolean modified = false;
+            for (Object e : c)
+                {
+                modified |= remove(e);
+                }
+            return modified;
+            }
+
+        /**
         * Removes all of the elements from this set of Keys by clearing the
         * underlying Map.
         */
