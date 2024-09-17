@@ -53,21 +53,23 @@ public class VersionHelper
         {
         // 64(0x3F)-based - 5 elements 6 bits each
 
-        if (nPatchSet > 2000)
+        int nPatchSetActual = resolveFusionAppsPatchSet(nMajor, nMinor, nMicro, nPatchSet);
+
+        if (nPatchSetActual > 2000)
             {
             // Assume this is a feature pack version
             int nPrefix = encodeVersion(nMajor, nMinor, nMicro, 0, 0);
-            int nYear   = nPatchSet / 100;
+            int nYear   = nPatchSetActual / 100;
             return nPrefix
                 | ((nYear & 0x3F) << 6)
                 | (nPatch & 0x3F);
             }
 
-        return ((nMajor   & 0x3F) << 6*4)
-            | ((nMinor    & 0x3F) << 6*3)
-            | ((nMicro    & 0x3F) << 6*2)
-            | ((nPatchSet & 0x3F) << 6)
-            | (nPatch     & 0x3F);
+        return ((nMajor         & 0x3F) << 6*4)
+            | ((nMinor          & 0x3F) << 6*3)
+            | ((nMicro          & 0x3F) << 6*2)
+            | ((nPatchSetActual & 0x3F) << 6)
+            | (nPatch           & 0x3F);
         }
 
     /**
@@ -183,6 +185,13 @@ public class VersionHelper
                     }
 
                 an[i] = Math.min(63, nVersion);
+
+                if (i == INDEX_YEAR)
+                    {
+                    // if we have done the "year" we can map a possible FA version
+                    // to the Coherence version
+                    resolveFusionAppsPatchSet(an);
+                    }
                 }
             catch (NumberFormatException e)
                 {
@@ -286,6 +295,41 @@ public class VersionHelper
     public static boolean isPatchCompatible(int nRequired, int nActual)
         {
         return (nRequired & ~0x3F) == (nActual & ~0x3F) && (nRequired & 0x3F) <= (nActual & 0x3F);
+        }
+
+    /**
+     * This method will map Fusion Apps versions to the correct Coherence version.
+     *
+     * @param anVersion  the possible FA version to resolve to a Coherence version
+     */
+    public static void resolveFusionAppsPatchSet(int[] anVersion)
+        {
+        if (anVersion != null && anVersion.length == 5)
+            {
+            anVersion[3] = resolveFusionAppsPatchSet(anVersion[0], anVersion[1], anVersion[2], anVersion[3]);
+            }
+        }
+
+    /**
+     * Return the actual patch set value to use for a given version.
+     * <p/>
+     * This method will map Fusion Apps versions to the correct Coherence version.
+     *
+     * @param nMajor     the major version number
+     * @param nMinor     the minor version number
+     * @param nMicro     the micro version number
+     * @param nPatchSet  the patch set version number
+     *
+     * @return the actual patch set value to use
+     */
+    public static int resolveFusionAppsPatchSet(int nMajor, int nMinor, int nMicro, int nPatchSet)
+        {
+        if (nMajor == 14 && nMinor == 1 && nMicro == 2 && nPatchSet == 24)
+            {
+            // FA 14.1.2.24.x maps to Coherence 14.1.2.0.x
+            return 0;
+            }
+        return nPatchSet;
         }
 
     /**
