@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -83,7 +83,6 @@ import com.tangosol.coherence.config.xml.processor.LocalAddressProcessor;
 import com.tangosol.coherence.config.xml.processor.MapListenerProcessor;
 import com.tangosol.coherence.config.xml.processor.MemberListenerProcessor;
 import com.tangosol.coherence.config.xml.processor.MemorySizeProcessor;
-import com.tangosol.coherence.config.xml.processor.MessageDeliveryModeProcessor;
 import com.tangosol.coherence.config.xml.processor.MillisProcessor;
 import com.tangosol.coherence.config.xml.processor.NoOpElementProcessor;
 import com.tangosol.coherence.config.xml.processor.OperationBundlingProcessor;
@@ -131,11 +130,8 @@ import com.tangosol.config.xml.ProcessingContext;
 
 import com.tangosol.config.xml.SimpleElementProcessor;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultGrpcAcceptorDependencies;
-import com.tangosol.internal.net.service.peer.acceptor.DefaultJmsAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultMemcachedAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultTcpAcceptorDependencies;
-
-import com.tangosol.internal.net.service.peer.initiator.DefaultJmsInitiatorDependencies;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
@@ -249,7 +245,6 @@ public class CacheConfigNamespaceHandler
         registerProcessor(LocalAddressProcessor.class);
         registerProcessor(MapListenerProcessor.class);
         registerProcessor(MemberListenerProcessor.class);
-        registerProcessor(MessageDeliveryModeProcessor.class);
         registerProcessor(OperationBundlingProcessor.class);
         registerProcessor(PagedTopicSchemeProcessor.class);
         registerProcessor(ParamTypeProcessor.class);
@@ -373,8 +368,6 @@ public class CacheConfigNamespaceHandler
 
         // register injectable types (in alphabetical order)
         registerElementType("grpc-acceptor", DefaultGrpcAcceptorDependencies.class);
-        registerElementType("jms-acceptor", DefaultJmsAcceptorDependencies.class);
-        registerElementType("jms-initiator", DefaultJmsInitiatorDependencies.class);
         registerElementType("memcached-acceptor", DefaultMemcachedAcceptorDependencies.class);
 
         registerElementType("incoming-buffer-pool", DefaultTcpAcceptorDependencies.PoolConfig.class);

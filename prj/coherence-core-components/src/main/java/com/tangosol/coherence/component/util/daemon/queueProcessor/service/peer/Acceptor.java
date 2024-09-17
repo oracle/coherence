@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,7 +15,6 @@ import com.tangosol.coherence.component.net.extend.Connection;
 import com.tangosol.internal.net.service.peer.acceptor.AcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.HttpAcceptorDependencies;
-import com.tangosol.internal.net.service.peer.acceptor.JmsAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.MemcachedAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.TcpAcceptorDependencies;
 import com.tangosol.net.messaging.ConnectionException;
@@ -200,7 +199,6 @@ public abstract class Acceptor
         {
         // import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
         // import com.tangosol.internal.net.service.peer.acceptor.HttpAcceptorDependencies;
-        // import com.tangosol.internal.net.service.peer.acceptor.JmsAcceptorDependencies;
         // import com.tangosol.internal.net.service.peer.acceptor.MemcachedAcceptorDependencies;
         // import com.tangosol.internal.net.service.peer.acceptor.TcpAcceptorDependencies;
         
@@ -209,11 +207,6 @@ public abstract class Acceptor
             {
             acceptor = (Acceptor) _newInstance(
                     "Component.Util.Daemon.QueueProcessor.Service.Peer.Acceptor.HttpAcceptor");
-            }
-        else if (deps instanceof JmsAcceptorDependencies)
-            {
-            acceptor = (Acceptor) _newInstance(
-                    "Component.Util.Daemon.QueueProcessor.Service.Peer.Acceptor.JmsAcceptor");
             }
         else if (deps instanceof TcpAcceptorDependencies)
             {

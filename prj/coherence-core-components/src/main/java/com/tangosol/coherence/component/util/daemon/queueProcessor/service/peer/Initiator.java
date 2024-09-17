@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,7 +14,6 @@ import com.tangosol.coherence.component.net.extend.Channel;
 import com.tangosol.coherence.component.net.extend.Connection;
 import com.tangosol.coherence.component.net.extend.RemoteService;
 import com.tangosol.internal.net.service.peer.initiator.InitiatorDependencies;
-import com.tangosol.internal.net.service.peer.initiator.JmsInitiatorDependencies;
 import com.tangosol.internal.net.service.peer.initiator.TcpInitiatorDependencies;
 import com.tangosol.net.RequestTimeoutException;
 import com.tangosol.net.Service;
@@ -178,16 +177,10 @@ public abstract class Initiator
      */
     public static com.tangosol.net.messaging.ConnectionInitiator createInitiator(com.tangosol.internal.net.service.peer.initiator.InitiatorDependencies deps, com.tangosol.net.OperationalContext ctx)
         {
-        // import com.tangosol.internal.net.service.peer.initiator.JmsInitiatorDependencies;
         // import com.tangosol.internal.net.service.peer.initiator.TcpInitiatorDependencies;
         
         Initiator initiator;
-        if (deps instanceof JmsInitiatorDependencies)
-            {
-            initiator = (Initiator) _newInstance(
-                    "Component.Util.Daemon.QueueProcessor.Service.Peer.Initiator.JmsInitiator");
-            }
-        else if (deps instanceof TcpInitiatorDependencies)
+        if (deps instanceof TcpInitiatorDependencies)
             {
             initiator = (Initiator) _newInstance(
                     "Component.Util.Daemon.QueueProcessor.Service.Peer.Initiator.TcpInitiator");
