@@ -63,12 +63,14 @@ import com.tangosol.util.filter.MapEventFilter;
 import com.tangosol.util.filter.MapEventTransformerFilter;
 import com.tangosol.util.filter.NotFilter;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -77,6 +79,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 /**
@@ -358,7 +362,21 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
         m_transformer   = Lambdas.ensureRemotable(transformer);
         m_fReadOnly     = transformer != null;
         m_nState        = STATE_DISCONNECTED;
-        m_mapListener   = listener;
+
+        if (listener instanceof MapTriggerListener)
+            {
+            throw new IllegalArgumentException("ContinuousQueryCache does not support MapTriggerListeners");
+            }
+
+        if (listener instanceof NamedCacheDeactivationListener)
+            {
+            addMapListener(listener);
+            }
+        else
+            {
+            m_mapListener = listener;
+            }
+
 
         // by including information about the underlying cache, filter and
         // transformer, the resulting cache name is convoluted but extremely
@@ -955,19 +973,19 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
     // ----- ObservableMap interface ----------------------------------------
 
     @Override
-    public synchronized void addMapListener(MapListener<? super K, ? super V_FRONT> listener)
+    public void addMapListener(MapListener<? super K, ? super V_FRONT> listener)
         {
         addMapListener(listener, (Filter) null, false);
         }
 
     @Override
-    public synchronized void removeMapListener(MapListener<? super K, ? super V_FRONT> listener)
+    public void removeMapListener(MapListener<? super K, ? super V_FRONT> listener)
         {
         removeMapListener(listener, (Filter) null);
         }
 
     @Override
-    public synchronized void addMapListener(MapListener<? super K, ? super V_FRONT> listener, K oKey, boolean fLite)
+    public void addMapListener(MapListener<? super K, ? super V_FRONT> listener, K oKey, boolean fLite)
         {
         azzert(listener != null);
 
@@ -976,31 +994,61 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
             throw new IllegalArgumentException("ContinuousQueryCache does not support MapTriggerListeners");
             }
 
-        // need to cache values locally to provide standard (not lite) events
-        if (!fLite)
+        m_listenerLock.lock();
+        try
             {
-            setObserved(true);
+            if (listener instanceof NamedCacheDeactivationListener)
+                {
+                m_listDeactivationListener.add((NamedCacheDeactivationListener) listener);
+                }
+            else
+                {
+                // need to cache values locally to provide standard (not lite) events
+                if (!fLite)
+                    {
+                    setObserved(true);
+                    }
+
+                ensureEventQueue();
+
+                ensureListenerSupport().addListener(instantiateEventRouter(listener, fLite), oKey, fLite);
+                }
             }
-
-        ensureEventQueue();
-
-        ensureListenerSupport().addListener(instantiateEventRouter(listener, fLite), oKey, fLite);
+        finally
+            {
+            m_listenerLock.unlock();
+            }
         }
 
     @Override
-    public synchronized void removeMapListener(MapListener<? super K, ? super V_FRONT> listener, K oKey)
+    public void removeMapListener(MapListener<? super K, ? super V_FRONT> listener, K oKey)
         {
         azzert(listener != null);
 
-        MapListenerSupport listenerSupport = m_listenerSupport;
-        if (listenerSupport != null)
+        m_listenerLock.lock();
+        try
             {
-            listenerSupport.removeListener(instantiateEventRouter(listener, false), oKey);
+            if (listener instanceof NamedCacheDeactivationListener)
+                {
+                m_listDeactivationListener.remove((NamedCacheDeactivationListener) listener);
+                }
+            else
+                {
+                MapListenerSupport listenerSupport = m_listenerSupport;
+                if (listenerSupport != null)
+                    {
+                    listenerSupport.removeListener(instantiateEventRouter(listener, false), oKey);
+                    }
+                }
+            }
+        finally
+            {
+            m_listenerLock.unlock();
             }
         }
 
     @Override
-    public synchronized void addMapListener(MapListener<? super K, ? super V_FRONT> listener,
+    public void addMapListener(MapListener<? super K, ? super V_FRONT> listener,
                                             Filter filter, boolean fLite)
         {
         azzert(listener != null);
@@ -1010,27 +1058,57 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
             throw new IllegalArgumentException("ContinuousQueryCache does not support MapTriggerListeners");
             }
 
-        // need to cache values locally to provide event filtering and to
-        // provide standard (not lite) events
-        if (filter != null || !fLite)
+        m_listenerLock.lock();
+        try
             {
-            setObserved(true);
+            if (listener instanceof NamedCacheDeactivationListener)
+                {
+                m_listDeactivationListener.add((NamedCacheDeactivationListener) listener);
+                }
+            else
+                {
+                // need to cache values locally to provide event filtering and to
+                // provide standard (not lite) events
+                if (filter != null || !fLite)
+                    {
+                    setObserved(true);
+                    }
+
+                ensureEventQueue();
+
+                ensureListenerSupport().addListener(instantiateEventRouter(listener, fLite), filter, fLite);
+                }
             }
-
-        ensureEventQueue();
-
-        ensureListenerSupport().addListener(instantiateEventRouter(listener, fLite), filter, fLite);
+        finally
+            {
+            m_listenerLock.unlock();
+            }
         }
 
     @Override
-    public synchronized void removeMapListener(MapListener<? super K, ? super V_FRONT> listener, Filter filter)
+    public void removeMapListener(MapListener<? super K, ? super V_FRONT> listener, Filter filter)
         {
         azzert(listener != null);
 
-        MapListenerSupport listenerSupport = m_listenerSupport;
-        if (listenerSupport != null)
+        m_listenerLock.lock();
+        try
             {
-            listenerSupport.removeListener(instantiateEventRouter(listener, false), filter);
+            if (listener instanceof NamedCacheDeactivationListener)
+                {
+                m_listDeactivationListener.remove((NamedCacheDeactivationListener) listener);
+                }
+            else
+                {
+                MapListenerSupport listenerSupport = m_listenerSupport;
+                if (listenerSupport != null)
+                    {
+                    listenerSupport.removeListener(instantiateEventRouter(listener, false), filter);
+                    }
+                }
+            }
+        finally
+            {
+            m_listenerLock.unlock();
             }
         }
 
@@ -2539,6 +2617,7 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
             {
             // destroy/disconnect event
             changeState(STATE_DISCONNECTED);
+            dispatchDeactivationEvent(evt.getId());
             }
 
         @Override
@@ -2561,6 +2640,7 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
                         local.clear();
                         }
                     }
+                dispatchDeactivationEvent(evt.getId());
                 }
             }
         }
@@ -2754,6 +2834,31 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
             m_mapLocal.addMapListener(new InternalMapListener(listenerSupport, convKey, convValue));
             }
         return listenerSupport;
+        }
+
+    private void dispatchDeactivationEvent(int eventType)
+        {
+        m_listenerLock.lock();
+        try
+            {
+            MapEvent<K, V_FRONT> evt = new MapEvent<>(ContinuousQueryCache.this, eventType, null, null, null);
+            for (MapListener<K, V_FRONT> listener : m_listDeactivationListener)
+                {
+                switch (evt.getId())
+                    {
+                    case MapEvent.ENTRY_UPDATED:
+                        listener.entryUpdated(evt);
+                        break;
+                    case MapEvent.ENTRY_DELETED:
+                        listener.entryDeleted(evt);
+                        break;
+                    }
+                }
+            }
+        finally
+            {
+            m_listenerLock.unlock();
+            }
         }
 
     /**
@@ -3161,4 +3266,15 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
      * @since 12.2.1.4
      */
     protected MapListenerSupport m_listenerSupport;
+
+    /**
+     * Local list of {@link NamedCacheDeactivationListener} to allow the {@code ContinuousQueryCache} to intercept
+     * deactivation events dispatched by the back cache.
+     */
+    protected final List<NamedCacheDeactivationListener> m_listDeactivationListener = new ArrayList<>();
+
+    /**
+     * The lock to control adding and removing map listeners and firing of deactivation events.
+     */
+    protected final Lock m_listenerLock = new ReentrantLock();
     }
