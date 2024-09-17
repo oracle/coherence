@@ -23820,7 +23820,7 @@ public abstract class PartitionedService
             parts.readExternal(input);
             setPartitions(parts);
             
-            if (getService().isVersionCompatible(getFromMember(), 22, 6, 0))
+            if (getService().isVersionCompatible(getFromMember(), 22, 6, 10))
                 {
                 setPrimary(input.readBoolean());
                 }
@@ -23859,10 +23859,7 @@ public abstract class PartitionedService
             
             getPartitions().writeExternal(output);
 
-            if (getService().isVersionCompatible(getFromMember(), 22, 6, 0))
-                {
-                output.writeBoolean(isPrimary());
-                }
+            output.writeBoolean(isPrimary());
             }
         }
 
