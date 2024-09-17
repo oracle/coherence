@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -255,6 +255,11 @@ public abstract class AbstractEntryAggregatorTests
         setResult = cache.aggregate((Filter) null, agent);
         assertEquals(setResult, setExpected);
 
+        setResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
+        assertEquals(setResult, setExpected);
+
+        // regression test for COH-30281
+        cache.addIndex(IdentityExtractor.INSTANCE(), true, null);
         setResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
         assertEquals(setResult, setExpected);
         }

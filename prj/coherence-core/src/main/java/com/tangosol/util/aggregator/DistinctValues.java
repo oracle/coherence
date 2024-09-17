@@ -101,7 +101,7 @@ public class DistinctValues<K, V, T, E>
                         Map mapContents = index.getIndexContents();
                         if (mapContents != null && !mapContents.isEmpty())
                             {
-                            m_set = Collections.unmodifiableSet(mapContents.keySet());
+                            ensureSet().addAll(mapContents.keySet());
                             return false;
                             }
                         }
@@ -112,7 +112,7 @@ public class DistinctValues<K, V, T, E>
                 }
             else
                 {
-                m_set = Collections.emptySet();
+                ensureSet();
                 return false;
                 }
             }
