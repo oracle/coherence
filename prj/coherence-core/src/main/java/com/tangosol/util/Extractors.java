@@ -206,7 +206,7 @@ public class Extractors
      * field extraction is the input to the next extractor. The result
      * returned is the result of the final extractor in the chain.
      *
-     * @param extractors  the {@link ValueExtractor}s to use to extract the list of values
+     * @param extractors  the  chain of {@link ValueExtractor}s to use to extract the value
      *
      * @param <T> the type of the object to extract from
      *
@@ -381,6 +381,52 @@ public class Extractors
         }
 
     /**
+     * Returns a {@link KeyExtractor} that wraps the specified {@link ValueExtractor}s.
+     * <p>
+     * If the {@code extractors} parameter is a single {@link ValueExtractor} then a
+     * {@link KeyExtractor} is returned wrapping that extractor. If the {@code extractors} is
+     * multiple {@link ValueExtractor} instances in a chain, a {@link KeyExtractor} is returned
+     * that wraps a {@link ChainedExtractor} that wraps the chain of {@link ValueExtractor}
+     * instances
+     * 
+     * @param extractors  the chain of {@link ValueExtractor}s to use to extract the value
+     * @param <T>         the type of the object to extract from
+     * @param <R>         the type of the extracted value
+     *
+     * @return a {@link ValueExtractor} that extracts the value(s) of the specified field(s)
+     *
+     * @throws IllegalArgumentException if the fields parameter is {@code null} or an
+     *         empty array
+     *
+     * @see ChainedExtractor
+     *
+     * @since 24.09
+     */
+    @SuppressWarnings("unchecked")
+    public static <T, R> ValueExtractor<T, R> key(ValueExtractor<?, ?>... extractors)
+        {
+        if (extractors == null || extractors.length == 0)
+            {
+            throw new IllegalArgumentException("The fields parameter must contain at least one non-null element");
+            }
+
+        if (extractors.length == 1)
+            {
+            return (ValueExtractor<T, R>) extractors[0].fromKey();
+            }
+
+        ValueExtractor<?, ?>[] copy = new ValueExtractor[extractors.length];
+        System.arraycopy(extractors, 0, copy, 0, extractors.length);
+        ValueExtractor<?, ?> key = copy[0].fromKey();
+        if (key instanceof KeyExtractor<?,?>)
+            {
+            return (ValueExtractor<T, R>) chained(copy).fromKey();
+            }
+        copy[0] = key;
+        return chained(copy);
+        }
+
+    /**
      * Returns a {@link KeyExtractor} that extracts the specified fields
      * where extraction occurs in a chain where the result of each
      * field extraction is the input to the next extractor. The result
@@ -391,41 +437,19 @@ public class Extractors
      *                the dots.
      *
      * @param <T> the type of the object to extract from
+     * @param <R> the type of the extracted value
      *
-     * @return a {@link KeyExtractor) that extracts the value(s) of the specified field(s)
+     * @return a {@link ValueExtractor} that extracts the value(s) of the specified field(s)
      *
-     * @throws IllegalArgumentException if the fields parameter is null or an
+     * @throws IllegalArgumentException if the fields parameter is {@code null} or an
      *         empty array
      *
      * @see UniversalExtractor
-     *
-     * @since 24.09
+     * @see ChainedExtractor
      */
-    @SuppressWarnings("unchecked")
     public static <T, R> ValueExtractor<T, R> key(String... fields)
         {
-        if (fields == null || fields.length == 0)
-            {
-            throw new IllegalArgumentException("The fields parameter cannot be null or empty");
-            }
-
-        ValueExtractor[] aExtractor = Arrays.stream(fields)
-                .filter(Objects::nonNull)
-                .map(s -> s.split("\\."))
-                .flatMap(Arrays::stream)
-                .map(Extractors::extract)
-                .toArray(ValueExtractor[]::new);
-
-        if (aExtractor.length == 0)
-            {
-            throw new IllegalArgumentException("The fields parameter must contain at least one non-null element");
-            }
-
-        if (aExtractor.length == 1)
-            {
-            return new KeyExtractor(aExtractor[0]);
-            }
-
-        return new KeyExtractor<>(new ChainedExtractor<>(aExtractor));
+        return key(chained(fields));
         }
+
     }
