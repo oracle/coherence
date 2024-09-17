@@ -429,6 +429,7 @@
         <groupId>org.jline</groupId>
         <artifactId>jline</artifactId>
         <version>${jline.version}</version>
+        <classifier>jdk8</classifier>
       </dependency>
 
       <!-- JSON-B -->
@@ -728,7 +729,7 @@
     <jakarta.ws.rs.version>2.1.5</jakarta.ws.rs.version>
     <jersey.version>2.40</jersey.version>
     <jettison.version>1.1</jettison.version>
-    <jline.version>3.25.0</jline.version>
+    <jline.version>3.26.3</jline.version>
     <jol.version>0.17</jol.version>
     <jsonb.version>1.0</jsonb.version>
     <jsonp.version>1.1.2</jsonp.version>
