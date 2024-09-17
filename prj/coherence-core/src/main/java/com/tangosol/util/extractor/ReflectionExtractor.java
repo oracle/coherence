@@ -155,6 +155,15 @@ public class ReflectionExtractor<T, E>
         return sCName;
         }
 
+
+    @Override
+    public ValueExtractor<T, E> fromKey()
+        {
+        ReflectionExtractor<T, E> extractor = new ReflectionExtractor<>(m_sMethod, m_aoParam, KEY);
+        extractor.m_sNameCanon = m_sNameCanon;
+        return extractor;
+        }
+
     // ----- Object methods -------------------------------------------------
 
     /**

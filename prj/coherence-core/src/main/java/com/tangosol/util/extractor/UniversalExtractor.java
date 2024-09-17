@@ -208,6 +208,14 @@ public class UniversalExtractor<T, E>
         return sCName;
         }
 
+    @Override
+    public ValueExtractor<T, E> fromKey()
+        {
+        UniversalExtractor<T, E> extractor = new UniversalExtractor<>(m_sName, m_aoParam, KEY);
+        extractor.m_sNameCanon = m_sNameCanon;
+        return extractor;
+        }
+
     // ----- Object methods -------------------------------------------------
 
     /**

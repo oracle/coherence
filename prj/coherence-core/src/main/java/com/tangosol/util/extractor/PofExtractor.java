@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.extractor;
@@ -25,6 +25,7 @@ import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.MapTrigger;
+import com.tangosol.util.ValueExtractor;
 
 import java.io.IOException;
 import java.io.NotActiveException;
@@ -271,6 +272,11 @@ public class PofExtractor<T, E>
         return (E) (valueTarget == null ? null : valueTarget.getValue(getPofTypeId(ctx)));
         }
 
+    @Override
+    public ValueExtractor<T, E> fromKey()
+        {
+        return new PofExtractor<>(m_clz, m_navigator, KEY, m_sNameCanon);
+        }
 
     // ----- accessors ------------------------------------------------------
 
