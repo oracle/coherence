@@ -849,7 +849,7 @@ public abstract class AbstractClusteredExecutorServiceTests
 
         Task.Coordinator<String> coordinator2 =
             m_taskExecutorService
-                .orchestrate(CronTask.of(new LongRunningTask(Duration.ofSeconds(15), 2), "* * * * *"))
+                .orchestrate(CronTask.of(new LongRunningTask(Duration.ofSeconds(15), 2), "* * * * *", false))
                 .filter(Predicates.role(STORAGE_DISABLED_MEMBER_ROLE))
                 .limit(1)
                 .collect(TaskCollectors.lastOf())
