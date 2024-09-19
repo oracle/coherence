@@ -2680,7 +2680,18 @@ public class DaemonPool
                 }
         
             setStarted(true);
-        
+            Object[] ao = new Object[]
+                {
+                Integer.valueOf(cDaemons),
+                Integer.valueOf(getDaemonCountMax()),
+                Integer.valueOf(getDaemonCountMin()),
+                Boolean.valueOf(isDynamic()).toString(),
+                Integer.valueOf(cQueues),
+                Integer.valueOf(cSlots),
+                };
+            _trace(String.format("Started DaemonPool \"" + getName()
+                + "\": [DeamonCount=%d, DaemonCountMax=%d, DaemonCountMin=%d, Dynamic=%s QueueSize=%d, WorkSlots=%d]", ao), 4);
+
             if (isDynamic())
                 {
                 // schedule a new ResizeTask
