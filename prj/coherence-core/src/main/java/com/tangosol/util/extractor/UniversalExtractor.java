@@ -78,7 +78,7 @@ public class UniversalExtractor<T, E>
      * <p>
      * If <code>sName</code> does not end in {@link #METHOD_SUFFIX},
      * <code>"()"</code>, this extractor is a property extractor. If <code>sName</code> is prefixed with
-     * one of the {@link #BEAN_ACCESSOR_PREFIXES} and ends in the {@link #METHOD_SUFFIX},
+     * one of the {@link #BEAN_ACCESSOR_PREFIXES} and optionally ends in the {@link #METHOD_SUFFIX},
      * this extractor is a property extractor. Otherwise,
      * if the <code>sName</code> just ends in {#link #METHOD_SUFFIX},
      * this extractor is considered a method extractor.
@@ -97,7 +97,7 @@ public class UniversalExtractor<T, E>
      * If <code>sName</code> does not end in {@link #METHOD_SUFFIX}, <code>"()"</code>,
      * and has no <code>aoParams</code>,this extractor is a property extractor.
      * If <code>sName</code> is prefixed with
-     * one of the {@link #BEAN_ACCESSOR_PREFIXES}, ends in {@link #METHOD_SUFFIX}
+     * one of the {@link #BEAN_ACCESSOR_PREFIXES}, optionally ends in {@link #METHOD_SUFFIX}
      * and has no <code>aoParams</code>,this extractor is a property extractor.
      * Otherwise, if the <code>sName</code>just ends in {#link #METHOD_SUFFIX},
      * this extractor is considered a method extractor.
@@ -120,7 +120,7 @@ public class UniversalExtractor<T, E>
      * <p>
      * If <code>sName</code> does not end in {@link #METHOD_SUFFIX}, <code>"()"</code>,
      * this extractor is a property extractor. If <code>sName</code> is prefixed with
-     * one of the {@link #BEAN_ACCESSOR_PREFIXES} and ends in {@link #METHOD_SUFFIX},
+     * one of the {@link #BEAN_ACCESSOR_PREFIXES} and optionally ends in {@link #METHOD_SUFFIX},
      * this extractor is a property extractor. If the <code>sName</code>
      * just ends in {@link #METHOD_SUFFIX}, this extractor is considered a method
      * extractor.
