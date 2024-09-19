@@ -157,37 +157,6 @@ public class InFilter<T, E>
             {
             Map<E, Set<?>>   mapContents = index.getIndexContents();
             Set<? extends E> colValues   = getValue();
-            int              cValues     = colValues.size();
-            int              cKeys       = setKeys.size();
-
-            // an empirically chosen factor that suits 90% of the data sets
-            // tested; the aim is to accommodate for common use cases in which
-            // colValues will contain between 10 - 1000 elements, thus iterating
-            // 128000 keys (upper bound) is considered the inflection point and
-            // as setKeys increases past this point, the value of collecting the
-            // inverse keys becomes more beneficial
-            final int FACTOR = 128;
-
-            // optimized branch for relatively small number of keys
-            use_fwd_index:
-            if (cKeys < Math.min(1000, cValues) * FACTOR)
-                {
-                for (Iterator iter = setKeys.iterator(); iter.hasNext(); )
-                    {
-                    Object oValue = index.get(iter.next());
-                    if (oValue == MapIndex.NO_VALUE)
-                        {
-                        // forward index is not supported
-                        break use_fwd_index;
-                        }
-
-                    if (!colValues.contains(oValue))
-                        {
-                        iter.remove();
-                        }
-                    }
-                return null;
-                }
 
             List<Set<?>> listInverseKeys = new ArrayList<>(colValues.size());
             for (E value : colValues)
