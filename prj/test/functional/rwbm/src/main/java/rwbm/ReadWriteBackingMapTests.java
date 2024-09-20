@@ -341,7 +341,7 @@ public class ReadWriteBackingMapTests
             // we expect to see either 3 individual store calls, or 1 store and 1 storeAll call
             verifyStoreStats("putWithWriteBatchFactorZero-" + sCacheName, store,
                         equal("store", 1).and(equal("storeAll", 1))
-                    .or(equal("store", 3).and(equal("storeAll", 0))));
+                    .or(equal("store", 3)));
             }
         finally
             {
@@ -2149,7 +2149,7 @@ public class ReadWriteBackingMapTests
 
     private void testCacheStoreExpire(String sCacheName, long cExpiryMillis, boolean fUsePutAll)
         {
-        String               testName    = "testCacheStoreUpdate-" + sCacheName + (fUsePutAll ? "-PutAll" : "Put");
+        String               testName    = "testCacheStoreExpire-" + sCacheName + (fUsePutAll ? "-PutAll" : "Put");
         NamedCache           cache       = getNamedCache(sCacheName);
         TestBinaryCacheStore store       = (TestBinaryCacheStore) getStore(cache);
         ReadWriteBackingMap  rwbm        = getReadWriteBackingMap(cache);
