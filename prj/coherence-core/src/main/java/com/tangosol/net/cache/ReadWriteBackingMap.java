@@ -5880,6 +5880,7 @@ public class ReadWriteBackingMap
                         // Note: Persistence decoration should not result in sending map
                         //       listener events.
                         //       See PartitionedCache.ResourceCoordinator.processEvent
+                        CacheFactory.log("**MG** Remove deco_store");
                         binValue = ExternalizableHelper.undecorate(
                             binValue, BackingMapManagerContext.DECO_STORE);
 
