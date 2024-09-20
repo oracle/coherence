@@ -18,6 +18,7 @@ import com.oracle.coherence.testing.CustomClasses;
 import com.tangosol.internal.util.processor.CacheProcessors;
 
 import com.tangosol.net.BackingMapManagerContext;
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.PartitionedService;
@@ -1971,6 +1972,7 @@ public class ReadWriteBackingMapTests
 
             for (int i = 0; i < mapData.size(); i++)
                 {
+                CacheFactory.log("Checking : " + i);
                 Eventually.assertThat(testName,
                     invoking(this).getPerson(cache, i).getMotherId(), is("STORED"));
                 if (cDelay > 0)
