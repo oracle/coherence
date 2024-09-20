@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,6 +15,8 @@ import com.oracle.coherence.persistence.PersistentStore;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.deferred.atomic.DeferredAtomicInteger;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+
+import com.oracle.coherence.persistence.PersistentStoreInfo;
 
 import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
@@ -38,6 +40,8 @@ import com.tangosol.net.PartitionedService;
 import com.tangosol.net.PartitionedService.PartitionRecoveryAction;
 import com.tangosol.net.Service;
 
+import com.tangosol.net.cache.ContinuousQueryCache;
+
 import com.tangosol.net.management.MBeanHelper;
 
 import com.tangosol.net.partition.SimplePartitionKey;
@@ -48,8 +52,10 @@ import com.tangosol.util.Base;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.LongArray;
+import com.tangosol.util.MapIndex;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.MapTrigger;
 import com.tangosol.util.MapTriggerListener;
@@ -314,6 +320,18 @@ public abstract class AbstractSimplePersistenceTests
                 "simple-persistent", "simple-persistent-truncate");
         }
 
+    /**
+     * Test CQC cache recovery.
+     * @throws IOException
+     * @throws MBeanException
+     */
+    @Test
+    public void testCqcSnapshotRecovery()
+            throws IOException, MBeanException
+        {
+        testCqcSnapshotRecovery("testCqcSnapshot" + getPersistenceManagerName(), "simple-persistent");
+        }
+
     // ----- helpers --------------------------------------------------------
 
     private void testBasicPersistence(String sServer, String sPersistentCache, String sTransientCache)
@@ -373,16 +391,21 @@ public abstract class AbstractSimplePersistenceTests
             PersistenceManager<ReadBuffer> manager = createPersistenceManager(dir);
             try
                 {
-                String[] as = manager.list();
-                assertEquals(cPart, as.length);
+                PersistentStoreInfo[] aInfo = manager.listStoreInfo();
+                assertEquals(cPart, aInfo.length);
 
                 // assert that each partition is valid and holds the cache
                 // name as well as find the GUID for the partition that holds
                 // the persisted data during the scan
                 String sGUID = null;
-                for (int i = 0; i < as.length; ++i)
+                for (int i = 0; i < aInfo.length; ++i)
                     {
-                    String s = as[i];
+                    String s = aInfo[i].getId();
+
+                    if (manager.isEmpty(s))
+                        {
+                        continue;
+                        }
 
                     PersistentStore<ReadBuffer> store = manager.open(s, null);
                     try
@@ -807,6 +830,8 @@ public abstract class AbstractSimplePersistenceTests
             // with partitioned consistency
             Thread[] aReaders = ensureContinuousReaders(cache, 8);
             Base.sleep(100L);  // allow for some successful reads
+            cache.put("foo", "BAR");
+            cache.put("biz", "BAZ");
             helper.createSnapshot(sService, "snapshot-B");
             destroyContinuousReaders(aReaders);
 
@@ -830,8 +855,8 @@ public abstract class AbstractSimplePersistenceTests
                 // of "snapshot-B"
 
                 // validate that the data were recovered
-                assertEquals("bar", cache.get("foo"));
-                assertEquals("baz", cache.get("biz"));
+                assertEquals("BAR", cache.get("foo"));
+                assertEquals("BAZ", cache.get("biz"));
                 for (int i = 0; i < 20000; i++)
                     {
                     assertEquals(i, cache.get(i));
@@ -866,8 +891,8 @@ public abstract class AbstractSimplePersistenceTests
             waitForBalanced(service);
 
             // validate that the data were recovered
-            assertEquals("bar", cache.get("foo"));
-            assertEquals("baz", cache.get("biz"));
+            assertEquals("BAR", cache.get("foo"));
+            assertEquals("BAZ", cache.get("biz"));
             for (int i = 0; i < 20000; i++)
                 {
                 assertEquals(i, cache.get(i));
@@ -888,8 +913,8 @@ public abstract class AbstractSimplePersistenceTests
             waitForBalanced(service);
 
             // validate that the data were recovered
-            assertEquals("bar", cache.get("foo"));
-            assertEquals("baz", cache.get("biz"));
+            assertEquals("BAR", cache.get("foo"));
+            assertEquals("BAZ", cache.get("biz"));
             for (int i = 0; i < 20000; i++)
                 {
                 assertEquals(i, cache.get(i));
@@ -1415,12 +1440,12 @@ public abstract class AbstractSimplePersistenceTests
         props1.setProperty("test.persistence.active.dir", fileActive1.getAbsolutePath());
         props1.setProperty("test.persistence.backup.dir", fileBackup1.getAbsolutePath());
 
-        Properties props2 = new Properties(props);
+        Properties props2 = new Properties();
         props2.putAll(props);
         props2.setProperty("test.persistence.active.dir", fileActive2.getAbsolutePath());
         props2.setProperty("test.persistence.backup.dir", fileBackup2.getAbsolutePath());
 
-        Properties props3 = new Properties(props);
+        Properties props3 = new Properties();
         props3.putAll(props);
         props3.setProperty("test.persistence.active.dir", fileActive3.getAbsolutePath());
         props3.setProperty("test.persistence.backup.dir", fileBackup3.getAbsolutePath());
@@ -1489,6 +1514,111 @@ public abstract class AbstractSimplePersistenceTests
             }
         }
 
+    public void testCqcSnapshotRecovery(String sServer, String sPersistentCache)
+            throws IOException, MBeanException
+        {
+        File fileSnapshot = FileHelper.createTempDir();
+        File fileTrash    = FileHelper.createTempDir();
+
+        Properties props = new Properties();
+        props.setProperty("test.persistence.mode", "on-demand");
+        props.setProperty("test.persistence.active.dir", "");
+        props.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
+        props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
+        props.setProperty("coherence.management", "all");
+        props.setProperty("coherence.management.remote", "true");
+        props.setProperty("coherence.distribution.2server", "false");
+        props.setProperty("test.threads", "1");
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
+
+        ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                .getConfigurableCacheFactory("client-cache-config.xml", null);
+        setFactory(factory);
+
+        final NamedCache        cache    = getNamedCache(sPersistentCache);
+        DistributedCacheService service  = (DistributedCacheService) cache.getCacheService();
+        String                  sService = service.getInfo().getServiceName();
+
+        startCacheServer(sServer + "-1", getProjectName(), getCacheConfigPath(), props);
+        startCacheServer(sServer + "-2", getProjectName(), getCacheConfigPath(), props);
+
+        Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(2));
+        waitForBalanced(service);
+
+        PersistenceTestHelper      helper = new PersistenceTestHelper();
+        final ContinuousQueryCache cqc    = new ContinuousQueryCache(cache, (Filter) o -> o instanceof String
+                                                                                          || (o instanceof Integer
+                                                                                              && ((Integer) o) >= 9500
+                                                                                              && ((Integer) o) < 10500), true);
+
+        try
+            {
+            // add a bunch of data
+            cache.put("foo", "bar");
+            cache.put("biz", "baz");
+            HashMap mapTemp = new HashMap();
+            for (int i = 0; i < 10000; i++)
+                {
+                mapTemp.put(i, i);
+                }
+            cache.putAll(mapTemp);
+
+            helper.createSnapshot(sService, "snapshot-A");
+
+            mapTemp = new HashMap();
+            for (int i = 10000; i < 20000; i++)
+                {
+                mapTemp.put(i, i);
+                }
+            cache.putAll(mapTemp);
+
+            cache.put("foo", "BAR");
+            cache.put("biz", "BAZ");
+            cqc.put(9999, "X");
+            helper.createSnapshot(sService, "snapshot-B");
+
+            cache.clear();
+
+            assertEquals(0, cqc.size());
+            assertEquals(0, cache.size());
+
+            helper.recoverSnapshot(sService, "snapshot-A");
+
+            // validate that the data were recovered
+            assertEquals(502, cqc.size());
+            assertEquals(10002, cache.size());
+            assertEquals("bar", cqc.get("foo"));
+            assertEquals("baz", cqc.get("biz"));
+            for (int i = 0; i < 10000; i++)
+                {
+                assertEquals(i, cache.get(i));
+                assertEquals(i < 9500 ? null : i, cqc.get(i));
+                }
+
+            helper.recoverSnapshot(sService, "snapshot-B");
+
+            // validate that the data were recovered
+            assertEquals("BAR", cqc.get("foo"));
+            assertEquals("BAZ", cqc.get("biz"));
+            for (int i = 0; i < 20000; i++)
+                {
+                assertEquals(i == 9999 ? "X" : i, cache.get(i));
+                assertEquals(i < 9500 || i >= 10500
+                             ? null
+                             : (i == 9999 ? "X" : i), cqc.get(i));
+                }
+            assertEquals(1002, cqc.size());
+            assertEquals(20002, cache.size());
+            }
+        finally
+            {
+            stopAllApplications();
+            CacheFactory.shutdown();
+
+            FileHelper.deleteDirSilent(fileSnapshot);
+            FileHelper.deleteDirSilent(fileTrash);
+            }
+        }
     /**
      * A helper method to call the static {@link PersistenceTestHelper#listSnapshots(String)}
      * method. This allows us to use this method in Eventually.assertThat(Deferred, Matcher)
@@ -1665,7 +1795,7 @@ public abstract class AbstractSimplePersistenceTests
             BinaryEntry              binEntry = (BinaryEntry) entry;
             BackingMapContext        bmc      = binEntry.getBackingMapContext();
             BackingMapManagerContext bmmc     = bmc.getManagerContext();
-            PartitionedService       service = (PartitionedService) bmmc.getCacheService();
+            PartitionedService       service  = (PartitionedService) bmmc.getCacheService();
 
             try
                 {

@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
 
+import com.oracle.coherence.concurrent.executor.function.Predicates;
 import com.oracle.coherence.concurrent.executor.options.Name;
 
 import com.tangosol.config.xml.NamespaceHandler;
@@ -30,18 +31,19 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * A RemoteExecutor allows submitting and/or scheduling {@link Remote.Runnable runnables}
- * and {@link Remote.Callable callables} for execution within a Coherence cluster.
- * <p>
- * <p>
+ * A RemoteExecutor allows submitting and/or scheduling
+ * {@link Remote.Runnable runnables}, {@link Remote.Callable callables},
+ * and {@link Task tasks} for execution within a Coherence cluster.
+ *
  * <h2>Using a RemoteExecutor</h2>
  * A RemoteExecutor may be obtained by a known name:
  *   {@link #get(String) RemoteExecutor.get(“executorName”}
- *
+ * <p>
  * Once a reference to a {@code RemoteExecutor} has been obtained,
  * similar to an {@link ExecutorService}, tasks may be submitted:
- * {@code
+ *
  * <pre>
+ * {@code
  *     // obtain the named RemoteExecutor (defined in xml configuration; see below)
  *     RemoteExecutor executor = RemoteExecutor.get("MyExecutor");
  *
@@ -51,9 +53,9 @@ import java.util.concurrent.TimeoutException;
  *
  *     // block until completed
  *     future.get();
- * </pre>
  * }
- * <p>
+ * </pre>
+ *
  * A {@code RemoteExecutor} allows scheduling of tasks independent of the
  * underlying thread pool (more about that below); See:
  * <ul>
@@ -67,26 +69,28 @@ import java.util.concurrent.TimeoutException;
  * the application's cache configuration.  To begin configuring
  * executors, developers <em>must</em> include a reference
  * to the {@code coherence-concurrent} module's {@link NamespaceHandler}:
- * <p>
- * <p>
+ *
  * <h2>Configuring RemoteExecutors</h2>
- * {@code
+ *
+ * The configuration supports multiple executor types and their related configuration.
+ * In order to support executor definitions within the cache-configuration resource,
+ * the document namespaces should be updated to add a reference to the executor
+ * namespace handler:
+ *
  * <pre>
- * &lt;cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ * {@code
+ * <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  *                xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
- *                xmlns:executor="class://com.oracle.coherence.concurrent.config.NamespaceHandler"
+ *                xmlns:c="class://com.oracle.coherence.concurrent.config.NamespaceHandler"
  *                xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd
  *                                   class://com.oracle.coherence.concurrent.config.NamespaceHandler concurrent.xsd">
  *   ...
- * &lt;cache-config>
- * </pre>
+ * <cache-config>
  * }
+ * </pre>
+ *
  * In this case, the arbitrary namespace of {@code c} was chosen and will be used
  * for the examples below.
- * <p>
- * The configuration supports multiple executor types and their related configuration.
- * See the <a href=https://github.com/oracle/coherence/blob/master/prj/coherence-concurrent/src/main/resources/concurrent.xsd">schema</a>
- * for configuration specifics.
  * <p>
  * It should be noted, that it will be normal to have the same executor configured
  * on multiple Coherence cluster members.  When dispatching a task, it will be
@@ -98,63 +102,173 @@ import java.util.concurrent.TimeoutException;
  * Coherence cluster member, thus if a cluster member is brought down
  * gracefully, the remaining tasks running on the executor local to that member
  * will continue to completion.
- * <p>
- * <p>
+ *
  * <h2>Example configurations</h2>
  *
- * {@code
  * <pre>
- * &lt;!-- creates a single-threaded executor named <em>Single</em> -->
- * &lt;c:single>
- *   &lt;c:name>Single&lt;/c:name>
- * &lt;/c:single>
- * </pre>
- * }
+ * {@code
+ * <!-- creates a single-threaded executor named <em>Single</em> -->
+ * <c:single>
+ *   <c:name>Single</c:nam>
+ * </c:single>
  *
- * {@code
- * <pre>
- * &lt;!-- creates a fixed thread pool executor named <em>Fixed5</em> with five threads -->
- * &lt;c:fixed>
- *   &lt;c:name>Fixed5&lt;/c:name>
- *   &lt;c:thread-count>5&lt;/c:thread-count>
- * &lt;/c:fixed>
- * </pre>
- * }
+ * <!-- creates a fixed thread pool executor named <em>Fixed5</em> with five threads -->
+ * <c:fixed>
+ *   <c:name>Fixed5</c:name>
+ *   <c:thread-count>5</c:thread-count>
+ * </c:fixed>
  *
- * {@code
- * <pre>
- * &lt;!-- creates a cached thread pool executor named <em>Cached</em> -->
- * &lt;c:cached>
- *   &lt;c:name>Cached&lt;/c:name>
- * &lt;/c:cached>
- * </pre>
- * }
+ * <!-- creates a cached thread pool executor named <em>Cached</em> -->
+ * <c:cached>
+ *   <c:name>Cached</c:name>
+ * </c:cached>
  *
- * {@code
- * <pre>
- * &lt;!-- creates a work-stealing thread pool executor named <em>Stealing</em> with a parallelism of five-->
- * &lt;c:work-stealing>
- *   &lt;c:name>Stealing&lt;/c:name>
- *   &lt;c:parallelism>5&lt;/c:parallelism>
- * &lt;/c:work-stealing>
- * </pre>
+ * <!-- creates a work-stealing thread pool executor named <em>Stealing</em> with a parallelism of five-->
+ * <c:work-stealing>
+ *   <c:name>Stealing</c:name>
+ *   <c:parallelism>5</c:parallelism>
+ * </c:work-stealing>
  * }
+ * </pre>
  *
- * An example defining a {@link ThreadFactory}.
- * {@code
+ * An example defining a {@link ThreadFactory}:
+ *
  * <pre>
- * &lt;!-- creates a fixed thread pool executor named <em>Fixed5</em> with five threads and a custom thread factory -->
- * &lt;c:fixed>
- *   &lt;c:name>Fixed5&lt;/c:name>
- *   &lt;c:thread-count>5&lt;/c:thread-count>
- *   &lt;c:thread-factory>
- *     &lt;instance>
- *       &lt;class-name>my.custom.ThreadFactory&lt;/class-name>
- *     &lt;/instance>
- *   &lt;/c:thread-factory>
- * &lt;/c:fixed>
- * </pre>
+ * {@code
+ * <!-- creates a fixed thread pool executor named <em>Fixed5</em> with five threads and a custom thread factory -->
+ * <c:fixed>
+ *   <c:name>Fixed5</c:name>
+ *   <c:thread-count>5</c:thread-count>
+ *   <c:thread-factory>
+ *     <instance>
+ *       <class-name>my.custom.ThreadFactory</class-name>
+ *     </instance>
+ *   </c:thread-factory>
+ * </c:fixed>
  * }
+ * </pre>
+ *
+ * If not {@link ThreadFactory} is defined, a default factory will be used.
+ * The threads will be named {@code CES:[executor-name]}-[incrementing-counter].
+ * For example, if the executor is named {@code Fixed5}, the threads name
+ * would be {@code CES:Fixed5-1, CES:Fixed5-2}, etc.
+ *
+ * <h2>Task Orchestration</h2>
+ *
+ * In addition to the {@link java.util.concurrent.ExecutorService}-like
+ * functionality offered by this class, it also provides the ability to
+ * {@link Task.Orchestration orchestrate } tasks concurrently or sequentially
+ * across multiple Coherence cluster members and collect the produced results
+ * (if any).
+ * <p>
+ * There are several concepts that should be understood when using orchestrations:
+ * <ul>
+ *     <li>The {@link Task} interface; similar in concept to a Callable</li>
+ *     <li>The {@link Task.Orchestration} interface; controls how and where
+ *         a {@link Task} will be run</li>
+ *     <li>The {@link Task.Coordinator} interface; handles the publishing or
+ *         collected results and notifying any subscribers</li>
+ *     <li>The {@link Task.Subscriber} interface; a receiver of {@link Task}
+ *         results</li>
+ *     <li>The {@link Task.Properties} interface; properties available to
+ *         any task (of the same orchestration) no matter where it is executing.
+ *         Useful for storing intermediate task execution state in case of
+ *         cluster fail-over</li>
+ *     <li>The {@link Task.Collector} interface; defines logic for collection
+ *         and yielding task results</li>
+ * </ul>
+ *
+ * <h2>Orchestration Examples</h2>
+ *
+ * This simplest example is orchestrating a {@link Task} across all members
+ * where the named executor is defined:
+ *
+ * <pre>
+ * {@code
+ * RemoteExecutor executor = RemoteExecutor.getDefault();
+ *
+ * // WaitingSubscriber is an implementation of the
+ * // com.oracle.coherence.concurrent.executor.Task.Subscriber interface
+ * // that has a get() method that blocks until Subscriber.onComplete() is
+ * // called and will return the results received by onNext()
+ * WaitingSubscriber subscriber = new WaitingSubscriber();
+ *
+ *
+ * // ValueTask is an implementation of the
+ * // com.oracle.coherence.concurrent.executor.Task interface
+ * Task.Coordinator<String> coordinator = executor.submit(new ValueTask("Hello World"));
+ * coordinator.subscribe(subscriber);
+ *
+ * // wait for the task to complete
+ * // if this was run on four cluster members, the returned
+ * // Collection will have four results
+ * Collection<String> results = subscriber.get();
+ * }
+ * </pre>
+ *
+ * If running the tasks on all similarly named executors is not desirable,
+ * it is possible to limit where the tasks are run in a couple of ways.
+ * First is by setting a {@link Task.Orchestration#limit(int) limit} on
+ * the orchestration:
+ *
+ * <pre>
+ * {@code
+ * // The task will be executed by a single executor on one of the owning
+ * // cluster members
+ * Task.Orchestration<String> orchestration =
+ *     executor.orchestrate(new ValueTask("Hello World"))
+ *             .limit(1)
+ *             .subscribe(subscriber)
+ *             .submit();
+ * }
+ * </pre>
+ *
+ * or by {@link Task.Orchestration#filter(Remote.Predicate) filtering}
+ * which executor(s) will run on:
+ *
+ * <pre>
+ * {@code
+ * // The task will be executed on all cluster members matching the role
+ * // of 'storage'
+ * Task.Orchestration<String> orchestration =
+ *     executor.orchestrate(new ValueTask("Hello World"))
+ *             .filter(Predicates.role("storage"))
+ *             .subscribe(subscriber)
+ *             .submit();
+ * }
+ * </pre>
+ *
+ * There are several {@link Predicates predicates} available for use, however,
+ * in the case none apply to the target use case, simply implement the
+ * {@link Remote.Predicate} interface.  Both limits and filters can be applied
+ * simultaneously.
+ * <p>
+ * Collection of results and how they are presented to the subscriber
+ * can be customized by using {@code collect} and {@code until}:
+ *
+ * <pre>
+ * {@code
+ * // orchestrate the task, collecting the first non-null result,
+ * // subscribe, and submit
+ * Task.Orchestration<String> orchestration =
+ *     executor.orchestrate(new MayReturnNullTask())
+ *             .collect(TaskCollectors.firstOf())
+ *             .until(Predicates.nonNullValue())
+ *             .subscribe(subscriber)
+ *             .submit();
+ *
+ * // wait for the task to complete
+ * // the first non-result returned will be the one provided to the
+ * // subscriber
+ * Collection<String> results = subscriber.get();
+ * }
+ * </pre>
+ *
+ * Several {@link TaskCollectors collectors} are provided, however, in the
+ * case none apply to the target use case, implement the
+ * {@link Task.Collector} interface.
+ * <p>
+ * </pre>
  *
  * @author rlubke 11.15.2021
  * @since 21.12
@@ -281,10 +395,8 @@ public interface RemoteExecutor
      * @throws IllegalArgumentException   if {@code lcDelay} less than or
      *                                    equal to zero
      */
-    ScheduledFuture<?> scheduleWithFixedDelay(Remote.Runnable command,
-                                              long lcInitialDelay,
-                                              long lcDelay,
-                                              TimeUnit unit);
+    ScheduledFuture<?> scheduleWithFixedDelay(Remote.Runnable command, long lcInitialDelay,
+                                              long lcDelay, TimeUnit unit);
 
     /**
      * Executes the given tasks, returning a list of Futures holding
@@ -296,8 +408,8 @@ public interface RemoteExecutor
      * The results of this method are undefined if the given
      * collection is modified while this operation is in progress.
      *
-     * @param tasks  the collection of tasks
-     * @param <T>    the type of the values returned from the tasks
+     * @param colTasks  the collection of tasks
+     * @param <T>       the type of the values returned from the tasks
      *
      * @return a list of Futures representing the tasks, in the same
      *         sequential order as produced by the iterator for the
@@ -309,7 +421,7 @@ public interface RemoteExecutor
      * @throws RejectedExecutionException if any task cannot be
      *                                    scheduled for execution
      */
-    <T> List<Future<T>> invokeAll(Collection<? extends Remote.Callable<T>> tasks)
+    <T> List<Future<T>> invokeAll(Collection<? extends Remote.Callable<T>> colTasks)
             throws InterruptedException;
 
     /**
@@ -324,7 +436,7 @@ public interface RemoteExecutor
      * The results of this method are undefined if the given
      * collection is modified while this operation is in progress.
      *
-     * @param tasks      the collection of tasks
+     * @param colTasks   the collection of tasks
      * @param lcTimeout  the maximum time to wait
      * @param unit       the time unit of the timeout argument
      * @param <T>        the type of the values returned from the tasks
@@ -342,7 +454,7 @@ public interface RemoteExecutor
      * @throws RejectedExecutionException if any task cannot be scheduled
      *                                    for execution
      */
-    <T> List<Future<T>> invokeAll(Collection<? extends Remote.Callable<T>> tasks, long lcTimeout, TimeUnit unit)
+    <T> List<Future<T>> invokeAll(Collection<? extends Remote.Callable<T>> colTasks, long lcTimeout, TimeUnit unit)
             throws InterruptedException;
 
     /**
@@ -353,20 +465,19 @@ public interface RemoteExecutor
      * The results of this method are undefined if the given
      * collection is modified while this operation is in progress.
      *
-     * @param tasks  the collection of tasks
-     * @param <T>    the type of the values returned from the tasks
+     * @param colTasks  the collection of tasks
+     * @param <T>       the type of the values returned from the tasks
      *
      * @return the result returned by one of the tasks
      *
      * @throws InterruptedException       if interrupted while waiting
      * @throws NullPointerException       if tasks or any element task
      *                                    subject to execution is {@code null}
-     * @throws IllegalArgumentException   if tasks is empty
      * @throws ExecutionException         if no task successfully completes
      * @throws RejectedExecutionException if tasks cannot be scheduled
      *                                    for execution
      */
-    <T> T invokeAny(Collection<? extends Remote.Callable<T>> tasks)
+    <T> T invokeAny(Collection<? extends Remote.Callable<T>> colTasks)
             throws InterruptedException, ExecutionException;
 
     /**
@@ -378,7 +489,7 @@ public interface RemoteExecutor
      * The results of this method are undefined if the given
      * collection is modified while this operation is in progress.
      *
-     * @param tasks      the collection of tasks
+     * @param colTasks   the collection of tasks
      * @param lcTimeout  the maximum time to wait
      * @param unit       the time unit of the timeout argument
      * @param <T>        the type of the values returned from the tasks
@@ -394,7 +505,7 @@ public interface RemoteExecutor
      * @throws RejectedExecutionException if tasks cannot be scheduled
      *                                    for execution
      */
-    <T> T invokeAny(Collection<? extends Remote.Callable<T>> tasks, long lcTimeout, TimeUnit unit)
+    <T> T invokeAny(Collection<? extends Remote.Callable<T>> colTasks, long lcTimeout, TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException;
 
     /**
@@ -456,17 +567,75 @@ public interface RemoteExecutor
     Future<?> submit(Remote.Runnable task);
 
     /**
+     * Submits the {@link Task} for execution by the {@link RemoteExecutor}.
+     * The submitted task will be invoked, in parallel, across all cluster
+     * members where this executor is registered.
+     * <p>
+     * The default implementation is {@code orchestrate(task).submit()}
+     * </p>
+     *
+     * @param task  the {@link Task}
+     * @param <T>   the type result produced by the {@link Task}
+     *
+     * @return a {@link Task.Coordinator} for the {@link Task}
+     *
+     * @throws RejectedExecutionException if this task cannot be accepted
+     *                                    for execution
+     * @throws NullPointerException       if task is {@code null}
+     *
+     * @see Task.Orchestration#submit()
+     * @see Task.Collectable#submit()
+     *
+     * @since 14.1.2.0.0
+     */
+    default <T> Task.Coordinator<T> submit(Task<T> task)
+        {
+        return orchestrate(task).submit();
+        }
+
+    /**
      * Executes the given command at some time in the future.  The command
      * may execute in a new thread, in a pooled thread, or in the calling
      * thread, at the discretion of the {@code Executor} implementation.
      *
      * @param command  the runnable task
      *
-     * @throws RejectedExecutionException  if this task cannot be
-     *                                     accepted for execution
-     * @throws NullPointerException        if command is {@code null}
+     * @throws RejectedExecutionException if this task cannot be accepted
+     *                                    for execution
+     * @throws NullPointerException       if command is {@code null}
      */
     void execute(Remote.Runnable command);
+
+    /**
+     * Creates a pending {@link Task.Orchestration} for a {@link Task}.
+     *
+     * @param task  the {@link Task}
+     * @param <T>   the type result produced by the {@link Task}
+     *
+     * @return an {@link Task.Orchestration}
+     *
+     * @throws NullPointerException if task is {@code null}
+     *
+     * @since 14.1.2.0.0
+     */
+    <T> Task.Orchestration<T> orchestrate(Task<T> task);
+
+    /**
+     * Attempts to acquire the {@link Task.Coordinator} for a previously submitted
+     * {@link Task}.
+     *
+     * @param taskId  the unique identity originally allocated to the {@link Task}
+     *                (available by calling {@link Task.Coordinator#getTaskId()})
+     * @param <T>     the type result produced by the {@link Task}
+     *
+     * @return the {@link Task.Coordinator} for the specified {@link Task} or
+     *         {@code null} if the {@link Task} is unknown
+     *
+     * @throws NullPointerException if {@code sTaskId} is {@code null}
+     *
+     * @since 14.1.2.0.0
+     */
+    <T> Task.Coordinator<T> acquire(String taskId);
 
     /**
      * Returns {@code true} if this executor has been shut down.

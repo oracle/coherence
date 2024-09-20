@@ -1,18 +1,19 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.dslquery.internal;
 
+import com.tangosol.util.Extractors;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.ValueUpdater;
 
 import com.tangosol.util.extractor.ChainedExtractor;
 import com.tangosol.util.extractor.CompositeUpdater;
-import com.tangosol.util.extractor.ReflectionExtractor;
-import com.tangosol.util.extractor.ReflectionUpdater;
+import com.tangosol.util.extractor.UniversalExtractor;
+import com.tangosol.util.extractor.UniversalUpdater;
 
 import java.util.ArrayList;
 
@@ -121,14 +122,14 @@ public class PropertyBuilder
 
         if (asMethodNames.length == 1)
             {
-            return new ReflectionExtractor(asMethodNames[0]);
+            return Extractors.extract(asMethodNames[0]);
             }
 
         ValueExtractor[] aExtractors = new ValueExtractor[asMethodNames.length];
 
         for (int i = 0; i < aExtractors.length; i++)
             {
-            aExtractors[i] = new ReflectionExtractor(asMethodNames[i]);
+            aExtractors[i] = Extractors.extract(asMethodNames[i]);
             }
 
         return new ChainedExtractor(aExtractors);
@@ -146,7 +147,7 @@ public class PropertyBuilder
         int          nStart     = 0;
         int          nPartCount = asProps.length;
         String       sProp      = asProps[nPartCount - 1];
-        ValueUpdater updater    = new ReflectionUpdater(makeSimpleName("set", sProp));
+        ValueUpdater updater    = new UniversalUpdater(makeSimpleName("set", sProp));
 
         if (m_sPrefixToSuppress != null && asProps[0].equals(m_sPrefixToSuppress))
             {
@@ -159,7 +160,7 @@ public class PropertyBuilder
 
             for (int i = 0; i < extractors.length; i++)
                 {
-                extractors[i] = new ReflectionExtractor(makeSimpleName("get", asProps[i + nStart]));
+                extractors[i] = Extractors.extract(makeSimpleName("get", asProps[i + nStart]));
                 }
 
             updater = new CompositeUpdater(new ChainedExtractor(extractors), updater);
@@ -171,7 +172,7 @@ public class PropertyBuilder
     /**
      * Make a camel case String by prefixing a given String with a given
      * prefix.  If name already starts with prefix and the following char is
-     * uppercase then just name was already a propper camel case getter or
+     * uppercase then just name was already a proper camel case getter or
      * setter and return the given String.
      *
      * @param sPrefix  the String to prefix, typically get or set
@@ -187,19 +188,23 @@ public class PropertyBuilder
 
             if (sn.length() >= 1 && Character.isUpperCase(sn.charAt(0)))
                 {
-                return sName;
+                return sName + UniversalExtractor.METHOD_SUFFIX;
                 }
             else if (sn.length() == 0)
                 {
                 return sName;
                 }
+            else if (sPrefix.isEmpty())
+                {
+                return sName;
+                }
             else
                 {
-                return sPrefix + Character.toUpperCase(sn.charAt(0)) + sn.substring(1);
+                return sPrefix + Character.toUpperCase(sn.charAt(0)) + sn.substring(1) + UniversalExtractor.METHOD_SUFFIX;
                 }
             }
 
-        return sPrefix + sName.substring(0, 1).toUpperCase() + sName.substring(1);
+        return sPrefix + sName.substring(0, 1).toUpperCase() + sName.substring(1) + UniversalExtractor.METHOD_SUFFIX;
         }
 
     /**
@@ -239,7 +244,7 @@ public class PropertyBuilder
 
     /**
      * Make a getter or setter String array from the given array of property
-     * Strings usingthe given prefix string.
+     * Strings using the given prefix string.
      *
      * @param asProps  the String[] used to make getters or setters
      * @param sPrefix  the String to be prepended.

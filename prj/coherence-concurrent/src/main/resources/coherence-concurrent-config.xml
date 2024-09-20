@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
-
-  Licensed under the Universal Permissive License v 1.0 as shown at
-  https://oss.oracle.com/licenses/upl.
+  ~ Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
   -->
 
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -18,7 +18,7 @@
   </executor:single>
 
   <defaults>
-    <scope-name>$SYS</scope-name>
+    <scope-name system-property="coherence.concurrent.scope"/>
     <serializer>${coherence.concurrent.serializer ${coherence.serializer java}}</serializer>
   </defaults>
 
@@ -74,6 +74,16 @@
       <cache-name>semaphores</cache-name>
       <scheme-name>transient-concurrent</scheme-name>
     </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>Queue$*</cache-name>
+      <scheme-name>queue-concurrent</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>PagedQueue$*</cache-name>
+      <scheme-name>queue-concurrent</scheme-name>
+    </cache-mapping>
   </caching-scheme-mapping>
 
   <caching-schemes>
@@ -91,6 +101,8 @@
     <distributed-scheme>
       <scheme-name>concurrent</scheme-name>
       <service-name>Concurrent</service-name>
+      <thread-count-max>${coherence.concurrent.distributed.threads.max ${coherence.distributed.threads.max}}</thread-count-max>
+      <thread-count-min>${coherence.concurrent.distributed.threads.min ${coherence.distributed.threads.min}}</thread-count-min>
       <member-listener>
         <class-name>com.oracle.coherence.concurrent.internal.Cleaner</class-name>
       </member-listener>
@@ -111,6 +123,18 @@
           </instance>
         </interceptor>
       </interceptors>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>queue-concurrent</scheme-name>
+      <service-name>ConcurrentQueue</service-name>
+      <backing-map-scheme>
+        <partitioned>true</partitioned>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
     </distributed-scheme>
 
     <proxy-scheme>

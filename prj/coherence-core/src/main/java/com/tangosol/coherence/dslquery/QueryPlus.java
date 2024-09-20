@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 package com.tangosol.coherence.dslquery;
 
 import com.oracle.coherence.common.util.Duration;
+
 import com.tangosol.coherence.dslquery.queryplus.AbstractQueryPlusStatementBuilder;
 import com.tangosol.coherence.dslquery.queryplus.CommandsStatementBuilder;
 import com.tangosol.coherence.dslquery.queryplus.ExtendedLanguageStatementBuilder;
@@ -41,9 +42,18 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * QueryPlus implements a simple command line processor for a sql like
  * language.
+ * <p>
+ * QueryPlus can use JLine for enhanced command-line editing capabilities,
+ * such as having the up and down arrows move through the command history.
+ * However, JLine is not required. QueryPlus supports JLine when the JLine 3.x library
+ * is included in the QueryPlus JVM classpath. If JLine is not found,
+ * a message displays and QueryPlus starts without JLine capabilities.
  *
  * @author djl  2009.08.31
  * @author jk   2014.01.02
@@ -63,6 +73,7 @@ public class QueryPlus
         f_dependencies = dependencies;
         f_executor     = dependencies.getStatementExecutor();
         f_context      = new ExecutionContext();
+        f_fEcho        = dependencies.isEcho();
 
         f_context.setTimeout(dependencies.getTimeout());
         f_context.setTraceEnabled(dependencies.isTraceEnabled());
@@ -135,15 +146,49 @@ public class QueryPlus
                 {
                 if (!fSilent)
                     {
-                    writer.println();
-                    writer.print("CohQL> ");
+                    if (s_fUsingJline == false)
+                        {
+                        // JLine readLine manages PROMPT as a parameter.
+                        writer.println();
+                        writer.print(PROMPT);
+                        }
                     }
 
                 writer.flush();
 
                 String sLine = reader.readLine();
+                if (sLine == null)
+                    {
+                    fWorking = false;
+                    }
+                else
+                    {
+                    boolean  fContainsEOS = sLine.contains(END_OF_STATEMENT);
+                    String[] statements   = sLine.split(END_OF_STATEMENT);
 
-                fWorking = sLine != null && evalLine(sLine);
+                    for (String statement : statements)
+                        {
+                        statement = statement.trim();
+                        if (statement.isEmpty())
+                            {
+                            continue;
+                            }
+
+                        // equivalent of printing shell commands as they are read.
+                        if (f_fEcho)
+                            {
+                            StringBuffer sb = new StringBuffer(statement);
+
+                            if (fContainsEOS)
+                                {
+                                sb.append(END_OF_STATEMENT);
+                                }
+                            writer.println(sb.toString());
+                            writer.flush();
+                            }
+                        fWorking = statement != null && evalLine(statement);
+                        }
+                    }
                 }
             catch (IOException e)
                 {
@@ -368,7 +413,7 @@ public class QueryPlus
             Class<?> clzJLineReader     = Class.forName("org.jline.reader.LineReader");
             Class<?> clzJLineReaderBldr = Class.forName("org.jline.reader.LineReaderBuilder");
             Object   builder            = ClassHelper.invokeStatic(clzJLineReaderBldr, "builder", null);
-            String   fieldHistoryFile   = clzJLineReader.getField("HISTORY_FILE").getName();
+            String   fieldHistoryFile   = (String) clzJLineReader.getField("HISTORY_FILE").get(clzJLineReader);
 
             File fileHistory = new File(".cohql-history");
             if (!fileHistory.exists())
@@ -379,20 +424,33 @@ public class QueryPlus
             builder = ClassHelper.invoke(builder, "variable", new Object[] {fieldHistoryFile, fileHistory});
             Object jlineReader = ClassHelper.invoke(builder, "build", null);
 
+            s_fUsingJline = true;
             return new BufferedReader(new InputStreamReader(input))
                 {
+                @Override
                 public String readLine()
                         throws IOException
                     {
                     try
                         {
-                        String sLine = (String) ClassHelper.invoke(jlineReader, "readLine", null);
+                        // to get up arrow with jline console history to work properly,
+                        // provide prompt to JLine readLine.
+                        String sLine = (String) ClassHelper.invoke(jlineReader, "readLine", new Object[] {PROMPT});
                         ClassHelper.invoke(jlineReader, "redrawLine", null);
                         ClassHelper.invoke(jlineReader, "flush", null);
                         return sLine;
                         }
                     catch (Throwable e)
                         {
+                        Throwable eCause     = e.getCause();
+                        String    eCauseName = eCause == null ? "" : eCause.getClass().getName();
+                        if (e.getClass().getName().contains("InvocationTargetException"))
+                            if (eCauseName.contains("EndOfFileException") || eCauseName.contains("org.jline.reader.UserInterruptException"))
+                                {
+                                // JLine 3.x JLineReader.readLine() method throws exceptions for EOF and ^C by console user.
+                                // Method being overridden, java.BufferedReader#readLine(), is documented to return null on eof.
+                                return null;
+                            }
                         throw Base.ensureRuntimeException(e);
                         }
                     }
@@ -405,6 +463,7 @@ public class QueryPlus
                 PrintWriter writer = new PrintWriter(output);
                 writer.println("jline library cannot be loaded, so you cannot "
                         + "use the arrow keys for line editing and history.");
+                writer.flush();
                 }
 
             return null;
@@ -421,6 +480,11 @@ public class QueryPlus
         PrintWriter            writer   = new PrintWriter(System.out);
         CoherenceQueryLanguage language = new CoherenceQueryLanguage();
         QueryPlus.Dependencies deps     = DependenciesHelper.newInstance(writer, System.in, language, asArgs);
+
+        if (deps == null)
+            {
+            return;
+            }
 
         new QueryPlus(deps).run();
         }
@@ -479,6 +543,16 @@ public class QueryPlus
          *         added to the statements list have been executed
          */
         public boolean isExitWhenProcessingComplete();
+
+        /**
+         * Return true if echo is on, resulting in each input statement being written to output as it is read.
+         * Default is false.
+         *
+         * @return if echo is on.
+         *
+         * @since 24.09
+         */
+        public boolean isEcho();
 
         /**
          * Return the list of statements that should be executed prior to the
@@ -634,6 +708,22 @@ public class QueryPlus
         public boolean isSanityChecking()
             {
             return m_fSanity;
+            }
+
+        /**
+         * Set echo mode.
+         *
+         * @since 24.09
+         */
+        public void setEcho(boolean fEcho)
+            {
+            m_fEcho = fEcho;
+            }
+
+        @Override
+        public boolean isEcho()
+            {
+            return m_fEcho;
             }
 
         /**
@@ -920,6 +1010,13 @@ public class QueryPlus
          * The timeout value to use for CohQL statement execution.
          */
         protected Duration m_timeout = new Duration(1, Duration.Magnitude.MINUTE);
+
+        /**
+         * When {@code true}, echo input statement to output as it is read. Defaults to {@code false}.
+         *
+         * @since 24.09
+         */
+        protected boolean m_fEcho = false;
         }
 
     // ----- inner class: DependenciesHelper --------------------------------
@@ -947,8 +1044,8 @@ public class QueryPlus
         public static Dependencies newInstance(PrintWriter writer, InputStream inputStream,
                                                CoherenceQueryLanguage language, String[] asArgs)
             {
-            String[] asValidArgs = new String[]{"c", "e", "extend", "f", "l", "s", "t", "trace", "nojline",
-                    "g", "a", "dp", "timeout"};
+            String[] asValidArgs = new String[]{"c", "e", "extend", "help", "f", "l", "s", "t", "trace", "nojline",
+                    "g", "a", "dp", "timeout", "jlinedebug", "v"};
 
             try
                 {
@@ -957,13 +1054,27 @@ public class QueryPlus
                 boolean fSilent           = map.containsKey("s");
                 BufferedReader reader     = null;
 
+                if (map.containsKey("help"))
+                    {
+                    usage(writer);
+                    writer.flush();
+                    return null;
+                    }
+
                 if (!fExitOnCompletion && !map.containsKey("nojline"))
                     {
+                    if (map.containsKey("jlinedebug"))
+                        {
+                        // enable debug JLine dumbterminal warning
+                        final Logger logger = Logger.getLogger("org.jline");
+
+                        logger.setLevel(Level.FINER);
+                        }
                     reader = getJlineReader(System.out, inputStream, fSilent);
                     }
 
                 if (reader == null)
-                        {
+                    {
                     reader = new BufferedReader(new InputStreamReader(inputStream));
                     }
 
@@ -1015,6 +1126,10 @@ public class QueryPlus
                         }
                     }
 
+                if (map.containsKey("v"))
+                    {
+                    deps.setEcho(true);
+                    }
                 return deps;
                 }
             catch (IllegalArgumentException e)
@@ -1033,8 +1148,8 @@ public class QueryPlus
         public static void usage(PrintWriter writer)
             {
             writer.println("java "
-                    + QueryPlus.class.getCanonicalName() + " [-t] [-c] [-s] [-e] [-l <cmd>]*\n"
-                    + "    [-f <file>]* [-g <garFile>] [-a <appName>] [-dp <parition-list>] [-timeout <value>]");
+                    + QueryPlus.class.getCanonicalName() + " [-t] [-c] [-s] [-e] [-v] [-help] [-l <cmd>]*\n"
+                    + "    [-f <file>]* [-g <garFile>] [-a <appName>] [-dp <parition-list>] [-timeout <value>] [-nojline] [-jlinedebug]");
 
             /**
              * The lines below should try not to exceed 80 characters
@@ -1060,6 +1175,7 @@ public class QueryPlus
                 "-g <value>       An optional GAR file to load before running QueryPlus.\n" +
                 "                 If the -a argument is not used the application name will be the\n" +
                 "                 GAR file name without the parent directory name.\n" +
+                "-help            Print command line arguments documention.\n" +
                 "-l <value>       Each instance of -l followed by a statement will execute one\n" +
                 "                 statement.\n" +
                 "-s               silent mode. Suppress prompts and result headings, read from\n" +
@@ -1071,9 +1187,27 @@ public class QueryPlus
                 "                 current partition. The -dp argument is only applicable in\n" +
                 "                 combination with the -g argument.\n" +
                 "-timeout <value> Specifies the timeout value for CohQL statements in\n" +
-                "                 milli-seconds.");
+                "                 milli-seconds.\n" +
+                "-v               verbose mode. Echo each input statement as it is read.\n" +
+                "-nojline         do not use jline console\n" +
+                "-jlinedebug      enable FINER logging to debug jline\n");
             }
         }
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * End of statement constant.
+     *
+     * @since 24.09
+     */
+    private static final String END_OF_STATEMENT = ";";
+
+    /**
+     * CohQL console prompt.
+     *
+     * @since 24.09
+     */
+    private static final String PROMPT = "CohQL> ";
 
     // ----- data members ---------------------------------------------------
 
@@ -1091,4 +1225,20 @@ public class QueryPlus
      * The {@link StatementExecutor} to use to execute statements.
      */
     protected final StatementExecutor f_executor;
+
+    /**
+     * {@code true} iff input statement should be echoed to output as it is read.
+     * Equivalent to {@code echo on} when running an OS shell script.
+     * Defaults to {@code false}.
+     *
+     * @since 24.09
+     */
+    protected final boolean f_fEcho;
+
+    /**
+     * Set to {@code true} when using JLine console.
+     *
+     * @since 24.09
+     */
+    protected static boolean s_fUsingJline = false;
     }

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.messaging;
@@ -14,7 +14,6 @@ import com.tangosol.util.Service;
 
 import java.util.Map;
 
-
 /**
 * The ConnectionManager is the base SPI (Service Provider Interface) for both
 * {@link ConnectionAcceptor} and {@link ConnectionInitiator} implementations.
@@ -24,8 +23,7 @@ import java.util.Map;
 * represented by a {@link Connection}. Some implementations restrict data
 * transfer between endpoints within a single JVM, whereas others enable two
 * processes to exchange data. Advanced implementations allow communication
-* between processes on different machines, for example using TCP sockets or
-* JMS.
+* between processes on different machines, for example using TCP sockets.
 * <p>
 * Before a Connection can be established between a ConnectionInitiator
 * (client) and ConnectionAcceptor (server), one or more Protocol instances

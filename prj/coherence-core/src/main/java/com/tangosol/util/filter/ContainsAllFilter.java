@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -44,6 +44,7 @@ import jakarta.json.bind.annotation.JsonbProperty;
 *
 * @author jh 2005.06.08
 */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class ContainsAllFilter<T, E>
         extends    ComparisonFilter<T, E, Set<?>>
         implements IndexAwareFilter<Object, T>
@@ -86,6 +87,12 @@ public class ContainsAllFilter<T, E>
         super(sMethod, new HashSet<>(setValues));
         }
 
+    // ----- Filter interface -----------------------------------------------
+
+    protected String getOperator()
+        {
+        return "CONTAINS ALL";
+        }
 
     // ----- ExtractorFilter methods ----------------------------------------
 
@@ -146,8 +153,47 @@ public class ContainsAllFilter<T, E>
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
-        return index == null ? calculateIteratorEffectiveness(setKeys.size())
-                             : ((Collection) getValue()).size();
+        if (index == null)
+            {
+            // there is no relevant index
+            return -1;
+            }
+        else
+            {
+            Collection colValues     = getValue();
+            Map        mapContents   = index.getIndexContents();
+
+            if (mapContents.isEmpty())
+                {
+                return 0;
+                }
+
+            Set setMatches = null;
+
+            for (Object oValue : colValues)
+                {
+                Set setEQ = (Set) mapContents.get(oValue);
+
+                if (setEQ == null)
+                    {
+                    return 0;
+                    }
+                else if (setMatches == null)
+                    {
+                    setMatches = new HashSet(setEQ);
+                    }
+                else
+                    {
+                    setMatches.retainAll(setEQ);
+                    if (setMatches.isEmpty())
+                        {
+                        return 0;
+                        }
+                    }
+                }
+
+            return setMatches == null ? 0 : setMatches.size();
+            }
         }
 
     /**
@@ -163,10 +209,19 @@ public class ContainsAllFilter<T, E>
             }
         else
             {
-            for (Iterator iter = ((Collection) getValue()).iterator(); iter.hasNext();)
+            Collection colValues   = getValue();
+            Map        mapContents = index.getIndexContents();
+
+            if (mapContents.isEmpty())
                 {
-                Object oValue = iter.next();
-                Set    setEQ  = (Set) index.getIndexContents().get(oValue);
+                // there are no entries in the index, which means no entries match this filter
+                setKeys.clear();
+                return null;
+                }
+
+            for (Object oValue : colValues)
+                {
+                Set setEQ = (Set) mapContents.get(oValue);
 
                 if (setEQ == null)
                     {

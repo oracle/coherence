@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
@@ -171,6 +171,25 @@ public interface Session extends AutoCloseable
         {
         return getTopic(sName).createSubscriber(options);
         }
+
+    /**
+     * Close and release the a {@link NamedCollection}.
+     *
+     * @param col  the {@link NamedCollection} to close
+     */
+    void close(NamedCollection col);
+
+    /**
+     * Destroy a {@link NamedCollection}.
+     * <p>
+     * <b>Warning:</b> This method is used to completely destroy the specified
+     * collection across the cluster. All references in the entire cluster to this
+     * collection will be invalidated, the collection data will be cleared, and all
+     * internal resources will be released.
+     *
+     * @param col  the {@link NamedCollection} to destroy
+     */
+    void destroy(NamedCollection col);
 
     /**
      * Return the {@link ResourceRegistry} for this session.

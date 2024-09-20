@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
 
-import com.tangosol.internal.util.invoke.Lambdas;
 import com.tangosol.io.pof.generator.PortableTypeGenerator;
 
 import com.tangosol.io.pof.reflect.PofNavigator;
@@ -19,6 +18,7 @@ import com.tangosol.util.extractor.ChainedExtractor;
 import com.tangosol.util.extractor.ChainedFragmentExtractor;
 import com.tangosol.util.extractor.FragmentExtractor;
 import com.tangosol.util.extractor.IdentityExtractor;
+import com.tangosol.util.extractor.KeyExtractor;
 import com.tangosol.util.extractor.MultiExtractor;
 import com.tangosol.util.extractor.PofExtractor;
 import com.tangosol.util.extractor.ScriptValueExtractor;
@@ -39,6 +39,7 @@ import java.util.Objects;
  *
  * @author lh, hr, as, mf  2018.06.14
  */
+@SuppressWarnings("rawtypes")
 public class Extractors
     {
     /**
@@ -48,7 +49,7 @@ public class Extractors
      *
      * @return an extractor that always returns its input argument
      */
-    public static <T> ValueExtractor<T, T> identity()
+    public static <T> IdentityExtractor<T> identity()
         {
         return IdentityExtractor.INSTANCE();
         }
@@ -205,7 +206,7 @@ public class Extractors
      * field extraction is the input to the next extractor. The result
      * returned is the result of the final extractor in the chain.
      *
-     * @param extractors  the {@link ValueExtractor}s to use to extract the list of values
+     * @param extractors  the  chain of {@link ValueExtractor}s to use to extract the value
      *
      * @param <T> the type of the object to extract from
      *
@@ -256,7 +257,7 @@ public class Extractors
      *
      * @return an extractor that extracts the value of the specified field
      */
-    public static <T> ValueExtractor<T, ?> fromPof(int... indexes)
+    public static <T> PofExtractor<T, ?> fromPof(int... indexes)
         {
         return fromPof(null, indexes);
         }
@@ -274,7 +275,7 @@ public class Extractors
      *
      * @throws  NullPointerException  if the indexes parameter is null
      */
-    public static <T, E> ValueExtractor<T, E> fromPof(Class<E> cls, int... indexes)
+    public static <T, E> PofExtractor<T, E> fromPof(Class<E> cls, int... indexes)
         {
         return fromPof(cls, new SimplePofPath(Objects.requireNonNull(indexes)));
         }
@@ -299,9 +300,9 @@ public class Extractors
      * @throws  IllegalArgumentException  if the specified class isn't a portable
      *          type, or the specified property path doesn't exist
      */
-    public static <T, E> ValueExtractor<T, E> fromPof(Class<E> cls, String sPath)
+    public static <T, E> PofExtractor<T, E> fromPof(Class<T> clsFrom, String sPath)
         {
-        return fromPof(cls, PofReflectionHelper.getPofNavigator(cls, sPath));
+        return fromPof(null, PofReflectionHelper.getPofNavigator(clsFrom, sPath));
         }
 
     /**
@@ -317,7 +318,7 @@ public class Extractors
      *
      * @throws  NullPointerException  if the indexes parameter is null
      */
-    public static <T, E> ValueExtractor<T, E> fromPof(Class<E> cls, PofNavigator navigator)
+    public static <T, E> PofExtractor<T, E> fromPof(Class<E> cls, PofNavigator navigator)
         {
         return new PofExtractor<>(cls, navigator);
         }
@@ -341,7 +342,7 @@ public class Extractors
      *
      * @since 14.1.1.0
      */
-    public static <T, E> ValueExtractor<T, E> script(String sLanguage, String sScriptPath, Object... aoArgs)
+    public static <T, E> ScriptValueExtractor<T, E> script(String sLanguage, String sScriptPath, Object... aoArgs)
         {
         return new ScriptValueExtractor<>(sLanguage, sScriptPath, aoArgs);
         }
@@ -357,7 +358,7 @@ public class Extractors
      *         target object
      */
     @SafeVarargs
-    public static <T> ValueExtractor<T, Fragment<T>> fragment(ValueExtractor<? super T, ?>... aExtractors)
+    public static <T> FragmentExtractor<T> fragment(ValueExtractor<? super T, ?>... aExtractors)
         {
         return new FragmentExtractor<>(aExtractors);
         }
@@ -374,8 +375,81 @@ public class Extractors
      *         target object's property
      */
     @SafeVarargs
-    public static <T, E> ValueExtractor<T, Fragment<E>> fragment(ValueExtractor<? super T, E> from, ValueExtractor<? super E, ?>... aExtractors)
+    public static <T, E> ChainedFragmentExtractor<T, E> fragment(ValueExtractor<? super T, E> from, ValueExtractor<? super E, ?>... aExtractors)
         {
         return new ChainedFragmentExtractor<>(from, aExtractors);
         }
+
+    /**
+     * Returns a {@link KeyExtractor} that wraps the specified {@link ValueExtractor}s.
+     * <p>
+     * If the {@code extractors} parameter is a single {@link ValueExtractor} then a
+     * {@link KeyExtractor} is returned wrapping that extractor. If the {@code extractors} is
+     * multiple {@link ValueExtractor} instances in a chain, a {@link KeyExtractor} is returned
+     * that wraps a {@link ChainedExtractor} that wraps the chain of {@link ValueExtractor}
+     * instances
+     * 
+     * @param extractors  the chain of {@link ValueExtractor}s to use to extract the value
+     * @param <T>         the type of the object to extract from
+     * @param <R>         the type of the extracted value
+     *
+     * @return a {@link ValueExtractor} that extracts the value(s) of the specified field(s)
+     *
+     * @throws IllegalArgumentException if the fields parameter is {@code null} or an
+     *         empty array
+     *
+     * @see ChainedExtractor
+     *
+     * @since 24.09
+     */
+    @SuppressWarnings("unchecked")
+    public static <T, R> ValueExtractor<T, R> key(ValueExtractor<?, ?>... extractors)
+        {
+        if (extractors == null || extractors.length == 0)
+            {
+            throw new IllegalArgumentException("The fields parameter must contain at least one non-null element");
+            }
+
+        if (extractors.length == 1)
+            {
+            return (ValueExtractor<T, R>) extractors[0].fromKey();
+            }
+
+        ValueExtractor<?, ?>[] copy = new ValueExtractor[extractors.length];
+        System.arraycopy(extractors, 0, copy, 0, extractors.length);
+        ValueExtractor<?, ?> key = copy[0].fromKey();
+        if (key instanceof KeyExtractor<?,?>)
+            {
+            return (ValueExtractor<T, R>) chained(copy).fromKey();
+            }
+        copy[0] = key;
+        return chained(copy);
+        }
+
+    /**
+     * Returns a {@link KeyExtractor} that extracts the specified fields
+     * where extraction occurs in a chain where the result of each
+     * field extraction is the input to the next extractor. The result
+     * returned is the result of the final extractor in the chain.
+     *
+     * @param fields  the field names to extract (if any field name contains a dot '.'
+     *                that field name is split into multiple field names delimiting on
+     *                the dots.
+     *
+     * @param <T> the type of the object to extract from
+     * @param <R> the type of the extracted value
+     *
+     * @return a {@link ValueExtractor} that extracts the value(s) of the specified field(s)
+     *
+     * @throws IllegalArgumentException if the fields parameter is {@code null} or an
+     *         empty array
+     *
+     * @see UniversalExtractor
+     * @see ChainedExtractor
+     */
+    public static <T, R> ValueExtractor<T, R> key(String... fields)
+        {
+        return key(chained(fields));
+        }
+
     }

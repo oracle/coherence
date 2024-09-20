@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,18 +7,7 @@
 
 package com.tangosol.util.filter;
 
-
-import com.tangosol.util.Filter;
-import com.tangosol.util.MapIndex;
 import com.tangosol.util.ValueExtractor;
-import com.tangosol.util.SafeSortedMap;
-
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-
 
 /**
 * Filter which compares the result of a method invocation with a value for
@@ -32,9 +21,8 @@ import java.util.SortedMap;
 *
 * @author cp/gg 2002.10.29
 */
-@SuppressWarnings({"unchecked", "rawtypes"})
 public class LessEqualsFilter<T, E extends Comparable<? super E>>
-        extends    ComparisonFilter<T, E, E>
+        extends    LessFilter<T, E>
         implements IndexAwareFilter<Object, T>
     {
     // ----- constructors ---------------------------------------------------
@@ -68,6 +56,12 @@ public class LessEqualsFilter<T, E extends Comparable<? super E>>
         super(sMethod, value);
         }
 
+    // ----- Filter interface -----------------------------------------------
+
+    protected String getOperator()
+        {
+        return "<=";
+        }
 
     // ----- ExtractorFilter methods ----------------------------------------
 
@@ -82,107 +76,11 @@ public class LessEqualsFilter<T, E extends Comparable<? super E>>
                extracted.compareTo(value) <= 0;
         }
 
+    // ---- helpers ---------------------------------------------------------
 
-    // ----- IndexAwareFilter interface -------------------------------------
-
-    /**
-    * {@inheritDoc}
-    */
-    public int calculateEffectiveness(Map mapIndexes, Set setKeys)
+    @Override
+    protected boolean includeEquals()
         {
-        return calculateRangeEffectiveness(mapIndexes, setKeys);
-        }
-
-    /**
-    * {@inheritDoc}
-    */
-    public Filter applyIndex(Map mapIndexes, Set setKeys)
-        {
-        Object oValue = getValue();
-        if (oValue == null)
-            {
-            // nothing could be compared to null
-            setKeys.clear();
-            return null;
-            }
-
-        MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
-        if (index == null)
-            {
-            // there is no relevant index
-            return this;
-            }
-
-        if (index.isOrdered())
-            {
-            SortedMap mapContents = (SortedMap) index.getIndexContents();
-            Set       setEQ       = (Set) mapContents.get(oValue);
-            Set       setNULL     = (Set) mapContents.get(null);
-            SortedMap mapLT       = mapContents.headMap(oValue);
-            SortedMap mapGE       = mapContents.tailMap(oValue);
-            boolean   fHeadHeavy  = mapLT.size() > mapContents.size() / 2;
-
-            if (setNULL != null)
-                {
-                setKeys.removeAll(setNULL);
-                }
-
-            if (fHeadHeavy && !index.isPartial())
-                {
-                for (Object o : mapGE.values())
-                    {
-                    Set set = (Set) o;
-                    if (!set.equals(setEQ))
-                        {
-                        setKeys.removeAll(ensureSafeSet(set));
-                        }
-                    }
-                }
-            else
-                {
-                Set setLE = new HashSet();
-                for (Object o : mapLT.values())
-                    {
-                    Set set = (Set) o;
-                    setLE.addAll(ensureSafeSet(set));
-                    }
-
-                setLE.addAll(ensureSafeSet(setEQ));
-
-                setKeys.retainAll(setLE);
-                }
-            }
-        else
-            {
-            Map mapContents = index.getIndexContents();
-
-            if (index.isPartial())
-                {
-                Set setLE = new HashSet();
-                for (Object o : mapContents.entrySet())
-                    {
-                    Map.Entry  entry = (Map.Entry) o;
-                    Comparable oTest = (Comparable) entry.getKey();
-                    if (oTest != null && oTest.compareTo(oValue) <= 0)
-                        {
-                        setLE.addAll((Set) entry.getValue());
-                        }
-                    }
-                setKeys.retainAll(setLE);
-                }
-            else
-                {
-                for (Object o : mapContents.entrySet())
-                    {
-                    Map.Entry  entry = (Map.Entry) o;
-                    Comparable oTest = (Comparable) entry.getKey();
-                    if (oTest == null || oTest.compareTo(oValue) > 0)
-                        {
-                        setKeys.removeAll((Set) entry.getValue());
-                        }
-                    }
-                }
-            }
-        return null;
+        return true;
         }
     }

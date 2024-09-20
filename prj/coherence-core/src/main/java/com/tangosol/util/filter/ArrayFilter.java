@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -22,6 +22,7 @@ import com.tangosol.util.QueryContext;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import java.io.DataInput;
@@ -36,6 +37,7 @@ import jakarta.json.bind.annotation.JsonbProperty;
 *
 * @author cp/gg 2002.11.01
 */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public abstract class ArrayFilter
         extends ExternalizableHelper
         implements EntryFilter, IndexAwareFilter, QueryRecorderFilter, ExternalizableLite, PortableObject
@@ -57,17 +59,51 @@ public abstract class ArrayFilter
     * </blockquote>
     *
     * @param aFilter  the filter array
+    *
+    * @exception NullPointerException thrown if the array or any member of the array is null
     */
-    public ArrayFilter(Filter[] aFilter)
+    public ArrayFilter(Filter<?>[] aFilter)
         {
-        azzert(aFilter != null);
+        Objects.requireNonNull(aFilter);
+
         for (int i = 0, c = aFilter.length; i < c; i++)
             {
-            azzert(aFilter[i] != null, "Null element");
+            int j = i;
+            Objects.requireNonNull(aFilter[i], () -> String.format("Null element %d: %s", j, Arrays.toString(aFilter)));
             }
-        m_aFilter = aFilter;
+
+        m_aFilter = simplifyFilters(aFilter);
         }
 
+
+    // ----- Filter interface -----------------------------------------------
+
+    public String toExpression()
+        {
+        String        sOperator = getOperator();
+        StringBuilder sb        = new StringBuilder();
+
+        sb.append('(');
+
+        Filter[] aFilter = m_aFilter;
+        for (int i = 0, c = aFilter.length; i < c; i++)
+            {
+            if (i > 0)
+                {
+                sb.append(' ').append(sOperator).append(' ');
+                }
+            sb.append(aFilter[i] == null ? null : aFilter[i].toExpression());
+            }
+
+        sb.append(')');
+
+        return sb.toString();
+        }
+
+    protected String getOperator()
+        {
+        throw new UnsupportedOperationException();
+        }
 
     // ----- EntryFilter interface ------------------------------------------
 
@@ -100,7 +136,8 @@ public abstract class ArrayFilter
         {
         optimizeFilterOrder(ctx.getBackingMapContext().getIndexMap(), setKeys);
 
-        for (Filter filter : m_aFilter)
+        Filter<?>[] aFilter = getFilters();
+        for (Filter filter : aFilter)
             {
             QueryRecord.PartialResult.ExplainStep subStep = step.ensureStep(filter);
 
@@ -191,18 +228,20 @@ public abstract class ArrayFilter
     *
     * @return the Filter array
     */
-    public Filter[] getFilters()
+    public Filter<?>[] getFilters()
         {
-        return m_aFilter;
+        Filter<?>[] filters = f_aFilterOptimized.get();
+        return filters == null ? m_aFilter : filters;
         }
 
     /**
     * Ensure that the order of underlying filters is preserved by the
     * {@link #applyIndex} and {@link #evaluateEntry} implementations.
     */
+    @Deprecated(forRemoval = true)
     public void honorOrder()
         {
-        m_fPreserveOrder = true;
+        m_fOptimized = true;
         }
 
 
@@ -217,49 +256,52 @@ public abstract class ArrayFilter
     */
     protected void optimizeFilterOrder(Map mapIndexes, Set setKeys)
         {
-        if (m_fPreserveOrder)
+        if (m_fOptimized)
             {
             return;
             }
 
-        Filter[]         aFilter  = m_aFilter;
-        int              cFilters = aFilter.length;
-        WeightedFilter[] awf      = new WeightedFilter[cFilters];
-        int              nMax     = setKeys.size()*ExtractorFilter.EVAL_COST;
-        boolean          fSort    = false;
-        int              nEffect0 = -1;
+        int              cFilters  = m_aFilter.length;
+        WeightedFilter[] aWeighted = new WeightedFilter[cFilters];
+        Filter<?>[]      aFilter   = new Filter[cFilters];
+        int              nMax      = setKeys.size() * ExtractorFilter.EVAL_COST;
+        int              nPos      = 0;
 
-        for (int i = 0; i < cFilters; i++)
+        for (Filter<?> filter : m_aFilter)
             {
-            Filter filter  = aFilter[i];
-            int    nEffect = filter instanceof IndexAwareFilter
-                ? ((IndexAwareFilter) filter)
-                    .calculateEffectiveness(mapIndexes, setKeys)
+            int nEffect = filter instanceof IndexAwareFilter
+                ? ((IndexAwareFilter) filter).calculateEffectiveness(mapIndexes, setKeys)
                 : nMax;
 
-            awf[i] = new WeightedFilter(filter, nEffect);
+            if (nEffect < 0)   // there is no index to apply
+                {
+                nEffect = nMax;
+                }
 
-            if (i == 0)
-                {
-                nEffect0 = nEffect;
-                }
-            else
-                {
-                // only need to sort if the weights are different
-                fSort |= (nEffect != nEffect0);
-                }
+            aWeighted[nPos++] = new WeightedFilter(filter, nEffect);
             }
 
-        if (fSort)
+        Arrays.sort(aWeighted);
+        for (int i = 0; i < cFilters; i++)
             {
-            Arrays.sort(awf);
-            for (int i = 0; i < cFilters; i++)
-                {
-                aFilter[i] = awf[i].getFilter();
-                }
+            aFilter[i] = aWeighted[i].getFilter();
             }
-        m_fPreserveOrder = true;
+
+        f_aFilterOptimized.set(aFilter);
+        m_fOptimized = true;
         }
+
+    /**
+     * Simplify internal filter array by merging and replacing filters if possible to reduce
+     * the overall number and nesting of the filters.
+     *
+     * @return the simplified filter array
+     */
+    protected Filter<?>[] simplifyFilters(Filter<?>[] aFilters)
+        {
+        return aFilters;
+        }
+
 
     /**
     * Apply the specified IndexAwareFilter to the specified keySet.  Record
@@ -368,9 +410,8 @@ public abstract class ArrayFilter
     */
     public String toString()
         {
-        String        sClass = getClass().getName();
-        StringBuilder sb     = new StringBuilder(
-            sClass.substring(sClass.lastIndexOf('.') + 1));
+        String        sName = getName();
+        StringBuilder sb    = new StringBuilder(sName);
 
         sb.append('(');
 
@@ -389,6 +430,10 @@ public abstract class ArrayFilter
         return sb.toString();
         }
 
+    protected String getName()
+        {
+        return getClass().getSimpleName();
+        }
 
     // ----- ExternalizableLite interface -----------------------------------
 
@@ -401,15 +446,15 @@ public abstract class ArrayFilter
         int cFilters = readInt(in);
         azzert(cFilters < 16384, "Unexpected number of filters.");
 
-        Filter<Object>[] aFilter  = new Filter[cFilters];
+        Filter[] aFilter  = new Filter[cFilters];
 
         for (int i = 0; i < cFilters; i++)
             {
-            aFilter[i] = (Filter) readObject(in);
+            aFilter[i] = readObject(in);
             }
         m_aFilter = aFilter;
 
-        m_fPreserveOrder = in.readBoolean();
+        m_fOptimized = in.readBoolean();
         }
 
     /**
@@ -422,12 +467,12 @@ public abstract class ArrayFilter
         int      cFilters = aFilter.length;
 
         writeInt(out, cFilters);
-        for (int i = 0; i < cFilters; i++)
+        for (Filter filter : aFilter)
             {
-            writeObject(out, aFilter[i]);
+            writeObject(out, filter);
             }
 
-        out.writeBoolean(m_fPreserveOrder);
+        out.writeBoolean(m_fOptimized);
         }
 
 
@@ -439,11 +484,11 @@ public abstract class ArrayFilter
     public void readExternal(PofReader in)
             throws IOException
         {
-        m_aFilter = (Filter<Object>[]) in.readObjectArray(0, EMPTY_FILTER_ARRAY);
+        m_aFilter = in.readArray(0, Filter[]::new);
 
         // if we read an old version of the filter that didn't have this field,
         // it would result in maintaining the old behavior
-        m_fPreserveOrder = in.readBoolean(1);
+        m_fOptimized = in.readBoolean(1);
         }
 
     /**
@@ -453,7 +498,7 @@ public abstract class ArrayFilter
             throws IOException
         {
         out.writeObjectArray(0, m_aFilter);
-        out.writeBoolean(1, m_fPreserveOrder);
+        out.writeBoolean(1, m_fOptimized);
         }
 
 
@@ -464,7 +509,7 @@ public abstract class ArrayFilter
     * according to their effectiveness.
     */
     protected static class WeightedFilter
-            implements Comparable
+            implements Comparable<WeightedFilter>
         {
         // ----- constructors -----------------------------------------------
 
@@ -489,7 +534,7 @@ public abstract class ArrayFilter
         * greater than the effectiveness of the specified WeightedFilter
         * object.
         *
-        * @param o  the Object to be compared
+        * @param that  the Object to be compared
         *
         * @return a negative integer, zero, or a positive integer as this
         *         object is less than, equal to, or greater than the
@@ -498,12 +543,9 @@ public abstract class ArrayFilter
         * @throws ClassCastException if the specified object's type prevents
         *         it from being compared to this WeightedFilter
         */
-        public int compareTo(Object o)
+        public int compareTo(WeightedFilter that)
             {
-            int nThis = m_nEffect;
-            int nThat = ((WeightedFilter) o).m_nEffect;
-
-            return (nThis < nThat ? -1 : (nThis > nThat ? +1 : 0));
+            return Integer.compare(m_nEffect, that.m_nEffect);
             }
 
         // ----- accessors --------------------------------------------------
@@ -523,22 +565,13 @@ public abstract class ArrayFilter
         /**
         * The wrapped filter.
         */
-        private Filter m_filter;
+        private final Filter m_filter;
 
         /**
         * The effectiveness of the wrapped filter.
         */
-        private int m_nEffect;
+        private final int m_nEffect;
         }
-
-
-    // ----- constants ------------------------------------------------------
-
-    /**
-    * A zero-length array of Filter objects.
-    */
-    private static final Filter[] EMPTY_FILTER_ARRAY = new Filter[0];
-
 
     // ----- data members ---------------------------------------------------
 
@@ -546,13 +579,21 @@ public abstract class ArrayFilter
     * The Filter array.
     */
     @JsonbProperty("filters")
-    protected Filter[] m_aFilter;
+    private Filter<?>[] m_aFilter;
 
     /**
-    * Flag indicating whether or not the filter order should be preserved.
-    *
-    * @since Coherence 12.2.1
+    * Flag indicating whether the filter has been optimized.
     */
-    @JsonbProperty("preserveOrder")
-    protected boolean m_fPreserveOrder;
+    @JsonbProperty("optimized")
+    private volatile boolean m_fOptimized;
+
+    /**
+     * The (thread-local) array of filters optimized/reordered based on index effectiveness.
+     *
+     * @implNote Note that we cannot reuse internal filter array for this, as the optimal
+     *           filter order may be different for each partition, based on the index contents,
+     *           so we have to perform filter reordering per partition, on different FJP threads
+     *           (which is why we need this to be a thread-local, and not just a normal field).
+     */
+    private final transient ThreadLocal<Filter<?>[]> f_aFilterOptimized = new ThreadLocal<>();
     }

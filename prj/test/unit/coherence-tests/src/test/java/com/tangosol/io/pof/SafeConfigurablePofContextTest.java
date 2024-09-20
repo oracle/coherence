@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io.pof;
@@ -35,6 +35,7 @@ import static org.junit.Assert.*;
 * SafeConfigurablePofContext unit tests.
 *
 * @author jh  2007.05.03
+* @author Gunnar Hillert  2024.05.27
 */
 public class SafeConfigurablePofContextTest
         extends AbstractPofTest
@@ -43,6 +44,8 @@ public class SafeConfigurablePofContextTest
     public void testGetPofSerializerWithNegativeTypeId()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
+
         try
             {
             ctx.getPofSerializer(-1);
@@ -58,6 +61,7 @@ public class SafeConfigurablePofContextTest
     public void testGetPofSerializerWithKnownTypeId()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         assertTrue(ctx.getPofSerializer(1) instanceof PortableObjectSerializer);
         }
 
@@ -65,6 +69,7 @@ public class SafeConfigurablePofContextTest
     public void testGetPofSerializerWithUnknownTypeId()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         try
             {
             ctx.getPofSerializer(12358);
@@ -80,6 +85,7 @@ public class SafeConfigurablePofContextTest
     public void testGetTypeWithNegativeTypeId()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         try
             {
             ctx.getClass(-1);
@@ -95,6 +101,7 @@ public class SafeConfigurablePofContextTest
     public void testGetTypeWithKnownTypeId()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         assertTrue(Throwable.class.equals(ctx.getClass(0)));
         }
 
@@ -102,6 +109,7 @@ public class SafeConfigurablePofContextTest
     public void testGetTypeWithUnknownTypeId()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         try
             {
             ctx.getClass(12358);
@@ -117,6 +125,7 @@ public class SafeConfigurablePofContextTest
     public void testGetUserTypeIdentifierWithNullObject()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         try
             {
             ctx.getUserTypeIdentifier((Object) null);
@@ -132,6 +141,7 @@ public class SafeConfigurablePofContextTest
     public void testGetUserTypeIdentifierWithUnknownObject()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         assertTrue(ctx.getUserTypeIdentifier(new PortablePerson()) ==
             SafeConfigurablePofContext.TYPE_PORTABLE);
         assertTrue(ctx.getUserTypeIdentifier(new ExternalizablePerson()) ==
@@ -144,6 +154,7 @@ public class SafeConfigurablePofContextTest
     public void testGetUserTypeIdentifierWithPofObject()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         try
             {
             ctx.getUserTypeIdentifier(new Object());
@@ -159,6 +170,7 @@ public class SafeConfigurablePofContextTest
     public void testGetUserTypeIdentifierWithNullType()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         try
             {
             ctx.getUserTypeIdentifier((Class) null);
@@ -174,6 +186,7 @@ public class SafeConfigurablePofContextTest
     public void testGetUserTypeIdentifierWithUnknownType()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         assertTrue(ctx.getUserTypeIdentifier(PortablePerson.class) ==
             SafeConfigurablePofContext.TYPE_PORTABLE);
         assertTrue(ctx.getUserTypeIdentifier(ExternalizablePerson.class)
@@ -186,6 +199,7 @@ public class SafeConfigurablePofContextTest
     public void testGetUserTypeIdentifierWithPofType()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         try
             {
             ctx.getUserTypeIdentifier(Object.class);
@@ -201,6 +215,7 @@ public class SafeConfigurablePofContextTest
     public void testGetUserTypeIdentifierWithKnownType()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         assertTrue(ctx.getUserTypeIdentifier(Throwable.class) == 0);
         }
 
@@ -208,6 +223,7 @@ public class SafeConfigurablePofContextTest
     public void testGetUserTypeIdentifierWithNullTypeName()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         try
             {
             ctx.getUserTypeIdentifier((String) null);
@@ -223,6 +239,7 @@ public class SafeConfigurablePofContextTest
     public void testGetUserTypeIdentifierWithUnknownTypeName()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         assertTrue(ctx.getUserTypeIdentifier(PortablePerson.class.getName()) ==
             SafeConfigurablePofContext.TYPE_PORTABLE);
         assertTrue(ctx.getUserTypeIdentifier(ExternalizablePerson.class.getName())
@@ -235,6 +252,7 @@ public class SafeConfigurablePofContextTest
     public void testGetUserTypeIdentifierWithPofTypeName()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         try
             {
             ctx.getUserTypeIdentifier(Object.class.getName());
@@ -250,6 +268,7 @@ public class SafeConfigurablePofContextTest
     public void testGetUserTypeIdentifierWithKnownTypeName()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         assertTrue(ctx.getUserTypeIdentifier(Throwable.class.getName()) == 0);
         }
 
@@ -257,6 +276,7 @@ public class SafeConfigurablePofContextTest
     public void testIsUserTypeWithNullObject()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         try
             {
             ctx.isUserType((Object) null);
@@ -272,6 +292,7 @@ public class SafeConfigurablePofContextTest
     public void testIsUserTypeWithUnknownObject()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         assertFalse(ctx.isUserType(this));
         }
 
@@ -279,6 +300,7 @@ public class SafeConfigurablePofContextTest
     public void testIsUserTypeWithPofObject()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         assertFalse(ctx.isUserType(new Object()));
         }
 
@@ -286,6 +308,7 @@ public class SafeConfigurablePofContextTest
     public void testIsUserTypeWithKnownObject()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         assertTrue(ctx.isUserType(new Throwable()));
         }
 
@@ -293,6 +316,7 @@ public class SafeConfigurablePofContextTest
     public void testIsUserTypeWithNullType()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         try
             {
             ctx.isUserType((Class) null);
@@ -308,6 +332,7 @@ public class SafeConfigurablePofContextTest
     public void testIsUserTypeWithUnknownType()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         assertFalse(ctx.isUserType(getClass()));
         }
 
@@ -315,6 +340,7 @@ public class SafeConfigurablePofContextTest
     public void testIsUserTypeWithPofType()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         assertFalse(ctx.isUserType(Object.class));
         }
 
@@ -329,6 +355,7 @@ public class SafeConfigurablePofContextTest
     public void testIsUserTypeWithNullTypeName()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         try
             {
             ctx.isUserType((String) null);
@@ -344,6 +371,7 @@ public class SafeConfigurablePofContextTest
     public void testIsUserTypeWithUnknownTypeName()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         assertFalse(ctx.isUserType(getClass().getName()));
         }
 
@@ -351,6 +379,7 @@ public class SafeConfigurablePofContextTest
     public void testIsUserTypeWithPofTypeName()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         assertFalse(ctx.isUserType(Object.class.getName()));
         }
 
@@ -358,6 +387,7 @@ public class SafeConfigurablePofContextTest
     public void testIsUserTypeWithKnownTypeName()
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
         assertTrue(ctx.isUserType(Throwable.class.getName()));
         }
 
@@ -366,6 +396,7 @@ public class SafeConfigurablePofContextTest
             throws IOException
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
 
         UUID uuid = new UUID();
 
@@ -403,6 +434,7 @@ public class SafeConfigurablePofContextTest
             throws IOException
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
 
         Exception e = new Exception("this is a test");
 
@@ -439,6 +471,7 @@ public class SafeConfigurablePofContextTest
             throws IOException
         {
         SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+        ctx.setEnableAutoTypeDiscovery(false);
 
         EvolvablePortablePerson person = new EvolvablePortablePerson("Aleksandar Seovic",
                 new Date(74, 7, 24));
@@ -459,7 +492,8 @@ public class SafeConfigurablePofContextTest
     public void testSetSerializer()
             throws IOException
         {
-        PofContext ctx = new ConfigurablePofContext("com/tangosol/io/pof/set-serializer-pof-config.xml");
+        ConfigurablePofContext ctx = new ConfigurablePofContext("com/tangosol/io/pof/set-serializer-pof-config.xml");
+        ctx.setEnableAutoTypeDiscovery(false);
 
         Set set = new HashSet();
         assertTrue(ctx.isUserType(set));

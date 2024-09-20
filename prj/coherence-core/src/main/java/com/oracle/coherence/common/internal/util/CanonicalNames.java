@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.internal.util;
 
@@ -21,8 +21,8 @@ public class CanonicalNames
      * are provided. If <code>sName</code> does not end in {@link #VALUE_EXTRACTOR_METHOD_SUFFIX},
      * <code>"()"</code>, the canonical name is <code>sName</code> and represents a property.
      * If <code>sName</code> is prefixed with one of the {@link #VALUE_EXTRACTOR_BEAN_ACCESSOR_PREFIXES}
-     * and ends in {@link #VALUE_EXTRACTOR_METHOD_SUFFIX},
-     * the canonical name is <code>sName</code> with prefix and suffix removed.
+     * and optionally ends in {@link #VALUE_EXTRACTOR_METHOD_SUFFIX},"()",
+     * the canonical name is <code>sName</code> with prefix and optional suffix removed.
      * This canonical name represents a property.
      * If the <code>sName</code> just ends in {#link #VALUE_EXTRACTOR_METHOD_SUFFIX},
      * the canonical name is same as <code>sName</code>. This canonical name
@@ -41,9 +41,8 @@ public class CanonicalNames
             {
             return null;
             }
-        else if (sName.endsWith(VALUE_EXTRACTOR_METHOD_SUFFIX))
+        else
             {
-            // check for JavaBean accessor and convert to property if found.
             String sNameCanonical = sName;
             int nNameLength = sName.length();
             for (String sPrefix : VALUE_EXTRACTOR_BEAN_ACCESSOR_PREFIXES)
@@ -51,18 +50,17 @@ public class CanonicalNames
                 int nPrefixLength = sPrefix.length();
                 if (nNameLength > nPrefixLength && sName.startsWith(sPrefix))
                     {
-                    // detected a JavaBean accessor; convert method to a property. remove prefix and suffix.
+                    // detected a JavaBean accessor; remove prefix and optional suffix when present.
+                    int nSuffixLength = sName.endsWith(VALUE_EXTRACTOR_METHOD_SUFFIX)
+                                    ? nMethodSuffixLength
+                                    : 0;
+
                     sNameCanonical = Character.toLowerCase(sName.charAt(nPrefixLength)) +
-                            sName.substring(nPrefixLength + 1, nNameLength - nMethodSuffixLength);
+                            sName.substring(nPrefixLength + 1, nNameLength - nSuffixLength);
                     break;
                     }
                 }
             return sNameCanonical;
-            }
-        else
-            {
-            // is a property
-            return sName;
             }
         }
 

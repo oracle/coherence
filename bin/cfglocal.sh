@@ -1,19 +1,19 @@
-# Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
 
 #
-# This script by default uses JDK 11 and set JAVA_HOME pointing to
+# This script by default uses JDK 21 and set JAVA_HOME pointing to
 # that JDK version.
 #
-# To use JDK 17 locally, use command: RBT_JV=17 ./bin/cfglocal.sh
+# To use a newer version locally, use command: JV=<version> ./bin/cfglocal.sh
 #
-# And to run on RQ with JDK 17, specify -j option as shown below
-# enqueue -j 17 [-c changelist]
+# To run on RQ with a newer Java version, specify -j option as shown below
+# enqueue -j <version> [-c changelist]
 
 SCRIPT_PATH="${BASH_SOURCE[0]}"
-JAVA_VERSION_TO_USE=${RBT_JV:-17}
+JAVA_VERSION_TO_USE=${JV:-21}
 
 while [ -h "${SCRIPT_PATH}" ]; do
   LS=`ls -ld "${SCRIPT_PATH}"`

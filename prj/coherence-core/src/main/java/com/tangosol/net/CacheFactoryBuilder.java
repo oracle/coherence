@@ -1,14 +1,15 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
 
 import com.tangosol.config.expression.ParameterResolver;
 
+import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 import com.tangosol.internal.net.DefaultSessionProvider;
 
 import com.tangosol.run.xml.XmlElement;
@@ -129,6 +130,15 @@ public interface CacheFactoryBuilder
     default Context createSession(SessionConfiguration configuration, Context context)
         {
         return DefaultSessionProvider.INSTANCE.createSession(configuration, context);
+        }
+
+    @Override
+    default void releaseSession(Session session)
+        {
+        if (session instanceof ConfigurableCacheFactorySession)
+            {
+            release(((ConfigurableCacheFactorySession) session).getConfigurableCacheFactory());
+            }
         }
 
     // ----- constants ------------------------------------------------------

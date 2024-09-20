@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.extractor;
@@ -759,12 +759,12 @@ public class PofExtractorTest
 
     // ----- BinaryEntry stub -----------------------------------------------
 
-    static class TestBinaryEntry
+    public static class TestBinaryEntry
             implements BinaryEntry
         {
         // ----- constructor ----------------------------------------------
 
-        TestBinaryEntry(Binary binKey, Binary binValue, PofContext pofContext)
+        public TestBinaryEntry(Binary binKey, Binary binValue, PofContext pofContext)
             {
             m_binKey = binKey;
             m_binValue = binValue;

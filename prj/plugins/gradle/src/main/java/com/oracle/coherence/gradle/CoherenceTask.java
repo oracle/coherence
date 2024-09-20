@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,10 +7,13 @@
 package com.oracle.coherence.gradle;
 
 import com.oracle.coherence.common.base.Exceptions;
+
 import com.oracle.coherence.common.schema.ClassFileSchemaSource;
 import com.oracle.coherence.common.schema.Schema;
 import com.oracle.coherence.common.schema.SchemaBuilder;
 import com.oracle.coherence.common.schema.XmlSchemaSource;
+
+import com.tangosol.io.pof.PofIndexer;
 
 import com.tangosol.io.pof.generator.PortableTypeGenerator;
 
@@ -19,28 +22,34 @@ import com.tangosol.io.pof.schema.annotation.PortableType;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 
-import org.gradle.api.artifacts.Configuration;
-
-import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
 
 import org.gradle.api.logging.Logger;
 
+import org.gradle.api.plugins.JavaPlugin;
+
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+
+import org.gradle.api.tasks.compile.JavaCompile;
 
 import javax.inject.Inject;
 
 import java.io.File;
 import java.io.IOException;
 
-import java.nio.file.Paths;
-
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.oracle.coherence.common.schema.ClassFileSchemaSource.Filters.hasAnnotation;
 
@@ -64,27 +73,6 @@ abstract class CoherenceTask
     @Inject
     public CoherenceTask(Project project)
         {
-        getLogger().info("Setting up Task property conventions.");
-        getDebug().convention(false);
-        getInstrumentTestClasses().convention(false);
-
-        Directory mainJavaOutputDir = PluginUtils.getMainJavaOutputDir(project);
-        getMainClassesDirectory().convention(mainJavaOutputDir.getAsFile());
-
-        Directory testJavaOutputDir = PluginUtils.getTestJavaOutputDir(project);
-        getTestClassesDirectory().convention(testJavaOutputDir.getAsFile());
-
-        File fileMainResourcesOutputDir = PluginUtils.getMainResourcesOutputDir(project);
-        if (fileMainResourcesOutputDir != null)
-            {
-            getMainResourcesDirectory().convention(fileMainResourcesOutputDir);
-            }
-
-        File testResourcesOutputDir = PluginUtils.getTestResourcesOutputDir(project);
-        if (testResourcesOutputDir != null)
-            {
-            getTestResourcesDirectory().convention(testResourcesOutputDir);
-            }
         }
 
     //----- CoherenceTask methods -------------------------------------------
@@ -102,132 +90,275 @@ abstract class CoherenceTask
     public abstract Property<Boolean> getDebug();
 
     /**
-     * Returns {@code true} if test classes shall be instrumented as well.
+     * The path specified by this property is used to determine the XML file containing Portable Type definitions.
+     * @return the relative path to the POF XML definition file, defaults to {@code META-INF/schema.xml}
      */
     @Input
     @Optional
-    public abstract Property<Boolean> getInstrumentTestClasses();
+    public abstract Property<String> getPofSchemaXmlPath();
 
     /**
-     * Sets the project's test classes directory. This is an optional property.
-    **/
-    @InputFiles
+     * Shall an existing POF XML Schema file be used for instrumentation? If not specified, this property
+     * defaults to {@code false}.
+     *
+     * @return Gradle container object wrapping a Boolean property
+     */
+    @Input
     @Optional
-    public abstract Property<File> getTestClassesDirectory();
+    public abstract Property<Boolean> getUsePofSchemaXml();
 
     /**
-     * Sets the project's test resources directory. This is an optional property.
+     * Shall {@link PortableType} annotated classes be indexed to an index file at {@code META-INF/pof.idx}?
+     * If not specified, this property defaults to {@code true}.
+     *
+     * @return Gradle container object wrapping a Boolean property
+     */
+    @Input
+    @Optional
+    public abstract Property<Boolean> getIndexPofClasses();
+
+    /**
+     * Allows you to include one or more packages when indexing {@link PortableType} annotated classes. This is an optional
+     * property but limiting the scanning of {@link PortableType} annotated classes to a set of packages may speed up
+     * indexing substantially.
+     *
+     * @return a Gradle SetProperty wrapping a String values
+     */
+    @Input
+    @Optional
+    public abstract SetProperty<String> getPofIndexPackages();
+
+    /**
+     * Sets the project's resources directory. This is an optional property.
+     **/
+    @Input
+    @Optional
+    public abstract Property<FileCollection> getResourcesDirectories();
+
+    /**
+     * Sets the project's main classes directory. This is the main input directory.
      **/
     @InputFiles
-    @Optional
-    public abstract Property<File> getTestResourcesDirectory();
+    public abstract DirectoryProperty getClassesDirectory();
 
     /**
-     * Sets the project's main classes directory. This is an optional property.
+     * Sets the task's output directory.
      **/
-    @InputFiles
-    @Optional
-    public abstract Property<File> getMainClassesDirectory();
-
-    /**
-     * Sets the project's main resources directory. This is an optional property.
-     **/
-    @InputFiles
-    @Optional
-    public abstract Property<File> getMainResourcesDirectory();
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDirectory();
 
     /**
      * The Gradle action to run when the task is executed.
      */
     @TaskAction
-    public void instrumentPofClasses()
-        {
-        boolean fDebug = getDebug().get();
-        Logger  logger = getLogger();
+    public void instrumentPofClasses() {
 
-        logger.lifecycle("Start executing Gradle task instrumentPofClasses...");
+        final boolean fDebug = getDebug().get();
+        final Logger  logger = getLogger();
+
+        final File classesDirectory;
+
+        if (this.getClassesDirectory().isPresent())
+            {
+            classesDirectory = this.getClassesDirectory().get().getAsFile();
+            }
+        else
+            {
+            throw new IllegalStateException("The classesDirectory is not specified.");
+            }
+
+        final Set<File> resourcesDirectoriesAsFiles;
+
+        if (this.getResourcesDirectories().isPresent())
+            {
+            resourcesDirectoriesAsFiles = this.getResourcesDirectories().get().getFiles();
+            }
+        else
+            {
+            resourcesDirectoriesAsFiles = null;
+            }
+
+        final File outputDirectory;
+
+        if (this.getOutputDirectory().isPresent())
+            {
+            outputDirectory = this.getOutputDirectory().get().getAsFile();
+            }
+        else
+            {
+            throw new IllegalStateException("The outputDirectory is not specified.");
+            }
+
+        final String sPofSchemaXmlPath;
+
+        if (this.getPofSchemaXmlPath().isPresent())
+            {
+            sPofSchemaXmlPath = this.getPofSchemaXmlPath().get();
+            }
+        else
+            {
+            sPofSchemaXmlPath = null;
+            }
+
+        final boolean usePofSchemaXmlPath;
+
+        if (this.getUsePofSchemaXml().isPresent())
+            {
+            usePofSchemaXmlPath = this.getUsePofSchemaXml().get();
+            }
+        else
+            {
+            usePofSchemaXmlPath = false;
+            }
+
+        final boolean indexPofClasses = this.getIndexPofClasses().getOrElse(true);
+
         logger.info("The following configuration properties are configured:");
-        logger.info("Property debug = {}", fDebug);
-        logger.info("Property instrumentTestClasses = {}", getInstrumentTestClasses().get());
 
-        Property<File> propTestClassesDirectory = getTestClassesDirectory();
-        logger.info("Property testClassesDirectory = {}", propTestClassesDirectory);
+        logger.info("Property classesDirectory   = {}", classesDirectory.getAbsolutePath());
 
-        Property<File> propMainClassesDirectory = getMainClassesDirectory();
-        logger.info("Property mainClassesDirectory = {}", propMainClassesDirectory);
-
-        ClassFileSchemaSource source                 = new ClassFileSchemaSource();
-        List<File>            listInstrument         = new ArrayList<>();
-        SchemaBuilder         schemaBuilder          = new SchemaBuilder();
-        List<File>            listClassesDirectories = new ArrayList<>();
-
-        addSchemaSourceIfExists(schemaBuilder, getTestResourcesDirectory());
-        addSchemaSourceIfExists(schemaBuilder, getMainResourcesDirectory());
-
-        if (propTestClassesDirectory.isPresent() && propTestClassesDirectory.get().exists())
+        if (resourcesDirectoriesAsFiles == null || resourcesDirectoriesAsFiles.isEmpty())
             {
-            File fileTestClassesDirectory = propTestClassesDirectory.get();
-            listClassesDirectories.add(fileTestClassesDirectory);
+            logger.info("Property resourcesDirectory = {}", "N/A");
             }
         else
             {
-            logger.error("PortableTypeGenerator skipping test classes directory as it does not exist.");
+            for (File resourceDirectory : resourcesDirectoriesAsFiles)
+                {
+                logger.info("Property resourcesDirectory = {}", resourceDirectory.getAbsolutePath());
+                }
             }
 
-        if (propMainClassesDirectory.isPresent() && propMainClassesDirectory.get().exists())
+        logger.info("Property outputDirectory    = {}", outputDirectory.getAbsolutePath());
+        logger.info("Property sPofSchemaXmlPath  = {}", sPofSchemaXmlPath);
+        logger.info("Property indexPofClasses  = {}", indexPofClasses);
+        logger.info("Property debug              = {}", fDebug);
+
+        if (!classesDirectory.equals(outputDirectory))
             {
-            File fileMainClassesDirectory = propMainClassesDirectory.get();
-            listClassesDirectories.add(fileMainClassesDirectory);
+            logger.info("Copying all classes from '{}' to '{}'.", classesDirectory, outputDirectory);
+            final boolean didTheCopyOperationSucceed = getProject()
+                    .copy(copy -> copy.from(classesDirectory).into(outputDirectory))
+                    .getDidWork();
+            logger.debug("Copying of classes {}.", didTheCopyOperationSucceed ? "completed" : "not completed");
+            }
+
+        final ClassFileSchemaSource classFileSchemaSource  = new ClassFileSchemaSource();
+        final List<File>            listInstrument         = new ArrayList<>();
+        final SchemaBuilder         schemaBuilder          = new SchemaBuilder();
+        final List<File>            listClassesDirectories = new ArrayList<>();
+
+        if (usePofSchemaXmlPath && sPofSchemaXmlPath != null)
+            {
+            if (resourcesDirectoriesAsFiles != null && !resourcesDirectoriesAsFiles.isEmpty())
+                {
+                Set<File> missingLocations = new HashSet<>();
+                for (File resourceDirectory : resourcesDirectoriesAsFiles)
+                    {
+                    final File schemaSourceXmlFile = new File(resourceDirectory, sPofSchemaXmlPath);
+                    if (schemaSourceXmlFile.exists())
+                        {
+                        if (schemaSourceXmlFile.isDirectory())
+                            {
+                            throw new IllegalStateException(
+                                String.format("Declared schemaSource XML file '%s' is a directory,", schemaSourceXmlFile));
+                            }
+                        addPofXmlSchema(schemaBuilder, schemaSourceXmlFile);
+                        }
+                    else
+                        {
+                        missingLocations.add(schemaSourceXmlFile);
+                        }
+                    }
+                    if (missingLocations.size() == resourcesDirectoriesAsFiles.size())
+                        {
+                        throw new IllegalStateException(
+                            String.format("The declared schemaSource XML file '%s' does not exist " +
+                                    "in the provided %s resource folder(s).", sPofSchemaXmlPath, resourcesDirectoriesAsFiles.size()));
+                        }
+                }
+
+
+            }
+
+        if (classesDirectory.exists())
+            {
+            listClassesDirectories.add(outputDirectory);
             }
         else
             {
-            logger.error("PortableTypeGenerator skipping main classes directory as it does not exist.");
+            logger.error("PortableTypeGenerator skipping classes directory as it does not exist.");
             }
 
-        if (!listClassesDirectories.isEmpty()) {
-            source.withTypeFilter(hasAnnotation(PortableType.class))
-                  .withMissingPropertiesAsObject();
+        classFileSchemaSource.withTypeFilter(hasAnnotation(PortableType.class))
+                             .withMissingPropertiesAsObject();
+
+        if (!listClassesDirectories.isEmpty())
+            {
             for (File classesDir : listClassesDirectories)
                 {
-                source.withClassesFromDirectory(classesDir);
+                classFileSchemaSource.withClassesFromDirectory(classesDir);
                 listInstrument.add(classesDir);
                 }
-        }
+            }
+
+        final List<File> classesFromDirectory = new ArrayList<>();
+        final List<File> classesFromJarFile = new ArrayList<>();
 
         if (!listInstrument.isEmpty())
             {
-            List<File> listDeps = resolveDependencies();
-            ClassFileSchemaSource dependencies =
-                    new ClassFileSchemaSource()
-                            .withTypeFilter(hasAnnotation(PortableType.class))
-                            .withPropertyFilter(fieldNode -> false);
+            final List<File>            listDeps     = resolveDependencies();
+            final ClassFileSchemaSource dependencies = new ClassFileSchemaSource()
+                    .withTypeFilter(hasAnnotation(PortableType.class))
+                    .withPropertyFilter(fieldNode -> false);
 
             listDeps.stream()
                     .filter(File::isDirectory)
                     .peek(f -> logger.lifecycle("Adding classes from " + f + " to schema"))
-                    .forEach(dependencies::withClassesFromDirectory);
+                    .forEach(classesFromDirectory::add);
+
+            classesFromDirectory.forEach(dependencies::withClassesFromDirectory);
 
             listDeps.stream()
                     .filter(f -> f.isFile() && f.getName().endsWith(".jar"))
                     .peek(f -> logger.lifecycle("Adding classes from " + f + " to schema"))
-                    .forEach(dependencies::withClassesFromJarFile);
+                    .forEach(classesFromJarFile::add);
 
-            Schema schema = schemaBuilder
+            classesFromJarFile.forEach(dependencies::withClassesFromJarFile);
+
+            final Schema schema = schemaBuilder
                     .addSchemaSource(dependencies)
-                    .addSchemaSource(source)
+                    .addSchemaSource(classFileSchemaSource)
                     .build();
-
-            for (File dir : listInstrument)
+            try
                 {
-                try
+                logger.warn("Running PortableTypeGenerator for classes in " + outputDirectory.getCanonicalPath());
+                PortableTypeGenerator.instrumentClasses(outputDirectory, schema, fDebug, new GradleLogger(logger));
+                }
+            catch (IOException e)
+                {
+                throw Exceptions.ensureRuntimeException(e);
+                }
+            }
+
+        if (indexPofClasses)
+            {
+            try {
+                logger.warn("Creating POF index in directory " + outputDirectory.getCanonicalPath());
+                final PofIndexer pofIndexer = new PofIndexer(new GradleLogger(logger));
+                pofIndexer.ignoreClasspath(true)
+                        .withClassesFromDirectory(listInstrument)
+                        .withClassesFromJarFile(classesFromJarFile);
+
+                if (!this.getPofIndexPackages().getOrElse(Collections.EMPTY_SET).isEmpty())
                     {
-                    logger.warn("Running PortableTypeGenerator for classes in " + dir.getCanonicalPath());
-                    PortableTypeGenerator.instrumentClasses(dir, schema, fDebug, new GradleLogger(logger));
+                    pofIndexer.setPackagesToScan(this.getPofIndexPackages().get());
                     }
-                catch (IOException e)
-                    {
+                pofIndexer.createIndexInDirectory(outputDirectory);
+            }
+            catch (IOException e)
+                {
                     throw Exceptions.ensureRuntimeException(e);
-                    }
                 }
             }
         }
@@ -236,51 +367,36 @@ abstract class CoherenceTask
      * Determines whether a "schema.xml" file exists. If it exists it will be added as an
      * XmlSchemaSource to the SchemaBuilder.
      *
-     * @param builder                Coherence SchemaBuilder
-     * @param propResourcesDirectory directory that may contain a schema.xml file
+     * @param builder             Coherence SchemaBuilder
+     * @param schemaSourceXmlFile the schema.xml file
      */
-    private void addSchemaSourceIfExists(SchemaBuilder builder, Property<File> propResourcesDirectory)
+    private void addPofXmlSchema(SchemaBuilder builder, File schemaSourceXmlFile)
         {
         Logger logger = getLogger();
 
-        if (propResourcesDirectory.isPresent())
+        if (schemaSourceXmlFile.exists())
             {
-            File fileResourcesDirectory = propResourcesDirectory.get();
-
-            if (fileResourcesDirectory.exists())
-                {
-                File xmlSchema = Paths.get(fileResourcesDirectory.getPath(), "META-INF", "schema.xml").toFile();
-                if (xmlSchema.exists())
-                    {
-                    logger.lifecycle("Add XmlSchemaSource '{}'.", xmlSchema.getAbsolutePath());
-                    builder.addSchemaSource(new XmlSchemaSource(xmlSchema));
-                    }
-                else
-                    {
-                    logger.info("No schema.xml file found at {}", xmlSchema.getAbsolutePath());
-                    }
-                }
-            else
-                {
-                logger.info("The specified resources directory '{}' does not exist.", fileResourcesDirectory.getAbsolutePath());
-                }
+            logger.lifecycle("Add XmlSchemaSource '{}'.", schemaSourceXmlFile.getAbsolutePath());
+            builder.addSchemaSource(new XmlSchemaSource(schemaSourceXmlFile));
             }
         else
             {
-            logger.info("The resources directory property is not present.");
+            throw new IllegalStateException(String.format("The specified POF XML Schema file does not exist at: '%s'.", schemaSourceXmlFile.getAbsolutePath()));
             }
         }
 
     /**
-     * Resolves project dependencies from the runtimeClasspath.
+     * Resolves project dependencies from the JavaCompile task's classpath.
      * @return list of resolved project dependencies or an empty List
      */
     private List<File> resolveDependencies()
         {
-        List<File>    listArtifacts = new ArrayList<>();
-        Configuration configuration = getProject().getConfigurations().getByName("runtimeClasspath");
+        final List<File>    listArtifacts = new ArrayList<>();
 
-        configuration.forEach(file ->
+        final JavaCompile javaCompileTask = (JavaCompile) getProject().getTasks().findByName(JavaPlugin.COMPILE_JAVA_TASK_NAME);
+        final Set<File> dependencies = javaCompileTask.getClasspath().getFiles();
+
+        for (File file : dependencies)
             {
             getLogger().info("Adding dependency '{}'.", file.getAbsolutePath());
             if (file.exists())
@@ -291,7 +407,7 @@ abstract class CoherenceTask
                 {
                 getLogger().info("Dependency '{}' does not exist.", file.getAbsolutePath());
                 }
-            });
+            }
         getLogger().lifecycle("Resolved {} dependencies.", listArtifacts.size());
         return listArtifacts;
         }

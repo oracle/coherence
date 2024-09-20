@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,11 +17,11 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheFactoryBuilder;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
+import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.SessionProvider;
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
-import com.tangosol.run.xml.XmlElement;
 import com.tangosol.util.RegistrationBehavior;
 
 import java.util.ArrayList;
@@ -138,7 +138,7 @@ public class DefaultSessionProvider
     protected Context ensureSession(SessionConfiguration configuration, Context context)
         {
         String              sConfigLocation = configuration.getConfigUri().orElse(CacheFactoryBuilder.URI_DEFAULT);
-        String              scopeName       = configuration.getScopeName();
+        String              scopeName       = context.getScopePrefix() + configuration.getScopeName();
         ClassLoader         loader          = configuration.getClassLoader().orElse(Classes.getContextClassLoader());
         String              name            = configuration.getName();
         String              sConfigUri      = ScopedUriScopeResolver.encodeScope(sConfigLocation, scopeName);
@@ -173,6 +173,12 @@ public class DefaultSessionProvider
         ConfigurableCacheFactorySession session = new ConfigurableCacheFactorySession(factory, loader, name);
         session.activate();
         return context.complete(session);
+        }
+
+    @Override
+    public void releaseSession(Session session)
+        {
+        f_cacheFactoryBuilder.get().releaseSession(session);
         }
 
     // ----- inner class: RootProvider -----------------------------------

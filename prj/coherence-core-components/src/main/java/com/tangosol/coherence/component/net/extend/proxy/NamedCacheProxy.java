@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,16 +12,21 @@ package com.tangosol.coherence.component.net.extend.proxy;
 
 import com.tangosol.coherence.component.net.extend.message.request.NamedCacheRequest;
 import com.tangosol.coherence.component.net.extend.protocol.NamedCacheProtocol;
-import com.tangosol.coherence.component.net.extend.proxy.MapListenerProxy;
+
 import com.tangosol.coherence.component.util.DaemonPool;
+
+import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
+
 import com.tangosol.net.messaging.Channel;
 import com.tangosol.net.messaging.Connection;
 import com.tangosol.net.messaging.ConnectionException;
 import com.tangosol.net.messaging.SuspectConnectionException;
+
 import com.tangosol.util.SegmentedConcurrentMap;
+
 import java.util.Iterator;
 import java.util.Map;
 
@@ -116,7 +121,9 @@ public class NamedCacheProxy
      */
     private long __m_TransferThreshold;
     private static com.tangosol.util.ListMap __mapChildren;
-    
+
+    private int m_cacheId;
+
     // Static initializer
     static
         {
@@ -237,11 +244,44 @@ public class NamedCacheProxy
         {
         return __mapChildren;
         }
-    
+
+    /**
+     * Obtain the cache identifier.
+     *
+     * @return  the cache identifier
+     */
+    public int getCacheId()
+        {
+        return m_cacheId;
+        }
+
+    /**
+     * Set the cache identifier.
+     *
+     * @param cacheId  the cache identifier
+     */
+    public void setCacheId(int cacheId)
+        {
+        m_cacheId = cacheId;
+        }
+
     //++ com.tangosol.net.NamedCache integration
     // Access optimization
     // properties integration
     // methods integration
+
+    @Override
+    public AsyncNamedCache async()
+        {
+        return getNamedCache().async();
+        }
+
+    @Override
+    public AsyncNamedCache async(AsyncNamedCache.Option... options)
+        {
+        return getNamedCache().async(options);
+        }
+
     private void addIndex$Router(com.tangosol.util.ValueExtractor extractor, boolean fOrdered, java.util.Comparator comparator)
         {
         getNamedCache().addIndex(extractor, fOrdered, comparator);
@@ -352,6 +392,11 @@ public class NamedCacheProxy
     public boolean isActive()
         {
         return getNamedCache().isActive();
+        }
+    @Override
+    public boolean isReady()
+        {
+        return getNamedCache().isReady();
         }
     public boolean isEmpty()
         {

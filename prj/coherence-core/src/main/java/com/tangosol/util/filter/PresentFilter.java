@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
@@ -64,6 +64,10 @@ public class PresentFilter<T>
         return true;
         }
 
+    public String toExpression()
+        {
+        return "IS PRESENT";
+        }
 
     // ----- EntryFilter interface ------------------------------------------
 
@@ -84,7 +88,9 @@ public class PresentFilter<T>
     */
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
-        return 1;
+        // there will never be an index, and all the keys passed in setKeys
+        // are present, by definition
+        return setKeys.size();
         }
 
     /**
@@ -92,6 +98,8 @@ public class PresentFilter<T>
     */
     public Filter applyIndex(Map mapIndexes, Set setKeys)
         {
+        // there will never be an index, and all the keys passed in setKeys
+        // are present, by definition
         return null;
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,16 +9,21 @@ package com.tangosol.internal.net.metrics;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.coherence.config.Config;
+
+import com.tangosol.internal.metrics.MetricsHttpHandler;
+
 import com.tangosol.internal.net.service.grid.DefaultProxyServiceDependencies;
 import com.tangosol.internal.net.service.grid.LegacyXmlProxyServiceHelper;
 import com.tangosol.internal.net.service.grid.ProxyServiceDependencies;
 
+import com.tangosol.internal.net.service.peer.acceptor.HttpAcceptorDependencies;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.OperationalContext;
-
 import com.tangosol.net.ProxyService;
 import com.tangosol.net.Service;
+
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
 
@@ -26,6 +31,7 @@ import com.tangosol.util.Base;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+
 import java.util.Map;
 
 /**
@@ -68,7 +74,7 @@ public abstract class MetricsHttpHelper
     public static URL composeURL(String sHost, int nPort, String sProtocol)
             throws MalformedURLException
         {
-        return new URL(sProtocol, sHost, nPort, "/metrics");
+        return new URL(sProtocol, sHost, nPort, s_metricsHandler == null ? "/metrics" : s_metricsHandler.getPath());
         }
 
     /**
@@ -109,6 +115,7 @@ public abstract class MetricsHttpHelper
      *
      * @param mapServices  add started MetricsHttpService to this map if it is started.
      */
+    @SuppressWarnings("rawtypes")
     public static void ensureMetricsService(Map<Service, String> mapServices)
         {
         boolean fEnabled = Config.getBoolean(PROP_METRICS_ENABLED, false);
@@ -125,15 +132,31 @@ public abstract class MetricsHttpHelper
                 // start metrics service
                 ProxyServiceDependencies deps = MetricsHttpHelper.getDependencies((OperationalContext) cluster);
 
+                // get context root
+                Map.Entry entryResource = ((HttpAcceptorDependencies)
+                       deps.getAcceptorDependencies()).getResourceConfig().entrySet().iterator().next();
+                s_metricsHandler        = (MetricsHttpHandler) entryResource.getValue();
+                s_metricsHandler.setPath((String) entryResource.getKey());
+
                 // start the Metrics HTTP acceptor
                 ProxyService service = (ProxyService)
                         cluster.ensureService(MetricsHttpHelper.getServiceName(), ProxyService.TYPE_DEFAULT);
-                service.setDependencies(deps);
+                if (service.getDependencies() == null)
+                    {
+                    service.setDependencies(deps);
+                    }
                 service.start();
                 mapServices.put(service, MetricsHttpHelper.getServiceName());
                 }
             }
         }
+
+    /**
+     * The MetricsHttpHandler for the running metrics service.
+     *
+     * @since 14.1.2.0.0
+     */
+    public static MetricsHttpHandler s_metricsHandler;
 
     // ----- constants ------------------------------------------------------
 

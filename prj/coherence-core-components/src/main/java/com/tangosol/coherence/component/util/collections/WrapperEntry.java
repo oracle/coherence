@@ -82,16 +82,7 @@ public class WrapperEntry
      */
     public static Class get_CLASS()
         {
-        Class clz;
-        try
-            {
-            clz = Class.forName("com.tangosol.coherence/component/util/collections/WrapperEntry".replace('/', '.'));
-            }
-        catch (ClassNotFoundException e)
-            {
-            throw new NoClassDefFoundError(e.getMessage());
-            }
-        return clz;
+        return WrapperEntry.class;
         }
     
     //++ getter for autogen property _Module

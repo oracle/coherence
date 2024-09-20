@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -30,6 +30,7 @@ import com.oracle.coherence.io.json.genson.reflect.VisibilityFilter;
 
 import com.oracle.coherence.io.json.genson.stream.ValueType;
 
+import com.oracle.coherence.io.json.internal.BitSetConverter;
 import com.oracle.coherence.io.json.internal.ClassConverter;
 import com.oracle.coherence.io.json.internal.ComparableConverter;
 import com.oracle.coherence.io.json.internal.EnumConverter;
@@ -54,6 +55,7 @@ import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.SerializationSupport;
 import com.tangosol.io.Serializer;
+import com.tangosol.io.SerializerFactory;
 import com.tangosol.io.WrapperDataInputStream;
 import com.tangosol.io.WrapperDataOutputStream;
 import com.tangosol.io.WriteBuffer;
@@ -75,6 +77,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import java.nio.charset.StandardCharsets;
+import java.util.BitSet;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -85,7 +88,7 @@ import jakarta.inject.Named;
  *
  * @since 20.06
  */
-@Named("json")
+@Named(JsonSerializer.NAME)
 @ApplicationScoped
 public class JsonSerializer
         implements Serializer, ClassLoaderAware
@@ -116,7 +119,7 @@ public class JsonSerializer
     @Override
     public String getName()
         {
-        return "json";
+        return NAME;
         }
 
     /**
@@ -161,6 +164,7 @@ public class JsonSerializer
                 .useConstructorWithArguments(true)
                 .setSkipNull(true)
                 .withSerializer(VersionableSerializer.INSTANCE, Versionable.class)
+                .withConverter(BitSetConverter.INSTANCE, BitSet.class)
                 .withConverter(InetAddressConverter.INSTANCE, InetAddress.class)
                 .withConverter(InetAddressConverter.INSTANCE, Inet4Address.class)
                 .withConverter(InetAddressConverter.INSTANCE, Inet6Address.class)
@@ -410,6 +414,31 @@ public class JsonSerializer
             }
         }
 
+    // ----- helpers --------------------------------------------------------
+
+    /**
+     * Helper method to allow creating a {@link JsonObject} from a {@link String}. Useful for
+     * inserting JSON values from CohQL.
+     * <p>
+     * Example in CohQL: <code>insert into 'test' key(1) value json('{"id": 1, "name": "Tim"}')</code>
+     *
+     * @param sJson  JSON to parse
+     *
+     * @return  a new {@link JsonObject}
+     * @since 22.06.7
+     */
+    public static Object fromJson(String sJson)
+        {
+        try
+            {
+            return SERIALIZER.deserialize(sJson, Object.class);
+            }
+        catch (IOException e)
+            {
+            throw new RuntimeException(e);
+            }
+        }
+
     // ----- inner class: BundleProxy ---------------------------------------
 
     /**
@@ -484,7 +513,38 @@ public class JsonSerializer
         private final String f_sClzGensonBundle;
         }
 
+    // ----- inner class: Factory -------------------------------------------
+
+    /**
+     * The default {@link SerializerFactory} to create a JSON serializer.
+     */
+    public static class Factory
+            implements SerializerFactory
+        {
+        @Override
+        public Serializer createSerializer(ClassLoader loader)
+            {
+            return new JsonSerializer(loader);
+            }
+
+        @Override
+        public String getName()
+            {
+            return JsonSerializer.NAME;
+            }
+        }
+
     // ----- constants ------------------------------------------------------
+
+    /**
+     * Serializer to be used by fromJson method.
+     */
+    private static final JsonSerializer SERIALIZER = new JsonSerializer();
+
+    /**
+     * The default name for the JSON serializer.
+     */
+    public static final String NAME = "json";
 
     /**
      * Generic type for {@link Object}.

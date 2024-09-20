@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,20 +7,6 @@
 package com.tangosol.internal.net.grpc;
 
 import com.tangosol.config.annotation.Injectable;
-import com.tangosol.config.expression.Expression;
-
-import com.tangosol.config.expression.LiteralExpression;
-
-import com.tangosol.internal.net.service.extend.remote.DefaultRemoteCacheServiceDependencies;
-
-import com.tangosol.internal.tracing.TracingHelper;
-
-import com.tangosol.internal.util.DaemonPoolDependencies;
-import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
-
-import com.tangosol.io.SerializerFactory;
-
-import com.tangosol.net.grpc.GrpcChannelDependencies;
 
 /**
  * A default implementation of {@link RemoteGrpcCacheServiceDependencies}.
@@ -50,4 +36,28 @@ public class DefaultRemoteGrpcCacheServiceDependencies
         {
         super(deps);
         }
+
+    @Override
+    public boolean isDeferKeyAssociationCheck()
+        {
+        return m_fDeferKeyAssociationCheck;
+        }
+
+    /**
+     * Set the flag to defer the KeyAssociation check.
+     *
+     * @param fDefer  the KeyAssociation check defer flag
+     */
+    @Injectable("defer-key-association-check")
+    public void setDeferKeyAssociationCheck(boolean fDefer)
+        {
+        m_fDeferKeyAssociationCheck = fDefer;
+        }
+
+    // ----- data fields and constants --------------------------------------
+
+    /**
+     * The flag to indicate if the KeyAssociation check is deferred.
+     */
+    private boolean m_fDeferKeyAssociationCheck;
     }

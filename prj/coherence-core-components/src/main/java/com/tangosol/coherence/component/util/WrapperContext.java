@@ -10,8 +10,12 @@
 
 package com.tangosol.coherence.component.util;
 
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.Storage;
+
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.util.Binary;
+import com.tangosol.util.MapIndex;
+import com.tangosol.util.ValueExtractor;
 import java.util.Map;
 
 /**
@@ -130,7 +134,7 @@ public abstract class WrapperContext
      * Shortcut version of getBackingMapContext by name, for callers which
     * already hold the storage.
      */
-    public com.tangosol.net.BackingMapContext ensureBackingMapContext(com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage)
+    public com.tangosol.net.BackingMapContext ensureBackingMapContext(Storage storage)
         {
         // import com.tangosol.net.BackingMapContext as com.tangosol.net.BackingMapContext;
         // import java.util.Map;
@@ -164,7 +168,7 @@ public abstract class WrapperContext
     // From interface: com.tangosol.net.BackingMapManagerContext
     public com.tangosol.net.BackingMapContext getBackingMapContext(String sCacheName)
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         // import com.tangosol.net.BackingMapContext as com.tangosol.net.BackingMapContext;
         // import java.util.Map;
         
@@ -176,7 +180,7 @@ public abstract class WrapperContext
             // we don't have any concerns about thread safety since the
             // wrappered context operates on a single thread
         
-            com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = getStorage(sCacheName);
+            Storage storage = getStorage(sCacheName);
             if (storage != null)
                 {
                 WrapperContext.StorageContext ctx = instantiateStorageContext(storage);
@@ -270,7 +274,7 @@ public abstract class WrapperContext
         return null;
         }
     
-    public com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage getStorage(String sCacheName)
+    public Storage getStorage(String sCacheName)
         {
         return null;
         }
@@ -304,7 +308,7 @@ public abstract class WrapperContext
      * Factory method to avoid cost of virtual construction of $StorageContext
     * child component.
      */
-    protected WrapperContext.StorageContext instantiateStorageContext(com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage)
+    protected WrapperContext.StorageContext instantiateStorageContext(Storage storage)
         {
         // this method could be called quite frequently; optimize _newChild()
         WrapperContext.StorageContext ctx = new WrapperContext.StorageContext();
@@ -386,7 +390,7 @@ public abstract class WrapperContext
          *
          * The wrapped $Storage.
          */
-        private com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage __m_Storage;
+        private Storage __m_Storage;
         
         // Default constructor
         public StorageContext()
@@ -495,7 +499,13 @@ public abstract class WrapperContext
             {
             return getStorage().getIndexMap(partitions);
             }
-        
+
+        // From interface: com.tangosol.net.BackingMapContext
+        public Map<ValueExtractor, MapIndex> getIndexMap(int nPartition)
+            {
+            return getStorage().getIndexMap(nPartition);
+            }
+
         // From interface: com.tangosol.net.BackingMapContext
         public com.tangosol.net.BackingMapManagerContext getManagerContext()
             {
@@ -535,7 +545,7 @@ public abstract class WrapperContext
          * Getter for property Storage.<p>
         * The wrapped $Storage.
          */
-        public com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage getStorage()
+        public Storage getStorage()
             {
             return __m_Storage;
             }
@@ -552,7 +562,7 @@ public abstract class WrapperContext
          * Setter for property Storage.<p>
         * The wrapped $Storage.
          */
-        public void setStorage(com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage)
+        public void setStorage(Storage storage)
             {
             __m_Storage = storage;
             }

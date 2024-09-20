@@ -1,18 +1,20 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util.invoke.lambda;
 
+import com.tangosol.internal.asm.ClassReaderInternal;
+
 import com.tangosol.internal.util.invoke.ClassIdentity;
+
 import com.tangosol.internal.util.invoke.Lambdas;
 import com.tangosol.internal.util.invoke.RemotableClassGenerator;
 
 import com.tangosol.internal.util.invoke.Remotable;
 
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -319,8 +321,8 @@ public final class RemotableLambdaGenerator
 
         try (InputStream is = loader.getResourceAsStream(sImplClassName + ".class"))
             {
-            ClassReader reader      = new ClassReader(is);
-            ClassNode   implClass   = new ClassNode();
+            ClassReaderInternal reader    = new ClassReaderInternal(is);
+            ClassNode           implClass = new ClassNode();
 
             reader.accept(implClass, 0);
 

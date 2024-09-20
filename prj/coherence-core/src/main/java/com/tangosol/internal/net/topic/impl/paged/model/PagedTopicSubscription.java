@@ -1,21 +1,25 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
-import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.util.SafeClock;
+
 import com.tangosol.internal.net.topic.ChannelAllocationStrategy;
+
 import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.net.topic.TopicException;
+
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
-import com.tangosol.util.ImmutableArrayList;
+import com.tangosol.util.UUID;
 import com.tangosol.util.ValueExtractor;
+
+import it.unimi.dsi.fastutil.ints.IntSortedSets;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -24,12 +28,15 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -163,7 +170,6 @@ public class PagedTopicSubscription
             m_mapSubscriberChannels.putAll(subscription.m_mapSubscriberChannels);
             m_mapSubscriberTimestamp.keySet().retainAll(subscription.m_mapSubscriberTimestamp.keySet());
             m_mapSubscriberTimestamp.putAll(subscription.m_mapSubscriberTimestamp);
-            Logger.finest("Updated " + this);
             }
         finally
             {
@@ -244,13 +250,40 @@ public class PagedTopicSubscription
         }
 
     /**
-     * Return the subscribers subscribed to this subscription.
+     * Return the identifiers of the subscribers subscribed to this subscription.
      *
-     * @return the subscribers subscribed to this subscription
+     * @return the identifiers of the subscribers subscribed to this subscription
      */
-    public SortedMap<Long, SubscriberId> getSubscribers()
+    public Set<SubscriberId> getSubscriberIds()
         {
-        return Collections.unmodifiableSortedMap(m_mapSubscriber);
+        f_lock.lock();
+        try
+            {
+            return new HashSet<>(m_mapSubscriber.values());
+            }
+        finally
+            {
+            f_lock.unlock();
+            }
+        }
+
+    /**
+     * Add the subscribers subscribed to this subscription
+     * to the specified map.
+     *
+     * @param map  the map to add the subscribers to
+     */
+    public void addSubscribersTo(Map<Long, SubscriberId> map)
+        {
+        f_lock.lock();
+        try
+            {
+            map.putAll(m_mapSubscriber);
+            }
+        finally
+            {
+            f_lock.unlock();
+            }
         }
 
     /**
@@ -278,7 +311,6 @@ public class PagedTopicSubscription
             {
             f_lock.unlock();
             }
-
         }
 
     /**
@@ -301,7 +333,7 @@ public class PagedTopicSubscription
             boolean fModified = false;
             for (SubscriberId subscriberId : aSubscriberId)
                 {
-                if (SubscriberId.NullSubscriber.equals(subscriberId))
+                if (subscriberId == null)
                     {
                     continue;
                     }
@@ -325,6 +357,27 @@ public class PagedTopicSubscription
     public int getChannelCount()
         {
         return m_aChannelAllocation == null ? 0 : m_aChannelAllocation.length;
+        }
+
+    /**
+     * Return the {@link SubscriberId} for the subscriber that
+     * owns the specified channel.
+     *
+     * @param nChannel  the channel to obtain the owner
+     *
+     * @return the {@link SubscriberId} for the subscriber that
+     *         owns the specified channel or {@code null} if there
+     *         is no owner or the channel does not exist
+     */
+    public SubscriberId getOwningSubscriber(int nChannel)
+        {
+        long[] aChannelAllocation = m_aChannelAllocation;
+        if (aChannelAllocation.length > nChannel)
+            {
+            long lId = aChannelAllocation[nChannel];
+            return m_mapSubscriber.get(lId);
+            }
+        return null;
         }
 
     /**
@@ -353,10 +406,29 @@ public class PagedTopicSubscription
     @SuppressWarnings("unchecked")
     public SortedSet<Integer> getOwnedChannels(SubscriberId id)
         {
-        Object oValue = m_mapSubscriberChannels.getOrDefault(id, NO_CHANNELS);
-        if (oValue instanceof Integer)
+        if (id == null)
             {
-            return new ImmutableArrayList(Collections.singleton(oValue));
+            return NO_CHANNELS;
+            }
+
+        Object oValue;
+        f_lock.lock();
+        try
+            {
+            oValue = m_mapSubscriberChannels.get(id);
+            }
+        finally
+            {
+            f_lock.unlock();
+            }
+
+        if (oValue == null)
+            {
+            return NO_CHANNELS;
+            }
+        else if (oValue instanceof Integer)
+            {
+            return IntSortedSets.singleton((int) oValue);
             }
         return Collections.unmodifiableSortedSet((SortedSet<Integer>) oValue);
         }
@@ -391,7 +463,7 @@ public class PagedTopicSubscription
             for (int i = 0; i < m_aChannelAllocation.length; i++)
                 {
                 int          nChannel     = i;
-                SubscriberId subscriberId = m_mapSubscriber.get(m_aChannelAllocation[i]);
+                SubscriberId subscriberId = m_mapSubscriber.getOrDefault(m_aChannelAllocation[i], SubscriberId.NullSubscriber);
                 m_mapSubscriberChannels.compute(subscriberId, (k, oValue) ->
                     {
                     if (oValue == null)
@@ -491,35 +563,64 @@ public class PagedTopicSubscription
             }
         }
 
+    public Set<SubscriberId> getDepartedSubscribers(Set<UUID> setMember)
+        {
+        Set<SubscriberId> setDeparted = new HashSet<>();
+        for (SubscriberId id : m_mapSubscriber.values())
+            {
+            if (!setMember.contains(id.getUID()))
+                {
+                setDeparted.add(id);
+                }
+            }
+        return setDeparted;
+        }
+
     // ----- ExternalizableLite methods -------------------------------------
 
     @Override
     public void readExternal(DataInput in) throws IOException
         {
-        m_key                = ExternalizableHelper.readObject(in);
-        m_nSubscriptionId    = in.readLong();
-        m_filter             = ExternalizableHelper.readObject(in);
-        m_extractor          = ExternalizableHelper.readObject(in);
-        m_aChannelAllocation = ExternalizableHelper.readObject(in);
-        m_mapSubscriber.clear();
-        ExternalizableHelper.readMap(in, m_mapSubscriber, null);
-        m_mapSubscriberChannels.clear();
-        ExternalizableHelper.readMap(in, m_mapSubscriberChannels, null);
-        m_mapSubscriberTimestamp.clear();
-        ExternalizableHelper.readMap(in, m_mapSubscriberTimestamp, null);
+        f_lock.lock();
+        try
+            {
+            m_key                = ExternalizableHelper.readObject(in);
+            m_nSubscriptionId    = in.readLong();
+            m_filter             = ExternalizableHelper.readObject(in);
+            m_extractor          = ExternalizableHelper.readObject(in);
+            m_aChannelAllocation = ExternalizableHelper.readObject(in);
+            m_mapSubscriber.clear();
+            ExternalizableHelper.readMap(in, m_mapSubscriber, null);
+            m_mapSubscriberChannels.clear();
+            ExternalizableHelper.readMap(in, m_mapSubscriberChannels, null);
+            m_mapSubscriberTimestamp.clear();
+            ExternalizableHelper.readMap(in, m_mapSubscriberTimestamp, null);
+            }
+        finally
+            {
+            f_lock.unlock();
+            }
         }
 
     @Override
     public void writeExternal(DataOutput out) throws IOException
         {
-        ExternalizableHelper.writeObject(out, m_key);
-        out.writeLong(m_nSubscriptionId);
-        ExternalizableHelper.writeObject(out, m_filter);
-        ExternalizableHelper.writeObject(out, m_extractor);
-        ExternalizableHelper.writeObject(out, m_aChannelAllocation);
-        ExternalizableHelper.writeMap(out, m_mapSubscriber);
-        ExternalizableHelper.writeMap(out, m_mapSubscriberChannels);
-        ExternalizableHelper.writeMap(out, m_mapSubscriberTimestamp);
+        f_lock.lock();
+        try
+            {
+            ExternalizableHelper.writeObject(out, m_key);
+            out.writeLong(m_nSubscriptionId);
+            ExternalizableHelper.writeObject(out, m_filter);
+            ExternalizableHelper.writeObject(out, m_extractor);
+            ExternalizableHelper.writeObject(out, m_aChannelAllocation);
+            ExternalizableHelper.writeMap(out, m_mapSubscriber);
+            ExternalizableHelper.writeMap(out, m_mapSubscriberChannels);
+            ExternalizableHelper.writeMap(out, m_mapSubscriberTimestamp);
+            }
+        finally
+            {
+            f_lock.unlock();
+            }
         }
 
     // ----- Object methods -------------------------------------------------
@@ -655,6 +756,28 @@ public class PagedTopicSubscription
         public SubscriberGroupId m_groupId;
         }
 
+    // ----- inner interface: Listener --------------------------------------
+
+    /**
+     * A listener that will be notified of changes to {@link PagedTopicSubscription subscriptions}.
+     */
+    public interface Listener
+        {
+        /**
+         * Called when a {@link PagedTopicSubscription} is updated.
+         *
+         * @param subscription  the updated {@link PagedTopicSubscription}
+         */
+        void onUpdate(PagedTopicSubscription subscription);
+
+        /**
+         * Called when a {@link PagedTopicSubscription} is deleted.
+         *
+         * @param subscription  the deleted {@link PagedTopicSubscription}
+         */
+        void onDelete(PagedTopicSubscription subscription);
+        }
+
     // ----- constants ------------------------------------------------------
 
     /**
@@ -665,8 +788,7 @@ public class PagedTopicSubscription
     /**
      * A singleton empty channel allocation array.
      */
-    @SuppressWarnings("unchecked")
-    public static final SortedSet<Integer> NO_CHANNELS = new ImmutableArrayList(Collections.emptyList());
+    public static final SortedSet<Integer> NO_CHANNELS = IntSortedSets.EMPTY_SET;
 
     /**
      * The clock to use to add timestamps to subscriptions.

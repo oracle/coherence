@@ -46,12 +46,15 @@ import java.util.Set;
 /**
  * NamedCacheProtocol Version:
  * 
- * (2) MessageFacotory
+ * (2) MessageFactory
  * (3) COH-6337    Add cookie support for LimitFilter
  * (4) COH-8238    Add FilterIds to MapEvent
  * (5) COH-9355    Add TransformationState to MapEvent
  * (6) COH-4615    Add Priming events support
- * (6) COH-10216  Add cache truncate support
+ * (6) COH-10216   Add cache truncate support
+ * ...
+ * (10) COH-25175  Add NoStorageMembers message support
+ * (11) COH-24968  Add cache isReady support
  * 
  * The type identifiers of the Message classes instantiated by this
  * MessageFactory are organized as follows:
@@ -95,6 +98,11 @@ import java.util.Set;
  * (53) InvokeRequest
  * (54) InvokeAllRequest
  * (55) InvokeFilterRequest
+ * (56) NoStorageMembers
+ *
+ * Other (61-70)
+ *
+ * (61) ReadyRequest
  */
 @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
 public class NamedCacheFactory
@@ -135,6 +143,7 @@ public class NamedCacheFactory
         __mapChildren.put("PutAllRequest", NamedCacheFactory.PutAllRequest.get_CLASS());
         __mapChildren.put("PutRequest", NamedCacheFactory.PutRequest.get_CLASS());
         __mapChildren.put("QueryRequest", NamedCacheFactory.QueryRequest.get_CLASS());
+        __mapChildren.put("ReadyRequest", NamedCacheFactory.ReadyRequest.get_CLASS());
         __mapChildren.put("RemoveAllRequest", NamedCacheFactory.RemoveAllRequest.get_CLASS());
         __mapChildren.put("RemoveRequest", NamedCacheFactory.RemoveRequest.get_CLASS());
         __mapChildren.put("Response", NamedCacheFactory.Response.get_CLASS());
@@ -6744,6 +6753,157 @@ public class NamedCacheFactory
                 {
                 return this.get_Parent().get_Parent();
                 }
+            }
+        }
+
+    // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$ReadyRequest
+
+    /**
+     * Map.isReady() Request message.
+     */
+    @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
+    public static class ReadyRequest
+            extends    com.tangosol.coherence.component.net.extend.message.request.NamedCacheRequest
+        {
+        // ---- Fields declarations ----
+
+        /**
+         * Property TYPE_ID
+         *
+         * The type identifier for this Message component class.
+         */
+        public static final int TYPE_ID = 61;
+        private static com.tangosol.util.ListMap __mapChildren;
+
+        // Static initializer
+        static
+            {
+            __initStatic();
+            }
+
+        // Default static initializer
+        private static void __initStatic()
+            {
+            // register child classes
+            __mapChildren = new com.tangosol.util.ListMap();
+            __mapChildren.put("Status", NamedCacheFactory.ReadyRequest.Status.get_CLASS());
+            }
+
+        // Default constructor
+        public ReadyRequest()
+            {
+            this(null, null, true);
+            }
+
+        // Initializing constructor
+        public ReadyRequest(String sName, com.tangosol.coherence.Component compParent, boolean fInit)
+            {
+            super(sName, compParent, false);
+
+            if (fInit)
+                {
+                __init();
+                }
+            }
+
+        // Main initializer
+        public void __init()
+            {
+            // private initialization
+            __initPrivate();
+
+
+            // containment initialization: children
+
+            // signal the end of the initialization
+            set_Constructed(true);
+            }
+
+        // Private initializer
+        protected void __initPrivate()
+            {
+
+            super.__initPrivate();
+            }
+
+        //++ getter for static property _Instance
+        /**
+         * Getter for property _Instance.<p>
+         * Auto generated
+         */
+        public static com.tangosol.coherence.Component get_Instance()
+            {
+            return new com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory.ReadyRequest();
+            }
+
+        //++ getter for static property _CLASS
+        /**
+         * Getter for property _CLASS.<p>
+         * Property with auto-generated accessor that returns the Class object
+         * for a given component.
+         */
+        public static Class get_CLASS()
+            {
+            Class clz;
+            try
+                {
+                clz = Class.forName("com.tangosol.coherence/component/net/extend/messageFactory/NamedCacheFactory$ReadyRequest".replace('/', '.'));
+                }
+            catch (ClassNotFoundException e)
+                {
+                throw new NoClassDefFoundError(e.getMessage());
+                }
+            return clz;
+            }
+
+        //++ getter for autogen property _Module
+        /**
+         * This is an auto-generated method that returns the global [design
+         * time] parent component.
+         *
+         * Note: the class generator will ignore any custom implementation for
+         * this behavior.
+         */
+        private com.tangosol.coherence.Component get_Module()
+            {
+            return this.get_Parent();
+            }
+
+        //++ getter for autogen property _ChildClasses
+        /**
+         * This is an auto-generated method that returns the map of design time
+         * [static] children.
+         *
+         * Note: the class generator will ignore any custom implementation for
+         * this behavior.
+         */
+        protected java.util.Map get_ChildClasses()
+            {
+            return __mapChildren;
+            }
+
+        // Declared at the super level
+        public int getTypeId()
+            {
+            return TYPE_ID;
+            }
+
+        // Declared at the super level
+        /**
+         * Called when the Request is run.
+         *
+         * @param response  the Response that should be populated with the
+         * result of running the Request
+         */
+        protected void onRun(com.tangosol.coherence.component.net.extend.message.Response response)
+            {
+            // import com.tangosol.net.NamedCache;
+            // import com.tangosol.util.Base;
+
+            NamedCache cache = getNamedCache();
+            _assert(cache != null);
+
+            response.setResult(cache.isReady());
             }
         }
 

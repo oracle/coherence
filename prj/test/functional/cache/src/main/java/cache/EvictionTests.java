@@ -1,21 +1,25 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package cache;
 
-import com.oracle.coherence.common.base.Converter;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.ServiceStatus;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+
+import com.oracle.coherence.common.base.Converter;
+
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.PartitionedService;
+
+import com.tangosol.net.partition.KeyAssociator;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.BinaryEntry;
@@ -24,29 +28,30 @@ import com.tangosol.util.MapEvent;
 import com.tangosol.util.MultiplexingMapListener;
 import com.tangosol.util.ValueExtractor;
 
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.TimeUnit;
-import org.hamcrest.CoreMatchers;
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.tangosol.net.partition.KeyAssociator;
-
 import com.tangosol.util.aggregator.DistinctValues;
+
+import com.tangosol.util.extractor.ReflectionExtractor;
 
 import com.tangosol.util.filter.AlwaysFilter;
 
 import com.tangosol.util.processor.AbstractProcessor;
-import data.Person;
 
-import com.tangosol.util.extractor.ReflectionExtractor;
+import data.Person;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+
+import org.hamcrest.CoreMatchers;
+
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
@@ -172,8 +177,7 @@ public class EvictionTests
      */
     public void doActiveEvictionTest(NamedCache cache)
         {
-        long cExpiry = 3000L;
-        long cSleep  = 1000L;
+        long cSleep = 1000L;
 
         // EvictionTask should be scheduled for cache with expiry configured.
         ClientListener listener = new ClientListener();
@@ -192,7 +196,7 @@ public class EvictionTests
         cache.put(2, EvictionTests.VALUE, 1000L);
         listener.assertDeleteEvent(2, true);
 
-        Base.sleep(cExpiry - cSleep + 250L);
+        Base.sleep(EXPIRY - cSleep + 250L);
         listener.assertDeleteEvent(1, true);
         assertNull(cache.get(1));
         assertNull(cache.get(2));
@@ -203,12 +207,11 @@ public class EvictionTests
      */
     public void doExpirySlidingTest(NamedCache cache)
         {
-        long       cExpiry     = 3000L;
-        long       cSleep      = 2000L;
+        long       cSleep      = EXPIRY/2;
         int        cSize       = 10;
         Map        map         = new HashMap();
         Set        setKeys     = new HashSet();
-        Integer    IPart       = 100;
+
         for (int i = 0; i < cSize; i++)
             {
             map.put(i, i);
@@ -219,15 +222,15 @@ public class EvictionTests
         cache.putAll(map);
         Base.sleep(cSleep);
         cache.get(1);
-        Base.sleep(cExpiry - cSleep + 250L);
+        Base.sleep(cSleep + (cSleep / 2));
         assertEquals(1, cache.size());
         cache.clear();
 
-        // all keys's expiry should be extended after the getAll call
+        // all keys' expiry should be extended after the getAll call
         cache.putAll(map);
         Base.sleep(cSleep);
         cache.getAll(setKeys);
-        Base.sleep(cExpiry - cSleep + 250);
+        Base.sleep(cSleep + (cSleep / 2));
         assertEquals(cSize, cache.size());
         cache.clear();
 
@@ -238,7 +241,7 @@ public class EvictionTests
         Base.sleep(cSleep);
         TestProcessor processor = new TestProcessor();
         cache.invoke(1, processor);
-        Base.sleep(cExpiry - cSleep + 250L);
+        Base.sleep(cSleep + (cSleep / 2));
         assertEquals(2, cache.size());
         cache.clear();
         cleanup();
@@ -249,8 +252,7 @@ public class EvictionTests
      */
     public void doQueryExpirySlidingTest(NamedCache cache)
         {
-        long       cExpiry     = 3000L;
-        long       cSleep      = 1000L;
+        long       cSleep      = EXPIRY/2;
         int        cSize       = 10;
 
         ValueExtractor extractor = new ReflectionExtractor("getLastName");
@@ -262,12 +264,12 @@ public class EvictionTests
         assertEquals(cSize, cache.size());
         Base.sleep(cSleep);
 
+        // aggregate DOES NOT extend expiry
         cache.aggregate(AlwaysFilter.INSTANCE, agent);
-
-        Base.sleep(cExpiry - cSleep + 250);
+        Base.sleep(cSleep + (cSleep / 2));
         assertEquals(0, cache.size());
-        cache.clear();
 
+        cache.clear();
         cleanup();
         }
 
@@ -387,4 +389,9 @@ public class EvictionTests
      * The value put into the cache.
      */
     private final static String VALUE = "foo";
+
+    /**
+     * The expiry specified in the cache configuration.
+     */
+    private final static long EXPIRY = 3_000L;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 
 package com.tangosol.internal.util.invoke.lambda;
 
+import com.tangosol.internal.util.ExceptionHelper;
 import com.tangosol.internal.util.invoke.Lambdas;
 
 import com.tangosol.io.ExternalizableLite;
@@ -27,11 +28,14 @@ import java.io.IOException;
 
 import java.io.ObjectStreamException;
 
+import java.lang.ReflectiveOperationException;
+
 import java.lang.invoke.MethodHandleInfo;
 import java.lang.invoke.SerializedLambda;
 
 import java.lang.reflect.Method;
 import java.security.AccessController;
+import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.Objects;
@@ -219,7 +223,55 @@ public class StaticLambdaInfo<T>
     @Override
     public Object readResolve() throws ObjectStreamException
         {
-        return createLambda(toSerializedLambda(Base.getContextClassLoader(this)));
+        String           sName            = m_sCapturingClass.replace('/', '.');
+        SerializedLambda serializedLambda = null;
+        try
+            {
+            // optimization: inline call to createLambda(toSerializedLambda(Base.getContextClassLoader(this))) to avoid calling loadClass twice.
+            final Class clzCapturing = Base.getContextClassLoader(this).loadClass(sName);
+
+            serializedLambda =  new SerializedLambda(
+                    clzCapturing,
+                    m_sFunctionalInterfaceClass,
+                    m_sFunctionalInterfaceMethodName,
+                    m_sFunctionalInterfaceMethodSignature,
+                    m_nImplMethodKind,
+                    m_sImplClass,
+                    m_sImplMethodName,
+                    m_sImplMethodSignature,
+                    m_sInstantiatedMethodType,
+                    m_aoCapturedArgs);
+
+            // inlined from private SerializedLambda.readResolve method to avoid requiring --add-opens java.base/java.lang.invoke=com.oracle.coherence JPMS.
+            @SuppressWarnings("removal")
+            Method deserialize = AccessController.doPrivileged(new PrivilegedExceptionAction<>() {
+                @Override
+                public Method run() throws Exception
+                    {
+                    // Since all JDK generated lambda methods are private, applications using Coherence distributed lambda
+                    // must open themselves to module com.oracle.coherence for reflection call below to succeed.
+                    Method m = clzCapturing.getDeclaredMethod("$deserializeLambda$", SerializedLambda.class);
+                    m.setAccessible(true);
+                    return m;
+                    }
+                });
+
+            return deserialize.invoke(null, serializedLambda);
+            }
+        catch (ClassNotFoundException e)
+            {
+            throw new RuntimeException("Failed to deserialize static lambda " +
+                                       m_sImplClass + "$" + m_sImplMethodName + m_sImplMethodSignature +
+                                       " due to missing context class " + sName + ".", e);
+            }
+        catch (ReflectiveOperationException e)
+            {
+            throw ExceptionHelper.createInvalidObjectException("Exception resolving static lambda " + serializedLambda, e);
+            }
+        catch (PrivilegedActionException e)
+            {
+            throw Base.ensureRuntimeException(e.getCause(), "Exception in StaticLambdaInfo.readResolve processing " + serializedLambda);
+            }
         }
     
     // ----- ExternalizableLite interface -----------------------------------
@@ -377,20 +429,35 @@ public class StaticLambdaInfo<T>
      *
      * @since 14.1.1.0.2
      */
+    @Deprecated
     protected static Object createLambda(SerializedLambda serializedLambda)
         {
         Objects.requireNonNull(serializedLambda);
 
+        // inefficient to use this method now, only keeping for backwards compatibility.
+        // this code is inlined in #readResolve() to avoid having to loadClass twice.
         try
             {
-            Method methReadResolve = AccessController.doPrivileged((PrivilegedExceptionAction<Method>) () ->
+            Method deserialize = AccessController.doPrivileged(new PrivilegedExceptionAction<Method>()
                 {
-                Method m = SerializedLambda.class.getDeclaredMethod("readResolve");
-                m.setAccessible(true);
-                return m;
+                public Method run() throws Exception
+                    {
+                    String sName = serializedLambda.getCapturingClass().replace('/', '.');
+                    Method m     = Base.getContextClassLoader(serializedLambda).loadClass(sName)
+                                        .getDeclaredMethod("$deserializeLambda$", SerializedLambda.class);
+                    m.setAccessible(true);
+                    return m;
+                    }
                 });
-
-            return methReadResolve.invoke(serializedLambda);
+            return deserialize.invoke(null, serializedLambda);
+            }
+        catch (ReflectiveOperationException e)
+            {
+            throw new RuntimeException(ExceptionHelper.createInvalidObjectException("Exception resolving static lambda " + serializedLambda, e));
+            }
+        catch (PrivilegedActionException e)
+            {
+            throw Base.ensureRuntimeException(e.getCause(), "Exception in StaticLambdaInfo.readResolve processing " + serializedLambda);
             }
         catch (Exception e)
             {

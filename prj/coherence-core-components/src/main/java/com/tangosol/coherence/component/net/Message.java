@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -850,7 +850,19 @@ public class Message
         {
         return getService().isVersionCompatible(getToMemberSet(), nMajor, nMinor, nMicro, nPatchSet, nPatch);
         }
-    
+
+    @Override
+    public boolean isRecipientCompatible(int nEncodedVersion)
+        {
+        return getService().isVersionCompatible(getToMemberSet(), nEncodedVersion);
+        }
+
+    @Override
+    public boolean isRecipientPatchCompatible(int nEncodedVersion)
+        {
+        return getService().isPatchCompatible(getToMemberSet(), nEncodedVersion);
+        }
+
     // From interface: com.tangosol.internal.net.MessageComponent
     public boolean isSenderCompatible(int nYear, int nMonth, int nPatch)
         {
@@ -863,6 +875,18 @@ public class Message
         return getService().isVersionCompatible(getFromMember(), nMajor, nMinor, nMicro, nPatchSet, nPatch);
         }
     
+    @Override
+    public boolean isSenderCompatible(int nEncodedVersion)
+        {
+        return getService().isVersionCompatible(getFromMember(), nEncodedVersion);
+        }
+
+    @Override
+    public boolean isSenderPatchCompatible(int nEncodedVersion)
+        {
+        return getService().isPatchCompatible(getFromMember(), nEncodedVersion);
+        }
+
     /**
      * Ensure that the delivery notification is posted if necessary.
      */
@@ -1133,7 +1157,7 @@ public class Message
         if (input.available() > 0)
             {
             Map mapSpanCtx = (Map) ExternalizableHelper.readObject(input);
-            if (mapSpanCtx != null)
+            if (mapSpanCtx != null && !mapSpanCtx.isEmpty())
                 {
                 setTracingSpanContext(TracingHelper.getTracer().extract(mapSpanCtx));
                 }
@@ -1461,7 +1485,7 @@ public class Message
     * 
     * @functional
      */
-    protected void setNotifyDelivery(boolean fNotify)
+    public void setNotifyDelivery(boolean fNotify)
         {
         if (fNotify)
             {

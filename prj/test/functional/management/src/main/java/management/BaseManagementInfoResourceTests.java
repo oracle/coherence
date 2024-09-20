@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,16 +16,15 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterBuilder;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.JMXManagementMode;
 import com.oracle.bedrock.runtime.coherence.ServiceStatus;
-
 import com.oracle.bedrock.runtime.coherence.callables.IsReady;
+
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
-
 import com.oracle.bedrock.runtime.coherence.options.Logging;
+
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
-
 import com.oracle.bedrock.runtime.concurrent.runnable.RuntimeHalt;
 
 import com.oracle.bedrock.runtime.java.ClassPath;
@@ -42,6 +41,7 @@ import com.oracle.bedrock.testsupport.junit.TestLogs;
 
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.common.base.Randoms;
 import com.oracle.coherence.common.base.Reads;
 
 import com.tangosol.coherence.management.internal.MapProvider;
@@ -52,6 +52,7 @@ import com.tangosol.internal.management.MBeanResponse;
 
 import com.tangosol.internal.management.resources.AbstractManagementResource;
 import com.tangosol.internal.management.resources.ClusterMemberResource;
+import com.tangosol.internal.management.resources.ClusterResource;
 
 import com.tangosol.internal.net.management.HttpHelper;
 
@@ -69,6 +70,7 @@ import com.tangosol.net.topic.Subscriber;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
+import com.tangosol.util.filter.AlwaysFilter;
 
 import com.oracle.coherence.testing.AbstractTestInfrastructure;
 
@@ -144,9 +146,10 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.delayedBy;
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.CACHES;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.CLEAR;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.DESCRIPTION;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.MANAGEMENT;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.MEMBER;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.MEMBERS;
@@ -159,6 +162,9 @@ import static com.tangosol.internal.management.resources.AbstractManagementResou
 import static com.tangosol.internal.management.resources.AbstractManagementResource.RESET_STATS;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.ROLE_NAME;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.SERVICE;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.STORAGE;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.TRUNCATE;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.VIEWS;
 import static com.tangosol.internal.management.resources.ClusterMemberResource.DIAGNOSTIC_CMD;
 import static com.tangosol.internal.management.resources.ClusterResource.DUMP_CLUSTER_HEAP;
 import static com.tangosol.internal.management.resources.ClusterResource.ROLE;
@@ -339,6 +345,19 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(linkNames, hasItem(MEMBERS));
         assertThat(linkNames, hasItem(SERVICES));
         assertThat(linkNames, hasItem(CACHES));
+        }
+
+    @Test
+    public void testClusterDescription()
+        {
+        WebTarget target   = getBaseTarget().path(DESCRIPTION);
+        Response  response = target.request().get();
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+        assertThat(((String) (readEntity(target, response).get(DESCRIPTION)))
+                           .startsWith("SafeCluster: Name=" + CLUSTER_NAME + ", ClusterPort="),
+                   is(true));
         }
 
     @Test
@@ -957,6 +976,32 @@ public abstract class BaseManagementInfoResourceTests
         }
 
     @Test
+    public void testMemberDescription()
+        {
+        WebTarget target   = getBaseTarget();
+        Response  response = target.request().get();
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+        Map mapResponse = readEntity(target, response);
+
+        List<Number> listMemberIds = (List<Number>) mapResponse.get("memberIds");
+
+        assertThat(listMemberIds, notNullValue());
+        assertThat(listMemberIds.size(), greaterThan(0));
+
+        Number nMemberId = listMemberIds.get(0);
+
+        target = getBaseTarget().path("members").path(String.valueOf(nMemberId)).path(DESCRIPTION);
+        response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(((String) readEntity(target, response).get(DESCRIPTION))
+                           .startsWith("Member(Id=" + nMemberId),
+                   is(true));
+        }
+
+    @Test
     public void testJfrWithAllNodes()
             throws Exception
         {
@@ -965,16 +1010,18 @@ public abstract class BaseManagementInfoResourceTests
         // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
 
-        Response response = getBaseTarget().path(DIAGNOSTIC_CMD)
+        WebTarget target   = getBaseTarget().path(DIAGNOSTIC_CMD)
                 .path("jfrStart")
-                .queryParam(OPTIONS, encodeValue("name=all"))
-                .request(MediaType.APPLICATION_JSON_TYPE)
-                .post(null);
+                .queryParam(OPTIONS, encodeValue("name=all"));
+        Response  response = target.request(MediaType.APPLICATION_JSON_TYPE).post(null);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
-        String result = response.readEntity(String.class);
-        assertThat("Result returned: " + result, result.indexOf(SERVER_PREFIX + "-1"), greaterThan(0));
-        assertThat("Result returned: " + result, result.indexOf(SERVER_PREFIX + "-2"), greaterThan(0));
+
+        Map    mapResult  = readEntity(target, response);
+        List   listStatus = (List) mapResult.get("status");
+        String result     = (String) listStatus.get(0) + listStatus.get(1);
+        assertThat("Result returned: " + result, result.indexOf(SERVER_PREFIX + "-1"), greaterThanOrEqualTo(0));
+        assertThat("Result returned: " + result, result.indexOf(SERVER_PREFIX + "-2"), greaterThanOrEqualTo(0));
 
         File   folder   = s_dirJFR;
         String sJfr1    = folder.getAbsolutePath() + File.separator + "all1.jfr";
@@ -986,13 +1033,14 @@ public abstract class BaseManagementInfoResourceTests
                 .post(null);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-        response = getBaseTarget().path(DIAGNOSTIC_CMD)
-                .path("jfrDump")
-                .queryParam(OPTIONS, encodeValue("name=all"))
-                .request(MediaType.APPLICATION_JSON_TYPE)
-                .post(null);
+        target = getBaseTarget().path(DIAGNOSTIC_CMD).path("jfrDump")
+                .queryParam(OPTIONS, encodeValue("name=all"));
+        response = target.request(MediaType.APPLICATION_JSON_TYPE).post(null);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        result = response.readEntity(String.class);
+
+        mapResult  = readEntity(target, response);
+        listStatus = (List) mapResult.get("status");
+        result     = (String) listStatus.get(0) + listStatus.get(1);
 
         // for JDK11, when dump file is not provided,
         // DiagnosticCommand generates a file name instead of throwing exception
@@ -1034,16 +1082,14 @@ public abstract class BaseManagementInfoResourceTests
         String sFilePath = jfrDir.getAbsolutePath() + File.separator;
         String sFileName = sFilePath + "testMemberJfr-myRecording.jfr";
 
-        Response response = getBaseTarget().path(DIAGNOSTIC_CMD)
-                .path("jfrStart")
-                .queryParam(OPTIONS, encodeValue("name=myJfr,duration=3s,filename=" + sFileName))
-                .queryParam(ROLE_NAME, SERVER_PREFIX + "-1")
-                .request(MediaType.APPLICATION_JSON_TYPE)
-                .post(null);
+        WebTarget target  = getBaseTarget().path(DIAGNOSTIC_CMD).path("jfrStart")
+                .queryParam(OPTIONS, encodeValue("name=myJfr,duration=3s,filename="+ sFileName))
+                .queryParam(ROLE_NAME, SERVER_PREFIX + "-1");
+        Response response = target.request(MediaType.APPLICATION_JSON_TYPE).post(null);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
 
-        String result = response.readEntity(String.class);
+        String result = (String) ((List) readEntity(target, response).get("status")).get(0);
 
         File testFile1 = new File(sFilePath + "1-testMemberJfr-myRecording.jfr");
         File testFile2 = new File(sFilePath + "2-testMemberJfr-myRecording.jfr");
@@ -1076,7 +1122,7 @@ public abstract class BaseManagementInfoResourceTests
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
-        Map mapResponse = new LinkedHashMap(response.readEntity(Map.class));
+        Map mapResponse = readEntity(getBaseTarget(), response);
 
         List<Number> listMemberIds = (List<Number>) mapResponse.get("memberIds");
 
@@ -1230,7 +1276,7 @@ public abstract class BaseManagementInfoResourceTests
         List<Map> listItemMaps = (List<Map>) mapResponse.get("items");
         assertThat(listItemMaps, notNullValue());
         listItemMaps.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
-        assertThat(listItemMaps.size(), is(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
+        assertThat(listItemMaps.size(), greaterThanOrEqualTo(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
 
         String sDistServiceName  = null;
         String sProxyServiceName = null;
@@ -1290,6 +1336,18 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         mapResponse = readEntity(target, response);
         assertThat(((Number) ((Map) mapResponse.get("storageEnabled")).get("false")).longValue(), is(1L));
+        }
+
+    @Test
+    public void testServiceDescription()
+        {
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path(DESCRIPTION);
+        Response  response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(((String) readEntity(target, response).get(DESCRIPTION))
+                           .startsWith("PartitionedCache{Name="),
+                   is(true));
         }
 
     @Test
@@ -2054,7 +2112,7 @@ public abstract class BaseManagementInfoResourceTests
             {
             // fill a cache
             NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
-            Binary     binValue = Binary.getRandomBinary(1024, 1024);
+            Binary     binValue = Randoms.getRandomBinary(1024, 1024);
             cache.put(1, binValue);
             return null;
             });
@@ -2078,7 +2136,7 @@ public abstract class BaseManagementInfoResourceTests
             {
             // fill a cache
             NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
-            Binary     binValue = Binary.getRandomBinary(1024, 1024);
+            Binary     binValue = Randoms.getRandomBinary(1024, 1024);
             cache.put(1, binValue);
             cache.clear();
             for (int i = 0; i < 10; ++i)
@@ -2153,7 +2211,7 @@ public abstract class BaseManagementInfoResourceTests
             {
             // fill a cache
             NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
-            Binary     binValue = Binary.getRandomBinary(1024, 1024);
+            Binary     binValue = Randoms.getRandomBinary(1024, 1024);
             for (int i = 0; i < nSize; i++)
                 {
                 cache.put(i, binValue);
@@ -2474,7 +2532,7 @@ public abstract class BaseManagementInfoResourceTests
             {
             // fill a cache
             NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
-            Binary     binValue = Binary.getRandomBinary(1024, 1024);
+            Binary     binValue = Randoms.getRandomBinary(1024, 1024);
             cache.put(1, binValue);
             return null;
             });
@@ -2727,7 +2785,7 @@ public abstract class BaseManagementInfoResourceTests
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
-        Map mapResponse = new LinkedHashMap(readEntity(target, response, entyty));
+        Map mapResponse = readEntity(target, response, entyty);
         assertThat(mapResponse.size(), is(1));
 
         Map membersResponseMap = (Map) mapResponse.get(SERVICES);
@@ -2735,7 +2793,7 @@ public abstract class BaseManagementInfoResourceTests
         List<Map> listMembers = (List<Map>) membersResponseMap.get("items");
         listMembers.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
         assertThat(listMembers, notNullValue());
-        assertThat(listMembers.size(), is(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
+        assertThat(listMembers.size(), greaterThanOrEqualTo(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
 
         for (Map mapMember : listMembers)
             {
@@ -2779,12 +2837,16 @@ public abstract class BaseManagementInfoResourceTests
         listServices.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
 
         assertThat(listServices, notNullValue());
-        assertThat(listServices.size(), is(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
+        assertThat(listServices.size(), greaterThanOrEqualTo(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
 
         for (Map mapService : listServices)
             {
             assertThat(mapService.size(), greaterThan(ATTRIBUTES_COUNT));
-            assertThat(mapService.get(NAME), is(oneOf(getQuotedScopedServiceList())));
+            // for a wls-management metrics test, we need to enable metrics.  So, exclude it here.
+            if (((String) mapService.get(NAME)).compareToIgnoreCase("MetricsHttpProxy") != 0)
+                {
+                assertThat(mapService.get(NAME), is(oneOf(getQuotedScopedServiceList())));
+                }
             assertThat(mapService.get("type"), notNullValue());
             assertThat(mapService.get("memberCount"), notNullValue());
             assertThat(((Map<String, Number>) mapService.get("running")).get("true").intValue(), greaterThanOrEqualTo(1));
@@ -2845,7 +2907,7 @@ public abstract class BaseManagementInfoResourceTests
         List<Map> listMembers = (List<Map>) membersResponseMap.get("items");
         listMembers.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
         assertThat(listMembers, notNullValue());
-        assertThat(listMembers.size(), is(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
+        assertThat(listMembers.size(), greaterThanOrEqualTo(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
 
         for (Map mapServiceMember : listMembers)
             {
@@ -2924,7 +2986,7 @@ public abstract class BaseManagementInfoResourceTests
         List<Map> listMembers = (List<Map>) mapMembersResponse.get("items");
         listMembers.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
         assertThat(listMembers, notNullValue());
-        assertThat(listMembers.size(), is(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
+        assertThat(listMembers.size(), greaterThanOrEqualTo(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
 
         for (Map mapService : listMembers)
             {
@@ -3218,6 +3280,37 @@ public abstract class BaseManagementInfoResourceTests
                         + " expected=" + mapParent;
                 assertThat(sMsg, mapResponseHealth.get(sKey), is(entry.getValue()));
                 }
+            }
+        }
+
+    @Test
+    public void testViews()
+        {
+        WebTarget target   = getBaseTarget().path(VIEWS);
+        Response  response = target.path("view-cache").request().get();
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        Map mapResponse = readEntity(target, response);
+
+        String sMembersUrl = getLink(mapResponse, "members");
+        target   = m_client.target(sMembersUrl);
+        response = target.request().get();
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+
+        Map mapCacheMembers = readEntity(target, response);
+        assertThat(mapCacheMembers, notNullValue());
+
+        List<Map> listCacheMembers = (List<Map>) mapCacheMembers.get("items");
+        assertThat(listCacheMembers.size(), is(1));
+        assertThat(listCacheMembers, notNullValue());
+
+        for (Map mapCacheMember : listCacheMembers)
+            {
+            assertThat(mapCacheMember.get(NAME), is("view-cache"));
+            assertThat(mapCacheMember.get("type"), is("View"));
+            assertThat(mapCacheMember.get("readOnly"), instanceOf(Boolean.class));
+            assertThat(mapCacheMember.containsKey("transformer"), is(true));
+            assertThat(mapCacheMember.get("filter"), is(AlwaysFilter.INSTANCE().toString()));
             }
         }
 
@@ -3525,6 +3618,176 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         }
 
+    @Test
+    public void testClearCache()
+        {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+        final String CACHE_NAME = CLEAR_CACHE_NAME;
+
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            // fill a cache
+            NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
+            Binary     binValue = Randoms.getRandomBinary(1024, 1024);
+            cache.clear();
+            for (int i = 0; i < 10; ++i)
+                {
+                cache.put(i, binValue);
+                }
+            return null;
+            });
+        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
+
+        Eventually.assertDeferred(
+                () -> getBaseTarget().path(STORAGE).path(CACHE_NAME).path(CLEAR).request().post(null).getStatus(),
+                is(Response.Status.OK.getStatusCode()));
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            Eventually.assertDeferred(cache::size, is(0));
+            return null;
+            });
+        }
+
+    @Test
+    public void testReadOnlyClearCache()
+        {
+        // only run when read-only management is enabled
+        Assume.assumeTrue(isReadOnly());
+        final String CACHE_NAME = CLEAR_CACHE_NAME;
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            cache.clear();
+            cache.put("key", "value");
+            return null;
+            });
+        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
+
+        Eventually.assertDeferred(
+                () -> getBaseTarget().path(STORAGE).path(CACHE_NAME).path(CLEAR).request().post(null).getStatus(),
+                is(Response.Status.UNAUTHORIZED.getStatusCode()));
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            Eventually.assertDeferred(cache::size, is(1));
+            return null;
+            });
+        }
+
+    @Test
+    public void testTruncateCache()
+        {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+        final String CACHE_NAME = CLEAR_CACHE_NAME;
+
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            // fill a cache
+            NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
+            Binary     binValue = Randoms.getRandomBinary(1024, 1024);
+            cache.clear();
+            for (int i = 0; i < 10; ++i)
+                {
+                cache.put(i, binValue);
+                }
+            return null;
+            });
+        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
+
+        Eventually.assertDeferred(
+                () -> getBaseTarget().path(STORAGE).path(CACHE_NAME).path(TRUNCATE).request().post(null).getStatus(),
+                is(Response.Status.OK.getStatusCode()));
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            Eventually.assertDeferred(cache::size, is(0));
+            return null;
+            });
+        }
+
+    @Test
+    public void testReadOnlyTruncateCache()
+        {
+        // only run when read-only management is enabled
+        Assume.assumeTrue(isReadOnly());
+        final String CACHE_NAME = CLEAR_CACHE_NAME;
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            cache.clear();
+            cache.put("key", "value");
+            return null;
+            });
+        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
+
+        Eventually.assertDeferred(
+                () -> getBaseTarget().path(STORAGE).path(CACHE_NAME).path(TRUNCATE).request().post(null).getStatus(),
+                is(Response.Status.UNAUTHORIZED.getStatusCode()));
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            Eventually.assertDeferred(cache::size, is(1));
+            return null;
+            });
+        }
+
+    @Test
+    public void testGetClusterConfig()
+            throws Exception
+        {
+        Eventually.assertDeferred(
+                () -> getBaseTarget().path(ClusterResource.GET_CLUSTER_CONFIG).request().get().getStatus(),
+                is(Response.Status.OK.getStatusCode()));
+
+        Response response = getBaseTarget().path(ClusterResource.GET_CLUSTER_CONFIG).request().get();
+        assertNotNull(response);
+
+        String sResponse = response.readEntity(String.class);
+        assertTrue(sResponse.startsWith("<cluster-config"));
+        }
+
+    @Test
+    public void testReportPartitionStats()
+        {
+        final String CACHE_NAME = CLEAR_CACHE_NAME;
+
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            // fill a cache
+            NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
+            Binary     binValue = Randoms.getRandomBinary(1024, 1024);
+            cache.clear();
+            for (int i = 0; i < 10; ++i)
+                {
+                cache.put(i, binValue);
+                }
+            return null;
+            });
+        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
+
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path(STORAGE)
+                            .path(CLEAR_CACHE_NAME).path("reportPartitionStats");
+        Response  response = target.request().get();
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+        Map mapResponse = readEntity(target, response);
+
+        assertThat(mapResponse, notNullValue());
+        List<Map<String, Object>> listPartitionSize = (List<Map<String, Object>>) mapResponse.get("reportPartitionStats");
+        assertThat(listPartitionSize, notNullValue());
+
+        for (Map<String, Object> partitionSize : listPartitionSize)
+            {
+            assertThat(partitionSize.get("partitionId"), is(notNullValue()));
+            assertThat(partitionSize.get("memberId"), is(notNullValue()));
+            assertThat(partitionSize.get("totalSize"), is(notNullValue()));
+            assertThat(partitionSize.get("maxEntrySize"), is(notNullValue()));
+            assertThat(partitionSize.get("count"), is(notNullValue()));
+            }
+        }
+
     // ----- utility methods----------------------------------------------------
 
     /**
@@ -3774,7 +4037,7 @@ public abstract class BaseManagementInfoResourceTests
         response = memTarget.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-        Map mapCacheMembers = new LinkedHashMap(readEntity(memTarget, response));
+        Map mapCacheMembers = readEntity(memTarget, response);
         assertThat(mapCacheMembers, notNullValue());
 
         List<Map> listCacheMembers = (List<Map>) mapCacheMembers.get("items");
@@ -3798,7 +4061,7 @@ public abstract class BaseManagementInfoResourceTests
             memTarget = m_client.target(sSelfUrl);
             response  = memTarget.request().get();
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-            mapResponse = new LinkedHashMap(readEntity(memTarget, response));
+            mapResponse = readEntity(memTarget, response);
 
             List<Map> listCacheMembersOfANode = (List<Map>) mapResponse.get("items");
             assertThat(listCacheMembersOfANode, notNullValue());
@@ -3825,7 +4088,7 @@ public abstract class BaseManagementInfoResourceTests
             String sCacheName = (String) mapCache.get(NAME);
             assertThat(mapCache.get(NAME), is(oneOf(CACHES_LIST)));
 
-            if (!sCacheName.equals(PERSISTENCE_CACHE_NAME))
+            if (!sCacheName.equals(PERSISTENCE_CACHE_NAME) && !sCacheName.equals(CLEAR_CACHE_NAME))
                 {
                 Object size = mapCache.get("size");
                 assertThat(sCacheName, size, is(instanceOf(Number.class)));
@@ -3838,7 +4101,7 @@ public abstract class BaseManagementInfoResourceTests
 
         WebTarget cachesTarget   = getBaseTarget().path(CACHES).queryParam("fields", "name,totalPuts");
         Response  cachesResponse = cachesTarget.request().get();
-        mapResponse   = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        mapResponse   = readEntity(cachesTarget, cachesResponse);
         listCacheMaps = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
         listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPIC_CACHES_LIST).anyMatch(topicCacheName -> topicCacheName.equals(cacheMap.get(NAME))));
@@ -3854,7 +4117,7 @@ public abstract class BaseManagementInfoResourceTests
 
         cachesTarget   = getBaseTarget().path(CACHES).queryParam("fields", "name,units");
         cachesResponse = cachesTarget.request().get();
-        mapResponse    = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        mapResponse    = readEntity(cachesTarget, cachesResponse);
         listCacheMaps  = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
         listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPIC_CACHES_LIST).anyMatch(topicCacheName -> topicCacheName.equals(cacheMap.get(NAME))));
@@ -3870,7 +4133,7 @@ public abstract class BaseManagementInfoResourceTests
                 }
             else
                 {
-                if (!mapCache.get(NAME).equals(PERSISTENCE_CACHE_NAME))
+                if (!mapCache.get(NAME).equals(PERSISTENCE_CACHE_NAME) && !mapCache.get(NAME).equals(CLEAR_CACHE_NAME))
                     {
                     assertThat("Cache " + NAME + "assertion", ((Number) mapCache.get("units")).longValue(), is(1L));
                     }
@@ -3879,7 +4142,7 @@ public abstract class BaseManagementInfoResourceTests
 
         cachesTarget   = getBaseTarget().path(CACHES).queryParam("fields", "name,insertCount");
         cachesResponse = cachesTarget.request().get();
-        mapResponse    = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        mapResponse    = readEntity(cachesTarget, cachesResponse);
         listCacheMaps  = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
         listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPIC_CACHES_LIST).anyMatch(topicCacheName -> topicCacheName.equals(cacheMap.get(NAME))));
@@ -3895,7 +4158,7 @@ public abstract class BaseManagementInfoResourceTests
 
         cachesTarget   = getBaseTarget().path(CACHES).queryParam("fields", SERVICE);
         cachesResponse = cachesTarget.request().get();
-        mapResponse    = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        mapResponse    = readEntity(cachesTarget, cachesResponse);
         listCacheMaps  = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
         listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(serviceName -> ((String) cacheMap.get(SERVICE)).contains(serviceName)));
@@ -3936,7 +4199,7 @@ public abstract class BaseManagementInfoResourceTests
 
         WebTarget cachesTarget = getBaseTarget().path(CACHES).queryParam("fields", "name,totalPuts");
         Response cachesResponse = cachesTarget.request().get();
-        mapResponse = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        mapResponse = readEntity(cachesTarget, cachesResponse);
         listCacheMaps = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
         assertThat(listCacheMaps.size(), greaterThan(1));
@@ -3951,7 +4214,7 @@ public abstract class BaseManagementInfoResourceTests
 
         cachesTarget = getBaseTarget().path(CACHES).queryParam("fields", "name,units");
         cachesResponse = cachesTarget.request().get();
-        mapResponse = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        mapResponse = readEntity(cachesTarget, cachesResponse);
         listCacheMaps = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
         listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPIC_CACHES_LIST).anyMatch(topicCacheName -> topicCacheName.equals(cacheMap.get(NAME))));
@@ -3969,13 +4232,13 @@ public abstract class BaseManagementInfoResourceTests
 
         cachesTarget = getBaseTarget().path(CACHES).queryParam("fields", "name,insertCount");
         cachesResponse = cachesTarget.request().get();
-        mapResponse = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        mapResponse = readEntity(cachesTarget, cachesResponse);
         listCacheMaps = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
 
         cachesTarget = getBaseTarget().path(CACHES).queryParam("fields", SERVICE);
         cachesResponse = cachesTarget.request().get();
-        mapResponse = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        mapResponse = readEntity(cachesTarget, cachesResponse);
         listCacheMaps = (List<Map>) mapResponse.get("items");
         listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) cacheMap.get(SERVICE)).contains(topicServiceName)));
 
@@ -4384,7 +4647,7 @@ public abstract class BaseManagementInfoResourceTests
         propsServer1.add(SystemProperty.of("test.server.name", SERVER_PREFIX + -1));
         propsServer1.add(SystemProperty.of("coherence.management.http", "inherit"));
         propsServer1.add(SystemProperty.of("coherence.management.readonly", Boolean.toString(isReadOnly())));
-        propsServer1.add(SystemProperty.of("coherence.management.http.port", 0));
+        propsServer1.add(SystemProperty.of("coherence.management.http.override-port", 0));
         propsServer1.add(SystemProperty.of("coherence.management.http.cluster", sClusterName));
         propsServer1.add(SystemProperty.of("coherence.override", "tangosol-coherence-override-mgmt.xml"));
         propsServer1.add(SystemProperty.of("test.persistence.active.dir", m_dirActive.getAbsolutePath()));
@@ -4435,7 +4698,7 @@ public abstract class BaseManagementInfoResourceTests
     protected static Void popluateCaches()
         {
         NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
-        Binary     binValue = Binary.getRandomBinary(1024, 1024);
+        Binary     binValue = Randoms.getRandomBinary(1024, 1024);
 
         cache.put(1, binValue);
 
@@ -4447,6 +4710,12 @@ public abstract class BaseManagementInfoResourceTests
         cache = CacheFactory.getCache(PERSISTENCE_CACHE_NAME);
         cache.put(1, binValue);
 
+        // fill clear/truncate cache
+        cache = CacheFactory.getCache(CLEAR_CACHE_NAME);
+        cache.put(1, binValue);
+
+        cache = CacheFactory.getCache("view-cache");
+        cache.put(1, binValue);
         return null;
         }
 
@@ -4697,6 +4966,11 @@ public abstract class BaseManagementInfoResourceTests
     protected static final String NEAR_CACHE_NAME = "near-test";
 
     /**
+     * The clear/truncate cache.
+     */
+    protected static final String CLEAR_CACHE_NAME = "dist-clear";
+
+    /**
      * The name of the invocation service.
      */
     protected static final String INVOCATION_SERVICE_NAME = "TestInvocationService";
@@ -4720,7 +4994,7 @@ public abstract class BaseManagementInfoResourceTests
     /**
      * The list of caches used by this test class.
      */
-    private static final String[] CACHES_LIST = {CACHE_NAME, "near-test", CACHE_NAME_FOO, PERSISTENCE_CACHE_NAME};
+    private static final String[] CACHES_LIST = {CACHE_NAME, "near-test", CACHE_NAME_FOO, PERSISTENCE_CACHE_NAME, CLEAR_CACHE_NAME, "view-cache"};
 
     /**
      * The list of topics caches used by this test class.

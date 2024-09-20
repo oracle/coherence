@@ -16,6 +16,7 @@ import com.tangosol.coherence.component.net.extend.protocol.NameServiceProtocol;
 import com.tangosol.coherence.component.net.extend.proxy.serviceProxy.NameServiceProxy;
 import com.oracle.coherence.common.net.InetAddresses;
 import com.oracle.coherence.common.net.InetSocketAddress32;
+import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 import com.tangosol.config.expression.NullParameterResolver;
 import com.tangosol.internal.net.service.extend.DefaultNameServiceDependencies;
 import com.tangosol.internal.net.service.extend.LegacyXmlNameServiceHelper;
@@ -23,6 +24,7 @@ import com.tangosol.internal.net.service.extend.NameServiceDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultNSTcpAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultTcpAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.TcpAcceptorDependencies;
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.SocketAddressProvider;
 import com.tangosol.net.internal.NameServicePofContext;
 import com.tangosol.net.internal.WrapperSocketAddressProvider;
@@ -32,6 +34,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.IntPredicate;
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.NamingException;
 
@@ -990,6 +993,38 @@ public class NameService
             throws javax.naming.NamingException
         {
         getDirectory().remove(sName);
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nMajor, int nMinor, int nMicro, int nPatchSet, int nPatch)
+        {
+        int nEncoded = ServiceMemberSet.encodeVersion(nMajor, nMinor, nMicro, nPatchSet, nPatch);
+        return CacheFactory.VERSION_ENCODED >= nEncoded;
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nYear, int nMonth, int nPatch)
+        {
+        int nEncoded = ServiceMemberSet.encodeVersion(nYear, nMonth, nPatch);
+        return CacheFactory.VERSION_ENCODED >= nEncoded;
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nVersion)
+        {
+        return CacheFactory.VERSION_ENCODED >= nVersion;
+        }
+
+    @Override
+    public boolean isVersionCompatible(IntPredicate predicate)
+        {
+        return predicate.test(CacheFactory.VERSION_ENCODED);
+        }
+
+    @Override
+    public int getMinimumServiceVersion()
+        {
+        return CacheFactory.VERSION_ENCODED;
         }
 
     // ---- class: com.tangosol.coherence.component.util.NameService$RequestContext

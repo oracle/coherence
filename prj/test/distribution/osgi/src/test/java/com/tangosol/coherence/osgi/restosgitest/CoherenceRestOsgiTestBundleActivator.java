@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.osgi.restosgitest;
 
-import com.tangosol.coherence.rest.util.extractor.MvelExtractor;
+import com.tangosol.coherence.rest.util.JsonMap;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
@@ -50,10 +50,10 @@ public class CoherenceRestOsgiTestBundleActivator
         ClassLoader cl = getClass().getClassLoader();
         Thread.currentThread().setContextClassLoader(cl);
 
-        // introduce a compile-time dependency to MvelExtractor to ensure
+        // introduce a compile-time dependency to JsonMap to ensure
         // the dependency is resolved and valid within this bundle's class
         // space
-        new MvelExtractor();
+        new JsonMap();
         }
 
     /**

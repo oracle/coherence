@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -30,27 +30,28 @@
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-concurrent</artifactId>
-      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-hnsw</artifactId>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-grpc-proxy</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-json</artifactId>
-      <version>${project.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.glassfish</groupId>
       <artifactId>jakarta.json</artifactId>
+      <classifier>module</classifier>
     </dependency>
 
     <!-- tracing dependencies -->
@@ -65,10 +66,15 @@
       <artifactId>slf4j-simple</artifactId>
     </dependency>
 
-    <!-- JMX MP for simpler JMX in containers -->
+    <!-- GraalVM Polyglot support -->
     <dependency>
-      <groupId>org.glassfish.external</groupId>
-      <artifactId>opendmk_jmxremote_optional_jar</artifactId>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>polyglot</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>js</artifactId>
+      <type>pom</type>
     </dependency>
 
     <dependency>
@@ -192,13 +198,15 @@
                      <argument>BUILD</argument>
                    </arguments>
                    <environmentVariables>
+                     <JAVA_EA_BASE_URL>${java.ea.base.url}</JAVA_EA_BASE_URL>
                      <COHERENCE_VERSION>${project.version}</COHERENCE_VERSION>
                      <IMAGE_NAME>${docker.image.name}</IMAGE_NAME>
                      <IMAGE_ARCH>${docker.image.arch}</IMAGE_ARCH>
                      <AMD_BASE_IMAGE>${docker.base.image.name.amd}</AMD_BASE_IMAGE>
                      <ARM_BASE_IMAGE>${docker.base.image.name.arm}</ARM_BASE_IMAGE>
-                     <GRAAL_AMD_BASE_IMAGE>${graal.base.image.name.amd}</GRAAL_AMD_BASE_IMAGE>
-                     <GRAAL_ARM_BASE_IMAGE>${graal.base.image.name.arm}</GRAAL_ARM_BASE_IMAGE>
+                     <GRAAL_AMD_BASE_IMAGE>${graalvm.base.image.name.amd}</GRAAL_AMD_BASE_IMAGE>
+                     <GRAAL_ARM_BASE_IMAGE>${graalvm.base.image.name.arm}</GRAAL_ARM_BASE_IMAGE>
+                     <NO_GRAAL>${graalvm.image.skip}</NO_GRAAL>
                      <PORT_EXTEND>${docker.port.extend}</PORT_EXTEND>
                      <PORT_CONCURRENT_EXTEND>${docker.port.concurrent.extend}</PORT_CONCURRENT_EXTEND>
                      <PORT_GRPC>${docker.port.grpc}</PORT_GRPC>
@@ -302,6 +310,7 @@
                    <environmentVariables>
                      <COHERENCE_VERSION>${project.version}</COHERENCE_VERSION>
                      <IMAGE_NAME>${docker.image.name}</IMAGE_NAME>
+                     <NO_GRAAL>${graalvm.image.skip}</NO_GRAAL>
                      <DOCKER_REGISTRY>${env.DOCKER_REGISTRY}</DOCKER_REGISTRY>
                      <DOCKER_USERNAME>${env.DOCKER_USERNAME}</DOCKER_USERNAME>
                      <DOCKER_PASSWORD>${env.DOCKER_PASSWORD}</DOCKER_PASSWORD>
@@ -338,13 +347,15 @@
                      <argument>EXEC</argument>
                    </arguments>
                    <environmentVariables>
+                     <JAVA_EA_BASE_URL>${java.ea.base.url}</JAVA_EA_BASE_URL>
                      <COHERENCE_VERSION>${project.version}</COHERENCE_VERSION>
                      <IMAGE_NAME>${docker.image.name}</IMAGE_NAME>
                      <IMAGE_ARCH>${docker.image.arch}</IMAGE_ARCH>
                      <AMD_BASE_IMAGE>${docker.base.image.name.amd}</AMD_BASE_IMAGE>
                      <ARM_BASE_IMAGE>${docker.base.image.name.arm}</ARM_BASE_IMAGE>
-                     <GRAAL_AMD_BASE_IMAGE>${graal.base.image.name.amd}</GRAAL_AMD_BASE_IMAGE>
-                     <GRAAL_ARM_BASE_IMAGE>${graal.base.image.name.arm}</GRAAL_ARM_BASE_IMAGE>
+                     <GRAAL_AMD_BASE_IMAGE>${graalvm.base.image.name.amd}</GRAAL_AMD_BASE_IMAGE>
+                     <GRAAL_ARM_BASE_IMAGE>${graalvm.base.image.name.arm}</GRAAL_ARM_BASE_IMAGE>
+                     <NO_GRAAL>${graalvm.image.skip}</NO_GRAAL>
                      <PORT_EXTEND>${docker.port.extend}</PORT_EXTEND>
                      <PORT_CONCURRENT_EXTEND>${docker.port.concurrent.extend}</PORT_CONCURRENT_EXTEND>
                      <PORT_GRPC>${docker.port.grpc}</PORT_GRPC>

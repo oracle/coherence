@@ -1,13 +1,17 @@
 /*
- * Copyright (c) 2000-2021 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.application;
 
+import com.oracle.coherence.common.base.Classes;
+import com.tangosol.io.NamedSerializerFactory;
+import com.tangosol.io.Serializer;
 import com.tangosol.net.CacheFactoryBuilder;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ServiceMonitor;
 
@@ -87,13 +91,37 @@ public interface Context
      */
     public ContainerContext getContainerContext();
 
-     /**
+    /**
+     * Returns the default scope name to use.
+     *
+     * @return the default scope name to use
+     */
+    default String getDefaultScope()
+        {
+        return Coherence.DEFAULT_SCOPE;
+        }
+
+    /**
+     * Produces instances of a named {@link Serializer}.
+     *
+     * @param sName   the name of the serializer
+     *
+     * @return an instance of a named {@link Serializer}
+     *
+     * @throws NullPointerException     if the name parameter is null
+     * @throws IllegalArgumentException if no serializer is discoverable with the specified name
+     */
+    default Serializer getNamedSerializer(String sName)
+        {
+        return NamedSerializerFactory.DEFAULT.getNamedSerializer(sName, Classes.getContextClassLoader());
+        }
+
+    /**
       * @deprecated as useless, left for backward compatibility only
       *
       * @return the {@link ExtendedContext}
       */
     public ExtendedContext getExtendedContext();
-
 
     // ----- inner interface ExtendedContext --------------------------------
 

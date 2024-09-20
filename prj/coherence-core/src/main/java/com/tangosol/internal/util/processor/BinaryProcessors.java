@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.internal.util.processor;
@@ -17,6 +17,7 @@ import com.tangosol.io.pof.PortableObject;
 import com.tangosol.net.GuardSupport;
 import com.tangosol.net.Guardian;
 
+import com.tangosol.net.cache.CacheMap;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ExternalizableHelper;
@@ -77,6 +78,19 @@ public final class BinaryProcessors
         }
 
     /**
+     * Obtain an instance of the {@link BinaryBlindPutProcessor}.
+     *
+     * @param value  the serialized value to put into the cache
+     * @param ttl    the expiry value for the entry
+     *
+     * @return an instance of the {@link BinaryBlindPutProcessor}
+     */
+    public static InvocableMap.EntryProcessor<Binary, Binary, Binary> blindPut(Binary value, long ttl)
+        {
+        return new BinaryBlindPutProcessor(value, ttl);
+        }
+
+    /**
      * Obtain an instance of the {@link BinaryPutAllProcessor}.
      *
      * @param map  the {@link Map} of {@link Binary} keys and values to add to the cache
@@ -86,6 +100,21 @@ public final class BinaryProcessors
     public static InvocableMap.EntryProcessor<Binary, Binary, Binary> putAll(Map<Binary, Binary> map)
         {
         return new BinaryPutAllProcessor(map);
+        }
+
+    /**
+     * Obtain an instance of the {@link BinaryPutAllProcessor}.
+     *
+     * @param map      the {@link Map} of {@link Binary} keys and values to add to the cache
+     * @param cMillis  the expiry delay to apply to the entries
+     *
+     * @return an instance of the {@link BinaryPutProcessor}
+     */
+    public static InvocableMap.EntryProcessor<Binary, Binary, Binary> putAll(Map<Binary, Binary> map, long cMillis)
+        {
+        return cMillis == CacheMap.EXPIRY_DEFAULT
+                ? new BinaryPutAllProcessor(map)
+                : new BinaryPutAllWithExpiryProcessor(map, cMillis);
         }
 
     /**
@@ -99,6 +128,16 @@ public final class BinaryProcessors
     public static InvocableMap.EntryProcessor<Binary, Binary, Binary> putIfAbsent(Binary value, long ttl)
         {
         return new BinaryPutIfAbsentProcessor(value, ttl);
+        }
+
+    /**
+     * Obtain an instance of the {@link BinaryRemoveProcessor}.
+     *
+     * @return an instance of the {@link BinaryRemoveProcessor}
+     */
+    public static InvocableMap.EntryProcessor<Binary, Binary, Binary> remove()
+        {
+        return BinaryRemoveProcessor.INSTANCE;
         }
 
     // ----- class: BaseProcessor -------------------------------------------
@@ -425,6 +464,113 @@ public final class BinaryProcessors
         protected long m_cTtl;
         }
 
+    // ----- class: BinaryBlindPutProcessor ---------------------------------
+
+    /**
+     * An {@link com.tangosol.util.InvocableMap.EntryProcessor} that updates the mapping
+     * of a key to a value in a cache.
+     */
+    public static class BinaryBlindPutProcessor
+            extends BaseProcessor<Binary>
+        {
+        // ----- constructors -----------------------------------------------
+
+        /**
+         * Default constructor for serialization.
+         */
+        public BinaryBlindPutProcessor()
+            {
+            }
+
+        /**
+         * Create a {@link BinaryPutProcessor}.
+         *
+         * @param value  the {@link com.tangosol.util.Binary} value to set as the
+         *               cache entry value
+         * @param cTtl   the expiry value for the entry
+         */
+        BinaryBlindPutProcessor(Binary value, long cTtl)
+            {
+            this.m_binValue = value;
+            this.m_cTtl     = cTtl;
+            }
+
+        // ----- Processor interface ----------------------------------------
+
+        @Override
+        public Binary process(InvocableMap.Entry<Binary, Binary> entry)
+            {
+            BinaryEntry<Binary, Binary> binaryEntry = (BinaryEntry<Binary, Binary>) entry;
+            binaryEntry.updateBinaryValue(m_binValue);
+            binaryEntry.expire(m_cTtl);
+            return null;
+            }
+
+        // ----- ExternalizableLite interface -------------------------------
+
+        @Override
+        public void readExternal(DataInput in) throws IOException
+            {
+            m_binValue = ExternalizableHelper.readObject(in);
+            m_cTtl     = in.readLong();
+            }
+
+        @Override
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            ExternalizableHelper.writeObject(out, m_binValue);
+            out.writeLong(m_cTtl);
+            }
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            m_binValue = in.readBinary(0);
+            m_cTtl     = in.readLong(1);
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            out.writeBinary(0, m_binValue);
+            out.writeLong(1, m_cTtl);
+            }
+
+        // ----- helper methods ---------------------------------------------
+
+        /**
+         * Return the {@link Binary} value.
+         *
+         * @return the {@link Binary} value
+         */
+        protected Binary getValue()
+            {
+            return m_binValue;
+            }
+
+        /**
+         * Return the {@code TTL}.
+         *
+         * @return the {@code TTL}
+         */
+        protected long getTtl()
+            {
+            return m_cTtl;
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The {@link Binary} value to map to the entry.
+         */
+        protected Binary m_binValue;
+
+        /**
+         * The expiry value for the entry.
+         */
+        protected long m_cTtl;
+        }
+
     // ----- class: BinaryPutAllProcessor -----------------------------------
 
     /**
@@ -461,7 +607,14 @@ public final class BinaryProcessors
         public Binary process(InvocableMap.Entry<Binary, Binary> entry)
             {
             BinaryEntry<Binary, Binary> binaryEntry = (BinaryEntry<Binary, Binary>) entry;
-            Binary                      binary      = m_map.get(binaryEntry.getBinaryKey());
+            Binary                      binaryKey   = binaryEntry.getBinaryKey();
+            Binary                      binary      = m_map.get(binaryKey);
+            if (binary == null)
+                {
+                // try the undecorated key
+                Binary binNoDeco = ExternalizableHelper.getUndecorated((ReadBuffer) binaryKey).toBinary();
+                binary = m_map.get(binNoDeco);
+                }
             if (binary == null)
                 {
                 entry.setValue(null);
@@ -542,6 +695,151 @@ public final class BinaryProcessors
         protected Map<Binary, Binary> m_map;
         }
 
+    // ----- class: BinaryPutAllProcessor -----------------------------------
+
+    /**
+     * An {@link com.tangosol.util.InvocableMap.EntryProcessor} that updates the mapping
+     * of a number of key to values in a cache.
+     */
+    public static class BinaryPutAllWithExpiryProcessor
+            extends BaseProcessor<Binary>
+        {
+        // ----- constructors -----------------------------------------------
+
+        /**
+         * Default constructor for serialization.
+         */
+        @SuppressWarnings("unused")
+        public BinaryPutAllWithExpiryProcessor()
+            {
+            this(new HashMap<>(), CacheMap.EXPIRY_DEFAULT);
+            }
+
+        /**
+         * Create a {@link BinaryPutAllProcessor}.
+         *
+         * @param map  the {@link Map} of {@link Binary} key and values to add to the cache
+         */
+        BinaryPutAllWithExpiryProcessor(Map<Binary, Binary> map, long cMillis)
+            {
+            m_map     = map;
+            m_cMillis = cMillis;
+            }
+
+        // ----- Processor interface ----------------------------------------
+
+        @Override
+        public Binary process(InvocableMap.Entry<Binary, Binary> entry)
+            {
+            BinaryEntry<Binary, Binary> binaryEntry = (BinaryEntry<Binary, Binary>) entry;
+            Binary                      binaryKey   = binaryEntry.getBinaryKey();
+            Binary                      binary      = m_map.get(binaryKey);
+            if (binary == null)
+                {
+                // try the undecorated key
+                Binary binNoDeco = ExternalizableHelper.getUndecorated((ReadBuffer) binaryKey).toBinary();
+                binary = m_map.get(binNoDeco);
+                }
+            if (binary == null)
+                {
+                entry.setValue(null);
+                }
+            else
+                {
+                binaryEntry.updateBinaryValue(binary);
+                }
+            binaryEntry.expire(m_cMillis);
+            return null;
+            }
+
+        // ----- EntryProcessor methods -------------------------------------
+
+        @Override
+        public Map<Binary, Binary> processAll(Set<? extends InvocableMap.Entry<Binary, Binary>> entries)
+            {
+            Guardian.GuardContext ctxGuard = GuardSupport.getThreadContext();
+            long                  cMillis  = ctxGuard == null ? 0L : ctxGuard.getTimeoutMillis();
+
+            Iterator<? extends InvocableMap.Entry<Binary, Binary>> iterator = entries.iterator();
+
+            while (iterator.hasNext())
+                {
+                InvocableMap.Entry<Binary, Binary> entry = iterator.next();
+                process(entry);
+                iterator.remove();
+                if (ctxGuard != null)
+                    {
+                    ctxGuard.heartbeat(cMillis);
+                    }
+                }
+            return new LiteMap<>();
+            }
+
+        // ----- ExternalizableLite interface -------------------------------
+
+        @Override
+        public void readExternal(DataInput in) throws IOException
+            {
+            ExternalizableHelper.readMap(in, m_map, null);
+            m_cMillis = in.readLong();
+            }
+
+        @Override
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            ExternalizableHelper.writeMap(out, m_map);
+            out.writeLong(m_cMillis);
+            }
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            m_map = in.readMap(0, new HashMap<>());
+            m_cMillis = in.readLong(1);
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            out.writeMap(0, m_map, Binary.class, Binary.class);
+            out.writeLong(1, m_cMillis);
+            }
+
+        // ----- helper methods ---------------------------------------------
+
+        /**
+         * Returns the map of keys and values that were/are to be stored.
+         *
+         * @return the map of keys and values that were/are to be stored
+         */
+        Map<Binary, Binary> getMap()
+            {
+            return m_map;
+            }
+
+        /**
+         * Return the expiry delay.
+         *
+         * @return the expiry delay
+         */
+        public long getExpiry()
+            {
+            return m_cMillis;
+            }
+
+        // ----- data members ----------------------------------------------0
+
+        /**
+         * The {@link Binary} value to map to the entry.
+         */
+        protected Map<Binary, Binary> m_map;
+
+        /**
+         * The expiry delay for the entries.
+         */
+        protected long m_cMillis;
+        }
+
     // ----- class: BinaryPutIfAbsentProcessor ------------------------------
 
     /**
@@ -580,12 +878,16 @@ public final class BinaryProcessors
             {
             if (entry.isPresent())
                 {
-                return ((BinaryEntry<Binary, Binary>) entry).getBinaryValue();
+                BinaryEntry<Binary, Binary> binaryEntry = entry.asBinaryEntry();
+                Binary                      binNull     = (Binary) binaryEntry.getContext()
+                                                                .getValueToInternalConverter().convert(null);
+                Binary                      binary      = binaryEntry.getBinaryValue();
+                if (!ExternalizableHelper.getUndecorated(binary).equals(binNull))
+                    {
+                    return binary;
+                    }
                 }
-            else
-                {
-                return super.process(entry);
-                }
+            return super.process(entry);
             }
         }
 
@@ -609,6 +911,14 @@ public final class BinaryProcessors
                 {
                 prevValue = ((BinaryEntry<Binary, Binary>) entry).getBinaryValue();
                 }
+            else
+                {
+                entry.getValue(); // maybe trigger a CacheStore load
+                if (entry.isPresent())
+                    {
+                    prevValue = ((BinaryEntry<Binary, Binary>) entry).getBinaryValue();
+                    }
+                }
             return prevValue;
             }
 
@@ -629,6 +939,14 @@ public final class BinaryProcessors
                 if (entry.isPresent())
                     {
                     mapResults.put(((BinaryEntry<Binary, Binary>) entry).getBinaryKey(), this.process(entry));
+                    }
+                else
+                    {
+                    entry.getValue();  // maybe trigger a CacheStore load
+                    if (entry.isPresent())
+                        {
+                        mapResults.put(((BinaryEntry<Binary, Binary>) entry).getBinaryKey(), this.process(entry));
+                        }
                     }
                 iter.remove();
                 if (ctxGuard != null)
@@ -667,6 +985,15 @@ public final class BinaryProcessors
                 {
                 prevValue = ((BinaryEntry<Binary, Binary>) entry).getBinaryValue();
                 entry.remove(false);
+                }
+            else
+                {
+                entry.getValue(); // maybe trigger a CacheStore load...
+                if (entry.isPresent())
+                    {
+                    prevValue = ((BinaryEntry<Binary, Binary>) entry).getBinaryValue();
+                    entry.remove(false);
+                    }
                 }
             return prevValue;
             }

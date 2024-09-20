@@ -1,10 +1,13 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util;
+
+import com.tangosol.io.ExternalizableLite;
+import com.tangosol.io.SerializationSupport;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -18,11 +21,12 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import java.lang.reflect.Field;
+import java.io.ObjectStreamException;
+import java.io.Serial;
 
 import jakarta.json.bind.annotation.JsonbCreator;
 import jakarta.json.bind.annotation.JsonbProperty;
+import jakarta.json.bind.annotation.JsonbTransient;
 
 /**
  * Adds serialization support to {@link java.util.DoubleSummaryStatistics}.
@@ -32,24 +36,58 @@ import jakarta.json.bind.annotation.JsonbProperty;
  */
 public class DoubleSummaryStatistics
         extends java.util.DoubleSummaryStatistics
-        implements Remote.DoubleConsumer, com.tangosol.io.ExternalizableLite, PortableObject, Externalizable
+        implements Remote.DoubleConsumer, SerializationSupport,
+                   ExternalizableLite, PortableObject, Externalizable
     {
-    // ---- helpers ---------------------------------------------------------
+    // ---- constructors ----------------------------------------------------
 
-    protected double getPrivateField(java.util.DoubleSummaryStatistics stats, String sFieldName)
-            throws NoSuchFieldException, IllegalAccessException
+    /**
+     * Constructs an empty instance with zero count, zero sum,
+     * {@code Double.POSITIVE_INFINITY} min, {@code Double.NEGATIVE_INFINITY}
+     * max and zero average.
+     */
+    public DoubleSummaryStatistics()
         {
-        Field field = java.util.DoubleSummaryStatistics.class.getDeclaredField(sFieldName);
-        field.setAccessible(true);
-        return (double) field.get(stats);
         }
 
-    protected void setPrivateField(java.util.DoubleSummaryStatistics stats, String sFieldName, Object oValue)
-            throws NoSuchFieldException, IllegalAccessException
+    /**
+     * Constructs a non-empty instance with the specified {@code count},
+     * {@code min}, {@code max}, and {@code sum}.
+     *
+     * <p>If {@code count} is zero then the remaining arguments are ignored and
+     * an empty instance is constructed.
+     *
+     * <p>If the arguments are inconsistent then an {@code IllegalArgumentException}
+     * is thrown.  The necessary consistent argument conditions are:
+     * <ul>
+     *   <li>{@code count >= 0}</li>
+     *   <li>{@code (min <= max && !isNaN(sum)) || (isNaN(min) && isNaN(max) && isNaN(sum))}</li>
+     * </ul>
+     *
+     * @param count  the count of values
+     * @param min    the minimum value
+     * @param max    the maximum value
+     * @param sum    the sum of all values
+     *
+     * @throws IllegalArgumentException if the arguments are inconsistent
+     * @since 22.06.5
+     */
+    public DoubleSummaryStatistics(long count, double min, double max, double sum)
         {
-        Field field = java.util.DoubleSummaryStatistics.class.getDeclaredField(sFieldName);
-        field.setAccessible(true);
-        field.set(stats, oValue);
+        super(count, min, max, sum);
+        m_cCount = count;
+        m_dMin   = min;
+        m_dMax   = max;
+        m_dSum   = sum;
+        }
+
+    // ---- SerializationSupport interface ----------------------------------
+
+    @Serial
+    public Object readResolve() throws ObjectStreamException
+        {
+        // create a new instance from the temp fields we deserialized into
+        return new DoubleSummaryStatistics(m_cCount, m_dMin, m_dMax, m_dSum);
         }
 
     // ---- ExternalizableLite interface ------------------------------------
@@ -57,45 +95,23 @@ public class DoubleSummaryStatistics
     @Override
     public void readExternal(DataInput input) throws IOException
         {
-        try
-            {
-            setPrivateField(this, "count", input.readLong());
-            setPrivateField(this, "sum", input.readDouble());
-            setPrivateField(this, "sumCompensation", input.readDouble());
-            setPrivateField(this, "simpleSum", input.readDouble());
-            setPrivateField(this, "min", input.readDouble());
-            setPrivateField(this, "max", input.readDouble());
-            }
-        catch (IOException e)
-            {
-            throw e;
-            }
-        catch (Exception e)
-            {
-            throw new IOException(e);
-            }
+        m_cCount = input.readLong();
+        m_dSum   = input.readDouble();
+        input.readDouble(); // for backwards compatibility: sumCompensation
+        input.readDouble(); // for backwards compatibility: simpleSum
+        m_dMin   = input.readDouble();
+        m_dMax   = input.readDouble();
         }
 
     @Override
     public void writeExternal(DataOutput output) throws IOException
         {
-        try
-            {
-            output.writeLong(getCount());
-            output.writeDouble(getSum());
-            output.writeDouble(getPrivateField(this, "sumCompensation"));
-            output.writeDouble(getPrivateField(this, "simpleSum"));
-            output.writeDouble(getMin());
-            output.writeDouble(getMax());
-            }
-        catch (IOException e)
-            {
-            throw e;
-            }
-        catch (Exception e)
-            {
-            throw new IOException(e);
-            }
+        output.writeLong(getCount());
+        output.writeDouble(getSum());
+        output.writeDouble(0.0d);  // for backwards compatibility: sumCompensation
+        output.writeDouble(getSum()); // for backwards compatibility: simpleSum
+        output.writeDouble(getMin());
+        output.writeDouble(getMax());
         }
 
     // ---- PortableObject interface ----------------------------------------
@@ -103,45 +119,23 @@ public class DoubleSummaryStatistics
     @Override
     public void readExternal(PofReader reader) throws IOException
         {
-        try
-            {
-            setPrivateField(this, "count", reader.readLong(0));
-            setPrivateField(this, "sum", reader.readDouble(1));
-            setPrivateField(this, "sumCompensation", reader.readDouble(2));
-            setPrivateField(this, "simpleSum", reader.readDouble(3));
-            setPrivateField(this, "min", reader.readDouble(4));
-            setPrivateField(this, "max", reader.readDouble(5));
-            }
-        catch (IOException e)
-            {
-            throw e;
-            }
-        catch (Exception e)
-            {
-            throw new IOException(e);
-            }
+        m_cCount = reader.readLong(0);
+        m_dSum   = reader.readDouble(1);
+        reader.readDouble(2); // for backwards compatibility: sumCompensation
+        reader.readDouble(3); // for backwards compatibility: simpleSum
+        m_dMin   = reader.readDouble(4);
+        m_dMax   = reader.readDouble(5);
         }
 
     @Override
     public void writeExternal(PofWriter writer) throws IOException
         {
-        try
-            {
-            writer.writeLong(0, getCount());
-            writer.writeDouble(1, getSum());
-            writer.writeDouble(2, getPrivateField(this, "sumCompensation"));
-            writer.writeDouble(3, getPrivateField(this, "simpleSum"));
-            writer.writeDouble(4, getMin());
-            writer.writeDouble(5, getMax());
-            }
-        catch (IOException e)
-            {
-            throw e;
-            }
-        catch (Exception e)
-            {
-            throw new IOException(e);
-            }
+        writer.writeLong(0, getCount());
+        writer.writeDouble(1, getSum());
+        writer.writeDouble(2, 0.0d);  // for backwards compatibility: sumCompensation
+        writer.writeDouble(3, getSum());  // for backwards compatibility: simpleSum
+        writer.writeDouble(4, getMin());
+        writer.writeDouble(5, getMax());
         }
 
     // ---- Externalizable interface ----------------------------------------
@@ -163,76 +157,26 @@ public class DoubleSummaryStatistics
     // ----- Json Serialization ---------------------------------------------
 
     /**
-     * Create an {@link DoubleSummaryStatistics} instance from the annotated Json attributes.
+     * Create an {@link DoubleSummaryStatistics} instance from the annotated JSON attributes.
      *
-     * @param nCount  the statistics total count
-     * @param nSum    the statistics total sum
-     * @param nMin    the statistics min
-     * @param nMax    the statistics max
+     * @param count  the count of values
+     * @param min    the minimum value
+     * @param max    the maximum value
+     * @param sum    the sum of all values
      *
      * @return a new {@link DoubleSummaryStatistics}
-     *
-     * @throws NoSuchFieldException
-     * @throws IllegalAccessException
      */
     @JsonbCreator
     public static DoubleSummaryStatistics createDoubleSummaryStatistics(
-            @JsonbProperty("sumCompensation") double nSumCompensation,
-            @JsonbProperty("simpleSum")       double nSimpleSum,
-            @JsonbProperty("count")           long nCount,
-            @JsonbProperty("sum")             double nSum,
-            @JsonbProperty("min")             double  nMin,
-            @JsonbProperty("max")             double  nMax)
-            throws NoSuchFieldException, IllegalAccessException
+            @JsonbProperty("count") long   count,
+            @JsonbProperty("min")   double min,
+            @JsonbProperty("max")   double max,
+            @JsonbProperty("sum")   double sum)
         {
-        DoubleSummaryStatistics statistics = new DoubleSummaryStatistics();
-        statistics.setPrivateField(statistics, "sumCompensation", nSumCompensation);
-        statistics.setPrivateField(statistics, "simpleSum", nSimpleSum);
-        statistics.setPrivateField(statistics, "count", nCount);
-        statistics.setPrivateField(statistics, "sum",   nSum);
-        statistics.setPrivateField(statistics, "min",   nMin);
-        statistics.setPrivateField(statistics, "max",   nMax);
-
-        return statistics;
+        return new DoubleSummaryStatistics(count, min, max, sum);
         }
 
     // ----- accessors for JsonSerialization --------------------------------
-
-    /**
-     * Returns the sumCompensation Json attribute.
-     *
-     * @return the sumCompensation Json attribute
-     */
-    @JsonbProperty("sumCompensation")
-    private double getSumCompensation()
-        {
-        try
-            {
-            return getPrivateField(this, "sumCompensation");
-            }
-        catch (Exception e)
-            {
-            return 0.0d;
-            }
-        }
-
-    /**
-     * Returns the simpleSum Json attribute.
-     *
-     * @return the simpleSum Json attribute
-     */
-    @JsonbProperty("simpleSum")
-    private double getSimpleSum()
-        {
-        try
-            {
-            return getPrivateField(this, "simpleSum");
-            }
-        catch (Exception e)
-            {
-            return 0.0d;
-            }
-        }
 
     /**
      * Returns the count Json attribute.
@@ -243,17 +187,6 @@ public class DoubleSummaryStatistics
     private long getCountProperty()
         {
         return getCount();
-        }
-
-    /**
-     * Returns the sum Json attribute.
-     *
-     * @return the sum Json attribute
-     */
-    @JsonbProperty("sum")
-    private double getSumProperty()
-        {
-        return getSum();
         }
 
     /**
@@ -277,4 +210,40 @@ public class DoubleSummaryStatistics
         {
         return getMax();
         }
+
+    /**
+     * Returns the sum Json attribute.
+     *
+     * @return the sum Json attribute
+     */
+    @JsonbProperty("sum")
+    private double getSumProperty()
+        {
+        return getSum();
+        }
+
+    // ----- constants -------------------------------------------------------
+
+    /**
+     * Added since updated class and it implements {@link Externalizable}.
+     */
+    private static final long serialVersionUID = -697250990486066143L;
+
+    // ---- data members ----------------------------------------------------
+
+    /*
+     * The fields below are only used temporarily during deserialization,
+     * to read data into from the input before calling readResolve to create the
+     * actual instance of this class that will be used as the final deserialization
+     * result.
+     */
+
+    @JsonbTransient
+    private transient long   m_cCount;
+    @JsonbTransient
+    private transient double m_dMin = Double.POSITIVE_INFINITY;
+    @JsonbTransient
+    private transient double m_dMax = Double.NEGATIVE_INFINITY;
+    @JsonbTransient
+    private transient double m_dSum;
     }

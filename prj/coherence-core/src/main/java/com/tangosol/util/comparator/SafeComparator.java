@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -86,6 +86,23 @@ public class SafeComparator<T>
         m_fNullFirst = fNullFirst;
         }
 
+    /**
+     * Ensure that the specified comparator is safe, by wrapping it if it isn't.
+     *
+     * @param comparator  the comparator to wrap, if necessary
+     *
+     * @return a {@code SafeComparator} for the specified comparator
+     *
+     * @param <V>  the type of objects to compare
+     */
+    public static <V> Comparator<? super V> ensureSafe(Comparator<? super V> comparator)
+        {
+        return comparator == null
+               ? SafeComparator.INSTANCE()
+               : comparator instanceof SafeComparator
+                 ? comparator
+                 : new SafeComparator<>(comparator);
+        }
 
     // ----- Comparator interface -------------------------------------------
 

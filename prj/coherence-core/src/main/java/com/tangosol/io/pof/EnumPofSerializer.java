@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io.pof;
@@ -17,36 +17,36 @@ import java.io.IOException;
 *
 * @author as  2008.10.24
 */
-public class EnumPofSerializer
-        implements PofSerializer
+public class EnumPofSerializer<E extends Enum<E>>
+        implements PofSerializer<E>
     {
     // ---- PofSerializer implementation ------------------------------------
 
     /**
     * {@inheritDoc}
     */
-    public void serialize(PofWriter writer, Object o)
+    public void serialize(PofWriter writer, E e)
             throws IOException
         {
         // COH-9833 getClass().isEnum() may return false for certain enums
-        if (!(o instanceof Enum))
+        if (!(e instanceof Enum))
             {
             throw new IllegalArgumentException(
                     "EnumPofSerializer can only be used to serialize enum types.");
             }
 
-        writer.writeString(0, ((Enum) o).name());
+        writer.writeString(0, e.name());
         writer.writeRemainder(null);
         }
 
     /**
     * {@inheritDoc}
     */
-    public Object deserialize(PofReader reader)
+    public E deserialize(PofReader reader)
             throws IOException
         {
         PofContext ctx = reader.getPofContext();
-        Class      clz = ctx.getClass(reader.getUserTypeId());
+        Class<E>   clz = ctx.getClass(reader.getUserTypeId());
 
         if (!clz.isEnum())
             {
@@ -54,7 +54,7 @@ public class EnumPofSerializer
                     "EnumPofSerializer can only be used to deserialize enum types.");
             }
 
-        Enum enumValue = Enum.valueOf(clz, reader.readString(0));
+        E enumValue = Enum.valueOf(clz, reader.readString(0));
         reader.registerIdentity(enumValue);
         reader.readRemainder();
 

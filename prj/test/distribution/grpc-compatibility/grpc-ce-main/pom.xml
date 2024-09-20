@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.oracle.coherence.ce.tests</groupId>
+        <artifactId>grpc-compatibility</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>grpc-ce-main</artifactId>
+    <name>Coherence gRPC CE Main Tests</name>
+
+    <properties>
+        <!--
+        The version prefix to test (this is the Coherence version without the final patch number
+        For this build, this version should be the latest version of CE including snapshots (i.e. CE main).
+        -->
+        <coherence.compatability.version>[24,999]</coherence.compatability.version>
+        <coherence.compatability.allow.snapshots>true</coherence.compatability.allow.snapshots>
+        <!-- This is the groupId of the version server being tested against, not the current version being built -->
+        <coherence.compatability.groupId>com.oracle.coherence.ce</coherence.compatability.groupId>
+
+        <coherence.compatability.minJavaVersion>17</coherence.compatability.minJavaVersion>
+        <coherence.compatability.maxJavaVersion/>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>${coherence.group.id}</groupId>
+            <artifactId>coherence-java-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${coherence.group.id}.tests</groupId>
+            <artifactId>grpc-compatibility-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+</project>

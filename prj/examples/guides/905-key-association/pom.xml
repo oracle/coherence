@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -17,7 +17,7 @@
   <name>Coherence Guides - Key Association</name>
 
   <properties>
-    <revision>23.09-SNAPSHOT</revision>
+    <revision>25.03-SNAPSHOT</revision>
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${project.version}</coherence.version>
@@ -28,7 +28,6 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
 
     <maven.failsafe.plugin.version>3.0.0-M7</maven.failsafe.plugin.version>
-    <maven.jandex.plugin.version>1.2.2</maven.jandex.plugin.version>
     <maven.surefire.plugin.version>3.0.0-M7</maven.surefire.plugin.version>
 
     <hamcrest.version>2.2</hamcrest.version>
@@ -87,33 +86,25 @@
       <plugin>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>pof-maven-plugin</artifactId>
-        <version>22.06.3</version>
+        <version>${revision}</version>
         <executions>
           <execution>
             <id>instrument</id>
             <goals>
               <goal>instrument</goal>
             </goals>
+            <configuration>
+              <indexPofClasses>true</indexPofClasses>
+            </configuration>
           </execution>
           <execution>
             <id>instrument-tests</id>
             <goals>
               <goal>instrument-tests</goal>
             </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.jboss.jandex</groupId>
-        <artifactId>jandex-maven-plugin</artifactId>
-        <version>${maven.jandex.plugin.version}</version>
-        <executions>
-          <execution>
-            <id>make-index</id>
-            <goals>
-              <goal>jandex</goal>
-            </goals>
+            <configuration>
+              <indexPofClasses>true</indexPofClasses>
+            </configuration>
           </execution>
         </executions>
       </plugin>

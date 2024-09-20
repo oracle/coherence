@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
@@ -56,7 +56,7 @@ public class XorFilter
     */
     public boolean evaluate(Object o)
         {
-        Filter[] afilter = m_aFilter;
+        Filter[] afilter = getFilters();
         return afilter[0].evaluate(o) ^ afilter[1].evaluate(o);
         }
 
@@ -77,6 +77,7 @@ public class XorFilter
     /**
     * {@inheritDoc}
     */
+    @Override
     protected Filter applyIndex(Map mapIndexes, Set setKeys, QueryContext ctx,
             QueryRecord.PartialResult.TraceStep step)
         {
@@ -87,11 +88,17 @@ public class XorFilter
     /**
     * {@inheritDoc}
     */
+    @Override
     protected boolean evaluateEntry(Map.Entry entry, QueryContext context,
             QueryRecord.PartialResult.TraceStep step)
         {
-        Filter[] afilter = m_aFilter;
+        Filter[] afilter = getFilters();
         return InvocableMapHelper.evaluateEntry(afilter[0], entry)
              ^ InvocableMapHelper.evaluateEntry(afilter[1], entry);
+        }
+
+    protected String getOperator()
+        {
+        return "XOR";
         }
     }

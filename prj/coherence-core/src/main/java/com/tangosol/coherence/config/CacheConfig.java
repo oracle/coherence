@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config;
 
@@ -45,6 +45,7 @@ public class CacheConfig
         m_sScopeName = "";
 
         // by default the registries are empty
+        m_registrySchemeMapping        = new SchemeMappingRegistry();
         m_registrySchemeRegistry       = new ServiceSchemeRegistry();
         m_listEventInterceptorBuilders = new LinkedList<>();
 
@@ -73,7 +74,7 @@ public class CacheConfig
         {
         // the top level "scope-name" is deprecated as of 12.1.3;
         // we maintain this only for backward compatibility
-        m_sScopeName = sScopeName.trim();
+        m_sScopeName = sScopeName == null ? null : sScopeName.trim();
         }
 
     /**

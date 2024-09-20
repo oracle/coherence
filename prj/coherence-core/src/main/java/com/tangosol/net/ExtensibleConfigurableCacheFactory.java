@@ -1,17 +1,19 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
+import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Disposable;
 
 import com.oracle.coherence.common.base.Lockable;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.util.Options;
 
+import com.tangosol.application.Context;
 import com.tangosol.coherence.config.CacheConfig;
 import com.tangosol.coherence.config.CacheMapping;
 import com.tangosol.coherence.config.Config;
@@ -23,14 +25,13 @@ import com.tangosol.coherence.config.ResolvableParameterList;
 import com.tangosol.coherence.config.ServiceSchemeRegistry;
 import com.tangosol.coherence.config.TopicMapping;
 
+import com.tangosol.coherence.config.TypedResourceMapping;
 import com.tangosol.coherence.config.builder.MapBuilder;
 import com.tangosol.coherence.config.builder.NamedCacheBuilder;
 import com.tangosol.coherence.config.builder.NamedCollectionBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilderRegistry;
-import com.tangosol.coherence.config.builder.ReadLocatorBuilder;
 import com.tangosol.coherence.config.builder.ServiceBuilder;
-import com.tangosol.coherence.config.builder.SubscriberGroupBuilder;
 
 import com.tangosol.coherence.config.scheme.AbstractCompositeScheme;
 import com.tangosol.coherence.config.scheme.AbstractLocalCachingScheme;
@@ -118,8 +119,6 @@ import com.tangosol.util.Resources;
 import com.tangosol.util.SafeHashMap;
 import com.tangosol.util.SimpleResourceRegistry;
 
-import static com.tangosol.util.Base.ensureRuntimeException;
-
 import java.io.File;
 
 import java.net.MalformedURLException;
@@ -174,6 +173,7 @@ import java.util.function.BiFunction;
  *
  * @since Coherence 12.1.2
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ExtensibleConfigurableCacheFactory
         extends Base
         implements ConfigurableCacheFactory
@@ -282,7 +282,7 @@ public class ExtensibleConfigurableCacheFactory
                 {
                 // the common path; the cache reference is active and reusable
                 checkPermission(cache);
-                
+
                 // always assert the safety of the types according to the specified assertion
                 // (as they may change between calls to ensureCache)
                 assertion.assertTypeSafety(sCacheName, mapping, /*fLog*/ false);
@@ -299,7 +299,7 @@ public class ExtensibleConfigurableCacheFactory
                     // the underlying cache service will “restart" during the very next call
                     // to any of the NamedCache API method (see COH-15083 for details)
                     checkPermission(cache);
-                    
+
                     // always assert the safety of the types according to the specified assertion
                     // (as they may change between calls to ensureCache).
                     assertion.assertTypeSafety(sCacheName, mapping, /*fLog*/ false);
@@ -403,47 +403,34 @@ public class ExtensibleConfigurableCacheFactory
         Base.checkNotEmpty(sName, "name");
 
         PrivilegedAction<NamedTopic> action =
-            () -> ensureCollectionInternal(sName, NamedTopic.class, loader, f_storeTopics, options);
+            () -> ensureCollectionInternal(sName, NamedTopic.class, loader, f_storeTopics, TopicMapping.class, options);
 
         return AccessController.doPrivileged(new DoAsAction<>(action));
         }
 
-    /**
-     * Ensure an Object-based collection for the given name.
-     *
-     * @param sName          the name of the collection
-     * @param clsCollection  the type of the values in the collection
-     * @param loader         the {@link ClassLoader} to use
-     * @param store          the {@link ScopedReferenceStore} that holds collection references
-     * @param options        the options to use to configure the collection
-     *
-     * @param <C>  the type of the collection
-     * @param <V>  the type of the values in the collection
-     *
-     * @return  an Object-based collection for the given name
-     */
-    private <C extends NamedCollection, V> C ensureCollectionInternal(String sName, Class<C> clsCollection,
-        ClassLoader loader, ScopedReferenceStore<C> store, NamedCollection.Option... options)
+    <C extends NamedCollection, M extends TypedResourceMapping, V>
+    C ensureCollectionInternal(String sName, Class<C> clsCollection, ClassLoader loader, ScopedReferenceStore<C> store,
+                          Class<M> clzMapping, NamedCollection.Option... aOption)
         {
-        Options<NamedTopic.Option> optsNamedTopic = Options.from(NamedTopic.Option.class, options);
-        ValueTypeAssertion<V>      constraint     = optsNamedTopic.get(ValueTypeAssertion.class);
-        C                          collection;
-        ParameterResolver          resolver;
-        MapBuilder.Dependencies    dependencies;
+        Options<NamedCollection.Option> options      = Options.from(NamedCollection.Option.class, aOption);
+        ValueTypeAssertion<V>           constraint   = options.get(ValueTypeAssertion.class);
+        C                               collection;
+        ParameterResolver               resolver;
+        MapBuilder.Dependencies         dependencies;
 
         if (loader == null)
             {
             // No ClassLoader specified so check whether there is an option specifying one
             // If there was no ClassLoader option the default will be the context classloader
-            loader = optsNamedTopic.get(WithClassLoader.class, WithClassLoader.autoDetect()).getClassLoader();
+            loader = options.get(WithClassLoader.class, WithClassLoader.autoDetect()).getClassLoader();
             }
 
-        loader = Base.ensureClassLoader(loader);
+        loader = Classes.ensureClassLoader(loader);
 
         while (true)
             {
-            // find the topic mapping for the collection
-            TopicMapping mapping = f_cacheConfig.getMappingRegistry().findMapping(sName, TopicMapping.class);
+            // find the collection mapping for the collection
+            TypedResourceMapping<C> mapping = f_cacheConfig.getMappingRegistry().findMapping(sName, clzMapping);
 
             if (mapping == null)
                 {
@@ -483,13 +470,6 @@ public class ExtensibleConfigurableCacheFactory
 
                 throw new IllegalArgumentException(sMsg);
                 }
-            else if (!(serviceScheme instanceof NamedCollectionBuilder))
-                {
-                String sMsg = String.format("The scheme %s for collection %s cannot build a %s",
-                                            mapping.getSchemeName(), sName, clsCollection);
-
-                throw new IllegalArgumentException(sMsg);
-                }
 
             // there are instances of sibling caches for different
             // class loaders; check for and clear invalid references
@@ -504,7 +484,7 @@ public class ExtensibleConfigurableCacheFactory
                 }
 
             // create (realize) the collection
-            NamedCollectionBuilder<C> bldrCollection = (NamedCollectionBuilder<C>) serviceScheme;
+            NamedCollectionBuilder<C> bldrCollection = serviceScheme.getNamedCollectionBuilder(clsCollection, options);
 
             Base.checkNotNull(bldrCollection, "NamedCollectionBuilder");
 
@@ -517,16 +497,18 @@ public class ExtensibleConfigurableCacheFactory
                 throw new IllegalStateException(sMsg);
                 }
 
-            resolver      = getParameterResolver(sName, TopicMapping.class, loader, null);
+            ParameterResolver paramResolver = getParameterResolver(sName, clzMapping, loader, null);
+            ParameterResolver resolverOpts  = new ResolvableParameterList(Collections.singletonMap("options", options));
+
+            resolver      = new ChainedParameterResolver(paramResolver, resolverOpts);
             dependencies  = new MapBuilder.Dependencies(this, null, loader, sName,
                                                         serviceScheme.getServiceType());
 
-            collection    = bldrCollection.realize(constraint, resolver, dependencies);
+            mapping.preConstruct(null, resolver, dependencies);
 
-            for (SubscriberGroupBuilder builder : mapping.getSubscriberGroupBuilders())
-                {
-                builder.realize((NamedTopic) collection, resolver);
-                }
+            collection = bldrCollection.realize(constraint, resolver, dependencies);
+
+            mapping.postConstruct(null, collection, resolver, dependencies);
 
             if (store.putIfAbsent(collection, loader) == null)
                 {
@@ -902,7 +884,7 @@ public class ExtensibleConfigurableCacheFactory
      *
      * @return the class loader to use for loading the configuration
      */
-    protected ClassLoader getConfigClassLoader()
+    public ClassLoader getConfigClassLoader()
         {
         return m_loader;
         }
@@ -1265,8 +1247,8 @@ public class ExtensibleConfigurableCacheFactory
      * @param collection  the collection to release
      * @param fDestroy     true to destroy the collection as well
      */
-    private  <C extends NamedCollection> void releaseCollection(C collection, boolean fDestroy,
-            ScopedReferenceStore<C> store)
+    private  void releaseCollection(NamedCollection collection, boolean fDestroy,
+            ScopedReferenceStore store)
         {
         String      sName   = collection.getName();
         ClassLoader loader  = collection instanceof ClassLoaderAware
@@ -1526,7 +1508,26 @@ public class ExtensibleConfigurableCacheFactory
         public static Dependencies newInstance(XmlElement xmlConfig, ClassLoader loader,
                 String sPofConfigUri, String sScopeName)
             {
-            return newInstance(xmlConfig, loader, sPofConfigUri, sScopeName, null);
+            return newInstance(xmlConfig, loader, sPofConfigUri, sScopeName, null, null);
+            }
+
+        /**
+         * Construct an {@link ExtensibleConfigurableCacheFactory}
+         * {@link Dependencies} instance based on the information defined by
+         * {@link XmlElement} that of which is compliant with the
+         * "coherence-cache-config.xsd".
+         *
+         * @param xmlConfig      the {@link XmlElement} defining the configuration
+         * @param loader         an optional {@link ClassLoader} that
+         *                       should be used to load configuration resources
+         * @param sPofConfigUri  an optional {@link URI} of the POF configuration file
+         * @param sScopeName     an optional scope name
+         * @param context        an optional ContainerContext reference
+         */
+        public static Dependencies newInstance(XmlElement xmlConfig, ClassLoader loader,
+                String sPofConfigUri, String sScopeName, Context context)
+            {
+            return newInstance(xmlConfig, loader, sPofConfigUri, sScopeName, context, null);
             }
 
         /**
@@ -1544,7 +1545,7 @@ public class ExtensibleConfigurableCacheFactory
          *                       when creating the dependencies
          */
         public static Dependencies newInstance(XmlElement xmlConfig, ClassLoader loader,
-                String sPofConfigUri, String sScopeName, ParameterResolver resolver)
+                String sPofConfigUri, String sScopeName, Context context, ParameterResolver resolver)
             {
             loader = Base.ensureClassLoader(loader);
 
@@ -1586,6 +1587,10 @@ public class ExtensibleConfigurableCacheFactory
             if (sScopeName != null)
                 {
                 resourceRegistry.registerResource(String.class, "scope-name", sScopeName);
+                }
+            if (context != null)
+                {
+                resourceRegistry.registerResource(Context.class, context);
                 }
 
             // the default parameter resolver always contains the pof-config-uri
@@ -1632,7 +1637,7 @@ public class ExtensibleConfigurableCacheFactory
    /**
     * Find the cache configuration override to use if xml-override attribute
     * is present in cache configuration file.
-    * 
+    *
     * @param xmlConfig  base cache configuration
     * @param loader     the {@link ClassLoader} to use
     *
@@ -1682,7 +1687,7 @@ public class ExtensibleConfigurableCacheFactory
                                     sValue);
                             }
                         }
-                    
+
                     return XmlHelper.loadResource(url, "cache configuration override", loader);
                     }
                 }

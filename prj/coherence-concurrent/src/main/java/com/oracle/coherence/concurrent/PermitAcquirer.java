@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 /**
- * The identity of a acquirer, represented by the UUID of the member, and the ID
+ * The identity of an acquirer, represented by the UUID of the member, and the ID
  * of a thread holding or attempting to acquire permit.
  *
  * @author Vaso Putica  2021.11.30
@@ -150,7 +150,18 @@ public class PermitAcquirer
 
     // ---- data members ----------------------------------------------------
 
+    /**
+     * The member {@link UUID}.
+     */
     private UUID f_memberId;
+
+    /**
+     * The thread ID.
+     */
     private long f_threadId;
+
+    /**
+     * Flag indicating the member is a remote client.
+     */
     private boolean f_client;
     }

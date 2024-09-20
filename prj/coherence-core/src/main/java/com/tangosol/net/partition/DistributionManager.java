@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.partition;
@@ -71,7 +71,7 @@ public interface DistributionManager
      * Return the set of partitions for which the specified member owns the
      * specified storage index (replica).
      *
-     * @param member  the member to determine the the ownership for
+     * @param member  the member to determine the ownership for
      * @param iStore  the storage index (zero for primary)
      *
      * @return the set of partitions

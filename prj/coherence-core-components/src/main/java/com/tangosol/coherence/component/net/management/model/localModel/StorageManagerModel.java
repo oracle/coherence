@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,18 +10,32 @@
 
 package com.tangosol.coherence.component.net.management.model.localModel;
 
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.Storage;
+
+import com.tangosol.internal.util.VersionHelper;
+
+import com.tangosol.net.NamedCache;
 import com.tangosol.net.events.internal.StorageDispatcher;
+
+import com.tangosol.net.internal.PartitionSize;
+import com.tangosol.net.internal.PartitionSizeAggregator;
+
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.MapIndex;
-import com.tangosol.util.SimpleMapIndex;
+import com.tangosol.util.filter.AlwaysFilter;
+
 import java.lang.ref.WeakReference;
+
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * Model components implement the JMX-managed functionality of the
@@ -47,7 +61,7 @@ public class StorageManagerModel
      *
      * The Storage object associated with this model.
      */
-    private transient com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage __m__Storage;
+    private transient Storage __m__Storage;
     
     /**
      * Property _StorageRef
@@ -156,13 +170,13 @@ public class StorageManagerModel
      * Getter for property _Storage.<p>
     * The Storage object associated with this model.
      */
-    public com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage get_Storage()
+    public Storage get_Storage()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         // import java.lang.ref.WeakReference;
         
         WeakReference wr = get_StorageRef();
-        return wr == null ? null : (com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage) wr.get();
+        return wr == null ? null : (Storage) wr.get();
         }
     
     // Accessor for the property "_StorageRef"
@@ -183,10 +197,10 @@ public class StorageManagerModel
      */
     public String[] getEventInterceptorInfo()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         // import com.tangosol.net.events.internal.StorageDispatcher;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         StorageDispatcher dispatcher =
             storage == null ? null : (StorageDispatcher) storage.getEventDispatcher();
             
@@ -204,9 +218,9 @@ public class StorageManagerModel
      */
     public long getEventsDispatched()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         return storage == null ? -1L : storage.getStatsEventsDispatched();
         }
     
@@ -219,9 +233,9 @@ public class StorageManagerModel
      */
     public long getEvictionCount()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         return storage == null ? -1L : storage.getStatsEvictions().get();
         }
     
@@ -231,7 +245,7 @@ public class StorageManagerModel
      */
     public String[] getIndexInfo()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         // import com.tangosol.util.MapIndex;
         // import java.util.ArrayList;
         // import java.util.ConcurrentModificationException;
@@ -240,7 +254,7 @@ public class StorageManagerModel
         // import java.util.Map;
         
         String[] asInfo   = new String[0];
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage  storage  = get_Storage();
+        Storage  storage  = get_Storage();
         Map      mapIndex = storage == null ? null : storage.getIndexMap();
         
         if (mapIndex != null && !mapIndex.isEmpty())
@@ -280,9 +294,9 @@ public class StorageManagerModel
      */
     public long getIndexingTotalMillis()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         
         return storage == null ? -1L : storage.getStatsIndexingTotalMillis().get();
         }
@@ -294,7 +308,7 @@ public class StorageManagerModel
      */
     public long getIndexTotalUnits()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         // import com.tangosol.util.Base;
         // import com.tangosol.util.MapIndex;
         // import com.tangosol.util.SimpleMapIndex;
@@ -303,9 +317,9 @@ public class StorageManagerModel
         // import java.util.Map;
         
         long     cUnits   = 0L;
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage  storage  = get_Storage();
+        Storage  storage  = get_Storage();
         Map      mapIndex = storage == null ? null : storage.getIndexMap();
-        
+
         if (mapIndex != null && !mapIndex.isEmpty())
             {  
             for (int cAttempts = 4; cAttempts > 0; --cAttempts)
@@ -315,10 +329,10 @@ public class StorageManagerModel
                     for (Iterator iter = mapIndex.values().iterator(); iter.hasNext();)
                         {
                         MapIndex index = (MapIndex) iter.next();
-        
-                        if (index != null && index instanceof SimpleMapIndex)
+
+                        if (index != null)
                             {
-                            cUnits += ((SimpleMapIndex) index).getUnits();
+                            cUnits += index.getUnits();
                             }
                         }
                     break;
@@ -339,9 +353,9 @@ public class StorageManagerModel
      */
     public long getInsertCount()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         return storage == null ? -1L : storage.getStatsInserts().get();
         }
     
@@ -351,13 +365,13 @@ public class StorageManagerModel
      */
     public int getListenerFilterCount()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         // import java.util.ConcurrentModificationException;
         // import java.util.Iterator;
         // import java.util.Map;
         // import java.util.Map$Entry as java.util.Map.Entry;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         Map     map     = storage == null ? null : storage.getListenerMap();
         if (map == null)
             {
@@ -398,13 +412,13 @@ public class StorageManagerModel
      */
     public int getListenerKeyCount()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         // import java.util.ConcurrentModificationException;
         // import java.util.Iterator;
         // import java.util.Map;
         // import java.util.Map$Entry as java.util.Map.Entry;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         Map     map     = storage == null ? null : storage.getKeyListenerMap();
         if (map == null)
             {
@@ -445,9 +459,9 @@ public class StorageManagerModel
      */
     public long getListenerRegistrations()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         return storage == null ? -1L : storage.getStatsListenerRegistrations().get();
         }
     
@@ -457,10 +471,10 @@ public class StorageManagerModel
      */
     public int getLocksGranted()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         // import java.util.Map;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage  = get_Storage();
+        Storage storage  = get_Storage();
         Map     mapLocks = storage == null ? null : storage.getLeaseMap();
         
         return mapLocks == null ? 0 : mapLocks.size();
@@ -472,10 +486,10 @@ public class StorageManagerModel
      */
     public int getLocksPending()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         // import java.util.List;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage      = get_Storage();
+        Storage storage      = get_Storage();
         List    listRequests = storage == null ? null : storage.getPendingLockRequest();
         
         return listRequests == null ? 0 : listRequests.size();
@@ -487,9 +501,9 @@ public class StorageManagerModel
      */
     public String getMaxQueryDescription()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         return storage == null ? canonicalString(null) : storage.getStatsMaxQueryDescription();
         }
     
@@ -499,9 +513,9 @@ public class StorageManagerModel
      */
     public long getMaxQueryDurationMillis()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         return storage == null ? -1L : storage.getStatsMaxQueryDurationMillis();
         }
     
@@ -512,9 +526,9 @@ public class StorageManagerModel
      */
     public long getMaxQueryThresholdMillis()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         return storage == null ? -1L : storage.getStatsMaxQueryThresholdMillis();
         }
     
@@ -524,9 +538,9 @@ public class StorageManagerModel
      */
     public long getNonOptimizedQueryAverageMillis()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         return storage == null ? -1L : storage.getStatsNonOptimizedQueryAverageMillis();
         }
     
@@ -536,9 +550,9 @@ public class StorageManagerModel
      */
     public long getNonOptimizedQueryCount()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         return storage == null ? -1L : storage.getStatsNonOptimizedQueryCount().get();
         }
     
@@ -548,9 +562,9 @@ public class StorageManagerModel
      */
     public long getNonOptimizedQueryTotalMillis()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         return storage == null ? -1L : storage.getStatsNonOptimizedQueryTotalMillis().get();
         }
     
@@ -560,9 +574,9 @@ public class StorageManagerModel
      */
     public long getOptimizedQueryAverageMillis()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         return storage == null ? -1L : storage.getStatsOptimizedQueryAverageMillis();
         }
     
@@ -572,9 +586,9 @@ public class StorageManagerModel
      */
     public long getOptimizedQueryCount()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         return storage == null ? -1L : storage.getStatsOptimizedQueryCount().get();
         }
     
@@ -584,9 +598,9 @@ public class StorageManagerModel
      */
     public long getOptimizedQueryTotalMillis()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         return storage == null ? -1L : storage.getStatsOptimizedQueryTotalMillis().get();
         }
     
@@ -602,9 +616,9 @@ public class StorageManagerModel
      */
     public long getQueryContentionCount()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         return storage == null ? -1L : storage.getStatsQueryContentionCount().get();
         }
     
@@ -616,19 +630,32 @@ public class StorageManagerModel
      */
     public long getRemoveCount()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         return storage == null ? -1L : storage.getStatsRemoves().get();
         }
-    
+
+    // Accessor for the property "ClearCount"
+    /**
+     * Getter for property ClearCount.<p>
+     * The number of `clear` operations since the last time statistics were reset.
+     */
+    public long getClearCount()
+        {
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
+
+        Storage storage = get_Storage();
+        return storage == null ? -1L : storage.getStatsClears().get();
+        }
+
     // Accessor for the property "TriggerInfo"
     /**
      * Getter for property TriggerInfo.<p>
      */
     public String[] getTriggerInfo()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         // import java.util.ArrayList;
         // import java.util.ConcurrentModificationException;
         // import java.util.Iterator;
@@ -636,7 +663,7 @@ public class StorageManagerModel
         // import java.util.Set;
         
         String[] asInfo     = new String[0];
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage  storage    = get_Storage();
+        Storage  storage    = get_Storage();
         Set      setTrigger = storage == null ? null : storage.getTriggerSet();
         
         if (setTrigger != null && !setTrigger.isEmpty())
@@ -707,25 +734,130 @@ public class StorageManagerModel
             {
             mapSnapshot.put("IndexingTotalMillis", Base.makeLong(ExternalizableHelper.readLong(in)));
             }
+
+        // added in 14.1.2.0.0 / 26.06.7 / 23.09.1
+        if (ExternalizableHelper.isVersionCompatible(in, VersionHelper.VERSION_23_09_1)
+            || ExternalizableHelper.isPatchCompatible(in, VersionHelper.VERSION_14_1_2_0)
+            || ExternalizableHelper.isPatchCompatible(in, VersionHelper.VERSION_14_1_1_2206_7))
+            {
+            mapSnapshot.put("ClearCount", ExternalizableHelper.readLong(in));
+            }
         }
     
     public void resetStatistics()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         if (storage != null)
             {
             storage.resetStats();
             }
         }
-    
+
+    public void clearCache()
+        {
+        checkReadOnly("clearCache");
+        Storage storage = get_Storage();
+            {
+            PartitionedCache service = storage.getService();
+            if (service != null)
+                {
+                NamedCache cache = service.ensureCache(storage.getCacheName(), null);
+                cache.clear();
+                }
+            }
+        }
+
+    public void truncateCache()
+        {
+        checkReadOnly("truncateCache");
+        Storage storage = get_Storage();
+        if (storage != null)
+            {
+            PartitionedCache service = storage.getService();
+            if (service != null)
+                {
+                NamedCache cache = service.ensureCache(storage.getCacheName(), null);
+                cache.truncate();
+                }
+            }
+        }
+
+    public int size()
+        {
+        Storage storage = get_Storage();
+        if (storage != null)
+            {
+            PartitionedCache service = storage.getService();
+            if (service != null)
+                {
+                return service.ensureCache(storage.getCacheName(), null).size();
+                }
+            }
+        return 0;
+        }
+
+    /**
+     * Reports the partition stats in the format specified.
+     *
+     * @param sFormat specified the format of the data required. Valid values are "json", "csv" or "native".
+     *                The "native" format is for use internally by the REST API only.
+     * @return
+     */
+    public Object reportPartitionStats(String sFormat)
+        {
+        Storage storage = get_Storage();
+        if (storage != null)
+            {
+            PartitionedCache service = storage.getService();
+            if (service != null)
+                {
+                NamedCache cache = service.ensureCache(storage.getCacheName(), null);
+                
+                Set<PartitionSize> setResults = (Set<PartitionSize>) cache.aggregate(AlwaysFilter.INSTANCE(), new PartitionSizeAggregator());
+
+                if ("native".equals(sFormat))
+                    {
+                    // Return PartitionSize[] as called from REST API
+                    return setResults.toArray();
+                    }
+
+                // default format to "json". Use an AtomicInteger, so we can use in the lambda as final
+                final String[]      asFormats = new String[]{"{\"partitionId\":%d, \"count\": %d, \"totalSize\": %d, \"maxEntrySize\": %d, \"memberId\": %d}", "%d,%d,%d,%d,%d"};
+                final AtomicInteger index     = new AtomicInteger(0);
+                String              sJoin     = ",\n";
+                String              sFinal    = "]";
+                StringBuilder       sb        = new StringBuilder();
+
+                if ("csv".equals(sFormat))
+                    {
+                    index.set(1);
+                    sJoin  = "\n";
+                    sFinal = "";
+                    }
+                else
+                    {
+                    sb.append("[");
+                    }
+                
+                String sResult = setResults.stream().map(v -> String.format(asFormats[index.intValue()], v.getPartitionId(), v.getCount(), v.getTotalSize(), v.getMaxEntrySize(), v.getMemberId()))
+                                           .collect(Collectors.joining(sJoin));
+                sb.append(sResult);
+
+                return sb.append(sFinal).toString();
+                }
+            }
+
+        return "[]]";
+        }
+
     // Accessor for the property "_Storage"
     /**
      * Setter for property _Storage.<p>
     * The Storage object associated with this model.
      */
-    public void set_Storage(com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage)
+    public void set_Storage(Storage storage)
         {
         // import java.lang.ref.WeakReference;
         
@@ -749,11 +881,11 @@ public class StorageManagerModel
      */
     public void setMaxQueryThresholdMillis(long cMillis)
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         
         checkReadOnly("setMaxQueryThresholdMillis");
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        Storage storage = get_Storage();
         if (storage != null)
             {
             storage.setStatsMaxQueryThresholdMillis(cMillis);
@@ -799,6 +931,14 @@ public class StorageManagerModel
         if (ExternalizableHelper.isVersionCompatible(out, 21, 6, 0))
             {
             ExternalizableHelper.writeLong(out, getIndexingTotalMillis());
+            }
+
+        // added in 14.1.2.0.0 / 22.06.7 / 23.09.1
+        if (ExternalizableHelper.isVersionCompatible(out, VersionHelper.VERSION_23_09_1)
+            || ExternalizableHelper.isPatchCompatible(out, VersionHelper.VERSION_14_1_2_0)
+            || ExternalizableHelper.isPatchCompatible(out, VersionHelper.VERSION_14_1_1_2206_7))
+            {
+            ExternalizableHelper.writeLong(out, getClearCount());
             }
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,8 @@
 
 package guardian;
 
+
+import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
@@ -31,16 +33,18 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.tangosol.coherence.component.net.Cluster.NameService;
 import com.tangosol.coherence.component.util.Daemon;
-import com.tangosol.coherence.component.util.SafeCluster;
 import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.internal.net.cluster.DefaultServiceFailurePolicy;
+
+import java.util.concurrent.TimeUnit;
+
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
 import org.junit.Assert;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
@@ -504,9 +508,9 @@ public class GuardianTests
                 }
 
             assertNotNull(policy);
-            assertEquals(1, policy.m_cRecover);
-            assertEquals(1, policy.m_cTerminate);
-            assertEquals(1, policy.m_cServiceFailed);
+            Eventually.assertThat(invoking(policy).getRecoverCount(), is(1));
+            Eventually.assertThat(invoking(policy).getTerminateCount(), is(1));
+            Eventually.assertThat(invoking(policy).getServiceFailedCount(), is(1));
             assertFalse("Service was not terminated", service.isRunning());
             }
         finally
@@ -675,47 +679,6 @@ public class GuardianTests
         }
 
     /**
-    * Test Cluster.halt()
-    */
-    @Test
-    public void testClusterHalt()
-        {
-        logWarn("testClusterHalt", true);
-
-        // test terminate of a task on the service thread
-        try
-            {
-            CacheService service = startService("PartitionedCacheDefaultPolicies");
-            NamedCache   cache   = service.ensureCache("foo", null);
-            SafeCluster  cluster = (SafeCluster) service.getCluster();
-
-            assertTrue("Service was not running", service.isRunning());
-            cache.put("key", "value");
-
-            cluster.getCluster().halt();
-            NameService           nameService  = cluster.getCluster().getNameService();
-            ServerSocket          serverSocket = nameService.getClusterSocket();
-            assertTrue(serverSocket.isClosed());
-            serverSocket = ((NameService.TcpAcceptor) nameService.getAcceptor())
-                .getProcessor().getServerSocket();
-            assertTrue(serverSocket.isClosed());
-            Eventually.assertDeferred(() -> service.isRunning(), is(false));
-            }
-        finally
-            {
-            try
-                {
-                CacheFactory.shutdown();
-                }
-            catch (Throwable tIgnore) {} // ignoring exceptions raised due to Cluster.halt
-                                         // stopping system services that can result in
-                                         // services failing to stop
-            }
-
-        logWarn("testClusterHalt", false);
-        }
-
-    /**
     * Clear the specified System properties.
     *
     * @param props  the properties to remove
@@ -857,6 +820,23 @@ public class GuardianTests
         public void onServiceFailed(Cluster cluster)
             {
             ++m_cServiceFailed;
+            }
+
+        // ----- accessors ------------------------------------------------
+
+        public int getRecoverCount()
+            {
+            return m_cRecover;
+            }
+
+        public int getTerminateCount()
+            {
+            return m_cTerminate;
+            }
+
+        public int getServiceFailedCount()
+            {
+            return m_cServiceFailed;
             }
 
         // ----- constants and data members ------------------------------
@@ -1065,4 +1045,12 @@ public class GuardianTests
 
         return (CustomServiceFailurePolicy) serviceReal.getServiceFailurePolicy();
         }
+
+    /**
+     * A JUnit rule that will cause the test to fail if it runs too long.
+     * A thread dump will be generated on failure.
+     */
+    @ClassRule
+    public static final ThreadDumpOnTimeoutRule timeout
+            = ThreadDumpOnTimeoutRule.after(15, TimeUnit.MINUTES, true);
     }

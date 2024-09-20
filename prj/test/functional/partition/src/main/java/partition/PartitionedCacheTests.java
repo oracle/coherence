@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -44,11 +44,7 @@ import com.tangosol.util.SafeHashMap;
 import com.tangosol.util.processor.AbstractProcessor;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
-import com.oracle.coherence.testing.AbstractRollingRestartTest;
 import com.oracle.coherence.testing.TestSynchronousMapListener;
-
-import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
-import com.oracle.bedrock.runtime.coherence.ServiceStatus;
 
 import java.util.Enumeration;
 import java.util.EventListener;
@@ -531,7 +527,7 @@ public class PartitionedCacheTests
     @Test
     public void testNonObservableBackingMap()
         {
-        final int CACHE_SIZE = 200;
+        final int CACHE_SIZE = 200000;
         NamedCache cache = getNamedCache("custom-backing-map");
         try
             {
@@ -566,7 +562,7 @@ public class PartitionedCacheTests
             stopCacheServer("tertiary");
             assertEquals(CACHE_SIZE, cache.size());
             }
-      finally
+       finally
             {
             stopCacheServer("secondary");
             stopCacheServer("tertiary");

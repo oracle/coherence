@@ -637,7 +637,7 @@ public class MessageHandler
     * 
     * @return the remaining time
     * 
-    * @throws RequestTimeoutExcepton on timeout
+    * @throws RequestTimeoutException on timeout
      */
     protected long drainOverflowComplex(MemberSet setMember, long cMillisTimeout)
             throws java.lang.InterruptedException
@@ -1368,10 +1368,13 @@ public class MessageHandler
                 Message msg = connect.prepareMessage(bufseq);
                 if (msg != null)
                     {
-                    com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid svcMsg = msg.getService();
-                    if (svcMsg == getService())
+                    com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid service = msg.getService();
+                    if (service == getService())
                         {
-                        svcMsg.onMessage(msg);
+                        if (!msg.isDeserializationRequired() || service.deserializeMessage(msg))
+                            {
+                            service.onMessage(msg);
+                            }
                         }
                     else
                         {
@@ -1505,10 +1508,9 @@ public class MessageHandler
     
     /**
      * Create and post a BusEventMessage to the Service thread. Called on a Bus
-    * thread.
-    * 
-    * @param event  the Bus event
-    * @param msgDeferred (optional) deserialized message that had to be deferred
+     * thread.
+     *
+     * @param event  the Bus event
      */
     public void postEventMessage(com.oracle.coherence.common.net.exabus.Event event)
         {
@@ -1646,10 +1648,12 @@ public class MessageHandler
                 {
                 if (connect.isEstablished() || connect.establish())
                     {
-                    // an accepted connection; here we perform deserialization on bus collector thread(s);
-                    // this allows multiple messages (from different peers) to be deserialized in parallel
-                    // Note: we don't call service.post, but rahter add the message directly to the service
-                    // queue.  This is done to avoid making this message appear to have originated locally
+                    // an accepted connection; here we perform deserialization and execute request on a
+                    // bus collector thread if the service is configured with a negative worker thread count,
+                    // or only deserialize request if the worker thread count is zero and daemon pool disabled;
+                    // Otherwise, we add minimally deserialized message to the service queue for processing.
+                    // Note: we don't call service.post, but rather add the message directly to the service
+                    // queue.  This is done to avoid making this message appear to have originated locally.
                     Message msg = connect.prepareMessage(bufseq);
                     if (msg != null)
                         {
@@ -1659,8 +1663,33 @@ public class MessageHandler
                             msg.setBufferController(event);
                             event = null;
                             }
-        
-                        msg.getService().getQueue().add(msg);
+
+                        Grid service  = msg.getService();
+                        int  cWorkers = service.getDependencies().getWorkerThreadCount();
+
+                        if (cWorkers <= 0 && (service.isAcceptingOthers() || service == getService()))
+                            {
+                            // we deserialize on a transport thread if the service doesn't have a daemon pool,
+                            // to avoid deserialization on the service thread
+                            if (service.deserializeMessage(msg))
+                                {
+                                // COH-28112: execute request on a transport thread
+                                if (cWorkers < 0)
+                                    {
+                                    service.onMessage(msg);
+                                    return;
+                                    }
+                                }
+                            else
+                                {
+                                msg = null;
+                                }
+                            }
+
+                        if (msg != null)
+                            {
+                            msg.getService().getQueue().add(msg);
+                            }
                         }
                     // else; msg == null logged in prepareMessage
                     }
@@ -2790,9 +2819,9 @@ public class MessageHandler
         
         /**
          * Construct and deserialize a Message based on the supplied
-        * BufferSequence
-        * 
-        * @return the message
+         * BufferSequence
+         *
+         * @return the message
          */
         public Message prepareMessage(com.oracle.coherence.common.io.BufferSequence bufseq)
                 throws java.io.IOException
@@ -2846,14 +2875,6 @@ public class MessageHandler
                 msg.setFromMember(getMember());
                 msg.setReadBuffer(buffer);
                 msg.setDeserializationRequired(true);
-            
-                if (service.isAcceptingOthers() || service == handler.getService())
-                    {
-                    if (!service.deserializeMessage(msg))
-                        {
-                        msg = null;
-                        }
-                    }
             
                 return msg;
                 }

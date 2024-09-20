@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,7 +9,6 @@ package com.tangosol.internal.net;
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
-import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
 
 import com.tangosol.net.cache.TypeAssertion;
@@ -106,6 +105,12 @@ public class SessionNamedCache<K, V>
     public boolean isActive()
         {
         return m_fActive && m_cache.isActive();
+        }
+
+    @Override
+    public boolean isReady()
+        {
+        return m_cache.isReady();
         }
 
     @Override

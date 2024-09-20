@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.persistence;
 
@@ -145,11 +145,22 @@ public interface PersistenceManager<R>
     public boolean delete(String sId, boolean fSafe);
 
     /**
-     * Return the identifiers of the PersistentStores known to this manager.
+     * Return a list of the PersistentStoreInfo known to this manager.
      *
-     * @return a list of the known store identifiers
+     * @return a list of the known PersistentStoreInfo
+     *
+     * @since 24.09
      */
-    public String[] list();
+    public PersistentStoreInfo[] listStoreInfo();
+
+    /**
+     * Return true if the specified directory is empty.
+     *
+     * @return true if the specified directory is empty
+     *
+     * @since 24.09
+     */
+    public boolean isEmpty(String sId);
 
     /**
      * Return the identifiers of the PersistentStores known to this manager.
@@ -158,9 +169,9 @@ public interface PersistenceManager<R>
      */
     public default boolean contains(String sGUID)
         {
-        for (String sGUIDCurrent : list())
+        for (PersistentStoreInfo storeCurrent : listStoreInfo())
             {
-            if (sGUIDCurrent.equals(sGUID))
+            if (storeCurrent.getId().equals(sGUID))
                 {
                 return true;
                 }
@@ -283,4 +294,11 @@ public interface PersistenceManager<R>
      * @return a PersistenceTools implementation
      */
     public PersistenceTools getPersistenceTools();
+
+    /**
+     * Perform any necessary maintenance of the underlying environment.
+     */
+    public default void maintainEnvironment()
+        {
+        }
     }

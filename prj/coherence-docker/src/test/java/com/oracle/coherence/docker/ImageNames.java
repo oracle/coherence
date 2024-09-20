@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,13 +7,19 @@
 package com.oracle.coherence.docker;
 
 import com.oracle.bedrock.options.Diagnostics;
+import com.oracle.bedrock.options.LaunchLogging;
 import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.ApplicationConsole;
 import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.Platform;
+import com.oracle.bedrock.runtime.console.CapturingApplicationConsole;
 import com.oracle.bedrock.runtime.console.NullApplicationConsole;
 import com.oracle.bedrock.runtime.options.Argument;
+import com.oracle.bedrock.runtime.options.Console;
 import org.junit.jupiter.api.Assumptions;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Test Docker image names utils.
@@ -81,6 +87,26 @@ public class ImageNames
         }
 
     /**
+     * Return the digests of the test images.
+     *
+     * @return the names of the test images
+     */
+    public static String[] getImageDigests()
+        {
+        if (s_asImageDigest == null)
+            {
+            String[] asName   = getImageNames();
+            String[] asDigest = new String[asName.length];
+            for (int i = 0; i < asName.length; i++)
+                {
+                asDigest[i] = imageDigest(asName[i]);
+                }
+            s_asImageDigest = asDigest;
+            }
+        return s_asImageDigest;
+        }
+
+    /**
      * Verify the assumptions needed to run Graal tests.
      */
     public static void verifyGraalTestAssumptions()
@@ -139,6 +165,26 @@ public class ImageNames
         }
 
     /**
+     * Return the digests of the Graal test images.
+     *
+     * @return the digests of the Graal test images
+     */
+    public static String[] getGraalImageDigests()
+        {
+        if (s_asGraalImageDigest == null)
+            {
+            String[] asName   = getGraalImageNames();
+            String[] asDigest = new String[asName.length];
+            for (int i = 0; i < asName.length; i++)
+                {
+                asDigest[i] = imageDigest(asName[i]);
+                }
+            s_asGraalImageDigest = asDigest;
+            }
+        return s_asGraalImageDigest;
+        }
+
+    /**
      * Verify that the image being tested is already present.
      *
      * @param sImage  the name of the image
@@ -156,13 +202,87 @@ public class ImageNames
         Platform platform = LocalPlatform.get();
 
         try (Application app = platform.launch("docker",
-                                               Argument.of("inspect"),
-                                               Argument.of(sImage),
-                                               NullApplicationConsole.builder()))
+                   Argument.of("inspect"),
+                   Argument.of(sImage),
+                   LaunchLogging.disabled(),
+                   NullApplicationConsole.builder()))
             {
             int exitCode = app.waitFor();
             return exitCode == 0;
             }
+        }
+
+    /**
+     * Verify that the image being tested is already present.
+     *
+     * @param sImage  the name of the image
+     *
+     * @return {@code true} if the image being tested is present.
+     */
+    public static String imageLabel(String sImage, String sLabel)
+        {
+        Platform platform = LocalPlatform.get();
+
+        try (CapturingApplicationConsole console = new CapturingApplicationConsole())
+            {
+            try (Application app = platform.launch("docker",
+                    Argument.of("inspect"),
+                    Argument.of("-f"),
+                    Argument.of("{{index .Config.Labels \"" + sLabel + "\"}}"),
+                    Argument.of(sImage),
+                    LaunchLogging.disabled(),
+                    Console.of(console)))
+                {
+                int exitCode = app.waitFor();
+                assertThat(exitCode, is(0));
+                }
+            return console.getCapturedOutputLines().poll();
+            }
+        }
+
+    /**
+     * Get the digest for an image.
+     *
+     * @param sImage  the name of the image
+     *
+     * @return the image digest
+     */
+    public static String imageDigest(String sImage)
+        {
+        String sDocker = "docker.io/";
+        if (sImage.startsWith(sDocker))
+            {
+            sImage = sImage.substring(sDocker.length());
+            }
+
+        Platform                    platform = LocalPlatform.get();
+        CapturingApplicationConsole console  = new CapturingApplicationConsole();
+
+        try (Application app = platform.launch("docker",
+                   Argument.of("images"),
+                   Argument.of(sImage),
+                   Argument.of("--no-trunc"),
+                   Argument.of("--quiet"),
+                   LaunchLogging.disabled(),
+                   Console.of(console)))
+            {
+            int exitCode = app.waitFor();
+            if (exitCode != 0)
+                {
+                throw new IllegalArgumentException("Cannot get digest for image " + sImage);
+                }
+            return console.getCapturedOutputLines().poll();
+            }
+        }
+
+    public static String getTag(String sImage)
+        {
+        int idx = sImage.indexOf(':');
+        if (idx > 0)
+            {
+            return sImage.substring(idx + 1);
+            }
+        return "unknown";
         }
 
     /**
@@ -182,6 +302,8 @@ public class ImageNames
 
     private static String[] s_asImageName;
 
+    private static String[] s_asImageDigest;
+
     private static Boolean s_fImagesExist;
 
     /**
@@ -190,6 +312,8 @@ public class ImageNames
     private static final String GRAAL_IMAGE_NAMES = System.getProperty(PROP_GRAAL_IMAGES);
 
     private static String[] s_asGraalImageName;
+
+    private static String[] s_asGraalImageDigest;
 
     private static Boolean s_fGraalImagesExist;
     }

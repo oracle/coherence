@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.internal.net.ssl;
 
@@ -207,5 +207,83 @@ public class SSLCertUtility
                 }
             }
         return dnsNames;
+        }
+
+    /**
+     * Determines if an X509Certificate has been issued by another X509Certificate.
+     *
+     * @param cert   an X509Certificate containing the certificate to be checked
+     *
+     * @param issuer an X509Certificate that issued the cert certificate
+     *
+     * @return a boolean indicating if the certificate was issued by the issuer.
+     *
+     * @since 23.09
+     */
+    public static boolean isIssuedBy(X509Certificate cert, X509Certificate issuer)
+        {
+        if (!cert.getIssuerX500Principal().equals(issuer.getSubjectX500Principal()))
+            {
+            return false;
+            }
+
+        try
+            {
+            cert.verify(issuer.getPublicKey());
+            return true;
+            }
+        catch (Exception e)
+            {
+            return false;
+            }
+        }
+
+    /**
+     * Determines if an X509Certificate is self-signed.
+     *
+     * @param cert An X509Certificate
+     *
+     * @return a boolean indicating if the certificate is self-signed.
+     *
+     * @since 23.09
+     */
+    public static boolean isSelfSigned(X509Certificate cert)
+        {
+        return isIssuedBy(cert, cert);
+        }
+
+    /**
+     * Determines if an SSLSession uses self-signed certificates.
+     *
+     * @param session An SSLSession
+     *
+     * @return a boolean indicating if a self-signed certificate is used.
+     *
+     * @since 23.09
+     */
+    public static boolean useSelfSigned(SSLSession session)
+        {
+        try
+            {
+            Certificate[] certs = session.getLocalCertificates();
+            if (certs != null && certs.length > 0 &&
+                isSelfSigned(toX509(certs[0])))
+                {
+                return true;
+                }
+
+            certs = session.getPeerCertificates();
+            if (certs != null && certs.length > 0 &&
+                    isSelfSigned(toX509(certs[0])))
+                {
+                return true;
+                }
+            }
+        catch (CertificateException | SSLPeerUnverifiedException ignored)
+            {
+            return false;
+            }
+
+        return false;
         }
     }

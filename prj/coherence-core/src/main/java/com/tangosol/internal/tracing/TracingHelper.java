@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.tracing;
 
@@ -175,6 +175,25 @@ public final class TracingHelper
         Span span = getActiveSpan();
 
         return span == null ? m_tracingShim.getNoopSpan() : span;
+        }
+
+    /**
+     * Activate the specified {@link Span}.
+     *
+     * @param span  the {@link Span} to activate.
+     *
+     * @return the activated {@link Span}
+     *
+     * @since 24.03
+     */
+    public static Span activateSpan(Span span)
+        {
+        if (span != null)
+            {
+            return isEnabled() ? m_tracingShim.activateSpan(span) : span;
+            }
+
+        return null;
         }
 
     /**

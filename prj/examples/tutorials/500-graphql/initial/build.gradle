@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000-2022 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,14 +7,14 @@
 
 plugins {
     id "application"
-    id "org.kordamp.gradle.jandex" version "0.12.0"
+    id "org.kordamp.gradle.jandex" version "1.1.0"
 }
 apply plugin : "java"
 
 
 group = 'com.oracle.coherence.tutorials'
 version = '${coherenceVersion}'
-sourceCompatibility = '17'
+sourceCompatibility = '21'
 
 repositories {
 	mavenCentral()
@@ -31,7 +31,7 @@ dependencies {
 	implementation "${coherenceGroupId}:coherence-cdi-server"
 
 	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
-   	testImplementation "io.helidon.microprofile.tests:helidon-microprofile-tests-junit5"
+   	testImplementation "io.helidon.microprofile.testing:helidon-microprofile-testing-junit5"
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
 }
 

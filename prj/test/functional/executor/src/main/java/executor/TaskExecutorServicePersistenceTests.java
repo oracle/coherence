@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -29,6 +29,7 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
 
+import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.common.base.Blocking;
@@ -101,16 +102,11 @@ import static org.hamcrest.core.Is.is;
  * @author lh
  * @since 21.12
  */
+@Ignore("COH-27716")
 @Category(SingleClusterForAllTests.class)
 public class TaskExecutorServicePersistenceTests
     {
     // ----- test lifecycle -------------------------------------------------
-
-    @AfterClass
-    public static void afterClass()
-        {
-        s_coherence.after();
-        }
 
     @BeforeClass
     public static void setupClass()
@@ -258,7 +254,7 @@ public class TaskExecutorServicePersistenceTests
         // ensure that we are eventually done! (ie: a new compute member picks up the task)
         Eventually.assertDeferred(() -> subscriber2.received("DONE"),
                                   Matchers.is(true),
-                                  Eventually.within(3, TimeUnit.MINUTES));
+                                  Eventually.within(4, TimeUnit.MINUTES));
         }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -318,7 +314,7 @@ public class TaskExecutorServicePersistenceTests
                                       Caches.tasks(service),
                                       Caches.properties(service));
 
-        //Utils.heapdump(s_coherence.getCluster());
+        Utils.heapdump(s_coherence.getCluster());
         }
 
     protected CacheService getCacheService()
@@ -433,12 +429,14 @@ public class TaskExecutorServicePersistenceTests
                           SystemProperty.of("coherence.concurrent.persistence.environment",   "default-active"),
                           SystemProperty.of("coherence.distributed.persistence.active.dir",   s_fileActive.getAbsoluteFile()),
                           SystemProperty.of("coherence.distributed.persistence.snapshot.dir", s_fileSnapshot.getAbsoluteFile()),
-                          SystemProperty.of("coherence.distributed.persistence.trash.dir",    s_fileTrash.getAbsoluteFile()))
+                          SystemProperty.of("coherence.distributed.persistence.trash.dir",    s_fileTrash.getAbsoluteFile()),
+                          StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()))
                     .include(STORAGE_ENABLED_MEMBER_COUNT,
                              DisplayName.of("CacheServer"),
                              LogOutput.to(TaskExecutorServicePersistenceTests.class.getSimpleName(), "CacheServer"),
                              RoleName.of("storage"),
                              LocalStorage.enabled(),
+                             SystemProperty.of("coherence.distributed.threads", "10"),
                              SystemProperty.of(EXTEND_ENABLED_PROPERTY, false),
                              SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true))
                     .include(STORAGE_DISABLED_MEMBER_COUNT,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -222,6 +222,8 @@ public class ClusteredTaskCoordinator<T>
     @Override
     public void entryUpdated(MapEvent mapEvent)
         {
+        ExecutorTrace.entering(this.getClass(), "entryUpdated",() -> mapEvent);
+
         ClusteredTaskManager<?, ?, T> oldManager = (ClusteredTaskManager) mapEvent.getOldValue();
         ClusteredTaskManager<?, ?, T> manager    = (ClusteredTaskManager) mapEvent.getNewValue();
 
@@ -268,6 +270,8 @@ public class ClusteredTaskCoordinator<T>
             // we no longer require the map listener
             removeMapListener();
             }
+
+        ExecutorTrace.exiting(this.getClass(), "entryUpdated");
         }
 
     @Override
@@ -303,6 +307,11 @@ public class ClusteredTaskCoordinator<T>
 
     // ----- helper methods -------------------------------------------------
 
+    /**
+     * Return the underlying {@link CacheService} for the executor service.
+     *
+     * @return the underlying {@link CacheService}
+     */
     protected CacheService getCacheService()
         {
         return f_cacheService;

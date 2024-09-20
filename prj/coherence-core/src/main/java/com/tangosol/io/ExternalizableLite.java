@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io;
@@ -38,6 +38,34 @@ import java.io.Serializable;
 * according to their "equals()" implementation produce equivalent serialized
 * streams. Violating this relationship will result in non-deterministic behavior
 * for many Coherence services.
+* <p>
+* Here is an example of how to write a custom ExternalizableLite deserialization method
+* that incorporates calling a constructor to set members that do not have a setter.
+* <pre>
+* public class NotAPojo {
+*     public NotAPojo(int field) {this.field = field;}
+*     public int getField()      {return field;}
+*     private int field;
+* }
+* </pre>
+* <pre>
+* {@code @ExternalizableType(serializer = Serializer.class)}
+* public class NotAPojoSerializable extends NotAPojo implements ExternalizableLite {
+*     public NotAPojoSerializable(int field) { super(field); }
+*
+*     static public class Serializer implements ExternalizableLiteSerializer {
+*         public T deserialize(DataInput in) throws IOException {
+*             return new NotAPojoSerializable(in.readInt());
+*         }
+*
+*         public void serialize(DataOutput out,T value) throws IOException {
+*             out.writeInt(value.getField());
+*        }
+* }
+* </pre>
+*
+* @see ExternalizableLiteSerializer
+* @see ExternalizableType
 *
 * @author gg 2003.02.08
 *
@@ -57,7 +85,8 @@ public interface ExternalizableLite
     * @exception NotActiveException  if the object is not in its initial
     *            state, and therefore cannot be deserialized into
     */
-    public void readExternal(DataInput in) throws IOException;
+    default public void readExternal(DataInput in) throws IOException
+        {}
 
     /**
     * Save the contents of this object by storing the object's state into
@@ -67,5 +96,6 @@ public interface ExternalizableLite
     *
     * @exception IOException if an I/O exception occurs
     */
-    public void writeExternal(DataOutput out) throws IOException;
+    default public void writeExternal(DataOutput out) throws IOException
+        {}
     }

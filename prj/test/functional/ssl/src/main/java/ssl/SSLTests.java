@@ -1,13 +1,21 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package ssl;
 
+import com.oracle.coherence.common.internal.net.ssl.SSLSocketChannel;
+
 import com.oracle.coherence.testing.net.EchoClient;
+import com.oracle.coherence.testing.net.EchoNIOClient;
+import com.oracle.coherence.testing.net.EchoNIOServer;
 import com.oracle.coherence.testing.net.EchoServer;
+
+import java.nio.channels.SocketChannel;
+import java.util.Set;
+import javax.net.ssl.SSLSession;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -311,6 +319,51 @@ public class SSLTests
         }
 
     @Test
+    public void testUntrustedClientConfigWithClientAuthNone()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-guest-trust.xml");
+        EchoServer server = createServer("provider-config-server-peer-client-auth-none.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testUntrustedClientConfigWithClientAuthWanted()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-guest-trust.xml");
+        EchoServer server = createServer("provider-config-server-peer-client-auth-wanted.xml");
+        untrustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testTrustOnlyClientConfigWithClientAuthNone()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-client.xml");
+        EchoServer server = createServer("provider-config-server-peer-client-auth-none.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testTrustOnlyClientConfigWithClientAuthWanted()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-client.xml");
+        EchoServer server = createServer("provider-config-server-peer-client-auth-wanted.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testTrustOnlyClientConfigWithClientAuthRequired()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-client.xml");
+        EchoServer server = createServer("provider-config-server-peer-client-auth-required.xml");
+        untrustedServerConfigTest(client, server);
+        }
+
+    @Test
     public void testClientHostnameVerifierConfig()
             throws IOException
         {
@@ -425,7 +478,30 @@ public class SSLTests
             {
             assertEquals(server.getConnectionCount(), 0);
             client.echo(sMsg);
-            fail("IO exception expected");
+            if (client instanceof EchoNIOClient)
+                {
+                EchoNIOClient nioClient = (EchoNIOClient) client;
+                SocketChannel channel   = nioClient.getChannel();
+                if (channel instanceof SSLSocketChannel)
+                    {
+                    SSLSocketChannel sslChannel = (SSLSocketChannel) channel;
+                    SSLSession       session    = sslChannel.openSSLEngine().getSession();
+                    session.getPeerCertificates();
+                    }
+                }
+            else if (server instanceof EchoNIOServer)
+                {
+                EchoNIOServer      nioServer = (EchoNIOServer) server;
+                Set<SocketChannel> channels  = nioServer.getChannels();
+                SocketChannel      channel   = channels.iterator().next();
+                if (channel instanceof SSLSocketChannel)
+                    {
+                    SSLSocketChannel sslChannel = (SSLSocketChannel) channels.iterator().next();
+                    SSLSession       session    = sslChannel.openSSLEngine().getSession();
+                    session.getPeerCertificates();
+                    }
+                }
+            fail("IOException expected");
             }
         catch (IOException e)
             {
@@ -451,7 +527,31 @@ public class SSLTests
             {
             assertEquals(server.getConnectionCount(), 0);
             client.echo(sMsg);
-            fail("IO exception expected");
+            if (client instanceof EchoNIOClient)
+                {
+                EchoNIOClient nioClient = (EchoNIOClient) client;
+                SocketChannel channel   = nioClient.getChannel();
+                if (channel instanceof SSLSocketChannel)
+                    {
+                    SSLSocketChannel sslChannel = (SSLSocketChannel) channel;
+                    SSLSession       session    = sslChannel.openSSLEngine().getSession();
+                    session.getPeerCertificates();
+                    }
+                }
+            else if (server instanceof EchoNIOServer)
+                {
+                EchoNIOServer      nioServer = (EchoNIOServer) server;
+                Set<SocketChannel> channels  = nioServer.getChannels();
+                SocketChannel      channel
+                        = channels.iterator().next();
+                if (channel instanceof SSLSocketChannel)
+                    {
+                    SSLSocketChannel sslChannel = (SSLSocketChannel) channels.iterator().next();
+                    SSLSession       session    = sslChannel.openSSLEngine().getSession();
+                    session.getPeerCertificates();
+                    }
+                }
+            fail("IOException expected");
             }
         catch (IOException e)
             {
@@ -553,5 +653,27 @@ public class SSLTests
         EchoServer server = createServer("provider-config-server-peer.xml");
 
         trustedServerConfigTest(client, server);
+        }
+
+    protected void untrustedServerConfigTest(EchoClient client, EchoServer server)
+        {
+        final String sMsg = "HELLO!";
+
+        server.start();
+        try
+            {
+            assertEquals(server.getConnectionCount(), 0);
+            client.echo(sMsg);
+            fail("IO exception expected");
+            }
+        catch (IOException e)
+            {
+            // expected
+            }
+        finally
+            {
+            client.disconnect();
+            server.stop();
+            }
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@
 package com.oracle.coherence.testing;
 
 
+import com.oracle.bedrock.Option;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
@@ -543,6 +544,19 @@ public abstract class AbstractRollingRestartTest
         */
         public Member addServer(Properties props)
             {
+            return addServer(props, new Option[0]);
+            }
+
+        /**
+        * Start a cache server.
+        *
+        * @param props    the properties to start the server with, may be null
+        * @param options  the options used to start the cache server
+        *
+        * @return the new Member
+        */
+        public Member addServer(Properties props, Option... options)
+            {
             String     sServerName = getPrefix() + m_nNonce++;
             Properties propsAll    = ensureProperties();
 
@@ -555,7 +569,9 @@ public abstract class AbstractRollingRestartTest
             int     nSize   = cluster.getMemberSet().size();
 
             startCacheServer(sServerName, getProjectName(),
-                             getCacheConfigPath(), propsAll, true);
+                             getCacheConfigPath(), propsAll, true,
+                             null,
+                             options);
 
             Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(nSize + 1));
 

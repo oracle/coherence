@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.management;
 
@@ -69,7 +69,7 @@ public interface CustomMBeanDependencies
 
     /**
      * Return a flag controlling the MBean life cycle. If set to true, the MBean life cycle extends to the
-     * life cycle of the JVM; Otherwise, it coincides with the the cluster node life cycle.
+     * life cycle of the JVM; Otherwise, it coincides with the cluster node life cycle.
      *
      * @return MBean life cycle flag
      */

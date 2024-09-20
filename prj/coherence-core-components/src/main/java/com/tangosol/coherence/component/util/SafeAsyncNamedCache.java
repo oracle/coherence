@@ -16,6 +16,9 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.net.RequestTimeoutException;
 import com.tangosol.net.ServiceDependencies;
 import com.tangosol.util.Base;
+
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
@@ -333,6 +336,12 @@ public class SafeAsyncNamedCache
         {
         return getRunningNamedCache().putAll(map);
         }
+
+    public CompletableFuture putAll(Map map, long cMillis)
+        {
+        return getRunningNamedCache().putAll(map, cMillis);
+        }
+
     public java.util.concurrent.CompletableFuture putIfAbsent(Object key, Object value)
         {
         return getRunningNamedCache().putIfAbsent(key, value);

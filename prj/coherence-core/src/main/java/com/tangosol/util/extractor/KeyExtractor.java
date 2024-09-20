@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,6 +18,7 @@ import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
+import com.tangosol.util.Extractors;
 import com.tangosol.util.ValueExtractor;
 
 import java.io.DataInput;
@@ -52,12 +53,14 @@ import jakarta.json.bind.annotation.JsonbProperty;
 * </pre>
 *
 * <b>Note:</b> This class does not function with
-* {@link com.tangosol.util.extractor.PofExtractor} and the mechanism
-* described above is recommended.
+* {@link com.tangosol.util.extractor.PofExtractor} and the recommendation is
+* to create a {@link PofExtractor} with the target set to {@link #KEY} or
+* create a {@link PofExtractor} and call the {@link #fromKey()} method on it.
 *
 * @author gg 2006.06.12
 * @since Coherence 3.2
 */
+@SuppressWarnings({"unchecked", "DataFlowIssue"})
 public class KeyExtractor<T, E>
         extends AbstractExtractor<T, E>
         implements ExternalizableLite, PortableObject
@@ -96,7 +99,10 @@ public class KeyExtractor<T, E>
     *                 of method names which would result in a KeyExtractor
     *                 based on the {@link ChainedExtractor} that is based on
     *                 an array of corresponding ReflectionExtractor objects
+    *
+    * @deprecated use {@link Extractors#key(String...)} instead.
     */
+    @SuppressWarnings("rawtypes")
     public KeyExtractor(String sMethod)
         {
         azzert(sMethod != null, "Method name is missing");
@@ -163,6 +169,7 @@ public class KeyExtractor<T, E>
 
     // ----- Object methods -------------------------------------------------
 
+    @SuppressWarnings("rawtypes")
     @Override
     public boolean equals(Object o)
         {

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.events.internal;
 
@@ -13,6 +13,7 @@ import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.CacheService;
 
+import com.tangosol.net.Coherence;
 import com.tangosol.net.events.EventDispatcher;
 
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
@@ -433,11 +434,13 @@ public class StorageDispatcher
         @Override
         public String getSessionName()
             {
-            return getService()
+            String sName = getService()
                     .getBackingMapManager()
                     .getCacheFactory()
                     .getResourceRegistry()
                     .getResource(String.class, ConfigurableCacheFactorySession.SESSION_NAME);
+
+            return sName == null ? Coherence.DEFAULT_NAME : sName;
             }
         }
 

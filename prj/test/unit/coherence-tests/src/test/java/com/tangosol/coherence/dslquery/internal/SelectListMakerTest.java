@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.dslquery.internal;
 
@@ -40,6 +40,7 @@ import com.tangosol.util.extractor.KeyExtractor;
 import com.tangosol.util.extractor.MultiExtractor;
 import com.tangosol.util.extractor.PofExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
+import com.tangosol.util.extractor.UniversalExtractor;
 import com.tangosol.util.processor.CompositeProcessor;
 import com.tangosol.util.processor.ExtractorProcessor;
 import org.junit.After;
@@ -51,6 +52,7 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -409,7 +411,7 @@ public class SelectListMakerTest
 
         selectListMaker.acceptCall(node.termAt(1).getFunctor(), (NodeTerm) node.termAt(1));
         assertThat(selectListMaker.getResult(),
-                   is((Object) new ReflectionExtractor("getFoo", null, ReflectionExtractor.KEY)));
+                   is((Object) new UniversalExtractor("getFoo()", null, ReflectionExtractor.KEY)));
         }
 
     @Test
@@ -417,8 +419,8 @@ public class SelectListMakerTest
             throws Exception
         {
         ChainedExtractor expected = new ChainedExtractor(new ValueExtractor[] {
-                                        new ReflectionExtractor("getF1", null, ReflectionExtractor.KEY),
-                                        new ReflectionExtractor("getF2")});
+                                        new UniversalExtractor("f1", null, UniversalExtractor.KEY),
+                                        new UniversalExtractor("f2")});
         NodeTerm        node            = (NodeTerm) parse("key(f1.f2)");
         SelectListMaker selectListMaker = new SelectListMaker(null, null, m_language);
 
@@ -500,7 +502,7 @@ public class SelectListMakerTest
         {
         NodeTerm        node            = (NodeTerm) parse("select key(foo) from myCache");
         NodeTerm        fields          = (NodeTerm) node.findChild(OPToken.FIELD_LIST);
-        ValueExtractor  expected        = new ReflectionExtractor("getFoo", null, ReflectionExtractor.KEY);
+        ValueExtractor  expected        = new UniversalExtractor("getFoo()", null, ReflectionExtractor.KEY);
 
         SelectListMaker selectListMaker = new SelectListMaker(null, null, m_language);
 
@@ -510,7 +512,7 @@ public class SelectListMakerTest
         DistinctValues result = selectListMaker.getDistinctValues();
 
         assertThat(result, is(notNullValue()));
-        assertThat(result.getValueExtractor(), is(expected));
+        assertEquals(result.getValueExtractor(), expected);
         }
 
     @Test

@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -88,7 +88,7 @@ public class Lease
      * Property HolderThreadId
      *
      * Unique id of the Thread which holds a lock for this Lease. This property
-     * has meaning only if the the following holds true:
+     * has meaning only if the following holds true:
      * <pre><code>
      *     getHolderId() == getService().getThisMember().getId()
      * </code></pre>
@@ -580,7 +580,7 @@ public class Lease
     /**
      * Getter for property HolderThreadId.<p>
     * Unique id of the Thread which holds a lock for this Lease. This property
-    * has meaning only if the the following holds true:
+    * has meaning only if the following holds true:
     * <pre><code>
     *     getHolderId() == getService().getThisMember().getId()
     * </code></pre>
@@ -866,7 +866,7 @@ public class Lease
     /**
      * Setter for property HolderThreadId.<p>
     * Unique id of the Thread which holds a lock for this Lease. This property
-    * has meaning only if the the following holds true:
+    * has meaning only if the following holds true:
     * <pre><code>
     *     getHolderId() == getService().getThisMember().getId()
     * </code></pre>

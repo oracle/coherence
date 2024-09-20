@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,6 +14,7 @@ import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.NullImplementation;
 
 /**
  * An option specifying how to resolve the {@link ClassLoader} to use when
@@ -47,6 +48,18 @@ public interface WithClassLoader
     static WithClassLoader autoDetect()
         {
         return () -> Classes.ensureClassLoader(null);
+        }
+
+    /**
+     * Obtains a {@link WithClassLoader} that returns the
+     * {@link NullImplementation} class loader.
+     *
+     * @return a {@link WithClassLoader} that returns the
+     *         {@link NullImplementation} class loader
+     */
+    static WithClassLoader nullImplementation()
+        {
+        return NullImplementation::getClassLoader;
         }
 
     /**

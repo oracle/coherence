@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
+
+import com.oracle.coherence.common.collections.NullableConcurrentMap;
 
 import com.tangosol.util.comparator.SafeComparator;
 
@@ -20,6 +22,7 @@ import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -44,8 +47,10 @@ import java.util.function.Function;
  *
  * @since 23.03
  * @author mg
+ * @deprecated use {@link NullableConcurrentMap} instead.
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
+@Deprecated
 public class SafeSortedMap
         extends ConcurrentSkipListMap
     {
@@ -1098,6 +1103,11 @@ public class SafeSortedMap
         }
 
     // ----- constant -------------------------------------------------
+
+    /**
+     * An empty, immutable SafeSortedMap instance.
+     */
+    public static final SortedMap<?, ?> EMPTY = Collections.unmodifiableSortedMap(new SafeSortedMap());
 
     /**
      * Placeholder for a {@code null} key or value.

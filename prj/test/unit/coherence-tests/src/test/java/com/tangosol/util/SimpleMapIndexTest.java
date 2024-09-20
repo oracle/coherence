@@ -1,10 +1,13 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
+
+import com.oracle.coherence.common.collections.NullableConcurrentMap;
+import com.oracle.coherence.common.collections.NullableSortedMap;
 
 import com.tangosol.util.extractor.AbstractExtractor;
 import com.tangosol.util.extractor.IdentityExtractor;
@@ -235,7 +238,7 @@ public class SimpleMapIndexTest
             oIndexValue, oIndexValue2);
 
         // get the inverse map
-        SafeSortedMap mapInverse = (SafeSortedMap) mapIndex.getIndexContents();
+        NullableSortedMap mapInverse = (NullableSortedMap) mapIndex.getIndexContents();
 
         // get the entry from the inverse map keyed by the extracted value
         Map.Entry inverseEntry = mapInverse.getEntry(oExtracted);
@@ -359,7 +362,7 @@ public class SimpleMapIndexTest
             "The value for key and key2 should be the same instance.",
             oIndexValue, oIndexValue2);
 
-        SafeSortedMap mapInverse = (SafeSortedMap) mapIndex.getIndexContents();
+        NullableSortedMap mapInverse = (NullableSortedMap) mapIndex.getIndexContents();
 
         Map.Entry inverseEntry = mapInverse.getEntry(oExtractedNew);
 
@@ -633,7 +636,7 @@ public class SimpleMapIndexTest
         Collection collIndexValue3 = (Collection) mapIndex.get(oKey3);
         Collection collIndexValue4 = (Collection) mapIndex.get(oKey4);
 
-        SegmentedHashMap mapInverse = (SegmentedHashMap) mapIndex
+        NullableConcurrentMap mapInverse = (NullableConcurrentMap) mapIndex
                 .getIndexContents();
 
         assertCollectionInverseMap(oKey, collIndexValue, mapInverse);
@@ -774,7 +777,7 @@ public class SimpleMapIndexTest
         Object[] aoIndexValue3 = (Object[]) mapIndex.get(oKey3);
         Object[] aoIndexValue4 = (Object[]) mapIndex.get(oKey4);
 
-        SegmentedHashMap mapInverse = (SegmentedHashMap) mapIndex
+        NullableConcurrentMap mapInverse = (NullableConcurrentMap) mapIndex
                 .getIndexContents();
 
         // verify that the inverse map contains an entry for each value in the collection
@@ -809,7 +812,7 @@ public class SimpleMapIndexTest
     * @param mapInverse  the index inverse map
     */
     private static void assertCollectionInverseMap(Object oKey,
-        Collection collection, SegmentedHashMap mapInverse)
+        Collection collection, NullableConcurrentMap mapInverse)
         {
         for (Iterator iterator = collection.iterator(); iterator.hasNext();)
             {

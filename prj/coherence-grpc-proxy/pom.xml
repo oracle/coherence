@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -17,7 +17,7 @@
   </parent>
 
   <artifactId>coherence-grpc-proxy</artifactId>
-  <name>Coherence gRPC Proxy</name>
+  <name>Coherence Netty based gRPC Proxy</name>
 
   <properties>
     <module.name>com.oracle.coherence.grpc.proxy</module.name>
@@ -29,35 +29,58 @@
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-grpc</artifactId>
+      <artifactId>coherence-grpc-proxy-common</artifactId>
       <version>${project.version}</version>
     </dependency>
 
+    <!--
+    Add Netty dependencies here to eliminate older version of Netty
+    pulled in by grpc version
+    -->
     <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence</artifactId>
-      <version>${project.version}</version>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-codec-http2</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-handler-proxy</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-transport-native-unix-common</artifactId>
     </dependency>
 
     <dependency>
       <groupId>io.grpc</groupId>
-      <artifactId>grpc-services</artifactId>
+      <artifactId>grpc-netty</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>jsr305</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>io.opentracing.contrib</groupId>
-      <artifactId>opentracing-grpc</artifactId>
     </dependency>
   </dependencies>
 
   <build>
     <plugins>
+      <!-- maven-bundle-pugin for generating manifest with metadata -->
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+      </plugin>
+
+      <!-- maven-jar-plugin with configuration to package generated MANIFEST.MF to project jar -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+
       <!-- flatten POM to remove build-specific content -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -67,32 +90,6 @@
       <plugin>
         <groupId>com.oracle.coherence.moditect</groupId>
         <artifactId>moditect-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>add-module-info</id>
-            <phase>package</phase>
-            <goals>
-              <goal>add-module-info</goal>
-            </goals>
-            <configuration>
-              <module>
-                <moduleInfo>
-                  <name>${module.name}</name>
-                  <open>true</open>
-                  <exports>
-                    *;
-                  </exports>
-                </moduleInfo>
-              </module>
-              <exclusions>
-                <exclusion>
-                  <groupId>com.google.code.findbugs</groupId>
-                  <artifactId>jsr305</artifactId>
-                </exclusion>
-              </exclusions>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>

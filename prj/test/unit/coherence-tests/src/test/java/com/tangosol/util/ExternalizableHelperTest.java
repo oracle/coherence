@@ -1,14 +1,15 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
 
-
 import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.ByteArrayWriteBuffer;
+import com.tangosol.io.ExternalizableLiteSerializer;
+import com.tangosol.io.ExternalizableType;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.WriteBuffer;
 
@@ -23,6 +24,10 @@ import com.tangosol.io.pof.SimplePofContext;
 import data.Person;
 
 import java.lang.reflect.InvocationTargetException;
+
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -52,7 +57,6 @@ import com.oracle.coherence.testing.CheckJDK;
 
 import static org.junit.Assert.*;
 
-
 /**
 * Unit tests for ExternalizableHelper.
 *
@@ -61,6 +65,38 @@ import static org.junit.Assert.*;
 public class ExternalizableHelperTest extends ExternalizableHelper
     {
     // ----- unit tests -----------------------------------------------------
+
+    /**
+     * Test UTF-8 conversion.
+     */
+    @Test
+    public void testUtfConversion() throws IOException
+        {
+        assertUtfConversion("Aleksandar");
+        assertUtfConversion("Александар");
+        assertUtfConversion("Aleksandar$ñ£");
+        assertUtfConversion("ⅯⅭⅯⅬⅩⅩⅠⅤ");
+        assertUtfConversion(toBytes(new int[] {0xf0938080, 0xf09f8ebf, 0xf09f8f80, 0xf09f8e89, 0xf09f9294}));
+
+        // make sure we can still handle our proprietary (broken) encoding
+        String sUtf = new String(toBytes(new int[] {0xf0938080, 0xf09f8ebf, 0xf09f8f80, 0xf09f8e89, 0xf09f9294}), StandardCharsets.UTF_8);
+        Binary bin = ExternalizableHelper.toBinary(sUtf);
+        assertEquals(22, bin.length());
+        assertEquals(sUtf, ExternalizableHelper.fromBinary(bin));
+        }
+
+    private void assertUtfConversion(String s) throws IOException
+        {
+        assertUtfConversion(s.getBytes(StandardCharsets.UTF_8));
+        }
+
+    private void assertUtfConversion(byte[] abUtf8) throws IOException
+        {
+        String sExpected = new String(abUtf8, StandardCharsets.UTF_8);
+        String sActual   = ExternalizableHelper.convertUTF(abUtf8, 0, abUtf8.length, new char[sExpected.length()]);
+        System.out.printf("\n%12s = %-12s : utf8 bytes = %d; string length = %d", sExpected, sActual, abUtf8.length, sActual.length());
+        assertEquals(sExpected, sActual);
+        }
 
     /**
     * Test POF serialization/deserialization of a java.util.Map.
@@ -660,6 +696,20 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         testExternalizableLiteObjectInputFilter(true, false, 500000 );
         }
 
+    @Test
+    public void testExternalizableType() throws IOException
+        {
+        Point point = new Point(5, 10);
+        ByteArrayWriteBuffer wb = new ByteArrayWriteBuffer(0);
+
+        ExternalizableHelper.writeObject(wb.getBufferOutput(), point);
+
+        ByteArrayReadBuffer inRaw = new ByteArrayReadBuffer(wb.toByteArray());
+        ReadBuffer.BufferInput in = inRaw.getBufferInput();
+
+        assertEquals(point, ExternalizableHelper.readObject(in, null));
+        }
+
     /**
      * Test deserialization filter on {@link ReadBuffer.BufferInput}.
      */
@@ -831,6 +881,16 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         }
 
     // ----- helper methods -------------------------------------------------
+
+    private static byte[] toBytes(int[] ai)
+        {
+        ByteBuffer buf = ByteBuffer.allocate(4 * ai.length);
+        for (int n : ai)
+            {
+            buf.putInt(n);
+            }
+        return buf.array();
+        }
 
     private long doTest(int[] aData)
         {
@@ -1129,6 +1189,91 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         long lStop = System.currentTimeMillis();
         long lElapsed = lStop - ldtStart;
         out(sDescription + " (" + lElapsed + "ms)");
+        }
+
+    // ----- inner class: PointNotSerializable -------------------------------
+
+    /**
+     * Not serializable class without public setters, only public constructor to set object state.
+     */
+    static public class PointNotSerializable
+        {
+        public PointNotSerializable(int nX, int nY)
+            {
+            m_nX = nX;
+            m_nY = nY;
+            }
+
+        public int getX()
+            {
+            return m_nX;
+            }
+
+        public int getY()
+            {
+            return m_nY;
+            }
+
+        @Override
+        public boolean equals(Object o)
+            {
+            if (o instanceof PointNotSerializable)
+                {
+                PointNotSerializable p = (PointNotSerializable) o;
+                return m_nX == p.getX() && m_nY == p.getY();
+                }
+            return false;
+            }
+
+        @Override
+        public int hashCode()
+            {
+            return m_nX + m_nY;
+            }
+
+        @Override
+        public String toString()
+            {
+            return "Point[x=" + m_nX + ", y=" + m_nY + "]";
+            }
+
+        private int m_nX;
+        private int m_nY;
+        }
+
+    // ----- inner class: Point ----------------------------------------------
+
+    /**
+     * Add ExternalizableLite to a superclass without public setters.
+     */
+    @ExternalizableType(serializer = Point.Serializer.class)
+    static public class Point
+            extends PointNotSerializable
+            implements ExternalizableLite
+        {
+        public Point(int nX, int nY)
+            {
+            super(nX, nY);
+            }
+
+        static public class Serializer
+                implements ExternalizableLiteSerializer<Point>
+            {
+            public Point deserialize(DataInput in) throws IOException
+                {
+                int nX = in.readInt();
+                int nY = in.readInt();
+
+                return new Point(nX, nY);
+                }
+
+            public void serialize(DataOutput out, Point value)
+                    throws IOException
+                {
+                out.writeInt(value.getX());
+                out.writeInt(value.getY());
+                }
+            }
         }
 
     // ----- constants ----------------------- -------------------------------

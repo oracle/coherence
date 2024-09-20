@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io;
@@ -12,6 +12,7 @@ import com.tangosol.util.Binary;
 
 import java.io.IOException;
 
+import java.nio.ByteBuffer;
 
 /**
 * A DelegatingWriteBuffer is a WriteBuffer that writes through to an
@@ -476,6 +477,16 @@ public final class DelegatingWriteBuffer
             }
 
         // ----- BufferOutput methods -----------------------------------
+
+        /**
+        * {@inheritDoc}
+        */
+        public ByteBuffer getByteBuffer(int cb)
+            {
+            checkBounds(m_ofWrite, cb);
+            moveOffset(cb);
+            return m_out.getByteBuffer(cb);
+            }
 
         /**
         * {@inheritDoc}

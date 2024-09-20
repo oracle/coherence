@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.internal;
 
-import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.concurrent.PermitAcquirer;
 
 import com.tangosol.io.ExternalizableLite;
@@ -53,7 +52,7 @@ public class SemaphoreStatus
     /**
      * Create an instance of {@code SemaphoreStatus}.
      *
-     * @param initialState the initial number of permits available
+     * @param initialState  the initial number of permits available
      */
     public SemaphoreStatus(int initialState)
         {
@@ -64,8 +63,8 @@ public class SemaphoreStatus
     /**
      * Acquires the given number of permits for specified acquirer.
      *
-     * @param acquirer identity of the acquirer
-     * @param permits  the number of permits to acquire
+     * @param acquirer  identity of the acquirer
+     * @param permits   the number of permits to acquire
      *
      * @return true if permits were acquired; otherwise returns false
      */
@@ -87,8 +86,8 @@ public class SemaphoreStatus
     /**
      * Releases the given number of permits, returning them to the semaphore.
      *
-     * @param acquirer identity of the acquirer
-     * @param releases the number of permits to release
+     * @param acquirer  identity of the acquirer
+     * @param releases  the number of permits to release
      *
      * @return true if permits were released; otherwise returns false
      */
@@ -113,6 +112,13 @@ public class SemaphoreStatus
         return true;
         }
 
+    /**
+     * Drain permits from the given {@link PermitAcquirer}.
+     *
+     * @param acquirer  the {@link PermitAcquirer}
+     *
+     * @return the number of permits drained
+     */
     public int drainPermits(PermitAcquirer acquirer)
         {
         int current = m_permits;
@@ -130,6 +136,14 @@ public class SemaphoreStatus
         return current;
         }
 
+    /**
+     * Reduces the number of permits for the given {@link PermitAcquirer}.
+     *
+     * @param acquirer    the {@link PermitAcquirer}
+     * @param reductions  the number of reductions
+     *
+     * @return  the number of permits
+     */
     public int reducePermits(PermitAcquirer acquirer, int reductions)
         {
         int current = m_permits;
@@ -187,6 +201,8 @@ public class SemaphoreStatus
     /**
      * Return {@code true} if this semaphore is currently acquired by the specified
      * {@link PermitAcquirer}.
+     *
+     * @param acquirer  the {@link PermitAcquirer}
      *
      * @return {@code true} if this semaphore is currently acquired by the specified
      *                      {@link PermitAcquirer}

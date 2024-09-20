@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,9 +8,11 @@
 package com.tangosol.util;
 
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.common.io.BufferManagers;
 
 import com.tangosol.coherence.config.Config;
 
+import com.tangosol.internal.io.BufferManagerWriteBufferPool;
 import com.tangosol.internal.util.invoke.Lambdas;
 import com.tangosol.internal.util.invoke.RemotableSupport;
 
@@ -20,6 +22,8 @@ import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.DeltaCompressor;
 import com.tangosol.io.ExternalizableLite;
+import com.tangosol.io.ExternalizableLiteSerializer;
+import com.tangosol.io.ExternalizableType;
 import com.tangosol.io.InputStreaming;
 import com.tangosol.io.MultiBufferReadBuffer;
 import com.tangosol.io.MultiBufferWriteBuffer;
@@ -101,6 +105,9 @@ import java.math.BigInteger;
 import java.net.URL;
 
 import java.nio.BufferOverflowException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.StandardCharsets;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -124,6 +131,7 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.WeakHashMap;
 
+import java.util.concurrent.Callable;
 import java.util.function.BinaryOperator;
 
 /**
@@ -138,7 +146,7 @@ import java.util.function.BinaryOperator;
 *
 * @author cp 2003.03.28
 */
-@SuppressWarnings("Duplicates")
+@SuppressWarnings({"Duplicates", "unchecked", "unused", "PatternVariableCanBeUsed", "rawtypes", "ForLoopReplaceableByForEach", "resource", "TryWithIdenticalCatches", "CatchMayIgnoreException"})
 public abstract class ExternalizableHelper
         extends BitHelper
     {
@@ -466,19 +474,23 @@ public abstract class ExternalizableHelper
         {
         loader = ensureClassLoader(loader);
 
-        Map map = s_mapSerializerByClassLoader;
-        Serializer serializer = (Serializer) map.get(loader);
+        return s_mapSerializerByClassLoader.computeIfAbsent(loader, ExternalizableHelper::createDefaultSerializer);
+        }
 
-        if (serializer == null)
-            {
-            serializer = USE_POF_STREAMS && loader != NullImplementation.getClassLoader()
-                ? new ConfigurablePofContext()
-                : new DefaultSerializer();
-            ((ClassLoaderAware) serializer).setContextClassLoader(loader);
-            map.put(loader, serializer);
-            }
-
-        return serializer;
+    /**
+     * Create default serializer for the specified ClassLoader.
+     *
+     * @param loader  a ClassLoader
+     *
+     * @return the Serializer to use with the specified ClassLoader
+     */
+    private static Serializer createDefaultSerializer(ClassLoader loader)
+        {
+        Serializer ser = USE_POF_STREAMS && loader != NullImplementation.getClassLoader()
+                         ? new ConfigurablePofContext()
+                         : new DefaultSerializer();
+        ((ClassLoaderAware) ser).setContextClassLoader(loader);
+        return ser;
         }
 
     /**
@@ -569,6 +581,31 @@ public abstract class ExternalizableHelper
         }
 
     /**
+     * Determine whether the sender of the content (the given DataInput)
+     * runs a version that supersedes (greater or equal to) the specified
+     * version.
+     *
+     * @param in               the DataInput to interrogate
+     * @param nEncodedVersion  the encoded version
+     *
+     * @return true iff the sender's version is greater or equal to the
+     *         specified one
+     *
+     * @throws IllegalArgumentException if the DataInput is not a {@link
+     *         WrapperBufferInput.VersionAwareBufferInput VersionAwareBufferInput}
+     */
+    public static boolean isVersionCompatible(DataInput in, int nEncodedVersion)
+        {
+        if (!(in instanceof WrapperBufferInput.VersionAwareBufferInput))
+            {
+            throw new IllegalArgumentException("Unexpected DataInput");
+            }
+
+        return ((WrapperBufferInput.VersionAwareBufferInput) in)
+                .isVersionCompatible(nEncodedVersion);
+        }
+
+    /**
      * Determine whether all the recipients of the content (the given DataOutput)
      * run versions that supersede (greater or equal to) the specified
      * version.
@@ -622,6 +659,77 @@ public abstract class ExternalizableHelper
 
         return ((WrapperBufferOutput.VersionAwareBufferOutput) out)
                 .isVersionCompatible(nYear, nMonth, nPatch);
+        }
+
+    /**
+     * Determine whether all the recipients of the content (the given DataOutput)
+     * run versions that supersede (greater or equal to) the specified
+     * version.
+     *
+     * @param out              the DataOutput to interrogate
+     * @param nEncodedVersion  the encoded version
+     *
+     * @return true iff the sender's version is greater or equal to the
+     *         specified one
+     *
+     * @throws IllegalArgumentException if the DataOutput is not a {@link
+     *         WrapperBufferOutput.VersionAwareBufferOutput VersionAwareBufferOutput}
+     */
+    public static boolean isVersionCompatible(DataOutput out, int nEncodedVersion)
+        {
+        if (!(out instanceof WrapperBufferOutput.VersionAwareBufferOutput))
+            {
+            throw new IllegalArgumentException("Unexpected DataOutput");
+            }
+
+        return ((WrapperBufferOutput.VersionAwareBufferOutput) out)
+                .isVersionCompatible(nEncodedVersion);
+        }
+
+    /**
+     * Determine whether all the sender of the content (the given DataInput)
+     * run versions that are the same version with the same or greater patch level.
+     *
+     * @param in              the DataInput to interrogate
+     * @param nEncodedVersion  the encoded version to check
+     *
+     * @return true iff the sender's version is the same with a greater or equal patch
+     *
+     * @throws IllegalArgumentException if the DataOutput is not a {@link
+     *         WrapperBufferOutput.VersionAwareBufferOutput VersionAwareBufferOutput}
+     */
+    public static boolean isPatchCompatible(DataInput in, int nEncodedVersion)
+        {
+        if (!(in instanceof WrapperBufferInput.VersionAwareBufferInput))
+            {
+            throw new IllegalArgumentException("Unexpected DataInput");
+            }
+
+        return ((WrapperBufferInput.VersionAwareBufferInput) in)
+                .isPatchCompatible(nEncodedVersion);
+        }
+
+    /**
+     * Determine whether all the recipients of the content (the given DataOutput)
+     * run versions that are the same version with the same or greater patch level.
+     *
+     * @param out              the DataOutput to interrogate
+     * @param nEncodedVersion  the encoded version to check
+     *
+     * @return true iff the recipient's version is the same with a greater or equal patch
+     *
+     * @throws IllegalArgumentException if the DataOutput is not a {@link
+     *         WrapperBufferOutput.VersionAwareBufferOutput VersionAwareBufferOutput}
+     */
+    public static boolean isPatchCompatible(DataOutput out, int nEncodedVersion)
+        {
+        if (!(out instanceof WrapperBufferOutput.VersionAwareBufferOutput))
+            {
+            throw new IllegalArgumentException("Unexpected DataOutput");
+            }
+
+        return ((WrapperBufferOutput.VersionAwareBufferOutput) out)
+                .isPatchCompatible(nEncodedVersion);
         }
 
 
@@ -1261,9 +1369,10 @@ public abstract class ExternalizableHelper
                 {
                 return "";
                 }
-            validateLoadArray(byte[].class, cb, in);
 
             // get the "UTF binary"
+            // per JDK serialization filtering doc:
+            //     The filter is not called ... for java.lang.String instances that are encoded concretely in the stream.
             byte[] ab;
             if (cb < CHUNK_THRESHOLD)
                 {
@@ -1304,23 +1413,52 @@ public abstract class ExternalizableHelper
         int     ofch   = 0;
         int     ofAsc  = of;
         int     ofEnd  = of + cb;
-        for ( ; ofAsc < ofEnd; ++ofAsc)
+
+        // read 8 bytes at a time into a long to speed up comparison
+        ByteBuffer buf = ByteBuffer.wrap(ab, of, cb);
+        int cLongs = cb / 8;
+        for (int i = 0; i < cLongs; i++)
             {
-            int n = ab[ofAsc] & 0xFF;
-            if (n >= 0x80)
+            long l = buf.getLong();
+            if ((l & 0x8080808080808080L) == 0)
+                {
+                ofAsc += 8;
+                }
+            else
                 {
                 // it's not all "ascii" data
                 fAscii = false;
                 break;
                 }
-            else
+            }
+
+        // compare remaining bytes one by one
+        if (fAscii)
+            {
+            for (; ofAsc < ofEnd; ++ofAsc)
                 {
-                ach[ofch++] = (char) n;
+                int n = ab[ofAsc];
+                if (n < 0)
+                    {
+                    // it's not all "ascii" data
+                    fAscii = false;
+                    break;
+                    }
                 }
             }
 
+        // the string contains non-ASCII characters; do full UTF-8 conversion
         if (!fAscii)
             {
+            // copy initial ASCII characters directly
+            if (ofAsc > of)
+                {
+                CharBuffer bufCh = CharBuffer.wrap(ach);
+                StandardCharsets.ISO_8859_1.newDecoder().decode(buf.slice(of, ofAsc - of), bufCh, true);
+                ofch = bufCh.position();
+                }
+            
+            // process remaining characters
             for ( ; ofAsc < ofEnd; ++ofAsc)
                 {
                 int ch = ab[ofAsc] & 0xFF;
@@ -1359,6 +1497,32 @@ public abstract class ExternalizableHelper
                         break;
                         }
 
+                    case 0xF:
+                        {
+                        // 4-byte format:  1111 xxxx, 10xx xxxx, 10xx xxxx, 10xx xxxx (supplemental plane)
+                        int ch2 = ab[++ofAsc] & 0xFF;
+                        int ch3 = ab[++ofAsc] & 0xFF;
+                        int ch4 = ab[++ofAsc] & 0xFF;
+                        if ((ch2 & 0xC0) != 0x80 || (ch3 & 0xC0) != 0x80 || (ch4 & 0xC0) != 0x80)
+                            {
+                            throw new UTFDataFormatException();
+                            }
+
+                        int cp = (ch  & 0x07) << 18 |
+                                 (ch2 & 0x3F) << 12 |
+                                 (ch3 & 0x3F) <<  6 |
+                                 (ch4 & 0x3F);
+
+                        cp = cp - 0x10000;
+
+                        char high = (char) (0xD800 + ((cp >> 10) & 0x3FF));
+                        char low  = (char) (0xDC00 + (cp & 0x3FF));
+                        ach[ofch++] = high;
+                        ach[ofch++] = low;
+
+                        break;
+                        }
+
                     default:
                         throw new UTFDataFormatException(
                                 "illegal leading UTF byte: " + ch);
@@ -1366,7 +1530,9 @@ public abstract class ExternalizableHelper
                 }
             }
 
-        return new String(ach, 0, ofch);
+        return fAscii   // all characters can be represented by a single byte, use Latin1
+               ? new String(ab, of, cb, StandardCharsets.ISO_8859_1)
+               : new String(ach, 0, ofch);
         }
 
     /**
@@ -2286,7 +2452,8 @@ public abstract class ExternalizableHelper
             String sClass = readUTF(in);
             try
                 {
-                value = (XmlSerializable) loadClass(sClass, loader, null).newInstance();
+                value = (XmlSerializable) loadClass(sClass, loader, null)
+                        .getDeclaredConstructor().newInstance();
                 }
             catch (Exception e)
                 {
@@ -2353,6 +2520,11 @@ public abstract class ExternalizableHelper
 
     /**
      * Read an ExternalizableLite object from a DataInput stream.
+     * <p>
+     * If the class of the object in the DataInput stream is an {@link ExternalizableLite} class
+     * annotated with {@link ExternalizableType}, use the specified serializer's
+     * {@link ExternalizableLiteSerializer#deserialize(DataInput) deserialize method} to
+     * deserialize the object from the DataInput stream.
      *
      * @param in      a DataInput stream to read from
      * @param loader  the ClassLoader to use
@@ -2364,7 +2536,7 @@ public abstract class ExternalizableHelper
     public static ExternalizableLite readExternalizableLite(DataInput in, ClassLoader loader)
             throws IOException
         {
-        ExternalizableLite value;
+        ExternalizableLite value = null;
 
         if (in instanceof PofInputStream)
             {
@@ -2372,6 +2544,9 @@ public abstract class ExternalizableHelper
             }
         else
             {
+            Class<?>           clz  = null;
+            ExternalizableType type = null;
+
             // instantiate the object
             String sClass = readUTF(in);
 
@@ -2379,11 +2554,22 @@ public abstract class ExternalizableHelper
                     ? (WrapperDataInputStream) in : null;
             try
                 {
-                Class<?> clz = loadClass(sClass, loader,
+                clz = loadClass(sClass, loader,
                         inWrapper == null ? null : inWrapper.getClassLoader());
 
                 validateLoadClass(clz, in);
-                value = (ExternalizableLite) clz.newInstance();
+
+                // check for class annotation for ExternalizableLiteSerializer
+                type = clz.getAnnotation(ExternalizableType.class);
+                if (type == null || type.serializer() == null)
+                    {
+                    value = (ExternalizableLite) clz.getDeclaredConstructor().newInstance();
+                    }
+                else
+                    {
+                    // instance allocated by serializer deserialize
+                    value = null;
+                    }
                 }
             catch (InstantiationException e)
                 {
@@ -2418,7 +2604,35 @@ public abstract class ExternalizableHelper
                     }
                 }
 
-            value.readExternal(in);
+            if (value != null)
+                {
+                value.readExternal(in);
+                }
+            else
+                {
+                try
+                    {
+                    value = (ExternalizableLite) type.serializer().getDeclaredConstructor()
+                            .newInstance().deserialize(in);
+                    if (value != null && value.getClass() != clz)
+                        {
+                        // deserialize returned an instance that is not same as previously validated load class.
+                        // validate the class of the value returned by deserializer against the ObjectInputFilter.
+                        // same JEP 290 logic as applied by method #safeRealize(...).
+                        validateLoadClass(value.getClass(), in);
+                        }
+                    }
+                catch (Exception e)
+                    {
+                    throw new IOException(
+                            "Class initialization failed: " + e +
+                            "\n" + getStackTrace(e) +
+                            "\nClass: " + sClass +
+                            "\nExternalizableLiteSerializer class: " + type.serializer().getName() +
+                            "\nClassLoader: " + loader +
+                            "\nContextClassLoader: " + getContextClassLoader(), e);
+                    }
+                }
             if (value instanceof SerializerAware)
                 {
                 ((SerializerAware) value).setContextSerializer(ensureSerializer(loader));
@@ -2470,6 +2684,12 @@ public abstract class ExternalizableHelper
     /**
      * Write an ExternalizableLite object to a DataOutput stream.
      *
+     * <p>
+     * If the class of parameter <code>o</code> is annotated with {@link ExternalizableType},
+     * use the specified serializer's
+      {@link ExternalizableLiteSerializer#serialize(DataOutput, Object) serialize method} to
+     * write <code>o</code> into the DataOutput stream.
+     *
      * @param out  a DataOutput stream to write to
      * @param o    an ExternalizableLite value to write
      *
@@ -2485,8 +2705,25 @@ public abstract class ExternalizableHelper
             }
         else
             {
-            writeUTF(out, o.getClass().getName());
-            o.writeExternal(out);
+            Class              clz  = o.getClass();
+            ExternalizableType type = (ExternalizableType) clz.getAnnotation(ExternalizableType.class);
+
+            writeUTF(out, clz.getName());
+            if (type == null || type.serializer() == null)
+                {
+                o.writeExternal(out);
+                }
+            else
+                {
+                try
+                    {
+                    type.serializer().getDeclaredConstructor().newInstance().serialize(out, o);
+                    }
+                catch (InstantiationException | InvocationTargetException| NoSuchMethodException | IllegalAccessException e)
+                    {
+                    throw new IOException(e);
+                    }
+                }
             }
         }
 
@@ -2523,7 +2760,7 @@ public abstract class ExternalizableHelper
                     {
                     Class clz = XMLBEAN_CLASS_CACHE.getClass(nBeanId, loader);
                     validateLoadClass(clz, in);
-                    bean = (XmlBean) clz.newInstance();
+                    bean = (XmlBean) clz.getDeclaredConstructor().newInstance();
                     }
                 catch (Exception e)
                     {
@@ -2638,6 +2875,7 @@ public abstract class ExternalizableHelper
             ObjectInput streamObj = getObjectInput(in, loader);
             try
                 {
+                s_tloInEHDeserialize.set(true); // mark that we are in EH managed deserialization
                 o = streamObj.readObject();
                 if (o instanceof SerializerAware)
                     {
@@ -2654,6 +2892,10 @@ public abstract class ExternalizableHelper
                     "readObject failed: " + e +
                     "\n" + getStackTrace(e) +
                     "\nClassLoader: " + loader);
+                }
+            finally
+                {
+                s_tloInEHDeserialize.remove();
                 }
             }
 
@@ -2814,7 +3056,7 @@ public abstract class ExternalizableHelper
                 return readSerializable(in, loader);
 
             case FMT_OPT:
-                return in.readBoolean() ? Optional.of(readObject(in)) : Optional.empty();
+                return in.readBoolean() ? Optional.of(readObject(in, loader)) : Optional.empty();
 
             case FMT_OPT_INT:
                 return in.readBoolean() ? OptionalInt.of(readInt(in)) : OptionalInt.empty();
@@ -2877,11 +3119,11 @@ public abstract class ExternalizableHelper
                     break;
 
                 case FMT_INT:
-                    writeInt(out, ((Integer) o).intValue());
+                    writeInt(out, (Integer) o);
                     break;
 
                 case FMT_LONG:
-                    writeLong(out, ((Long) o).longValue());
+                    writeLong(out, (Long) o);
                     break;
 
                 case FMT_STRING:
@@ -2889,7 +3131,7 @@ public abstract class ExternalizableHelper
                     break;
 
                 case FMT_DOUBLE:
-                    out.writeDouble(((Double) o).doubleValue());
+                    out.writeDouble((Double) o);
                     break;
 
                 case FMT_INTEGER:
@@ -2973,19 +3215,19 @@ public abstract class ExternalizableHelper
                     break;
 
                 case FMT_FLOAT:
-                    out.writeFloat(((Float) o).floatValue());
+                    out.writeFloat((Float) o);
                     break;
 
                 case FMT_SHORT:
-                    out.writeShort(((Short) o).shortValue());
+                    out.writeShort((Short) o);
                     break;
 
                 case FMT_BYTE:
-                    out.writeByte(((Byte) o).byteValue());
+                    out.writeByte((Byte) o);
                     break;
 
                 case FMT_BOOLEAN:
-                    out.writeBoolean(((Boolean) o).booleanValue());
+                    out.writeBoolean((Boolean) o);
                     break;
 
                 default:
@@ -3164,6 +3406,16 @@ public abstract class ExternalizableHelper
             updateStats(o, stats, buf.length());
             }
 
+        // Allow decoration aware values the chance to return a decorated binary
+        if (o instanceof DecorationAware)
+            {
+            DecorationAware decoAware    = (DecorationAware) o;
+            ReadBuffer      bufDecorated = decoAware.applyDecorations(buf.getReadBuffer());
+            int             cbDecorated  = bufDecorated.length();
+            buf = fBinary ? new BinaryWriteBuffer(cbDecorated) : new ByteArrayWriteBuffer(cbDecorated);
+            bufDecorated.writeTo(buf.getBufferOutput());
+            }
+
         return buf;
         }
 
@@ -3320,7 +3572,8 @@ public abstract class ExternalizableHelper
     private static <T> T deserializeInternal(Serializer serializer, ReadBuffer buf, Remote.Function<BufferInput, BufferInput> supplierBufferIn, Class<T> clazz)
             throws IOException
         {
-        BufferInput in = buf.getBufferInput();
+        BufferInput in    = buf.getBufferInput();
+        boolean     fDeco = false;
 
         int nType = in.readUnsignedByte();
         switch (nType)
@@ -3330,6 +3583,7 @@ public abstract class ExternalizableHelper
                 // it returns the decorated value itself!
                 readInt(in); // skip the decoration
                 nType = in.readUnsignedByte();
+                fDeco = true;
                 break;
 
             case FMT_BIN_DECO:
@@ -3343,8 +3597,9 @@ public abstract class ExternalizableHelper
                 // get a BufferInput that corresponds just to the portion of
                 // the value within the decorated binary
                 int cb = in.readPackedInt();
-                in = buf.getReadBuffer(in.getOffset(), cb).getBufferInput();
+                in    = buf.getReadBuffer(in.getOffset(), cb).getBufferInput();
                 nType = in.readUnsignedByte();
+                fDeco = true;
                 break;
             }
 
@@ -3358,7 +3613,12 @@ public abstract class ExternalizableHelper
                    : readObjectInternal(in, nType,
                                         ((ClassLoaderAware) serializer).getContextClassLoader());
 
-        return safeRealize(o, serializer, in);
+        T oFinal = safeRealize(o, serializer, in);
+        if (fDeco && oFinal instanceof DecorationAware)
+            {
+            ((DecorationAware) oFinal).storeDecorations(buf);
+            }
+        return oFinal;
         }
 
 
@@ -3882,14 +4142,14 @@ public abstract class ExternalizableHelper
                 {
                 if (loader != null)
                     {
-                    return Class.forName(sClass, false, loader);
+                    return loader.loadClass(sClass);
                     }
                 }
-            catch (ClassNotFoundException e) {}
+            catch (ClassNotFoundException ignore) {}
             }
 
         // nothing worked; try the current class loader as a last chance
-        return Class.forName(sClass);
+        return ExternalizableHelper.class.getClassLoader().loadClass(sClass);
         }
 
     /**
@@ -4277,8 +4537,8 @@ public abstract class ExternalizableHelper
      * for the pre-approved decorations, including:
      * <ul><li>{@link #DECO_VALUE} stores the original, undecorated value;</li>
      * <li>{@link #DECO_EXPIRY}, {@link #DECO_STORE}, {@link #DECO_TX} and
-     * {@link #DECO_PUSHREP} are used by various facilities of Coherence
-     * and {@link #DECO_WLS} are assigned to Oracle
+     * {@link #DECO_PUSHREP} are used by various facilities of Coherence;</li>
+     * <li>{@link #DECO_TOPLINK} and {@link #DECO_WLS} are assigned to Oracle
      * products;</li>
      * <li>{@link #DECO_APP_1}, {@link #DECO_APP_2} and {@link #DECO_APP_3} are
      * made available for use by application developers;</li>
@@ -4319,7 +4579,8 @@ public abstract class ExternalizableHelper
      * <ul><li>{@link #DECO_VALUE} stores the original, undecorated value;</li>
      * <li>{@link #DECO_EXPIRY}, {@link #DECO_STORE}, {@link #DECO_TX} and
      * {@link #DECO_PUSHREP} are used by various facilities of Coherence;</li>
-     * <li> {@link #DECO_WLS} are assigned to Oracle products;</li>
+     * <li>{@link #DECO_TOPLINK} and {@link #DECO_WLS} are assigned to Oracle
+     * products;</li>
      * <li>{@link #DECO_APP_1}, {@link #DECO_APP_2} and {@link #DECO_APP_3} are
      * made available for use by application developers;</li>
      * <li>{@link #DECO_CUSTOM} is another application-definable decoration,
@@ -5338,8 +5599,9 @@ public abstract class ExternalizableHelper
     public static final int DECO_STORE   = 2;
 
     /**
-     * Decoration: Information managed on behalf of the transactions
-     * implementation.
+     * Decoration: Information managed on behalf of the {@link
+     * com.tangosol.coherence.transaction.OptimisticNamedCache
+     * OptimisticNamedCache} implementation.
      */
     public static final int DECO_TX      = 3;
 
@@ -5371,6 +5633,11 @@ public abstract class ExternalizableHelper
      * {@link #DECO_APP_2} and {@link #DECO_APP_3} decorations.
      */
     public static final int DECO_CUSTOM  = 7;
+
+    /**
+     * Decoration: Information managed on behalf of TopLink Grid.
+     */
+    public static final int DECO_TOPLINK = 8;
 
     /**
      * Decoration: Information managed on behalf of WebLogic.
@@ -5413,9 +5680,9 @@ public abstract class ExternalizableHelper
     public static final int DECO_JCACHE_SYNTHETIC = 15;
 
     /**
-     * Decoration: Information about a queue element
+     * Decoration: Information about a vector
      */
-    public static final int DECO_QUEUE_METADATA = 16;
+    public static final int DECO_VECTOR = 16;
 
     /**
      * The maximum number of bytes the header of the binary-decorated value
@@ -5944,6 +6211,36 @@ public abstract class ExternalizableHelper
         }
 
     /**
+     * Write an array of long numbers to a DataOutput stream.
+     *
+     * @param out  a DataOutput stream to write to
+     * @param al   an array of longs to write
+     *
+     * @throws IOException           if an I/O exception occurs
+     * @throws NullPointerException  if null value is passed
+     *
+     * @since 24.09
+     */
+    public static void writeLongArray(DataOutput out, long[] al)
+            throws IOException
+        {
+        if (out instanceof PofOutputStream)
+            {
+            ((PofOutputStream) out).writeObject(al);
+            }
+        else
+            {
+            int c = al.length;
+            out.writeInt(c);
+
+            for (long l : al)
+                {
+                out.writeLong(l);
+                }
+            }
+        }
+
+    /**
      * Read an array of int numbers from a DataInput stream which
      * use fixed-length 4-byte Big Endian binary format.
      *
@@ -5963,6 +6260,36 @@ public abstract class ExternalizableHelper
                     c < CHUNK_THRESHOLD >> 2
                         ? readIntArray(in, c)
                         : readLargeIntArray(in, c);
+        }
+
+    /**
+     * Write an array of integer numbers to a DataOutput stream.
+     *
+     * @param out  a DataOutput stream to write to
+     * @param ai   an array of ints to write
+     *
+     * @throws IOException           if an I/O exception occurs
+     * @throws NullPointerException  if null value is passed
+     *
+     * @since 24.09
+     */
+    public static void writeIntArray(DataOutput out, int[] ai)
+            throws IOException
+        {
+        if (out instanceof PofOutputStream)
+            {
+            ((PofOutputStream) out).writeObject(ai);
+            }
+        else
+            {
+            int c = ai.length;
+            out.writeInt(c);
+
+            for (int i : ai)
+                {
+                out.writeInt(i);
+                }
+            }
         }
 
     /**
@@ -6413,20 +6740,21 @@ public abstract class ExternalizableHelper
     protected static byte[] readLargeByteArray(DataInput in, int cb)
             throws IOException
         {
-        int    cBatchMax = CHUNK_SIZE;
-        int    cBatch    = cb / cBatchMax + 1;
-        byte[] ab        = new byte[cBatchMax];
-        byte[] aMerged   = null;
-        int    cbRead    = 0;
-        for (int i = 0; i < cBatch && cbRead < cb; i++)
-            {
-            in.readFully(ab);
-            aMerged = mergeByteArray(aMerged, ab);
-            cbRead += ab.length;
-            ab      = new byte[Math.min(cb - cbRead, cBatchMax)];
-            }
+        int    cbBatchMax = CHUNK_SIZE;
+        int    cBatch     = cb / cbBatchMax + 1;
 
-        return aMerged;
+        try (MultiBufferWriteBuffer buf  = new MultiBufferWriteBuffer(new BufferManagerWriteBufferPool(BufferManagers.getHeapManager()), cbBatchMax))
+            {
+            InputStreaming input = new WrapperDataInputStream(in);
+            int cbRead = 0;
+            for (int i = 0; i < cBatch && cbRead < cb; i++)
+                {
+                int cbBatch = Math.min(cb - cbRead, cbBatchMax);
+                buf.write(cbRead, input, cbBatch);
+                cbRead += cbBatch;
+                }
+            return buf.toByteArray();
+            }
         }
 
     /**
@@ -6699,7 +7027,7 @@ public abstract class ExternalizableHelper
     /**
      * Integer decorated object.
      */
-    protected static final class IntDecoratedObject
+    public static final class IntDecoratedObject
             extends    ExternalizableHelper
             implements Serializable
         {
@@ -6766,14 +7094,38 @@ public abstract class ExternalizableHelper
         /**
          * The decorated (original) object value.
          */
-        private Object m_oValue;
+        private final Object m_oValue;
 
         /**
          * The decoration integer value.
          */
-        private int    m_nDecoration;
+        private final int    m_nDecoration;
         }
 
+
+    /**
+     * Binary decorated object.
+     */
+    public interface DecorationAware
+            extends Serializable
+        {
+        /**
+         * Store any decorations that can then be re-applied if
+         * this value is re-serialized.
+         *
+         * @param buffer  the possibly decorated {@link ReadBuffer}
+         */
+        void storeDecorations(ReadBuffer buffer);
+
+        /**
+         * Apply any decorations to the specified {@link ReadBuffer}.
+         *
+         * @param buffer  the {@link ReadBuffer} to decorate
+         *
+         * @return  the decorated {@link ReadBuffer}
+         */
+        ReadBuffer applyDecorations(ReadBuffer buffer);
+        }
 
     // ----- XmlBean class caching ------------------------------------------
 
@@ -6835,7 +7187,7 @@ public abstract class ExternalizableHelper
                 String     sClass       = xmlClassName.getString(null);
                 list.add(sClass == null ? null : sClass.intern());
                 }
-            m_asBeans = (String[]) list.toArray(new String[list.size()]);
+            m_asBeans = (String[]) list.toArray(new String[0]);
 
             // determine whether or not this implementation needs to be
             // ClassLoader-aware
@@ -6984,7 +7336,7 @@ public abstract class ExternalizableHelper
                 {
                 String sBean = asBeans[i];
 
-                if (sBean != null && sBean.length() > 0)
+                if (sBean != null && !sBean.isEmpty())
                     {
                     try
                         {
@@ -7219,7 +7571,7 @@ public abstract class ExternalizableHelper
                     String sConfig = Config.getProperty(PROPERTY_CONFIG);
                     XmlDocument xml = null;
 
-                    if (sConfig != null && sConfig.length() > 0)
+                    if (sConfig != null && !sConfig.isEmpty())
                         {
                         URL url = Resources.findResource(sConfig, null);
                         Throwable e = null;
@@ -7295,7 +7647,7 @@ public abstract class ExternalizableHelper
                             }
                         else
                             {
-                            cache = (XmlBeanClassCache) Class.forName(sImpl).newInstance();
+                            cache = (XmlBeanClassCache) Class.forName(sImpl).getDeclaredConstructor().newInstance();
                             }
                         cache.init(xmlCfg);
                         }
@@ -7449,4 +7801,12 @@ public abstract class ExternalizableHelper
      * Cache of JVM-wide serial filter factory.
      */
     private static BinaryOperator m_serialFilterFactory;
+
+    /**
+     * Flag to indicate whether this thread is in ExternalizableHelper initiated deserialization.
+     * See {@link ExternalizableHelper#readSerializable(DataInput, ClassLoader)}.
+     *
+     * @since 12.2.1.4.23
+     */
+    public static ThreadLocal<Boolean> s_tloInEHDeserialize = ThreadLocal.withInitial(() -> Boolean.FALSE);
     }

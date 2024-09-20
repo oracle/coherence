@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.metrics;
 
@@ -76,7 +76,7 @@ public class MetricsHttpHandler
      *
      * @param format the format to use for metric names and tag keys.
      */
-    MetricsHttpHandler(Format format)
+    protected MetricsHttpHandler(Format format)
         {
         f_format = format;
         }
@@ -91,6 +91,30 @@ public class MetricsHttpHandler
     public Format getFormat()
         {
         return f_format;
+        }
+
+    /**
+     * Returns the String being used for the context root.
+     *
+     * @return the String being used for the context root
+     *
+     * @since 14.1.2.0.0
+     */
+    public String getPath()
+        {
+        return m_sPath;
+        }
+
+    /**
+     * Setter for path of the context root.
+     *
+     * @param sPath  the root path
+     *
+     * @since 14.1.2.0.0
+     */
+    public void setPath(String sPath)
+        {
+        m_sPath = sPath;
         }
 
     // ----- HttpHandler methods --------------------------------------------
@@ -110,12 +134,12 @@ public class MetricsHttpHandler
                                                         || listExtended != null && !listExtended.isEmpty()
                                                         && Boolean.parseBoolean(listExtended.get(0));
 
-            // The path will always start with "/metrics" but may have *anything* after that
+            // The path will always start with the context root path, e.g. /metrics, but may have *anything* after that
             // as the JDK http server is not fussy
             String sPath = requestURI.getPath();
-            if (sPath.equals("/metrics") || sPath.startsWith("/metrics/"))
+            if (sPath.equals(getPath()) || sPath.startsWith(getPath() + "/"))
                 {
-                // path is valid so far, as it is either /metrics or /metrics/......
+                // path is valid so far, as it is either the root path or root + "/"...
 
                 // strip any .suffix which can be used to override the accepted media type
                 if (sPath.endsWith(".txt"))
@@ -412,10 +436,9 @@ public class MetricsHttpHandler
             {
             return Format.DotDelimited;
             }
-        // Legacy names, whilst deprecated, are still the default until two releases after deprecation.
-        // Once we can switch to default names as the real default we can change the line below to use
-        // if (Config.getBoolean(PROP_USE_LEGACY_NAMES, false))
-        else if (Config.getBoolean(PROP_USE_LEGACY_NAMES, true))
+        // As of 14.1.2 and 24.09 this property defaults to false, which will remove the
+        // "vendor:" prefix from Prometheus metrics and require use of updated Grafana dashboards
+        else if (Config.getBoolean(PROP_USE_LEGACY_NAMES, false))
             {
             return Format.Legacy;
             }
@@ -431,7 +454,7 @@ public class MetricsHttpHandler
      * @return the lst of metrics matching the predicate, or all metrics if
      *         the predicate is {@code null}
      */
-    private List<MBeanMetric> getMetrics(Predicate<MBeanMetric> predicate)
+    protected List<MBeanMetric> getMetrics(Predicate<MBeanMetric> predicate)
         {
         try
             {
@@ -474,7 +497,7 @@ public class MetricsHttpHandler
     /**
      * A {@link Predicate} that can be used to restrict the metrics returned by a request.
      */
-    private static class MetricPredicate
+    protected static class MetricPredicate
             implements Predicate<MBeanMetric>
         {
         /**
@@ -483,7 +506,7 @@ public class MetricsHttpHandler
          * @param sName   the value to use to match a metric name
          * @param mapTags the values to use to match a metric tags
          */
-        private MetricPredicate(String sName, Map<String, List<String>> mapTags)
+        public MetricPredicate(String sName, Map<String, List<String>> mapTags)
             {
             f_sName = sName;
             f_mapTags = mapTags.entrySet()
@@ -565,7 +588,7 @@ public class MetricsHttpHandler
      * A {@link MetricsFormatter} implementation that writes metrics
      * in a Prometheus format.
      */
-    static class PrometheusFormatter
+    protected static class PrometheusFormatter
             implements MetricsFormatter
         {
         // ---- constructors ------------------------------------------------
@@ -578,7 +601,7 @@ public class MetricsHttpHandler
          * @param format       the format to use for metric names and tag keys.
          * @param listMetrics  the list of metrics to write
          */
-        PrometheusFormatter(boolean fExtended, Format format, List<MBeanMetric> listMetrics)
+        public PrometheusFormatter(boolean fExtended, Format format, List<MBeanMetric> listMetrics)
             {
             f_fExtended   = fExtended;
             f_format      = format;
@@ -743,7 +766,7 @@ public class MetricsHttpHandler
      * A {@link MetricsFormatter} implementation that writes metrics
      * in a JSON format.
      */
-    static class JsonFormatter
+    protected static class JsonFormatter
             implements MetricsFormatter
         {
         // ---- constructors ------------------------------------------------
@@ -755,7 +778,7 @@ public class MetricsHttpHandler
          *                   and description into the output
          * @param metrics    the list of metrics to write
          */
-        JsonFormatter(boolean fExtended, List<MBeanMetric> metrics)
+        public JsonFormatter(boolean fExtended, List<MBeanMetric> metrics)
             {
             f_fExtended = fExtended;
             f_metrics   = metrics;
@@ -925,13 +948,13 @@ public class MetricsHttpHandler
      * The System property to use to determine whether to always include
      * extended information (type and/or description) when publishing metrics.
      */
-    private static final String PROP_EXTENDED = "coherence.metrics.extended";
+    protected static final String PROP_EXTENDED = "coherence.metrics.extended";
 
     /**
      * A flag to determine whether to always include help information when
      * publishing metrics.
      */
-    private static final boolean f_fAlwaysUseExtended
+    protected static final boolean f_fAlwaysUseExtended
             = Boolean.parseBoolean(System.getProperty(PROP_EXTENDED, "false"));
 
     /**
@@ -976,5 +999,12 @@ public class MetricsHttpHandler
     /**
      * The format to use for metric names and tag keys.
      */
-    private final Format f_format;
+    protected Format f_format;
+
+    /**
+     * The context root path.
+     *
+     * @since 14.1.2.0.0
+     */
+    private String m_sPath;
     }

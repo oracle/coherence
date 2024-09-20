@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service.peer.initiator;
 
@@ -31,7 +31,7 @@ public class LegacyXmlInitiatorHelper
      * Populate the DefaultInitiatorDependencies object from the given XML configuration.
      *
      * @param xml     the XML parent element that contains the child service elements
-     * @param deps    the DefaultJmsInitiatorDependencies to be populated
+     * @param deps    the DefaultInitiatorDependencies to be populated
      * @param ctx     the OperationalContext
      * @param loader  the class loader for the current context
      *

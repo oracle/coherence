@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -17,7 +17,7 @@
   <name>Coherence Guides - Bulk Loading Caches</name>
 
   <properties>
-    <revision>23.09-SNAPSHOT</revision>
+    <revision>25.03-SNAPSHOT</revision>
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${project.version}</coherence.version>
@@ -33,7 +33,7 @@
     <hamcrest.version>2.2</hamcrest.version>
     <hsqldb.version>2.7.1</hsqldb.version>
     <junit.jupiter.version>5.8.2</junit.jupiter.version>
-    <h2.version>2.1.214</h2.version>
+    <h2.version>2.2.220</h2.version>
     <r2dbc.version>Borca-SR1</r2dbc.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

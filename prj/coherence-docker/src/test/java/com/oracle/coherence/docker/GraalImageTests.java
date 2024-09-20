@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.docker;
 
+import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
@@ -21,7 +22,6 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
-import com.oracle.coherence.client.GrpcSessionConfiguration;
 
 import com.oracle.coherence.common.base.Classes;
 import com.tangosol.coherence.component.net.extend.remoteService.RemoteCacheService;
@@ -44,10 +44,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
 import java.net.URL;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -88,16 +91,20 @@ public class GraalImageTests
         {
         ImageNames.verifyGraalTestAssumptions();
 
-        URL  url        = Resources.findFileOrResource("scripts/js/processors.js", Classes.getContextClassLoader());
-        File fileScript = new File(url.toURI()).getParentFile();
+        URL  url       = Resources.findFileOrResource("scripts/js/processors.mjs", Classes.getContextClassLoader());
+        File dirScript = new File(url.toURI()).getParentFile();
+
+        // disable use of virtual threads as they are not compatible with Graal/Truffle
+        File fileArgsDir = createJvmArgsFile("-Dcoherence.virtualthreads.enabled=false");
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
-                .withFileSystemBind(fileScript.getAbsolutePath(), "/app/classes/scripts/js", BindMode.READ_ONLY)
+                .withFileSystemBind(dirScript.getAbsolutePath(), "/app/classes/scripts/js", BindMode.READ_ONLY)
+                .withFileSystemBind(fileArgsDir.getAbsolutePath(), "/args", BindMode.READ_ONLY)
                 .withExposedPorts(EXTEND_PORT, CONCURRENT_EXTEND_PORT)))
             {
-            Eventually.assertDeferred(container::isHealthy, is(true));
+            Eventually.assertDeferred(container::isHealthy, is(true), Timeout.after(5, TimeUnit.MINUTES));
 
             LocalPlatform platform       = LocalPlatform.get();
             int           extendPort     = container.getMappedPort(EXTEND_PORT);
@@ -109,7 +116,6 @@ public class GraalImageTests
                                                                  SystemProperty.of("coherence.extend.port", extendPort),
                                                                  SystemProperty.of("coherence.concurrent.extend.address", "127.0.0.1"),
                                                                  SystemProperty.of("coherence.concurrent.extend.port", concurrentPort),
-                                                                 SystemProperty.of(GrpcSessionConfiguration.PROP_DEFAULT_SESSION_ENABLED, false),
                                                                  IPv4Preferred.yes(),
                                                                  LocalHost.only(),
                                                                  DisplayName.of("client"),

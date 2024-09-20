@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.aggregator;
 
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.InvocableMap;
@@ -15,6 +16,7 @@ import com.tangosol.util.InvocableMap.StreamingAggregator;
 
 import com.tangosol.util.processor.AsynchronousProcessor;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 
 
@@ -61,7 +63,19 @@ public class AsynchronousAggregator<K, V, P, R>
      */
     public AsynchronousAggregator(StreamingAggregator<K, V, P, R> aggregator)
         {
-        this(aggregator, Thread.currentThread().hashCode());
+        this(aggregator, Thread.currentThread().hashCode(), null);
+        }
+
+    /**
+     * Construct an AsynchronousAggregator for a given streaming aggregator.
+     *
+     * @param aggregator  the underlying streaming aggregator
+     * @param executor    an optional {@link Executor} to complete the future on,
+     *                    if not provided the {@link Daemons#commonPool()} is used
+     */
+    public AsynchronousAggregator(StreamingAggregator<K, V, P, R> aggregator, Executor executor)
+        {
+        this(aggregator, Thread.currentThread().hashCode(), executor);
         }
 
     /**
@@ -73,7 +87,21 @@ public class AsynchronousAggregator<K, V, P, R>
     public AsynchronousAggregator(StreamingAggregator<K, V, P, R> aggregator,
                                   int iUnitOrderId)
         {
-        super(aggregator, iUnitOrderId);
+        this(aggregator, iUnitOrderId, null);
+        }
+
+    /**
+     * Construct an AsynchronousAggregator for a given streaming aggregator.
+     *
+     * @param aggregator    the underlying streaming aggregator
+     * @param iUnitOrderId  the unit-of-order id for this aggregator
+     * @param executor      an optional {@link Executor} to complete the future on,
+     *                      if not provided the {@link Daemons#commonPool()} is used
+     */
+    public AsynchronousAggregator(StreamingAggregator<K, V, P, R> aggregator,
+                                  int iUnitOrderId, Executor executor)
+        {
+        super(aggregator, iUnitOrderId, executor);
         }
 
     // ----- AsynchronousAggregator API -------------------------------------

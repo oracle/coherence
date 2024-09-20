@@ -3,11 +3,10 @@ Explain Plan
 Filter Name                                                         Index   Cost
 ======================================================================================
 AllFilter                                                         \| ----  \| 0
-  LikeFilter\(filter\.nestinglevel1\.nestinglevel2\.nestinglev\.\.\. \(0\) \| 0     \| 2
-  AndFilter                                                       \| ----  \| 0
-    BetweenFilter\(filter\.nestinglevel1\.nestinglevel2\.nesti\.\.\. \(1\) \| 1     \| 2
-    EqualsFilter\(\.getFirstName\(\), Hector\)                         \| 2     \| 100000
-  LessEqualsFilter\(\.getAge\(\), 98\)                                 \| 3     \| 100000
+  LikeFilter\(filter\.nestinglevel1\.nestinglevel2\.nestinglev\.\.\. \(0\) \| 0     \| 11
+  BetweenFilter\(filter\.nestinglevel1\.nestinglevel2\.nesting\.\.\. \(1\) \| 1     \| (66|67)
+  LessEqualsFilter\(\.getAge\(\), 98\)                                 \| 2     \| 100000
+  EqualsFilter\(\.getFirstName\(\), Hector\)                           \| 3     \| 100000
 
 
 Index Lookups
@@ -15,19 +14,19 @@ Index Description                             Extractor                        O
 ======================================================================================
 0   \| Partitioned: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B,\.\.\. \(2\)\s+\| filter\.nestinglevel1\.nes\.\.\. \(3\) \| true
 1   \| Partitioned: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B, Size=3\s+\| filter\.nestinglevel1\.nes\.\.\. \(4\) \| true
-2   \| No index found                        \| \.getFirstName\(\)                 \| false
-3   \| No index found                        \| \.getAge\(\)                       \| false
+2   \| No index found                        \| \.getAge\(\)                       \| false
+3   \| No index found                        \| \.getFirstName\(\)                 \| false
 
 
 Complete filter and index descriptions
 N     Full Name
 ======================================================================================
 0   \| LikeFilter\(filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.IntegerToStringPers
-    \| onKeyExtractor\( Person\.Key \), 9\&%\)
+    \| onKeyExtractor\( Person\.Key \), \&2%\)
 
 1   \| BetweenFilter\(filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.StringToIntegerZ
     \| ipExtractor\( Person.Address\.Zip \) >= 100 and filter\.nestinglevel1\.nestinglevel2
-    \| \.nestinglevel3\.StringToIntegerZipExtractor\( Person\.Address\.Zip \) <= 10000\)
+    \| \.nestinglevel3\.StringToIntegerZipExtractor\( Person\.Address\.Zip \) <= 15000\)
 
 2   \| Partitioned: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B, Size=50
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,9 +10,11 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.common.util.Options;
 
+import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedCollection;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.Service;
 import com.tangosol.net.Session;
@@ -37,7 +39,6 @@ import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.util.Base;
 import com.tangosol.util.RegistrationBehavior;
 import com.tangosol.util.ResourceRegistry;
-import com.tangosol.util.SimpleResourceRegistry;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -83,7 +84,7 @@ public class ConfigurableCacheFactorySession
         f_registry        = f_ccf.getResourceRegistry();
 
         // if there is a session name add it as a resource to the CCF resource registry
-        if (f_sName != null)
+        if (f_sName != null && !Coherence.DEFAULT_NAME.equals(sName))
             {
             ResourceRegistry registry      = ccf.getResourceRegistry();
             String           sNameExisting = registry.getResource(String.class, SESSION_NAME);
@@ -93,9 +94,9 @@ public class ConfigurableCacheFactorySession
                 }
             else if (!sNameExisting.equals(f_sName))
                 {
-                throw new IllegalStateException("Failed to register Session name " + f_sName +
-                                                " with ConfigurableCacheFactory, a different Session name " +
-                                                sNameExisting + " has already been registered. This could be caused " +
+                throw new IllegalStateException("Failed to register Session name \"" + f_sName +
+                                                "\" with ConfigurableCacheFactory, a different Session name \"" +
+                                                sNameExisting + "\" has already been registered. This could be caused " +
                                                 "by multiple sessions configured with the same scope name and " +
                                                 "configuration URI");
                 }
@@ -106,7 +107,11 @@ public class ConfigurableCacheFactorySession
             EventDispatcherRegistry dispatcherReg = f_registry.getResource(EventDispatcherRegistry.class);
             dispatcherReg.registerEventDispatcher(f_eventDispatcher);
             // register an interceptor so that this session will close if the CCF is disposed
-            f_ccf.getInterceptorRegistry().registerEventInterceptor(new LifecycleInterceptor());
+            f_eventInterceptorId = f_ccf.getInterceptorRegistry().registerEventInterceptor(new LifecycleInterceptor());
+            }
+        else
+            {
+            f_eventInterceptorId = null;
             }
         }
 
@@ -232,6 +237,32 @@ public class ConfigurableCacheFactorySession
         }
 
     @Override
+    public void close(NamedCollection col)
+        {
+        if (col instanceof SessionNamedCache<?,?>)
+            {
+            onClose((SessionNamedCache<?, ?>) col);
+            }
+        else if (col instanceof SessionNamedTopic<?>)
+            {
+            onClose((SessionNamedTopic<?>) col);
+            }
+        }
+
+    @Override
+    public void destroy(NamedCollection col)
+        {
+        if (col instanceof SessionNamedCache<?,?>)
+            {
+            onDestroy((SessionNamedCache<?, ?>) col);
+            }
+        else if (col instanceof SessionNamedTopic<?>)
+            {
+            onDestroy((SessionNamedTopic<?>) col);
+            }
+        }
+
+    @Override
     public synchronized void activate()
         {
         if (m_fActivated)
@@ -274,6 +305,10 @@ public class ConfigurableCacheFactorySession
             f_mapTopics.clear();
 
             f_eventDispatcher.dispatchStopped();
+            if (f_eventInterceptorId != null)
+                {
+                f_ccf.getInterceptorRegistry().unregisterEventInterceptor(f_eventInterceptorId);
+                }
             Logger.info("Closed Session " + getName());
             }
         }
@@ -578,4 +613,9 @@ public class ConfigurableCacheFactorySession
      * The CCF's resource registry.
      */
     private final ResourceRegistry f_registry;
+
+    /**
+     * The event interceptor identifier (so we can unregister it whenThe session closes).
+     */
+    private final String f_eventInterceptorId;
     }

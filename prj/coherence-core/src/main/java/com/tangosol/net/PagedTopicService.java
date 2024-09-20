@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,7 +9,7 @@ package com.tangosol.net;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicConfigMap;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
@@ -104,6 +104,16 @@ public interface PagedTopicService
     void ensureSubscription(String sTopicName, long lSubscription, Subscriber.Id subscriberId);
 
     /**
+     * Ensure the specified subscriber is subscribed to a subscription.
+     *
+     * @param sTopicName       the name of the topic
+     * @param lSubscription    the unique id of the subscriber group
+     * @param subscriberId     the {@link Subscriber.Id}
+     * @param fForceReconnect  force a reconnection even if the subscriber is known to the service
+     */
+    void ensureSubscription(String sTopicName, long lSubscription, Subscriber.Id subscriberId, boolean fForceReconnect);
+
+    /**
      * Remove an existing subscriber from a subscriber group.
      *
      * @param lSubscriptionId  the subscription identifier
@@ -185,4 +195,36 @@ public interface PagedTopicService
      *         subscribed to a subscriber group for a topic
      */
     Set<SubscriberId> getSubscribers(String sTopicName, SubscriberGroupId groupId);
+
+    /**
+     * Returns {@code true} if the specified topic has subscribers or subscriber groups.
+     *
+     * @param sTopicName the name of the topic
+     *
+     * @return {@code true} if the specified topic has subscribers or subscriber groups
+     */
+    boolean hasSubscribers(String sTopicName);
+
+    /**
+     * Returns the count of subscriptions for the specified topic.
+     *
+     * @param sTopicName the name of the topic
+     *
+     * @return the count of subscriptions for the specified topic
+     */
+    long getSubscriptionCount(String sTopicName);
+
+    /**
+     * Add a listener that will be notified when changes are made to topic subscriptions.
+     *
+     * @param listener  the listener to add
+     */
+    void addSubscriptionListener(PagedTopicSubscription.Listener listener);
+
+    /**
+     * Remove a listener that was being notified when changes are made to topic subscriptions.
+     *
+     * @param listener  the listener to remove
+     */
+    void removeSubscriptionListener(PagedTopicSubscription.Listener listener);
     }

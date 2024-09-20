@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,6 +20,8 @@ import com.oracle.coherence.persistence.PersistenceManager;
 import com.oracle.coherence.persistence.PersistenceStatistics;
 import com.oracle.coherence.persistence.PersistenceTools;
 import com.oracle.coherence.persistence.PersistentStore;
+
+import com.oracle.coherence.persistence.PersistentStoreInfo;
 
 import com.tangosol.internal.util.DaemonPool;
 
@@ -144,26 +146,9 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
     @SuppressWarnings("unchecked")
     public PersistentStore<ReadBuffer> open(String sId, PersistentStore<ReadBuffer> storeFrom, Collector<Object> collector)
         {
-        // validate the store ID
-        sId = validatePersistentStoreId(sId);
+        PS store = createStore(sId);
 
-        // create the requested store if necessary; if the store was created
-        // it will be opened (either sync or async) outside of the
-        // ConcurrentHashMap synchronization
-        PersistentStore[] aStore = new PersistentStore[1];
-
-        PS store = f_mapStores.computeIfAbsent(sId, s ->
-            {
-            ensureActive();
-
-            PS storeNew = instantiatePersistentStore(s);
-
-            aStore[0] = storeNew;
-
-            return storeNew;
-            });
-
-        if (store == aStore[0])
+        if (!store.isOpen() && (storeFrom == null || storeFrom.isOpen()))
             {
             store.submitOpen(storeFrom, collector);
             }
@@ -243,51 +228,11 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
      * {@inheritDoc}
      */
     @Override
-    public String[] list()
+    public boolean isEmpty(String sId)
         {
-        // Scan for persistence storages in the data directory. Commonly, the
-        // persistence storages are structured as individual directories, each
-        // holding instance-specific files. We can ensure that a given
-        // directory has a correct format by checking for a properly
-        // configured metadata.
-        String[] asNames = f_dirData.list((dir, name) ->
-            {
-            File fileEnv = new File(dir, name);
-            if (fileEnv.isDirectory() &&
-                !f_dirLock.getName().equals(fileEnv.getName()))
-                {
-                try
-                    {
-                    Properties prop = readMetadata(fileEnv);
-                    if (isMetadataComplete(prop))
-                        {
-                        if (isMetadataCompatible(prop))
-                            {
-                            return true;
-                            }
-
-                        Logger.warn("Skipping incompatible persistent store directory \"" + fileEnv + "\"");
-                        }
-                    else
-                        {
-                        // we return true if the metadata is incomplete
-                        // so that the incomplete store will be cleaned
-                        // up (see {@link #open})
-                        return true;
-                        }
-                    }
-                catch (IOException e)
-                    {
-                    // we return true if the metadata cannot be read
-                    // so that the incomplete store will be cleaned
-                    // up (see AbstractPersistenceStore#open)
-                    return true;
-                    }
-                }
-            return false;
-            });
-
-        return asNames == null ? NO_STRINGS : asNames;
+        File   file  = new File(f_dirData, sId);
+        File[] aFile = file.listFiles();
+        return  aFile != null && aFile.length == 0;
         }
 
     @Override
@@ -309,6 +254,74 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
             }
         Set<String> setIds = f_mapStores.keySet();
         return setIds.toArray(new String[setIds.size()]);
+        }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public PersistentStoreInfo[] listStoreInfo()
+        {
+        // Scan for persistence storages in the data directory. Commonly, the
+        // persistence storages are structured as individual directories, each
+        // holding instance-specific files. We can ensure that a given
+        // directory has a correct format by checking for a properly
+        // configured metadata.
+        File[] aFiles = f_dirData.listFiles();
+
+        if (aFiles == null)
+            {
+            return new PersistentStoreInfo[0];
+            }
+
+        List<PersistentStoreInfo> listInfo = new ArrayList<PersistentStoreInfo>();
+
+        for (File fileEnv : aFiles)
+            {
+            String              sName = fileEnv.getName();
+            PersistentStoreInfo info  = null;
+            if (fileEnv.isDirectory() &&
+                !f_dirLock.getName().equals(sName))
+                {
+                if (isEmpty(sName))
+                    {
+                    info = new PersistentStoreInfo(sName, true);
+                    }
+                else
+                    {
+                    try
+                        {
+                        Properties prop = readMetadata(fileEnv);
+                        if (isMetadataComplete(prop) && !isMetadataCompatible(prop))
+                            {
+                            Logger.warn("Skipping incompatible persistent store directory \""
+                                             + fileEnv + "\"");
+                            }
+                        else
+                            {
+                            // we return true if the metadata is incomplete
+                            // so that the incomplete store will be cleaned
+                            // up (see {@link #open})
+                            info = new PersistentStoreInfo(sName, false);
+                            }
+                        }
+                    catch (IOException e)
+                        {
+                        // we return true if the metadata cannot be read
+                        // so that the incomplete store will be cleaned
+                        // up (see AbstractPersistenceStore#open)
+                        listInfo.add(new PersistentStoreInfo(sName, false));
+                        }
+                    }
+                }
+
+            if (info != null)
+                {
+                listInfo.add(info);
+                }
+            }
+
+        return listInfo.toArray(new PersistentStoreInfo[listInfo.size()]);
         }
 
     /**
@@ -562,7 +575,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
     public PersistenceTools getPersistenceTools()
         {
         // open the first snapshot store to get the partition count
-        String[] asGUIDs = list();
+        String[] asGUIDs = listOpenStores();
         if (asGUIDs.length == 0)
             {
             throw new IllegalArgumentException("snapshot must have at least one GUID");
@@ -589,7 +602,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
             }
 
         OfflinePersistenceInfo info = new OfflinePersistenceInfo(cPartitions, getStorageFormat(),
-                false, asGUIDs, getStorageVersion(), getImplVersion(), nVersion);
+                false, list(), getStorageVersion(), getImplVersion(), nVersion);
 
         return instantiatePersistenceTools(info);
         }
@@ -726,6 +739,25 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
     // ----- helper methods -------------------------------------------------
 
     /**
+     * Return the identifiers of the PersistentStore identifier known to this manager.
+     *
+     * @return a list of the known store identifiers
+     */
+    protected String[] list()
+        {
+        PersistentStoreInfo[] aInfos  = listStoreInfo();
+        int                   cSize   = aInfos.length;
+        String[]              asNames = new String[cSize];
+
+        for (int i = 0; i < cSize; i++)
+            {
+            asNames[i] = aInfos[i].getId();
+            }
+
+        return asNames;
+        }
+
+    /**
      * Return a PersistenceException with the given cause. The returned
      * exception is also initialized with this manager and its environment
      * (if available).
@@ -839,6 +871,31 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
             }
 
         return sId;
+        }
+
+    /**
+     * Return the identifiers of PersistentStores that are not empty.
+     *
+     * @return identifiers of PersistentStores that are not empty
+     */
+    protected String[] listOpenStores()
+        {
+        // Scan for persistence storages in the data directory,
+        // return a list of directory that are empty.
+        String[] asNames = f_dirData.list((dir, name) ->
+                                            {
+                                            File   fileEnv = new File(dir, name);
+                                            File[] afile   = fileEnv.listFiles();
+                                            if (fileEnv.isDirectory() &&
+                                                !f_dirLock.getName().equals(fileEnv.getName()) &&
+                                                (afile != null && afile.length > 0))
+                                                {
+                                                return true;
+                                                }
+                                            return false;
+                                            });
+
+        return asNames == null ? NO_STRINGS : asNames;
         }
 
     // ----- inner interface: Task ------------------------------------------
@@ -1071,6 +1128,10 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
             f_sId      = sId;
             f_dirStore = new File(f_dirData, sId);
             f_fileLock = new File(getLockDirectory(), sId + ".lck");
+
+            // the PersistentStore starts with a created directory to distinguish
+            // a created store (sans contents) from an open store (with contents)
+            f_dirStore.mkdir();
             }
 
         // ----- PersistentStore interface ----------------------------------
@@ -1082,6 +1143,17 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
         public String getId()
             {
             return f_sId;
+            }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean isOpen()
+            {
+            File[] aFile = f_dirStore.listFiles();
+
+            return aFile != null && aFile.length > 0 && isReady();
             }
 
         /**
@@ -1225,8 +1297,6 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
         @Override
         public long[] extents()
             {
-            ensureReady();
-
             if (f_setExtentIds.isEmpty())
                 {
                 return NO_LONGS;
@@ -1275,6 +1345,15 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                 {
                 unlockRead();
                 }
+            }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean containsExtent(long lExtentId)
+            {
+            return f_setExtentIds.contains(Long.valueOf(lExtentId));
             }
 
         /**
@@ -1407,6 +1486,11 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
         @Override
         public void iterate(Visitor<ReadBuffer> visitor)
             {
+            if (!isOpen())
+                {
+                return;
+                }
+
             ensureReady();
             lockRead();
             try
@@ -1505,7 +1589,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                 catch (Throwable e)
                     {
                     // guard against any unexpected throwable
-                    Logger.fine("Caught an exception while aborting transaction for token \"" + oToken + "\":", e);
+                    Logger.finer("Caught an exception while aborting transaction for token \"" + oToken + "\":", e);
                     }
                 }
             }
@@ -1580,6 +1664,11 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
             lockWrite();
             try
                 {
+                if (isOpen())
+                    {
+                    return false;
+                    }
+
                 // create the data directory
                 if (!f_dirStore.exists())
                     {
@@ -1588,6 +1677,10 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                         throw ensurePersistenceException(new FatalAccessException(
                             "unable to create data directory \"" + f_dirStore + '"'));
                         }
+                    fNew = true;
+                    }
+                else if (f_dirStore.listFiles().length == 0)
+                    {
                     fNew = true;
                     }
 
@@ -2916,10 +3009,14 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
 
             for (int i = 0; i < asFileList.length; i++)
                 {
+                sCurrentGUID = asFileList[i];
+                if (AbstractPersistenceManager.this.isEmpty(sCurrentGUID))
+                    {
+                    continue;
+                    }
                 try
                     {
-                    sCurrentGUID = asFileList[i];
-                    store        = AbstractPersistenceManager.this.open(sCurrentGUID, null);
+                    store = AbstractPersistenceManager.this.open(sCurrentGUID, null);
 
                     validateStoreSealed(store);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,12 +7,12 @@
 
 package com.tangosol.net;
 
-
 import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Lockable;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.net.cache.TypeAssertion;
+
 import com.tangosol.net.security.LocalPermission;
 
 import com.tangosol.run.xml.XmlElement;
@@ -33,9 +33,6 @@ import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
-
-import java.util.function.Supplier;
-
 
 /**
 * Factory for the <b>Coherence&#8482;</b> cache product.
@@ -1068,6 +1065,12 @@ public abstract class CacheFactory
 
     /**
     * Invoke the Coherence command line tool.
+    * <p>
+    * The Coherence command line tool can use JLine for enhanced command-line
+    * editing capabilities, such as having the up and down arrows move through
+    * the command history. However, JLine is not required. The Coherence command
+    * line tool supports JLine when the JLine 3.x library is included in the
+    * tool's JVM classpath.
     */
     public static void main(String[] asArg)
             throws Exception
@@ -1080,7 +1083,6 @@ public abstract class CacheFactory
         METHOD_MAIN.invoke(null, new Object[] {asArg});
         }
 
-
     // ----- constants ------------------------------------------------------
 
     /**
@@ -1092,6 +1094,11 @@ public abstract class CacheFactory
     * Software version string.
     */
     public static final String VERSION;
+
+    /**
+    * Software version encoded to an int.
+    */
+    public static final int VERSION_ENCODED;
 
     /**
     * The Class name of the Coherence application.
@@ -1184,6 +1191,7 @@ public abstract class CacheFactory
 
         PRODUCT                 = ep.m_sProduct;
         VERSION                 = ep.m_sVersion;
+        VERSION_ENCODED         = ep.m_nVersionEncoded;
         METHOD_GETSAFECLUSTER   = ep.m_methGetSafeCluster;
         METHOD_SHUTDOWN         = ep.m_methShutdown;
         METHOD_GETLOCALTX       = ep.m_methGetLocalTransaction;
@@ -1211,6 +1219,7 @@ public abstract class CacheFactory
                 Class clzLibrary = Class.forName(COHERENCE);
                 m_sProduct = (String) clzLibrary.getField("TITLE").get(null);
                 m_sVersion = (String) clzLibrary.getField("VERSION").get(null);
+                m_nVersionEncoded = (Integer) clzLibrary.getField("VERSION_INT").get(null);
 
                 // look up methods (cache for faster use)
                 m_methGetSafeCluster      = clzLibrary.getMethod("getSafeCluster",
@@ -1243,6 +1252,7 @@ public abstract class CacheFactory
 
         String    m_sProduct;
         String    m_sVersion;
+        int    m_nVersionEncoded;
         Method    m_methGetSafeCluster;
         Method    m_methShutdown;
         Method    m_methGetLocalTransaction;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,11 @@ plugins {
     id 'groovy'
     id 'java-gradle-plugin'
     id 'maven-publish'
+}
+
+java {
+    targetCompatibility = 17
+    sourceCompatibility = 17
 }
 
 repositories {
@@ -26,9 +31,12 @@ publishing {
 dependencies {
     implementation "${group}:coherence:${version}"
     testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:${junitPlatformLauncherVersion}"
     testImplementation "org.hamcrest:hamcrest-core:${hamcrestVersion}"
 }
-
+configurations {
+    testImplementation.extendsFrom compileOnly
+}
 gradlePlugin {
     plugins {
         coherencePof {
@@ -41,8 +49,20 @@ gradlePlugin {
 test {
     useJUnitPlatform()
 
+    String proxyHost = System.getProperty("https.proxyHost")
+    if (proxyHost != null) {
+        project.logger.lifecycle("Populating proxy properties for tests: " + proxyHost)
+        systemProperty "http.proxyHost", System.getProperty("http.proxyHost")
+        systemProperty "http.proxyPort", System.getProperty("http.proxyPort")
+        systemProperty "https.proxyHost", System.getProperty("https.proxyHost")
+        systemProperty "https.proxyPort", System.getProperty("https.proxyPort")
+        systemProperty "http.nonProxyHosts", System.getProperty("http.nonProxyHosts")
+        systemProperty "https.nonProxyHosts", System.getProperty("https.nonProxyHosts")
+    }
+
     testLogging {
         showStandardStreams = true
+        exceptionFormat = 'full'
     }
 }
 
@@ -59,7 +79,8 @@ tasks.register('sourcesJar', Jar) {
 }
 
 tasks.register('processVersionFile', WriteProperties) {
-    it.outputFile("$buildDir/resources/main/coherence-gradle-plugin.properties")
+    it.setDestinationFile(
+            project.layout.buildDirectory.file("resources/main/coherence-gradle-plugin.properties"))
     property 'coherence-version', project.version
     property 'coherence-group-id', project.group
     property 'local-dependency-repo', project.projectDir.absolutePath + "/target/dependencies"

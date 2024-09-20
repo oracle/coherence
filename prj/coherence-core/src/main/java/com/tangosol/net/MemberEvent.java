@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -121,6 +121,10 @@ public class MemberEvent
                 case MEMBER_LEFT:
                     target.memberLeft(this);
                     break;
+
+                case MEMBER_RECOVERED:
+                    target.memberRecovered(this);
+                    break;
                  }
             }
         }
@@ -192,9 +196,14 @@ public class MemberEvent
     public static final int MEMBER_LEFT = 3;
 
     /**
+     * This event indicates that a Member has performed persistence recovery.
+     */
+    public static final int MEMBER_RECOVERED = 4;
+
+    /**
     * Descriptions of the various event IDs.
     */
-    private static final String[] DESCRIPTIONS = {"<unknown>", "JOINED", "LEAVING", "LEFT"};
+    private static final String[] DESCRIPTIONS = {"<unknown>", "JOINED", "LEAVING", "LEFT", "RECOVERED"};
 
 
     // ----- data members ---------------------------------------------------

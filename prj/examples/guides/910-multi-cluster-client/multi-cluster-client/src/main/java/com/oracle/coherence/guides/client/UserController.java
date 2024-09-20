@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.guides.client;
 
-import com.oracle.coherence.client.GrpcSessionConfiguration;
+
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.guides.client.model.TenantMetaData;
@@ -20,10 +20,7 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
-import io.grpc.ChannelCredentials;
-import io.grpc.Grpc;
-import io.grpc.InsecureChannelCredentials;
-import io.grpc.ManagedChannel;
+
 
 import java.io.IOException;
 import java.util.Map;
@@ -32,8 +29,8 @@ import java.util.Map;
  * A basic set if REST endpoints to perform CRUD operations on
  * the {@link User} entity.
  */
-public class UserController
-    {
+public class UserController {
+
     /**
      * The name of the request header holding the tenant identifier.
      */
@@ -56,66 +53,58 @@ public class UserController
      * @param tenants     the tenants {@link NamedMap}
      * @param serializer  a {@link JsonSerializer} to use to serialize request and response bodies
      */
-    public UserController(NamedMap<String, TenantMetaData> tenants, JsonSerializer serializer)
-        {
+    public UserController(NamedMap<String, TenantMetaData> tenants, JsonSerializer serializer) {
         this.tenants = tenants;
         this.serializer = serializer;
-        }
+    }
 
     /**
      * Handle a User get request.
      *
      * @param request  the request
      *
-     * @return  the response
+     * @return the response
      */
     // # tag::get[]
-    public Response get(HttpRequest request)
-        {
+    public Response get(HttpRequest request) {
         String tenant = request.getHeaderString(TENANT_HEADER);   // <1>
-        if (tenant == null || tenant.isBlank())
-            {
+        if (tenant == null || tenant.isBlank()) {
             // <2>
             return Response.status(400).entity(Map.of("Error", "Missing tenant identifier")).build();
-            }
+        }
         Session session = ensureSession(tenant);  // <3>
-        if (session == null)
-            {
+        if (session == null) {
             // <4>
             return Response.status(400).entity(Map.of("Error", "Unknown tenant " + tenant)).build();
-            }
-    // # end::get[]
+        }
+        // # end::get[]
 
-        String id = request.getFirstPathParameter("user");
+        String                   id    = request.getFirstPathParameter("user");
         NamedCache<String, User> users = session.getCache("users");
-        User user = users.get(id);
-        if (user == null)
-            {
+        User                     user  = users.get(id);
+        if (user == null) {
             return Response.notFound().entity(Map.of("Error", "Unknown user " + id)).build();
-            }
+        }
 
         return Response.ok(serialize(user)).build();
-        }
+    }
 
     /**
      * Handle a User create request.
      *
      * @param request  the request
      *
-     * @return  the response
+     * @return the response
      */
-    public Response create(HttpRequest request)
-        {
+    public Response create(HttpRequest request) {
         String tenant = request.getHeaderString(TENANT_HEADER);
-        if (tenant == null || tenant.isBlank())
-            {
+        if (tenant == null || tenant.isBlank()) {
             return Response.status(400).entity(Map.of("Error", "Missing tenant identifier")).build();
-            }
+        }
         Session session = ensureSession(tenant);
-        if (session == null)
-            {
+        if (session == null) {
             return Response.status(400).entity(Map.of("Error", "Unknown tenant " + tenant)).build();
-            }
+        }
 
         User user = getUserFromBody(request);
         user.setId(user.getFirstName() + "." + user.getLastName());
@@ -126,91 +115,80 @@ public class UserController
         users.put(user.getId(), user);
 
         return Response.ok(serialize(user)).build();
-        }
+    }
 
     /**
      * Handle a User update request.
      *
      * @param request  the request
      *
-     * @return  the response
+     * @return the response
      */
-    public Response update(HttpRequest request)
-        {
+    public Response update(HttpRequest request) {
         String tenant = request.getHeaderString(TENANT_HEADER);
-        if (tenant == null || tenant.isBlank())
-            {
+        if (tenant == null || tenant.isBlank()) {
             return Response.status(400).entity(Map.of("Error", "Missing tenant identifier")).build();
-            }
+        }
         Session session = ensureSession(tenant);
-        if (session == null)
-            {
+        if (session == null) {
             return Response.status(400).entity(Map.of("Error", "Unknown tenant " + tenant)).build();
-            }
+        }
 
-        String id = request.getFirstPathParameter("user");
+        String                   id    = request.getFirstPathParameter("user");
         NamedCache<String, User> users = session.getCache("users");
-        User user = users.get(id);
-        if (user == null)
-            {
+        User                     user  = users.get(id);
+        if (user == null) {
             return Response.notFound().entity(Map.of("Error", "Unknown user " + id)).build();
-            }
+        }
 
         User update = getUserFromBody(request);
 
         String firstName = update.getFirstName();
-        if (firstName != null && !firstName.isBlank())
-            {
+        if (firstName != null && !firstName.isBlank()) {
             user.setFirstName(firstName);
-            }
+        }
 
         String lastName = update.getLastName();
-        if (lastName != null && !lastName.isBlank())
-            {
+        if (lastName != null && !lastName.isBlank()) {
             user.setLastName(lastName);
-            }
+        }
 
         String email = update.getEmail();
-        if (email != null && !email.isBlank())
-            {
+        if (email != null && !email.isBlank()) {
             user.setEmail(email);
-            }
+        }
 
         users.put(id, user);
 
         return Response.ok(serialize(user)).build();
-        }
+    }
 
     /**
      * Handle a User delete request.
      *
      * @param request  the request
      *
-     * @return  the response
+     * @return the response
      */
-    public Response delete(HttpRequest request)
-        {
+    public Response delete(HttpRequest request) {
         String tenant = request.getHeaderString(TENANT_HEADER);
-        if (tenant == null || tenant.isBlank())
-            {
+        if (tenant == null || tenant.isBlank()) {
             return Response.status(400).entity(Map.of("Error", "Missing tenant identifier")).build();
-            }
+        }
         Session session = ensureSession(tenant);
-        if (session == null)
-            {
+        if (session == null) {
             return Response.status(400).entity(Map.of("Error", "Unknown tenant " + tenant)).build();
-            }
+        }
 
-        String id = request.getFirstPathParameter("user");
+        String                   id    = request.getFirstPathParameter("user");
         NamedCache<String, User> users = session.getCache("users");
-        User user = users.remove(id);
-        if (user == null)
-            {
+        User                     user  = users.remove(id);
+        if (user == null) {
             return Response.notFound().entity(Map.of("Error", "Unknown user " + id)).build();
-            }
+        }
 
         return Response.ok(serialize(user)).build();
-        }
+    }
 
     /**
      * Obtain a {@link Session} for a tenant.
@@ -221,17 +199,15 @@ public class UserController
      *         {@link Session} is available for the tenant
      */
     // # tag::ensure[]
-    private Session ensureSession(String tenant)
-        {
+    private Session ensureSession(String tenant) {
         TenantMetaData metaData = tenants.get(tenant);  // <1>
-        if (metaData == null)
-            {
+        if (metaData == null) {
             return null;  // <2>
-            }
+        }
         Coherence coherence = Coherence.getInstance();  // <3>
         return coherence.getSessionIfPresent(tenant)  // <4>
-                .orElseGet(() -> createSession(coherence, metaData));
-        }
+                        .orElseGet(()->createSession(coherence, metaData));
+    }
     // # end::ensure[]
 
     /**
@@ -243,19 +219,16 @@ public class UserController
      * @return the {@link Session} for the tenant
      */
     // # tag::create[]
-    private Session createSession(Coherence coherence, TenantMetaData metaData)
-        {
+    private Session createSession(Coherence coherence, TenantMetaData metaData) {
         String tenant = metaData.getTenant();
-        if (metaData.isExtend())
-            {
-            coherence.addSessionIfAbsent(tenant, () -> createExtendConfiguration(metaData));
-            }
-        else
-            {
-            coherence.addSessionIfAbsent(tenant, () -> createGrpcConfiguration(metaData));
-            }
-        return coherence.getSession(tenant);
+        if (metaData.isExtend()) {
+            coherence.addSessionIfAbsent(tenant, ()->createExtendConfiguration(metaData));
         }
+        else {
+            coherence.addSessionIfAbsent(tenant, ()->createGrpcConfiguration(metaData));
+        }
+        return coherence.getSession(tenant);
+    }
     // # end::create[]
 
     /**
@@ -266,18 +239,17 @@ public class UserController
      * @return the {@link Session} for the tenant
      */
     // # tag::extend[]
-    private SessionConfiguration createExtendConfiguration(TenantMetaData metaData)
-        {
+    private SessionConfiguration createExtendConfiguration(TenantMetaData metaData) {
         String tenant = metaData.getTenant();
         return SessionConfiguration.builder()
-                .named(tenant)             // <1>
-                .withScopeName(tenant)     // <2>
-                .withMode(Coherence.Mode.ClientFixed)  // <3>
-                .withParameter("coherence.serializer", metaData.getSerializer())   // <4>
-                .withParameter("coherence.extend.address", metaData.getHostName()) // <5>
-                .withParameter("coherence.extend.port", metaData.getPort())        // <6>
-                .build();  // <7>
-        }
+                                   .named(tenant)             // <1>
+                                   .withScopeName(tenant)     // <2>
+                                   .withMode(Coherence.Mode.ClientFixed)  // <3>
+                                   .withParameter("coherence.serializer", metaData.getSerializer())   // <4>
+                                   .withParameter("coherence.extend.address", metaData.getHostName()) // <5>
+                                   .withParameter("coherence.extend.port", metaData.getPort())        // <6>
+                                   .build();  // <7>
+    }
     // # end::extend[]
 
     /**
@@ -288,42 +260,35 @@ public class UserController
      * @return the {@link Session} for the tenant
      */
     // # tag::grpc[]
-    private SessionConfiguration createGrpcConfiguration(TenantMetaData metaData)
-        {
+    private SessionConfiguration createGrpcConfiguration(TenantMetaData metaData) {
         String tenant = metaData.getTenant();
         return SessionConfiguration.builder()
-                .named(tenant)             // <1>
-                .withScopeName(tenant)     // <2>
-                .withMode(Coherence.Mode.GrpcFixed)  // <3>
-                .withParameter("coherence.serializer", metaData.getSerializer()) // <4>
-                .withParameter("coherence.grpc.address", metaData.getHostName()) // <5>
-                .withParameter("coherence.grpc.port", metaData.getPort())        // <6>
-                .build();  // <7>
-        }
+                                   .named(tenant)             // <1>
+                                   .withScopeName(tenant)     // <2>
+                                   .withMode(Coherence.Mode.GrpcFixed)  // <3>
+                                   .withParameter("coherence.serializer", metaData.getSerializer()) // <4>
+                                   .withParameter("coherence.grpc.address", metaData.getHostName()) // <5>
+                                   .withParameter("coherence.grpc.port", metaData.getPort())        // <6>
+                                   .build();  // <7>
+    }
     // # end::grpc[]
 
-    private User getUserFromBody(HttpRequest request)
-        {
-        try
-            {
+    private User getUserFromBody(HttpRequest request) {
+        try {
             byte[] bytes = request.getBody().readAllBytes();
             return serializer.deserialize(bytes, User.class);
-            }
-        catch (IOException e)
-            {
-            throw Exceptions.ensureRuntimeException(e);
-            }
         }
-
-    private WriteBuffer serialize(User user)
-        {
-        try
-            {
-            return serializer.serialize(user);
-            }
-        catch (IOException e)
-            {
+        catch (IOException e) {
             throw Exceptions.ensureRuntimeException(e);
-            }
         }
     }
+
+    private WriteBuffer serialize(User user) {
+        try {
+            return serializer.serialize(user);
+        }
+        catch (IOException e) {
+            throw Exceptions.ensureRuntimeException(e);
+        }
+    }
+}

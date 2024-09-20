@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,15 +9,22 @@ package near;
 
 import com.oracle.bedrock.options.Timeout;
 
+import com.oracle.bedrock.runtime.java.options.JvmOptions;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Logger;
+
+import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
+
 import com.tangosol.net.AbstractInvocable;
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.CacheStatistics;
+import com.tangosol.net.cache.CachingMap;
 import com.tangosol.net.cache.LocalCache;
 import com.tangosol.net.cache.NearCache;
 
@@ -30,6 +37,7 @@ import com.tangosol.net.management.MBeanHelper;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.BinaryEntry;
+import com.tangosol.util.SegmentedConcurrentMap;
 
 import com.tangosol.util.processor.NumberIncrementor;
 import com.tangosol.util.processor.PropertyManipulator;
@@ -44,6 +52,8 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -51,6 +61,9 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
@@ -59,12 +72,14 @@ import org.hamcrest.Matchers;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-
+import static com.oracle.bedrock.testsupport.deferred.Eventually.assertDeferred;
+import static com.oracle.bedrock.testsupport.deferred.Eventually.within;
+import static java.util.Arrays.stream;
 import static org.hamcrest.Matchers.is;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -87,6 +102,8 @@ public class NearCacheTests
     public NearCacheTests()
         {
         super(FILE_CFG_CACHE);
+        System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE);
+        Logger.config("coherence.cacheconfig=" + FILE_CFG_CACHE);
         }
 
 
@@ -98,8 +115,11 @@ public class NearCacheTests
     @BeforeClass
     public static void startup()
         {
-        startCacheServer("NearCacheTests-1", "near", FILE_CFG_CACHE);
-        startCacheServer("NearCacheTests-2", "near", FILE_CFG_CACHE);
+        startCacheServer("NearCacheTests-1", "near", FILE_CFG_CACHE,
+                         null, true, null,
+                         JvmOptions.include("-XX:+ExitOnOutOfMemoryError"));
+        startCacheServer("NearCacheTests-2", "near", FILE_CFG_CACHE, null, true, null,
+                         JvmOptions.include("-XX:+ExitOnOutOfMemoryError"));
         }
 
     /**
@@ -395,30 +415,227 @@ public class NearCacheTests
     public void testTruncate()
             throws Exception
         {
-        NamedCache cache = getNamedCache("near-TruncateTest");
+        NearCache cache = (NearCache) getNamedCache("near-TruncateTest");
         try
             {
-            cache.put("key", "value");
+            MBeanServer server          = MBeanHelper.findMBeanServer();
+            ObjectName  objNameCache    = new ObjectName("Coherence:type=Cache,tier=front,name=near-TruncateTest,*");
+            ObjectName  objNameStorage1 = new ObjectName("Coherence:type=StorageManager,service=DistributedCache,cache=near-TruncateTest,nodeId=2");
+            ObjectName  objNameStorage2 = new ObjectName("Coherence:type=StorageManager,service=DistributedCache,cache=near-TruncateTest,nodeId=3");
 
-            MBeanServer        server             = MBeanHelper.findMBeanServer();
-            ObjectName         objName            = new ObjectName("Coherence:type=Cache,tier=front,name=near-TruncateTest,*");
             MBeanServerHandler mbeanServerHandler = new MBeanServerHandler(server);
 
             // make sure that the near cache mbean has been registered
-            Eventually.assertThat(invoking(mbeanServerHandler).getMBeanCount(objName), is(1));
+            Eventually.assertThat(invoking(mbeanServerHandler).getMBeanCount(objNameCache), is(1));
+            assertDeferred(() -> getMBeanAttribute(server, objNameStorage1, "ListenerKeyCount"), is(0));
+            assertDeferred(() -> getMBeanAttribute(server, objNameStorage2, "ListenerKeyCount"), is(0));
 
             cache.put("foo", "bar");
             assertEquals(cache.get("foo"), "bar");
+            Eventually.assertThat(invoking(mbeanServerHandler).getMBeanCount(objNameStorage1), is(1));
+            Eventually.assertThat(invoking(mbeanServerHandler).getMBeanCount(objNameStorage2), is(1));
+            assertDeferred(() -> getMBeanAttribute(server, objNameStorage1, "ListenerKeyCount") + getMBeanAttribute(server, objNameStorage2, "ListenerKeyCount"), is(1));
+
+            for (int i = 1; i <= 20; i++)
+                {
+                cache.put("key_" + i, "value_" + i);
+                cache.get("key_" + i);
+                }
+            assertDeferred("assert equal number of keys in front map and key listeners on back map",
+                           () -> getMBeanAttribute(server, objNameStorage1, "ListenerKeyCount") + getMBeanAttribute(server, objNameStorage2, "ListenerKeyCount"),
+                           is(cache.getFrontMap().size()));
+
             cache.truncate();
+            assertDeferred(()->cache.getFrontMap().size(), is(0));
+            assertDeferred(()->cache.getControlMap().size(), is(0));
+            Logger.finer("dumping held locks after truncate front map size=" + cache.getFrontMap().size() + " controlMap size=" + cache.getControlMap().size());
+            ((SegmentedConcurrentMap)cache.getControlMap()).dumpHeldLocks();
             Eventually.assertThat(invoking(cache).get("foo"), Matchers.nullValue());
+            assertDeferred(() -> getMBeanAttribute(server, objNameStorage1, "ListenerKeyCount"), is(0));
+            assertDeferred(() -> getMBeanAttribute(server, objNameStorage2, "ListenerKeyCount"), is(0));
 
             cache.put("bar", "foo");
             assertEquals(cache.get("bar"), "foo");
-            Eventually.assertThat(invoking(mbeanServerHandler).getMBeanCount(objName), is(1), Timeout.after("2000"));
+            for (int i = 1; i <= 20; i++)
+                {
+                cache.put("key_" + i, "value_" + i);
+                cache.get("key_" + i);
+                }
+            assertDeferred("assert equal number of keys in front map and key listeners on back map",
+                           () -> getMBeanAttribute(server, objNameStorage1, "ListenerKeyCount") + getMBeanAttribute(server, objNameStorage2, "ListenerKeyCount"),
+                           is(cache.getFrontMap().size()));
+
+            Eventually.assertThat(invoking(mbeanServerHandler).getMBeanCount(objNameCache), is(1), Timeout.after("2000"));
             }
         finally
             {
             cache.destroy();
+            }
+        }
+
+    /**
+     * Regression test for COH-28721.
+     * Simulate concurrent gets occurring when a cache truncate occurs.
+     * Validate NearCache truncate post-conditions that no map control key locks should exist after the truncate.
+     * Validate none of the concurrent threads hang.
+     */
+    @Test
+    public void testTruncateReleaseOutstandingKeyLock()
+        {
+        Thread        arThread[]  = new Thread[3];
+        NearCache     cache       = (NearCache)getNamedCache("near-TruncateReleaseOutstandingKeyLockTest");
+        AtomicBoolean fKeyLocked  = new AtomicBoolean(false);
+        AtomicInteger cBlockedGet = new AtomicInteger(0);
+
+        try
+            {
+            cache.put("key", "value");
+            cache.get("key");
+            assertThat("ensure invalidation strategy is PRESENT", cache.getInvalidationStrategy(), is(CachingMap.LISTEN_PRESENT));
+            cache.put("foo", "bar");
+
+            // simulate 3 concurrent gets just before a truncate
+            arThread[0] = new Thread(()->
+                                     {
+                                     // simulate a get that is not completed and waiting for result from registering listener and getting priming event
+                                     String                 sKey       = "foo";
+                                     SegmentedConcurrentMap mapControl = (SegmentedConcurrentMap) cache.getControlMap();
+
+                                     if (mapControl.lock(sKey, -1))
+                                         {
+                                         // allow other two concurrent get threads to proceed now that key lock has been acquired.
+                                         fKeyLocked.compareAndSet(false, true);
+
+                                         List listEvents = new LinkedList();
+                                         mapControl.put("foo", listEvents);
+                                         try
+                                             {
+                                             Blocking.sleep(120000);
+                                             }
+                                         catch (InterruptedException e)
+                                             {
+                                             e.printStackTrace();
+                                             Thread.currentThread().interrupt();
+                                             throw Base.ensureRuntimeException(e, "interrupted simulated hung thread");
+                                             }
+                                         }
+                                     },
+                                     "simulateUncompletedGetHoldingKeyLockForFoo");
+
+            arThread[1] = new Thread(()->
+                                     {
+                                     // this thread will block in NearCache get() due to thread simulateUncompletedGetHoldingKeyLockForFoo
+                                     while (! fKeyLocked.get())
+                                         {
+                                         try
+                                             {
+                                             Blocking.sleep(100);
+                                             }
+                                         catch (InterruptedException e)
+                                             {
+                                             throw new RuntimeException(e);
+                                             }
+                                         }
+                                     try
+                                         {
+                                         cBlockedGet.getAndIncrement();
+                                         Logger.info("thread " + this + " get(\"foo\") returned value of " + cache.get("foo"));
+                                         }
+                                     catch (Throwable t)
+                                         {
+                                         Logger.info("thread " + this + " terminated with an exception. \nStack trace:\n" + Base.printStackTrace(t));
+                                         }
+                                     },
+                                     "BlockedGetForFoo1");
+
+            arThread[2] = new Thread(()->
+                                     {
+                                     // this thread will block in NearCache get() due to thread simulateUncompletedGetHoldingKeyLockForFoo
+                                     while (! fKeyLocked.get())
+                                         {
+                                         try
+                                             {
+                                             Blocking.sleep(100);
+                                             }
+                                         catch (InterruptedException e)
+                                             {
+                                             throw new RuntimeException(e);
+                                             }
+                                         }
+                                     try
+                                         {
+                                         cBlockedGet.getAndIncrement();
+                                         Logger.info("thread " + this + " get(\"foo\") returned value of " + cache.get("foo"));
+                                         }
+                                     catch (Throwable t)
+                                         {
+                                         Logger.info("thread " + this + " terminated with an exception. \nStack trace:\n" + Base.printStackTrace(t));
+                                         }
+                                     },
+                                     "BlockedGetForFoo2");
+
+            for (Thread t : arThread)
+                {
+                t.start();
+                }
+
+            // wait until 3 threads have progressed to desire state
+            while (!fKeyLocked.get() && cBlockedGet.get() == 2)
+                {
+                Blocking.sleep(10);
+                }
+
+            assertDeferred("ensure simulating concurrent get() by ensuring there is a current lock", () -> cache.getControlMap().size(), is(1));
+            Logger.info("Dump held locks before truncate");
+            ((SegmentedConcurrentMap)cache.getControlMap()).dumpHeldLocks();
+
+            // assert all 3 concurrent gets are where we think they should be
+            assertThreadStackTrace(arThread[0], Blocking.class, "sleep");
+            assertThreadStackTrace(arThread[1], SegmentedConcurrentMap.class, "lock");
+            assertThreadStackTrace(arThread[1], SegmentedConcurrentMap.LockableEntry.class, "waitForNotify");
+            assertThreadStackTrace(arThread[2], SegmentedConcurrentMap.class, "lock");
+            assertThreadStackTrace(arThread[2], SegmentedConcurrentMap.LockableEntry.class, "waitForNotify");
+
+            // truncate will interrupt all threads holding locks
+            cache.truncate();
+
+            try
+                {
+                // verify truncate post conditions
+                Eventually.assertDeferred("validate truncate post condition condition that near cache control map is zero",
+                                          () -> cache.getControlMap().size(), is(0),
+                                          within(30, TimeUnit.SECONDS));
+                }
+            catch (Throwable t)
+                {
+                Logger.info("Dump held locks after truncate and handling assertion exception:  " + t);
+                ((SegmentedConcurrentMap)cache.getControlMap()).dumpHeldLocks();
+
+                throw t;
+                }
+
+            // ensure all threads completed and none are blocked
+            for (Thread t : arThread)
+                {
+                t.join(30000);
+                assertThat("verify thread " + t + " not hung \n" + Base.getStackTrace(t), t.isAlive(), is(false));
+                }
+            }
+        catch (InterruptedException e)
+            {
+            throw new RuntimeException(e);
+            }
+        finally
+            {
+            // cleanup
+            cache.destroy();
+            for (Thread t: arThread)
+                {
+                if (t != null && t.isAlive())
+                    {
+                    t.interrupt();
+                    }
+                }
             }
         }
 
@@ -500,7 +717,7 @@ public class NearCacheTests
         {
         NearCache<Integer, Person> cache = (NearCache) getNamedCache("near-coh-23095");
 
-        CacheStatistics cacheStats     = ((LocalCache) cache.getFrontMap()).getCacheStatistics();
+        CacheStatistics cacheStats     = getFrontMapCacheStatistics(cache);
         long            cInitialMisses = cacheStats.getCacheMisses();
 
         cache.computeIfAbsent(2,
@@ -545,6 +762,13 @@ public class NearCacheTests
         catch (InterruptedException ie)
             {
             Assert.fail("Test timed out");
+            }
+
+        // Caffeine front cache background eviction intermittently does not completely clear the cache, it does not have low units
+        // computing size does not ensure eviction processing of expired entries is completed for CaffeineCache
+        for (int j = 0; j < 10000; j++)
+            {
+            cache.get(j);
             }
 
         // eventually front cache should be empty
@@ -594,6 +818,10 @@ public class NearCacheTests
         {
         public void run()
             {
+            ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                        .getConfigurableCacheFactory(m_sCacheConfig, null);
+            setFactory(factory);
+
             try
                 {
                 setResult(Boolean.valueOf(test()));
@@ -651,7 +879,7 @@ public class NearCacheTests
 
             out("waiting for others...");
             NamedCache cache = getCache();
-            Eventually.assertThat(invoking(cache).get(RUNNING), is((Object) Integer.valueOf(0)));
+            assertDeferred(() -> cache.get(RUNNING), is((Object) Integer.valueOf(0)));
             }
 
         /**
@@ -698,6 +926,7 @@ public class NearCacheTests
 
         protected transient boolean m_fFinished;
         protected           String  m_sCacheName;
+        protected           String  m_sCacheConfig = System.getProperty("coherence.cacheconfig");
         }
 
     /**
@@ -913,10 +1142,10 @@ public class NearCacheTests
         thread.start();
         thread.join();
 
-        Eventually.assertDeferred("wait for thread to terminate so auto drop of lock from a terminated thread can work", () -> thread.isAlive(), is(false));
+        assertDeferred("wait for thread to terminate so auto drop of lock from a terminated thread can work", () -> thread.isAlive(), is(false));
 
         // remove this assertion if fix NearCache.getMapControl.lock(key, 0) to check if thread is terminated
-        Eventually.assertDeferred("confirm can not get lock since terminated thread has it", () -> cache.getControlMap().lock(key, 0), is(false));
+        assertDeferred("confirm can not get lock since terminated thread has it", () -> cache.getControlMap().lock(key, 0), is(false));
 
         // update backing map so NearCache.validate(MapEvent) called.
         // before fix got  "Detected a state corruption on the key" in CachingMap.validate(MapEvent)
@@ -932,7 +1161,7 @@ public class NearCacheTests
 
         try
             {
-            Eventually.assertDeferred("confirm can get lock since terminated thread no longer has it", () -> cache.getControlMap().lock(key, 0), is(true));
+            assertDeferred("confirm can get lock since terminated thread no longer has it", () -> cache.getControlMap().lock(key, 0), is(true));
             }
         finally
             {
@@ -971,8 +1200,59 @@ public class NearCacheTests
         private String    m_sKey;
         }
 
+    // ----- helpers ---------------------------------------------------------
+
+    /**
+     * Return {@link CacheStatistics} for front map.
+     *
+     * @param cache  the near cache
+     *
+     * @return {@link CacheStatistics} for front map
+     */
+    protected CacheStatistics getFrontMapCacheStatistics(NearCache cache)
+        {
+        return ((LocalCache) cache.getFrontMap()).getCacheStatistics();
+        }
+
+    /**
+     * Assert thread stack trace contains a caller with {@code clz} name and {@code sMethodName method name}.
+     *
+     * @param t            the thread
+     * @param clz          the class to verify in thread stack
+     * @param sMethodName  the method name to verify in thread stack
+     */
+    protected void assertThreadStackTrace(Thread t, Class clz, String sMethodName)
+        {
+        Eventually.assertDeferred("validate that thread " + t + " contains call to " + clz.getName() + "." + sMethodName,
+                                  () -> stream(t.getStackTrace()).anyMatch((e)-> e.getClassName().equals(clz.getName()) && e.getMethodName().equals(sMethodName)), is(true));
+        }
+
+    /**
+     * Get attribute value for MBean {@code objectName}.
+     *
+     * @param server      MBean server
+     * @param objectName  MBean object name
+     * @param sAttribute  MBean attribute that should be an integer
+     *
+     * @return MBean attribute integer value or throw runtime exception if not found.
+     */
+    protected int getMBeanAttribute(MBeanServer server, ObjectName objectName, String sAttribute)
+        {
+        try
+            {
+            return (Integer) server.getAttribute(objectName, sAttribute);
+            }
+        catch (Exception e)
+            {
+            throw new RuntimeException(e);
+            }
+        }
+
     // ---- constants -------------------------------------------------------
 
     protected static final String RUNNING  = "running-agents";
-    protected static final String FILE_CFG_CACHE = "near-cache-config.xml";
+    protected static String FILE_CFG_CACHE = "near-cache-config.xml";
+
+    @ClassRule
+    public static final ThreadDumpOnTimeoutRule timeout = ThreadDumpOnTimeoutRule.after(15, TimeUnit.MINUTES);
     }

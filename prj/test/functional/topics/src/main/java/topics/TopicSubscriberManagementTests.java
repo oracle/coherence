@@ -19,6 +19,7 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.common.util.Threads;
 import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
@@ -54,6 +55,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -68,8 +70,9 @@ import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
+import static org.junit.Assert.fail;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "resource"})
 public class TopicSubscriberManagementTests
     {
     @BeforeClass
@@ -166,7 +169,7 @@ public class TopicSubscriberManagementTests
         OwnershipListener  listenerThree = new OwnershipListener("three");
 
         System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - creating publisher and subscribers");
-        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service,false);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
              PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
              PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
@@ -208,6 +211,7 @@ public class TopicSubscriberManagementTests
             CompletableFuture<Set<Integer>> futureLostThree = listenerThree.awaitLost();
 
             // disconnect subscriberOne *only* using its key
+            System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - Disconnecting subscriber " + subscriberOne.getSubscriberId());
             caches.disconnectSubscriber(subscriberOne.getSubscriberGroupId(), subscriberOne.getSubscriberId());
 
             Eventually.assertDeferred(futureLostOne::isDone, is(true));
@@ -216,8 +220,8 @@ public class TopicSubscriberManagementTests
 
             // all channels should eventually be allocated to subscriberTwo
             Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(topic.getChannelCount()));
+            Eventually.assertDeferred(() -> caches.getChannelAllocations(sGroupOne).size(), is(1));
             Map<Long, Set<Integer>> mapAllocation = caches.getChannelAllocations(sGroupOne);
-            assertThat(mapAllocation.size(), is(1));
             assertThat(mapAllocation.get(subscriberTwo.getId()), is(subscriberTwo.getChannelSet()));
 
             // receive futures should still be waiting
@@ -303,8 +307,8 @@ public class TopicSubscriberManagementTests
 
             // all channels should eventually be allocated to subscriberTwo
             Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(topic.getChannelCount()));
+            Eventually.assertDeferred(() -> caches.getChannelAllocations(sGroupOne).size(), is(1));
             Map<Long, Set<Integer>> mapAllocation = caches.getChannelAllocations(sGroupOne);
-            assertThat(mapAllocation.size(), is(1));
             assertThat(mapAllocation.get(subscriberTwo.getId()), is(subscriberTwo.getChannelSet()));
 
             // receive futures should still be waiting
@@ -557,6 +561,12 @@ public class TopicSubscriberManagementTests
             assertThat(element.getValue(), startsWith("foo bar"));
             Logger.info(">>>> In " + f_testName.getMethodName() + ": Subscriber 3 received");
             }
+        catch (TimeoutException e)
+            {
+            System.err.println("Test timed out: ");
+            System.err.println(Threads.getThreadDump(true));
+            fail("Test failed with exception: " + e.getMessage());
+            }
         }
 
     @Test
@@ -732,7 +742,6 @@ public class TopicSubscriberManagementTests
                 assertThat(subscriberTwo.isDisconnected(), is(false));
                 }
             }
-
         }
 
     // ----- inner remote callable: CreateSubscriber ------------------------

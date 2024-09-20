@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -22,13 +22,14 @@ import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
 import com.oracle.bedrock.util.Capture;
 import com.oracle.coherence.guides.client.webserver.WebServer;
+import com.tangosol.net.grpc.GrpcDependencies;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class MultiClusterClientIT
-        extends AbstractMultiClusterClientIT
-    {
+        extends AbstractMultiClusterClientIT {
+
     /**
      * The port the Extend proxy in the Tenants' admin cluster will listen on.
      * This will effectively be an ephemeral port chosen at runtime.
@@ -67,16 +68,16 @@ public class MultiClusterClientIT
     @Order(2)
     static CoherenceClusterExtension marvel = new CoherenceClusterExtension()
             .include(1, CoherenceClusterMember.class,
-                     ClusterName.of("Marvel"),
-                     SystemProperty.of("coherence.extend.port", marvelPort),
-                     SystemProperty.of("coherence.grpc.server.port", 0),
-                     SystemProperty.of("webserver.port", 0),
-                     RoleName.of("storage"),
-                     IPv4Preferred.yes(),
-                     LocalHost.only(),
-                     WellKnownAddress.of("127.0.0.1"),
-                     DisplayName.of("Marvel"),
-                     logs);
+                    ClusterName.of("Marvel"),
+                    SystemProperty.of("coherence.extend.port", marvelPort),
+                    SystemProperty.of(GrpcDependencies.PROP_PORT, 0),
+                    SystemProperty.of("webserver.port", 0),
+                    RoleName.of("storage"),
+                    IPv4Preferred.yes(),
+                    LocalHost.only(),
+                    WellKnownAddress.of("127.0.0.1"),
+                    DisplayName.of("Marvel"),
+                    logs);
 
     /**
      * A Coherence Bedrock JUnit extension to start the Star Wars cluster.
@@ -85,15 +86,15 @@ public class MultiClusterClientIT
     @Order(2)
     static CoherenceClusterExtension starWars = new CoherenceClusterExtension()
             .include(1, CoherenceClusterMember.class,
-                     ClusterName.of("StarWars"),
-                     SystemProperty.of("coherence.grpc.server.port", starWarsPort),
-                     SystemProperty.of("webserver.port", 0),
-                     RoleName.of("storage"),
-                     IPv4Preferred.yes(),
-                     LocalHost.only(),
-                     WellKnownAddress.of("127.0.0.1"),
-                     DisplayName.of("StarWars"),
-                     logs);
+                    ClusterName.of("StarWars"),
+                    SystemProperty.of(GrpcDependencies.PROP_PORT, starWarsPort),
+                    SystemProperty.of("webserver.port", 0),
+                    RoleName.of("storage"),
+                    IPv4Preferred.yes(),
+                    LocalHost.only(),
+                    WellKnownAddress.of("127.0.0.1"),
+                    DisplayName.of("StarWars"),
+                    logs);
 
     /**
      * A Coherence Bedrock JUnit extension to start the Tenants Admin cluster.
@@ -102,16 +103,16 @@ public class MultiClusterClientIT
     @Order(3)
     static CoherenceClusterExtension tenants = new CoherenceClusterExtension()
             .include(1, CoherenceClusterMember.class,
-                     ClusterName.of("Tenants"),
-                     SystemProperty.of("coherence.extend.port", adminPort),
-                     SystemProperty.of("coherence.grpc.server.port", 0),
-                     SystemProperty.of("webserver.port", 0),
-                     RoleName.of("storage"),
-                     IPv4Preferred.yes(),
-                     LocalHost.only(),
-                     WellKnownAddress.of("127.0.0.1"),
-                     DisplayName.of("Tenants"),
-                     logs);
+                    ClusterName.of("Tenants"),
+                    SystemProperty.of("coherence.extend.port", adminPort),
+                    SystemProperty.of(GrpcDependencies.PROP_PORT, 0),
+                    SystemProperty.of("webserver.port", 0),
+                    RoleName.of("storage"),
+                    IPv4Preferred.yes(),
+                    LocalHost.only(),
+                    WellKnownAddress.of("127.0.0.1"),
+                    DisplayName.of("Tenants"),
+                    logs);
 
     /**
      * A Coherence Bedrock JUnit extension to start the Client Web-Server.
@@ -120,19 +121,19 @@ public class MultiClusterClientIT
     @Order(4)
     static CoherenceClusterExtension client = new CoherenceClusterExtension()
             .include(1, CoherenceClusterMember.class,
-                     ClusterName.of("client"),
-                     SystemProperty.of("webserver.port", httpPort),
-                     SystemProperty.of("coherence.client", "remote-fixed"),
-                     SystemProperty.of("coherence.extend.address", "127.0.0.1"),
-                     SystemProperty.of("coherence.extend.port", adminPort),
-                     RoleName.of("client"),
-                     ClassPath.ofSystem().excluding(".*coherence-grpc-proxy.*"),
-                     IPv4Preferred.yes(),
-                     LocalHost.only(),
-                     WellKnownAddress.of("127.0.0.1"),
-                     DisplayName.of("client"),
-                     StabilityPredicate.of(CoherenceCluster.Predicates.isReady(WebServer.HEALTH_CHECK_NAME)),
-                     logs);
+                    ClusterName.of("client"),
+                    SystemProperty.of("webserver.port", httpPort),
+                    SystemProperty.of("coherence.client", "remote-fixed"),
+                    SystemProperty.of("coherence.extend.address", "127.0.0.1"),
+                    SystemProperty.of("coherence.extend.port", adminPort),
+                    RoleName.of("client"),
+                    ClassPath.ofSystem().excluding(".*coherence-grpc-proxy.*"),
+                    IPv4Preferred.yes(),
+                    LocalHost.only(),
+                    WellKnownAddress.of("127.0.0.1"),
+                    DisplayName.of("client"),
+                    StabilityPredicate.of(CoherenceCluster.Predicates.isReady(WebServer.HEALTH_CHECK_NAME)),
+                    logs);
 
 
     /**
@@ -142,14 +143,12 @@ public class MultiClusterClientIT
      * @throws Exception if tenant creation fails
      */
     @BeforeAll
-    static void configureTenants() throws Exception
-        {
+    static void configureTenants() throws Exception {
         configureTenants(httpPort.get(), marvelPort.get(), starWarsPort.get());
-        }
+    }
 
     @Override
-    protected int getHttpPort()
-        {
+    protected int getHttpPort() {
         return httpPort.get();
-        }
     }
+}

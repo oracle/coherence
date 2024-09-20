@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util.collection;
 
@@ -24,6 +24,7 @@ import com.tangosol.util.filter.InKeySetFilter;
  *
  * @author gg 2016.04.19
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ConvertingNamedCache
         extends ConverterNamedCache
     {
@@ -75,5 +76,19 @@ public class ConvertingNamedCache
             }
 
         super.removeMapListener(listener, filter);
+        }
+
+    /**
+     * Execute the specified {@link com.tangosol.util.InvocableMap.EntryProcessor}
+     * and return the unconverted result.
+     *
+     * @param key        the key to invoke the processor on
+     * @param processor  the processor to invoke
+     *
+     * @return  the unconverted result of the entry processor invocation
+     */
+    public Object invokePassThru(Object key, EntryProcessor processor)
+        {
+        return getNamedCache().invoke(getConverterKeyDown().convert(key), processor);
         }
     }

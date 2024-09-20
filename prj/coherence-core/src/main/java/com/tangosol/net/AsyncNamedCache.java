@@ -1,15 +1,18 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
+import com.tangosol.internal.util.DistributedAsyncNamedCache;
+import com.tangosol.internal.util.VersionHelper;
 import com.tangosol.internal.util.processor.CacheProcessors;
 
 import com.tangosol.net.cache.CacheMap;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -58,5 +61,37 @@ public interface AsyncNamedCache<K, V>
     public default CompletableFuture<Void> put(K key, V value, long cMillis)
         {
         return invoke(key, CacheProcessors.put(value, cMillis));
+        }
+
+    /**
+     * Copies all the mappings from the specified map to this map with the specified expiry delay.
+     * <p/>
+     * NOTE: This method was introduced in a patch to Coherence. All the cluster members must be
+     * running with a compatible version (the patch or higher) for this method to work.
+     * See {@link DistributedAsyncNamedCache#IS_BINARY_PROCESSOR_COMPATIBLE}
+     *
+     * @param map      mappings to be added to this map
+     * @param cMillis  the number of milliseconds until the cache entry will
+     *                 expire, also referred to as the entry's "time to live";
+     *                 pass {@link CacheMap#EXPIRY_DEFAULT} to use the cache's
+     *                 default time-to-live setting; pass {@link
+     *                 CacheMap#EXPIRY_NEVER} to indicate that the cache entry
+     *                 should never expire; this milliseconds value is <b>not</b>
+     *                 a date/time value, such as is returned from
+     *                 System.currentTimeMillis()
+     *
+     * @return a {@link CompletableFuture}
+     */
+    default CompletableFuture<Void> putAll(Map<? extends K, ? extends V> map, long cMillis)
+        {
+        if (getNamedCache().getCacheService().isVersionCompatible(DistributedAsyncNamedCache.IS_BINARY_PROCESSOR_COMPATIBLE))
+            {
+            return invokeAll(map.keySet(), CacheProcessors.putAll(map, cMillis)).thenAccept(nil -> {});
+            }
+        CacheService service  = getNamedCache().getService();
+        int          nVersion = service.getMinimumServiceVersion();
+        throw new UnsupportedOperationException("the whole cluster is not running a compatible version to execute " +
+                "this method (version=\"" + VersionHelper.toVersionString(nVersion, true) +
+                "\" encoded=" + nVersion + ")");
         }
     }

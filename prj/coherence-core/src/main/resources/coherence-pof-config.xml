@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -540,11 +540,17 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.util.transformer.SamplingEventTransformer</class-name>
     </user-type>
 
-    <!-- com.tangosol.io.pof.reflect package (140-159) -->
+    <!-- com.tangosol.io.pof.reflect package (140-149) -->
 
     <user-type>
       <type-id>140</type-id>
       <class-name>com.tangosol.io.pof.reflect.SimplePofPath</class-name>
+    </user-type>
+
+    <!-- com.oracle.coherence.persistence. types (150 - 159) -->
+    <user-type>
+      <type-id>150</type-id>
+      <class-name>com.oracle.coherence.persistence.PersistentStoreInfo</class-name>
     </user-type>
 
     <!-- com.tangosol.net package (160-169) -->
@@ -669,6 +675,11 @@ descriptor: pof-config.xsd.
     <user-type>
       <type-id>196</type-id>
       <class-name>com.tangosol.util.extractor.ChainedFragmentExtractor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>197</type-id>
+      <class-name>com.tangosol.util.UniversalManipulator</class-name>
     </user-type>
 
     <!-- com.tangosol.util.filter package (continued) (200-209) -->
@@ -869,6 +880,8 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.util.Fragment</class-name>
     </user-type>
 
+    <!-- external (executor): internal types (270 - 299) -->
+
     <!-- com.tangosol.net.internal package (300-349) -->
 
     <user-type>
@@ -909,6 +922,16 @@ descriptor: pof-config.xsd.
     <user-type>
       <type-id>307</type-id>
       <class-name>com.tangosol.net.internal.RemoveEntryProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>308</type-id>
+      <class-name>com.tangosol.net.internal.PartitionSize</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>309</type-id>
+      <class-name>com.tangosol.net.internal.PartitionSizeAggregator</class-name>
     </user-type>
 
     <!-- com.tangosol.net.security package (350-359) -->
@@ -1095,7 +1118,7 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.internal.util.stream.DoublePipeline$Optional</class-name>
     </user-type>
 
-    <!-- com.tangosol.internal.util.processor package (470-489) -->
+    <!-- com.tangosol.internal.util.processor package (470-499) -->
 
     <user-type>
       <type-id>470</type-id>
@@ -1193,6 +1216,22 @@ descriptor: pof-config.xsd.
       <type-id>490</type-id>
       <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryPutAllProcessor</class-name>
     </user-type>
+    <user-type>
+      <type-id>491</type-id>
+      <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryBlindPutProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>492</type-id>
+      <class-name>com.tangosol.internal.util.processor.CacheProcessors$RemoveNoResults</class-name>
+    </user-type>
+    <user-type>
+      <type-id>493</type-id>
+      <class-name>com.tangosol.internal.util.processor.CacheProcessors$PutAllWithExpiry</class-name>
+    </user-type>
+    <user-type>
+      <type-id>494</type-id>
+      <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryPutAllWithExpiryProcessor</class-name>
+    </user-type>
 
     <!-- com.tangosol.internal.util.aggregator package (990-999) -->
 
@@ -1271,6 +1310,8 @@ descriptor: pof-config.xsd.
       <type-id>529</type-id>
       <class-name>com.tangosol.coherence.config.builder.StaticFactoryInstanceBuilder</class-name>
     </user-type>
+
+    <!-- com.oracle.coherence.protobuf package (530) -->
 
     <!-- com.tangosol.internal.net.topic.impl.paged. package (550-599) -->
 
@@ -1539,13 +1580,64 @@ descriptor: pof-config.xsd.
     <!-- com.tangosol.coherence.jcache package (610-699) -->
     <!-- defined in coherence-jcache-pof-config.xml within coherence-jcache.jar -->
 
-    <!-- com.tangosol.coherence.transaction commercial product package (700-799) -->
+    <!-- com.tangosol.coherence.transaction commercial product package (700-779) -->
     <!-- defined in txn-pof-config.xml within coherence.jar -->
+
+    <user-type>
+      <type-id>780</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.Bucket</class-name>
+    </user-type>
+    <user-type>
+      <type-id>781</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.PagedQueueKey</class-name>
+    </user-type>
+    <user-type>
+      <type-id>782</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.QueueInfo</class-name>
+    </user-type>
+    <user-type>
+      <type-id>783</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.QueueVersionInfo</class-name>
+    </user-type>
+    <user-type>
+      <type-id>784</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.QueueOfferTailProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>785</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.QueuePollPeekHeadProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>786</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.InitialiseQueueInfoProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>787</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.RemoveBucketElementProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>788</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.HeadIncrementProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>789</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.TailIncrementProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>790</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.PeekWholeBucketAggregator</class-name>
+    </user-type>
+    <user-type>
+      <type-id>791</type-id>
+      <class-name>com.tangosol.internal.net.queue.paged.ClearQueueProcessor</class-name>
+    </user-type>
 
     <!-- com.tangosol.coherence.rest package (800-820) -->
     <!-- defined in coherence-rest-pof-config.xml within coherence-rest.jar -->
 
-    <!-- com.tangosol.coherence.memcached package (830-849) -->
+    <!-- external (executor): internal types 821-829 -->
+
+    <!-- com.tangosol.coherence.memcached package (830-839) -->
     <user-type>
       <type-id>830</type-id>
       <class-name>com.tangosol.coherence.memcached.processor.AddReplaceProcessor</class-name>
@@ -1594,10 +1686,54 @@ descriptor: pof-config.xsd.
       </serializer>
     </user-type>
 
+    <!-- com.tangosol.internal.net.queue package (840-849) -->
+    <user-type>
+      <type-id>840</type-id>
+      <class-name>com.tangosol.internal.net.queue.model.QueueKey</class-name>
+    </user-type>
+    <user-type>
+      <type-id>841</type-id>
+      <class-name>com.tangosol.internal.net.queue.model.QueueOfferResult</class-name>
+    </user-type>
+    <user-type>
+      <type-id>842</type-id>
+      <class-name>com.tangosol.internal.net.queue.model.QueuePollResult</class-name>
+    </user-type>
+    <user-type>
+      <type-id>843</type-id>
+      <class-name>com.tangosol.internal.net.queue.extractor.QueueKeyExtractor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>844</type-id>
+      <class-name>com.tangosol.internal.net.queue.processor.QueuePoll</class-name>
+    </user-type>
+    <user-type>
+      <type-id>845</type-id>
+      <class-name>com.tangosol.internal.net.queue.processor.QueueOffer</class-name>
+    </user-type>
+    <user-type>
+      <type-id>846</type-id>
+      <class-name>com.tangosol.internal.net.queue.processor.QueuePeek</class-name>
+    </user-type>
+    <user-type>
+      <type-id>847</type-id>
+      <class-name>com.tangosol.internal.net.queue.processor.QueueRemove</class-name>
+    </user-type>
+    <user-type>
+      <type-id>848</type-id>
+      <class-name>com.tangosol.internal.net.queue.processor.QueuePage</class-name>
+    </user-type>
+    <user-type>
+      <type-id>849</type-id>
+      <class-name>com.tangosol.internal.net.queue.model.QueuePageResult</class-name>
+    </user-type>
+
     <!-- type id reservations for Coherence types not in coherence-pof-config.xml -->
 
     <!-- oracle.toplink.goldengate.coherence package (850-869) -->
     <!-- defined in coherence-hotcache-pof-config.xml within coherence-hotcache.jar -->
+
+    <!-- external (executor): 870-899) -->
 
     <!-- java packages (900 - 949) -->
 
@@ -1673,6 +1809,14 @@ descriptor: pof-config.xsd.
       </serializer>
     </user-type>
 
+    <user-type>
+      <type-id>909</type-id>
+      <class-name>java.util.UUID</class-name>
+      <serializer>
+        <class-name>com.tangosol.io.pof.UuidSerializer</class-name>
+      </serializer>
+    </user-type>
+
     <!-- java.util.collections (920 - 929) -->
 
     <user-type>
@@ -1689,6 +1833,41 @@ descriptor: pof-config.xsd.
       <serializer>
         <class-name>com.tangosol.internal.io.pof.JavaCollectionsSupport$SortedMapSerializer</class-name>
       </serializer>
+    </user-type>
+
+    <!-- 925 - 939 Coherence AI -->
+    <user-type>
+      <type-id>925</type-id>
+      <class-name>com.oracle.coherence.ai.search.SimilaritySearch</class-name>
+    </user-type>
+    <user-type>
+      <type-id>926</type-id>
+      <class-name>com.oracle.coherence.ai.search.BinaryQueryResult</class-name>
+    </user-type>
+    <user-type>
+      <type-id>927</type-id>
+      <class-name>com.oracle.coherence.ai.distance.CosineDistance</class-name>
+    </user-type>
+    <user-type>
+      <type-id>928</type-id>
+      <class-name>com.oracle.coherence.ai.distance.InnerProductDistance</class-name>
+    </user-type>
+    <user-type>
+      <type-id>929</type-id>
+      <class-name>com.oracle.coherence.ai.distance.L2SquaredDistance</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>930</type-id>
+      <class-name>com.oracle.coherence.ai.BitVector</class-name>
+    </user-type>
+    <user-type>
+      <type-id>932</type-id>
+      <class-name>com.oracle.coherence.ai.Int8Vector</class-name>
+    </user-type>
+    <user-type>
+      <type-id>935</type-id>
+      <class-name>com.oracle.coherence.ai.Float32Vector</class-name>
     </user-type>
 
     <!-- java.time (940 - 949) -->
@@ -1783,6 +1962,18 @@ descriptor: pof-config.xsd.
       </serializer>
     </user-type>
 
+    <!-- 951 - 958 Coherence AI -->
+    <user-type>
+      <type-id>951</type-id>
+      <class-name>com.oracle.coherence.ai.DocumentChunk</class-name>
+    </user-type>
+    <user-type>
+      <type-id>952</type-id>
+      <class-name>com.oracle.coherence.ai.DocumentChunk$Id</class-name>
+    </user-type>
+
+    <!-- 959 used by HNSWIndex -->
+
     <!-- external (atomics):  java.util.concurrent.atomic (960 - 969) -->
 
     <!-- external: locks, latches, and semaphores (970 - 980) -->
@@ -1795,7 +1986,6 @@ descriptor: pof-config.xsd.
     </user-type>
 
     <!-- external (executor): internal types              (270 - 299, 821-829, 870-899) -->
-
   </user-type-list>
 
   <allow-interfaces>true</allow-interfaces>

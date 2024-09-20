@@ -8,6 +8,7 @@ package com.tangosol.net;
 
 import com.oracle.coherence.common.util.Options;
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.internal.util.processor.CacheProcessors;
 
 import com.tangosol.net.cache.CacheMap;
@@ -32,6 +33,7 @@ import java.util.TreeSet;
 
 import java.util.concurrent.CompletableFuture;
 
+import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntSupplier;
@@ -109,8 +111,47 @@ public interface AsyncNamedMap<K, V>
         }
 
     /**
+     * Get all the entries that satisfy the specified filter. For each entry
+     * that satisfies the filter, the key and its corresponding value will be
+     * placed in the map that is returned by this method.
+     *
+     * @param filter    a Filter that determines the set of entries to return
+     * @param callback  a consumer of results as they become available
+     *
+     * @return a {@link CompletableFuture} for a Map of keys to values for the
+     *         specified filter
+     */
+    default CompletableFuture<Void> getAll(Filter<?> filter,
+                                           BiConsumer<? super K, ? super V> callback)
+        {
+        return invokeAll(filter, CacheProcessors.get(), callback);
+        }
+
+
+    /**
+     * Get all the entries that satisfy the specified filter. For each entry
+     * that satisfies the filter, the key and its corresponding value will be
+     * placed in the map that is returned by this method.
+     *
+     * @param filter    a Filter that determines the set of entries to return
+     * @param callback  a consumer of results as they become available
+     *
+     * @return a {@link CompletableFuture} for a Map of keys to values for the
+     *         specified filter
+     */
+    default CompletableFuture<Void> getAll(Filter<?> filter,
+                                           Consumer<? super Map.Entry<? extends K, ? extends V>> callback)
+        {
+        return invokeAll(filter, CacheProcessors.get(), callback);
+        }
+
+    /**
      * Stream the entries associated with the specified keys to the provided
      * callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param colKeys   a collection of keys that may be in the named map
      * @param callback  a consumer of results as they become available
@@ -128,6 +169,10 @@ public interface AsyncNamedMap<K, V>
     /**
      * Stream the entries associated with the specified keys to the provided
      * callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param colKeys   a collection of keys that may be in the named map
      * @param callback  a consumer of results as they become available
@@ -158,7 +203,7 @@ public interface AsyncNamedMap<K, V>
      */
     default CompletableFuture<Void> put(K key, V value)
         {
-        return invoke(key, CacheProcessors.put(value, CacheMap.EXPIRY_NEVER));
+        return invoke(key, CacheProcessors.put(value, CacheMap.EXPIRY_DEFAULT));
         }
 
     /**
@@ -213,6 +258,10 @@ public interface AsyncNamedMap<K, V>
 
     /**
      * Return a set view of all the keys contained in this map.
+     * <p/>
+     * NOTE: The returned {@link Set} will contain all the keys from the cache,
+     * which for a large cache could be a very large set consuming a large amount
+     * of memory. In this case it is better to use {@link #keySet(Consumer)}
      *
      * @return a complete set of keys for this map
      */
@@ -240,6 +289,10 @@ public interface AsyncNamedMap<K, V>
     /**
      * Stream the keys of all the entries contained in this map to the provided
      * callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param callback  a consumer of results as they become available
      *
@@ -254,6 +307,10 @@ public interface AsyncNamedMap<K, V>
     /**
      * Stream the keys for the entries that satisfy the specified filter to the
      * provided callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param filter    the Filter object representing the criteria that the
      *                  entries of this map should satisfy
@@ -329,6 +386,10 @@ public interface AsyncNamedMap<K, V>
 
     /**
      * Stream all the entries contained in this map to the provided callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param callback  a consumer of results as they become available
      *
@@ -342,6 +403,10 @@ public interface AsyncNamedMap<K, V>
 
     /**
      * Stream all the entries contained in this map to the provided callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param callback  a consumer of results as they become available
      *
@@ -356,6 +421,10 @@ public interface AsyncNamedMap<K, V>
     /**
      * Stream the entries that satisfy the specified filter to the provided
      * callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param filter    the Filter object representing the criteria that the
      *                  entries of this map should satisfy
@@ -372,6 +441,10 @@ public interface AsyncNamedMap<K, V>
     /**
      * Stream the entries that satisfy the specified filter to the provided
      * callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param filter    the Filter object representing the criteria that the
      *                  entries of this map should satisfy
@@ -434,6 +507,10 @@ public interface AsyncNamedMap<K, V>
     /**
      * Stream the values of all the entries contained in this map to the provided
      * callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param callback  a consumer of results as they become available
      *
@@ -448,6 +525,10 @@ public interface AsyncNamedMap<K, V>
     /**
      * Stream the values for the entries that satisfy the specified filter to the
      * provided callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param filter    the Filter object representing the criteria that the
      *                  entries of this map should satisfy
@@ -534,6 +615,10 @@ public interface AsyncNamedMap<K, V>
      * Instead of collecting and returning the complete result, this method
      * will stream partial results of the processor execution to the specified
      * partial result callback, which allows for a much lower memory overhead.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param <R>        the type of value returned by the EntryProcessor
      * @param processor  the EntryProcessor to use to process the specified keys
@@ -557,6 +642,10 @@ public interface AsyncNamedMap<K, V>
      * Instead of collecting and returning the complete result, this method
      * will stream partial results of the processor execution to the specified
      * partial result callback, which allows for a much lower memory overhead.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param <R>        the type of value returned by the EntryProcessor
      * @param processor  the EntryProcessor to use to process the specified keys
@@ -581,6 +670,10 @@ public interface AsyncNamedMap<K, V>
      * Instead of collecting and returning the complete result, this method
      * will stream partial results of the processor execution to the specified
      * partial result callback, which allows for a much lower memory overhead.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param <R>        the type of value returned by the EntryProcessor
      * @param collKeys   the keys to process; these keys are not required to
@@ -604,6 +697,10 @@ public interface AsyncNamedMap<K, V>
      * Instead of collecting and returning the complete result, this method
      * will stream partial results of the processor execution to the specified
      * partial result callback, which allows for a much lower memory overhead.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param <R>        the type of value returned by the EntryProcessor
      * @param collKeys   the keys to process; these keys are not required to
@@ -631,6 +728,10 @@ public interface AsyncNamedMap<K, V>
      * Instead of collecting and returning the complete result, this method
      * will stream partial results of the processor execution to the specified
      * partial result callback, which allows for a much lower memory overhead.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param <R>        the type of value returned by the EntryProcessor
      * @param filter     a Filter that results in the set of keys to be
@@ -655,6 +756,10 @@ public interface AsyncNamedMap<K, V>
      * Instead of collecting and returning the complete result, this method
      * will stream partial results of the processor execution to the specified
      * partial result callback, which allows for a much lower memory overhead.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param <R>        the type of value returned by the EntryProcessor
      * @param filter     a Filter that results in the set of keys to be
@@ -748,7 +853,7 @@ public interface AsyncNamedMap<K, V>
      */
     default CompletableFuture<Void> clear()
         {
-        return removeAll(AlwaysFilter.INSTANCE);
+        return removeAll(AlwaysFilter.INSTANCE());
         }
 
     /**
@@ -1150,6 +1255,77 @@ public interface AsyncNamedMap<K, V>
          * A function that should be used to determine order id.
          */
         protected final IntSupplier m_supplierOrderId;
+        }
+
+    // ---- option: Executor ------------------------------------------------
+
+    /**
+     * An {@link Option} to use to specify the {@link Executor} to use to
+     * complete the {@link CompletableFuture} returned from async methods.
+     */
+    class Complete
+            implements Option
+        {
+        /**
+         * Create a {@link Complete} option.
+         *
+         * @param executor  the {@link Executor} to use to complete the
+         *                  {@link CompletableFuture} returned from async
+         *                  methods
+         */
+        protected Complete(Executor executor)
+            {
+            f_executor = executor == null ? Daemons.commonPool() : executor;
+            }
+
+        /**
+         * Return the {@link Executor} to use to complete the {@link CompletableFuture}
+         * returned from async methods.
+         *
+         * @return  the {@link Executor} to use to complete the {@link CompletableFuture}
+         *          returned from async methods
+         */
+        public Executor getExecutor()
+            {
+            return f_executor;
+            }
+
+        // ----- helper methods ---------------------------------------------
+
+        /**
+         * Return a {@link Complete} option that completes futures on the
+         * Coherence common thread pool.
+         *
+         * @return a {@link Complete} option that completes futures on the
+         *         Coherence common thread pool
+         */
+        @Options.Default
+        public static Complete usingCommonPool()
+            {
+            return new Complete(Daemons.commonPool());
+            }
+
+        /**
+         * Return a {@link Complete} option that completes futures using
+         * the specified {@link Executor}.
+         *
+         * @param executor  the {@link Executor} to use
+         *
+         * @return a {@link Complete} option that completes futures using
+         *         the specified {@link Executor}
+         */
+        public static Complete using(Executor executor)
+            {
+            return new Complete(executor);
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The {@link Executor} to use to complete the {@link CompletableFuture}
+         * returned from async methods.
+         */
+        private final Executor f_executor;
         }
 
     // ----- constants ------------------------------------------------------

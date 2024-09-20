@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------------------------------------------------
-# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
@@ -11,8 +11,10 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------
 
-ARGS            =
-CURRENT_VERSION = $(shell mvn help:evaluate -Dexpression=project.version -q -DforceStdout -nsu)
+ARGS            ?=
+CURRENT_VERSION ?= $(shell mvn help:evaluate -Dexpression=project.version -q -DforceStdout -nsu)
+OS_NAME         ?= $(shell mvn help:evaluate -Dexpression=os.name -q -DforceStdout -nsu)
+OS_ARCH         ?= $(shell mvn help:evaluate -Dexpression=os.arch -q -DforceStdout -nsu)
 
 # ======================================================================================================================
 # Makefile targets start here
@@ -44,19 +46,124 @@ modules: ## Build Coherence modules
 
 .PHONY: docker
 docker: ## Build the Coherence image (does not rebuild Coherence jars)
-	mvn clean install -Pmodules,-coherence,docker -pl coherence-docker/ -nsu
+	mvn clean install -Pmodules,-coherence,docker -pl coherence-docker/ -nsu $(ARGS)
+
+.PHONY: buildah
+buildah: ## Run Buildah (does not rebuild Coherence jars)
+	mvn clean install -Pmodules,-coherence,buildah -pl coherence-docker/ -nsu $(ARGS)
+
+.PHONY: docker-no-graal
+docker-no-graal: ## Build the Coherence images without including Graal (does not rebuild Coherence jars)
+	mvn clean install -Pmodules,-coherence,docker -pl coherence-docker/ -nsu -Dgraal.image.skip=true $(ARGS)
 
 .PHONY: docker-test
 docker-test: ## Build the Coherence image (does not rebuild Coherence image)
-	mvn verify -Pmodules,-coherence,docker-test -pl coherence-docker/ -nsu
+	mvn verify -Pmodules,-coherence,docker-test -pl coherence-docker/ -nsu $(ARGS)
+
+.PHONY: docker-push
+docker-push: ## Push the Coherence image (does not rebuild Coherence image)
+	mvn -DskipTests install -Pmodules,-coherence,docker-push -pl coherence-docker -nsu $(ARGS)
+
+.PHONY: docker-push-no-graal
+docker-push-no-graal: ## Push the Coherence images without including Graal (does not rebuild Coherence image)
+	mvn -DskipTests install -Pmodules,-coherence,docker-push -pl coherence-docker -nsu -Dgraal.image.skip=true $(ARGS)
+
+.PHONY: pof
+pof: ## Dump the POF config information
+	mvn exec:exec -pl coherence-liberte/ -nsu -Pmodules,-coherence
+
+TEST_MODULE ?=
+TEST_CLASS ?=
+.PHONY: test-security
+test-security: ## Run a functional test with security manager enabled (must specify TEST_MODULE and TEST_CLASS)
+	mvn clean verify -Pmodules,-coherence -nsu -Dtest.security.enabled=true -Dproject.official=true \
+		-pl test/functional/$(TEST_MODULE)/ -Dit.test=$(TEST_CLASS) -am -Dtest=_  \
+		-Dfailsafe.failIfNoSpecifiedTests=false -Dsurefire.failIfNoSpecifiedTests=false
 
 define mvn_build_coherence
-	mvn clean install -T 1.5C -U -DskipTests $(1) $(ARGS)
+	mvn clean install -T 1.5C -U -Dgradle.skip.test=true -DskipTests $(1) $(ARGS)
 endef
 
 define mvn_build_modules
-	mvn clean install -T 1.5C -nsu -Pmodules,-coherence -DskipTests $(1) $(ARGS)
+	mvn clean install -T 1.5C -nsu -Pmodules,-coherence -Dgradle.skip.test=true -DskipTests $(1) $(ARGS)
 endef
+
+# ======================================================================================================================
+# HNSW targets
+# ======================================================================================================================
+
+HNSW_CPP_SRC   = coherence-hnsw/src/main/cpp
+HNSW_HDR_FILES = $(shell find ./$(HNSW_CPP_SRC) -type f -name "*.h")
+HNSW_CPP_FILES = $(shell find ./$(HNSW_CPP_SRC) -type f -name "*.cpp")
+HNSW_LIB_DIR   ?= coherence-hnsw/src/main/resources
+
+##@ HNSW
+.PHONY: hnsw
+hnsw: hnsw-info coherence-hnsw/src/main/resources/libhnswlib-aarch64.dylib coherence-hnsw/src/main/resources/libhnswlib-x86-64.dylib coherence-hnsw/src/main/resources/libhnswlib-aarch64.so coherence-hnsw/src/main/resources/libhnswlib-x86-64.so coherence-hnsw/src/main/resources/libhnswlib-x86-64.dll ## Build the HNSW native C++ library and JNA bindings for the current O/S
+	@echo "Done"
+
+.PHONY: hnsw-info
+hnsw-info:
+	@echo "Checking HNSW shared libraries: OS is \"$(OS_NAME)\" Arch is \"$(OS_ARCH)\""
+
+.PHONY: hnsw-macos-arm
+hnsw-macos-arm: coherence-hnsw/src/main/resources/libhnswlib-aarch64.dylib
+
+coherence-hnsw/src/main/resources/libhnswlib-aarch64.dylib: $(HNSW_HDR_FILES) $(HNSW_CPP_FILES)
+    ifeq ($(OS_NAME),Mac OS X)
+    ifeq ($(OS_ARCH),aarch64)
+		echo "Building HNSW library for MacOS Arm64: $(HNSW_LIB_DIR)/libhnswlib-aarch64.dylib"
+		mkdir -p $(HNSW_LIB_DIR) || true
+		g++ -O3 -shared -std=c++11 $(HNSW_CPP_SRC)/bindings.cpp -I $(HNSW_CPP_SRC)/hnswlib -o $(HNSW_LIB_DIR)/libhnswlib-aarch64.dylib
+    endif
+    endif
+
+.PHONY: hnsw-macos-x86
+hnsw-macos-x86: coherence-hnsw/src/main/resources/libhnswlib-x86-64.dylib
+
+coherence-hnsw/src/main/resources/libhnswlib-x86-64.dylib: $(HNSW_HDR_FILES) $(HNSW_CPP_FILES)
+    ifeq ($(OS_NAME),Mac OS X)
+    ifeq ($(OS_ARCH),x86_64)
+		echo "Building HNSW library for MacOS x86_64: $(HNSW_LIB_DIR)/libhnswlib-x86-64.dylib"
+		mkdir -p $(HNSW_LIB_DIR) || true
+		g++ -O3 -shared -std=c++11 $(HNSW_CPP_SRC)/bindings.cpp -I $(HNSW_CPP_SRC)/hnswlib -o $(HNSW_LIB_DIR)/libhnswlib-x86-64.dylib
+    endif
+    endif
+
+.PHONY: hnsw-linux-aarch64
+hnsw-linux-aarch64: coherence-hnsw/src/main/resources/libhnswlib-aarch64.so
+
+coherence-hnsw/src/main/resources/libhnswlib-aarch64.so: $(HNSW_HDR_FILES) $(HNSW_CPP_FILES)
+    ifeq ($(OS_NAME),Linux)
+    ifeq ($(OS_ARCH),aarch64)
+		echo "Building HNSW library for Linux aarch64: $(HNSW_LIB_DIR)/libhnswlib-aarch64.so"
+		mkdir -p $(HNSW_LIB_DIR) || true
+		g++ -O3 -fPIC -shared -std=c++11 $(HNSW_CPP_SRC)/bindings.cpp -I $(HNSW_CPP_SRC)/hnswlib -o $(HNSW_LIB_DIR)/libhnswlib-aarch64.so
+    endif
+    endif
+
+.PHONY: hnsw-linux-x86
+hnsw-linux-x86: coherence-hnsw/src/main/resources/libhnswlib-x86-64.so
+
+coherence-hnsw/src/main/resources/libhnswlib-x86-64.so: $(HNSW_HDR_FILES) $(HNSW_CPP_FILES)
+    ifeq ($(UNAME_S),Linux)
+    ifeq ($(OS_ARCH),amd64)
+		echo "Building HNSW library for Linux x86_64: $(HNSW_LIB_DIR)/libhnswlib-x86-64.so"
+		mkdir -p $(HNSW_LIB_DIR) || true
+		g++ -O3 -fPIC -shared -std=c++11 $(HNSW_CPP_SRC)/bindings.cpp -I $(HNSW_CPP_SRC)/hnswlib -o $(HNSW_LIB_DIR)/libhnswlib-x86-64.so
+    endif
+    endif
+
+.PHONY: hnsw-windows-x86
+hnsw-windows-x86: coherence-hnsw/src/main/resources/libhnswlib-x86-64.dll
+
+coherence-hnsw/src/main/resources/libhnswlib-x86-64.dll: $(HNSW_HDR_FILES) $(HNSW_CPP_FILES)
+    ifeq ($(OS),Windows_NT)
+		echo "Building HNSW library for Windows x86_64: $(HNSW_LIB_DIR)/libhnswlib-x86-64.dll"
+		mkdir -p $(HNSW_LIB_DIR) || true
+		g++ -O3 -shared -std=c++11 $(HNSW_CPP_SRC)/bindings.cpp -I $(HNSW_CPP_SRC)/hnswlib -o $(HNSW_LIB_DIR)/libhnswlib-x86-64.dll
+    endif
+
 
 # ======================================================================================================================
 # Run targets

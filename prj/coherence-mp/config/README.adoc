@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
@@ -51,6 +51,7 @@ For example, if you are using https://helidon.io/[Helidon], add the following to
 Coherence provides a number of configuration properties that can be specified by the users in order to define certain attributes or to customize cluster member behavior at runtime.
 For example, attributes such as cluster and role name, as well as whether a cluster member should or should not store data,  can be specified via system properties:
 
+[source,xml]
 ----
 -Dcoherence.cluster=MyCluster -Dcoherence.role=Proxy -Dcoherence.distributed.localstorage=false
 ----
@@ -71,8 +72,8 @@ For example, you could define first two attributes, cluster name and role, withi
 
 While these two options are more than enough in most cases, there are some issues with them being the *only* way to configure Coherence:
 
-. When you are using one of Eclipse MicroProfile implementations, such as  https://helidon.io/[Helidon] as the foundation of your application, it would be nice to define some of Coherence configuration parameters along with your other configuration parameters, and not in the separate file or via system properties.
-. In some environments, such as Kubernetes, Java system properties are cumbersome to use, and environment variables are a preferred way of passing configuration  properties to containers.
+- When you are using one of Eclipse MicroProfile implementations, such as  https://helidon.io/[Helidon] as the foundation of your application, it would be nice to define some of Coherence configuration parameters along with your other configuration parameters, and not in the separate file or via system properties.
+- In some environments, such as Kubernetes, Java system properties are cumbersome to use, and environment variables are a preferred way of passing configuration  properties to containers.
 
 Unfortunately, neither of the two use cases above is supported out of the box,  but that's the gap Coherence MP Config is designed to fill.
 
@@ -115,8 +116,8 @@ Coherence MP Config also provides an implementation of Eclipse MP Config `Config
 
 This has several benefits:
 
-. Unlike pretty much all of the default configuration sources, which are static, configuration options stored in a Coherence cache can be modified without forcing you to rebuild your application JARs or Docker images.
-. You can change the value in one place, and it will automatically be visible and up to date on all the members.
+- Unlike pretty much all of the default configuration sources, which are static, configuration options stored in a Coherence cache can be modified without forcing you to rebuild your application JARs or Docker images.
+- You can change the value in one place, and it will automatically be visible and up to date on all the members.
 
 While the features above give you incredible amount of flexibility, we also understand that such flexibility is not always desired, and the feature is disabled by default.
 
@@ -146,8 +147,9 @@ Once you do that, `CoherenceConfigSource` will be activated as soon as your cach
 By default, it will be configured with a priority (ordinal) of 500, making it higher priority than all the standard config sources, thus allowing you to override the values provided via config files, environment variables and system properties.
 However, you have full control over that behavior and can specify different ordinal via `coherence.mp.config.source.ordinal` configuration property.
 
-____
+[NOTE]
+====
 NOTE: It should be obvious, but it's worth pointing out that you cannot use Coherence cache as a config source for properties such as the one above, or for any other configuration property required during Coherence startup and initialization.
 
 This feature is primarily intended for easier management of application configuration options that are a) not needed during application startup, and b) would benefit from being mutable at runtime.
-____
+====

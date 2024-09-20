@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -96,13 +96,13 @@
 
     <!-- Create the client, server keystores -->
     <exec executable="${keytool}">
-      <arg line="-genkey -keyalg RSA -keysize 4096 -storetype JKS -validity 3650 -dname 'CN=client, O=Oracle, L=Burlington, ST=MA, C=US' -alias client -keypass private -keystore target/classes/client.jks -storepass password"/>
+      <arg line="-genkey -keyalg RSA -keysize 4096 -storetype pkcs12 -validity 3650 -dname 'CN=client, O=Oracle, L=Burlington, ST=MA, C=US' -alias client -keystore target/classes/client.jks -storepass password"/>
     </exec>
     <exec executable="${keytool}">
       <arg line="-exportcert -alias client -file target/classes/client.pem -keystore target/classes/client.jks -storepass password"/>
     </exec>
     <exec executable="${keytool}">
-      <arg line="-genkey -keyalg RSA -keysize 4096 -storetype JKS -validity 3650 -dname 'CN=server, O=Oracle, L=Burlington, ST=MA, C=US' -alias server -keypass private -keystore target/classes/server.jks -storepass password"/>
+      <arg line="-genkey -keyalg RSA -keysize 4096 -storetype pkcs12 -validity 3650 -dname 'CN=server, O=Oracle, L=Burlington, ST=MA, C=US' -alias server -keystore target/classes/server.jks -storepass password"/>
     </exec>
     <exec executable="${keytool}">
       <arg line="-exportcert -alias server -file target/classes/server.pem -keystore target/classes/server.jks -storepass password"/>

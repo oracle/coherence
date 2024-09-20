@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -24,6 +24,7 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
 
+import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.tangosol.net.Coherence;
 
 import executor.common.CoherenceClusterResource;
@@ -59,15 +60,10 @@ public class CESJavaSingleClusterTests
     @BeforeClass
     public static void setupClass()
         {
+        System.setProperty("test.heap.max", "512");
         // ensure the proxy service is running (before we connect)
         AbstractClusteredExecutorServiceTests.ensureConcurrentServiceRunning(s_coherence.getCluster());
         ensureExecutorProxyAvailable(s_coherence.getCluster());
-        }
-
-    @AfterClass
-    public static void afterClass()
-        {
-        s_coherence.after();
         }
 
     // ----- AbstractClusteredExecutorServiceTests --------------------------
@@ -103,7 +99,8 @@ public class CESJavaSingleClusterTests
                           ClusterName.of(CESJavaSingleClusterTests.class.getSimpleName()), // default name is too long
                           SystemProperty.of(EXTEND_ADDRESS_PROPERTY, EXTEND_HOST),
                           SystemProperty.of(EXTEND_PORT_PROPERTY, EXTEND_PORT),
-                          JmxFeature.enabled())
+                          JmxFeature.enabled(),
+                          StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()))
                     .include(STORAGE_ENABLED_MEMBER_COUNT,
                              DisplayName.of("CacheServer"),
                              LogOutput.to(CESJavaSingleClusterTests.class.getSimpleName(), "CacheServer"),

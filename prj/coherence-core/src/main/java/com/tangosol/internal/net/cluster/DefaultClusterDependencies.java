@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -164,6 +164,7 @@ public class DefaultClusterDependencies
             m_builderRegistry                = new SimpleParameterizedBuilderRegistry(deps.getBuilderRegistry());
             m_builderUnicastSocketProvider   = deps.getUnicastSocketProviderBuilder();
             m_sLambdasSerializationMode      = deps.getLambdasSerializationMode();
+            m_fVirtualThreadsEnabled         = deps.isVirtualThreadsEnabled();
 
             m_customResources = new SimpleResourceRegistry();
             deps.registerResources(m_customResources);
@@ -2040,6 +2041,31 @@ public class DefaultClusterDependencies
         return this;
         }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isVirtualThreadsEnabled()
+        {
+        return m_fVirtualThreadsEnabled;
+        }
+
+    /**
+     * Set the virtual-threads-enabled flag.
+     *
+     * @param fEnabled  true to enable the using of virtual threads.
+     *
+     * @return this object
+     *
+     * @since 24.03
+     */
+    public DefaultClusterDependencies setVirtualThreadsEnabled(boolean fEnabled)
+        {
+        m_fVirtualThreadsEnabled = fEnabled;
+        return this;
+        }
+
+
     // ----- DefaultClusterDependencies methods -----------------------------
 
     /**
@@ -2190,73 +2216,7 @@ public class DefaultClusterDependencies
      */
     protected void discoverSerializers()
         {
-        ClassLoader clzLoader = Base.getContextClassLoader();
-        loadService(ServiceLoader.load(SerializerFactory.class, clzLoader), SerializerFactory.class);
-        loadService(ServiceLoader.load(Serializer.class, clzLoader), Serializer.class);
-        }
-
-    /**
-     * Helper method for {@link #discoverSerializers()}.
-     *
-     * @param loader  the {@link ServiceLoader} to load the services from
-     * @param <T>     the service type
-     *
-     * @see #discoverSerializers()
-     *
-     * @since 20.12
-     */
-    protected <T> void loadService(ServiceLoader<T> serviceLoader, Class<T> clz)
-        {
-        Iterator<T> iterator = serviceLoader.iterator();
-        while (iterator.hasNext())
-            {
-            try
-                {
-                T                 service = iterator.next();
-                String            sName   = null;
-                SerializerFactory factory = null;
-
-                if (service instanceof SerializerFactory)
-                    {
-                    factory = (SerializerFactory) service;
-                    sName   = factory.getName();
-                    }
-                else
-                    {
-                    sName = ((Serializer) service).getName();
-
-                    factory = clzLoader ->
-                        {
-                        try
-                            {
-                            Serializer serializer = (Serializer) service.getClass().getConstructor().newInstance();
-                            if (serializer instanceof ClassLoaderAware)
-                                {
-                                ((ClassLoaderAware) serializer).setContextClassLoader(clzLoader);
-                                }
-                            return serializer;
-                            }
-                        catch (Exception e)
-                            {
-                            throw Base.ensureRuntimeException(e,
-                                    String.format("Unable to create serializer type [%s]",
-                                            service.getClass().getName()));
-                            }
-                        };
-                    }
-
-                if (m_mapSerializer.putIfAbsent(sName, factory) != null)
-                    {
-                    Logger.warn(String.format("serializer factory already defined for %s, type [%s]; ignoring this"
-                                              + " discovered implementation",
-                                              sName, service.getClass().getName()));
-                    }
-                }
-            catch (Throwable t)
-                {
-                Logger.err("Failed to load service of type " + clz, t);
-                }
-            }
+        m_mapSerializer.putAll(Serializer.discoverSerializers());
         }
 
     /**
@@ -2758,4 +2718,10 @@ public class DefaultClusterDependencies
      * Lambdas serialization mode. Either "static", "dynamic" or "", indicating not set.
      */
     private String m_sLambdasSerializationMode = "";
+
+    /**
+     * Specifies whether using virtual threads is enabled.
+     * Default is true.
+     */
+    private boolean m_fVirtualThreadsEnabled = true;
     }

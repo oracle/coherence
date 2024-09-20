@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -23,8 +23,6 @@
   <properties>
     <surefire.modules.argline>
       ${default.surefire.modules.argline}
-      --add-opens java.base/java.net=ALL-UNNAMED
-       --add-exports java.management/sun.management=ALL-UNNAMED
     </surefire.modules.argline>
   </properties>
 
@@ -49,14 +47,13 @@
     </dependency>
 
     <dependency>
-      <groupId>org.graalvm.js</groupId>
-      <artifactId>js</artifactId>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>polyglot</artifactId>
       <scope>test</scope>
     </dependency>
-
     <dependency>
-      <groupId>org.jboss</groupId>
-      <artifactId>jandex</artifactId>
+      <groupId>org.graalvm.js</groupId>
+      <artifactId>js-language</artifactId>
       <scope>test</scope>
     </dependency>
 

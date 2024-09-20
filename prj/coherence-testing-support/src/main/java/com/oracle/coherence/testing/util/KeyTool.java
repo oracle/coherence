@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -144,6 +144,23 @@ public class KeyTool
      */
     public static KeyAndCert createKeyCertPair(File fileBuild, KeyAndCert keyAndCertCA, String sName) throws IOException
         {
+        return createKeyCertPair(fileBuild, keyAndCertCA, sName, null);
+        }
+
+    /**
+     * Create a self-signed private key and cert.
+     *
+     * @param fileBuild         the build target directory below which the key and cert directory will be created
+     * @param keyAndCertCA      the {@link KeyAndCert} holder containing the CA cert to use to sign the key and cert
+     * @param sName             the name for the CA cert and cert CN
+     * @param sExtendedKeyUsage  the optional value for the certificates extended key usage
+     *
+     * @return the {@link KeyAndCert} holder containing the CA cert details
+     *
+     * @throws IOException if the cert creation fails
+     */
+    public static KeyAndCert createKeyCertPair(File fileBuild, KeyAndCert keyAndCertCA, String sName, String sExtendedKeyUsage) throws IOException
+        {
         File  fileClasses   = new File(fileBuild, "test-classes");
         File  fileCerts     = new File(fileClasses, "certs");
         File  fileSign      = new File(fileCerts, sName + "-signing.key");
@@ -177,7 +194,17 @@ public class KeyTool
         // Generate OpenSSL X509 extensions
         try (PrintStream out = new PrintStream(new FileOutputStream(fileConfig)))
             {
-            out.print("subjectAltName=DNS:" + InetAddress.getLocalHost().getHostName());
+            out.println("[CustomSection]");
+            if (sExtendedKeyUsage != null && !sExtendedKeyUsage.isEmpty())
+                {
+                out.println("extendedKeyUsage = " + sExtendedKeyUsage);
+                }
+            else
+                {
+                out.println("extendedKeyUsage = serverAuth,clientAuth");
+                }
+
+            out.print("subjectAltName = DNS:" + InetAddress.getLocalHost().getHostName());
             List<InetAddress> listAddress = InetAddressHelper.getAllLocalAddresses();
             for (InetAddress address : listAddress)
                 {
@@ -203,7 +230,11 @@ public class KeyTool
                     "-CA", keyAndCertCA.m_fileCert.getAbsolutePath(),
                     "-CAkey", keyAndCertCA.m_fileKey.getAbsolutePath(),
                     "-set_serial", "01",
-                    "-out", fileCert.getAbsolutePath(), "-extfile", fileConfig.getAbsolutePath()));
+                    "-extensions", "CustomSection",
+                    "-out", fileCert.getAbsolutePath(),
+                    "-extfile", fileConfig.getAbsolutePath()));
+
+        runOpenSSL(Arguments.of("x509", "-in", fileCert.getAbsolutePath(), "-text", "-noout"));
 
         // convert the key to PEM format
         toPem(fileKey, filePEM, sKeyPass);

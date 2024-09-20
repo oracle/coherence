@@ -699,6 +699,12 @@ public class TransactionCache
         {
         return getNamedCache().isActive();
         }
+
+    // From interface: com.tangosol.net.NamedCache
+    public boolean isReady()
+        {
+        return getNamedCache().isReady();
+        }
     
     // From interface: com.tangosol.util.TransactionMap
     // Accessor for the property "ValuesImmutable"

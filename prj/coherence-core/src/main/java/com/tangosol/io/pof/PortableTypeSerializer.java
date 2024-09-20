@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io.pof;
 
@@ -11,10 +11,10 @@ import com.oracle.coherence.common.base.Logger;
 import com.tangosol.io.Evolvable;
 
 import com.tangosol.util.Base;
-import com.tangosol.util.Binary;
 
 import java.io.IOException;
 
+import java.lang.reflect.Constructor;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -85,21 +85,21 @@ public class PortableTypeSerializer<T>
                     e = et.getEvolvable(typeId);
                     }
 
-                PofWriter nestedWriter = writer.createNestedPofWriter(typeId, typeId);
+                PofWriter out = writer.createNestedPofWriter(typeId, typeId);
 
                 if (fEvolvable)
                     {
-                    nestedWriter.setVersionId(Math.max(e.getDataVersion(),
+                    out.setVersionId(Math.max(e.getDataVersion(),
                                                  e.getImplVersion()));
                     }
 
                 Class<?> cls = getClassForTypeId(ctx, typeId);
                 if (cls != null)
                     {
-                    po.writeExternal(nestedWriter);
+                    po.writeExternal(out);
                     }
 
-                nestedWriter.writeRemainder(fEvolvable ? e.getFutureData() : null);
+                out.writeRemainder(fEvolvable ? e.getFutureData() : null);
                 }
 
             writer.writeRemainder(null);
@@ -136,42 +136,63 @@ public class PortableTypeSerializer<T>
         {
         try
             {
-            PortableObject po = (PortableObject) (getClassForTypeId(reader.getPofContext(), m_nTypeId))
-                            .getDeclaredConstructor().newInstance();
+            Class<?> clazz = getClassForTypeId(reader.getPofContext(), m_nTypeId);
 
-            boolean fEvolvable = po instanceof EvolvableObject;
-            EvolvableObject et = fEvolvable ? (EvolvableObject) po : null;
-
-            PofBufferReader.UserTypeReader userTypeReader =
-                    (PofBufferReader.UserTypeReader) reader;
-            int typeId = userTypeReader.getNextPropertyIndex();
-            while (typeId > 0)
+            try
                 {
-                Evolvable e = null;
-                PofReader nestedReader = userTypeReader.createNestedPofReader(typeId);
+                // try to find constructor that accepts PofReader (24.09 or later)
+                Constructor<?> ctor = clazz.getDeclaredConstructor(PofReader.class);
+                PortableObject po   = (PortableObject) ctor.newInstance(reader);
 
-                if (fEvolvable)
+                if (po instanceof EvolvableObject)
                     {
-                    e = et.getEvolvable(typeId);
-                    e.setDataVersion(nestedReader.getVersionId());
+                    EvolvableObject et = (EvolvableObject) po;
+
+                    PofBufferReader.UserTypeReader userTypeReader = (PofBufferReader.UserTypeReader) reader;
+                    int typeId = userTypeReader.getNextPropertyIndex();
+                    while (typeId > 0)
+                        {
+                        PofReader in = userTypeReader.createNestedPofReader(typeId);
+                        et.readEvolvable(in);
+                        typeId = userTypeReader.getNextPropertyIndex();
+                        }
                     }
 
-                po.readExternal(nestedReader);
-
-                Binary binRemainder = nestedReader.readRemainder();
-                if (fEvolvable)
-                    {
-                    e.setFutureData(binRemainder);
-                    }
-                typeId = userTypeReader.getNextPropertyIndex();
+                reader.readRemainder();
+                return (T) po;
                 }
+            catch (NoSuchMethodException ex)
+                {
+                // fall back to default constructor (pre-24.09 behavior)
+                Constructor<?> ctor = clazz.getDeclaredConstructor();
+                PortableObject po   = (PortableObject) ctor.newInstance();
 
-            reader.readRemainder();
-            return (T) po;
+                boolean fEvolvable = po instanceof EvolvableObject;
+                EvolvableObject et = fEvolvable ? (EvolvableObject) po : null;
+
+                PofBufferReader.UserTypeReader userTypeReader =
+                        (PofBufferReader.UserTypeReader) reader;
+                int typeId = userTypeReader.getNextPropertyIndex();
+                while (typeId > 0)
+                    {
+                    PofReader in = userTypeReader.createNestedPofReader(typeId);
+
+                    po.readExternal(in);
+
+                    if (fEvolvable)
+                        {
+                        et.readEvolvable(in);
+                        }
+                    typeId = userTypeReader.getNextPropertyIndex();
+                    }
+
+                reader.readRemainder();
+                return (T) po;
+                }
             }
         catch (Exception e)
             {
-            e.printStackTrace();
+            //e.printStackTrace();
             String sClass = null;
             try
                 {

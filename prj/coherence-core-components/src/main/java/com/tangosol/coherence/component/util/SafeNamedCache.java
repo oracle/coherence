@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -713,6 +713,8 @@ public class SafeNamedCache
         }
     
     // From interface: com.tangosol.net.NamedCache
+    @Override
+    @SuppressWarnings("resource")
     public com.tangosol.net.AsyncNamedCache async(com.tangosol.net.AsyncNamedMap.Option[] options)
         {
         SafeAsyncNamedCache cacheAsync = getSafeAsyncNamedCache();
@@ -721,13 +723,14 @@ public class SafeNamedCache
             ensureLocked();
             try
                 {
+                NamedCache          cache     = getRunningNamedCache();
                 SafeAsyncNamedCache cacheSafe = new SafeAsyncNamedCache();
                 cacheSafe.setCacheName(getCacheName());
                 cacheSafe.setSafeNamedCache(this);
                 cacheSafe.setSafeCacheService(getSafeCacheService());
                 cacheSafe.setClassLoader(getClassLoader());
                 cacheSafe.setOptions(options);
-                cacheSafe.setInternalNamedCache(getInternalNamedCache().async(options));
+                cacheSafe.setInternalNamedCache(cache.async(options));
                 cacheSafe.setStarted(true);
                 setSafeAsyncNamedCache(cacheAsync = cacheSafe);
                 }
@@ -1231,6 +1234,23 @@ public class SafeNamedCache
         try
             {
             return getInternalNamedCache().isActive();
+            }
+        catch (RuntimeException e)
+            {
+            return false;
+            }
+        }
+
+    // From interface: com.tangosol.net.NamedCache
+    public boolean isReady()
+        {
+        try
+            {
+            return getInternalNamedCache().isReady();
+            }
+        catch (UnsupportedOperationException uoe)
+            {
+            throw uoe;
             }
         catch (RuntimeException e)
             {

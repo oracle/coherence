@@ -1,14 +1,17 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net;
 
 import com.tangosol.net.ScopeResolver;
 
 import java.net.URI;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 /**
  * A {@link ScopeResolver} that resolves a scope from the config URI.
@@ -53,7 +56,7 @@ public class ScopedUriScopeResolver
      */
     public ScopedUriScopeResolver(boolean fUseScopeInConfig)
         {
-        this.f_fUseScopeInConfig = fUseScopeInConfig;
+        f_fUseScopeInConfig = fUseScopeInConfig;
         }
 
     @Override
@@ -62,7 +65,14 @@ public class ScopedUriScopeResolver
         URI uri = URI.create(sConfigURI);
         if (SCOPED_SCHEME.equals(uri.getScheme()))
             {
-            return uri.getHost();
+            String sScope = uri.getAuthority();
+            String sPath  = uri.getPath();
+            if (sPath != null && !sPath.isBlank())
+                {
+                sScope = URLDecoder.decode(sScope, StandardCharsets.UTF_8)
+                        + URLDecoder.decode(sPath, StandardCharsets.UTF_8);
+                }
+            return URLDecoder.decode(sScope, StandardCharsets.UTF_8);
             }
         return sScopeName;
         }
@@ -78,9 +88,10 @@ public class ScopedUriScopeResolver
             if (sFragment != null)
                 {
                 // the original config URI had a fragment part that we shouldn't lose
-                return sQuery + "#" + sFragment;
+                return URLDecoder.decode(sQuery, StandardCharsets.UTF_8)
+                        + "#" + URLDecoder.decode(sFragment, StandardCharsets.UTF_8);
                 }
-            return sQuery;
+            return URLDecoder.decode(sQuery, StandardCharsets.UTF_8);
             }
         return sConfigURI;
         }
@@ -118,7 +129,8 @@ public class ScopedUriScopeResolver
             {
             return sConfigURI;
             }
-        return String.format(SCOPED_PATTERN, SCOPED_SCHEME, sScope, sConfigURI);
+        return String.format(SCOPED_PATTERN, SCOPED_SCHEME,
+                URLEncoder.encode(sScope, StandardCharsets.UTF_8), URLEncoder.encode(sConfigURI));
         }
     
     // ----- constants ------------------------------------------------------

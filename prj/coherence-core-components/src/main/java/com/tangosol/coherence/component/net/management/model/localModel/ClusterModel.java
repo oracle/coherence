@@ -502,7 +502,26 @@ public class ClusterModel
         {
         return __m__ClusterRef;
         }
-    
+
+    /**
+     * Get the Coherence cluster configuration.
+     */
+    public String getClusterConfig()
+        {
+        return CacheFactory.getClusterConfig().toString() + "\n"
+               + CacheFactory.getLoggingConfig().toString() + "\n"
+               + CacheFactory.getManagementConfig().toString();
+        }
+
+    /**
+     * Get cluster description.
+     */
+    public String getClusterDescription()
+        {
+        Cluster cluster = get_Cluster();
+        return cluster == null ? canonicalString(null) : cluster.toString();
+        }
+
     // Accessor for the property "ClusterName"
     /**
      * Getter for property ClusterName.<p>

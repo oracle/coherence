@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.io.json.internal;
@@ -45,7 +45,7 @@ public class ThrowableConverter
         // This is a horrible hack because the HandleMetadataAnnotation is fundamentally broken.
         ((JsonWriter) writer).clearMetadata();
         writer.beginObject();
-        writer.writeMetadata("class", JsonPortableException.class.getCanonicalName());
+        writer.writeMetadata("class", JsonPortableException.class.getSimpleName());
         writer.writeString("name", throwable.getClass().getName());
         writer.writeString("message", throwable.getMessage());
 

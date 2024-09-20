@@ -236,10 +236,9 @@ public class Subscription
         }
 
     /**
-     * Returns {@code true} if a given subscriber is allocated to this owns the channel,
-     * or zero if no subscriber owns the channel.
+     * Returns the {@link SubscriberId} that owns this {@link Subscription}.
      *
-     * @return the identifier of the subscriber that owns the channel
+     * @return the {@link SubscriberId} that owns this {@link Subscription}
      */
     public SubscriberId getOwningSubscriber()
         {
@@ -280,17 +279,6 @@ public class Subscription
     public int getLatestChannelCount()
         {
         return m_cChannel;
-        }
-
-    /**
-     * Set the count of channels when the Subscriber was created,
-     * or when the channel count was changed.
-     *
-     * @param cChannel  the channel count
-     */
-    public void setCreatedChannelCount(int cChannel)
-        {
-        m_cChannel = cChannel;
         }
 
     /**
@@ -570,8 +558,10 @@ public class Subscription
      * Update this subscription.
      *
      * @param subscription  the {@link PagedTopicSubscription} to update the state from
+     *
+     * @return this updated {@link Subscription}
      */
-    public void update(PagedTopicSubscription subscription)
+    public Subscription update(PagedTopicSubscription subscription)
         {
         if (subscription != null)
             {
@@ -583,7 +573,7 @@ public class Subscription
                     m_mapSubscriber = new TreeMap<>();
                     }
 
-                m_mapSubscriber.putAll(subscription.getSubscribers());
+                subscription.addSubscribersTo(m_mapSubscriber);
                 long[] alChannel = subscription.getChannelAllocations();
 
                 if (m_aChannel == null || m_aChannel.length != alChannel.length)
@@ -591,12 +581,14 @@ public class Subscription
                     m_aChannel = new long[alChannel.length];
                     }
                 System.arraycopy(alChannel, 0, m_aChannel, 0, alChannel.length);
+                m_cChannel = m_aChannel.length;
                 }
             finally
                 {
                 f_lock.unlock();
                 }
             }
+        return this;
         }
 
     /**
@@ -757,7 +749,8 @@ public class Subscription
                 + ", converter=" + m_fnConvert
                 + ", owner=" + m_owningSubscriber
                 + ", lastPolledBy=" + m_lastPolledSubscriber
-                + ", subscribers=" + m_mapSubscriber + ")";
+                + ", subscribers=" + m_mapSubscriber
+                + ", channelOwners=" + Arrays.toString(m_aChannel) + ")";
         }
 
     // ----- helper methods -------------------------------------------------
@@ -1111,5 +1104,5 @@ public class Subscription
     /**
      * A lock to control access to internal state.
      */
-    private final Lock f_lock = new ReentrantLock();
+    private final transient Lock f_lock = new ReentrantLock();
     }

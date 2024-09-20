@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2013, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2013, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io.pof.generator;
 
@@ -47,6 +47,7 @@ public class PortableTypeLoader
                                          .withClassFile(Paths.get("data", "evolvable", "v3", "Zoo.class"))
                                          .withClassFile(Paths.get("data", "evolvable", "v3", "NonPofType.class"))
                                          .withClassFile(Paths.get("data", "evolvable", "v4", "Dog.class"))
+                                         .withClassFile(Paths.get("data", "evolvable", "v4", "Address.class"))
                                          .withClassFile(Paths.get("data", "evolvable", "AllTypes.class"))
                                          .withClassFile(Paths.get("data", "evolvable", "EmptyClass.class"))
                                          .withClassFile(Paths.get("data", "evolvable", "Color.class"))
@@ -73,7 +74,7 @@ public class PortableTypeLoader
 
                 InputStream in = getClass().getClassLoader().getResourceAsStream(sClassPathName);
 
-                PortableTypeGenerator gen = new PortableTypeGenerator(schema, in, true);
+                PortableTypeGenerator gen = new PortableTypeGenerator(schema, in, true, new PortableTypeGenerator.ConsoleLogger());
 
                 gen.instrumentClass();
 

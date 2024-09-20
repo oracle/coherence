@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -2530,7 +2530,7 @@ public class Connector
                     service.setUserContext(this);
         
                     // This is to use the Default Serializer when POF is enabled.
-                    URL url = Resources.findResource("management-config.xml", null);
+                    URL url = Resources.findFileOrResourceOrDefault("management-config.xml", null);
                     if (url != null)
                         {
                         try
@@ -2538,6 +2538,7 @@ public class Connector
                             XmlDocument xml = XmlHelper.loadXml(url.openStream());
                             if (xml != null)
                                 {
+                                _trace("Loaded management configuration from \"" + url + '"', 3);
                                 service.configure(xml);
                                 }
                              }

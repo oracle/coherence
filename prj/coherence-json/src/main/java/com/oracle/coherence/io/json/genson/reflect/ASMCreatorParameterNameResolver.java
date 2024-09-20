@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  *
  * Copyright 2011-2014 Genson - Cepoi Eugen
  *
@@ -15,6 +15,7 @@
 package com.oracle.coherence.io.json.genson.reflect;
 
 
+import com.tangosol.util.asm.BaseClassReaderInternal;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
@@ -73,10 +74,10 @@ public final class ASMCreatorParameterNameResolver implements PropertyNameResolv
       is = ClassLoader.getSystemClassLoader().getResourceAsStream(ofClassName);
     else is = ofClass.getClassLoader().getResourceAsStream(ofClassName);
 
-    ClassReader cr;
+    ClassReaderInternal cr;
     ClassConstructorsVisitor visitor = new ClassConstructorsVisitor(ofClass, constructorParameterNames, methodParameterNames);
     try {
-      cr = new ClassReader(is);
+      cr = new ClassReaderInternal(is);
       cr.accept(visitor, 0);
     } catch (IOException e) {
       // C'est ok pas grave, cette technique n'est pas cense marcher dans tous les cas
@@ -331,4 +332,53 @@ public final class ASMCreatorParameterNameResolver implements PropertyNameResolv
       return sb.toString();
     }
   }
+
+  /**
+   * This class wraps ASM's ClassReader allowing Coherence to bypass the class
+   * version checks performed by ASM when reading a class.
+   *
+   * @since 15.1.1.0
+   */
+  /*
+   * Internal NOTE:  This class is also duplicated in coherence-core and
+   *                 coherence-rest.  This is done because each module shades
+   *                 ASM within a unique package into the produced JAR and
+   *                 thus having to create copes to deal with those package
+   *                 differences.
+   */
+  protected static final class ClassReaderInternal
+          extends BaseClassReaderInternal<ClassReader, ClassVisitor>
+    {
+    // ----- constructors ---------------------------------------------------
+
+    /**
+     * @see BaseClassReaderInternal#BaseClassReaderInternal(InputStream)
+     */
+    public ClassReaderInternal(InputStream streamIn) throws IOException
+      {
+      super(streamIn);
+      }
+
+    /**
+     * @see BaseClassReaderInternal#BaseClassReaderInternal(byte[])
+     */
+    public ClassReaderInternal(byte[] abBytes)
+      {
+      super(abBytes);
+      }
+
+    // ----- BaseClassReaderInternal methods --------------------------------
+
+    @Override
+    protected ClassReader createReader(byte[] abBytes)
+      {
+      return new ClassReader(abBytes);
+      }
+
+    @Override
+    protected void accept(ClassReader classReader, ClassVisitor classVisitor, int nParsingOptions)
+      {
+      classReader.accept(classVisitor, nParsingOptions);
+      }
+    }
 }

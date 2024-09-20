@@ -1,14 +1,12 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io;
 
-
-import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryWriteBuffer;
 import com.tangosol.util.ByteSequence;
@@ -23,13 +21,14 @@ import java.io.UTFDataFormatException;
 
 import java.util.function.BinaryOperator;
 
+import static com.oracle.coherence.common.base.Exceptions.ensureRuntimeException;
+
 /**
 * Abstract base implementation of the ReadBuffer interface.
 *
 * @author cp  2006.04.17
 */
 public abstract class AbstractReadBuffer
-        extends Base
         implements ReadBuffer, HashEncoded
     {
     /**
@@ -357,7 +356,7 @@ public abstract class AbstractReadBuffer
         public void close()
                 throws IOException
             {
-            m_achBuf = null;
+            s_achBuf.remove();
             }
 
         /**
@@ -761,10 +760,11 @@ public abstract class AbstractReadBuffer
         */
         protected char[] getCharBuf(int cchMax)
             {
-            char[] ach = m_achBuf;
+            char[] ach = s_achBuf.get();
             if (ach == null || ach.length < cchMax)
                 {
-                m_achBuf = ach = new char[Math.max(MIN_BUF, cchMax)];
+                ach = new char[Math.max(MIN_BUF, cchMax)];
+                s_achBuf.set(ach);
                 }
             return ach;
             }
@@ -811,8 +811,8 @@ public abstract class AbstractReadBuffer
                 setOffsetInternal(of + cb);
                 }
 
-            // validating UTF byte size read from stream by caller
-            ExternalizableHelper.validateLoadArray(byte[].class, cb, this);
+            // per JDK serialization filtering doc:
+            //     The filter is not called ... for java.lang.String instances that are encoded concretely in the stream.
             return convertUTF(of, cb);
             }
 
@@ -847,10 +847,10 @@ public abstract class AbstractReadBuffer
         private int m_ofMark = -1;
 
         /**
-        * A lazily instantiated temp buffer used to avoid allocations for
+        * A lazily instantiated thread local temp buffer used to avoid allocations for
         * building Strings from UTF binaries.
         */
-        private transient char[] m_achBuf;
+        private static ThreadLocal<char[]> s_achBuf = new ThreadLocal<>();
 
         /**
         * When not null, filter to validate that an instance of a class can be deserialized from

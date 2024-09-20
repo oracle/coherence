@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
@@ -16,15 +16,15 @@ public interface Releasable
     extends AutoCloseable
     {
     /**
-    * Specifies whether or not the Releasable is active.
+    * Specifies whether the Releasable is active.
     *
-    * @return true if the NamedCache is active; false otherwise
+    * @return true if active; false otherwise
     */
     public boolean isActive();
 
     /**
      * Specifies whether or this Releasable has been released.
-     *
+     * </p>
      * Implementations must override this method to provide the necessary information.
      *
      * @return true if the Releasable has been released; false otherwise

@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,7 @@
 
 package com.tangosol.coherence.component.net.management.model.localModel;
 
+import com.tangosol.coherence.component.manageable.ModelAdapter;
 import com.tangosol.coherence.component.net.MessageHandler;
 import com.tangosol.coherence.component.net.Poll;
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
@@ -24,6 +25,7 @@ import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.internal.net.socketbus.AbstractSocketBus;
 import com.oracle.coherence.common.net.exabus.MessageBus;
 import com.oracle.coherence.persistence.PersistenceEnvironment;
+import com.tangosol.coherence.component.util.safeService.SafeProxyService;
 import com.tangosol.internal.health.HealthCheckDependencies;
 import com.tangosol.internal.net.service.grid.PersistenceDependencies;
 import com.tangosol.internal.util.MessagePublisher;
@@ -405,7 +407,7 @@ public class ServiceModel
      * Getter for property Description.<p>
     * Human readable description.
     * 
-    * @see Manageable.ModelAdapter#toString()
+    * @see ModelAdapter#toString()
      */
     public String getDescription()
         {
@@ -2104,9 +2106,6 @@ public class ServiceModel
     // From interface: com.tangosol.util.HealthCheck
     public boolean isReady()
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService$PersistenceControl as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.PersistenceControl;
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService$PersistenceControl$SnapshotController as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.PersistenceControl.SnapshotController;
-        
         boolean fReady = isHealthyReady();
         
         if (fReady)
@@ -2115,11 +2114,26 @@ public class ServiceModel
             // unless it is not running
             return true;
             }
-        
+
         // to get here, either the service has never been ready or has restarted
-        // the first ready check is the same as the safe (HA) check
-        fReady = isSafe();
-        
+        Service service = get_Service();
+        if (service instanceof com.tangosol.net.ProxyService)
+            {
+            // this is a Proxy service
+            if (service instanceof SafeProxyService)
+                {
+                service = ((SafeProxyService) service).getService();
+                }
+            ProxyService       proxyService = (ProxyService) service;
+            ConnectionAcceptor acceptor     = proxyService.getAcceptor();
+            fReady = proxyService.isStarted() && acceptor != null && acceptor.isRunning();
+            }
+        else
+            {
+            // likely a cache service, the first ready check is the same as the safe (HA) check
+            fReady = isSafe();
+            }
+
         setHealthyReady(fReady);
         return fReady;
         }
@@ -2372,6 +2386,20 @@ public class ServiceModel
             mapSnapshot.put("PersistenceBackupSpaceTotal", Long.valueOf(ExternalizableHelper.readLong(in)));
             mapSnapshot.put("PersistenceBackupSpaceUsed", Long.valueOf(ExternalizableHelper.readLong(in)));
             }
+        }
+
+    /**
+     * Get service description.
+     */
+    public String getServiceDescription()
+        {
+        Grid svc = get_ServiceImpl();
+        if (svc == null)
+            {
+            return canonicalString(null);
+            }
+        ServiceMemberSet setMember = svc.getServiceMemberSet();
+        return svc + (setMember == null ? canonicalString(null) : setMember.getDescription());
         }
     
     /**

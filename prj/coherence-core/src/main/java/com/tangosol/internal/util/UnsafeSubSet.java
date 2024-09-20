@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
+
 package com.tangosol.internal.util;
 
+import com.tangosol.util.Base;
 import com.tangosol.util.SubSet;
 
 import com.tangosol.net.BackingMapManagerContext;
@@ -15,7 +17,6 @@ import com.tangosol.util.WrapperCollections;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -171,10 +172,16 @@ public class UnsafeSubSet<E>
     @Override
     public Object[] toArray()
         {
+        // short-circuit if this set is empty, which will be the case frequently with small
+        // caches, now that we are querying (and collecting keys) by partition
+        if (isEmpty())
+            {
+            return EMPTY_ARRAY;
+            }
+
         // if this SubSet is tracking retained items, then simply get an
         // array of the retained items
         Set setMod = m_setMod;
-        int cOrig  = m_cOrig;
         if (m_fRetained)
             {
             return setMod == null || setMod.isEmpty() ? EMPTY_ARRAY : setMod.toArray();
@@ -196,18 +203,24 @@ public class UnsafeSubSet<E>
         // of the resulting list will be original set size minus number of elements
         // which were deleted by an iterator of this set.
 
-        int  cEstimate   = Math.max(cOrig - setMod.size(), 0);
-        List listObjects = new ArrayList<>(cEstimate);
-
-        for (Object o : setOrig)
+        int cOrig = setOrig.size();
+        if (cOrig > 0)
             {
-            if (!setMod.contains(o))
+            int cEstimate = Math.max(cOrig - setMod.size(), 0);
+            List listObjects = new ArrayList<>(cEstimate);
+
+            for (Object o : setOrig)
                 {
-                listObjects.add(o);
+                if (!setMod.contains(o))
+                    {
+                    listObjects.add(o);
+                    }
                 }
+
+            return listObjects.toArray();
             }
 
-        return listObjects.toArray();
+        return EMPTY_ARRAY;
         }
 
     // ----- protected members ----------------------------------------------
@@ -231,7 +244,7 @@ public class UnsafeSubSet<E>
         // partitions requested (parts) and the service owned partitions equals
         // each other. However, since there might be a transfer in-flight, the
         // collection could contain keys from "unowned" partitions
-        Set<E> set = new HashSet<E>(col.size());
+        Set<E> set = Base.newHashSet(col.size());
         for (E key : col)
             {
             if (parts.contains(ctx.getKeyPartition(key)))

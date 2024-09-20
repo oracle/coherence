@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,6 +15,7 @@ import com.tangosol.net.cache.SimpleCacheStatistics;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
@@ -81,21 +82,29 @@ public class WrapperObservableMap<K, V>
     /**
     * {@inheritDoc}
     */
-    public synchronized void clear()
+    public void clear()
         {
-        if (isEventFabricator())
+        f_lockEvents.lock();
+        try
             {
-            for (Iterator<K> iter = getInternalKeySet().iterator(); iter.hasNext(); )
+            if (isEventFabricator())
                 {
-                // unlike some CacheEvent cases, this event gets fired BEFORE
-                // the entry is removed; moreover, deferring the event
-                // processing (e.g. processing it on a different thread)
-                // may yield the OldValue inaccessible or plain invalid
-                dispatchPendingEvent(iter.next(), MapEvent.ENTRY_DELETED, null, false);
+                for (Iterator<K> iter = getInternalKeySet().iterator(); iter.hasNext(); )
+                    {
+                    // unlike some CacheEvent cases, this event gets fired BEFORE
+                    // the entry is removed; moreover, deferring the event
+                    // processing (e.g. processing it on a different thread)
+                    // may yield the OldValue inaccessible or plain invalid
+                    dispatchPendingEvent(iter.next(), MapEvent.ENTRY_DELETED, null, false);
+                    }
                 }
-            }
 
-        getMap().clear();
+            getMap().clear();
+            }
+        finally
+            {
+            f_lockEvents.unlock();
+            }
         }
 
     /**
@@ -269,190 +278,237 @@ public class WrapperObservableMap<K, V>
     /**
     * {@inheritDoc}
     */
-    public synchronized void addMapListener(MapListener<? super K, ? super V> listener)
+    public void addMapListener(MapListener<? super K, ? super V> listener)
         {
-        addMapListener(listener, (Filter) null, false);
+        f_lockEvents.lock();
+        try
+            {
+            addMapListener(listener, (Filter) null, false);
+            }
+        finally
+            {
+            f_lockEvents.unlock();
+            }
         }
 
     /**
     * {@inheritDoc}
     */
-    public synchronized void removeMapListener(MapListener<? super K, ? super V> listener)
+    public void removeMapListener(MapListener<? super K, ? super V> listener)
         {
-        removeMapListener(listener, (Filter) null);
+        f_lockEvents.lock();
+        try
+            {
+            removeMapListener(listener, (Filter) null);
+            }
+        finally
+            {
+            f_lockEvents.unlock();
+            }
         }
 
     /**
     * {@inheritDoc}
     */
-    public synchronized void addMapListener(MapListener<? super K, ? super V> listener, K oKey, boolean fLite)
+    public void addMapListener(MapListener<? super K, ? super V> listener, K oKey, boolean fLite)
         {
         azzert(listener != null);
 
-        Map<K, V> map = getMap();
-        if (m_fEventBypass || (!isTranslateEvents() && map instanceof ObservableMap))
+        f_lockEvents.lock();
+        try
             {
-            // it's possible to completely by-pass the WrapperObservableMap
-            // for event generation by allowing the underlying map to send
-            // the events directly to the listeners
-            ((ObservableMap<K, V>) map).addMapListener(listener, oKey, fLite);
-            m_fEventBypass = true;
-            }
-        else
-            {
-            MapListenerSupport support = ensureMapListenerSupport();
-
-            boolean fWasEmpty = support.isEmpty(oKey);
-            boolean fWasLite  = !fWasEmpty && !support.containsStandardListeners(oKey);
-
-            support.addListener(listener, oKey, fLite);
-
-            if ((fWasEmpty || (fWasLite && !fLite))
-                    && map instanceof ObservableMap)
+            Map<K, V> map = getMap();
+            if (m_fEventBypass || (!isTranslateEvents() && map instanceof ObservableMap))
                 {
-                ObservableMap<K, V> mapSource        = (ObservableMap) map;
-                MapListener<K, V>   listenerInternal = ensureInternalListener();
-                if (fWasLite && !fLite)
+                // it's possible to completely by-pass the WrapperObservableMap
+                // for event generation by allowing the underlying map to send
+                // the events directly to the listeners
+                ((ObservableMap<K, V>) map).addMapListener(listener, oKey, fLite);
+                m_fEventBypass = true;
+                }
+            else
+                {
+                MapListenerSupport support = ensureMapListenerSupport();
+
+                boolean fWasEmpty = support.isEmpty(oKey);
+                boolean fWasLite  = !fWasEmpty && !support.containsStandardListeners(oKey);
+
+                support.addListener(listener, oKey, fLite);
+
+                if ((fWasEmpty || (fWasLite && !fLite))
+                        && map instanceof ObservableMap)
                     {
-                    // previously registered a lite listener
-                    mapSource.removeMapListener(listenerInternal, oKey);
+                    ObservableMap<K, V> mapSource        = (ObservableMap) map;
+                    MapListener<K, V>   listenerInternal = ensureInternalListener();
+                    if (fWasLite && !fLite)
+                        {
+                        // previously registered a lite listener
+                        mapSource.removeMapListener(listenerInternal, oKey);
+                        }
+                    mapSource.addMapListener(listenerInternal, oKey, fLite);
                     }
-                mapSource.addMapListener(listenerInternal, oKey, fLite);
                 }
             }
+        finally
+            {
+            f_lockEvents.unlock();
+            }
         }
 
     /**
     * {@inheritDoc}
     */
-    public synchronized void removeMapListener(MapListener<? super K, ? super V> listener, K oKey)
+    public void removeMapListener(MapListener<? super K, ? super V> listener, K oKey)
         {
         azzert(listener != null);
-
-        Map<K, V> map = getMap();
-        if (m_fEventBypass)
+        f_lockEvents.lock();
+        try
             {
-            // the event delivery was set up to by-pass this map, so
-            // unregister accordingly
-            ((ObservableMap<K, V>) map).removeMapListener(listener, oKey);
-            }
-        else
-            {
-            MapListenerSupport support = m_listenerSupport;
-            if (support != null)
+            Map<K, V> map = getMap();
+            if (m_fEventBypass)
                 {
-                boolean fWasStandard = support.containsStandardListeners(oKey);
-
-                support.removeListener(listener, oKey);
-
-                MapListener<K, V> listenerInternal = m_listenerInternal;
-                if (listenerInternal != null)
+                // the event delivery was set up to by-pass this map, so
+                // unregister accordingly
+                ((ObservableMap<K, V>) map).removeMapListener(listener, oKey);
+                }
+            else
+                {
+                MapListenerSupport support = m_listenerSupport;
+                if (support != null)
                     {
-                    ObservableMap<K, V> mapSource = (ObservableMap) getMap();
-                    if (support.isEmpty(oKey))
+                    boolean fWasStandard = support.containsStandardListeners(oKey);
+
+                    support.removeListener(listener, oKey);
+
+                    MapListener<K, V> listenerInternal = m_listenerInternal;
+                    if (listenerInternal != null)
                         {
-                        mapSource.removeMapListener(listenerInternal, oKey);
-                        if (support.isEmpty())
+                        ObservableMap<K, V> mapSource = (ObservableMap) getMap();
+                        if (support.isEmpty(oKey))
                             {
-                            m_listenerSupport  = null;
-                            m_listenerInternal = null;
+                            mapSource.removeMapListener(listenerInternal, oKey);
+                            if (support.isEmpty())
+                                {
+                                m_listenerSupport  = null;
+                                m_listenerInternal = null;
+                                }
+                            }
+                        else if (fWasStandard && !support.containsStandardListeners(oKey))
+                            {
+                            // replace standard with lite
+                            mapSource.removeMapListener(listenerInternal, oKey);
+                            mapSource.addMapListener(listenerInternal, oKey, true);
                             }
                         }
-                    else if (fWasStandard && !support.containsStandardListeners(oKey))
-                        {
-                        // replace standard with lite
-                        mapSource.removeMapListener(listenerInternal, oKey);
-                        mapSource.addMapListener(listenerInternal, oKey, true);
-                        }
                     }
                 }
+            }
+        finally
+            {
+            f_lockEvents.unlock();
             }
         }
 
     /**
     * {@inheritDoc}
     */
-    public synchronized void addMapListener(MapListener<? super K, ? super V> listener, Filter filter, boolean fLite)
+    public void addMapListener(MapListener<? super K, ? super V> listener, Filter filter, boolean fLite)
         {
         azzert(listener != null);
 
-        Map<K, V> map = getMap();
-        if (m_fEventBypass || (!isTranslateEvents() && map instanceof ObservableMap))
+        f_lockEvents.lock();
+        try
             {
-            // it's possible to completely by-pass the WrapperObservableMap
-            // for event generation by allowing the underlying map to send
-            // the events directly to the listeners
-            ((ObservableMap<K, V>) map).addMapListener(listener, filter, fLite);
-            m_fEventBypass = true;
-            }
-        else
-            {
-            MapListenerSupport support = ensureMapListenerSupport();
-
-            boolean fWasEmpty = support.isEmpty(filter);
-            boolean fWasLite  = !fWasEmpty && !support.containsStandardListeners(filter);
-
-            support.addListener(listener, filter, fLite);
-
-            if ((fWasEmpty || (fWasLite && !fLite))
-                    && map instanceof ObservableMap)
+            Map<K, V> map = getMap();
+            if (m_fEventBypass || (!isTranslateEvents() && map instanceof ObservableMap))
                 {
-                ObservableMap<K, V> mapSource        = (ObservableMap) map;
-                MapListener<K, V>   listenerInternal = ensureInternalListener();
-                if (fWasLite && !fLite)
-                    {
-                    // previously registered a lite listener
-                    mapSource.removeMapListener(listenerInternal, filter);
-                    }
-                mapSource.addMapListener(listenerInternal, filter, fLite);
+                // it's possible to completely by-pass the WrapperObservableMap
+                // for event generation by allowing the underlying map to send
+                // the events directly to the listeners
+                ((ObservableMap<K, V>) map).addMapListener(listener, filter, fLite);
+                m_fEventBypass = true;
                 }
-            }
-        }
-
-    /**
-    * {@inheritDoc}
-    */
-    public synchronized void removeMapListener(MapListener<? super K, ? super V> listener, Filter filter)
-        {
-        azzert(listener != null);
-
-        Map<K, V> map = getMap();
-        if (m_fEventBypass)
-            {
-            // the event delivery was set up to by-pass this map, so
-            // unregister accordingly
-            ((ObservableMap<K, V>) map).removeMapListener(listener, filter);
-            }
-        else
-            {
-            MapListenerSupport support = m_listenerSupport;
-            if (support != null)
+            else
                 {
-                boolean fWasStandard = support.containsStandardListeners(filter);
+                MapListenerSupport support = ensureMapListenerSupport();
 
-                support.removeListener(listener, filter);
+                boolean fWasEmpty = support.isEmpty(filter);
+                boolean fWasLite  = !fWasEmpty && !support.containsStandardListeners(filter);
 
-                MapListener<K, V> listenerInternal = m_listenerInternal;
-                if (listenerInternal != null)
+                support.addListener(listener, filter, fLite);
+
+                if ((fWasEmpty || (fWasLite && !fLite))
+                        && map instanceof ObservableMap)
                     {
-                    ObservableMap<K, V> mapSource = (ObservableMap) getMap();
-                    if (support.isEmpty(filter))
+                    ObservableMap<K, V> mapSource        = (ObservableMap) map;
+                    MapListener<K, V>   listenerInternal = ensureInternalListener();
+                    if (fWasLite && !fLite)
                         {
+                        // previously registered a lite listener
                         mapSource.removeMapListener(listenerInternal, filter);
-                        if (support.isEmpty())
+                        }
+                    mapSource.addMapListener(listenerInternal, filter, fLite);
+                    }
+                }
+            }
+        finally
+            {
+            f_lockEvents.unlock();
+            }
+        }
+
+    /**
+    * {@inheritDoc}
+    */
+    public void removeMapListener(MapListener<? super K, ? super V> listener, Filter filter)
+        {
+        azzert(listener != null);
+
+        f_lockEvents.lock();
+        try
+            {
+            Map<K, V> map = getMap();
+            if (m_fEventBypass)
+                {
+                // the event delivery was set up to by-pass this map, so
+                // unregister accordingly
+                ((ObservableMap<K, V>) map).removeMapListener(listener, filter);
+                }
+            else
+                {
+                MapListenerSupport support = m_listenerSupport;
+                if (support != null)
+                    {
+                    boolean fWasStandard = support.containsStandardListeners(filter);
+
+                    support.removeListener(listener, filter);
+
+                    MapListener<K, V> listenerInternal = m_listenerInternal;
+                    if (listenerInternal != null)
+                        {
+                        ObservableMap<K, V> mapSource = (ObservableMap) getMap();
+                        if (support.isEmpty(filter))
                             {
-                            m_listenerSupport  = null;
-                            m_listenerInternal = null;
+                            mapSource.removeMapListener(listenerInternal, filter);
+                            if (support.isEmpty())
+                                {
+                                m_listenerSupport  = null;
+                                m_listenerInternal = null;
+                                }
+                            }
+                        else if (fWasStandard && !support.containsStandardListeners(filter))
+                            {
+                            // replace standard with lite
+                            mapSource.removeMapListener(listenerInternal, filter);
+                            mapSource.addMapListener(listenerInternal, filter, true);
                             }
                         }
-                    else if (fWasStandard && !support.containsStandardListeners(filter))
-                        {
-                        // replace standard with lite
-                        mapSource.removeMapListener(listenerInternal, filter);
-                        mapSource.addMapListener(listenerInternal, filter, true);
-                        }
                     }
                 }
+            }
+        finally
+            {
+            f_lockEvents.unlock();
             }
         }
 
@@ -719,9 +775,14 @@ public class WrapperObservableMap<K, V>
 
             // the events can only be generated while the current thread
             // holds the monitor on this map
-            synchronized (this)
+            f_lockEvents.lock();
+            try
                 {
                 listenerSupport.fireEvent(evt, false);
+                }
+            finally
+                {
+                f_lockEvents.unlock();
                 }
             }
         }
@@ -825,4 +886,9 @@ public class WrapperObservableMap<K, V>
     * on the underlying map to bypass this map when delivering events.
     */
     private boolean m_fEventBypass;
+
+    /**
+     * The lock to control event access.
+     */
+    private final ReentrantLock f_lockEvents = new ReentrantLock();
     }

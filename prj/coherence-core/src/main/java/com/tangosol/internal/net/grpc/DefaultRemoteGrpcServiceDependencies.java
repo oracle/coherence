@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,11 +10,14 @@ import com.tangosol.config.annotation.Injectable;
 import com.tangosol.config.expression.Expression;
 import com.tangosol.config.expression.LiteralExpression;
 import com.tangosol.internal.net.service.extend.remote.DefaultRemoteCacheServiceDependencies;
+import com.tangosol.internal.net.service.extend.remote.DefaultRemoteServiceDependencies;
 import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.internal.util.DaemonPoolDependencies;
 import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
 import com.tangosol.io.SerializerFactory;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.grpc.GrpcChannelDependencies;
+import com.tangosol.net.grpc.GrpcDependencies;
 
 /**
  * A default implementation of {@link RemoteGrpcServiceDependencies}.
@@ -23,7 +26,7 @@ import com.tangosol.net.grpc.GrpcChannelDependencies;
  * @since 23.03
  */
 public abstract class DefaultRemoteGrpcServiceDependencies
-        extends DefaultRemoteCacheServiceDependencies
+        extends DefaultRemoteServiceDependencies
         implements RemoteGrpcServiceDependencies
     {
     /**
@@ -43,11 +46,17 @@ public abstract class DefaultRemoteGrpcServiceDependencies
     protected DefaultRemoteGrpcServiceDependencies(RemoteGrpcServiceDependencies deps)
         {
         super(deps);
-        setChannelDependencies(getChannelDependencies());
-        setSerializerFactory(getSerializerFactory());
-        setEnableTracing(isTracingEnabled());
-        setRemoteClusterName(getRemoteClusterName());
-        setDaemonPoolDependencies(getDaemonPoolDependencies());
+        if (deps != null)
+            {
+            setChannelDependencies(deps.getChannelDependencies());
+            setDaemonPoolDependencies(deps.getDaemonPoolDependencies());
+            setEnableTracing(deps.isTracingEnabled());
+            setRemoteClusterName(deps.getRemoteClusterName());
+            setRemoteScopeName(deps.getRemoteScopeName());
+            setScopeName(deps.getScopeName());
+            setSerializerFactory(deps.getSerializerFactory());
+            setHeartbeatInterval(deps.getHeartbeatInterval());
+            }
         }
 
     /**
@@ -99,7 +108,7 @@ public abstract class DefaultRemoteGrpcServiceDependencies
     @Override
     public DaemonPoolDependencies getDaemonPoolDependencies()
         {
-        return ensureThreadPoolDependencies();
+        return ensureDaemonPoolDependencies();
         }
 
     /**
@@ -113,6 +122,23 @@ public abstract class DefaultRemoteGrpcServiceDependencies
         }
 
     /**
+     * Set the name of the scope configured for this service.
+     *
+     * @param sName  the name of the scope configured for this service
+     */
+    @Injectable("scope-name")
+    public void setScopeName(String sName)
+        {
+        m_sScopeName = sName;
+        }
+
+    @Override
+    public String getScopeName()
+        {
+        return m_sScopeName;
+        }
+
+    /**
      * Returns the scope name to use to obtain resources in the remote cluster.
      *
      * @return the scope name to use to obtain resources in the remote cluster
@@ -120,6 +146,10 @@ public abstract class DefaultRemoteGrpcServiceDependencies
     @Override
     public String getRemoteScopeName()
         {
+        if (GrpcDependencies.DEFAULT_SCOPE_ALIAS.equals(m_sScopeNameRemote))
+            {
+            return Coherence.DEFAULT_SCOPE;
+            }
         return m_sScopeNameRemote;
         }
 
@@ -166,7 +196,7 @@ public abstract class DefaultRemoteGrpcServiceDependencies
     @Injectable("thread-count")
     public void setThreadCount(int cThreads)
         {
-        ensureThreadPoolDependencies().setThreadCount(cThreads);
+        ensureDaemonPoolDependencies().setThreadCount(cThreads);
         }
 
     /**
@@ -177,7 +207,7 @@ public abstract class DefaultRemoteGrpcServiceDependencies
     @Injectable("thread-count-max")
     public void setThreadCountMax(int cThreads)
         {
-        ensureThreadPoolDependencies().setThreadCountMax(cThreads);
+        ensureDaemonPoolDependencies().setThreadCountMax(cThreads);
         }
 
     /**
@@ -188,7 +218,7 @@ public abstract class DefaultRemoteGrpcServiceDependencies
     @Injectable("thread-count-min")
     public void setThreadCountMin(int cThreads)
         {
-        ensureThreadPoolDependencies().setThreadCountMin(cThreads);
+        ensureDaemonPoolDependencies().setThreadCountMin(cThreads);
         }
 
     /**
@@ -199,12 +229,57 @@ public abstract class DefaultRemoteGrpcServiceDependencies
     @Injectable("worker-priority")
     public void setThreadPriority(int nPriority)
         {
-        ensureThreadPoolDependencies().setThreadPriority(nPriority);
+        ensureDaemonPoolDependencies().setThreadPriority(nPriority);
+        }
+
+    @Override
+    public long getDeadline()
+        {
+        return super.getRequestTimeoutMillis();
+        }
+
+
+    @Override
+    public long getHeartbeatInterval()
+        {
+        return m_nHeartbeatInterval;
+        }
+
+    /**
+     * Set the frequency in millis that heartbeats should be sent by the
+     * proxy to the client bidirectional channel.
+     * <p/>
+     * If the frequency is set to zero or less, then no heartbeats will be sent.
+     *
+     * @param nEventsHeartbeat the heartbeat frequency in millis
+     */
+    @Injectable("heartbeat-interval")
+    public void setHeartbeatInterval(long nEventsHeartbeat)
+        {
+        m_nHeartbeatInterval = Math.max(NO_EVENTS_HEARTBEAT, nEventsHeartbeat);
+        }
+
+    @Override
+    public boolean isRequireHeartbeatAck()
+        {
+        return m_fRequireHeartbeatAck;
+        }
+
+    /**
+     * Set the flag to indicate whether heart beat messages require an
+     * ack response from the server.
+     *
+     * @param fRequireHeartbeatAck  {@code true} to require an ack response
+     */
+    @Injectable("heartbeat-ack-required")
+    public void setRequireHeartbeatAck(boolean fRequireHeartbeatAck)
+        {
+        m_fRequireHeartbeatAck = fRequireHeartbeatAck;
         }
 
     // ----- helper methods -------------------------------------------------
 
-    protected DefaultDaemonPoolDependencies ensureThreadPoolDependencies()
+    protected DefaultDaemonPoolDependencies ensureDaemonPoolDependencies()
         {
         DefaultDaemonPoolDependencies deps = m_daemonPoolDependencies;
         if (deps == null)
@@ -220,6 +295,11 @@ public abstract class DefaultRemoteGrpcServiceDependencies
      * The channel dependencies.
      */
     private GrpcChannelDependencies m_channelDependencies;
+
+    /**
+     * The name of the scope configured for this service.
+     */
+    private String m_sScopeName;
 
     /**
      * The name of the scope to use to obtain resources in the remote cluster.
@@ -240,4 +320,15 @@ public abstract class DefaultRemoteGrpcServiceDependencies
      * The serializer factory.
      */
     private SerializerFactory m_serializerFactory;
+
+    /**
+     * The frequency in millis that heartbeats should be sent by the
+     * proxy to the client bidirectional events channel
+     */
+    private long m_nHeartbeatInterval = NO_EVENTS_HEARTBEAT;
+
+    /**
+     * The flag to indicate whether heart beat messages require an ack from the server.
+     */
+    private boolean m_fRequireHeartbeatAck = false;
     }

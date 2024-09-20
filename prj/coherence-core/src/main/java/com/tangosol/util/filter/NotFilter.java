@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -70,6 +70,10 @@ public class NotFilter<T>
         return !m_filter.evaluate(o);
         }
 
+    public String toExpression()
+        {
+        return "!(" + m_filter.toExpression() + ")";
+        }
 
     // ----- EntryFilter interface ------------------------------------------
 
@@ -90,9 +94,14 @@ public class NotFilter<T>
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
         Filter filter = m_filter;
-        return filter instanceof IndexAwareFilter
-            ? ((IndexAwareFilter) filter).calculateEffectiveness(mapIndexes, setKeys)
-            : setKeys.size()*ExtractorFilter.EVAL_COST;
+        if (filter instanceof IndexAwareFilter)
+            {
+            IndexAwareFilter ixFilter = (IndexAwareFilter) filter;
+            int nEffectiveness = ixFilter.calculateEffectiveness(getNonPartialIndexes(mapIndexes), setKeys);
+            return nEffectiveness < 0 ? -1 : setKeys.size() - nEffectiveness;
+            }
+        
+        return -1;
         }
 
     /**

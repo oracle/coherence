@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io;
@@ -232,6 +232,32 @@ public class WrapperBufferInput
         public boolean isVersionCompatible(int nYear, int nMonth, int nPatch)
             {
             return f_message.isSenderCompatible(nYear, nMonth, nPatch);
+            }
+
+        /**
+        * Determine whether the sender of the content of this BufferInput
+        * runs a version that supersedes (greater or equal to) the specified
+        * version.
+        *
+        * @return true iff the sender's version is greater or equal to the
+        *         specified one
+        */
+        public boolean isVersionCompatible(int nEncodedVersion)
+            {
+            return f_message.isSenderCompatible(nEncodedVersion);
+            }
+
+        /**
+        * Determine whether the sender of the content of this BufferInput
+        * run versions that are the same as the encode version with the same or a
+        * higher patch level.
+        *
+        * @return true iff all the sender's versions are the same version with
+        *         the same or a higher patch level to the specified one
+        */
+        public boolean isPatchCompatible(int nEncodedVersion)
+            {
+            return f_message.isSenderPatchCompatible(nEncodedVersion);
             }
 
 

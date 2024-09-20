@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -66,7 +66,7 @@ public class DefaultConfigJavaSerializerTopicTests
     @Before
     public void logStart()
         {
-        String sMsg = ">>>>> Starting test: " + m_testName.getMethodName();
+        String sMsg = ">>>>> Starting test: " + m_testWatcher.getMethodName();
         for (CoherenceClusterMember member : cluster.getCluster())
             {
             member.submit(() -> System.err.println(sMsg)).join();
@@ -76,7 +76,7 @@ public class DefaultConfigJavaSerializerTopicTests
     @After
     public void logEnd()
         {
-        String sMsg = ">>>>> Finished test: " + m_testName.getMethodName();
+        String sMsg = ">>>>> Finished test: " + m_testWatcher.getMethodName();
         for (CoherenceClusterMember member : cluster.getCluster())
             {
             member.submit(() -> System.err.println(sMsg)).join();

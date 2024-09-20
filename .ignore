@@ -20,6 +20,7 @@
 target
 dist
 _package
+build
 
 #ignore these specific files
 dependency-reduced-pom.xml

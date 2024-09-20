@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package com.tangosol.net;
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
 
 import org.junit.After;
@@ -16,6 +17,7 @@ import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
@@ -41,6 +43,8 @@ public class CacheFactoryTests
         {
         Member memberLocal = CacheFactory.getCluster().getLocalMember();
         assertNotNull(memberLocal);
+        assertNotNull(memberLocal.getProcessName());
+        assertEquals(Long.parseLong(memberLocal.getProcessName()), ManagementFactory.getRuntimeMXBean().getPid());
         }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@ package concurrent;
 
 import com.oracle.bedrock.junit.CoherenceClusterExtension;
 import com.oracle.bedrock.runtime.LocalPlatform;
+import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 import com.oracle.bedrock.runtime.coherence.options.ClusterPort;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
@@ -18,6 +19,7 @@ import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.options.DisplayName;
 
+import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.tangosol.net.Coherence;
 
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -63,7 +65,8 @@ public class ClusteredRemoteSemaphoreIT
                           Multicast.ttl(0),
                           IPv4Preferred.yes(),
                           logs,
-                          ClusterPort.automatic())
+                          ClusterPort.automatic(),
+                          StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()))
                     .include(3,
                              DisplayName.of("storage"),
                              RoleName.of("storage"),

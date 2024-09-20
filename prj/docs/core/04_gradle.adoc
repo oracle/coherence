@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
@@ -12,9 +12,8 @@
 // both they serve a purpose, and the docs will look wrong if it is removed.
 == Gradle POF Plugin
 
-:coherence-gradle-plugin-version: {version-coherence}
-:com-github-vlsi-jandex-version: 1.86
-:org-kordamp-gradle-jandex-version: 0.13.2
+:coherence-gradle-plugin-version: 24.03
+:coherence-version: {version-coherence}
 
 The POF Gradle Plugin provides automated instrumentation of classes with the `@PortableType` annotation to generate
 consistent (and correct) implementations of Evolvable POF serialization methods.
@@ -32,35 +31,55 @@ for more information and detailed instructions on Portable Types creation and us
 
 === Usage
 
-In order to use the POF Gradle Plugin, you need to declare it as a plugin dependency in your `build.gradle` file:
+In order to use the POF Gradle Plugin, you need to declare it as a plugin dependency in your `build.gradle` file. Furthermore,
+you should declare your Coherence dependency:
 
-[source,groovy]
+[source,groovy,subs=normal]
 ----
 plugins {
     id 'java'
-    id 'com.oracle.coherence.ce'
+    id 'com.oracle.coherence.ce' version '{coherence-gradle-plugin-version}'
+}
+...
+
+dependencies {
+    ...
+    implementation 'com.oracle.coherence.ce:coherence:{coherence-version}'
 }
 ----
 
-Without any further configuration, the plugin will add a task named `coherencePof` to your project. The `coherencePof`
-task will be executed at the end of the `compileJava` task. At the same time, `coherencePof` also depends on the `compileJava` task.
+Without any further configuration, the plugin will add a task named `coherencePof` to your project and you will see the
+task listed under the task group `Coherence` when you execute:
 
-Therefore, calling:
+[source,bash]
+----
+gradle tasks
+----
+
+The `coherencePof` task will use the output of the `compileJava` task as input. As such the `coherencePof` task will
+depend on the `compileJava` task.
+
+Executing:
 
 [source,bash]
 ----
 gradle compileJava
 ----
 
-will execute the `coherencePof` task. And similarly:
+will NOT execute the `coherencePof` task but on the other hand executing:
 
 [source,bash]
 ----
 gradle coherencePof
 ----
 
-will execute the `compileJava` task first. By *default*, the `coherencePof` task will take the *build output directory* as
-input for classes to be instrumented excluding any test classes.
+will execute the `compileJava` task first. By *default*, the `coherencePof` task will take the *build output* as
+input for classes to be instrumented excluding any test classes. The POF Gradle Plugin supports
+https://docs.gradle.org/current/userguide/incremental_build.html[incremental builds]. This means that only if Java classes
+have changed, the `coherencePof` task will execute (and only for the changed classes).
+
+The `coherencePof` task will also become a dependency to all tasks that depend on the `compileJava`. Thefore, executing
+the `build` or `jar` task will invoke the `coherencePof` task in case of class changes.
 
 By just adding the plugin using the configuration above, the Coherence Gradle Plugin will discover and instrument all
 project classes annotated with the `@PortableType` annotation, excluding test classes. If you do need to instrument test
@@ -127,36 +146,12 @@ if you assume that the `Color` class from the earlier code examples:
 </schema>
 ----
 
-=== Jandex Index
+=== Generating POF Index Files
 
-The portable type discovery feature of Coherence depends on the availability of a
-https://github.com/smallrye/jandex[Jandex] index within the modules that provide portable types that need to be registered.
-
-Therefore, in order to use POF instrumented classes at compile-time in your Gradle project, you should also add a
-Jandex Gradle plugin. As Oracle Coherence uses Jandex 2 under the covers, there are 2 options available:
-
-- https://github.com/vlsi/vlsi-release-plugins
-- https://github.com/kordamp/jandex-gradle-plugin (Only versions `< 1.0.0` as recent versions use Jandex 3)
-
-.Build.gradle
-[source,groovy,subs="normal"]
-----
-plugins {
-  id 'java'
-  id 'com.oracle.coherence.ce' version '{coherence-gradle-plugin-version}'
-  id 'com.github.vlsi.jandex' version '{com-github-vlsi-jandex-version}'
-}
-----
-
-.Build.gradle
-[source,groovy,subs="normal"]
-----
-plugins {
-  id 'java'
-  id 'com.oracle.coherence.ce' version '{coherence-gradle-plugin-version}'
-  id 'org.kordamp.gradle.jandex' version '{org-kordamp-gradle-jandex-version}'
-}
-----
+The portable type discovery feature of Coherence can use index files to speed up the discovery of `@PortableType` annotated
+classes. By default, at compile time, the Gradle plugin will generate index files under `META-INF/pod.idx` that contain class names of
+`@PortableType` annotated classes. You can skip the generation of those index files by setting the `indexPofClasses`
+property in your Gradle plugin configuration to `false`.
 
 === Example
 
@@ -166,26 +161,22 @@ An example `Person` class (below) when processed with the plugin, results in the
 [source,java]
 ----
 @PortableType(id=1000)
-public class Person
-    {
-    public Person()
-        {
-        }
+public class Person {
+    public Person() {}
 
-    public Person(int id, String name, Address address)
-        {
+    public Person(int id, String name, Address address) {
         super();
         this.id = id;
         this.name = name;
         this.address = address;
-        }
+    }
 
     int id;
     String name;
     Address address;
 
     // getters and setters omitted for brevity
-    }
+}
 ----
 
 Let's inspect the generated bytecode:
@@ -262,7 +253,6 @@ For projects to pick up the local changes ensure the following configuration:
 plugins {
   id 'java'
   id 'com.oracle.coherence.ce' version '{coherence-gradle-plugin-version}'
-  id 'com.github.vlsi.jandex' version '{com-github-vlsi-jandex-version}'
 }
 ----
 

@@ -1,57 +1,16 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
   -->
 
-
-<!--
-Note: This XML document is an example Coherence Cache Configuration deployment
-descriptor that should be customized (or replaced) for your particular caching
-requirements. The cache mappings and schemes declared in this descriptor are
-strictly for demonstration purposes and are not required.
-
-For detailed information on each of the elements that can be used in this
-descriptor please see the Coherence Cache Configuration deployment descriptor
-guide included in the Coherence distribution or the "Cache Configuration
-Elements" page on the Coherence Wiki (http://wiki.tangosol.com).
--->
-
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
-  <!--
-  The defaults element defines factory-wide default settings.
-  -->
   <defaults>
-    <!--
-    Note: This element defines the default serializer for all services
-    defined within this cache configuration descriptor.
-
-    Valid values include full serializer definitions, as well as named
-    references to serializers defined within the "serializers" element of the
-    operational configuration.
-
-    Example values include: java, pof. Default value is java.
-    -->
     <serializer system-property="coherence.serializer"/>
-
-    <!--
-    Note: This element defines the default socket-provider for all Coherence
-    Extend services defined within this cache configuration descriptor.
-
-    Valid values include full socket-provider definitions, as well as named
-    references to providers defined within the "socket-providers" element of the
-    operational configuration.
-
-    This setting only specifies the default socket-provider for Coherence
-    Extend services; TCMP's socket-provider is specified within the
-    "unicast-listener" of the operational configuration.
-
-    Example values include: system, ssl. Default value is system.
-    -->
     <socket-provider system-property="coherence.socketprovider"/>
   </defaults>
 
@@ -379,7 +338,7 @@ Elements" page on the Coherence Wiki (http://wiki.tangosol.com).
         </tcp-acceptor>
       </acceptor-config>
 
-      <autostart system-property="coherence.extend.enabled">false</autostart>
+      <autostart system-property="coherence.extend.enabled">true</autostart>
     </proxy-scheme>
 
     <!--

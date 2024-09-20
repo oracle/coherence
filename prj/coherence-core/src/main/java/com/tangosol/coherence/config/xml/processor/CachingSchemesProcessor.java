@@ -1,13 +1,17 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml.processor;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.CacheConfig;
+import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.config.ServiceSchemeRegistry;
+import com.tangosol.coherence.config.scheme.AbstractServiceScheme;
 import com.tangosol.coherence.config.scheme.ServiceScheme;
 
 import com.tangosol.config.ConfigurationException;
@@ -15,11 +19,18 @@ import com.tangosol.config.xml.ElementProcessor;
 import com.tangosol.config.xml.ProcessingContext;
 import com.tangosol.config.xml.XmlSimpleName;
 
+import com.tangosol.internal.net.service.ServiceDependencies;
+import com.tangosol.internal.net.service.grid.DefaultPartitionedServiceDependencies;
+import com.tangosol.internal.net.service.grid.PartitionedServiceDependencies;
+
 import com.tangosol.run.xml.XmlElement;
 
 import com.tangosol.util.Base;
 
 import java.util.Map;
+
+import static com.tangosol.internal.net.service.grid.DefaultPartitionedServiceDependencies.DEFAULT_SERVICE_PARTITIONS;
+import static com.tangosol.internal.net.service.grid.DefaultPartitionedServiceDependencies.PROP_SERVICE_PARTITIONS;
 
 /**
  * A {@link CachingSchemesProcessor} is an {@link ElementProcessor} for the
@@ -53,6 +64,29 @@ public class CachingSchemesProcessor
             {
             if (oChild instanceof ServiceScheme)
                 {
+                ServiceScheme       scheme       = (ServiceScheme) oChild;
+                ServiceDependencies depsService  = (ServiceDependencies) ((AbstractServiceScheme) scheme).getServiceDependencies();
+                String              sNameService = scheme.getScopedServiceNameForProperty();
+
+                if (depsService instanceof PartitionedServiceDependencies)
+                    {
+                    // Note: service resource injection has already configured depsService.getPreferredPartitionCount() from distributed service cache configuration element <partition-count>.
+
+                    int cPartitions = ((PartitionedServiceDependencies) depsService).getPreferredPartitionCount();
+
+                    // override distributed service partition count using "coherence.service.*" system properties.
+                    int cPartitionsOverride = Config.getInteger(String.format(PROP_SERVICE_PARTITIONS, sNameService),
+                                                        DEFAULT_SERVICE_PARTITIONS == -1
+                                                            ? cPartitions
+                                                            : DEFAULT_SERVICE_PARTITIONS);
+
+                    ((DefaultPartitionedServiceDependencies) depsService).setPreferredPartitionCount(cPartitionsOverride);
+                    if (cPartitionsOverride != cPartitions)
+                        {
+                        Logger.config("Configured service " + scheme.getScopedServiceName() + " using partition count of " + cPartitions);
+                        }
+                    }
+
                 registry.register((ServiceScheme) oChild);
                 }
             }

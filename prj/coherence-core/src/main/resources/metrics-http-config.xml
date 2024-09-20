@@ -1,8 +1,8 @@
 <!--
-  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2023, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ http://oss.oracle.com/licenses/upl.
+  ~ https://oss.oracle.com/licenses/upl.
   -->
 <!--
 Proxy scheme configuration descriptor for the MetricsHttpProxy used by Coherence.
@@ -18,7 +18,7 @@ Proxy scheme configuration descriptor for the MetricsHttpProxy used by Coherence
         <port    system-property="coherence.metrics.http.port">9612</port>
       </local-address>
       <resource-config>
-        <context-path>/metrics</context-path>
+        <context-path system-property="coherence.metrics.http.path">/metrics</context-path>
         <instance>
           <class-name>com.tangosol.internal.metrics.MetricsHttpHandler</class-name>
         </instance>

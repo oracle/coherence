@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.processor;
 
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.util.AsynchronousAgent;
 import com.tangosol.util.InvocableMap;
 
@@ -14,6 +15,7 @@ import com.tangosol.util.aggregator.AsynchronousAggregator;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executor;
 
 
 /**
@@ -39,10 +41,23 @@ public abstract class AbstractAsynchronousProcessor<K, V, R, T>
      * @param processor     the underlying {@link InvocableMap.EntryProcessor}
      * @param iUnitOrderId  the unit-of-order id for this processor
      */
-    protected AbstractAsynchronousProcessor(InvocableMap.EntryProcessor<K, V, R> processor,
-                                 int iUnitOrderId)
+    protected AbstractAsynchronousProcessor(InvocableMap.EntryProcessor<K, V, R> processor, int iUnitOrderId)
         {
-        super(iUnitOrderId);
+        this(processor, iUnitOrderId, null);
+        }
+
+    /**
+     * Construct AbstractAsynchronousProcessor instance.
+     *
+     * @param processor     the underlying {@link InvocableMap.EntryProcessor}
+     * @param iUnitOrderId  the unit-of-order id for this processor
+     * @param executor      an optional {@link Executor} to complete the future on,
+     *                      if not provided the {@link Daemons#commonPool()} is used
+     */
+    protected AbstractAsynchronousProcessor(InvocableMap.EntryProcessor<K, V, R> processor,
+                                 int iUnitOrderId, Executor executor)
+        {
+        super(iUnitOrderId, executor);
 
         f_processor = processor;
         }
@@ -123,7 +138,7 @@ public abstract class AbstractAsynchronousProcessor<K, V, R, T>
      * <p>
      * If two consecutive "invoke" calls are made using {@link AsynchronousProcessor
      * AsynchronousProcessors} with the same order id and the same partition set,
-     * then the the corresponding {@link InvocableMap.EntryProcessor#process execution} and
+     * then the corresponding {@link InvocableMap.EntryProcessor#process execution} and
      * calls to {@link #onComplete} are going to happen in the exact same order.
      * <p>
      * Note 1: The ordering guarantee is respected between {@link AsynchronousProcessor

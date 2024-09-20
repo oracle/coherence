@@ -10,9 +10,11 @@
 
 package com.tangosol.coherence.component.net.extend.proxy;
 
+import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Member;
 import java.util.Collections;
+import java.util.function.IntPredicate;
 
 /**
  * The ServiceProxy is the base component of cluster-side handlers (Proxy) for
@@ -350,5 +352,37 @@ public abstract class ServiceProxy
     // From interface: com.tangosol.net.messaging.Channel$Receiver
     public void unregisterChannel(com.tangosol.net.messaging.Channel channel)
         {
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nMajor, int nMinor, int nMicro, int nPatchSet, int nPatch)
+        {
+        int nEncoded = ServiceMemberSet.encodeVersion(nMajor, nMinor, nMicro, nPatchSet, nPatch);
+        return CacheFactory.VERSION_ENCODED >= nEncoded;
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nYear, int nMonth, int nPatch)
+        {
+        int nEncoded = ServiceMemberSet.encodeVersion(nYear, nMonth, nPatch);
+        return CacheFactory.VERSION_ENCODED >= nEncoded;
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nVersion)
+        {
+        return CacheFactory.VERSION_ENCODED >= nVersion;
+        }
+
+    @Override
+    public boolean isVersionCompatible(IntPredicate predicate)
+        {
+        return predicate.test(CacheFactory.VERSION_ENCODED);
+        }
+
+    @Override
+    public int getMinimumServiceVersion()
+        {
+        return CacheFactory.VERSION_ENCODED;
         }
     }

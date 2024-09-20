@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,7 +11,6 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.common.net.SSLSocketProvider;
-
 
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 
@@ -34,7 +33,6 @@ import java.util.Properties;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
-import static com.tangosol.internal.net.metrics.MetricsHttpHelper.PROP_METRICS_ENABLED;
 import static org.hamcrest.CoreMatchers.is;
 
 /**
@@ -44,7 +42,7 @@ import static org.hamcrest.CoreMatchers.is;
  * @since 12.2.1.4.0
  */
 public class SimpleMetricsSSLTests
-    extends SimpleMetricsTests
+        extends AbstractMetricsTests
     {
     // ----- test lifecycle ------------------------------------------------
 
@@ -54,21 +52,13 @@ public class SimpleMetricsSSLTests
     @BeforeClass
     public static void startup()
         {
-        metricsHttpPort = s_portIterator.next();
-
-        Properties props = new Properties();
-
-        props.put(PROP_METRICS_ENABLED, "true");
-        props.put("coherence.metrics.http.port", Integer.toString(metricsHttpPort));
+        Properties props = setupProperties();
         props.put("coherence.metrics.http.provider", "mySSLProvider");
         props.put("coherence.security.keystore", "file:server.jks");
         props.put("coherence.security.store.password", "password");
-        props.put("coherence.security.key.password", "private");
+        props.put("coherence.security.key.password", "password");
         props.put("coherence.security.truststore", "file:trust-server.jks");
         props.put("coherence.security.trust.password", "password");
-        props.put("test.persistence.enabled", false);
-        props.put("coherence.management.extendedmbeanname", "true");
-        props.put("coherence.override", "common-tangosol-coherence-override.xml");
 
         CoherenceClusterMember clusterMember = startCacheServer("SimpleMetricsSSLTests", "metrics", FILE_SERVER_CFG_CACHE, props);
         Eventually.assertThat(invoking(clusterMember).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
@@ -90,7 +80,7 @@ public class SimpleMetricsSSLTests
     @AfterClass
     public static void shutdown()
         {
-        stopCacheServer("SimpleMetricsTests");
+        stopCacheServer("SimpleMetricsSSLTests");
         }
 
     @Override

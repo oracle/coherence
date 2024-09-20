@@ -1,38 +1,40 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-
 package com.tangosol.util.extractor;
 
 import com.oracle.coherence.common.internal.util.CanonicalNames;
 
 import com.tangosol.internal.util.extractor.TargetReflectionDescriptor;
 
-import com.tangosol.internal.util.invoke.Lambdas;
-
 import com.tangosol.io.ExternalizableLite;
+import com.tangosol.io.ResolvingObjectInputStream;
+
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.util.ClassHelper;
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.ValueExtractor;
+
+import jakarta.json.bind.annotation.JsonbCreator;
+import jakarta.json.bind.annotation.JsonbProperty;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.NotActiveException;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import java.util.Map;
-
-import jakarta.json.bind.annotation.JsonbCreator;
-import jakarta.json.bind.annotation.JsonbProperty;
 
 /**
  * Universal ValueExtractor implementation.
@@ -76,7 +78,7 @@ public class UniversalExtractor<T, E>
      * <p>
      * If <code>sName</code> does not end in {@link #METHOD_SUFFIX},
      * <code>"()"</code>, this extractor is a property extractor. If <code>sName</code> is prefixed with
-     * one of the {@link #BEAN_ACCESSOR_PREFIXES} and ends in the {@link #METHOD_SUFFIX},
+     * one of the {@link #BEAN_ACCESSOR_PREFIXES} and optionally ends in the {@link #METHOD_SUFFIX},
      * this extractor is a property extractor. Otherwise,
      * if the <code>sName</code> just ends in {#link #METHOD_SUFFIX},
      * this extractor is considered a method extractor.
@@ -95,7 +97,7 @@ public class UniversalExtractor<T, E>
      * If <code>sName</code> does not end in {@link #METHOD_SUFFIX}, <code>"()"</code>,
      * and has no <code>aoParams</code>,this extractor is a property extractor.
      * If <code>sName</code> is prefixed with
-     * one of the {@link #BEAN_ACCESSOR_PREFIXES}, ends in {@link #METHOD_SUFFIX}
+     * one of the {@link #BEAN_ACCESSOR_PREFIXES}, optionally ends in {@link #METHOD_SUFFIX}
      * and has no <code>aoParams</code>,this extractor is a property extractor.
      * Otherwise, if the <code>sName</code>just ends in {#link #METHOD_SUFFIX},
      * this extractor is considered a method extractor.
@@ -118,7 +120,7 @@ public class UniversalExtractor<T, E>
      * <p>
      * If <code>sName</code> does not end in {@link #METHOD_SUFFIX}, <code>"()"</code>,
      * this extractor is a property extractor. If <code>sName</code> is prefixed with
-     * one of the {@link #BEAN_ACCESSOR_PREFIXES} and ends in {@link #METHOD_SUFFIX},
+     * one of the {@link #BEAN_ACCESSOR_PREFIXES} and optionally ends in {@link #METHOD_SUFFIX},
      * this extractor is a property extractor. If the <code>sName</code>
      * just ends in {@link #METHOD_SUFFIX}, this extractor is considered a method
      * extractor.
@@ -204,6 +206,14 @@ public class UniversalExtractor<T, E>
             sCName = m_sNameCanon = CanonicalNames.computeValueExtractorCanonicalName(m_sName, m_aoParam);
             }
         return sCName;
+        }
+
+    @Override
+    public ValueExtractor<T, E> fromKey()
+        {
+        UniversalExtractor<T, E> extractor = new UniversalExtractor<>(m_sName, m_aoParam, KEY);
+        extractor.m_sNameCanon = m_sNameCanon;
+        return extractor;
         }
 
     // ----- Object methods -------------------------------------------------
@@ -413,12 +423,20 @@ public class UniversalExtractor<T, E>
         // check for javabean accessors
         if (fProperty)
             {
-            String sBeanAttribute = Character.toUpperCase(sCName.charAt(0)) + sCName.substring(1);
+            // lookup method/property with the exact name first
+            // this will work for Java records, or any other class that may choose to use the same property naming conventions
+            method = ClassHelper.findMethod(clzTarget, sCName, clzParam, false);
 
-            for (int cchPrefix = 0; cchPrefix < BEAN_ACCESSOR_PREFIXES.length && method == null; cchPrefix++)
+            if (method == null)
                 {
-                method = ClassHelper.findMethod(clzTarget,
-                        BEAN_ACCESSOR_PREFIXES[cchPrefix] + sBeanAttribute, clzParam, false);
+                // didn't find matching method; let's try JavaBean naming conventions next
+                String sBeanAttribute = Character.toUpperCase(sCName.charAt(0)) + sCName.substring(1);
+
+                for (int cchPrefix = 0; cchPrefix < BEAN_ACCESSOR_PREFIXES.length && method == null; cchPrefix++)
+                    {
+                    method = ClassHelper.findMethod(clzTarget,
+                                                    BEAN_ACCESSOR_PREFIXES[cchPrefix] + sBeanAttribute, clzParam, false);
+                    }
                 }
             }
         else
@@ -589,6 +607,32 @@ public class UniversalExtractor<T, E>
         out.writeString(0, sMethod);
         out.writeObjectArray(1, m_aoParam);
         out.writeInt(2, m_nTarget);
+        }
+
+    // ----- Serializable methods -------------------------------------------
+
+    /**
+     * See {@link java.io.Serializable} for documentation on this method.
+     *
+     * @param inputStream  the input stream
+     *
+     * @throws NotSerializableException, ClassNotFoundException, IOException
+     *
+     * @since 12.2.1.4.22
+     */
+    @java.io.Serial
+    private void readObject(ObjectInputStream inputStream) throws ClassNotFoundException, IOException
+        {
+        if (inputStream instanceof ResolvingObjectInputStream || ExternalizableHelper.s_tloInEHDeserialize.get())
+            {
+            // deserialization was initiated via ExternalizableHelper; proceed
+            inputStream.defaultReadObject();
+            }
+        else
+            {
+            // this class is not intended for "external" use
+            throw new NotSerializableException();
+            }
         }
 
     // ----- constants ------------------------------------------------------

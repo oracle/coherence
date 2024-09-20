@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -2833,17 +2833,6 @@ public class ClusterService
             }
         
         return setMembers;
-        }
-    
-    // Declared at the super level
-    /**
-     * Getter for property StartupTimeout.<p>
-    * The time (in millis) that limits the waiting period during the service
-    * startup sequence. Non-positive numbers indicate no timeout.
-     */
-    public long getStartupTimeout()
-        {
-        return getDeliveryTimeoutMillis();
         }
     
     // Accessor for the property "State"
@@ -15000,7 +14989,7 @@ public class ClusterService
                     }
             
                 // we succeeded in disconnecting the convicted members;
-                // close the the roll-call poll if we have one open, as we
+                // close the roll-call poll if we have one open, as we
                 // don't care about any of the other replies
                 onIncidentClosed();
                 return true;

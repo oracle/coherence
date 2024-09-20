@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -29,12 +29,9 @@ public class LambdasSerializationModeInvalidValueTest
         {
         System.setProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, "InvalidValue");
 
-        boolean fProductionMode = CacheFactory.getLicenseMode().equalsIgnoreCase("prod");
-        
-        assertThat("ensure default mode by checking if coherence running in production mode",
-                   Lambdas.isDynamicLambdas(), is(!fProductionMode));
-        assertThat("ensure default mode by checking if coherence running in production mode",
-                   Lambdas.isStaticLambdas(), is(fProductionMode));
+        // as of COH-30388 default lambdas mode is always dynamic, independent of coherence production mode
+        assertThat("ensure lambdas default mode",
+                   Lambdas.isDynamicLambdas(), is(true));
         }
 
     /**

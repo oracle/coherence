@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2022, Oracle and/or its affiliates.
+    Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
@@ -181,7 +181,7 @@ include::src/test/java/com/oracle/coherence/guides/serverevents/interceptors/Ent
 <1> Defines the interceptor name
 <2> Identifies the `EntryProcessorEvents` that will be intercepted. EXECUTED event is raised asynchronously after the event has happened
 <3> Identifies the type of events, in this case `EntryProcessorEvents`
-<3> Overrides method to respond to the event and add to the auditing cache
+<4> Overrides method to respond to the event and add to the auditing cache
 +
 This is used in the following test in `ServerCacheEventsTest`:
 +

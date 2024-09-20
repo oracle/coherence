@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -919,30 +919,32 @@ to find specific notes on changes suggested for production use.
 
        Note: Unlike the TCP socket-provider, multicast sockets are not
        supported, and thus well-known-addresses must be enabled for TCMP to
-       function with this provider.  Similarly if SSL is enabled then
+       function with this provider.  Similarly, if SSL is enabled then
        the cluster will not support sharing of its cluster port with other
        clusters running on the same machine.
       -->
       <socket-provider id="ssl">
         <ssl>
+          <protocol>TLS</protocol>
           <identity-manager>
             <key-store>
               <url system-property="coherence.security.keystore">file:keystore.jks</url>
               <password system-property="coherence.security.password"/>
             </key-store>
-            <password system-property="coherence.security.password"/>
+            <password>${coherence.security.key.password ${coherence.security.password}}</password>
           </identity-manager>
           <trust-manager>
-            <algorithm>PeerX509</algorithm>
+            <algorithm system-property="coherence.security.algorithm">PeerX509</algorithm>
             <key-store>
-              <url system-property="coherence.security.keystore">file:keystore.jks</url>
-              <password system-property="coherence.security.password"/>
+              <url>${coherence.security.truststore ${coherence.security.keystore file:keystore.jks}}</url>
+              <password>${coherence.security.truststore.password ${coherence.security.password}}</password>
             </key-store>
           </trust-manager>
           <protocol-versions usage="black-list">
             <name>SSLv3</name>
           </protocol-versions>
           <socket-provider>tcp</socket-provider>
+          <client-auth system-property="coherence.security.clientauth"/>
         </ssl>
       </socket-provider>
 
@@ -1010,6 +1012,14 @@ to find specific notes on changes suggested for production use.
         <class-name>com.tangosol.net.security.AuditingAuthorizer</class-name>
       </storage-authorizer>
     </storage-authorizers>
+
+    <common-daemon-pool>
+      <thread-count system-property="coherence.common.pool.threads"/>
+      <thread-count-max system-property="coherence.common.pool.max.threads"/>
+      <thread-count-min system-property="coherence.common.pool.min.threads"/>
+    </common-daemon-pool>
+
+    <virtual-threads-enabled system-property="coherence.virtualthreads.enabled">true</virtual-threads-enabled>
   </cluster-config>
 
   <logging-config>

@@ -1,0 +1,84 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Sorted Views
+:description: Coherence Core Improvements
+:keywords: coherence, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Sorted Views
+
+Sorted Views allow you to create a client-side views of data managed in Coherence that are sorted based either on
+the natural sort order of the entry values, or on the provided `Comparator`.
+
+=== Creating a Sorted View
+
+Sorted Views can be created programmatically, using the existing `ViewBuilder` API:
+
+[source,java]
+----
+NamedMap<String, String> states       = session.getMap("states");           // <1>
+NamedMap<String, String> sortedStates = states.view().sorted().build();     // <2>
+
+----
+<1> Obtain a reference to a distributed cache that stores master copy of state names, keyed by two-letter state code
+<2> Create a client-side view of states that will be sorted by the natural order of map values, in this case state name
+
+Just like with other views, the contents of the view will be kept in sync automatically by Coherence, so any changes made to the master list of states will be automatically reflected in each client-side view.
+
+You can also create a view for more complex data types by passing a custom `Comparator` to the `sorted` method:
+
+[source,java]
+----
+NamedMap<Long, Person> people       = session.getMap("people");
+NamedMap<Long, Person> sortedPeople = people.view()
+                                            .sorted(Comparator.comparing(Person::getAge).reversed())
+                                            .build();
+----
+
+The above will give you a view of all people, sorted by age from the oldest to the youngest person.
+
+Of course, you can also perform all other operations that the `ViewBuilder` API supports, such as filtering entries in a view before they are sorted. For example, to create a view of all women sorted by age from youngest to oldest, you would define a view like this:
+
+[source,java]
+----
+NamedMap<Long, Person> people       = session.getMap("people");
+NamedMap<Long, Person> sortedPeople = people.view()
+                                            .filter(Filters.equal(Person::getGender, Gender.FEMALE))
+                                            .sorted(Comparator.comparing(Person::getAge))
+                                            .build();
+----
+
+One thing to keep in mind is that the sorting is always performed on the client after the data is retrieved from the server. In most cases that doesn't matter, and will happen regardless of the order that you specify the operations in.
+
+For example, the above example would work exactly the same if you reversed the order of `filter` and `sorted` operations and created a view like this:
+
+[source,java]
+----
+NamedMap<Long, Person> people       = session.getMap("people");
+NamedMap<Long, Person> sortedPeople = people.view()
+                                            .sorted(Comparator.comparing(Person::getAge))
+                                            .filter(Filters.equal(Person::getGender, Gender.FEMALE))
+                                            .build();
+----
+
+The only exception is `map` operation, as it changes the type of the values that are stored on the client by transforming them on the server, to reduce the amount of data that is transferred across the network. Because we can only sort what we have, the sort operation always has to be specified *after* the `map` operation, in order to use the correct value type:
+
+[source,java]
+----
+NamedMap<Long, Person> people      = session.getMap("people");
+NamedMap<Long, Name>   sortedNames = people.view()
+                                            .filter(Filters.equal(Person::getGender, Gender.MALE))
+                                            .map(Person::getName)
+                                            .sorted(Comparator.comparing(Name::getLast)
+                                                              .thenComparing(Name::getFirst))
+                                            .build();
+----
+
+The above will extract the `Names` of all men on the server, and sort them first by last and then by first name on the client.
+
+In general, a good rule to follow is to specify `filter`, `map` and `sorted` operations in that order, as that's the order they are actually executed in.

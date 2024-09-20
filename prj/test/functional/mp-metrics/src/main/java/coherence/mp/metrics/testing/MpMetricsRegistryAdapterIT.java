@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,12 +16,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.function.Supplier;
 
 import org.eclipse.microprofile.metrics.Gauge;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricID;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.MetricType;
 import org.eclipse.microprofile.metrics.Tag;
 
 import org.junit.jupiter.api.Test;
@@ -63,20 +63,19 @@ public class MpMetricsRegistryAdapterIT
         adapter.register(metric);
 
         ArgumentCaptor<Metadata> metadataArgument = ArgumentCaptor.forClass(Metadata.class);
-        ArgumentCaptor<Gauge<Object>> gaugeArgument = ArgumentCaptor.forClass(Gauge.class);
+        ArgumentCaptor<Supplier<Number>> gaugeArgument = ArgumentCaptor.forClass(Supplier.class);
         ArgumentCaptor<Tag> tagsArgument = ArgumentCaptor.forClass(Tag.class);
 
-        verify(vendorRegistry).register(metadataArgument.capture(), gaugeArgument.capture(), tagsArgument.capture());
+        verify(vendorRegistry).gauge(metadataArgument.capture(), gaugeArgument.capture(), tagsArgument.capture());
         verifyNoMoreInteractions(appRegistry);
 
         Metadata metadata = metadataArgument.getValue();
         assertThat(metadata, is(notNullValue()));
         assertThat(metadata.getName(), is(metric.getName()));
-        assertThat(metadata.getTypeRaw(), is(MetricType.GAUGE));
 
-        Gauge<Object> gauge = gaugeArgument.getValue();
+        Supplier<Number> gauge = gaugeArgument.getValue();
         assertThat(gauge, is(notNullValue()));
-        assertThat(gauge.getValue(), is(metric.getValue()));
+        assertThat(gauge.get(), is(metric.getValue()));
 
         List<Tag> tagList = tagsArgument.getAllValues();
         assertThat(tagList, containsInAnyOrder(tags));
@@ -119,10 +118,10 @@ public class MpMetricsRegistryAdapterIT
         adapter.register(metric);
 
         ArgumentCaptor<Metadata> metadataArgument = ArgumentCaptor.forClass(Metadata.class);
-        ArgumentCaptor<Gauge<Object>> gaugeArgument = ArgumentCaptor.forClass(Gauge.class);
+        ArgumentCaptor<Supplier<Number>> gaugeArgument = ArgumentCaptor.forClass(Supplier.class);
         ArgumentCaptor<Tag> tagsArgument = ArgumentCaptor.forClass(Tag.class);
 
-        verify(vendorRegistry).register(metadataArgument.capture(), gaugeArgument.capture(), tagsArgument.capture());
+        verify(vendorRegistry).gauge(metadataArgument.capture(), gaugeArgument.capture(), tagsArgument.capture());
         verifyNoMoreInteractions(appRegistry);
 
         Metadata metadata = metadataArgument.getValue();
@@ -130,11 +129,10 @@ public class MpMetricsRegistryAdapterIT
         assertThat(metadata.getName(), is(metric.getName()));
 //        assertThat(metadata.getDescription().isPresent(), is(true));
 //        assertThat(metadata.getDescription().get(), is(metric.getDescription()));
-        assertThat(metadata.getTypeRaw(), is(MetricType.GAUGE));
 
-        Gauge<Object> gauge = gaugeArgument.getValue();
+        Supplier<Number> gauge = gaugeArgument.getValue();
         assertThat(gauge, is(notNullValue()));
-        assertThat(gauge.getValue(), is(metric.getValue()));
+        assertThat(gauge.get(), is(metric.getValue()));
 
         List<Tag> tagList = tagsArgument.getAllValues();
         assertThat(tagList, containsInAnyOrder(tags));
@@ -195,24 +193,25 @@ public class MpMetricsRegistryAdapterIT
         MBeanMetric.Identifier id = new MBeanMetric.Identifier(MBeanMetric.Scope.APPLICATION, "foo", tagsMap);
         MBeanMetric metric = new MBeanMetricStub(id, "Coherence,type=foo", "test mBean", 1234);
 
+        when(appRegistry.getGauges()).thenReturn(Collections.emptySortedMap());
+
         MpMetricsRegistryAdapter adapter = new MpMetricsRegistryAdapter(vendorRegistry, appRegistry);
         adapter.register(metric);
 
         ArgumentCaptor<Metadata> metadataArgument = ArgumentCaptor.forClass(Metadata.class);
-        ArgumentCaptor<Gauge<Object>> gaugeArgument = ArgumentCaptor.forClass(Gauge.class);
+        ArgumentCaptor<Supplier<Number>> gaugeArgument = ArgumentCaptor.forClass(Supplier.class);
         ArgumentCaptor<Tag> tagsArgument = ArgumentCaptor.forClass(Tag.class);
 
-        verify(appRegistry).register(metadataArgument.capture(), gaugeArgument.capture(), tagsArgument.capture());
+        verify(appRegistry).gauge(metadataArgument.capture(), gaugeArgument.capture(), tagsArgument.capture());
         verifyNoMoreInteractions(vendorRegistry);
 
         Metadata metadata = metadataArgument.getValue();
         assertThat(metadata, is(notNullValue()));
         assertThat(metadata.getName(), is(metric.getName()));
-        assertThat(metadata.getTypeRaw(), is(MetricType.GAUGE));
 
-        Gauge<Object> gauge = gaugeArgument.getValue();
+        Supplier<Number> gauge = gaugeArgument.getValue();
         assertThat(gauge, is(notNullValue()));
-        assertThat(gauge.getValue(), is(metric.getValue()));
+        assertThat(gauge.get(), is(metric.getValue()));
 
         List<Tag> tagList = tagsArgument.getAllValues();
         assertThat(tagList, containsInAnyOrder(tags));
@@ -251,24 +250,26 @@ public class MpMetricsRegistryAdapterIT
         MBeanMetric.Identifier id = new MBeanMetric.Identifier(MBeanMetric.Scope.APPLICATION, "foo", tagsMap);
         MBeanMetric metric = new MBeanMetricStub(id, "Coherence,type=foo", "test mBean", 1234);
 
+        when(appRegistry.getGauges()).thenReturn(Collections.emptySortedMap());
+        
         MpMetricsRegistryAdapter adapter = new MpMetricsRegistryAdapter(vendorRegistry, appRegistry);
         adapter.register(metric);
 
         ArgumentCaptor<Metadata> metadataArgument = ArgumentCaptor.forClass(Metadata.class);
-        ArgumentCaptor<Gauge<Object>> gaugeArgument = ArgumentCaptor.forClass(Gauge.class);
+        ArgumentCaptor<Supplier<Number>> gaugeArgument = ArgumentCaptor.forClass(Supplier.class);
         ArgumentCaptor<Tag> tagsArgument = ArgumentCaptor.forClass(Tag.class);
 
-        verify(appRegistry).register(metadataArgument.capture(), gaugeArgument.capture(), tagsArgument.capture());
+        verify(appRegistry).getGauges();
+        verify(appRegistry).gauge(metadataArgument.capture(), gaugeArgument.capture(), tagsArgument.capture());
         verifyNoMoreInteractions(vendorRegistry);
 
         Metadata metadata = metadataArgument.getValue();
         assertThat(metadata, is(notNullValue()));
         assertThat(metadata.getName(), is(metric.getName()));
-        assertThat(metadata.getTypeRaw(), is(MetricType.GAUGE));
 
-        Gauge<Object> gauge = gaugeArgument.getValue();
+        Supplier<Number> gauge = gaugeArgument.getValue();
         assertThat(gauge, is(notNullValue()));
-        assertThat(gauge.getValue(), is(metric.getValue()));
+        assertThat(gauge.get(), is(metric.getValue()));
 
         List<Tag> tagList = tagsArgument.getAllValues();
         assertThat(tagList, containsInAnyOrder(tags));

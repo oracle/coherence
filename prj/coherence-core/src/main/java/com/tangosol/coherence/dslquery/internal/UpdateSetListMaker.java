@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.dslquery.internal;
 
@@ -13,6 +13,7 @@ import com.tangosol.coherence.dsltools.termtrees.Term;
 
 import com.tangosol.config.expression.ParameterResolver;
 
+import com.tangosol.util.Extractors;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.ValueUpdater;
@@ -21,8 +22,8 @@ import com.tangosol.util.extractor.ChainedExtractor;
 import com.tangosol.util.extractor.CompositeUpdater;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.KeyExtractor;
-import com.tangosol.util.extractor.ReflectionExtractor;
-import com.tangosol.util.extractor.ReflectionUpdater;
+import com.tangosol.util.extractor.UniversalExtractor;
+import com.tangosol.util.extractor.UniversalUpdater;
 
 import com.tangosol.util.processor.CompositeProcessor;
 import com.tangosol.util.processor.NumberIncrementor;
@@ -172,7 +173,7 @@ public class UpdateSetListMaker
      * new Constructor():
      * The Constructor can be fully qualified or not but
      * in any case it will already be processed it's a simple call
-     * in which case it has been turned into a ReflectionExtractor
+     * in which case it has been turned into an {@link UniversalExtractor)
      * so test for it and use it.
      *
      * identifier:
@@ -201,7 +202,7 @@ public class UpdateSetListMaker
      *
      * If we ever add static imports the calls will need to be checked
      * against some Map of know static imports because the normal mechanism
-     * will make a ReflectionExtractor.
+     * will make a UniversalExtractor.
      *
      * @param term    the AST used
      * @param oValue  the Object to extract results from
@@ -253,7 +254,7 @@ public class UpdateSetListMaker
             int      nCount        = aoPath.length;
             boolean  fUseExtractor = false;
 
-            if (!(aoPath[nCount - 1] instanceof ReflectionExtractor))
+            if (!(aoPath[nCount - 1] instanceof UniversalExtractor))
                 {
                 fUseExtractor = true;
                 }
@@ -261,7 +262,7 @@ public class UpdateSetListMaker
                 {
                 for (int i = 0; i < nCount - 1; i++)
                     {
-                    if (aoPath[i] instanceof ReflectionExtractor)
+                    if (aoPath[i] instanceof UniversalExtractor)
                         {
                         fUseExtractor = true;
                         break;
@@ -531,13 +532,13 @@ public class UpdateSetListMaker
                     break;
 
                 default :
-                    setResult(asReflectionExtractor(sFunctionName, aObjects));
+                    setResult(asUniversalExtractor(sFunctionName, aObjects));
                     break;
                 }
             }
         else
             {
-            setResult(asReflectionExtractor(sFunctionName, aObjects));
+            setResult(asUniversalExtractor(sFunctionName, aObjects));
             }
         }
 
@@ -559,22 +560,22 @@ public class UpdateSetListMaker
     // ----- helper methods  -------------------------------------------------
 
     /**
-     * Create a {@link ReflectionExtractor} with the specified method name
+     * Create am {@link UniversalExtractor} with the specified method name
      * and optionally the specified method parameters.
      *
-     * @param sFunction the name of the method to use in the ReflectionExtractor
-     * @param aoArgs    the parameters to use in the ReflectionExtractor, may be null
+     * @param sFunction the name of the method to use in the UniversalExtractor
+     * @param aoArgs    the parameters to use in the UniversalExtractor, may be null
      *
-     * @return a ReflectionExtractor with the specified method name and optional parameters
+     * @return a UniversalExtractor with the specified method name and optional parameters
      */
-    private ReflectionExtractor asReflectionExtractor(String sFunction, Object[] aoArgs)
+    private UniversalExtractor asUniversalExtractor(String sFunction, Object[] aoArgs)
         {
         if (aoArgs == null || aoArgs.length == 0)
             {
-            return new ReflectionExtractor(sFunction);
+            return new UniversalExtractor(sFunction + UniversalExtractor.METHOD_SUFFIX);
             }
 
-        return new ReflectionExtractor(sFunction, aoArgs);
+        return new UniversalExtractor<>(sFunction + UniversalExtractor.METHOD_SUFFIX, aoArgs);
         }
 
     /**
@@ -610,9 +611,9 @@ public class UpdateSetListMaker
             return (String) oValue;
             }
 
-        if (oValue instanceof ReflectionExtractor)
+        if (oValue instanceof UniversalExtractor)
             {
-            ReflectionExtractor extractor = (ReflectionExtractor) oValue;
+            UniversalExtractor extractor = (UniversalExtractor) oValue;
 
             return extractor.getMethodName();
             }
@@ -649,14 +650,14 @@ public class UpdateSetListMaker
 
         if (oValue instanceof String)
             {
-            return new ReflectionUpdater(f_propertyBuilder.updaterStringFor((String) oValue));
+            return new UniversalUpdater(f_propertyBuilder.updaterStringFor((String) oValue));
             }
 
-        if (oValue instanceof ReflectionExtractor)
+        if (oValue instanceof UniversalExtractor)
             {
-            ReflectionExtractor extractor = (ReflectionExtractor) oValue;
+            UniversalExtractor extractor = (UniversalExtractor) oValue;
 
-            return new ReflectionUpdater(extractor.getMethodName());
+            return new UniversalUpdater(extractor.getMethodName());
             }
 
         if (oValue instanceof ValueUpdater)
@@ -692,7 +693,7 @@ public class UpdateSetListMaker
         {
         if (oValue instanceof String)
             {
-            return new ReflectionExtractor(f_propertyBuilder.extractorStringFor((String) oValue));
+            return Extractors.extract(f_propertyBuilder.extractorStringFor((String) oValue));
             }
 
         if (oValue instanceof ValueExtractor)

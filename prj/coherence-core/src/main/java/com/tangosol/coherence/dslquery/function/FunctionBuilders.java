@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.dslquery.function;
 
@@ -37,6 +37,7 @@ import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.KeyExtractor;
 import com.tangosol.util.extractor.PofExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
+import com.tangosol.util.extractor.UniversalExtractor;
 
 /**
  * This class contains a number of {@link ParameterizedBuilder}
@@ -307,6 +308,14 @@ public final class FunctionBuilders
             protected ValueExtractor realizeExtractor(ValueExtractor extractorOrig)
                 {
                 Class<? extends ValueExtractor> clsExtractor = extractorOrig.getClass();
+
+                if (UniversalExtractor.class.equals(clsExtractor))
+                    {
+                    UniversalExtractor extractor = (UniversalExtractor) extractorOrig;
+
+                    return new UniversalExtractor(extractor.getMethodName() + "()", extractor.getParameters(),
+                                                   UniversalExtractor.KEY);
+                    }
 
                 if (ReflectionExtractor.class.equals(clsExtractor))
                     {

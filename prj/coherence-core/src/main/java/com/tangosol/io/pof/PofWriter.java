@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io.pof;
@@ -231,7 +231,29 @@ public interface PofWriter
     *         written to the POF stream
     * @throws IOException  if an I/O error occurs
     */
-    public void writeByteArray(int iProp, byte[] ab)
+    public default void writeByteArray(int iProp, byte[] ab)
+            throws IOException
+        {
+        writeByteArray(iProp, ab, 0, ab == null ? 0 : ab.length);
+        }
+
+    /**
+     * Write {@code cb} bytes of the specified <tt>byte[]</tt> to the POF stream,
+     * starting from offset {@code of}.
+     *
+     * @param iProp  the property index
+     * @param ab     the <tt>byte[]</tt> property value to write
+     * @param of     the offset to write from
+     * @param cb     the number of bytes to write
+     *
+     * @throws IllegalArgumentException  if the property index is invalid, or
+     *         is less than or equal to the index of the previous property
+     *         written to the POF stream
+     * @throws IOException  if an I/O error occurs
+     *
+     * @since 24.09
+     */
+    public void writeByteArray(int iProp, byte[] ab, int of, int cb)
             throws IOException;
 
     /**
@@ -245,7 +267,31 @@ public interface PofWriter
     *         written to the POF stream
     * @throws IOException  if an I/O error occurs
     */
-    public void writeCharArray(int iProp, char[] ach)
+    public default void writeCharArray(int iProp, char[] ach)
+            throws IOException
+        {
+        writeCharArray(iProp, ach, false);
+        }
+
+    /**
+     * Write a <tt>char[]</tt> property to the POF stream.
+     *
+     * @param iProp  the property index
+     * @param ach    the <tt>char[]</tt> property value to write
+     * @param fRaw   the flag specifying whether to write raw bytes for the array
+     *               instead of encoding individual elements; raw encoding will
+     *               typically perform better, but it may not be portable, so it
+     *               should only be used if serialization format portability is
+     *               not required
+     *
+     * @throws IllegalArgumentException  if the property index is invalid, or
+     *         is less than or equal to the index of the previous property
+     *         written to the POF stream
+     * @throws IOException  if an I/O error occurs
+     *
+     * @since 24.09
+     */
+    public void writeCharArray(int iProp, char[] ach, boolean fRaw)
             throws IOException;
 
     /**
@@ -259,7 +305,31 @@ public interface PofWriter
     *         written to the POF stream
     * @throws IOException  if an I/O error occurs
     */
-    public void writeShortArray(int iProp, short[] an)
+    public default void writeShortArray(int iProp, short[] an)
+            throws IOException
+        {
+        writeShortArray(iProp, an, false);
+        }
+
+    /**
+     * Write a <tt>short[]</tt> property to the POF stream.
+     *
+     * @param iProp  the property index
+     * @param an     the <tt>short[]</tt> property value to write
+     * @param fRaw   the flag specifying whether to write raw bytes for the array
+     *               instead of encoding individual elements; raw encoding will
+     *               typically perform better, but it may not be portable, so it
+     *               should only be used if serialization format portability is
+     *               not required
+     *
+     * @throws IllegalArgumentException  if the property index is invalid, or
+     *         is less than or equal to the index of the previous property
+     *         written to the POF stream
+     * @throws IOException  if an I/O error occurs
+     *
+     * @since 24.09
+     */
+    public void writeShortArray(int iProp, short[] an, boolean fRaw)
             throws IOException;
 
     /**
@@ -273,7 +343,31 @@ public interface PofWriter
     *         written to the POF stream
     * @throws IOException  if an I/O error occurs
     */
-    public void writeIntArray(int iProp, int[] an)
+    public default void writeIntArray(int iProp, int[] an)
+            throws IOException
+        {
+        writeIntArray(iProp, an, false);
+        }
+
+    /**
+     * Write a <tt>int[]</tt> property to the POF stream.
+     *
+     * @param iProp  the property index
+     * @param an     the <tt>int[]</tt> property value to write
+     * @param fRaw   the flag specifying whether to write raw bytes for the array
+     *               instead of encoding individual elements; raw encoding will
+     *               typically perform better, but it may not be portable, so it
+     *               should only be used if serialization format portability is
+     *               not required
+     *
+     * @throws IllegalArgumentException  if the property index is invalid, or
+     *         is less than or equal to the index of the previous property
+     *         written to the POF stream
+     * @throws IOException  if an I/O error occurs
+     *
+     * @since 24.09
+     */
+    public void writeIntArray(int iProp, int[] an, boolean fRaw)
             throws IOException;
 
     /**
@@ -287,7 +381,31 @@ public interface PofWriter
     *         written to the POF stream
     * @throws IOException  if an I/O error occurs
     */
-    public void writeLongArray(int iProp, long[] an)
+    public default void writeLongArray(int iProp, long[] an)
+            throws IOException
+        {
+        writeLongArray(iProp, an, false);
+        }
+
+    /**
+     * Write a <tt>long[]</tt> property to the POF stream.
+     *
+     * @param iProp  the property index
+     * @param al     the <tt>long[]</tt> property value to write
+     * @param fRaw   the flag specifying whether to write raw bytes for the array
+     *               instead of encoding individual elements; raw encoding will
+     *               typically perform better, but it may not be portable, so it
+     *               should only be used if serialization format portability is
+     *               not required
+     *
+     * @throws IllegalArgumentException  if the property index is invalid, or
+     *         is less than or equal to the index of the previous property
+     *         written to the POF stream
+     * @throws IOException  if an I/O error occurs
+     *
+     * @since 24.09
+     */
+    public void writeLongArray(int iProp, long[] al, boolean fRaw)
             throws IOException;
 
     /**
@@ -301,7 +419,31 @@ public interface PofWriter
     *         written to the POF stream
     * @throws IOException  if an I/O error occurs
     */
-    public void writeFloatArray(int iProp, float[] afl)
+    public default void writeFloatArray(int iProp, float[] afl)
+            throws IOException
+        {
+        writeFloatArray(iProp, afl, false);
+        }
+
+    /**
+     * Write a <tt>float[]</tt> property to the POF stream.
+     *
+     * @param iProp  the property index
+     * @param afl    the <tt>float[]</tt> property value to write
+     * @param fRaw   the flag specifying whether to write raw bytes for the array
+     *               instead of encoding individual elements; raw encoding will
+     *               typically perform better, but it may not be portable, so it
+     *               should only be used if serialization format portability is
+     *               not required
+     *
+     * @throws IllegalArgumentException  if the property index is invalid, or
+     *         is less than or equal to the index of the previous property
+     *         written to the POF stream
+     * @throws IOException  if an I/O error occurs
+     *
+     * @since 24.09
+     */
+    public void writeFloatArray(int iProp, float[] afl, boolean fRaw)
             throws IOException;
 
     /**
@@ -315,7 +457,31 @@ public interface PofWriter
     *         written to the POF stream
     * @throws IOException  if an I/O error occurs
     */
-    public void writeDoubleArray(int iProp, double[] adfl)
+    public default void writeDoubleArray(int iProp, double[] adfl)
+            throws IOException
+        {
+        writeDoubleArray(iProp, adfl, false);
+        }
+
+    /**
+     * Write a <tt>double[]</tt> property to the POF stream.
+     *
+     * @param iProp  the property index
+     * @param adfl   the <tt>double[]</tt> property value to write
+     * @param fRaw   the flag specifying whether to write raw bytes for the array
+     *               instead of encoding individual elements; raw encoding will
+     *               typically perform better, but it may not be portable, so it
+     *               should only be used if serialization format portability is
+     *               not required
+     *
+     * @throws IllegalArgumentException  if the property index is invalid, or
+     *         is less than or equal to the index of the previous property
+     *         written to the POF stream
+     * @throws IOException  if an I/O error occurs
+     *
+     * @since 24.09
+     */
+    public void writeDoubleArray(int iProp, double[] adfl, boolean fRaw)
             throws IOException;
 
 

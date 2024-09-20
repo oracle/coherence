@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce.tests</groupId>
+    <artifactId>coherence-distribution-tests</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>grpc-compatibility</artifactId>
+  <name>Coherence gRPC Backward Compatibility Tests</name>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>grpc-compatibility-core</module>
+    <module>grpc-ce-22.06</module>
+    <module>grpc-ce-latest</module>
+    <module>grpc-ce-main</module>
+  </modules>
+
+  <properties>
+    <coherence.compatability.version/>
+    <coherence.compatability.allow.snapshots/>
+    <coherence.compatability.groupId/>
+    <coherence.compatability.minJavaVersion/>
+    <coherence.compatability.maxJavaVersion/>
+
+    <maven.home.dir>${env.MAVEN_HOME}</maven.home.dir>
+    <coherence.compatability.settings>${maven.home.dir}/conf/settings.xml</coherence.compatability.settings>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${maven.failsafe.plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <dependenciesToScan>
+            <dependency>${coherence.group.id}.tests:grpc-compatibility-core</dependency>
+          </dependenciesToScan>
+          <systemProperties>
+              <coherence.compatability.groupId>${coherence.compatability.groupId}</coherence.compatability.groupId>
+              <coherence.compatability.version>${coherence.compatability.version}</coherence.compatability.version>
+              <coherence.compatability.allow.snapshots>${coherence.compatability.allow.snapshots}</coherence.compatability.allow.snapshots>
+              <coherence.compatability.settings>${coherence.compatability.settings}</coherence.compatability.settings>
+              <coherence.compatability.minJavaVersion>${coherence.compatability.minJavaVersion}</coherence.compatability.minJavaVersion>
+              <coherence.compatability.maxJavaVersion>${coherence.compatability.maxJavaVersion}</coherence.compatability.maxJavaVersion>
+          </systemProperties>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>security-manager</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <property>
+          <name>test.security.enabled</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>code-coverage</id>
+      <activation>
+        <property>
+          <name>code.coverage.enabled</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

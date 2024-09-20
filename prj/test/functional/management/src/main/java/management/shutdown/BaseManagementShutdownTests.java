@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -315,7 +315,12 @@ public abstract class BaseManagementShutdownTests {
             List<Map> services = (List<Map>) mapServicesResponse.get("items");
             assertThat(services, notNullValue());
             services.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
-            return services.size();
+            // Occasionally, the metrics service may be on the other server.
+            String serviceNames = services.stream().map(p -> (String) p.get("name"))
+                    .collect(Collectors.joining(","));
+            Base.log("The following " + services.size() + " services exist: " + serviceNames);
+            Base.log("The following " + SERVICES_LIST.length + " services expected: " + String.join(",", SERVICES_LIST));
+            return serviceNames.contains(MetricsHttpHelper.getServiceName()) ? services.size() : services.size() + 1;
         }, is(EXPECTED_SERVICE_COUNT), within(5, TimeUnit.MINUTES));
     }
 
@@ -429,7 +434,7 @@ public abstract class BaseManagementShutdownTests {
         propsServer1.add(SystemProperty.of("test.server.name", SERVER_PREFIX + -1));
         propsServer1.add(SystemProperty.of("coherence.management.http", "inherit"));
         propsServer1.add(SystemProperty.of("coherence.management.readonly", Boolean.toString(isReadOnly())));
-        propsServer1.add(SystemProperty.of("coherence.management.http.port", 0));
+        propsServer1.add(SystemProperty.of("coherence.management.http.override-port", 0));
         propsServer1.add(SystemProperty.of("coherence.management.http.cluster", sClusterName));
         propsServer1.add(SystemProperty.of("coherence.override", "tangosol-coherence-override-mgmt.xml"));
         propsServer1.add(SystemProperty.of("test.persistence.active.dir", m_dirActive.getAbsolutePath()));
@@ -458,6 +463,7 @@ public abstract class BaseManagementShutdownTests {
         propsServer2.add(SystemProperty.of("coherence.role", SERVER_PREFIX + "-2"));
         propsServer2.add(SystemProperty.of("test.server.name", SERVER_PREFIX + "-2"));
         propsServer2.add(SystemProperty.of("coherence.metrics.http.enabled", "true"));
+        propsServer2.add(SystemProperty.of("coherence.metrics.http.port", "0"));
         builder.include(1, CoherenceClusterMember.class, beforeLaunch.apply(propsServer2).asArray());
 
         s_cluster = builder.build(LocalPlatform.get());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,8 +7,13 @@
 
 package micrometer;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.micrometer.CoherenceMicrometerMetrics;
+
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.DefaultCacheServer;
+import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.metrics.MBeanMetric;
 
@@ -40,6 +45,12 @@ public class CoherenceMicrometerMetricsIT
     static void startCoherence()
         {
         s_prometheusRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+
+        s_prometheusRegistry.config().onMeterRegistrationFailed((id, err) ->
+            {
+            Logger.err("Registration of " + id + " failed with registry " + s_prometheusRegistry + ": " + err);
+            });
+
         CoherenceMicrometerMetrics.INSTANCE.bindTo(s_prometheusRegistry);
 
         DefaultCacheServer.startServerDaemon()
@@ -49,6 +60,14 @@ public class CoherenceMicrometerMetricsIT
     @Test
     public void shouldHaveAllMetricsWithSamePrometheusNameAsCoherenceMetrics()
         {
+        // create and populate a cache so that there will be cache metrics
+        NamedCache foo = CacheFactory.getCache("foo");
+
+        for (int i = 0; i < 100; ++i)
+            {
+            foo.put(i,i);
+            }
+
         SortedSet<String> setExpected = new TreeSet<>();
         SortedSet<String> setActual   = new TreeSet<>();
 
@@ -62,7 +81,11 @@ public class CoherenceMicrometerMetricsIT
             StringBuilder str = new StringBuilder(sName);
             for (Map.Entry<String, String> entry : holder.getIdentifier().getPrometheusTags().entrySet())
                 {
-                str.append(" ").append(entry.getKey()).append("=").append(entry.getValue());
+                String sKey = entry.getKey();
+                if(!CoherenceMicrometerMetrics.NAME_TAG_EXCLUDES.contains(sKey))
+                    {
+                    str.append(" ").append(sKey).append("=").append(entry.getValue());
+                    }
                 }
             setExpected.add(str.toString());
             }

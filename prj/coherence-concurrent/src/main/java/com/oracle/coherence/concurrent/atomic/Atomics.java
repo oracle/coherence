@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -463,8 +463,8 @@ public final class Atomics
         /**
          * See {@link com.oracle.coherence.concurrent.atomic.AtomicStampedReference}
          *
-         * @param initialRef    {@inheritDoc}
-         * @param initialStamp  {@inheritDoc}
+         * @param initialRef    the initial reference
+         * @param initialStamp  the initial stamp
          */
         public SerializableAtomicStampedReference(V initialRef, int initialStamp)
             {
@@ -515,8 +515,8 @@ public final class Atomics
         /**
          * See {@link com.oracle.coherence.concurrent.atomic.AtomicMarkableReference}
          *
-         * @param initialRef   {@inheritDoc}
-         * @param initialMark  {@inheritDoc}
+         * @param initialRef   the initial reference
+         * @param initialMark  the initial mark
          */
         public SerializableAtomicMarkableReference(V initialRef, boolean initialMark)
             {

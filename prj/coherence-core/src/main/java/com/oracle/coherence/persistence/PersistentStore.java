@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.persistence;
 
@@ -127,6 +127,17 @@ public interface PersistentStore<R>
     public R load(long lExtentId, R key);
 
     /**
+     * Return true if the specified extend identifer exist.
+     *
+     * @param lExtentId  the extent identifier
+     *
+     * @return true if the specified extend identifer exist
+     *
+     * @since 24.09
+     */
+    public boolean containsExtent(long lExtentId);
+
+    /**
      * Store the specified value under the specific key in the underlying
      * store. This method is intended to support both key-value pair creation
      * and value update for a specific key.
@@ -166,6 +177,15 @@ public interface PersistentStore<R>
      * @param visitor  the visitor to apply
      */
     public void iterate(Visitor<R> visitor);
+
+    /**
+     * Return true if the store is open.
+     *
+     * @return true if the store is open
+     *
+     * @since 24.09
+     */
+    public boolean isOpen();
 
     // ----- transaction demarcation ----------------------------------------
 

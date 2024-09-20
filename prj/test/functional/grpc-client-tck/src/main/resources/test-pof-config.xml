@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<pof-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
+        xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">
+    <user-type-list>
+        <!-- by default just include coherence POF user types -->
+        <include>coherence-pof-config.xml</include>
+
+        <user-type>
+            <type-id>2001</type-id>
+            <class-name>grpc.client.Person</class-name>
+        </user-type>
+
+        <user-type>
+            <type-id>2002</type-id>
+            <class-name>grpc.client.Uppercase</class-name>
+        </user-type>
+
+        <user-type>
+            <type-id>2003</type-id>
+            <class-name>grpc.client.PersonMapTrigger</class-name>
+        </user-type>
+
+        <user-type>
+            <type-id>2005</type-id>
+            <class-name>grpc.client.UnusableAggregator</class-name>
+        </user-type>
+
+        <user-type>
+            <type-id>2006</type-id>
+            <class-name>grpc.client.TestAssociatedKey</class-name>
+        </user-type>
+
+        <user-type>
+            <type-id>2007</type-id>
+            <class-name>grpc.client.TestPartitionKey</class-name>
+        </user-type>
+
+        <user-type>
+            <type-id>2008</type-id>
+            <class-name>grpc.client.GetEntryPartition</class-name>
+        </user-type>
+
+        <user-type>
+            <type-id>2009</type-id>
+            <class-name>grpc.client.GetEntryExpiry</class-name>
+        </user-type>
+
+    </user-type-list>
+</pof-config>

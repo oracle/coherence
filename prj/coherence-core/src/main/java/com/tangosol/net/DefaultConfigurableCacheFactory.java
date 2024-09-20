@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -117,7 +117,7 @@ import java.util.WeakHashMap;
 * <p>
 * <strong>Developers are strongly encouraged to refactor the implementations that depend
 * on this class to use the extension mechanisms prescribed
-* by the the {@link ExtensibleConfigurableCacheFactory}.</strong>
+* by the {@link ExtensibleConfigurableCacheFactory}.</strong>
 * <p>
 * <strong>At some point in the future this class will be removed.  No further development
 * or enhancement of this class will occur going forward.</strong>

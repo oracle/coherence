@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service.grid;
 
@@ -12,6 +12,8 @@ import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.config.builder.ActionPolicyBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.coherence.config.builder.PartitionAssignmentStrategyBuilder;
+
+import com.tangosol.coherence.config.scheme.ServiceScheme;
 
 import com.tangosol.config.annotation.Injectable;
 
@@ -58,7 +60,8 @@ public class DefaultPartitionedServiceDependencies
 
         if (deps == null)
             {
-            setWorkerThreadCountMin(1); // enable auto-sizing pool by default
+            // try to default to available processors to avoid expensive initial auto-sizing
+            setWorkerThreadCountMin(Runtime.getRuntime().availableProcessors());
             }
         else
             {
@@ -400,6 +403,40 @@ public class DefaultPartitionedServiceDependencies
                 + ", PersistenceDependencies="            + getPersistenceDependencies()
                 + "}";
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * System property used to globally configure default distributed service partition count.
+     * Setting this property overrides {@code partition-count} element configured in cache configuration file.
+     *
+     *  @since 24.09
+     */
+    public static final String PROP_DEFAULT_SERVICE_PARTITIONS = "coherence.service.partitions";
+
+    /**
+     * System property used to configure a specified scoped service's distributed partition count.
+     * Setting this property overrides {@code partition-count} element configured in cache configuration file
+     * and the {#link #DEFAULT_SERVICE_PARTITIONS}.
+     * <p>
+     * The string parameter {@code %s} for this string is a processed scoped service name,
+     * replacing occurrences of {@link ServiceScheme#DELIM_DOMAIN_PARTITION}
+     * and {@link ServiceScheme#DELIM_APPLICATION_SCOPE} with character period.
+     * <p>
+     * Note: this property is ignored if the scoped service is not a distributed service.
+     *
+     *  @since 24.09
+     */
+    public static final String PROP_SERVICE_PARTITIONS = "coherence.service.%s.partitions";
+
+    /**
+     * Default distributed service partition count is initialized by system property {@link #PROP_DEFAULT_SERVICE_PARTITIONS}.
+     * Defaults to -1 if property is not explicitly set to indicate to use {@code distributed-scheme}'s {@code partition-count}
+     * child element setting from cache configuration file.
+     *
+     *  @since 24.09
+     */
+    public static final int DEFAULT_SERVICE_PARTITIONS = Config.getInteger(PROP_DEFAULT_SERVICE_PARTITIONS, -1);
 
     // ----- data members ---------------------------------------------------
 

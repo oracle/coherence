@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml.processor;
 
@@ -30,6 +30,7 @@ import com.tangosol.util.SimpleResourceRegistry;
 import com.oracle.coherence.testing.SystemPropertyResource;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 import java.net.URISyntaxException;
@@ -99,7 +100,7 @@ public class SocketProvidersProcessorTest
                 {
                 SSLSocketProvider sslProvider = (SSLSocketProvider) provider;
                 SSLSocketProvider.Dependencies sslDeps = sslProvider.getDependencies();
-                assertTrue(sslDeps.isClientAuthenticationRequired());
+                assertThat(sslDeps.getClientAuth(), is(SSLSocketProvider.ClientAuthMode.required));
                 assertNotNull(sslDeps.getDelegateSocketProvider());
                 }
 

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.common.internal.net.ssl;
@@ -644,7 +644,7 @@ public class SSLSocketChannel
 
 
     /**
-    * Called to terminate or accept termination of the the connection.
+    * Called to terminate or accept termination of the connection.
     *
     * If the caller passes <code>true</code> to this method, it is the caller's responsibility
     * to wrap this call within a {@link Timer} block.
@@ -989,9 +989,10 @@ public class SSLSocketChannel
                 key.interestProtocol(fWrite ? SelectionKey.OP_WRITE : 0, 0);
                 }
             }
-        catch (CancelledKeyException e) {}
+        catch (CancelledKeyException ignored) {}
 
-        if (!m_fValidated && f_engine.getSession().isValid())
+        if (!m_fValidated && f_engine.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING
+                && f_engine.getSession().isValid())
             {
             validatePeer();
             m_fValidated = true;
@@ -1254,7 +1255,22 @@ public class SSLSocketChannel
             engine.setEnabledProtocols(asProtocols);
             }
 
-        engine.setNeedClientAuth(deps.isClientAuthenticationRequired());
+        switch (deps.getClientAuth())
+            {
+            case wanted:
+                engine.setNeedClientAuth(false);
+                engine.setWantClientAuth(true);
+                break;
+            case required:
+                engine.setWantClientAuth(true);
+                engine.setNeedClientAuth(true);
+                break;
+            case none:
+            default:
+                engine.setWantClientAuth(false);
+                engine.setNeedClientAuth(false);
+                break;
+            }
 
         return engine;
         }

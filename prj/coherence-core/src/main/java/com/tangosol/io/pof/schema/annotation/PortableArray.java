@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io.pof.schema.annotation;
@@ -59,4 +59,17 @@ public @interface PortableArray
      * @return element class
      */
     Class<?> elementClass() default Object.class;
+
+    /**
+     * The flag specifying that a primitive array should be encoded using raw
+     * encoding.
+     * <p>
+     * The raw encoding will typically perform better, but it may not be portable,
+     * so it should only be used if serialization format portability is not required.
+     *
+     * @return whether the array should use raw encoding
+     *
+     * @since 24.09
+     */
+    boolean useRawEncoding() default false;
     }

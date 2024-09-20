@@ -25,127 +25,7 @@ import java.util.Objects;
  * @since 22.06.4
  */
 public class AccountId
-        implements ExternalizableLite, PortableObject, KeyAssociation<CustomerId>
-    {
-    // ----- constructors ---------------------------------------------------
-
-    /**
-     * A default no-args constructor required for serialization.
-     */
-    public AccountId()
-        {
-        }
-
-    /**
-     * Create a {@link AccountId}.
-     *
-     * @param id  the id of the customer
-     */
-    public AccountId(CustomerId customerId, String id)
-        {
-        this.customerId = customerId;
-        this.id = id;
-        }
-
-    // ----- KeyAssociation methods -----------------------------------------
-
-    @Override
-    public CustomerId getAssociatedKey()
-        {
-        return customerId;
-        }
-
-    // ----- accessors ------------------------------------------------------
-
-    /**
-     * Return the id.
-     *
-     * @return  the customer id
-     */
-    public CustomerId getCustomerId()
-        {
-        return customerId;
-        }
-
-    /**
-     * Return the account id.
-     *
-     * @return  the customer id
-     */
-    public String getId()
-        {
-        return id;
-        }
-
-    // ----- Object methods -------------------------------------------------
-
-    // Coherence key classes must properly implement equals() using
-    // all the fields in the class
-    @Override
-    public boolean equals(Object o)
-        {
-        if (this == o)
-            {
-            return true;
-            }
-        if (o == null || getClass() != o.getClass())
-            {
-            return false;
-            }
-        AccountId accountId = (AccountId) o;
-        return Objects.equals(customerId, accountId.customerId) && Objects.equals(id, accountId.id);
-        }
-
-    // Coherence key classes must properly implement hashCode() using
-    // all the fields in the class
-    @Override
-    public int hashCode()
-        {
-        return Objects.hash(customerId, id);
-        }
-
-    @Override
-    public String toString()
-        {
-        return "AccountId{" +
-                "customerId=" + customerId +
-                ", id='" + id + '\'' +
-                '}';
-        }
-
-    // ----- ExternalizableLite methods -------------------------------------
-
-    @Override
-    public void readExternal(DataInput in) throws IOException
-        {
-        customerId = ExternalizableHelper.readObject(in);
-        id = ExternalizableHelper.readSafeUTF(in);
-        }
-
-    @Override
-    public void writeExternal(DataOutput out) throws IOException
-        {
-        ExternalizableHelper.writeObject(out, customerId);
-        ExternalizableHelper.writeSafeUTF(out, id);
-        }
-
-    // ----- PortableObject methods -----------------------------------------
-
-    @Override
-    public void readExternal(PofReader in) throws IOException
-        {
-        customerId = in.readObject(0);
-        id = in.readString(1);
-        }
-
-    @Override
-    public void writeExternal(PofWriter out) throws IOException
-        {
-        out.writeObject(0, customerId);
-        out.writeString(1, id);
-        }
-
-    // ----- data members ---------------------------------------------------
+        implements ExternalizableLite, PortableObject, KeyAssociation<CustomerId> {
 
     /**
      * The id of the customer.
@@ -156,4 +36,96 @@ public class AccountId
      * The id of the account.
      */
     private String id;
+
+    /**
+     * A default no-args constructor required for serialization.
+     */
+    public AccountId() {
     }
+
+    /**
+     * Create a {@link AccountId}.
+     *
+     * @param id  the id of the customer
+     */
+    public AccountId(CustomerId customerId, String id) {
+        this.customerId = customerId;
+        this.id = id;
+    }
+
+    @Override
+    public CustomerId getAssociatedKey() {
+        return customerId;
+    }
+
+    /**
+     * Return the id.
+     *
+     * @return the customer id
+     */
+    public CustomerId getCustomerId() {
+        return customerId;
+    }
+
+    /**
+     * Return the account id.
+     *
+     * @return the customer id
+     */
+    public String getId() {
+        return id;
+    }
+
+    // Coherence key classes must properly implement equals() using
+    // all the fields in the class
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        AccountId accountId = (AccountId) o;
+        return Objects.equals(customerId, accountId.customerId) && Objects.equals(id, accountId.id);
+    }
+
+    // Coherence key classes must properly implement hashCode() using
+    // all the fields in the class
+    @Override
+    public int hashCode() {
+        return Objects.hash(customerId, id);
+    }
+
+    @Override
+    public String toString() {
+        return "AccountId{" +
+               "customerId=" + customerId +
+               ", id='" + id + '\'' +
+               '}';
+    }
+
+    @Override
+    public void readExternal(DataInput in) throws IOException {
+        customerId = ExternalizableHelper.readObject(in);
+        id = ExternalizableHelper.readSafeUTF(in);
+    }
+
+    @Override
+    public void writeExternal(DataOutput out) throws IOException {
+        ExternalizableHelper.writeObject(out, customerId);
+        ExternalizableHelper.writeSafeUTF(out, id);
+    }
+
+    @Override
+    public void readExternal(PofReader in) throws IOException {
+        customerId = in.readObject(0);
+        id = in.readString(1);
+    }
+
+    @Override
+    public void writeExternal(PofWriter out) throws IOException {
+        out.writeObject(0, customerId);
+        out.writeString(1, id);
+    }
+}

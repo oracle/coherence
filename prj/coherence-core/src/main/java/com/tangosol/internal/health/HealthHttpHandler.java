@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -106,15 +106,27 @@ public class HealthHttpHandler
      */
     public Response ready(HttpRequest request)
         {
-        Logger.finest("Health: checking readiness");
-        Registry management = CacheFactory.getCluster().getManagement();
-        if (management == null)
+        Logger.log("Health: checking readiness", 9);
+        try
             {
+            Registry management = CacheFactory.getCluster().getManagement();
+            if (management == null)
+                {
+                Logger.log("Health: checking readiness failed, no management service present", 9);
+                return Response.status(503).build();
+                }
+            if (management.allHealthChecksReady())
+                {
+                return Response.ok().build();
+                }
+                Logger.log("Health: checking readiness failed, allHealthChecksReady==false", 9);
+                return Response.status(503).build();
+            }
+        catch (Exception e)
+            {
+            Logger.finer("Health: checking readiness failed: " + e.getMessage());
             return Response.status(503).build();
             }
-        return management.allHealthChecksReady()
-                ? Response.ok().build()
-                : Response.status(503).build();
         }
 
     /**
@@ -127,7 +139,7 @@ public class HealthHttpHandler
      */
     public Response live(HttpRequest request)
         {
-        Logger.finest("Health: checking liveness");
+        Logger.log("Health: checking liveness", 9);
         Registry management = CacheFactory.getCluster().getManagement();
         if (management == null)
             {
@@ -148,7 +160,7 @@ public class HealthHttpHandler
      */
     public Response started(HttpRequest request)
         {
-        Logger.finest("Health: checking started");
+        Logger.log("Health: checking started", 9);
         Registry management = CacheFactory.getCluster().getManagement();
         if (management == null)
             {
@@ -169,7 +181,7 @@ public class HealthHttpHandler
      */
     public Response safe(HttpRequest request)
         {
-        Logger.finest("Health: checking safe");
+        Logger.log("Health: checking safe", 9);
         Registry management = CacheFactory.getCluster().getManagement();
         if (management == null)
             {

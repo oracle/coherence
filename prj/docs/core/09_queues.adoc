@@ -1,0 +1,119 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Queues
+:description: Coherence Core Improvements
+:keywords: coherence, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Queues
+
+Starting with Coherence CE 24.03, Coherence supports Queues as data structure.
+The Coherence `NamedQueue` is an implementation of `java.util.Queue` and `NamedDeque` is and
+implementation of `java.util.Deque`.
+
+Coherence has two implementations of `BlockingQueue`, one is a simple size limited queue, the second is a distributed paged queue that has a much larger capacity. The simple queue is available as both a `BlockingQueue` and a double ended `BlockingDeque`. The distributed paged queue is only available as a `BlockingQueue` implementation.
+
+[IMPORTANT]
+====
+Coherence queues are mapped to caches with the same name as the queue.
+If a cache is being used for a queue the same cache must not also be used as a normal data cache.
+====
+
+=== Blocking Queue
+
+The Coherence Concurrent module contains an implementation of `java.util.concurrent.BlockingQueue` called `NamedBlockingQueue` and an implementation of `java.util.concurrent.BlockingDeque` called `NamedBlockingDeque`.
+
+To use the Coherence blocking queue or deque in your application you need to add a dependency on
+the `coherence-concurrent` module.
+
+[source,xml,subs="attributes+"]
+----
+    <dependency>
+        <groupId>{coherence-maven-group-id}</groupId>
+        <artifactId>coherence-concurrent</artifactId>
+        <version>{version-coherence-maven}</version>
+    </dependency>
+----
+
+The blocking queue implementations work by using Coherence events. When application code calls a blocking method, the calling thread will be blocked, the blocking is not on the server. The application code will become unblocked when it receives an event from the server.
+
+For example, if application code calls the `NamedBlockingQueue` `take()` method, and the queue is empty, this method will block the calling thread. When an element is put into the queue by another thread (maybe on another JVM) the calling application will receive an event. This will retry the `take()` and if successful will return. If the retry of the `take()` is unsuccessful the calling thread remains blocked (for example another thread or another JVM was also blocked taking from the same queue and managed to get its retry in first.
+
+Another example would be an application calling `NamedBlockingQueue` `put()` method, which will block when the queue is full (i.e. reaches the 2GB size limit). In this case the calling thread will be blocked until a delete event is received to signal that there is now space in the queue. The `put()` will be retried and if successful control returned to the calling thread. If the retry is unsuccessful the thread will remain blocked (for example another thread or JVM was also blocked on a `put()` and its retry succeeded and refilled the queue).
+
+To obtain an instance of a blocking queue use the `com.oracle.coherence.concurrent.Queues` factory class.
+
+==== Simple Size Limited Queue and Deque
+
+This implementation of a queue does not scale the same way as a Coherence cache or a Coherence topic does. In the current queue implementation, all the data for the queue is stored in a single Coherence partition. This means that the total size of the elements in a single queue instance cannot be larger than 2GB. This is a limitation of Coherence where a partition for a cache cannot exceed 2GB, as that is the limit of the buffer size used to transfer data between cluster members. If Coherence queues allowed a partition to grow over 2GB, the queue would work fine up to the point where Coherence needed to transfer that partition to a new member on fail-over, at that point data would be lost.
+
+The Coherence server will refuse to accept offers to the queue if its size will exceed 2GB.
+The `java.util.Queue` contact allows for queues to reject offers, so this size limitation conforms to the queue contract. Application developers should check the response from offering data to the queue to determine whether the offer has succeeded or not.
+We use the term "offer" here to cover all queue and deque methods that add data to the queue.
+An alternative to checking the return boolean from an `offer()` call would be to use a `NamedBlockingQueue` where the `put()` method will block if the queue is full,
+
+To obtain an instance of the simple size limited queue from the `Queues` factory class there are two methods, dependeing on whether a queue or deque is required.
+
+For example to obtain a `BlockingQueue` named "my-queue":
+
+[source,java]
+----
+NamedBlockingQueue<String> queue = Queues.queue("my-queue");
+----
+
+For example to obtain a `BlockingDeque` named "my-deque":
+
+[source,java]
+----
+NamedBlockingDeque<String> queue = Queues.deque("my-deque");
+----
+
+==== Distributed Paged Queue
+
+To obtain an instance of a distributed paged queue, from the `Queues` factory class use the `pagedQueue` method.
+
+[source,java]
+----
+NamedBlockingQueue<String> queue = Queues.pagedQueue("my-queue");
+----
+
+== Sizing Queues
+
+It is important to understand how the two Coherence queue implementations store data and how this limits the size of a queue.
+
+Simple Coherence Queue – the simple queue (and deque) implementation stores data in a single Coherence cache partition. This enforces a size limit of 2GB because a Coherence cache partition should not exceed 2GB in size, and in reality, a partition should be a lot smaller than this. Large partitions slow down recovery when a storage enabled member leaves the cluster. With a modern fast network 300Mb – 500MB should be a suitable maximum partition size, on a 10Gb network this could even go as high as 1GB.
+
+The distributed paged queue stores data in pages that are distributed around the Coherence cluster over multiple partitions, the same as normal cache data. This means that the paged queue can store far more than 2GB. It is still important to be aware of how partition sizes limit the total queue size.
+
+The absolute hard limit of 2GB per partition give the following size:
+
+2GB x 257 = 514GB
+
+But this is far too big to be reliable in production use. If we take a size limit of 500MB and the default partition count of 257 we can see how this affects queue size.
+
+500MB x 257 = 128GB
+
+So, by default a realistic limit for a paged queue is around 128GB. If the partition count is increased to 1087 the queue size becomes:
+
+500MB x 1087 = 543GB
+
+Of course, all these examples assume that there are enough JVMs with big enough heap sizes in the cluster to store the queue data in memory.
+
+== Limitations
+
+The current queue implementation in Coherence has some limitations detailed below.
+
+
+In normal operation queues should not get huge, this would usually mean that the processes reading from the queue are not keeping up with the processes writing to the queue. Application developers should obviously load test their applications using queues to ensure that they are not going to have issues with capacity.
+
+Queue operations such as offering and polling will contend on certain data structures and this will limit the number of parallel requests and how fast requests can be processed. In order to maintain ordering, polling contends on either the head or tail entry, depending on which end of the queue is being polled. This means that poll methods can only be processed sequentially, so even though a poll is efficient and fast, a large number of concurrent poll requests will queue and be processed one at a time. Offer methods do not contend on the head or tail, but will contend on the atomic counters used to maintain the head and tail identifiers. So, whilst Coherence can process multiple offer requests on different worker threads, there will be minor contention on the `AtomicLong` updates.
+
+Queue operations that work on the head and tail such as offering and polling are efficient. Some of the other methods in `java.util.Queue` and `java.util.Deque` are less efficient. For example, iterator methods, `contains()` and so on. These are not frequently used by applications that require basic queue functionality. Some optional methods on the `java.util.Queue` API that mutate the queue will throw UnsupportedOperationException (this is allowed by the Java Queue contract), for example `retainAll()`, `removeAll()`, and removal using an iterator.
+
+
+

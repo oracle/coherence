@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,7 @@ import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicPublisher;
 import com.tangosol.internal.net.topic.impl.paged.model.Page;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
@@ -42,18 +43,22 @@ public class PublishMessages
         m_nChannel   = nChannel;
         }
 
+    public PublishMessages withChannelCount(int cChannel)
+        {
+        m_nChannelCount = cChannel;
+        return this;
+        }
+
     @Override
     public Void call() throws Exception
         {
-        Logger.info("PublishMessages callable starting: Populating topic " + m_sTopicName + " with " + m_cMessage + " messages");
+        Logger.info("PublishMessages callable starting: Populating topic "
+                + m_sTopicName + " with " + m_cMessage + " messages (channel count is "  + m_nChannelCount + ")");
+
         Session                   session = Coherence.getInstance().getSession();
         NamedTopic<String>        topic   = session.getTopic(m_sTopicName);
-        Publisher.OrderBy<Object> orderBy = m_nChannel >= 0
-                ? Publisher.OrderBy.id(m_nChannel)
-                : Publisher.OrderBy.roundRobin();
 
-
-        try (Publisher<String> publisher = topic.createPublisher(orderBy))
+        try (Publisher<String> publisher = createPublisher(topic))
             {
             CompletableFuture<?>[] aFuture = new CompletableFuture[m_cMessage];
             for (int i = 0; i < m_cMessage; i++)
@@ -75,10 +80,27 @@ public class PublishMessages
             return null;
             }
         }
+
+    @SuppressWarnings("unchecked")
+    private Publisher<String> createPublisher(NamedTopic<String> topic)
+        {
+        Publisher.OrderBy<Object> orderBy = m_nChannel >= 0
+                ? Publisher.OrderBy.id(m_nChannel)
+                : Publisher.OrderBy.roundRobin();
+
+        if (m_nChannelCount > 0)
+            {
+            Logger.info("Creating publisher for topic " + topic.getName() + " with channel count " + m_nChannelCount);
+            return topic.createPublisher(orderBy, PagedTopicPublisher.ChannelCount.of(m_nChannelCount));
+            }
+        return topic.createPublisher(orderBy);
+        }
     
     private final String m_sTopicName;
 
     private final int m_cMessage;
     
     private final int m_nChannel;
+
+    private int m_nChannelCount = 0;
     }

@@ -1,18 +1,20 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util.graal;
 
 import com.tangosol.util.ScriptException;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.ServiceLoader;
+
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import java.util.stream.Collectors;
 
@@ -30,7 +32,7 @@ import org.graalvm.polyglot.Value;
  * ScriptManager maintains a singleton Graal {@link Context} that is configured
  * by calling {@link ScriptHandler#configure(Context.Builder)} on each of the
  * registered handlers and then initialized by calling
- * {@link ScriptHandler#initContext(Context)} on each of the registered handlers.
+ * {@link ScriptHandler#init(Context)} on each of the registered handlers.
  *
  * @author mk 2019.07.26
  * @since 14.1.1.0
@@ -55,14 +57,14 @@ public class ScriptManager
         Context.Builder builder = Context.newBuilder()
                 .allowAllAccess(true)
                 .allowHostAccess(HostAccess.ALL)
-                .allowPolyglotAccess(PolyglotAccess.ALL);
+                .allowPolyglotAccess(PolyglotAccess.ALL)
+                .allowExperimentalOptions(true);
 
         // Pass the {@code Context.Builder} so that each handler
         // can configure it (by adding Options)
         for (ScriptHandler handler : f_handlers.values())
             {
             handler.configure(builder);
-            m_onReadyCalled.put(handler.getLanguage(), false);
             }
 
         f_context = builder.build();
@@ -71,7 +73,7 @@ public class ScriptManager
         // they have a chance to initialize it (by adding bindings)
         for (ScriptHandler handler : f_handlers.values())
             {
-            handler.initContext(f_context);
+            handler.init(f_context);
             }
         }
 
@@ -95,14 +97,14 @@ public class ScriptManager
     public Collection<String> getSupportedLanguages()
         {
         return f_handlers.values().stream()
-                .map(h -> h.getLanguage())
+                .map(ScriptHandler::getLanguage)
                 .collect(Collectors.toCollection(HashSet::new));
         }
 
     /**
      * Lookup the object that is implemented in the specified {@code language}
      * that is bound to the {@link Context} using the specified name and execute
-     * it using the the specified {@code args}.
+     * it using the specified {@code args}.
      *
      * If the result of the evaluation is a {@code Value} can be instantiated
      * it is instantiated and the resulting instance is returned. For example,
@@ -128,17 +130,13 @@ public class ScriptManager
      */
     public Value execute(String sLanguage, String sName, Object... aoArgs)
         {
-        // Check and load scripts for the specified language. This is an
-        // optimization that lazily loads startup scripts only when a script
-        // for the specified language needs to be evaluated.
-        checkAndLoadStartupScripts(sLanguage);
         try
             {
             Value value = f_context.getBindings(sLanguage).getMember(sName);
 
             if (value == null)
                 {
-                throw new ScriptException("no object with name (" + sName + ") bound to the Context");
+                throw new ScriptException("Value '" + sName + "' is not bound to the context");
                 }
 
             if (value.canInstantiate())
@@ -178,42 +176,6 @@ public class ScriptManager
         throw new IllegalArgumentException("Unknown language: " + sLanguage);
         }
 
-    /**
-     * Execute the specified script with the specified arguments and return
-     * the result.
-     *
-     * @param sLanguage    the language in which the script is implemented
-     * @param sScriptPath  the path to the script
-     *
-     * @return the result of evaluating the specified script
-     *
-     * @throws ScriptException if any exception occurs while evaluating
-     *         the specified script
-     */
-    public Value evaluateScript(String sLanguage, String sScriptPath)
-            throws ScriptException
-        {
-        return getHandler(sLanguage).evaluateScript(sScriptPath);
-        }
-
-    // ----- helpers ---------------------------------------------------------
-
-    private void checkAndLoadStartupScripts(String sLanguage)
-        {
-        if (!m_onReadyCalled.get(sLanguage))
-            {
-            ScriptHandler handler = f_handlers.get(sLanguage);
-            if (handler == null)
-                {
-                throw new ScriptException("Unsupported language: " + sLanguage);
-                }
-            handler.onReady(f_context);
-
-            // Mark the onReady status to be true.
-            m_onReadyCalled.put(sLanguage, true);
-            }
-        }
-
     // ----- ScriptManager ---------------------------------------------------
 
     /**
@@ -241,11 +203,5 @@ public class ScriptManager
     /**
      * A {@link Map} of language name to {@link ScriptHandler}.
      */
-    private final Map<String, ScriptHandler> f_handlers = new HashMap<>();
-
-    /**
-     * A flag to indicate if the onReady method for a handler for the
-     * supported languages has been called.
-     */
-    private final Map<String, Boolean> m_onReadyCalled = new HashMap<>();
+    private final ConcurrentMap<String, ScriptHandler> f_handlers = new ConcurrentHashMap<>();
     }

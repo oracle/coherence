@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.scheme;
-
-import com.oracle.coherence.common.collections.ConcurrentHashMap;
 
 import com.tangosol.config.expression.ParameterResolver;
 
@@ -21,10 +19,12 @@ import com.tangosol.net.Service;
 
 import com.tangosol.net.cache.ContinuousQueryCache;
 
+import com.tangosol.net.internal.ScopedServiceReferenceStore;
 import com.tangosol.net.internal.ViewCacheService;
 
-import com.tangosol.util.RegistrationBehavior;
-import com.tangosol.util.ResourceRegistry;
+import com.tangosol.util.Base;
+
+import java.lang.reflect.Method;
 
 /**
  * A Scheme that realizes both services and caches for Coherence 12.2.1.4 feature
@@ -41,10 +41,41 @@ import com.tangosol.util.ResourceRegistry;
 // caches are primed eagerly with data to have similar behavior semantics as
 // replicated caches. Unlike regular services this service does not have its
 // own type and is *not* instantiated or maintained by the cluster 'consciously'
-// (we use the cluster's resource registry to store these services).
+// (we use the cluster's ScopedServiceReferenceStore to store these services).
+@SuppressWarnings("rawtypes")
 public class ViewScheme
         extends AbstractCompositeScheme<ContinuousQueryCache>
     {
+
+    // Internal Notes:
+    // Static initialization to obtain and store a reference
+    // to SafeCluster.getScopedServiceStore().  This store will be used to
+    // store ViewCacheService instances.
+    //
+    // Originally, these instances were stored in the Cluster's resource
+    // registry, however, the registry contents won't survive a cluster
+    // stop/start (like a member eviction/restart).
+    // The ScopedServiceReferenceStore will survive in this scenario
+    // allowing the same ViewCacheService instance to be used and thus
+    // avoiding a potential memory leak.
+    static
+        {
+        Class<?> clzSafeCluster;
+        try
+            {
+            clzSafeCluster = Class.forName("com.tangosol.coherence.component.util.SafeCluster",
+                                           false,
+                                           ViewScheme.class.getClassLoader());
+            SAFE_CLUSTER_GET_SCOPED_SERVICE_STORE =
+                    clzSafeCluster.getDeclaredMethod("getScopedServiceStore");
+
+            }
+        catch (Exception e)
+            {
+            throw Base.ensureRuntimeException(e, "ViewScheme initialization failed");
+            }
+        }
+
     // ----- constructors ---------------------------------------------------
 
     /**
@@ -61,6 +92,14 @@ public class ViewScheme
         setBackScheme(schemeBack);
         }
 
+    // ----- AbstractServiceScheme methods ----------------------------------
+
+    @Override
+    public String getScopedServiceName()
+        {
+        return ViewCacheService.KEY_CLUSTER_REGISTRY + '-' + super.getScopedServiceName();
+        }
+
     // ----- ServiceBuilder interface ---------------------------------------
 
     @Override
@@ -69,25 +108,9 @@ public class ViewScheme
         validate();
 
         // see if we've already created the appropriate CacheService
-        ResourceRegistry registry = cluster.getResourceRegistry();
-
-        ConcurrentHashMap<String, Service> mapServices =
-                registry.getResource(ConcurrentHashMap.class, ViewCacheService.KEY_CLUSTER_REGISTRY);
-
-        if (mapServices == null)
-            {
-            registry.registerResource(
-                    ConcurrentHashMap.class,
-                    ViewCacheService.KEY_CLUSTER_REGISTRY,
-                    ConcurrentHashMap::new,
-                    RegistrationBehavior.IGNORE,
-                    null);
-
-            mapServices = registry.getResource(ConcurrentHashMap.class, ViewCacheService.KEY_CLUSTER_REGISTRY);
-            }
-
-        String  sServiceName = getScopedServiceName();
-        Service service      = mapServices.get(sServiceName);
+        ScopedServiceReferenceStore store        = getServiceStore(cluster);
+        String                      sServiceName = getScopedServiceName();
+        Service                     service      = store.getService(sServiceName);
         if (service != null)
             {
             return service;
@@ -110,10 +133,7 @@ public class ViewScheme
         service = new ViewCacheService(serviceBack);
         service.setDependencies(deps);
 
-        if (mapServices.putIfAbsent(sServiceName, service) != null)
-            {
-            service = mapServices.get(sServiceName); // highly unlikely path
-            }
+        store.putService(service, sServiceName, getServiceType());
 
         return service;
         }
@@ -133,10 +153,42 @@ public class ViewScheme
         return ViewCacheService.TYPE_VIEW;
         }
 
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Obtain the {@link ScopedServiceReferenceStore} from the provided
+     * {@link Cluster}.
+     *
+     * @param cluster  the {@link Cluster}
+     *
+     * @return the {@link ScopedServiceReferenceStore} from the provided
+     *         {@link Cluster}.
+     *
+     * @since 12.2.1.4.19
+     */
+    protected ScopedServiceReferenceStore getServiceStore(Cluster cluster)
+        {
+        try
+            {
+            return (ScopedServiceReferenceStore) SAFE_CLUSTER_GET_SCOPED_SERVICE_STORE.invoke(cluster);
+            }
+        catch (Exception e)
+            {
+            throw Base.ensureRuntimeException(e, "Failed to invoke SafeCluster.getScopedReferenceStore()");
+            }
+        }
+
     // ----- constants ------------------------------------------------------
 
     /**
      * A CachingScheme that represents NO_VALUE.
      */
     private static final CachingScheme NO_SCHEME = new ClassScheme();
+
+    /**
+     * Method reference to obtain SafeCluster ScopedServiceReferenceStore.
+     *
+     * @since 12.2.1.4.19
+     */
+    private static final Method SAFE_CLUSTER_GET_SCOPED_SERVICE_STORE;
     }

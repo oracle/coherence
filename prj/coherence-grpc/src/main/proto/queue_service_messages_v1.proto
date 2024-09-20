@@ -1,0 +1,176 @@
+/*
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+// -----------------------------------------------------------------
+// Messages used by the Coherence gRPC NamedQueue Service.
+//
+// NOTE: If you add a new request message to this message the current
+// protocol version in com.oracle.coherence.grpc.NamedQueueProtocol must
+// be increased. This only needs to be done once for any given Coherence
+// release.
+// -----------------------------------------------------------------
+
+syntax = "proto3";
+
+package coherence.concurrent.queue.v1;
+
+import "common_messages_v1.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+option java_multiple_files = true;
+option java_package = "com.oracle.coherence.grpc.messages.concurrent.queue.v1";
+
+// An enum representing the types of request for a Named Queue Service proxy
+//
+// NOTE: The index numbers for the enum elements MUST NOT BE CHANGED as
+// that would break backwards compatibility. Only new index numbers can
+// be added.
+//
+enum NamedQueueRequestType {
+    // An unknown message.
+    // This request type is not used, it is here as enums must have a zero value,
+    // but we need to know the difference between a zero value and the field being
+    // incorrectly set.
+    Unknown = 0;
+    // Clear the specified queue.
+    // The message field should not be set.
+    // The response will just be a Complete message corresponding to the request id.
+    Clear = 1;
+    // Destroy the specified queue.
+    // The message field should not be set.
+    // The response will just be a Complete message corresponding to the request id.
+    Destroy = 2;
+    // Called to ensure a queue.
+    // Must be the first message called prior to any other queue requests.
+    // The message field must be an EnsureQueueRequest.
+    // The response will contain the Queue Id and an empty response field.
+    EnsureQueue = 3;
+    // Determine whether the specified queue is empty.
+    // The message field should not be set.
+    // The response will contain the Queue Id and a BoolValue in the response field.
+    IsEmpty = 4;
+    // Determine whether the specified queue is ready.
+    // The message field should not be set.
+    // The response will contain the Queue Id and a BoolValue in the response field.
+    IsReady = 5;
+    // Add a value to the tail of a Queue.
+    // The message field must contain a BytesValue that contains the
+    // serialized value.
+    // The response will contain the Queue Id and a QueueOfferResult containing the
+    // result of the offer operation.
+    OfferTail = 6;
+    // Add a value to the head of a Deque.
+    // This method is only supported for a double ended Deque.
+    // The queue type used to ensure the queue must have been a Deque
+    // The message field must contain a BytesValue that contains the
+    // serialized value.
+    // The response will contain the Queue Id and a QueueOfferResult containing the
+    // result of the offer operation.
+    OfferHead = 7;
+    // Retrieves and removes the head of this queue.
+    // The response will contain the Queue Id and an OptionalValue that will be empty
+    // if the queue was empty.
+    PollHead = 8;
+    // Retrieves, but does not remove, the head of this queue.
+    // The response will contain the Queue Id and an OptionalValue that will be empty
+    // if the queue was empty.
+    PeekHead = 9;
+    // Retrieves and removes the head of this queue.
+    // This method is only supported for a double ended Deque.
+    // The queue type used to ensure the queue must have been a Deque
+    // The response will contain the Queue Id and an OptionalValue that will be empty
+    // if the deque was empty.
+    PollTail = 10;
+    // Retrieves, but does not remove, the head of a Deque.
+    // This method is only supported for a double ended Deque.
+    // The queue type used to ensure the queue must have been a Deque
+    // The response will contain the Queue Id and an OptionalValue that will be empty
+    // if the queue was empty.
+    PeekTail = 11;
+    // Obtain the size of the specified queue.
+    // The message field should not be set.
+    // The response will contain the Queue Id and an Int32Value in the response field.
+    Size = 12;
+}
+
+// A request to perform an operation on a remote NamedQueue.
+message NamedQueueRequest {
+    // The type of the request
+    NamedQueueRequestType type = 1;
+    // The queue identifier for the request.
+    // The identifier must be the same value returned by the initial ensure queue request.
+    // This is optional only for EnsureQueue as this cannot have a queue identifier
+    optional int32 queueId = 2;
+    // The actual request message, this is optional because some messages do not require
+    // a message body, for example queue.size()
+    // The actual request message should be packed inside an Any message and set in this field.
+    // The proxy will know which message type to expect here based on the "type" field's value.
+    optional google.protobuf.Any message = 3;
+}
+
+// An enum representing different types of response.
+//
+// NOTE: The index numbers for the enum elements MUST NOT BE CHANGED as
+// that would break backwards compatibility. Only new index numbers can
+// be added.
+enum NamedQueueResponseType {
+    // The response is a message.
+    Message = 0;
+    // The response is a queue event.
+    QueueEvent = 1;
+    // The response is destroy event
+    Destroyed = 2;
+    // The response is truncated event
+    Truncated = 3;
+}
+
+// A response message from a Named Queue Service proxy.
+//
+// NOTE: If you add a new request message to this message the protocol
+// version in com.oracle.coherence.grpc.NamedQueueProtocol must be
+// increased. This only needs to be done once for any given Coherence
+// release.
+message NamedQueueResponse {
+    // The queue identifier for the request
+    int32 queueId = 1;
+    // An enum representing different response types.
+    NamedQueueResponseType type = 2;
+    // The response can contain one of a number of response types
+    // The sender of the corresponding request should know which
+    // response type it expects
+    optional google.protobuf.Any message = 3;
+}
+
+// An enum representing the type of a queue.
+enum NamedQueueType {
+    // A plain Queue
+    Queue = 0;
+    // A double ended Deque
+    Deque = 1;
+    // A distributed paged
+    PagedQueue = 3;
+}
+
+// A request to ensure a specific queue.
+message EnsureQueueRequest {
+    // The name of the queue.
+    string queue = 1;
+    // The type of queue
+    NamedQueueType type = 2;
+}
+
+// The result of offering an element to a queue.
+message QueueOfferResult {
+  // A flag indicating whether the offer was successful
+  bool succeeded = 1;
+  // An int64 value representing an index into the queue
+  // where the element was added.
+  int64 index = 2;
+}

@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config;
 
+import com.tangosol.application.ContainerContext;
+import com.tangosol.coherence.config.builder.MapBuilder;
 import com.tangosol.coherence.config.builder.NamedEventInterceptorBuilder;
 import com.tangosol.coherence.config.scheme.Scheme;
 
@@ -27,7 +29,8 @@ import java.util.List;
  * @author jk  2015.05.21
  * @since Coherence 14.1.1
  */
-public abstract class ResourceMapping
+@SuppressWarnings("rawtypes")
+public abstract class ResourceMapping<R>
     {
     // ----- constructors ---------------------------------------------------
 
@@ -315,6 +318,14 @@ public abstract class ResourceMapping
     public List<ResourceMapping> getSubMappings()
         {
         return f_subMappings;
+        }
+
+    public void preConstruct(ContainerContext context, ParameterResolver resolver, MapBuilder.Dependencies dependencies)
+        {
+        }
+
+    public void postConstruct(ContainerContext context, R resource, ParameterResolver resolver, MapBuilder.Dependencies dependencies)
+        {
         }
 
     // ----- data members ---------------------------------------------------

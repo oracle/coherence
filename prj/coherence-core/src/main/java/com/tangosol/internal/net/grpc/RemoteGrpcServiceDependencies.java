@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -22,6 +22,13 @@ public interface RemoteGrpcServiceDependencies
         extends RemoteCacheServiceDependencies
     {
     /**
+     * Return the name of the scope configured for this service.
+     *
+     * @return the name of the scope configured for this service
+     */
+    String getScopeName();
+
+    /**
      * Return the name of the scope on the remote to connect to on the cluster.
      *
      * @return the name of the scope on the remote to connect to on the cluster
@@ -41,7 +48,10 @@ public interface RemoteGrpcServiceDependencies
      *
      * @return the {@link Expression} that will produce the flag to
      *         determine whether client tracing is enabled
+     *
+     * @deprecated
      */
+    @Deprecated
     Expression<Boolean> isTracingEnabled();
 
     /**
@@ -50,4 +60,34 @@ public interface RemoteGrpcServiceDependencies
      * @return the {@link DaemonPoolDependencies}
      */
     DaemonPoolDependencies getDaemonPoolDependencies();
+
+    /**
+     * Returns the deadline to use for gRPC requests.
+     *
+     * @return the deadline to use for gRPC requests
+     */
+    long getDeadline();
+
+    /**
+     * Returns the frequency in millis that heartbeats should be sent by the
+     * proxy to the client bidirectional channel.
+     *
+     * @return the frequency in millis that heartbeats should be sent by the
+     *         proxy to the client bidirectional channel
+     */
+    long getHeartbeatInterval();
+
+    /**
+     * Return the flag to determine whether heart beat messages should require an
+     * ack response from the server.
+     *
+     * @return  that is {@code true} if heart beat messages should require an
+     *          ack response from the server
+     */
+    boolean isRequireHeartbeatAck();
+
+    /**
+     * The default heartbeat frequency value representing no heartbeats to be sent.
+     */
+    long NO_EVENTS_HEARTBEAT = 0L;
     }

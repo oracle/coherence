@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,6 +15,7 @@ import io.grpc.StatusRuntimeException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
@@ -162,6 +163,60 @@ public final class ErrorsHelper
             abEncoded = s_encoder.encode(abStack);
             }
         return new String(abEncoded);
+        }
+
+    /**
+     * Log the exception unless it is a {@link StatusRuntimeException}
+     * with a status of {@link Status#CANCELLED}.
+     *
+     * @param t  the exception to log
+     */
+    public static void logIfNotCancelled(Throwable t)
+        {
+        if (rootCause(t) instanceof SocketException)
+            {
+            Logger.err(t.getMessage());
+            }
+        else
+            {
+            boolean     fLog = true;
+            Status.Code code = null;
+
+            if (t instanceof StatusRuntimeException sre)
+                {
+                code = sre.getStatus().getCode();
+                }
+            else if (t instanceof StatusException se)
+                {
+                code = se.getStatus().getCode();
+                }
+
+            if (code == Status.Code.UNAVAILABLE)
+                {
+                fLog = !t.getMessage().equals("Channel shutdownNow invoked");
+                }
+            else
+                {
+                fLog = code != null && code != Status.Code.CANCELLED && code != Status.Code.UNIMPLEMENTED;
+                }
+
+            if (fLog)
+                {
+                Logger.err(t);
+                }
+            }
+        }
+
+    private static Throwable rootCause(Throwable t)
+        {
+        Throwable rootCause = t;
+        Throwable cause     = t.getCause();
+        while (cause != null)
+            {
+            rootCause = cause;
+            cause     = cause.getCause();
+            }
+        return rootCause;
         }
 
     // ----- constants ------------------------------------------------------

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.coherence.dsltools.base;
@@ -19,7 +19,7 @@ import java.io.StringReader;
 /**
 * BaseTokenScanner gives clients a streaming api that returns a next
 * BaseToken by processing either a java.lang.String or a java.io.Reader.
-* Clients may process the the underlying Reader or String all at one time by
+* Clients may process the underlying Reader or String all at one time by
 * using scan() which will a BaseToken that is typically return a
 * SequenceBaseToken. This all at once conversion from Chars to Tokens is
 * standard for very low level tokenizers. BaseTokenScanner also processes

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.cache;
@@ -79,7 +79,7 @@ public interface CacheStatistics
     public long getCacheHits();
 
     /**
-    * Determine the total number of milliseconds (since that last statistics
+    * Determine the total number of milliseconds (since the last statistics
     * reset) for the <tt>get()</tt> operations for which an entry existed in
     * this map.
     *
@@ -110,11 +110,11 @@ public interface CacheStatistics
     public long getCacheMisses();
 
     /**
-    * Determine the total number of milliseconds (since that last statistics
+    * Determine the total number of milliseconds (since the last statistics
     * reset) for the <tt>get()</tt> operations for which no entry existed in
     * this map.
     *
-    * @return the total number of milliseconds (since that last statistics
+    * @return the total number of milliseconds (since the last statistics
     *         reset) for the <tt>get()</tt> operations that were misses
     */
     public long getCacheMissesMillis();
@@ -143,19 +143,19 @@ public interface CacheStatistics
     * For the LocalCache implementation, this refers to the number of times
     * that the <tt>prune()</tt> method is executed.
     *
-    * @return the total number of cache pruning cycles (since that last
+    * @return the total number of cache pruning cycles (since the last
     *         statistics reset)
     */
     public long getCachePrunes();
 
     /**
-    * Determine the total number of milliseconds (since that last statistics
+    * Determine the total number of milliseconds (since the last statistics
     * reset) spent on cache pruning.
     * <p>
     * For the LocalCache implementation, this refers to the time spent in
     * the <tt>prune()</tt> method.
     *
-    * @return the total number of milliseconds (since that last statistics
+    * @return the total number of milliseconds (since the last statistics
     *         reset) for cache pruning operations
     */
     public long getCachePrunesMillis();

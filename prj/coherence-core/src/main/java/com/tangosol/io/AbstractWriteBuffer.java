@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io;
 
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 
@@ -15,7 +16,14 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UTFDataFormatException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Method;
+import java.nio.CharBuffer;
 
+import static java.lang.Character.isHighSurrogate;
+import static java.lang.Character.isLowSurrogate;
+import static java.lang.Character.toCodePoint;
 
 /**
 * The AbstractWriteBuffer is a partial implementation of the WriteBuffer
@@ -182,14 +190,6 @@ public abstract class AbstractWriteBuffer
     public BufferOutput getBufferOutput()
         {
         return getBufferOutput(0);
-        }
-
-    /**
-    * {@inheritDoc}
-    */
-    public BufferOutput getBufferOutput(int of)
-        {
-        return new AbstractBufferOutput(of);
         }
 
     /**
@@ -483,7 +483,7 @@ public abstract class AbstractWriteBuffer
     *
     * @author cp  2005.03.24
     */
-    public class AbstractBufferOutput
+    public abstract class AbstractBufferOutput
             extends OutputStream
             implements WriteBuffer.BufferOutput
         {
@@ -959,7 +959,7 @@ public abstract class AbstractWriteBuffer
                         s.getChars(ofch, ofch + cchChunk, ach, 0);
                         }
 
-                    int cbChunk = formatUTF(abTmp, 0, ach, cchChunk);
+                    int cbChunk = formatModifiedUTF(abTmp, 0, ach, cchChunk);
                     write(abTmp, 0, cbChunk);
                     }
                 }
@@ -1041,89 +1041,246 @@ public abstract class AbstractWriteBuffer
             }
 
         /**
-        * Format the passed String as UTF into the passed byte array.
-        * <p>
-        * This method is tightly bound to calcUTF.
-        *
-        * @param ab   the byte array to format into
-        * @param ofb  the offset into the byte array to write the first byte
-        * @param cb   the number of bytes that the UTF will take as returned
-        *             by calcUTF
-        * @param s    the String
-        */
-        protected final void formatUTF(byte[] ab, int ofb, int cb, String s)
-            {
-            int cch = s.length();
-            if (cb == cch)
-                {
-                // ask the string to convert itself to ascii bytes
-                // straight into the WriteBuffer
-                s.getBytes(0, cch, ab, ofb);
+         * Count the number of negative bytes in the range.
+         */
+        public static int countNegatives(byte[] ab) {
+            int count = 0;
+            for (byte b : ab) {
+                if (b < 0) {
+                    count++;
                 }
-            else
+            }
+            return count;
+        }
+
+        /**
+         * Format the passed String as UTF-8 into the passed byte array.
+         *
+         * @param s  the String to format
+         * @param ab the byte array to format into
+         * @param of the offset into the byte array to write the first byte
+         *
+         * @return the number of bytes written to byte array
+         */
+        protected final int formatUTF(String s, byte[] ab, int of)
+            {
+            int ofOrig = of;
+            int cch    = s.length();
+            for (int i = 0; i < cch; i++)
                 {
-                char[]  ach = getCharBuf();
-                if (cch <= CHAR_BUF_SIZE)
+                char ch = s.charAt(i);
+                if (ch <= 0x007F)
                     {
-                    /*
-                    * The following is unnecessary, because it would already
-                    * have been performed by calcUTF:
-                    *
-                    *   if (fSmall)
-                    *       {
-                    *       s.getChars(0, cch, ach, 0);
-                    *       }
-                    */
-                    formatUTF(ab, ofb, ach, cch);
+                    ab[of++] = (byte) ch;
                     }
-                else
+                else if (ch <= 0x07FF)
                     {
-                    for (int ofch = 0; ofch < cch; ofch += CHAR_BUF_SIZE)
+                    ab[of]     = (byte) (0xC0 | ch >>> 6);
+                    ab[of + 1] = (byte) (0x80 | ch & 0x3F);
+                    of += 2;
+                    }
+                else if (ch < 0xD800 || ch > 0xDFFF)
+                    {
+                    ab[of]     = (byte) (0xE0 | ch >>> 12);
+                    ab[of + 1] = (byte) (0x80 | ch >> 6 & 0x3F);
+                    ab[of + 2] = (byte) (0x80 | ch & 0x3F);
+                    of += 3;
+                    }
+                else if (isHighSurrogate(ch) && i + 1 < cch)
+                    {
+                    char chLow = s.charAt(i + 1);
+                    if (isLowSurrogate(chLow))
                         {
-                        int cchChunk = Math.min(CHAR_BUF_SIZE, cch - ofch);
-                        s.getChars(ofch, ofch + cchChunk, ach, 0);
-                        ofb += formatUTF(ab, ofb, ach, cchChunk);
+                        int cp = toCodePoint(ch, chLow);
+                        if (cp >= 0x10000 && cp <= 0x10FFFF)
+                            {
+                            ab[of]     = (byte) (0xF0 | cp >>> 18);
+                            ab[of + 1] = (byte) (0x80 | cp >>> 12 & 0x3F);
+                            ab[of + 2] = (byte) (0x80 | cp >>> 6 & 0x3F);
+                            ab[of + 3] = (byte) (0x80 | cp & 0x3F);
+                            of += 4;
+                            i++;
+                            }
                         }
                     }
                 }
+
+            return of - ofOrig;
+            }
+
+        /**
+         * Format the passed CharBuffer as UTF-8 into the passed byte array.
+         *
+         * @param bufCh the CharBuffer to format
+         * @param ab    the byte array to format into
+         * @param of    the offset into the byte array to write the first byte
+         *
+         * @return the number of bytes written to byte array
+         */
+        protected final int formatUTF(CharBuffer bufCh, byte[] ab, int of)
+            {
+            int ofOrig = of;
+            int cch    = bufCh.length();
+            for (int i = 0; i < cch; i++)
+                {
+                char ch = bufCh.get(i);
+                if (ch <= 0x007F)
+                    {
+                    ab[of++] = (byte) ch;
+                    }
+                else if (ch <= 0x07FF)
+                    {
+                    ab[of]     = (byte) (0xC0 | ch >>> 6);
+                    ab[of + 1] = (byte) (0x80 | ch & 0x3F);
+                    of += 2;
+                    }
+                else if (ch < 0xD800 || ch > 0xDFFF)
+                    {
+                    ab[of]     = (byte) (0xE0 | ch >>> 12);
+                    ab[of + 1] = (byte) (0x80 | ch >> 6 & 0x3F);
+                    ab[of + 2] = (byte) (0x80 | ch & 0x3F);
+                    of += 3;
+                    }
+                else if (isHighSurrogate(ch) && i + 1 < cch)
+                    {
+                    char chLow = bufCh.get(i + 1);
+                    if (isLowSurrogate(chLow))
+                        {
+                        int cp = toCodePoint(ch, chLow);
+                        if (cp >= 0x10000 && cp <= 0x10FFFF)
+                            {
+                            ab[of]     = (byte) (0xF0 | cp >>> 18);
+                            ab[of + 1] = (byte) (0x80 | cp >>> 12 & 0x3F);
+                            ab[of + 2] = (byte) (0x80 | cp >>> 6 & 0x3F);
+                            ab[of + 3] = (byte) (0x80 | cp & 0x3F);
+                            of += 4;
+                            i++;
+                            }
+                        }
+                    }
+                }
+
+            return of - ofOrig;
             }
 
         /**
         * Format the passed characters as UTF into the passed byte array.
         *
-        * @param ab    the byte array to format into
-        * @param ofb   the offset into the byte array to write the first byte
-        * @param ach   the array of characters to format
-        * @param cch   the number of characters to format
+        * @param ab   the byte array to format into
+        * @param of   the offset into the byte array to write the first byte
+        * @param ach  the array of characters to format
+        * @param cch  the number of characters to format
         *
         * @return cb  the number of bytes written to the array
         */
-        protected final int formatUTF(byte[] ab, int ofb, char[] ach, int cch)
+        protected final int formatModifiedUTF(byte[] ab, int of, char[] ach, int cch)
             {
-            int ofbOrig = ofb;
-            for (int ofch = 0; ofch < cch; ++ofch)
+            int ofOrig = of;
+            for (int i = 0; i < cch; ++i)
                 {
-                char ch = ach[ofch];
+                char ch = ach[i];
                 if (ch >= 0x0001 && ch <= 0x007F)
                     {
                     // 1-byte format:  0xxx xxxx
-                    ab[ofb++] = (byte) ch;
+                    ab[of++] = (byte) ch;
                     }
                 else if (ch <= 0x07FF)
                     {
                     // 2-byte format:  110x xxxx, 10xx xxxx
-                    ab[ofb++] = (byte) (0xC0 | ((ch >>> 6) & 0x1F));
-                    ab[ofb++] = (byte) (0x80 | ((ch      ) & 0x3F));
+                    ab[of]     = (byte) (0xC0 | ((ch >>> 6) & 0x1F));
+                    ab[of + 1] = (byte) (0x80 | ((ch      ) & 0x3F));
+                    of += 2;
                     }
                 else
                     {
                     // 3-byte format:  1110 xxxx, 10xx xxxx, 10xx xxxx
-                    ab[ofb++] = (byte) (0xE0 | ((ch >>> 12) & 0x0F));
-                    ab[ofb++] = (byte) (0x80 | ((ch >>>  6) & 0x3F));
-                    ab[ofb++] = (byte) (0x80 | ((ch       ) & 0x3F));
+                    ab[of]     = (byte) (0xE0 | ((ch >>> 12) & 0x0F));
+                    ab[of + 1] = (byte) (0x80 | ((ch >>>  6) & 0x3F));
+                    ab[of + 2] = (byte) (0x80 | ((ch       ) & 0x3F));
+                    of += 3;
                     }
                 }
-            return ofb - ofbOrig;
+            return of - ofOrig;
+            }
+
+        /**
+         * Format the passed String as UTF into the passed byte array.
+         *
+         * @param s     the String to format
+         * @param ab    the byte array to format into
+         * @param of   the offset into the byte array to write the first byte
+         *
+         * @return cb  the number of bytes written to the array
+         */
+        protected final int formatModifiedUTF(String s, byte[] ab, int of)
+            {
+            int ofOrig = of;
+            int cch    = s.length();
+            for (int i = 0; i < cch; ++i)
+                {
+                char ch = s.charAt(i);
+                if (ch >= 0x0001 && ch <= 0x007F)
+                    {
+                    // 1-byte format:  0xxx xxxx
+                    ab[of++] = (byte) ch;
+                    }
+                else if (ch <= 0x07FF)
+                    {
+                    // 2-byte format:  110x xxxx, 10xx xxxx
+                    ab[of]     = (byte) (0xC0 | ((ch >>> 6) & 0x1F));
+                    ab[of + 1] = (byte) (0x80 | ((ch      ) & 0x3F));
+                    of += 2;
+                    }
+                else
+                    {
+                    // 3-byte format:  1110 xxxx, 10xx xxxx, 10xx xxxx
+                    ab[of]     = (byte) (0xE0 | ((ch >>> 12) & 0x0F));
+                    ab[of + 1] = (byte) (0x80 | ((ch >>>  6) & 0x3F));
+                    ab[of + 2] = (byte) (0x80 | ((ch       ) & 0x3F));
+                    of += 3;
+                    }
+                }
+            return of - ofOrig;
+            }
+
+        /**
+         * Format the passed CharBuffer as UTF into the passed byte array.
+         *
+         * @param bufCh  the CharBuffer to format
+         * @param ab     the byte array to format into
+         * @param of     the offset into the byte array to write the first byte
+         *
+         * @return cb  the number of bytes written to the array
+         */
+        protected final int formatModifiedUTF(CharBuffer bufCh, byte[] ab, int of)
+            {
+            int ofOrig = of;
+            int cch    = bufCh.length();
+            for (int i = 0; i < cch; ++i)
+                {
+                char ch = bufCh.get(i);
+                if (ch >= 0x0001 && ch <= 0x007F)
+                    {
+                    // 1-byte format:  0xxx xxxx
+                    ab[of++] = (byte) ch;
+                    }
+                else if (ch <= 0x07FF)
+                    {
+                    // 2-byte format:  110x xxxx, 10xx xxxx
+                    ab[of]     = (byte) (0xC0 | ((ch >>> 6) & 0x1F));
+                    ab[of + 1] = (byte) (0x80 | ((ch      ) & 0x3F));
+                    of += 2;
+                    }
+                else
+                    {
+                    // 3-byte format:  1110 xxxx, 10xx xxxx, 10xx xxxx
+                    ab[of]     = (byte) (0xE0 | ((ch >>> 12) & 0x0F));
+                    ab[of + 1] = (byte) (0x80 | ((ch >>>  6) & 0x3F));
+                    ab[of + 2] = (byte) (0x80 | ((ch       ) & 0x3F));
+                    of += 3;
+                    }
+                }
+            return of - ofOrig;
             }
 
         // ----- data members -------------------------------------------
@@ -1186,4 +1343,78 @@ public abstract class AbstractWriteBuffer
     * {@link String#charAt(int)}.
     */
     protected transient char[] m_achBuf;
+
+    // ---- String reflection helpers ---------------------------------------
+
+    protected boolean isLatin1(String s)
+        {
+        try
+            {
+            return STRING_IS_LATIN1 != null && (boolean) STRING_IS_LATIN1.invokeExact(s);
+            }
+        catch (Throwable e)
+            {
+            throw new RuntimeException(e);
+            }
+        }
+
+    protected boolean isAscii(byte[] abValue)
+        {
+        try
+            {
+            return STRING_IS_ASCII != null && (boolean) STRING_IS_ASCII.invokeExact(abValue);
+            }
+        catch (Throwable e)
+            {
+            throw new RuntimeException(e);
+            }
+        }
+
+    protected byte[] value(String s)
+        {
+        try
+            {
+            return (byte[]) STRING_VALUE.invokeExact(s);
+            }
+        catch (Throwable e)
+            {
+            throw new RuntimeException(e);
+            }
+        }
+
+    private static final MethodHandle STRING_IS_LATIN1;
+    private static final MethodHandle STRING_IS_ASCII;
+    private static final MethodHandle STRING_VALUE;
+
+    static
+        {
+        MethodHandle isLatin1 = null;
+        MethodHandle isAscii  = null;
+        MethodHandle value    = null;
+        try
+            {
+            MethodHandles.Lookup lookup = MethodHandles.lookup();
+
+            Method m = String.class.getDeclaredMethod("isLatin1");
+            m.setAccessible(true);
+            isLatin1 = lookup.unreflect(m);
+
+            m = String.class.getDeclaredMethod("value");
+            m.setAccessible(true);
+            value = lookup.unreflect(m);
+
+            m = String.class.getDeclaredMethod("isASCII", byte[].class);
+            m.setAccessible(true);
+            isAscii = lookup.unreflect(m);
+            }
+        catch (Exception e)
+            {
+            Logger.config("Direct String serialization is disabled. "
+                          + "To enable it, specify '--add-opens java.base/java.lang=com.oracle.coherence' if using modules, "
+                          + "or '--add-opens java.base/java.lang=ALL-UNNAMED' if using class path.");
+            }
+        STRING_IS_LATIN1 = isLatin1;
+        STRING_IS_ASCII = isAscii;
+        STRING_VALUE = value;
+        }
     }

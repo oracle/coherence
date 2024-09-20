@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<socket-provider>
+  <ssl>
+    <identity-manager>
+      <key system-property="coherence.security.server.key"/>
+      <cert system-property="coherence.security.server.cert"/>
+    </identity-manager>
+    <trust-manager>
+      <cert system-property="coherence.security.server.ca.cert"/>
+      <cert system-property="coherence.security.client.ca.cert"/>
+    </trust-manager>
+    <client-auth>required</client-auth>
+  </ssl>
+</socket-provider>

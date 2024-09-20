@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.extractor;
@@ -21,6 +21,7 @@ import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryWriteBuffer;
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.WrapperException;
 
 import data.extractor.InvokeTestClass;
@@ -40,8 +41,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.hamcrest.CoreMatchers.is;
 
 /**
  * Unit test of the {@link UniversalExtractor}.
@@ -81,6 +84,41 @@ public class UniversalExtractorTest
         }
 
     @Test
+    public void testExtractorEquality()
+        {
+        UniversalExtractor  extractorUniversal1   = new UniversalExtractor("getFoo()");
+        UniversalExtractor  extractorUniversal2   = new UniversalExtractor("foo");
+        UniversalExtractor  extractorUniversal3   = new UniversalExtractor("getFoo");
+        ReflectionExtractor extractorReflection1  = new ReflectionExtractor("getFoo");
+
+        assertTrue("u1=" + extractorUniversal1 + " u2=" + extractorUniversal2, extractorUniversal1.equals(extractorUniversal2));
+        assertTrue("u1=" + extractorUniversal1 + " u3=" + extractorUniversal3, extractorUniversal1.equals(extractorUniversal3));
+        assertTrue("u2=" + extractorUniversal1 + " u3=" + extractorUniversal3, extractorUniversal1.equals(extractorUniversal3));
+        assertTrue("u1=" + extractorUniversal1 + " r1=" + extractorReflection1, extractorUniversal1.equals(extractorReflection1));
+        assertTrue("u1=" + extractorUniversal1 + " r1=" + extractorReflection1, extractorReflection1.equals(extractorUniversal1));
+        assertTrue("u2=" + extractorUniversal2 + " r1=" + extractorReflection1, extractorUniversal2.equals(extractorReflection1));
+        assertTrue("u2=" + extractorUniversal2 + " r1=" + extractorReflection1, extractorReflection1.equals(extractorUniversal2));
+        assertTrue("u3=" + extractorUniversal3 + " r1=" + extractorReflection1, extractorReflection1.equals(extractorUniversal3));
+        }
+
+    @Test
+    public void testMethodExtractorEqualityHashCode()
+        {
+        UniversalExtractor  ueMethod   = new UniversalExtractor("aMethod()");
+        UniversalExtractor  ueProperty = new UniversalExtractor("aMethod");    // this is a property, validating not a reflective method extractor
+        ReflectionExtractor re1        = new ReflectionExtractor("aMethod");
+
+        assertTrue(ueMethod.isMethodExtractor());
+        assertTrue(ueProperty.isPropertyExtractor());
+        assertEquals(ueMethod, re1);
+        assertNotEquals(ueMethod, ueProperty);
+        assertNotEquals(ueProperty, re1);
+        assertThat(ueMethod.hashCode(), is(re1.hashCode()));
+        assertNotEquals(re1, ueProperty);
+        assertNotEquals(ueProperty.hashCode(), re1.hashCode());
+        }
+
+    @Test
     public void testOptionalParameters()
         {
         UniversalExtractor methodExtractor = new UniversalExtractor("getFoo()", new Object[]{5});
@@ -104,22 +142,35 @@ public class UniversalExtractorTest
     @Test
     public void testEqualsHashCodeCanonicalName()
         {
-        UniversalExtractor extractor1 = new UniversalExtractor("foo");
-        UniversalExtractor extractor2 = new UniversalExtractor("foo()");
-        UniversalExtractor extractor3 = new UniversalExtractor("getFoo()");
-        UniversalExtractor extractor5 = new UniversalExtractor("isFoo()");
+        UniversalExtractor  extractor1 = new UniversalExtractor("foo");
+        UniversalExtractor  extractor2 = new UniversalExtractor("foo()");
+        UniversalExtractor  extractor3 = new UniversalExtractor("getFoo()");
+        UniversalExtractor  extractor6 = new UniversalExtractor("getFoo");
+        UniversalExtractor  extractor5 = new UniversalExtractor("isFoo()");
+        ReflectionExtractor extractor7 = new ReflectionExtractor("getFoo");
+        ReflectionExtractor extractor8 = new ReflectionExtractor("foo");
 
-        assertFalse(extractor1.equals(extractor2));
-        assertFalse(extractor2.equals(extractor1));
+        assertFalse("comparing a method extractor with a property extractor, expected false", extractor1.equals(extractor2));
+        assertFalse("comparing a method extractor with a property extractor, expected false", extractor2.equals(extractor1));
         assertNotEquals(extractor1.hashCode(), extractor2.hashCode());
+
+        assertTrue("compare RE foo with UE foo(), expect true", extractor2.equals(extractor8));
+        assertEquals(extractor2.getCanonicalName(), extractor8.getCanonicalName());
 
         assertTrue(extractor1.equals(extractor3));
         assertTrue(extractor3.equals(extractor1));
+        assertTrue(extractor7.equals(extractor6));
+        assertTrue(extractor7.equals(extractor1));
         assertEquals(extractor1.hashCode(), extractor3.hashCode());
 
         assertTrue(extractor1.equals(extractor5));
         assertTrue(extractor5.equals(extractor1));
+        assertTrue(extractor3.equals(extractor6));
+        assertTrue(extractor1.equals(extractor6));
         assertEquals(extractor1.hashCode(), extractor5.hashCode());
+        assertEquals(extractor1.hashCode(), extractor7.hashCode());
+        assertEquals(extractor6.hashCode(), extractor3.hashCode());
+        assertEquals(extractor6.hashCode(), extractor7.hashCode());
 
         // single arg method invocation
         UniversalExtractor extractor4 = new UniversalExtractor("foo()", new Integer[]{ 42 });
@@ -128,7 +179,9 @@ public class UniversalExtractorTest
 
         assertEquals("foo",   extractor1.getCanonicalName());
         assertEquals("foo()", extractor2.getCanonicalName());
+        assertEquals("foo()", extractor8.getCanonicalName());
         assertEquals("foo",   extractor3.getCanonicalName());
+        assertEquals("foo",   extractor6.getCanonicalName());
         assertEquals(null,    extractor4.getCanonicalName());
         }
 
@@ -336,6 +389,22 @@ public class UniversalExtractorTest
         }
 
     @Test
+    public void testJavaRecord()
+        {
+        record TestRecord(String foo, int bar) {}
+
+        TestRecord rec = new TestRecord("foo", 42);
+
+        UniversalExtractor<Object, Object> ex = new UniversalExtractor<>("foo");
+        assertEquals("foo", ex.extract(rec));
+        assertEquals("foo", ex.getCanonicalName());
+
+        ex = new UniversalExtractor<>("bar");
+        assertEquals(42, ex.extract(rec));
+        assertEquals("bar", ex.getCanonicalName());
+        }
+
+    @Test
     public void testJavaBean()
         {
         TestJavaBean bean = new TestJavaBean();
@@ -345,6 +414,19 @@ public class UniversalExtractorTest
         // test scenarios where java bean attribute is extracted.
         UniversalExtractor extractor = new UniversalExtractor("foo");
         assertEquals(extractor.extract(bean), "value");
+
+        // Ensure that these are identified as java bean property and work same as above.
+        UniversalExtractor                    ue1 = new UniversalExtractor("getFoo()");
+        UniversalExtractor                    ue2 = new UniversalExtractor("getFoo");
+        ValueExtractor<TestJavaBean, String>  ve  = TestJavaBean::getFoo;
+
+        assertEquals(ue1.extract(bean), "value");
+        assertEquals(ue2.extract(bean), "value");
+        assertEquals(ve.extract(bean), "value");
+        assertEquals(ue1, ue2);
+        assertEquals(extractor, ue1);
+        assertEquals(extractor, ue2);
+        assertEquals(ve.getCanonicalName(), ue1.getCanonicalName());
 
         // ensure cached method approach works also
         assertEquals(extractor.extract(bean), "value");
@@ -367,6 +449,11 @@ public class UniversalExtractorTest
         UniversalExtractor extractor4 = new UniversalExtractor("boo()");
         assertEquals("boo", extractor4.extract(bean));
         assertEquals("boo()", extractor4.getCanonicalName());
+
+        // direct access to non JavaBean property (Java records convention)
+        UniversalExtractor extractor5 = new UniversalExtractor("boo");
+        assertEquals("boo", extractor5.extract(bean));
+        assertEquals("boo", extractor5.getCanonicalName());
         }
 
     class ReflectionExtractorWithStatistics<T, E> extends UniversalExtractor<T,E>

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
@@ -12,28 +12,27 @@ import com.tangosol.util.Filter;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.ValueExtractor;
 
+import com.tangosol.util.comparator.SafeComparator;
 import com.tangosol.util.filter.AlwaysFilter;
 
+import java.util.Comparator;
 import java.util.function.Supplier;
 
 /**
  * The {@link ViewBuilder} provides a means to {@link #build()} a {@code view}
  * ({@link ContinuousQueryCache}) using a fluent pattern / style.
  *
- * @param <K>        the type of the cache entry keys
- * @param <V_BACK>   the type of the entry values in the back cache that is used
- *                   as the source for this {@code view}
- * @param <V_FRONT>  the type of the entry values in this {@code view}, which
- *                   will be the same as {@code V_BACK}, unless a {@code transformer} is specified
- *                   when creating this {@code view}
+ * @param <K>  the type of the cache entry keys
+ * @param <V>  the type of the entry values in the back cache that is used
+ *             as the source for this {@code view}
  *
  * @see ContinuousQueryCache
  *
  * @author rl 5.22.19
  * @since 12.2.1.4
  */
-public class ViewBuilder<K, V_BACK, V_FRONT>
-        extends MapViewBuilder<K, V_BACK, V_FRONT>
+public class ViewBuilder<K, V>
+        extends MapViewBuilder<K, V>
     {
     // ---- constructors ----------------------------------------------------
 
@@ -42,7 +41,7 @@ public class ViewBuilder<K, V_BACK, V_FRONT>
      *
      * @param cache  the {@link NamedCache} from which the view will be created
      */
-    public ViewBuilder(NamedCache<K, V_BACK> cache)
+    public ViewBuilder(NamedCache<K, V> cache)
         {
         this(() -> cache);
         }
@@ -55,7 +54,7 @@ public class ViewBuilder<K, V_BACK, V_FRONT>
      * @param supplierNamedCache  the {@link Supplier} returning a {@link NamedCache}
      *                            from which the view will be created
      */
-    public ViewBuilder(Supplier<NamedCache<K, V_BACK>> supplierNamedCache)
+    public ViewBuilder(Supplier<NamedCache<K, V>> supplierNamedCache)
         {
         super(supplierNamedCache);
         }
@@ -71,7 +70,7 @@ public class ViewBuilder<K, V_BACK, V_FRONT>
      *
      * @return this {@link ViewBuilder}
      */
-    public ViewBuilder<K, V_BACK, V_FRONT> filter(Filter filter)
+    public ViewBuilder<K, V> filter(Filter<?> filter)
         {
         m_filter = filter;
         return this;
@@ -87,7 +86,7 @@ public class ViewBuilder<K, V_BACK, V_FRONT>
      *
      * @return this {@link ViewBuilder}
      */
-    public ViewBuilder<K, V_BACK, V_FRONT> listener(MapListener<? super K, ? super V_FRONT> listener)
+    public ViewBuilder<K, V> listener(MapListener<? super K, ? super V> listener)
         {
         m_listener = listener;
         return this;
@@ -104,20 +103,48 @@ public class ViewBuilder<K, V_BACK, V_FRONT>
      *
      * @return this {@link ViewBuilder}
      */
-    public ViewBuilder<K, V_BACK, V_FRONT> map(ValueExtractor<? super V_BACK, ? extends V_FRONT> mapper)
+    @SuppressWarnings("unchecked")
+    public <U> ViewBuilder<K, U> map(ValueExtractor<? super V, ? extends U> mapper)
         {
         m_mapper = mapper;
+        return (ViewBuilder<K, U>) this;
+        }
+
+    /**
+     * Ensure that the view is sorted  based on the natural order of
+     * the values, which must implement {@link Comparable} interface.
+     *
+     * @return this {@link MapViewBuilder}
+     */
+    public ViewBuilder<K, V> sorted()
+        {
+        return sorted(null);
+        }
+
+    /**
+     * Ensure that the view is sorted using specified {@link Comparator}.
+     *
+     * @param comparator  the {@link Comparator} that will be used to sort the
+     *                    entries in this view; if {@code null}, the entries will
+     *                    be sorted based on the natural order of the values, which
+     *                    must implement {@link Comparable} interface
+     *
+     * @return this {@link MapViewBuilder}
+     */
+    public ViewBuilder<K, V> sorted(Comparator<? super V> comparator)
+        {
+        m_comparator = SafeComparator.ensureSafe(comparator);
         return this;
         }
 
     /**
      * The resulting {@code view} will only cache keys.
-     *
+     * <p></p>
      * NOTE: this is mutually exclusive with {@link #values()}.
      *
      * @return this {@link ViewBuilder}
      */
-    public ViewBuilder<K, V_BACK, V_FRONT> keys()
+    public ViewBuilder<K, V> keys()
         {
         m_fCacheValues = false;
         return this;
@@ -125,12 +152,12 @@ public class ViewBuilder<K, V_BACK, V_FRONT>
 
     /**
      * The resulting {@code view} with cache both keys and values.
-     *
+     * <p></p>
      * NOTE: this is mutually exclusive with {@link #keys()}.
      *
      * @return this {@link ViewBuilder}
      */
-    public ViewBuilder<K, V_BACK, V_FRONT> values()
+    public ViewBuilder<K, V> values()
         {
         m_fCacheValues = true;
         return this;
@@ -143,7 +170,7 @@ public class ViewBuilder<K, V_BACK, V_FRONT>
      *
      * @return this {@link ViewBuilder}
      */
-    public ViewBuilder<K, V_BACK, V_FRONT> withClassLoader(ClassLoader loader)
+    public ViewBuilder<K, V> withClassLoader(ClassLoader loader)
         {
         m_loader = loader;
         return this;
@@ -154,8 +181,8 @@ public class ViewBuilder<K, V_BACK, V_FRONT>
      *
      * @return the {@code view} of the {@link NamedCache} provided to this builder
      */
-    public NamedCache<K, V_FRONT> build()
+    public NamedCache<K, V> build()
         {
-        return (NamedCache<K, V_FRONT>) super.build();
+        return (NamedCache<K, V>) super.build();
         }
     }

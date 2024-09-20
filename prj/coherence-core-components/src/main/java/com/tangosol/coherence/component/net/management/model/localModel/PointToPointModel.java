@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -269,7 +269,7 @@ public class PointToPointModel
     // Accessor for the property "LastSlow"
     /**
      * Getter for property LastSlow.<p>
-    * The last the the viewing member declared the viewing member as slow.
+    * The last the viewing member declared the viewing member as slow.
      */
     public long getLastSlow()
         {

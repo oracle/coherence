@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import javax.net.ssl.SSLException;
 
 /**
@@ -3405,7 +3406,7 @@ public class TcpAcceptor
         /**
          * Property SuspectInitialBytes
          *
-         * The number of bytes queued when the the initial check was done that
+         * The number of bytes queued when the initial check was done that
          * determined that this connection is suspect. (Only relevant if
          * Suspect==true.)
          */
@@ -3414,7 +3415,7 @@ public class TcpAcceptor
         /**
          * Property SuspectInitialLength
          *
-         * The length of the queue when the the initial check was done that
+         * The length of the queue when the initial check was done that
          * determined that this connection is suspect. (Only relevant if
          * Suspect==true.)
          */
@@ -3431,7 +3432,7 @@ public class TcpAcceptor
         /**
          * Property SuspectLatestBytes
          *
-         * The number of bytes queued when the the last check was done. (Only
+         * The number of bytes queued when the last check was done. (Only
          * relevant if Suspect==true.)
          */
         private long __m_SuspectLatestBytes;
@@ -3439,7 +3440,7 @@ public class TcpAcceptor
         /**
          * Property SuspectLatestLength
          *
-         * The length of the queue when the the last check was done. (Only
+         * The length of the queue when the last check was done. (Only
          * relevant if Suspect==true.)
          */
         private long __m_SuspectLatestLength;
@@ -4219,7 +4220,7 @@ public class TcpAcceptor
         // Accessor for the property "SuspectInitialBytes"
         /**
          * Getter for property SuspectInitialBytes.<p>
-        * The number of bytes queued when the the initial check was done that
+        * The number of bytes queued when the initial check was done that
         * determined that this connection is suspect. (Only relevant if
         * Suspect==true.)
          */
@@ -4231,7 +4232,7 @@ public class TcpAcceptor
         // Accessor for the property "SuspectInitialLength"
         /**
          * Getter for property SuspectInitialLength.<p>
-        * The length of the queue when the the initial check was done that
+        * The length of the queue when the initial check was done that
         * determined that this connection is suspect. (Only relevant if
         * Suspect==true.)
          */
@@ -4254,7 +4255,7 @@ public class TcpAcceptor
         // Accessor for the property "SuspectLatestBytes"
         /**
          * Getter for property SuspectLatestBytes.<p>
-        * The number of bytes queued when the the last check was done. (Only
+        * The number of bytes queued when the last check was done. (Only
         * relevant if Suspect==true.)
          */
         public long getSuspectLatestBytes()
@@ -4265,7 +4266,7 @@ public class TcpAcceptor
         // Accessor for the property "SuspectLatestLength"
         /**
          * Getter for property SuspectLatestLength.<p>
-        * The length of the queue when the the last check was done. (Only
+        * The length of the queue when the last check was done. (Only
         * relevant if Suspect==true.)
          */
         public long getSuspectLatestLength()
@@ -4485,7 +4486,9 @@ public class TcpAcceptor
             
                 boolean fFlush, fSuspect;
                 long    cQueued, cbQueued, cSent, cbSent;
-                synchronized (queue) // prevent unecessary flushes
+
+                queue.lock();  // prevent unnecessary flushes
+                try
                     {
                     queue.add(wb);
                     fFlush = queue.size() == 1;
@@ -4498,11 +4501,15 @@ public class TcpAcceptor
                     setStatsQueued(cQueued);
                     setStatsBytesQueued(cbQueued);
             
-                    // snap-shot the amount sent so far while we're at it
+                    // snapshot the amount sent so far while we're at it
                     cSent  = getStatsSent();
                     cbSent = getStatsBytesSent();
             
                     fSuspect = isSuspect();
+                    }
+                finally
+                    {
+                    queue.unlock();
                     }
             
                 if (fFlush)
@@ -4904,7 +4911,7 @@ public class TcpAcceptor
         // Accessor for the property "SuspectInitialBytes"
         /**
          * Setter for property SuspectInitialBytes.<p>
-        * The number of bytes queued when the the initial check was done that
+        * The number of bytes queued when the initial check was done that
         * determined that this connection is suspect. (Only relevant if
         * Suspect==true.)
          */
@@ -4916,7 +4923,7 @@ public class TcpAcceptor
         // Accessor for the property "SuspectInitialLength"
         /**
          * Setter for property SuspectInitialLength.<p>
-        * The length of the queue when the the initial check was done that
+        * The length of the queue when the initial check was done that
         * determined that this connection is suspect. (Only relevant if
         * Suspect==true.)
          */
@@ -4939,7 +4946,7 @@ public class TcpAcceptor
         // Accessor for the property "SuspectLatestBytes"
         /**
          * Setter for property SuspectLatestBytes.<p>
-        * The number of bytes queued when the the last check was done. (Only
+        * The number of bytes queued when the last check was done. (Only
         * relevant if Suspect==true.)
          */
         protected void setSuspectLatestBytes(long cb)
@@ -4950,7 +4957,7 @@ public class TcpAcceptor
         // Accessor for the property "SuspectLatestLength"
         /**
          * Setter for property SuspectLatestLength.<p>
-        * The length of the queue when the the last check was done. (Only
+        * The length of the queue when the last check was done. (Only
         * relevant if Suspect==true.)
          */
         protected void setSuspectLatestLength(long c)

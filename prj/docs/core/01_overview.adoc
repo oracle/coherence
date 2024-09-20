@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
@@ -12,7 +12,7 @@
 // both they serve a purpose, and the docs will look wrong if it is removed.
 == Overview
 
-Learn about the features, enhancements, and changes made in Oracle Coherence  CE {version-coherence}.
+Learn about the features, enhancements, and changes made in Oracle Coherence CE since release 22.06.
 
 [PILLARS]
 ====
@@ -39,9 +39,45 @@ Instrument Portable Types using Gradle.
 
 [CARD]
 .CDI Response Caching
-[icon=fa-cogs,link=docs/core/05_response_caching.adoc]
+[icon=fa-exchange,link=docs/core/05_response_caching.adoc]
 --
 Use caching annotations for response caching.
+--
+
+[CARD]
+.Virtual Threads Support
+[icon=fa-random,link=docs/core/06_virtual_threads.adoc]
+--
+Use Java 21 virtual threads within Coherence.
+--
+
+[CARD]
+.Sorted Views
+[icon=fa-sort-alpha-asc,link=docs/core/07_sorted_views.adoc]
+--
+Create sorted client-side views of cached data.
+--
+
+[CARD]
+.Queues
+[icon=line_weight,link=docs/core/09_queues.adoc]
+--
+Use Coherence blocking queue implementations.
+--
+
+
+[CARD]
+.gRPC
+[icon=control_camera,link=docs/core/10_grpc.adoc]
+--
+Use Coherence with gRPC clients
+--
+
+[CARD]
+.Open Telemetry
+[icon=speed,link=docs/core/11_otel.adoc]
+--
+Use Coherence wth Open Telemetry.
 --
 
 ====

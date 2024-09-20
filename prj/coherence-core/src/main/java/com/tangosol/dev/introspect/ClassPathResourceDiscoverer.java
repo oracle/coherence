@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.dev.introspect;
 
@@ -63,6 +63,7 @@ import java.util.regex.Pattern;
  * {@link #discoverResource(String, String)} and could represent a package.
  *
  * @author hr  2011.10.18
+ * @author Gunnar Hillert 2024.04.20
  *
  * @since Coherence 12.1.2
  *
@@ -401,15 +402,16 @@ public class ClassPathResourceDiscoverer
                 return setResources;
                 }
 
-            File root = ensureDirectory(new File(uriRoot));
-            if (root == null)
-                {
-                return setResources;
-                }
+            File root = new File(uriRoot);
 
             if (root.isFile() && root.canRead())
                 {
                 setResources.add(uriRoot);
+                return setResources;
+                }
+
+            if (ensureDirectory(root) == null)
+                {
                 return setResources;
                 }
 

@@ -38,7 +38,7 @@ public class KeySet
         {
         // register child classes
         __mapChildren = new com.tangosol.util.ListMap();
-        __mapChildren.put("Iterator", com.tangosol.coherence.component.util.collections.WrapperSet.Iterator.get_CLASS());
+        __mapChildren.put("Iterator", com.tangosol.coherence.component.util.collections.WrapperSet.Iterator.class);
         }
     
     // Default constructor
@@ -96,16 +96,7 @@ public class KeySet
      */
     public static Class get_CLASS()
         {
-        Class clz;
-        try
-            {
-            clz = Class.forName("com.tangosol.coherence/component/util/collections/wrapperSet/KeySet".replace('/', '.'));
-            }
-        catch (ClassNotFoundException e)
-            {
-            throw new NoClassDefFoundError(e.getMessage());
-            }
-        return clz;
+        return KeySet.class;
         }
     
     //++ getter for autogen property _Module

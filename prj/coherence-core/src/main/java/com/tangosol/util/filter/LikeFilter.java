@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ package com.tangosol.util.filter;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 
+import com.tangosol.util.ChainedCollection;
 import com.tangosol.util.Filter;
 import com.tangosol.util.MapIndex;
 import com.tangosol.util.ValueExtractor;
@@ -22,8 +23,6 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,6 +47,7 @@ import jakarta.json.bind.annotation.JsonbProperty;
 *
 * @author cp/gg 2002.10.27
 */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class LikeFilter<T, E>
         extends    ComparisonFilter<T, E, String>
         implements IndexAwareFilter<Object, T>
@@ -144,6 +144,12 @@ public class LikeFilter<T, E>
         buildPlan();
         }
 
+    // ----- Filter interface -----------------------------------------------
+
+    protected String getOperator()
+        {
+        return "LIKE";
+        }
 
     // ----- ExtractorFilter methods ----------------------------------------
 
@@ -172,30 +178,87 @@ public class LikeFilter<T, E>
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
         int nPlan = m_nPlan;
-        if (nPlan == ALWAYS_FALSE || nPlan == ALWAYS_TRUE)
+        if (m_nPlan == ALWAYS_FALSE)
             {
-            return 1;
+            return 0;
             }
 
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
         if (index == null)
             {
-            return calculateIteratorEffectiveness(setKeys.size());
+            // there is no relevant index
+            return -1;
             }
 
-        if (nPlan == EXACT_MATCH)
+        Map<E, Set<?>> mapContents = index.getIndexContents();
+        if (mapContents.isEmpty())
             {
-            return 1;
+            return 0;
             }
 
-        String sPattern = getPattern();
-        if (index.isOrdered() && sPattern.indexOf('%') != 0 && sPattern.indexOf('_') != 0)
+        switch (nPlan)
             {
-            return Math.max(index.getIndexContents().size() / 4, 1);
-            }
-        else
-            {
-            return index.getIndexContents().size();
+            case ALWAYS_TRUE:
+                return mapContents.values().stream().mapToInt(Set::size).sum();
+
+            case EXACT_MATCH:
+                return ensureSafeSet(mapContents.get(m_sPart)).size();
+
+            case STARTS_WITH_CHAR:
+            case STARTS_WITH_STRING:
+                {
+                try
+                    {
+                    if (index.isOrdered())
+                        {
+                        String sPrefix = nPlan == STARTS_WITH_STRING
+                                         ? m_sPart
+                                         : String.valueOf(m_chPart);
+
+                        SortedMap<?, Set<?>> mapTail = ((SortedMap) mapContents).tailMap(sPrefix);
+                        int cMatch = 0;
+                        for (Map.Entry<?, Set<?>> entry : mapTail.entrySet())
+                            {
+                            String sValue = (String) entry.getKey();
+
+                            if (sValue != null && sValue.startsWith(sPrefix))
+                                {
+                                cMatch += ensureSafeSet(entry.getValue()).size();
+                                }
+                            else
+                                {
+                                break;
+                                }
+                            }
+                        return cMatch;
+                        }
+                    }
+                catch (ClassCastException e)
+                    {
+                    // incompatible types; go the long way
+                    }
+
+                // fall through
+                }
+
+            default:
+                {
+                int cMatch = 0;
+                for (Map.Entry<E, Set<?>> entry : mapContents.entrySet())
+                    {
+                    E value = entry.getKey();
+
+                    String sValue = value == null
+                                    ? null
+                                    : String.valueOf(value);
+                    if (isMatch(sValue))
+                        {
+                        cMatch += ensureSafeSet(entry.getValue()).size();
+                        }
+                    }
+
+                return cMatch;
+                }
             }
         }
 
@@ -221,6 +284,12 @@ public class LikeFilter<T, E>
             // there is no relevant index
             return this;
             }
+        else if (index.getIndexContents().isEmpty())
+           {
+           // there are no entries in the index, which means no entries match this filter
+           setKeys.clear();
+           return null;
+           }
 
         if (nPlan == EXACT_MATCH)
             {
@@ -236,33 +305,30 @@ public class LikeFilter<T, E>
             return null;
             }
 
-        Map mapValues = index.getIndexContents();
+        Map<E, Set<?>> mapContents = index.getIndexContents();
 
-        if ((nPlan == STARTS_WITH_STRING || nPlan == STARTS_WITH_CHAR)
-                && index.isOrdered())
+        if ((nPlan == STARTS_WITH_STRING || nPlan == STARTS_WITH_CHAR) && index.isOrdered())
             {
             try
                 {
-                String sPrefix = nPlan == STARTS_WITH_STRING ?
-                    m_sPart : String.valueOf(m_chPart);
+                String sPrefix = nPlan == STARTS_WITH_STRING ? m_sPart : String.valueOf(m_chPart);
 
-                SortedMap mapTail  = ((SortedMap) mapValues).tailMap(sPrefix);
-                Set       setMatch = new HashSet();
-                for (Iterator iter = mapTail.entrySet().iterator(); iter.hasNext();)
+                SortedMap<String, Set<?>> mapTail   = ((SortedMap<String, Set<?>>) mapContents).tailMap(sPrefix);
+                List<Set<?>>              listMatch = new ArrayList<>(mapTail.size());
+                for (Map.Entry<String, Set<?>> entry : mapTail.entrySet())
                     {
-                    Map.Entry entry  = (Map.Entry) iter.next();
-                    String    sValue = (String) entry.getKey();
+                    String sValue = entry.getKey();
 
                     if (sValue != null && sValue.startsWith(sPrefix))
                         {
-                        setMatch.addAll(ensureSafeSet((Set) entry.getValue()));
+                        listMatch.add(ensureSafeSet(entry.getValue()));
                         }
                     else
                         {
                         break;
                         }
                     }
-                setKeys.retainAll(setMatch);
+                setKeys.retainAll(new ChainedCollection<>(listMatch.toArray(Set[]::new)));
                 return null;
                 }
             catch (ClassCastException e)
@@ -271,19 +337,18 @@ public class LikeFilter<T, E>
                 }
             }
 
-        Set setMatch = new HashSet();
-        for (Iterator iter = mapValues.entrySet().iterator(); iter.hasNext();)
+        List<Set<?>> listMatch = new ArrayList<>(mapContents.size());
+        for (Map.Entry<E, Set<?>> entry : mapContents.entrySet())
             {
-            Map.Entry entry  = (Map.Entry) iter.next();
-            Object    oValue = entry.getKey();
+            E value = entry.getKey();
 
-            String sValue = oValue == null ? null : String.valueOf(oValue);
+            String sValue = value == null ? null : String.valueOf(value);
             if (isMatch(sValue))
                 {
-                setMatch.addAll(ensureSafeSet((Set) entry.getValue()));
+                listMatch.add(ensureSafeSet(entry.getValue()));
                 }
             }
-        setKeys.retainAll(setMatch);
+        setKeys.retainAll(new ChainedCollection<>(listMatch.toArray(Set[]::new)));
 
         return null;
         }

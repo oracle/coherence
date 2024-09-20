@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.testing.tests.streams;
 
@@ -32,20 +32,6 @@ public abstract class AbstractStreamTest
     public AbstractStreamTest(boolean fParallel)
         {
         m_fParallel = fParallel;
-
-        // avoid computing the default lambdas serialization mode in unit test code in coherence-core
-        // call to CacheFactory.getLicenseMode() throws ClassNotFoundException for
-        // com.tangosol.coherence.component.application.console.Coherence
-
-        // hard to move this code since test/functional/lambda extends this test code from coherence-core
-        if (Config.getProperty("coherence.lambdas") == null)
-            {
-            Lambdas.SerializationMode mode = Config.getProperty("coherence.mode", "dev").equals("prod")
-                    ? Lambdas.SerializationMode.STATIC
-                    : Lambdas.SerializationMode.DYNAMIC;
-
-            System.setProperty("coherence.lambdas", mode.name());
-            }
         }
 
     protected InvocableMap<String, Person> getPeopleMap()

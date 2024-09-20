@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -17,7 +17,7 @@
   <name>Coherence Guides - Cache Stores</name>
 
   <properties>
-    <revision>23.09-SNAPSHOT</revision>
+    <revision>25.03-SNAPSHOT</revision>
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${project.version}</coherence.version>
@@ -25,7 +25,7 @@
     <coherence.hibernate.cache.store.version>2.0.0</coherence.hibernate.cache.store.version>
     <hsqldb.version>2.7.1</hsqldb.version>
     <hibernate.version>5.4.27.Final</hibernate.version>
-    <h2.version>2.1.214</h2.version>
+    <h2.version>2.2.220</h2.version>
     <r2dbc-h2.version>0.9.0.RELEASE</r2dbc-h2.version>
 
     <java.version>17</java.version>

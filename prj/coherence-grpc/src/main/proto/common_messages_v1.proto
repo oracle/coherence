@@ -1,0 +1,61 @@
+/*
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+// -----------------------------------------------------------------
+// Common messages used by various Coherence services.
+// -----------------------------------------------------------------
+
+syntax = "proto3";
+
+package coherence.common.v1;
+
+import "google/protobuf/any.proto";
+
+option java_multiple_files = true;
+option java_package = "com.oracle.coherence.grpc.messages.common.v1";
+
+// An error message
+message ErrorMessage {
+    // The text of the error message
+    string message = 1;
+    // An optional Exception serialized using the client's serializer
+    optional bytes error = 2;
+}
+
+// A message to indicate completion of a request response.
+message Complete {
+}
+
+// A heart beat message.
+message HeartbeatMessage {
+    // The UUID of the client
+    optional bytes uuid = 1;
+    // True to send a heartbeat response
+    bool ack = 2;
+}
+
+// An optional value.
+message OptionalValue {
+    // A flag indicating whether the value is present.
+    bool present = 1;
+    // The serialized value.
+    bytes value = 2;
+}
+
+// A message that contains a collection of serialized binary values.
+message CollectionOfBytesValues {
+    // The serialized values
+    repeated bytes values = 1;
+}
+
+// A message containing a serialized key and value.
+message BinaryKeyAndValue {
+    // The serialized binary key.
+    bytes key = 1;
+    // The serialized binary value.
+    bytes value = 2;
+}

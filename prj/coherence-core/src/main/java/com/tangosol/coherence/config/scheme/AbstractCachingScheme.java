@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.scheme;
 
@@ -38,6 +38,7 @@ import java.util.Map;
  * @author pfm  2011.12.28
  * @since Coherence 12.1.2
  */
+@SuppressWarnings("rawtypes")
 public abstract class AbstractCachingScheme<D extends ServiceDependencies>
         extends AbstractServiceScheme<D>
         implements ObservableCachingScheme

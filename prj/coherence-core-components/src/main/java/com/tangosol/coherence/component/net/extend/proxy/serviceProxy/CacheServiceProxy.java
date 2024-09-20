@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,7 +23,6 @@ import com.tangosol.internal.net.service.extend.proxy.CacheServiceProxyDependenc
 import com.tangosol.internal.net.service.extend.proxy.DefaultCacheServiceProxyDependencies;
 import com.tangosol.internal.util.collection.ConvertingNamedCache;
 import com.tangosol.io.Serializer;
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
@@ -475,16 +474,8 @@ public class CacheServiceProxy
      * Return the Serializer associated with the given NamedCache or null if the
     * NamedCache is an in-process cache.
      */
-    protected static com.tangosol.io.Serializer getSerializer(com.tangosol.net.NamedCache cache)
+    public static Serializer getSerializer(NamedCache cache)
         {
-        // import Component.Util.SafeNamedCache;
-        // import com.tangosol.io.Serializer;
-        // import com.tangosol.net.CacheService;
-        // import com.tangosol.net.NamedCache;
-        // import com.tangosol.net.cache.NearCache;
-        // import com.tangosol.net.cache.WrapperNamedCache;
-        // import java.util.Map;
-        
         Serializer serializer = null;
         
         if (cache instanceof WrapperNamedCache)
@@ -718,7 +709,7 @@ public class CacheServiceProxy
             cache = ((com.tangosol.util.ConverterCollections.ConverterNamedCache) cache).getNamedCache();
             }
         
-        ConfigurableCacheFactory ccf = CacheFactory.getConfigurableCacheFactory(Base.getContextClassLoader());
+        ConfigurableCacheFactory ccf = getCacheFactory();
         try
             {
             if (fDestroy)

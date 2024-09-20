@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+<!--
+Service configuration descriptor for the Management invocation service used by the
+Coherence JMX framework.
+-->
+<config>
+  <!--
+   Use standard Java serialization regardless of the global settings specified
+   in the ExternalizableHelper.xml descriptor.
+  -->
+  <serializer>
+     <class-name>com.tangosol.io.DefaultSerializer</class-name>
+  </serializer>
+  <request-timeout>60m</request-timeout>
+</config>

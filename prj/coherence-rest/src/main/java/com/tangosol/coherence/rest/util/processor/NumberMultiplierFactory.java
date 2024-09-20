@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.util.processor;
 
-import com.tangosol.coherence.rest.util.MvelManipulator;
+import com.tangosol.util.UniversalManipulator;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.InvocableMap;
@@ -59,7 +59,7 @@ public class NumberMultiplierFactory
                         m_fPostFactor);
 
             case 2:
-                return new NumberMultiplier(new MvelManipulator(asArgs[0]),
+                return new NumberMultiplier(new UniversalManipulator(asArgs[0]),
                         toNumber(asArgs[1]), m_fPostFactor);
                 
             default:

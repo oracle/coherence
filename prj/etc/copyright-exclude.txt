@@ -1,4 +1,5 @@
 route_guide.proto
+coherence-grpc/docs/
 coherence-grpc-proxy/src/test/java/com/oracle/coherence/grpc/proxy/routeguide/
 coherence-http-netty/src/main/java/com/tangosol/coherence/http/netty/NettyInputStream.java
 coherence-javadoc/src/main/javadoc/resources/
@@ -68,4 +69,9 @@ cache-config-UTF8-BOM.xml
 .zip
 .class
 .cdb
+.so
+.dll
+.dylib
+.exp
+.libw
 .md

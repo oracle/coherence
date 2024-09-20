@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
 
@@ -13,6 +13,7 @@ import com.oracle.coherence.common.base.Timeout;
 
 import com.oracle.coherence.common.util.Duration;
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.net.FlowControl;
 
 import com.tangosol.util.aggregator.AbstractAsynchronousAggregator;
@@ -24,6 +25,7 @@ import com.tangosol.util.processor.AsynchronousProcessor;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -54,7 +56,22 @@ public abstract class AsynchronousAgent<T>
      */
     protected AsynchronousAgent(int iOrderId)
         {
+        this(iOrderId, null);
+        }
+
+    /**
+     * Construct the agent.
+     *
+     * @param iOrderId  a unit-of-order id associated with this agent. Ordering
+     *                  semantics of operations based on this id are defined
+     *                  by subclasses
+     * @param executor  an optional {@link Executor} to complete the future on,
+     *                  if not provided the {@link Daemons#commonPool()} is used
+     */
+    protected AsynchronousAgent(int iOrderId, Executor executor)
+        {
         m_iOrderId = iOrderId;
+        f_executor = executor == null ? Daemons.commonPool() : executor;
         }
 
     // ----- FlowControl support --------------------------------------------
@@ -217,15 +234,21 @@ public abstract class AsynchronousAgent<T>
                 {
                 if (future == null)
                     {
-                    m_supplier = supplier;
+                    // getCompletableFuture hasn't been called yet
+                    m_supplier   = supplier;
+                    m_fCompleted = true;
+                    f_notifier.signal();
                     }
                 else
                     {
-                    future.complete(supplier.get());
+                    future.completeAsync(supplier, f_executor)
+                            .whenComplete((r, e) ->
+                                {
+                                m_fCompleted = true;
+                                f_notifier.signal();
+                                });
                     }
 
-                m_fCompleted = true;
-                f_notifier.signal();
                 return true;
                 }
             }
@@ -347,7 +370,8 @@ public abstract class AsynchronousAgent<T>
                 {
                 assert m_supplier != null;
 
-                future.complete(m_supplier.get());
+                future.completeAsync(m_supplier, f_executor)
+                        .whenComplete((r, e) -> f_notifier.signal());
                 }
             }
 
@@ -386,4 +410,9 @@ public abstract class AsynchronousAgent<T>
      * Notification handler.
      */
     private final Notifier f_notifier = new SingleWaiterMultiNotifier();
+
+    /**
+     * The {@link Executor} to complete the future on.
+     */
+    private final Executor f_executor;
     }

@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package config;
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.persistence.PersistenceEnvironment;
 import com.oracle.coherence.persistence.PersistenceException;
 import com.oracle.coherence.persistence.PersistenceManager;
@@ -178,6 +179,34 @@ public class PersistenceEnvironmentProcessorTests
         assertEquals(fileActive, managerImpl.getDataDirectory());
 
         env.release();
+        }
+
+    @Test
+    public void testBerkeleyDBEnvironmentInvalid()
+        {
+        File fileActive   = m_fileActive;
+        File fileSnapshot = m_fileSnapshot;
+        File fileTrash    = m_fileTrash;
+
+        String sXml = "<persistence-environment>\n" + "  <persistence-mode>invalid</persistence-mode>\n"
+                      + "  <active-directory>" + fileActive.getAbsolutePath()
+                      + "</active-directory>\n" + "  <snapshot-directory>"
+                      + fileSnapshot.getAbsolutePath() + "</snapshot-directory>\n"
+                      + "  <trash-directory>" + fileTrash.getAbsolutePath()
+                      + "</trash-directory>\n" + "</persistence-environment>";
+
+        ParameterizedBuilder<PersistenceEnvironment<ReadBuffer>> bldr =
+                m_processor.process(new XmlDocumentReference(sXml));
+
+        try
+            {
+            PersistenceEnvironment<ReadBuffer> env = bldr.realize(RESOLVER, getClass().getClassLoader(), null);
+            fail("expected ConfigurationException");
+            }
+        catch(com.tangosol.config.ConfigurationException e)
+            {
+            assertTrue(e.getMessage().contains("Invalid persistence mode"));
+            }
         }
 
     @Test

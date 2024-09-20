@@ -36,7 +36,17 @@ public class DistributedPartialResponse
      * been rejected by the corresponding request.
      */
     private com.tangosol.net.partition.PartitionSet __m_RejectPartitions;
-    
+
+    /**
+     * Property PartsResponse
+     *
+     * Set of partitions that the request has successfully processed. These are
+     * used to indicate whether only a subset of the request mask has been
+     * processed, in which case this means that more partial responses are to
+     * arrive and the poll must remain open.
+     */
+    private com.tangosol.net.partition.PartitionSet __m_ResponsePartitions;
+
     // Default constructor
     public DistributedPartialResponse()
         {
@@ -149,7 +159,20 @@ public class DistributedPartialResponse
         {
         return __m_RejectPartitions;
         }
-    
+
+    /**
+     * Getter for ResponsePartitions
+     *
+     * Set of partitions that the request has successfully processed. These are
+     * used to indicate whether only a subset of the request mask has been
+     * processed, in which case this means that more partial responses are to
+     * arrive and the poll must remain open.
+     */
+    public PartitionSet getResponsePartitions()
+        {
+        return __m_ResponsePartitions;
+        }
+
     // Declared at the super level
     public void read(com.tangosol.io.ReadBuffer.BufferInput input)
             throws java.io.IOException
@@ -206,7 +229,20 @@ public class DistributedPartialResponse
         {
         __m_RejectPartitions = set;
         }
-    
+
+    /**
+     * Setter for ResponsePartitions
+     *
+     * Set of partitions that the request has successfully processed. These are
+     * used to indicate whether only a subset of the request mask has been
+     * processed, in which case this means that more partial responses are to
+     * arrive and the poll must remain open.
+     */
+    public void setResponsePartitions(PartitionSet set)
+        {
+        __m_ResponsePartitions = set;
+        }
+
     // Declared at the super level
     public void write(com.tangosol.io.WriteBuffer.BufferOutput output)
             throws java.io.IOException

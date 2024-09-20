@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.query;
 
@@ -11,8 +11,6 @@ import com.tangosol.coherence.dslquery.ExtractorBuilder;
 import com.tangosol.coherence.dslquery.UniversalExtractorBuilder;
 
 import com.tangosol.coherence.rest.util.ComparatorHelper;
-import com.tangosol.coherence.rest.util.MvelHelper;
-import com.tangosol.coherence.rest.util.extractor.MvelExtractor;
 
 import com.tangosol.net.NamedCache;
 
@@ -159,20 +157,12 @@ public class CoherenceQueryLanguageEngine
 
     // ----- constants ------------------------------------------------------
 
-    /**
-     * ExtractorBuilder to use if optional {@code org.mvel.Mvel2} module is on path.
-     */
-    public static final ExtractorBuilder MVEL_EXTRACTOR_BUILDER = (sCacheName, nTarget, sProperties) ->
-            new MvelExtractor(sProperties, nTarget);
+
 
     /**
-     * ExtractorBuilder to use. If optional {@code org.mvel.Mvel2} module is available on path,
-     * use {@link #MVEL_EXTRACTOR_BUILDER}; otherwise, use {@link UniversalExtractorBuilder}.
+     * ExtractorBuilder to use {@link UniversalExtractorBuilder}.
      */
-    public static final ExtractorBuilder EXTRACTOR_BUILDER =
-            MvelHelper.isEnabled()
-                ? MVEL_EXTRACTOR_BUILDER
-                : new UniversalExtractorBuilder();
+    public static final ExtractorBuilder EXTRACTOR_BUILDER = new UniversalExtractorBuilder();
 
     // ----- data members ---------------------------------------------------
 

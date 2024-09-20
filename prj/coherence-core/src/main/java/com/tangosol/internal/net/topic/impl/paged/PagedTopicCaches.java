@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -238,6 +238,7 @@ public class PagedTopicCaches
         m_mapListener.remove(listener);
         }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public void ensureConnected()
         {
         if (m_state == State.Disconnected)
@@ -319,26 +320,6 @@ public class PagedTopicCaches
     public int getChannelCount()
         {
         return f_topicService.getChannelCount(f_sTopicName);
-        }
-
-    /**
-     * Return the default publisher channel count for this topic.
-     * <p>
-     * If the system property {@link Publisher#PROP_CHANNEL_COUNT} with a suffix of a dot
-     * followed by the topic name is set, that value will be used.
-     * <p>
-     * If the system property {@link Publisher#PROP_CHANNEL_COUNT} with no suffix is set,
-     * that value will be used.
-     * <p>
-     * If neither property is set the configured channel count will be used.
-     *
-     * @return the default publisher channel count for this topic
-     */
-    public int getPublisherChannelCount()
-        {
-        int cChannel = getDependencies().getConfiguredChannelCount();
-        cChannel = Config.getInteger(Publisher.PROP_CHANNEL_COUNT, cChannel);
-        return Config.getInteger(Publisher.PROP_CHANNEL_COUNT + "." + f_sTopicName, cChannel);
         }
 
     /**
@@ -444,20 +425,11 @@ public class PagedTopicCaches
      */
     public Map<Integer, Position> getLastCommitted(SubscriberGroupId subscriberGroupId)
         {
-        ValueExtractor<Subscription.Key, Integer>           extractorChannel = new ReflectionExtractor<>("getChannelId", new Object[0], EntryExtractor.KEY);
-        ValueExtractor<Subscription.Key, SubscriberGroupId> extractorGroup   = new ReflectionExtractor<>("getGroupId", new Object[0], EntryExtractor.KEY);
-        Filter<Subscription.Key>                            filter           = Filters.equal(extractorGroup, subscriberGroupId);
-        Filter<PagedPosition>                               filterPosition   = Filters.not(Filters.equal(PagedPosition::getPage, Page.NULL_PAGE));
-
         InvocableMap.EntryAggregator<Subscription.Key, Subscription, Position> aggregatorPos
                 = Aggregators.comparableMax(Subscription::getCommittedPosition);
 
         // Aggregate the subscription commits and remove any null values from the returned map
-        return Subscriptions.aggregate(filter, GroupAggregator.createInstance(extractorChannel, aggregatorPos, filterPosition))
-                .entrySet()
-                .stream()
-                .filter(e -> e.getKey() != Page.EMPTY && e.getValue() != null)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return getPositions(subscriberGroupId, aggregatorPos);
         }
 
     /**
@@ -468,18 +440,25 @@ public class PagedTopicCaches
      *
      * @return a {@link Map} of the {@link Position} of the head for each channel for a subscriber group
      */
+    @SuppressWarnings("unused")
     public Map<Integer, Position> getHeads(SubscriberGroupId subscriberGroupId, long nSubscriberId)
+        {
+        InvocableMap.EntryAggregator<Subscription.Key, Subscription, Position> aggregatorPos
+                = Aggregators.comparableMin(new Subscription.HeadExtractor(nSubscriberId));
+
+        // Aggregate the subscription commits and remove any null values from the returned map
+        return getPositions(subscriberGroupId, aggregatorPos);
+        }
+
+    private Map<Integer, Position> getPositions(SubscriberGroupId subscriberGroupId, InvocableMap.EntryAggregator<Subscription.Key, Subscription, Position> aggregator)
         {
         ValueExtractor<Subscription.Key, Integer>           extractorChannel = new ReflectionExtractor<>("getChannelId", new Object[0], EntryExtractor.KEY);
         ValueExtractor<Subscription.Key, SubscriberGroupId> extractorGroup   = new ReflectionExtractor<>("getGroupId", new Object[0], EntryExtractor.KEY);
         Filter<Subscription.Key>                            filter           = Filters.equal(extractorGroup, subscriberGroupId);
         Filter<PagedPosition>                               filterPosition   = Filters.not(Filters.equal(PagedPosition::getPage, Page.NULL_PAGE));
 
-        InvocableMap.EntryAggregator<Subscription.Key, Subscription, PagedPosition> aggregatorPos
-                = Aggregators.comparableMin(new Subscription.HeadExtractor(nSubscriberId));
-
         // Aggregate the subscription commits and remove any null values from the returned map
-        return Subscriptions.aggregate(filter, GroupAggregator.createInstance(extractorChannel, aggregatorPos, filterPosition))
+        return Subscriptions.aggregate(filter, GroupAggregator.createInstance(extractorChannel, aggregator, filterPosition))
                 .entrySet()
                 .stream()
                 .filter(e -> e.getKey() != Page.EMPTY && e.getValue() != null)
@@ -928,8 +907,18 @@ public class PagedTopicCaches
         // finish the initialization by having subscription in all partitions advance to our selected heads
         processor = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_ADVANCE, alHead, filter,
                 extractor, subscriberId, fReconnect, fCreateGroupOnly, lSubscription);
-        InvocableMapHelper.invokeAllAsync(Subscriptions, setSubKeys,
-                key -> getUnitOfOrder(key.getPartitionId()), processor).join();
+
+        CompletableFuture<?> futureSub = InvocableMapHelper.invokeAllAsync(Subscriptions, setSubKeys,
+                key -> getUnitOfOrder(key.getPartitionId()), processor);
+
+        try
+            {
+            futureSub.get(30, TimeUnit.SECONDS);
+            }
+        catch (TimeoutException e)
+            {
+            throw Exceptions.ensureRuntimeException(e, "Timed out waiting for subscriptions");
+            }
 
         return alHead;
         }
@@ -1503,10 +1492,14 @@ public class PagedTopicCaches
                 Logger.fine("Detected local member disconnect in service " + PagedTopicCaches.this);
                 disconnected();
                 }
-            else if (service.getOwnershipEnabledMembers().isEmpty())
+            else
                 {
-                Logger.fine("Detected loss of all storage members in service " + PagedTopicCaches.this);
-                disconnected();
+                service.getOwnershipSenior();
+                if (service.getOwnershipEnabledMembers().isEmpty())
+                    {
+                    Logger.fine("Detected loss of all storage members in service " + PagedTopicCaches.this);
+                    disconnected();
+                    }
                 }
             }
 

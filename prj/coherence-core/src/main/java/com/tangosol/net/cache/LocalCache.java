@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -35,10 +35,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReferenceArray;
+
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -1222,11 +1225,11 @@ public class LocalCache
                 if (c > 0)
                     {
                     // walk all buckets
-                    SafeHashMap.Entry[] aeBucket = map.m_aeBucket;
-                    for (SafeHashMap.Entry e : aeBucket)
+                    AtomicReferenceArray aeBucket = map.m_aeBucket;
+                    for (int i = 0; i < aeBucket.length(); i++)
                         {
                         // walk all entries in the bucket
-                        LocalCache.Entry entry = (LocalCache.Entry) e;
+                        LocalCache.Entry entry = (LocalCache.Entry) aeBucket.get(i);
                         while (entry != null)
                             {
                             if (removeIfExpired(entry))
@@ -1319,11 +1322,11 @@ public class LocalCache
                 if (c > 0)
                     {
                     // walk all buckets
-                    SafeHashMap.Entry[] aeBucket = map.m_aeBucket;
-                    for (SafeHashMap.Entry e : aeBucket)
+                    AtomicReferenceArray aeBucket = map.m_aeBucket;
+                    for (int i = 0; i < aeBucket.length(); i++)
                         {
                         // walk all entries in the bucket
-                        LocalCache.Entry entry = (LocalCache.Entry) e;
+                        LocalCache.Entry entry = (LocalCache.Entry) aeBucket.get(i);
                         while (entry != null)
                             {
                             if (removeIfExpired(entry))
@@ -1965,10 +1968,10 @@ public class LocalCache
                                      / ((super.size() + 1L) * (stats.getCachePrunes() + 1L)));
 
                 // sort the entries by their priorities to be retained
-                SafeHashMap.Entry[] aeBucket = m_aeBucket;
-                for (SafeHashMap.Entry e : aeBucket)
+                AtomicReferenceArray aeBucket = m_aeBucket;
+                for (int i = 0; i < aeBucket.length(); i++)
                     {
-                    LocalCache.Entry entry = (LocalCache.Entry) e;
+                    LocalCache.Entry entry = (LocalCache.Entry) aeBucket.get(i);
                     while (entry != null)
                         {
                         alist[entry.getPriority()].add(entry);
@@ -1999,10 +2002,10 @@ public class LocalCache
                 SparseArray array = new SparseArray();
 
                 // sort the entries by their recentness / frequentness of use
-                SafeHashMap.Entry[] aeBucket = m_aeBucket;
-                for (SafeHashMap.Entry e : aeBucket)
+                AtomicReferenceArray aeBucket = m_aeBucket;
+                for (int i = 0; i< aeBucket.length(); i++)
                     {
-                    LocalCache.Entry entry = (LocalCache.Entry) e;
+                    LocalCache.Entry entry = (LocalCache.Entry) aeBucket.get(i);
                     while (entry != null)
                         {
                         long lOrder = fLRU ? entry.getLastTouchMillis()
@@ -2062,10 +2065,10 @@ public class LocalCache
             if (!fLRU)
                 {
                 // reset touch counts
-                SafeHashMap.Entry[] aeBucket = m_aeBucket;
-                for (SafeHashMap.Entry e : aeBucket)
+                AtomicReferenceArray aeBucket = m_aeBucket;
+                for (int i = 0; i < aeBucket.length(); i++)
                     {
-                    LocalCache.Entry entry = (LocalCache.Entry) e;
+                    LocalCache.Entry entry = (LocalCache.Entry) aeBucket.get(i);
                     while (entry != null)
                         {
                         entry.resetTouchCount();
@@ -2077,7 +2080,7 @@ public class LocalCache
             // store off the list of pending evictions
             if (listEvict != null)
                 {
-                m_iterEvict = listEvict.iterator();
+                m_iterEvict = listEvict.listIterator();
                 }
 
             // make a first pass at the pending evictions
@@ -2132,7 +2135,7 @@ public class LocalCache
      */
     private void pruneIncremental()
         {
-        Iterator iterEvict = m_iterEvict;
+        ListIterator iterEvict = m_iterEvict;
         if (iterEvict != null)
             {
             // pruning will proceed until the cache is down below the max
@@ -2144,7 +2147,7 @@ public class LocalCache
                 {
                 LocalCache.Entry entry = (LocalCache.Entry) getEntryInternal(iterEvict.next());
 
-                iterEvict.remove();
+                iterEvict.set(null); // COH-27922 - release the reference to the entry so that it can be garbage collected
                 if (entry != null && entry.isEvictable() &&
                     removeEvicted(entry) &&
                     --cMinEntries <= 0 && m_cCurUnits < cMaxUnits)
@@ -2347,7 +2350,7 @@ public class LocalCache
         * Specify whether or not the currently performed operation is internally
         * initiated.
         *
-        * @param fSynthetic  true iff the the current operation is internal
+        * @param fSynthetic  true iff the current operation is internal
         */
         public void setSynthetic(boolean fSynthetic)
             {
@@ -3324,7 +3327,7 @@ public class LocalCache
      * there are no entries with deferred eviction.
      * @since Coherence 3.5
      */
-    protected Iterator m_iterEvict;
+    protected ListIterator m_iterEvict;
 
     /**
      * Specifies whether or not this cache will incrementally evict.

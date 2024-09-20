@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -252,6 +252,19 @@ public abstract class AbstractSnapshotArchiver
         return new SnapshotArchiverPersistenceTools(info, sSnapshot);
         }
 
+    /**
+     * Internal implementation to check if the specified archived store is empty.
+     *
+     * @param sSnapshot  the snapshot name
+     * @param sStore     the store name
+     *
+     * @return true if the store is empty
+     *
+     * @throws java.io.IOException if any I/O related problems
+     *
+     * @since 24.09
+     */
+    protected abstract boolean isEmpty(String sSnapshot, String sStore) throws IOException;
 
     // ----- statistics methods ---------------------------------------------
 
@@ -546,22 +559,25 @@ public abstract class AbstractSnapshotArchiver
                 // validate at the cost of increased resource usage (memory & cpu)
                 for (String sStore : asStores)
                     {
-                    // create a new snapshot with just one store as we want to minimize
-                    // disk usage.
-                    Snapshot snapshot = new Snapshot(f_sSnapshot, new String[] {sStore});
-
-                    AbstractSnapshotArchiver.this.retrieve(snapshot, env);
-
-                    manager = env.openSnapshot(f_sSnapshot);
-                    store   = manager.open(sStore, null);
-
-                    if (fCollectStats)
+                    if (!isEmpty(f_sSnapshot, sStore))
                         {
-                        visitor.setCaches(CachePersistenceHelper.getCacheNames(store));
-                        store.iterate(CachePersistenceHelper.instantiatePersistenceVisitor(visitor));
-                        }
+                        // create a new snapshot with just one store as we want to minimize
+                        // disk usage.
+                        Snapshot snapshot = new Snapshot(f_sSnapshot, new String[] {sStore});
 
-                    manager.close(sStore);
+                        AbstractSnapshotArchiver.this.retrieve(snapshot, env);
+
+                        manager = env.openSnapshot(f_sSnapshot);
+                        store = manager.open(sStore, null);
+
+                        if (fCollectStats)
+                            {
+                            visitor.setCaches(CachePersistenceHelper.getCacheNames(store));
+                            store.iterate(CachePersistenceHelper.instantiatePersistenceVisitor(visitor));
+                            }
+
+                        manager.close(sStore);
+                        }
 
                     // we must remove the snapshot every iteration as the retrieve assumes
                     // the snapshot does not exist, even if we are just retrieving a store

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,6 +15,7 @@ import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.Converter;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
@@ -98,8 +99,12 @@ public class InKeySetFilter<T>
         throw new UnsupportedOperationException();
         }
 
+    public String toExpression()
+        {
+        return "IN KEYSET " + m_setKeys;
+        }
 
-    // ----- EntryFilter interface ------------------------------------------
+// ----- EntryFilter interface ------------------------------------------
 
     /**
     * {@inheritDoc}
@@ -107,7 +112,7 @@ public class InKeySetFilter<T>
     public boolean evaluateEntry(Map.Entry entry)
         {
         Filter<T> filter = m_filter;
-        return m_setKeys.contains(entry.getKey()) &&
+        return m_setKeys.contains(entry instanceof BinaryEntry ? ((BinaryEntry<?, ?>) entry).getBinaryKey() : entry.getKey()) &&
                (filter == null || InvocableMapHelper.evaluateEntry(filter, entry));
         }
 
@@ -125,13 +130,9 @@ public class InKeySetFilter<T>
             return 1;
             }
 
-        if (m_setKeys.size() < setKeys.size())
-            {
-            setKeys = m_setKeys;
-            }
         return filter instanceof IndexAwareFilter
-                ? ((IndexAwareFilter) filter).calculateEffectiveness(mapIndexes, setKeys)
-                : setKeys.size()*ExtractorFilter.EVAL_COST;
+                ? ((IndexAwareFilter) filter).calculateEffectiveness(mapIndexes, m_setKeys)
+                : ExtractorFilter.calculateIteratorEffectiveness(setKeys.size());
         }
 
     /**
@@ -140,11 +141,15 @@ public class InKeySetFilter<T>
     public Filter applyIndex(Map mapIndexes, Set setKeys)
         {
         setKeys.retainAll(m_setKeys);
-
+        if (setKeys.isEmpty())
+            {
+            return null;
+            }
+            
         Filter<T> filter = m_filter;
         return filter instanceof IndexAwareFilter
                 ? ((IndexAwareFilter) filter).applyIndex(mapIndexes, setKeys)
-                : null;
+                : filter;
         }
 
 
@@ -322,5 +327,5 @@ public class InKeySetFilter<T>
     * A flag that indicates that the key set has been converted to internal
     * form.
     */
-    transient private boolean m_fConverted;
+    private transient volatile boolean m_fConverted;
     }

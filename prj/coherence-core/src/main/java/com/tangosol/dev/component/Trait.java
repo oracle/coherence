@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.dev.component;
@@ -176,7 +176,7 @@ public abstract class Trait
         }
 
     /**
-    * Copy constructor.  This constructor is used by the the copy constructor
+    * Copy constructor.  This constructor is used by the copy constructor
     * of the deriving trait.  All traits implement a copy constructor.
     *
     * Note:  Event listeners are not copied.

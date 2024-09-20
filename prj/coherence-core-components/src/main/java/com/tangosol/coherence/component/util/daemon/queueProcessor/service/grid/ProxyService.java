@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -34,6 +34,8 @@ import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.InetAddressHelper;
 import com.tangosol.net.Member;
 import com.tangosol.net.NameService;
+import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedCollection;
 import com.tangosol.net.OperationalContext;
 import com.tangosol.net.RequestPolicyException;
 import com.tangosol.net.Session;
@@ -1209,7 +1211,41 @@ public class ProxyService
         {
         return null;
         }
-    
+
+    @Override
+    public void close(NamedCollection col)
+        {
+        if (col instanceof NamedCache<?,?>)
+            {
+            CacheService service = getCacheServiceProxy().getCacheService();
+            if (service instanceof Session)
+                {
+                ((Session) service).close(col);
+                }
+            else
+                {
+                service.releaseCache((NamedCache) col);
+                }
+            }
+        }
+
+    @Override
+    public void destroy(NamedCollection col)
+        {
+        if (col instanceof NamedCache<?,?>)
+            {
+            CacheService service = getCacheServiceProxy().getCacheService();
+            if (service instanceof Session)
+                {
+                ((Session) service).destroy(col);
+                }
+            else
+                {
+                service.destroyCache((NamedCache) col);
+                }
+            }
+        }
+
     // Declared at the super level
     /**
      * Initialize the service config for this member.
@@ -1291,6 +1327,15 @@ public class ProxyService
             }
         
         return false;
+        }
+
+    /**
+     * @return the description of the service
+     */
+    @Override
+    public String getDescription()
+        {
+        return super.getDescription() + ", Serializer=" + getSerializer().getName();
         }
     
     // From interface: com.tangosol.net.Session
@@ -1625,7 +1670,7 @@ public class ProxyService
     // Declared at the super level
     /**
      * Called to complete the "service-left" processing for the specified
-    * member.  This notification is processed only after the the associated
+    * member.  This notification is processed only after the associated
     * endpoint has been released by the message handler.  See
     * $NotifyServiceLeft#onReceived/#proceed.
     * Called on the service thread only.

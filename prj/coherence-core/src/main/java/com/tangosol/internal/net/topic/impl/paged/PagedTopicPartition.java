@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -247,20 +247,11 @@ public class PagedTopicPartition
         int                    nChannel        = keyPage.getChannelId();
         long                   lPage           = keyPage.getPageId();
         PagedTopicDependencies configuration   = getDependencies();
-        int                    channelCount    = getChannelCount();
         int                    cbCapPage       = configuration.getPageCapacity();
         long                   cbCapServer     = configuration.getServerCapacity();
         List<Binary>           listElements    = processor.getElements();
         int                    nNotifyPostFull = processor.getNotifyPostFull();
         boolean                fSealPage       = processor.isSealPage();
-
-        if (nChannel >= channelCount)
-            {
-            // publisher tried to publish to a non-existent channel,
-            // the publisher probably has an incorrect channel count
-            throw new RequestIncompleteException("Invalid channel " + nChannel
-                    + ", channel count is " + channelCount + ", valid channels are 0.." + (channelCount - 1));
-            }
 
         if (cbCapServer > 0 && nNotifyPostFull != 0)
             {
@@ -453,13 +444,16 @@ public class PagedTopicPartition
         usage.setPartitionTail(lPage);
         usage.setPartitionMax(lPage); // unlike tail this is never reset to NULL_PAGE
 
+        boolean fFirstPage;
         if (lTailPrev == Page.NULL_PAGE)
             {
             // partition was empty, our new tail is also our head
             usage.setPartitionHead(lPage);
+            fFirstPage = true;
             }
         else
             {
+            fFirstPage = false;
             // attach old tail to new tail
             page.incrementReferenceCount(); // ref from old tail to new page
 
@@ -471,7 +465,20 @@ public class PagedTopicPartition
             }
 
         // attach on behalf of waiting subscribers, they will have to find this page on their own
-        page.adjustReferenceCount(usage.resetWaitingSubscriberCount());
+        int c = usage.resetWaitingSubscriberCount();
+        if (fFirstPage && c == 0)
+            {
+            // The Usage may have zero subscriptions if a Publisher has recently increased the channel count
+            // In this case we check the service to see whether the topic has subscriptions
+            String sCache        = entry.getBackingMapContext().getCacheName();
+            String sTopic        = PagedTopicCaches.Names.getTopicName(sCache);
+            long   cSubscription = f_service.getSubscriptionCount(sTopic);
+            if (cSubscription > 0L)
+                {
+                c = 1;//(int) cSubscription;
+                }
+            }
+        page.adjustReferenceCount(c);
 
         long nTime = getClusterTime();
         page.setTimestampHead(nTime);
@@ -790,7 +797,11 @@ public class PagedTopicPartition
             int               nPart     = getPartition();
             for (int nNotify : anNotify)
                 {
-                ctxNotify.getBackingMapEntry(toBinaryKey(new NotificationKey(nPart, nNotify))).remove(false);
+                InvocableMap.Entry entry = ctxNotify.getBackingMapEntry(toBinaryKey(new NotificationKey(nPart, nNotify)));
+                if (entry.isPresent())
+                    {
+                    entry.remove(false);
+                    }
                 }
             }
         }
@@ -915,8 +926,6 @@ public class PagedTopicPartition
         int                     cChannel                 = getChannelCount();
         long[]                  alResult                 = new long[cChannel];
         int                     cParts                   = getPartitionCount();
-        int                     nSyncPartition           = Subscription.getSyncPartition(subscriberGroupId, 0, cParts);
-        boolean                 fSyncPartition           = key.getPartitionId() == nSyncPartition;
 
         if (!fAnonymous)
             {
@@ -925,7 +934,7 @@ public class PagedTopicPartition
                 // Ensure the subscription exists.
                 // If the cluster has been upgraded from a version prior to 22.06.4 the
                 // subscription may not be present in the service senior. If we already
-                // know about the subscription, this call is effectively a no-op.
+                // know about the subscription, the following call will effectively be a no-op.
                 lSubscriptionId = f_service.ensureSubscription(f_sName, subscriberGroupId,
                         subscriberId, filter, converter);
                 // Update the entry processor so the correct subscription id is sent back
@@ -1163,44 +1172,11 @@ public class PagedTopicPartition
                         }
                     else
                         {
-                        if (lSubscriptionId != 0)
-                            {
-                            // We have a subscription id, so the service senior is 22.06.4 or higher.
-                            // Make sure we update subscriptionZero from that state.
-                            fReconnect = subscriptionZero.hasSubscriber(subscriberId);
-                            PagedTopicSubscription pagedTopicSubscription = f_service.getSubscription(lSubscriptionId);
-                            subscriptionZero.update(pagedTopicSubscription);
-                            }
-                        else
-                            {
-                            // This is the legacy subscription handling code prior to 22.06.4
-                            // If the senior is running version 22.06.4, or later we would have
-                            // a non-zero lSubscriptionId and the senior would be managing the
-                            // subscription and channel allocations.
-                            // Ideally we would not do this at all, but we have to account for
-                            // a rolling upgrade from an earlier version.
-                            if (!subscriptionZero.hasSubscriber(subscriberId))
-                                {
-                                // the subscription is out of date, or this is a new subscriber and
-                                // is not an anonymous subscriber (nSubscriberId != 0)
-                                Map<Integer, Set<SubscriberId>> mapRemoved = subscriptionZero
-                                        .addSubscriber(subscriberId, cChannel, getMemberSet());
-
-                                if (fSyncPartition)
-                                    {
-                                    // we only log the update for the sync partition
-                                    // (no need to repeat the same message for every partition)
-                                    Logger.finest(String.format("Added subscriber %s in group %s allocations %s",
-                                                                subscriberId, subscriberGroupId, subscriptionZero.getAllocations()));
-                                    if (!mapRemoved.isEmpty())
-                                        {
-                                        logRemoval(mapRemoved, f_sName, subscriberGroupId.getGroupName());
-                                        }
-                                    }
-
-                                fReconnect = false; // reset reconnect flag as this is effectively a new subscriber
-                                }
-                            }
+                        // We must have a subscription id, as the service senior must be 22.06.4 or higher.
+                        // Make sure we update subscriptionZero from that state.
+                        fReconnect = subscriptionZero.hasSubscriber(subscriberId);
+                        PagedTopicSubscription pagedTopicSubscription = f_service.getSubscription(lSubscriptionId);
+                        subscriptionZero.update(pagedTopicSubscription);
                         }
                     }
 
@@ -1379,21 +1355,33 @@ public class PagedTopicPartition
             return PollProcessor.Result.unknownSubscriber();
             }
 
+        PagedTopicSubscription pagedTopicSubscription = getPagedTopicSubscription(entrySubscription);
+
         // check whether the channel count has changed
-        Subscription subscriptionZero = peekSubscriptionZero(entrySubscription);
-        if (cChannel != subscriptionZero.getLatestChannelCount())
+        int cChannelActual = getChannelCount();
+        if (cChannel != cChannelActual)
             {
             // the channel count has changed to force the subscriber to reconnect, which will refresh allocations
             return PollProcessor.Result.unknownSubscriber();
             }
 
+        // Get the subscription
+        // If it exists, the PagedTopicSubscription is a more consistent holder of channel allocations and subscriptions.
         Subscription subscription = entrySubscription.getValue();
-        SubscriberId owner        = subscription.getOwningSubscriber();
+        SubscriberId owner        = pagedTopicSubscription != null
+                                        ? pagedTopicSubscription.getOwningSubscriber(nChannel)
+                                        : subscription.getOwningSubscriber();
 
         if (!Objects.equals(owner, subscriberId))
             {
             // the subscriber does not own this channel, it should not have got here, but it probably had out of date state
             return PollProcessor.Result.notAllocated(Integer.MAX_VALUE);
+            }
+
+        if (!Objects.equals(subscriberId, subscription.getChannelOwner(nChannel)))
+            {
+            // Ownership has changed and the subscription is out of date, so update, which will cause a rollback
+            subscription.setOwningSubscriber(subscriberId);
             }
 
         // update the "last polled by" subscriber
@@ -1496,7 +1484,21 @@ public class PagedTopicPartition
             {
             Binary      binPosKey    = ContentKey.toBinary(f_nPartition, nChannel, lPage, nPos);
             BinaryEntry entryElement = (BinaryEntry) ctxElements.getReadOnlyEntry(binPosKey);
-            Binary      binValue     = entryElement == null ? null : entryElement.getBinaryValue();
+            Binary      binValue     = entryElement.getBinaryValue();
+
+            if (binValue == null)
+                {
+                // For some reason the content cache entry was null.
+                // This could mean it really is not there (i.e. deleted or expired or something)
+                // or there is a race where the offer processor is still finishing and has committed
+                // the update to the Page but not yet committed the contents.
+                // So we will try to enlist the Content and get the value again
+                entryElement = ctxElements.getBackingMapEntry(binPosKey).asBinaryEntry();
+                if (entryElement.isPresent())
+                    {
+                    binValue = entryElement.getBinaryValue();
+                    }
+                }
 
             if (binValue != null && (filter == null || InvocableMapHelper.evaluateEntry(filter, entryElement)))
                 {
@@ -1551,7 +1553,18 @@ public class PagedTopicPartition
             if (nPos > nPosTail)
                 {
                 // that position is currently empty; register for notification when it is set
-                requestInsertionNotification(enlistPage(nChannel, lPage), nNotifierId, nChannel);
+                Page pageEnlisted = enlistPage(nChannel, lPage);
+                // The Page "may" have been update by an offer on another thread while we have been processing this method,
+                // so there may now be an entry in the page we have not read.
+                // Now we have enlisted the page it is not going to change, so we can tell by checking the tail.
+                int nPosTailLatest = pageEnlisted.getTail();
+                if (nPosTail == nPosTailLatest)
+                    {
+                    // the tail has not changed, so we need to add a notification
+                    requestInsertionNotification(pageEnlisted, nNotifierId, nChannel);
+                    }
+                // make sure the tail is set to the "latest" tail from the enlisted page
+                nPosTail = nPosTailLatest;
                 }
             result = new PollProcessor.Result(nPosTail - nPos + 1, nPos, listValues, subscription.getSubscriptionHead());
             }
@@ -1655,9 +1668,15 @@ public class PagedTopicPartition
                     new IllegalArgumentException("Invalid position type"));
             }
 
-        Subscription  subscription  = entrySubscription.getValue();
-        SubscriberId  owner         = subscription.getOwningSubscriber();
-        boolean       fOwned        = Objects.equals(owner, subscriberId);
+        PagedTopicSubscription pagedTopicSubscription = getPagedTopicSubscription(entrySubscription);
+        Subscription           subscription           = entrySubscription.getValue();
+
+        // If it exists, the PagedTopicSubscription is a more consistent holder of channel allocations and subscriptions.
+        SubscriberId owner = pagedTopicSubscription != null
+                ? pagedTopicSubscription.getOwningSubscriber(nChannel)
+                : subscription.getOwningSubscriber();
+
+        boolean fOwned = Objects.equals(owner, subscriberId);
 
         if (!fOwned && getDependencies().isOnlyOwnedCommits())
             {
@@ -2050,11 +2069,12 @@ public class PagedTopicPartition
             }
 
         // if the commit position is after the new position roll it back too
-        PagedPosition committed = subscription.getCommittedPosition();
+        PagedPosition committed        = subscription.getCommittedPosition();
         long          lPageCommitted   = committed.getPage();
         int           nOffsetCommitted = committed.getOffset();
         long          lPageSub         = subscription.getPage();
         int           nOffsetSub       = subscription.getPosition();
+
         if (lPageCommitted > lPageSub || (lPageCommitted == lPageSub && nOffsetCommitted > nOffsetSub))
             {
             PagedPosition posRollback = new PagedPosition(lPageSub, nOffsetSub);
@@ -2398,23 +2418,11 @@ public class PagedTopicPartition
         return mgr.getStatistics(f_sName);
         }
 
-    /**
-     * Return the read-only {@link Subscription} for channel zero.
-     *
-     *  @param entry  the current subscription {@link BinaryEntry}
-     *
-     * @return the read-only {@link Subscription} for channel zero
-     */
-    protected Subscription peekSubscriptionZero(BinaryEntry<Subscription.Key, Subscription> entry)
+    protected PagedTopicSubscription getPagedTopicSubscription(BinaryEntry<Subscription.Key, Subscription> entry)
         {
-        Subscription.Key key = entry.getKey();
-        if (key.getChannelId() == 0)
-            {
-            return entry.getValue();
-            }
-        Binary binKeyZero = toBinaryKey(new Subscription.Key(getPartition(), 0, key.getGroupId()));
-        BinaryEntry<Subscription.Key, Subscription> entryZero = peekBackingMapEntry(PagedTopicCaches.Names.SUBSCRIPTIONS, binKeyZero);
-        return entryZero.getValue();
+        SubscriberGroupId groupId = entry.getKey().getGroupId();
+        long              lId     = f_service.getSubscriptionId(f_sName, groupId);
+        return f_service.getSubscription(lId);
         }
 
     /**

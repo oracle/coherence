@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2022, 2023 Oracle and/or its affiliates.
+    Copyright (c) 2022, 2024 Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
@@ -11,13 +11,11 @@
 Coherence CE {version-coherence} requires a minimum of version
 17 of the Java Development Kit (JDK).
 
-=== Additional JDK Command Line Arguments
-If using Oracle Coherence Portable Object Format (POF) and/or remote Lambdas,
-it is recommended to start the JVM with:
+=== Concerning Java Platform Module (JPMS) Options
 
-----
---add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED
-----
+JPMS JDK command line options such as *--add-opens*, *--add-exports* and *--add-reads* of standard JDK modules to *com.oracle.coherence* module documented in Section *Using Java Modules to Build a Coherence Application* of Coherence commercial release 14.1.1.2206 are no longer required.
+
+A new JPMS requirement is an application module containing Coherence remote lambda(s) must open itself to module *com.oracle.coherence* so the remote lambda(s) can be resolved to the application's lambda(s) during deserialization.
 
 == Jakarta EE 9.1 Compatibility
 
@@ -55,12 +53,6 @@ The following table describes the mapping of javax packages to jakarta packages 
 |jakarta.interceptor
 |jakarta.interceptor-api
 |2.0.0
-
-|javax.jms
-|jakarta.jms
-|jakarta.jms
-|jakarta.jms-api
-|3.0.0
 
 |javax.json
 |jakarta.json

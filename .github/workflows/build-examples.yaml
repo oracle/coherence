@@ -36,11 +36,11 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Set up JDK
-      uses: actions/setup-java@v3
+      uses: oracle-actions/setup-java@v1
       with:
-        distribution: 'oracle'
-        java-version: '17'
-
+        website: oracle.com
+        release: 21
+        
     - name: Print Maven & Java version
       run: mvn -version
 
@@ -53,7 +53,7 @@ jobs:
 
       # Build and Test examples
     - name: build-test-examples
-      timeout-minutes: 180
+      timeout-minutes: 300
       shell: bash
       env:
         MAVEN_USER: ${{ secrets.MavenUser }}
@@ -80,4 +80,20 @@ jobs:
       with:
         name: failsafe-surefire-test-reports
         path: prj/examples/**/target/*-reports/**/*
+        if-no-files-found: ignore
+
+    - name: Build Artifacts core dumps
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: core-dumps
+        path: prj/examples/**/core.*
+        if-no-files-found: ignore
+
+    - name: Build Artifacts compiler replays
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: compiler-replay-logs
+        path: prj/examples/**/replay_pid*.log
         if-no-files-found: ignore

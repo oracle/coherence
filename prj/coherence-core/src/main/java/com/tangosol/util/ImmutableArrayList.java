@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -137,7 +137,14 @@ public class ImmutableArrayList
     *       object is used as a SortedSet.
     *
     * @return a SortedSet view of this ImmutableArrayList
+    *
+    * @deprecated As of Coherence 14.1.2/24.09, this method and the related
+    *             SortedSet implementation are deprecated and will be removed
+    *             in a future release. Any code that uses ImmutableArrayList
+    *             as a SortedSet should be changed to use a proper SortedSet
+    *             implementation.
     */
+    @Deprecated(forRemoval = true)
     public SortedSet getSortedSet()
         {
         return new SortedSetView();
@@ -382,6 +389,7 @@ public class ImmutableArrayList
     * @return  the comparator associated with this sorted set, or
     *          <tt>null</tt> if it uses its elements' natural ordering
     */
+    @Deprecated(forRemoval = true)
     public Comparator comparator()
         {
         return (o1, o2) ->
@@ -409,6 +417,7 @@ public class ImmutableArrayList
     *
     * @throws NoSuchElementException  if the sorted set is empty
     */
+    @Deprecated(forRemoval = true)
     public Object first()
         {
         if (isEmpty())
@@ -426,6 +435,7 @@ public class ImmutableArrayList
     *
     * @throws NoSuchElementException  if the sorted set is empty
     */
+    @Deprecated(forRemoval = true)
     public Object last()
         {
         if (isEmpty())
@@ -447,6 +457,7 @@ public class ImmutableArrayList
     * @throws IllegalArgumentException if <tt>toElement</tt> is not found in
     *         the SortedSet
     */
+    @Deprecated(forRemoval = true)
     public SortedSet headSet(Object toElement)
         {
         int iPos = indexOf(toElement);
@@ -470,6 +481,7 @@ public class ImmutableArrayList
     * @throws IllegalArgumentException if <tt>fromElement</tt> is not found
     *         in the SortedSet
     */
+    @Deprecated(forRemoval = true)
     public SortedSet tailSet(Object fromElement)
         {
         int iPos = lastIndexOf(fromElement);
@@ -495,6 +507,7 @@ public class ImmutableArrayList
     * @throws IllegalArgumentException if either <tt>fromElement</tt> or
     *         <tt>toElement</tt> is not found in the SortedSet
     */
+    @Deprecated(forRemoval = true)
     public SortedSet subSet(Object fromElement, Object toElement)
         {
         int iPosBegin = lastIndexOf(fromElement);
@@ -948,6 +961,7 @@ public class ImmutableArrayList
     * java.util.SortedSet} interface, maintaining correct <tt>equals()</tt> and
     * <tt>hashCode()</tt> semantics
     */
+    @Deprecated(forRemoval = true)
     protected class SortedSetView
             extends WrapperCollections.AbstractWrapperSortedSet
         {

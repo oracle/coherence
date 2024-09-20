@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -42,9 +42,16 @@
 
     <!-- param type with the option for an empty value -->
     <xsd:simpleType name="coherence-base-type">
-        <xsd:union memberTypes="coherence-param-type coherence-empty-token" />
+        <xsd:union memberTypes="coherence-param-type coherence-empty-token coherence-system-property-macro-type" />
     </xsd:simpleType>
 
+    <!-- type for matching system property macros in values,
+         e.g., ${some.property} or 10${some.property}0 -->
+    <xsd:simpleType name="coherence-system-property-macro-type">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value=".*\$\{.*\}.*" />
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <!-- substitute type of format @port@ -->
     <xsd:simpleType name="coherence-substitute-token-type">
@@ -1085,6 +1092,7 @@
             <xsd:element ref="cipher-suites" minOccurs="0" />
             <xsd:element ref="protocol-versions" minOccurs="0" />
             <xsd:element ref="socket-provider" minOccurs="0"/>
+            <xsd:element ref="client-auth" minOccurs="0"/>
             <xsd:element ref="refresh-period" minOccurs="0" />
             <xsd:element name="refresh-policy" type="ssl-refresh-policy-type" minOccurs="0" />
             <xsd:any namespace="##other" processContents="lax"  minOccurs="0" maxOccurs="unbounded" />
@@ -1155,6 +1163,43 @@
             <xsd:anyAttribute namespace="##other" processContents="lax"/>
         </xsd:complexType>
     </xsd:element>
+
+    <xsd:simpleType name="client-auth-enum-type">
+        <xsd:restriction base="xsd:normalizedString">
+            <xsd:enumeration value="none" />
+            <xsd:enumeration value="wanted" />
+            <xsd:enumeration value="required" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="client-auth-base-type">
+        <xsd:union memberTypes="coherence-base-type client-auth-enum-type" />
+    </xsd:simpleType>
+
+    <xsd:complexType name="client-auth-type">
+        <xsd:simpleContent>
+            <xsd:extension base="client-auth-base-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="client-auth" type="client-auth-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The client auth mode to use for an SSL context.
+                This only applies to server sockets and only if
+                a trust store is present.
+
+                Valid names include: none, wanted, required
+
+                Default value when a trust store is specified is "required".
+
+                Used in: ssl
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
 
     <xsd:element name="executor">
         <xsd:annotation>
@@ -2203,5 +2248,83 @@
         <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
         <xsd:anyAttribute namespace="##other" processContents="lax"/>
     </xsd:complexType>
+
+    <xsd:element name="secured-production" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                This element is deprecated since 14.1.2.0 and has no effect.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="thread-count"
+        type="coherence-integer-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                NOTE: The thread-count element is deprecated and is replaced
+                by setting the thread-count-min and thread-count-max elements
+                to the same value.
+
+                The thread-count element specifies the number of daemon
+                threads. Usage of daemon threads varies for different
+                service types.
+
+                If zero or negative, the service does not use daemon threads
+                and all relevant tasks are performed on the service thread.
+                Furthermore, if negative, tasks are performed on the caller's
+                thread where possible.
+
+                The absence of either a thread-count element or a thread-count
+                value will enable the dynamic thread pool.
+
+                Used in: distributed-scheme-type, transactional-scheme,
+                invocation-scheme, proxy-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="thread-count-max"
+        type="coherence-integer-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The thread-count-max element specifies the maximum number
+                of daemon threads. Usage of daemon threads varies for
+                different service types.
+
+                If zero or negative, the service does not use daemon threads
+                and all relevant tasks are performed on the service thread.
+                Furthermore, if negative, tasks are performed on the caller's
+                thread where possible.
+
+                Valid values are integers greater or equal to the value of
+                the thread-count-min element. Default value is Integer.MAX_VALUE.
+
+                Used in: distributed-scheme-type, transactional-scheme,
+                invocation-scheme, proxy-scheme, paged-topic-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="thread-count-min"
+        type="coherence-integer-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The thread-count-min element specifies the minimum number
+                of daemon threads. Usage of daemon threads varies for
+                different service types.
+
+                If zero or negative, the service does not use daemon threads
+                and all relevant tasks are performed on the service thread.
+                Furthermore, if negative, tasks are performed on the caller's
+                thread where possible.
+
+                Valid values are integers less than or equal to the value of
+                the thread-count-max element. Default value is 1.
+
+                Used in: distributed-scheme-type, transactional-scheme,
+                invocation-scheme, proxy-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
 
 </xsd:schema>

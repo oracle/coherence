@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,8 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.ServiceStatus;
+
+import com.oracle.coherence.common.base.Randoms;
 
 import com.tangosol.coherence.rest.providers.JacksonMapperProvider;
 
@@ -113,7 +115,7 @@ public class PersistenceResourceTests
 
             // fill a cache
             NamedCache cache = findApplication(SERVER_PREFIX + "-1").getCache(CACHE_NAME);
-            Binary binValue = Binary.getRandomBinary(1024, 1024);
+            Binary binValue = Randoms.getRandomBinary(1024, 1024);
             cache.put(1, binValue);
 
             m_client = ClientBuilder.newBuilder()
@@ -291,6 +293,8 @@ public class PersistenceResourceTests
 
     private void testSnapshotNotPresent()
         {
+        Eventually.assertDeferred(() -> this.isPersistenceManagerIdle(m_client), is(true));
+
         Response response = getBaseTarget().path("services").path(SERVICE_NAME).path("persistence")
                 .path("snapshots").request().get();
 

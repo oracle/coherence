@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -14,7 +14,7 @@
   <parent>
     <groupId>io.helidon.applications</groupId>
     <artifactId>helidon-mp</artifactId>
-    <version>3.1.2</version>
+    <version>4.1.0</version>
     <relativePath/>
   </parent>
 
@@ -24,12 +24,12 @@
   <name>Coherence Guides - Response Caching</name>
 
   <properties>
-    <revision>23.09-SNAPSHOT</revision>
+    <revision>25.03-SNAPSHOT</revision>
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${project.version}</coherence.version>
 
-    <java.version>17</java.version>
+    <java.version>21</java.version>
 
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -100,8 +100,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>io.helidon.microprofile.tests</groupId>
-      <artifactId>helidon-microprofile-tests-junit5</artifactId>
+      <groupId>io.helidon.microprofile.testing</groupId>
+      <artifactId>helidon-microprofile-testing-junit5</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

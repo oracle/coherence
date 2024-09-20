@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
 
@@ -49,6 +49,7 @@ import java.util.function.Consumer;
  * @author mk 2019.07.26
  * @since 14.1.1.0
  */
+@SuppressWarnings("rawtypes")
 public class Processors
     {
     // -------- asynchronous processors -------------------------------------
@@ -66,7 +67,7 @@ public class Processors
      *
      * @see AsynchronousProcessor
      */
-    public static <K, V, R> InvocableMap.EntryProcessor<K, V, R> asynchronous(
+    public static <K, V, R> AsynchronousProcessor<K, V, R> asynchronous(
             InvocableMap.EntryProcessor<K, V, R> processor)
         {
         return new AsynchronousProcessor<>(processor);
@@ -88,7 +89,7 @@ public class Processors
      *
      * @see AsynchronousProcessor
      */
-    public static <K, V, R> InvocableMap.EntryProcessor<K, V, R> asynchronous(
+    public static <K, V, R> AsynchronousProcessor<K, V, R> asynchronous(
             InvocableMap.EntryProcessor<K, V, R> processor, int iUnitOrderId)
         {
         return new AsynchronousProcessor<>(processor, iUnitOrderId);
@@ -103,7 +104,7 @@ public class Processors
      *
      * @see SingleEntryAsynchronousProcessor
      */
-    public static <K, V, R> InvocableMap.EntryProcessor<K, V, R> singleEntryAsynchronous(
+    public static <K, V, R> SingleEntryAsynchronousProcessor<K, V, R> singleEntryAsynchronous(
             InvocableMap.EntryProcessor<K, V, R> processor)
         {
         return new SingleEntryAsynchronousProcessor<>(processor);
@@ -121,7 +122,7 @@ public class Processors
      *
      * @see SingleEntryAsynchronousProcessor
      */
-    public static <K, V, R> InvocableMap.EntryProcessor<K, V, R> singleEntryAsynchronous(
+    public static <K, V, R> SingleEntryAsynchronousProcessor<K, V, R> singleEntryAsynchronous(
             InvocableMap.EntryProcessor<K, V, R> processor,
             int iUnitOrderId)
         {
@@ -144,7 +145,7 @@ public class Processors
      *
      * @see StreamingAsynchronousProcessor
      */
-    public static <K, V, R> InvocableMap.EntryProcessor<K, V, R> streamingAsynchronous(
+    public static <K, V, R> StreamingAsynchronousProcessor<K, V, R> streamingAsynchronous(
             InvocableMap.EntryProcessor<K, V, R> processor,
             Consumer<? super Map.Entry<? extends K, ? extends R>> onPartial)
 
@@ -169,7 +170,7 @@ public class Processors
      *
      * @see StreamingAsynchronousProcessor
      */
-    public static <K, V, R> InvocableMap.EntryProcessor<K, V, R> streamingAsynchronous(
+    public static <K, V, R> StreamingAsynchronousProcessor<K, V, R> streamingAsynchronous(
             EntryProcessor<K, V, R> processor, int iUnitOrderId,
             Consumer<? super Map.Entry<? extends K, ? extends R>> onPartial)
 
@@ -196,7 +197,7 @@ public class Processors
      *
      * @see CompositeProcessor
      */
-    public static <K, V> InvocableMap.EntryProcessor<K, V, Object> composite(
+    public static <K, V> CompositeProcessor<K, V> composite(
             InvocableMap.EntryProcessor<K, V, ?>[] aProcessor)
         {
         return new CompositeProcessor<>(aProcessor);
@@ -222,7 +223,7 @@ public class Processors
      *
      * @see ConditionalProcessor
      */
-    public static <K, V, T> InvocableMap.EntryProcessor<K, V, T> conditional(
+    public static <K, V, T> ConditionalProcessor<K, V, T> conditional(
             Filter<V> filter, InvocableMap.EntryProcessor<K, V, T> processor)
         {
         return new ConditionalProcessor<>(filter, processor);
@@ -241,7 +242,7 @@ public class Processors
      * @return a put processor that updates an entry with a new value if
      *         and only if the filter applied to the entry evaluates to true
      */
-    public static <K, V> InvocableMap.EntryProcessor<K, V, V> put(Filter filter, V value)
+    public static <K, V> ConditionalPut<K, V> put(Filter<?> filter, V value)
         {
         return new ConditionalPut<>(filter, value);
         }
@@ -261,7 +262,7 @@ public class Processors
      * @return a put processor that updates an entry with a new value if
      *         and only if the filter applied to the entry evaluates to true.
      */
-    public static <K, V> InvocableMap.EntryProcessor<K, V, V> put(Filter filter, V value, boolean fReturn)
+    public static <K, V> ConditionalPut<K, V> put(Filter<?> filter, V value, boolean fReturn)
         {
         return new ConditionalPut<>(filter, value, fReturn);
         }
@@ -282,8 +283,7 @@ public class Processors
      *         if and only if the filter applied to the entry evaluates to
      *         true.
      */
-    public static <K, V> InvocableMap.EntryProcessor<K, V, V> putAll(
-            Filter filter, Map<? extends K, ? extends V> map)
+    public static <K, V> ConditionalPutAll<K, V> putAll(Filter<?> filter, Map<? extends K, ? extends V> map)
         {
         return new ConditionalPutAll<>(filter, map);
         }
@@ -335,7 +335,7 @@ public class Processors
      * @return a remove processor that removes an InvocableMap entry
      *         if and only if the filter applied to the entry evaluates to true.
      */
-    public static <K, V> InvocableMap.EntryProcessor<K, V, V> remove(Filter filter)
+    public static <K, V> ConditionalRemove<K, V> remove(Filter<?> filter)
         {
         return new ConditionalRemove<>(filter);
         }
@@ -362,7 +362,7 @@ public class Processors
      * @return a remove processor that removes an InvocableMap entry
      *         if and only if the filter applied to the entry evaluates to true.
      */
-    public static <K, V> InvocableMap.EntryProcessor<K, V, V> remove(Filter filter, boolean fReturn)
+    public static <K, V> ConditionalRemove<K, V> remove(Filter<?> filter, boolean fReturn)
         {
         return new ConditionalRemove<>(filter, fReturn);
         }
@@ -377,7 +377,7 @@ public class Processors
      *
      * @see ExtractorProcessor
      */
-    public static <K, V, T, R> InvocableMap.EntryProcessor<K, V, R> extract(ValueExtractor<? super T, ? extends R> extractor)
+    public static <K, V, T, R> ExtractorProcessor<K, V, T, R> extract(ValueExtractor<? super T, ? extends R> extractor)
         {
         return new ExtractorProcessor<>(extractor);
         }
@@ -396,7 +396,7 @@ public class Processors
      *
      * @see ExtractorProcessor
      */
-    public static <K, V, R> InvocableMap.EntryProcessor<K, V, R> extract(String sName)
+    public static <K, V, T, R> ExtractorProcessor<K, V, T, R> extract(String sName)
         {
         return new ExtractorProcessor<>(sName);
         }
@@ -418,7 +418,7 @@ public class Processors
      *
      * @see NumberIncrementor
      */
-    public static <K, V, N extends Number> InvocableMap.EntryProcessor<K, V, N> increment(
+    public static <K, V, N extends Number> NumberIncrementor<K, V, N> increment(
             String sName, N numInc, boolean fPostIncrement)
         {
         return new NumberIncrementor<>(sName, numInc, fPostIncrement);
@@ -441,7 +441,7 @@ public class Processors
      *
      * @see NumberIncrementor
      */
-    public static <K, V, N extends Number> InvocableMap.EntryProcessor<K, V, N> increment(
+    public static <K, V, N extends Number> NumberIncrementor<K, V, N> increment(
             PropertyManipulator manipulator, N numInc, boolean fPostIncrement)
         {
         return new NumberIncrementor<>(manipulator, numInc, fPostIncrement);
@@ -471,7 +471,7 @@ public class Processors
      *
      * @see NumberMultiplier
      */
-    public static <K, V, N extends Number> InvocableMap.EntryProcessor<K, V, N> multiply(
+    public static <K, V, N extends Number> NumberMultiplier<K, V, N> multiply(
             String sName, N numFactor, boolean fPostFactor)
         {
         return new NumberMultiplier<>(sName, numFactor, fPostFactor);
@@ -501,7 +501,7 @@ public class Processors
      *
      * @see NumberMultiplier
      */
-    public static <K, V, N extends Number> InvocableMap.EntryProcessor<K, V, N> multiply(
+    public static <K, V, N extends Number> NumberMultiplier<K, V, N> multiply(
             PropertyManipulator<V, N> manipulator, N numFactor, boolean fPostFactor)
         {
         return new NumberMultiplier<>(manipulator, numFactor, fPostFactor);
@@ -528,7 +528,7 @@ public class Processors
      *
      * @see PriorityProcessor
      */
-    public static <K, V, T> InvocableMap.EntryProcessor<K, V, T> priority(InvocableMap.EntryProcessor<K, V, T> processor)
+    public static <K, V, R> PriorityProcessor<K, V, R> priority(InvocableMap.EntryProcessor<K, V, R> processor)
         {
         return new PriorityProcessor<>(processor);
         }
@@ -590,7 +590,7 @@ public class Processors
      *                                  any errors occur during its execution
      * @throws IllegalArgumentException if the specified language is not supported
      */
-    public static <K, V, R> EntryProcessor<K, V, R> script(String sLanguage, String sName, Object... aoArgs)
+    public static <K, V, R> ScriptProcessor<K, V, R> script(String sLanguage, String sName, Object... aoArgs)
         {
         return new ScriptProcessor<>(sLanguage, sName, aoArgs);
         }
@@ -604,7 +604,7 @@ public class Processors
      */
     public static <K, V> InvocableMap.EntryProcessor<K, V, Void> touch()
         {
-        return new TouchProcessor();
+        return new TouchProcessor<>();
         }
 
     /**
@@ -619,7 +619,7 @@ public class Processors
      *
      * @see UpdaterProcessor
      */
-    public static <K, V, T> InvocableMap.EntryProcessor<K, V, Boolean> update(ValueUpdater<V, T> updater, T value)
+    public static <K, V, T> UpdaterProcessor<K, V, T> update(ValueUpdater<V, T> updater, T value)
         {
         return new UpdaterProcessor<>(updater, value);
         }
@@ -639,7 +639,7 @@ public class Processors
      *
      * @see UpdaterProcessor
      */
-    public static <K, V, T> InvocableMap.EntryProcessor<K, V, Boolean> update(String sMethod, T value)
+    public static <K, V, T> UpdaterProcessor<K, V, T> update(String sMethod, T value)
         {
         return new UpdaterProcessor<>(sMethod, value);
         }
@@ -657,7 +657,7 @@ public class Processors
      *
      * @see VersionedPut
      */
-    public static <K, V extends Versionable> InvocableMap.EntryProcessor<K, V, V> versionedPut(V oValue)
+    public static <K, V extends Versionable> VersionedPut<K, V> versionedPut(V oValue)
         {
         return new VersionedPut<>(oValue);
         }
@@ -680,7 +680,7 @@ public class Processors
      *
      * @see VersionedPut
      */
-    public static <K, V extends Versionable> InvocableMap.EntryProcessor<K, V, V> versionedPut(
+    public static <K, V extends Versionable> VersionedPut<K, V> versionedPut(
             V oValue, boolean fAllowInsert, boolean fReturn)
         {
         return new VersionedPut<>(oValue, fAllowInsert, fReturn);
@@ -699,7 +699,7 @@ public class Processors
      *
      * @see VersionedPutAll
      */
-    public static <K, V extends Versionable> InvocableMap.EntryProcessor<K, V, V> versionedPutAll(
+    public static <K, V extends Versionable> VersionedPutAll<K, V> versionedPutAll(
             Map<? extends K, ? extends V> map)
         {
         return new VersionedPutAll<>(map);
@@ -722,7 +722,7 @@ public class Processors
      *
      * @see VersionedPutAll
      */
-    public static <K, V extends Versionable> InvocableMap.EntryProcessor<K, V, V> versionedPutAll(
+    public static <K, V extends Versionable> VersionedPutAll<K, V> versionedPutAll(
             Map<? extends K, ? extends V> map, boolean fAllowInsert, boolean fReturn)
         {
         return new VersionedPutAll<>(map, fAllowInsert, fReturn);

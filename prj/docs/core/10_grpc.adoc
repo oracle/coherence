@@ -1,0 +1,143 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Coherence gRPC Server
+:description: Coherence gRPC
+:keywords: coherence, java, gRPC, Helidon, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Coherence gRPC Server
+
+The Coherence gRPC proxy server can run with either of two gRPC implementations.
+
+- Netty
+- Helidon 4+
+
+=== Using Coherence gRPC Proxy With Netty
+
+Applications that are not using Helidon 4+ that wish to run the Coherence gRPC proxy
+need to use the Netty based Coherence gRPC proxy module `coherence-grpc-proxy`.
+
+==== Setting Up the Netty Coherence gRPC Proxy Server
+
+To set up and start using the Netty Coherence gRPC Server, you should declare the `coherence-grpc-proxy` module as a dependency of your project.
+
+For example:
+
+If using Maven, declare the server as follows:
+
+[source,xml]
+.pom.xml
+----
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>${coherence.group.id}</groupId>
+            <artifactId>coherence-bom</artifactId>
+            <version>${coherence.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+
+<dependencies>
+    <dependency>
+        <groupId>${coherence.groupId}</groupId>
+        <artifactId>coherence</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>${coherence.groupId}</groupId>
+        <artifactId>coherence-grpc-proxy</artifactId>
+    </dependency>
+<dependencies>
+----
+
+In the pom.xml file, coherence.version property is the version of Coherence being used, and coherence.groupId property is either the Coherence commercial group id, com.oracle.coherence, or the CE group id, com.oracle.coherence.ce.
+
+If using Gradle, declare the server as follows:
+
+[source,groovy]
+.build.gradle
+----
+dependencies {
+implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+
+    implementation "${coherenceGroupId}:coherence"
+    implementation "${coherenceGroupId}:coherence-grpc-proxy"
+}
+----
+
+In the build.gradle file, coherenceVersion property is the version of Coherence being used, and coherenceGroupId property is either the Coherence commercial group id, com.oracle.coherence or the CE group id, com.oracle.coherence.ce.
+
+
+=== Using Coherence gRPC Proxy With Helidon 4+
+
+Applications that are using Helidon 4+ that wish to run the Coherence gRPC proxy
+have the option to use Helidon's gRPC implementation for the gRPC server.
+
+Te Coherence gRPC Proxy server will run its own Helidon server to serve the Coherence gRPC requests,
+this will be separate from any other Helidon web servers that the application might be running.
+
+==== Setting Up the Helidon Coherence gRPC Proxy Server
+
+To set up and start using the Helidon Coherence gRPC Server, you should declare the `coherence-grpc-proxy-helidon` module as a dependency of your project.
+
+For example:
+
+If using Maven, declare the server as follows:
+
+[source,xml]
+.pom.xml
+----
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>${coherence.group.id}</groupId>
+            <artifactId>coherence-bom</artifactId>
+            <version>${coherence.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+
+<dependencies>
+    <dependency>
+        <groupId>${coherence.groupId}</groupId>
+        <artifactId>coherence</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>${coherence.groupId}</groupId>
+        <artifactId>coherence-grpc-proxy-helidon</artifactId>
+    </dependency>
+<dependencies>
+----
+
+In the pom.xml file, coherence.version property is the version of Coherence being used, and coherence.groupId property is either the Coherence commercial group id, com.oracle.coherence, or the CE group id, com.oracle.coherence.ce.
+
+If using Gradle, declare the server as follows:
+
+[source,groovy]
+.build.gradle
+----
+dependencies {
+implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+
+    implementation "${coherenceGroupId}:coherence"
+    implementation "${coherenceGroupId}:coherence-grpc-proxy-helidon"
+}
+----
+
+In the build.gradle file, coherenceVersion property is the version of Coherence being used, and coherenceGroupId property is either the Coherence commercial group id, com.oracle.coherence or the CE group id, com.oracle.coherence.ce.
+
+[NOTE]
+====
+If both the `coherence-grpc-proxy-helidon` module and the `coherence-grpc-proxy` module are
+on the class path, the Helidon gRPC server will be used.
+====
+

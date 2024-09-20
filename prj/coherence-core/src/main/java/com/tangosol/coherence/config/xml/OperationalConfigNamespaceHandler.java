@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@ package com.tangosol.coherence.config.xml;
 
 import com.tangosol.coherence.config.xml.preprocessor.SystemPropertyPreprocessor;
 import com.tangosol.coherence.config.xml.processor.AddressProviderBuilderProcessor;
+import com.tangosol.coherence.config.xml.processor.DaemonPoolProcessor;
 import com.tangosol.coherence.config.xml.processor.ExecutorProcessor;
 import com.tangosol.coherence.config.xml.processor.GlobalSocketProviderProcessor;
 import com.tangosol.coherence.config.xml.processor.InitParamProcessor;
@@ -109,6 +110,7 @@ public class OperationalConfigNamespaceHandler
         registerProcessor("cert", new SimpleElementProcessor<>(URLCertificateLoader.class));
         registerProcessor("cert-loader", new InstanceProcessor());
         registerProcessor("cipher-suites", new SSLNameListProcessor("cipher-suites"));
+        registerProcessor("common-daemon-pool", new DaemonPoolProcessor());
         registerProcessor("identity-manager", new SSLManagerProcessor());
         registerProcessor("key", new SimpleElementProcessor<>(URLPrivateKeyLoader.class));
         registerProcessor("key-loader", new InstanceProcessor());
@@ -144,7 +146,7 @@ public class OperationalConfigNamespaceHandler
      * before it is used.
      * <p>
      * Instances of {@link Extension} are discovered using the {@link ServiceLoader}. If multiple
-     * instances are on the class pathe there is no guaranteed order in which they will be applied.
+     * instances are on the class path there is no guaranteed order in which they will be applied.
      */
     public interface Extension
         {

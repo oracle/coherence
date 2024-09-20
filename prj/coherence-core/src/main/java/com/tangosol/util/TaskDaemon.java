@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -12,6 +12,7 @@ import com.oracle.coherence.common.base.Blocking;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 
 /**
@@ -23,6 +24,7 @@ import java.util.List;
 */
 public class TaskDaemon
         extends Daemon
+        implements Executor
     {
     // ----- constructors ---------------------------------------------------
 
@@ -207,6 +209,12 @@ public class TaskDaemon
 
 
     // ----- task management ------------------------------------------------
+
+    @Override
+    public void execute(Runnable command)
+        {
+        executeTask(command);
+        }
 
     /**
     * Schedule a task to be run by the daemon "as soon as possible".

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -20,22 +20,12 @@
   <artifactId>io</artifactId>
   <name>Coherence I/O Tests</name>
 
-  <profiles>
-    <profile>
-      <id>stage5</id>
-      <properties>
-        <skipTests>false</skipTests>
-      </properties>
-    </profile>
-  </profiles>
-
   <properties>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
     <failsafe.modules.argline>
       ${default.failsafe.modules.argline}
-      --add-exports java.management/sun.management=com.oracle.coherence
-      --add-opens java.base/java.lang.invoke=com.oracle.coherence
     </failsafe.modules.argline>
+    <skip.pof.generation>false</skip.pof.generation>
   </properties>
 
   <dependencies>
@@ -49,6 +39,14 @@
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>jakarta.json</groupId>
+      <artifactId>jakarta.json-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.json.bind</groupId>
+      <artifactId>jakarta.json.bind-api</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
@@ -60,11 +58,68 @@
         <version>${project.version}</version>
         <executions>
           <execution>
+            <id>instrument</id>
             <configuration>
               <classesDirectory>${testClassesDirectory}</classesDirectory>
+              <indexPofClasses>true</indexPofClasses>
+              <pofIndexFileName>META-INF/pof.idx</pofIndexFileName>
+              <skip>${skip.pof.generation}</skip>
             </configuration>
-            <id>instrument</id>
-            <phase>pre-integration-test</phase>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>instrument</goal>
+            </goals>
+          </execution>
+
+          <!-- create a separate index containing just the Address class -->
+          <execution>
+            <id>make-index-address</id>
+            <configuration>
+              <classesDirectory>${testClassesDirectory}</classesDirectory>
+              <indexPofClasses>true</indexPofClasses>
+              <pofIndexFileName>META-INF/address-index/custom.idx</pofIndexFileName>
+              <pofIndexIncludes>
+                <first>.*Address$</first>
+              </pofIndexIncludes>
+              <skip>${skip.pof.generation}</skip>
+            </configuration>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>instrument</goal>
+            </goals>
+          </execution>
+
+          <!-- create a separate index containing just the Country class -->
+          <execution>
+            <id>make-index-country</id>
+            <configuration>
+              <classesDirectory>${testClassesDirectory}</classesDirectory>
+              <indexPofClasses>true</indexPofClasses>
+              <pofIndexFileName>META-INF/country-index/custom.idx</pofIndexFileName>
+              <pofIndexIncludes>
+                <first>.*Country$</first>
+              </pofIndexIncludes>
+              <skip>${skip.pof.generation}</skip>
+            </configuration>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>instrument</goal>
+            </goals>
+          </execution>
+<!-- <directory>${testClassesDirectory}/data/portabletype</directory> -->
+          <!-- create a separate index containing just the Person class -->
+          <execution>
+            <id>make-index-person</id>
+            <configuration>
+              <classesDirectory>${testClassesDirectory}</classesDirectory>
+              <indexPofClasses>true</indexPofClasses>
+              <pofIndexFileName>META-INF/person-index/custom.idx</pofIndexFileName>
+              <pofIndexIncludes>
+                <first>.*Person</first>
+              </pofIndexIncludes>
+              <skip>${skip.pof.generation}</skip>
+            </configuration>
+            <phase>process-classes</phase>
             <goals>
               <goal>instrument</goal>
             </goals>
@@ -72,91 +127,6 @@
         </executions>
       </plugin>
 
-      <!-- create a jandex index -->
-      <plugin>
-        <groupId>org.jboss.jandex</groupId>
-        <artifactId>jandex-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>make-index</id>
-            <goals>
-              <goal>jandex</goal>
-            </goals>
-            <!-- phase is 'process-classes by default' -->
-            <phase>pre-integration-test</phase>
-            <configuration>
-              <fileSets>
-                <fileSet>
-                  <directory>${testClassesDirectory}</directory>
-                </fileSet>
-              </fileSets>
-            </configuration>
-          </execution>
-
-          <!-- create a separate index containing just the Address class -->
-          <execution>
-            <id>make-index-address</id>
-            <goals>
-              <goal>jandex</goal>
-            </goals>
-            <!-- phase is 'process-classes by default' -->
-            <phase>pre-integration-test</phase>
-            <configuration>
-              <indexName>address-index/custom.idx</indexName>
-              <fileSets>
-                <fileSet>
-                  <directory>${testClassesDirectory}/data/portabletype</directory>
-                  <includes>
-                    <include>Address.class</include>
-                  </includes>
-                </fileSet>
-              </fileSets>
-            </configuration>
-          </execution>
-          
-         <!-- create a separate index containing just the Country class -->
-          <execution>
-            <id>make-index-country</id>
-            <goals>
-              <goal>jandex</goal>
-            </goals>
-            <!-- phase is 'process-classes by default' -->
-            <phase>pre-integration-test</phase>
-            <configuration>
-              <indexName>country-index/custom.idx</indexName>
-              <fileSets>
-                <fileSet>
-                  <directory>${testClassesDirectory}/data/portabletype</directory>
-                  <includes>
-                    <include>Country.class</include>
-                  </includes>
-                </fileSet>
-              </fileSets>
-            </configuration>
-          </execution>
-
-          <!-- create a separate index containing just the Person class -->
-          <execution>
-            <id>make-index-person</id>
-            <goals>
-              <goal>jandex</goal>
-            </goals>
-            <!-- phase is 'process-classes by default' -->
-            <phase>pre-integration-test</phase>
-            <configuration>
-              <indexName>person-index/custom.idx</indexName>
-              <fileSets>
-                <fileSet>
-                  <directory>${testClassesDirectory}/data/portabletype</directory>
-                  <includes>
-                    <include>Person.class</include>
-                  </includes>
-                </fileSet>
-              </fileSets>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -166,4 +136,13 @@
       </plugin>
     </plugins>
   </build>
+  
+  <profiles>
+    <profile>
+      <id>stage5</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
 </project>

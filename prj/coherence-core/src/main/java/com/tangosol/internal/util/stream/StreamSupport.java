@@ -1,17 +1,13 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util.stream;
 
-import com.tangosol.net.NamedCache;
-
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
-import com.tangosol.util.InvocableMap.Entry;
-import com.tangosol.util.WrapperCollections;
 import com.tangosol.util.function.Remote;
 
 import com.tangosol.util.stream.RemotePipeline;
@@ -19,7 +15,6 @@ import com.tangosol.util.stream.RemoteStream;
 
 import java.util.Collection;
 import java.util.Objects;
-import java.util.Set;
 
 import java.util.stream.Stream;
 

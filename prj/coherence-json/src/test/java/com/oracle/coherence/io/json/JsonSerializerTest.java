@@ -29,7 +29,6 @@ import com.tangosol.util.aggregator.BigDecimalAverage;
 import com.tangosol.util.aggregator.BigDecimalMax;
 import com.tangosol.util.aggregator.BigDecimalMin;
 import com.tangosol.util.aggregator.BigDecimalSum;
-import com.tangosol.util.aggregator.PriorityAggregator;
 import com.tangosol.util.comparator.SafeComparator;
 
 import com.tangosol.util.filter.AlwaysFilter;
@@ -79,6 +78,7 @@ import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -745,6 +745,17 @@ class JsonSerializerTest
         assertRoundTrip(max);
         assertRoundTrip(min);
         assertRoundTrip(sum);
+        }
+
+    @Test
+    public void testFromJson()
+        {
+        JsonObject result = (JsonObject) JsonSerializer.fromJson("{\"id\": 11, \"name\": \"Name-11\", \"age\": 21, \"insertTime\": 1692663834644975000}");
+        assertNotNull(result);
+        assertEquals(11, result.get("id"));
+        assertEquals("Name-11", result.get("name"));
+        assertEquals(21, result.get("age"));
+        assertEquals(1692663834644975000L, result.get("insertTime"));
         }
 
     @Test

@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
-
 
 import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.collections.AbstractStableIterator;
@@ -17,13 +16,13 @@ import java.util.AbstractCollection;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-
 
 /**
 * An implementation of java.util.Map that is optimized for heavy concurrent use.
@@ -760,7 +759,7 @@ public class SegmentedHashMap
 
             // In the case of an update, it is possible that the Entry is
             // being removed or the value is being updated by another thread
-            return !fOnlyIfAbsent ? entry.setValueInternal(oValue) : NO_VALUE;
+            return !fOnlyIfAbsent ? entry.setValueInternal(oValue) : entry.getValue();
             }
         }
 
@@ -1141,7 +1140,7 @@ public class SegmentedHashMap
         }
 
     /**
-    * Calculate the segment index for the the specified bucket.
+    * Calculate the segment index for the specified bucket.
     *
     * @param nBucket  the bucket number
     *
@@ -2988,6 +2987,11 @@ public class SegmentedHashMap
     * represent a key-value mapping in the Map.
     */
     protected static final Object NO_VALUE = new Object();
+
+    /**
+     * An empty, immutable SegmentedHashMap instance.
+     */
+    public static final Map<?, ?> EMPTY = Collections.unmodifiableMap(new SegmentedHashMap(1, DEFAULT_LOADFACTOR, DEFAULT_GROWTHRATE));
 
     // ----- data members ---------------------------------------------------
 

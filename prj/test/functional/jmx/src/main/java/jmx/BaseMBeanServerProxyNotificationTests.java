@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -127,7 +127,7 @@ public abstract class BaseMBeanServerProxyNotificationTests
         {
         for (CoherenceClusterMember member : cluster)
             {
-            Eventually.assertThat(invoking(this).countMBeans(member), is(3));
+            Eventually.assertDeferred(() -> countMBeans(member), is(3));
             }
         }
 
@@ -135,7 +135,7 @@ public abstract class BaseMBeanServerProxyNotificationTests
         {
         for (CoherenceClusterMember member : cluster)
             {
-            Eventually.assertThat(invoking(this).canSeeResponsibilityMBean(member), is(true));
+            Eventually.assertDeferred(() -> canSeeResponsibilityMBean(member), is(true));
             }
 
         }
@@ -279,14 +279,21 @@ public abstract class BaseMBeanServerProxyNotificationTests
         @Override
         public Integer call()
             {
-            Registry         registry = CacheFactory.ensureCluster().getManagement();
-            MBeanServerProxy proxy    = registry.getMBeanServerProxy();
-            Set<String>      setNames = proxy.queryNames(m_sPattern, null);
-
-            return setNames.size();
+            try
+                {
+                Registry         registry = CacheFactory.ensureCluster().getManagement();
+                MBeanServerProxy proxy    = registry.getMBeanServerProxy();
+                Set<String>      setNames = proxy.queryNames(m_sPattern, null);
+                return setNames.size();
+                }
+            catch (Exception e)
+                {
+                e.printStackTrace();
+                return 0;
+                }
             }
 
-        private String m_sPattern;
+        private final String m_sPattern;
         }
 
     // ----- inner class Listener -------------------------------------------

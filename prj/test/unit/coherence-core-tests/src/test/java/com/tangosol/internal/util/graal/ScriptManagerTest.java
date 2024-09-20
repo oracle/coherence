@@ -1,10 +1,13 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util.graal;
+
+import java.util.concurrent.Callable;
+import java.util.function.Function;
 
 import org.junit.Test;
 
@@ -35,6 +38,23 @@ public class ScriptManagerTest
         assertTrue(scriptManager.getSupportedLanguages().contains("js"));
         }
 
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testScriptExecution() throws Exception
+        {
+        Function<String, String> echo = ScriptManager.getInstance()
+                .execute("js", "Echo")
+                .as(Function.class);
+
+        assertEquals("echoooo", echo.apply("echoooo"));
+
+        Callable<String> ping = ScriptManager.getInstance()
+                .execute("js", "Ping")
+                .as(Callable.class);
+
+        assertEquals("pong", ping.call());
+        }
+    
     @Test(expected = IllegalArgumentException.class)
     public void testUnSupportedLanguages()
         {

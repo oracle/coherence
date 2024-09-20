@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -37,35 +37,29 @@
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
     </dependency>
-
-    <!--
-    We use Helidon's repackaged io.grpc artifact so that gRPC
-    will work with Java modules.
-    -->
     <dependency>
-      <groupId>io.helidon.grpc</groupId>
-      <artifactId>io.grpc</artifactId>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-protobuf</artifactId>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>
       <groupId>io.grpc</groupId>
-      <artifactId>grpc-netty</artifactId>
+      <artifactId>grpc-api</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>io.grpc</groupId>
-          <artifactId>grpc-context</artifactId>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>jsr305</artifactId>
         </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-core</artifactId>
+      <exclusions>
         <exclusion>
-          <groupId>io.grpc</groupId>
-          <artifactId>grpc-core</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.grpc</groupId>
-          <artifactId>grpc-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>jsr305</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -74,12 +68,8 @@
       <artifactId>grpc-stub</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>io.grpc</groupId>
-          <artifactId>grpc-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>jsr305</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -87,19 +77,22 @@
       <groupId>io.grpc</groupId>
       <artifactId>grpc-protobuf</artifactId>
       <exclusions>
-          <exclusion>
-              <groupId>io.grpc</groupId>
-              <artifactId>grpc-core</artifactId>
-          </exclusion>
-          <exclusion>
-              <groupId>io.grpc</groupId>
-              <artifactId>grpc-api</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-          </exclusion>
+        <exclusion>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>jsr305</artifactId>
+        </exclusion>
       </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>io.opentracing.contrib</groupId>
+      <artifactId>opentracing-grpc</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry.instrumentation</groupId>
+      <artifactId>opentelemetry-grpc-1.6</artifactId>
+      <optional>true</optional>
     </dependency>
 
     <dependency>
@@ -114,15 +107,11 @@
 
     <dependency>
       <groupId>com.google.protobuf</groupId>
-      <artifactId>protobuf-java</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java-util</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>jsr305</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -157,7 +146,7 @@
           </protocArtifact>
           <pluginId>grpc-java</pluginId>
           <pluginArtifact>
-            io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}
+            io.grpc:protoc-gen-grpc-java:${grpc.protoc.version}:exe:${os.detected.classifier}
           </pluginArtifact>
         </configuration>
       </plugin>
@@ -188,15 +177,7 @@
         </executions>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>${maven.javadoc.plugin.version}</version>
-        <configuration>
-          <sourcepath>src/main/java;target/generated-sources/protobuf/grpc-java;target/generated-sources/protobuf/java</sourcepath>
-        </configuration>
-      </plugin>
-
+      <!-- create module descriptor (module-info) -->
       <plugin>
         <groupId>com.oracle.coherence.moditect</groupId>
         <artifactId>moditect-maven-plugin</artifactId>
@@ -213,19 +194,39 @@
                   <name>${module.name}</name>
                   <open>true</open>
                   <exports>
+                    !*.internal*;
                     *;
                   </exports>
                 </moduleInfo>
               </module>
-              <exclusions>
-                <exclusion>
-                  <groupId>com.google.code.findbugs</groupId>
-                  <artifactId>jsr305</artifactId>
-                </exclusion>
-              </exclusions>
             </configuration>
           </execution>
         </executions>
+      </plugin>
+
+      <!-- maven-bundle-pugin for generating manifest with metadata -->
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+      </plugin>
+
+      <!-- maven-jar-plugin with configuration to package generated MANIFEST.MF to project jar -->
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${maven.javadoc.plugin.version}</version>
+        <configuration>
+          <sourcepath>src/main/java;target/generated-sources/protobuf/grpc-java;target/generated-sources/protobuf/java</sourcepath>
+        </configuration>
       </plugin>
     </plugins>
   </build>

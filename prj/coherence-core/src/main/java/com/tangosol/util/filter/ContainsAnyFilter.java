@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,13 +9,15 @@ package com.tangosol.util.filter;
 
 
 import com.tangosol.util.Base;
+import com.tangosol.util.ChainedCollection;
 import com.tangosol.util.Filter;
 import com.tangosol.util.MapIndex;
 import com.tangosol.util.ValueExtractor;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,6 +46,7 @@ import jakarta.json.bind.annotation.JsonbProperty;
 *
 * @author jh 2005.06.08
 */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ContainsAnyFilter<T, E>
         extends    ComparisonFilter<T, E, Set<?>>
         implements IndexAwareFilter<Object, T>
@@ -87,6 +90,12 @@ public class ContainsAnyFilter<T, E>
         super(sMethod, new HashSet<>(setValues));
         }
 
+    // ----- Filter interface -----------------------------------------------
+
+    protected String getOperator()
+        {
+        return "CONTAINS ANY";
+        }
 
     // ----- ExtractorFilter methods ----------------------------------------
 
@@ -95,14 +104,14 @@ public class ContainsAnyFilter<T, E>
     */
     protected boolean evaluateExtracted(E extracted)
         {
-        Collection colValues = (Collection) getValue();
+        Collection colValues = getValue();
 
         if (extracted instanceof Collection)
             {
             Collection colExtracted = (Collection) extracted;
-            for (Iterator iter = colValues.iterator(); iter.hasNext();)
+            for (Object oValue : colValues)
                 {
-                if (colExtracted.contains(iter.next()))
+                if (colExtracted.contains(oValue))
                     {
                     return true;
                     }
@@ -111,14 +120,12 @@ public class ContainsAnyFilter<T, E>
         else if (extracted instanceof Object[])
             {
             Object[] aoExtracted = (Object[]) extracted;
-            int      cExtracted  = aoExtracted.length;
 
-            for (Iterator iter = colValues.iterator(); iter.hasNext();)
+            for (Object oValue : colValues)
                 {
-                Object oValue = iter.next();
-                for (int i = 0; i < cExtracted; ++i)
+                for (Object oExtracted : aoExtracted)
                     {
-                    if (equals(aoExtracted[i], oValue))
+                    if (equals(oExtracted, oValue))
                         {
                         return true;
                         }
@@ -138,7 +145,7 @@ public class ContainsAnyFilter<T, E>
     @Override
     public String toStringValue()
         {
-        return Base.truncateString((Collection) getValue(), 255);
+        return Base.truncateString(getValue(), 255);
         }
 
 
@@ -150,8 +157,33 @@ public class ContainsAnyFilter<T, E>
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
-        return index == null ? calculateIteratorEffectiveness(setKeys.size())
-                             : ((Collection) getValue()).size();
+        if (index == null)
+            {
+            // there is no relevant index
+            return -1;
+            }
+        else
+            {
+            // calculating the exact number of keys retained is too expensive;
+            // ignore the fact that there may be duplicates and simply return
+            // the worst possible number of keys retained, as if they were unique
+
+            Collection colValues   = getValue();
+            Map        mapContents = index.getIndexContents();
+            int        cMatch      = 0;
+
+            for (Object oValue : colValues)
+                {
+                Set setEQ = (Set) mapContents.get(oValue);
+
+                if (setEQ != null)
+                    {
+                    cMatch += setEQ.size();
+                    }
+                }
+            
+            return Math.min(cMatch, setKeys.size());
+            }
         }
 
     /**
@@ -167,26 +199,26 @@ public class ContainsAnyFilter<T, E>
             }
         else
             {
-            Collection colValues = (Collection) getValue();
-            Set        setIn     = new HashSet();
-            for (Iterator iter = colValues.iterator(); iter.hasNext();)
+            Collection   colValues       = getValue();
+            Map          mapContents     = index.getIndexContents();
+            List<Set<?>> listInverseKeys = new ArrayList<>(colValues.size());
+            for (Object oValue : colValues)
                 {
-                Object oValue = iter.next();
-                Set    setEQ  = (Set) index.getIndexContents().get(oValue);
+                Set setEQ = (Set) mapContents.get(oValue);
 
                 if (setEQ != null)
                     {
-                    setIn.addAll(setEQ);
+                    listInverseKeys.add(setEQ);
                     }
                 }
 
-            if (setIn.isEmpty())
+            if (listInverseKeys.isEmpty())
                 {
                 setKeys.clear();
                 }
             else
                 {
-                setKeys.retainAll(setIn);
+                setKeys.retainAll(new ChainedCollection<>(listInverseKeys.toArray(Set[]::new)));
                 }
             return null;
             }

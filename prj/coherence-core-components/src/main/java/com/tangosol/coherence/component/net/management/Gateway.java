@@ -1248,9 +1248,9 @@ public class Gateway
             {
             model = instantiateCacheModel((Map) oBean);
             }
-        else if (oBean instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage)
+        else if (oBean instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.Storage)
             {
-            model = instantiateStorageManagerModel((com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage) oBean);
+            model = instantiateStorageManagerModel((com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.Storage) oBean);
             }
         else if (oBean instanceof MasterMemberSet)
             {
@@ -1328,7 +1328,7 @@ public class Gateway
         return model;
         }
     
-    protected com.tangosol.coherence.component.net.management.model.localModel.StorageManagerModel instantiateStorageManagerModel(com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage)
+    protected com.tangosol.coherence.component.net.management.model.localModel.StorageManagerModel instantiateStorageManagerModel(com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.Storage storage)
         {
         // import Component.Net.Management.Model.LocalModel.StorageManagerModel;
         

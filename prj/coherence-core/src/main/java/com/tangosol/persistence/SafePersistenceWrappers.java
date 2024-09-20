@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,6 +12,7 @@ import com.oracle.coherence.common.base.Continuation;
 import com.oracle.coherence.persistence.PersistenceEnvironment;
 import com.oracle.coherence.persistence.PersistenceManager;
 import com.oracle.coherence.persistence.PersistentStore;
+import com.oracle.coherence.persistence.PersistentStoreInfo;
 
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.WriteBuffer;
@@ -214,9 +215,7 @@ public class SafePersistenceWrappers
 
         // ----- PersistenceEnvironment methods -----------------------------
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public PersistenceManager<R> openBackup()
             {
             try
@@ -231,9 +230,7 @@ public class SafePersistenceWrappers
             return NullImplementation.getPersistenceManager();
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public PersistenceManager<R> openEvents()
             {
             try
@@ -248,9 +245,7 @@ public class SafePersistenceWrappers
             return NullImplementation.getPersistenceManager();
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public PersistenceManager<R> openActive()
             {
             try
@@ -265,9 +260,7 @@ public class SafePersistenceWrappers
             return NullImplementation.getPersistenceManager();
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public PersistenceManager<R> openSnapshot(String sSnapshot)
             {
             try
@@ -282,9 +275,7 @@ public class SafePersistenceWrappers
             return NullImplementation.getPersistenceManager();
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public PersistenceManager<R> createSnapshot(String sSnapshot, PersistenceManager<R> manager)
             {
             try
@@ -299,9 +290,7 @@ public class SafePersistenceWrappers
             return NullImplementation.getPersistenceManager();
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public boolean removeSnapshot(String sSnapshot)
             {
             try
@@ -316,9 +305,7 @@ public class SafePersistenceWrappers
             return super.removeSnapshot(sSnapshot);
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public String[] listSnapshots()
             {
             try
@@ -333,9 +320,7 @@ public class SafePersistenceWrappers
             return super.listSnapshots();
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void release()
             {
             try
@@ -469,9 +454,7 @@ public class SafePersistenceWrappers
 
         // ----- PersistenceManager methods ---------------------------------
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public String getName()
             {
             try
@@ -486,9 +469,7 @@ public class SafePersistenceWrappers
             return super.getName();
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public PersistentStore<R> createStore(String sId)
             {
             try
@@ -503,9 +484,7 @@ public class SafePersistenceWrappers
             return null;
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public PersistentStore<R> open(String sId, PersistentStore<R> store)
             {
             try
@@ -520,9 +499,7 @@ public class SafePersistenceWrappers
             return super.open(sId, store);
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public PersistentStore<R> open(String sId, PersistentStore<R> store, Collector<Object> collector)
             {
             try
@@ -537,9 +514,7 @@ public class SafePersistenceWrappers
             return super.open(sId, store);
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void close(String sId)
             {
             try
@@ -552,9 +527,7 @@ public class SafePersistenceWrappers
                 }
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public boolean delete(String sId, boolean fSafe)
             {
             try
@@ -569,26 +542,22 @@ public class SafePersistenceWrappers
             return super.delete(sId, fSafe);
             }
 
-        /**
-         * {@inheritDoc}
-         */
-        public String[] list()
+        @Override
+        public PersistentStoreInfo[] listStoreInfo()
             {
             try
                 {
-                return getManager().list();
+                return getManager().listStoreInfo();
                 }
             catch (Throwable t)
                 {
                 onException((T) t);
                 }
 
-            return super.list();
+            return super.listStoreInfo();
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public String[] listOpen()
             {
             try
@@ -603,9 +572,22 @@ public class SafePersistenceWrappers
             return super.listOpen();
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
+        public boolean isEmpty(String sId)
+            {
+            try
+                {
+                return getManager().isEmpty(sId);
+                }
+            catch (Throwable t)
+                {
+                onException((T) t);
+                }
+
+            return super.isEmpty(sId);
+            }
+
+        @Override
         public void read(String sId, InputStream in)
                 throws IOException
             {
@@ -623,9 +605,7 @@ public class SafePersistenceWrappers
                 }
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void write(String sId, OutputStream out)
                 throws IOException
             {
@@ -643,9 +623,7 @@ public class SafePersistenceWrappers
                 }
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void writeSafe(String sId)
             {
             try
@@ -658,9 +636,7 @@ public class SafePersistenceWrappers
                 }
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void read(String sId, ReadBuffer.BufferInput in)
                 throws IOException
             {
@@ -678,9 +654,7 @@ public class SafePersistenceWrappers
                 }
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void write(String sId, WriteBuffer.BufferOutput out)
                 throws IOException
             {
@@ -698,9 +672,7 @@ public class SafePersistenceWrappers
                 }
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void release()
             {
             try
@@ -713,13 +685,21 @@ public class SafePersistenceWrappers
                 }
             }
 
+        @Override
+        public void maintainEnvironment()
+            {
+            try
+                {
+                getManager().maintainEnvironment();
+                }
+            catch (Throwable t)
+                {
+                onException((T) t);
+                }
+            }
+
         // ----- Object methods ---------------------------------------------
 
-        /**
-         * Return a human readable description of this SafePersistenceManager.
-         *
-         * @return a human readable description
-         */
         @Override
         public String toString()
             {
@@ -819,9 +799,7 @@ public class SafePersistenceWrappers
 
         // ----- PersistentStore methods ------------------------------------
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public String getId()
             {
             try
@@ -836,9 +814,7 @@ public class SafePersistenceWrappers
             return super.getId();
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public boolean ensureExtent(long lExtentId)
             {
             try
@@ -853,9 +829,7 @@ public class SafePersistenceWrappers
             return super.ensureExtent(lExtentId);
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void deleteExtent(long lExtentId)
             {
             try
@@ -868,9 +842,7 @@ public class SafePersistenceWrappers
                 }
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void moveExtent(long lOldExtentId, long lNewExtentId)
             {
             try
@@ -883,9 +855,7 @@ public class SafePersistenceWrappers
                 }
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void truncateExtent(long lExtentId)
             {
             try
@@ -898,9 +868,7 @@ public class SafePersistenceWrappers
                 }
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public long[] extents()
             {
             try
@@ -915,9 +883,7 @@ public class SafePersistenceWrappers
             return super.extents();
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public AutoCloseable exclusively()
             {
             try
@@ -932,9 +898,7 @@ public class SafePersistenceWrappers
             return super.exclusively();
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public R load(long lExtentId, R key)
             {
             try
@@ -949,9 +913,22 @@ public class SafePersistenceWrappers
             return super.load(lExtentId, key);
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
+        public boolean containsExtent(long lExtentId)
+            {
+            try
+                {
+                return getStore().containsExtent(lExtentId);
+                }
+            catch (Throwable t)
+                {
+                onException((T) t);
+                }
+
+            return super.containsExtent(lExtentId);
+            }
+
+        @Override
         public void store(long lExtentId, R key, R value, Object oToken)
             {
             if (oToken instanceof NullPersistentStore.Token)
@@ -972,9 +949,7 @@ public class SafePersistenceWrappers
                 }
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void erase(long lExtentId, R key, Object oToken)
             {
             if (oToken instanceof NullPersistentStore.Token)
@@ -995,9 +970,7 @@ public class SafePersistenceWrappers
                 }
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void iterate(Visitor<R> visitor)
             {
             try
@@ -1010,9 +983,7 @@ public class SafePersistenceWrappers
                 }
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public Object begin()
             {
             try
@@ -1027,9 +998,7 @@ public class SafePersistenceWrappers
             return super.begin();
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public Object begin(Collector<Object> collector, Object oReceipt)
             {
             try
@@ -1044,9 +1013,7 @@ public class SafePersistenceWrappers
             return super.begin(collector, oReceipt);
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void commit(Object oToken)
             {
             if (oToken instanceof NullPersistentStore.Token)
@@ -1067,9 +1034,7 @@ public class SafePersistenceWrappers
                 }
             }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void abort(Object oToken)
             {
             if (oToken instanceof NullPersistentStore.Token)
@@ -1088,6 +1053,20 @@ public class SafePersistenceWrappers
                     onException((T) t);
                     }
                 }
+            }
+
+        @Override
+        public boolean isOpen()
+            {
+            try
+                {
+                return getStore().isOpen();
+                }
+            catch (Throwable t)
+                {
+                onException((T) t);
+                }
+            return false;
             }
 
         // ----- Object methods ---------------------------------------------
@@ -1167,25 +1146,19 @@ public class SafePersistenceWrappers
     public static final FailureContinuationFactory DEFAULT_FACTORY =
                 new FailureContinuationFactory()
             {
-            /**
-             * {@inheritDoc}
-             */
+            @Override
             public Continuation getEnvironmentContinuation(PersistenceEnvironment env)
                 {
                 return NullImplementation.getContinuation();
                 }
 
-            /**
-             * {@inheritDoc}
-             */
+            @Override
             public Continuation getManagerContinuation(PersistenceManager mgr)
                 {
                 return NullImplementation.getContinuation();
                 }
 
-            /**
-             * {@inheritDoc}
-             */
+            @Override
             public Continuation getStoreContinuation(PersistentStore store)
                 {
                 return NullImplementation.getContinuation();

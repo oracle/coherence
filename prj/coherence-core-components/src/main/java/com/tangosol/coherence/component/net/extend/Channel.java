@@ -37,6 +37,7 @@ import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.security.auth.Subject;
 
 /**
@@ -180,7 +181,7 @@ public class Channel
      * A counter used to generate unique identifiers for Requests sent through
      * this Channel.
      */
-    private transient long __m_RequestId;
+    private transient AtomicLong __m_RequestId = new AtomicLong();
     
     /**
      * Property SecureContext
@@ -800,10 +801,7 @@ public class Channel
      */
     protected long generateRequestId()
         {
-        long lId = getRequestId();
-        setRequestId(lId + 1);
-        
-        return lId;
+        return __m_RequestId.getAndIncrement();
         }
     
     // Accessor for the property "AccessAdapter"
@@ -1066,17 +1064,6 @@ public class Channel
     public com.tangosol.util.LongArray getRequestArray()
         {
         return __m_RequestArray;
-        }
-    
-    // Accessor for the property "RequestId"
-    /**
-     * Getter for property RequestId.<p>
-    * A counter used to generate unique identifiers for Requests sent through
-    * this Channel.
-     */
-    protected long getRequestId()
-        {
-        return __m_RequestId;
         }
     
     // From interface: com.tangosol.net.messaging.Channel
@@ -1923,17 +1910,6 @@ public class Channel
     protected void setRequestArray(com.tangosol.util.LongArray la)
         {
         __m_RequestArray = la;
-        }
-    
-    // Accessor for the property "RequestId"
-    /**
-     * Setter for property RequestId.<p>
-    * A counter used to generate unique identifiers for Requests sent through
-    * this Channel.
-     */
-    protected void setRequestId(long lId)
-        {
-        __m_RequestId = lId;
         }
     
     // Accessor for the property "SecureContext"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -24,14 +24,17 @@ import com.oracle.coherence.concurrent.executor.options.Name;
 import com.oracle.coherence.concurrent.executor.util.Caches;
 import com.oracle.coherence.concurrent.executor.util.OptionsByType;
 
+import com.tangosol.io.AbstractEvolvable;
+
+import com.tangosol.io.pof.EvolvablePortableObject;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
-import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMap.Entry;
@@ -61,8 +64,9 @@ import java.util.concurrent.ExecutorService;
  * @since 21.12
  */
 public class ClusteredExecutorInfo
+        extends AbstractEvolvable
         implements TaskExecutorService.ExecutorInfo, LiveObject,
-                   Leased, ClusterMemberAware, PortableObject
+                   Leased, ClusterMemberAware, EvolvablePortableObject
     {
     // ----- constructors ---------------------------------------------------
 
@@ -94,9 +98,7 @@ public class ClusteredExecutorInfo
         m_cMaxMemory      = cMaxMemory;
         m_cTotalMemory    = totalMemory;
         m_cFreeMemory     = freeMemory;
-        m_cCompleted      = 0;
-        m_cRejected       = 0;
-        m_cInProgress     = 0;
+        m_ldtJoined       = System.nanoTime();
     }
 
     // ----- public methods -------------------------------------------------
@@ -135,6 +137,12 @@ public class ClusteredExecutorInfo
         }
 
     @Override
+    public long getJoinTime()
+        {
+        return m_ldtJoined;
+        }
+
+    @Override
     public long getMaxMemory()
         {
         return m_cMaxMemory;
@@ -156,6 +164,14 @@ public class ClusteredExecutorInfo
     public <T extends TaskExecutorService.Registration.Option> T getOption(Class<T> clzOfOption, T defaultIfNotFound)
         {
         return m_optionsByType.get(clzOfOption, defaultIfNotFound);
+        }
+
+    // ----- Evolvable interface --------------------------------------------
+
+    @Override
+    public int getImplVersion()
+        {
+        return VERSION;
         }
 
     // ----- accessors ------------------------------------------------------
@@ -295,7 +311,8 @@ public class ClusteredExecutorInfo
         {
         return "ClusteredExecutorInfo{"+ "name=" + getExecutorName() + ", description=" + getDescription()
                + ", identity='" + m_sIdentity + '\'' + ", state=" + m_state + ", lastUpdateTime="
-               + m_ldtUpdate + ", maxMemory=" + m_cMaxMemory + ", totalMemory=" + m_cTotalMemory + ", freeMemory="
+               + m_ldtUpdate + ", joinTime=" + m_ldtJoined + ", maxMemory="
+               + m_cMaxMemory + ", totalMemory=" + m_cTotalMemory + ", freeMemory="
                + m_cFreeMemory + ", optionsByType=" + m_optionsByType + ", completed="
                + m_cCompleted + ", in-progress=" + m_cInProgress + ", rejected=" + m_cRejected + '}';
         }
@@ -484,6 +501,25 @@ public class ClusteredExecutorInfo
         m_cCompleted    = ExternalizableHelper.readLong(in);
         m_cRejected     = ExternalizableHelper.readLong(in);
         m_cInProgress   = ExternalizableHelper.readLong(in);
+
+        try
+            {
+            m_ldtJoined = ExternalizableHelper.readLong(in);
+            }
+        catch (Exception e)
+            {
+            // we've encountered an older version of the ClusteredExecutorInfo
+            // so, we've lost the original join time.  Since it's only used
+            // to provide a stable sort when distributing tasks, use
+            // the current time with the impact being a small change in
+            // the dispatch order for tasks
+            State state = m_state;
+
+            if (state == State.JOINING || state == State.RUNNING)
+                {
+                m_ldtJoined = Base.getSafeTimeMillis();
+                }
+            }
         }
 
     @Override
@@ -499,6 +535,7 @@ public class ClusteredExecutorInfo
         ExternalizableHelper.writeLong(out, m_cCompleted);
         ExternalizableHelper.writeLong(out, m_cRejected);
         ExternalizableHelper.writeLong(out, m_cInProgress);
+        ExternalizableHelper.writeLong(out, m_ldtJoined);
         }
 
     // ----- PortableObject interface ---------------------------------------
@@ -516,6 +553,27 @@ public class ClusteredExecutorInfo
         m_cCompleted    = in.readLong(7);
         m_cRejected     = in.readLong(8);
         m_cInProgress   = in.readLong(9);
+
+        int nVersion = in.getVersionId();
+        if (nVersion < VERSION)
+            {
+            // we've encountered an older version of the ClusteredExecutorInfo
+            // so, we've lost the original join time.  Since it's only used
+            // to provide a stable sort when distributing tasks, use
+            // the current time with the impact being a small change in
+            // the dispatch order for tasks
+            State state = m_state;
+
+            if (state == State.JOINING || state == State.RUNNING)
+                {
+                m_ldtJoined = System.nanoTime();
+                }
+            }
+
+        if (nVersion >= VERSION)
+            {
+            m_ldtJoined = in.readLong(10);
+            }
         }
 
     @Override
@@ -531,15 +589,25 @@ public class ClusteredExecutorInfo
         out.writeLong(7,    m_cCompleted);
         out.writeLong(8,    m_cRejected);
         out.writeLong(9,    m_cInProgress);
+        out.writeLong(10,   m_ldtJoined);
         }
 
     // ----- inner class: CacheAwareContinuation ----------------------------
 
+    /**
+     * A base {@link ComposableContinuation} that allows subclasses access
+     * to the underlying caches that drive the executor service.
+     */
     protected static abstract class CacheAwareContinuation
         implements ComposableContinuation
         {
         // ----- constructors -----------------------------------------------
 
+        /**
+         * Constructs a new {@code CacheAwareContinuation}.
+         *
+         * @param cacheService  the executor cache service
+         */
         public CacheAwareContinuation(CacheService cacheService)
             {
             f_cacheService = cacheService;
@@ -620,10 +688,18 @@ public class ClusteredExecutorInfo
             {
             String sExecutorId = f_sExecutorId;
 
-            ExecutorTrace.log(() -> String.format("Closing Executor [%s]", sExecutorId));
+            if (ExecutorTrace.isEnabled())
+                {
+                ExecutorTrace.log(String.format("Closing Executor [%s]", sExecutorId));
 
-            // remove task assignments for the Executor
-            ExecutorTrace.log(() -> String.format("Determining Tasks Assigned to Executor [%s]", sExecutorId));
+                // remove task assignments for the Executor
+                ExecutorTrace.log(String.format("Determining Tasks Assigned to Executor [%s]", sExecutorId));
+
+                ExecutorTrace.log(String.format("Assignments: [%s]", assignments()));
+
+                int cTaskCountForExecutor = assignments().entrySet(new EqualsFilter<String, String>("getExecutorId", sExecutorId)).size();
+                ExecutorTrace.log(String.format("Total number of known assignments [%s] for executor [%s]", cTaskCountForExecutor, sExecutorId));
+                }
 
             try
                 {
@@ -777,7 +853,9 @@ public class ClusteredExecutorInfo
 
             String sExecutorName = (String) results[1];
 
-            tasks().invokeAll(AlwaysFilter.INSTANCE, new ClusteredTaskManager.NotifyExecutionStrategyProcessor());
+            NamedCache<String, ClusteredTaskManager> cacheTasks = tasks();
+
+            cacheTasks.invokeAll(cacheTasks.keySet(), new ClusteredTaskManager.NotifyExecutionStrategyProcessor());
 
             Logger.fine(() -> String.format("Executor [name=%s, id=%s] joined.", sExecutorName, m_sExecutorId));
             }
@@ -1045,6 +1123,8 @@ public class ClusteredExecutorInfo
         // ----- constructors -----------------------------------------------
 
         /**
+         * Constructs a new {@code TouchRunnable}.
+         *
          * @param sExecutorId   the {@link Executor} identity to update
          * @param cacheService  the {@link CacheService}
          */
@@ -1315,6 +1395,11 @@ public class ClusteredExecutorInfo
      */
     public static long LEASE_DURATION_MS = 30 * 1000;    // 30 seconds
 
+    /**
+     * PortableObject version.
+     */
+    protected static int VERSION = 2;
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -1336,6 +1421,11 @@ public class ClusteredExecutorInfo
      * The cluster time when the {@link TaskExecutorService.ExecutorInfo} was last updated.
      */
     protected long m_ldtUpdate;
+
+    /**
+     * The cluster time when the {@link TaskExecutorService.ExecutorInfo} joined the service.
+     */
+    protected long m_ldtJoined = -1;
 
     /**
      * The maximum memory as reported by {@link Runtime#maxMemory()}.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,18 +7,7 @@
 
 package com.tangosol.util.filter;
 
-
-import com.tangosol.util.Filter;
-import com.tangosol.util.MapIndex;
 import com.tangosol.util.ValueExtractor;
-import com.tangosol.util.SafeSortedMap;
-
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-
 
 /**
 * Filter which compares the result of a method invocation with a value for
@@ -33,7 +22,7 @@ import java.util.SortedMap;
 * @author cp/gg 2002.10.29
 */
 public class GreaterEqualsFilter<T, E extends Comparable<? super E>>
-        extends    ComparisonFilter<T, E, E>
+        extends    GreaterFilter<T, E>
         implements IndexAwareFilter<Object, T>
     {
     // ----- constructors ---------------------------------------------------
@@ -69,6 +58,12 @@ public class GreaterEqualsFilter<T, E extends Comparable<? super E>>
         super(sMethod, value);
         }
 
+    // ----- Filter interface -----------------------------------------------
+
+    protected String getOperator()
+        {
+        return ">=";
+        }
 
     // ----- ExtractorFilter methods ----------------------------------------
 
@@ -83,96 +78,11 @@ public class GreaterEqualsFilter<T, E extends Comparable<? super E>>
             extracted.compareTo(value) >= 0;
         }
 
+    // ---- helpers ---------------------------------------------------------
 
-    // ----- IndexAwareFilter interface -------------------------------------
-
-    /**
-    * {@inheritDoc}
-    */
-    public int calculateEffectiveness(Map mapIndexes, Set setKeys)
+    @Override
+    protected boolean includeEquals()
         {
-        return calculateRangeEffectiveness(mapIndexes, setKeys);
-        }
-
-    /**
-    * {@inheritDoc}
-    */
-    public Filter applyIndex(Map mapIndexes, Set setKeys)
-        {
-        Object oValue = getValue();
-        if (oValue == null)
-            {
-            // nothing could be compared to null
-            setKeys.clear();
-            return null;
-            }
-
-        MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
-        if (index == null)
-            {
-            // there is no relevant index
-            return this;
-            }
-
-        if (index.isOrdered())
-            {
-            SortedMap mapContents = (SortedMap) index.getIndexContents();
-            SortedMap mapLT       = mapContents.headMap(oValue);
-            SortedMap mapGE       = mapContents.tailMap(oValue);
-            boolean   fHeadHeavy  = mapLT.size() > mapContents.size() / 2;
-
-            if (fHeadHeavy || index.isPartial())
-                {
-                Set setGE = new HashSet();
-                for (Iterator iterGE = mapGE.values().iterator(); iterGE.hasNext();)
-                    {
-                    setGE.addAll(ensureSafeSet((Set) iterGE.next()));
-                    }
-                setKeys.retainAll(setGE);
-                }
-            else
-                {
-                for (Iterator iterLT = mapLT.values().iterator(); iterLT.hasNext();)
-                    {
-                    setKeys.removeAll(ensureSafeSet((Set) iterLT.next()));
-                    }
-                }
-            // Note: the NULL set doesn't get in
-            }
-        else
-            {
-            Map mapContents = index.getIndexContents();
-
-            if (index.isPartial())
-                {
-                Set setGE = new HashSet();
-                for (Iterator iter = mapContents.entrySet().iterator();
-                     iter.hasNext();)
-                    {
-                    Map.Entry  entry = (Map.Entry) iter.next();
-                    Comparable oTest = (Comparable) entry.getKey();
-                    if (oTest != null && oTest.compareTo(oValue) >= 0)
-                        {
-                        setGE.addAll(ensureSafeSet((Set) entry.getValue()));
-                        }
-                    }
-                setKeys.retainAll(setGE);
-                }
-            else
-                {
-                for (Iterator iter = mapContents.entrySet().iterator();
-                     iter.hasNext();)
-                    {
-                    Map.Entry  entry = (Map.Entry) iter.next();
-                    Comparable oTest = (Comparable) entry.getKey();
-                    if (oTest == null || oTest.compareTo(oValue) < 0)
-                        {
-                        setKeys.removeAll((Set) entry.getValue());
-                        }
-                    }
-                }
-            }
-
-        return null;
+        return true;
         }
     }

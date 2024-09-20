@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.extractor;
@@ -67,6 +67,8 @@ public class MultiExtractor
     *                array of {@link ValueExtractor} objects; individual
     *                array elements will be either {@link ReflectionExtractor}
     *                or {@link ChainedExtractor} objects
+    *
+    * @deprecated use {@link com.tangosol.util.Extractors#multi(String...)} which uses {@link UniversalExtractor}.
     */
     public MultiExtractor(String sNames)
         {
@@ -191,6 +193,8 @@ public class MultiExtractor
     * @param sNames  a comma-delimited sequence of method names
     *
     * @return an array of {@link ValueExtractor} objects
+    *
+    * @deprecated
     */
     public static ValueExtractor[] createExtractors(String sNames)
         {

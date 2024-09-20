@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package data.evolvable.v1;
 
@@ -20,18 +20,26 @@ import java.io.IOException;
 public class Dog
         extends Pet
     {
-    private Evolvable evolvable = new SimpleEvolvable(1);
+    private final transient Evolvable evolvable = new SimpleEvolvable(1);
 
     protected String breed;
-
-    public Dog()
-        {
-        }
 
     public Dog(String name, String breed)
         {
         super(name);
         this.breed = breed;
+        }
+
+    public Dog(PofReader reader) throws IOException
+        {
+        super(reader);
+
+        PofReader in = reader.createNestedPofReader(2);
+
+        PofReader v1 = in.version(1);
+        breed = v1.readString(0);
+
+        readEvolvable(in);
         }
 
     public String getBreed()
@@ -42,20 +50,6 @@ public class Dog
     public void setBreed(String breed)
         {
         this.breed = breed;
-        }
-
-    @Override
-    public void readExternal(PofReader in)
-            throws IOException
-        {
-        if (in.getUserTypeId() == 2)
-            {
-            breed = in.readString(0);
-            }
-        else
-            {
-            super.readExternal(in);
-            }
         }
 
     @Override

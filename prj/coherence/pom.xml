@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
--->
+  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -26,6 +26,18 @@
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-discovery</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!--
+      The order of the following two dependencies matters for testing.
+
+      Having the latest, version-specific Java code first ensures it is used
+      instead of legacy, version-agnostic code that's in the main JAR.
+      -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-core-21</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -52,13 +64,12 @@
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>opentracing-common</artifactId>
+      <artifactId>opentracing</artifactId>
       <version>${project.version}</version>
     </dependency>
-
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>opentracing-0.33</artifactId>
+      <artifactId>opentelemetry</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -92,22 +103,40 @@
       <artifactId>je</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>com.sun.codemodel</groupId>
-      <artifactId>codemodel</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.jboss</groupId>
-      <artifactId>jandex</artifactId>
-    </dependency>
-
     <!-- optional dependencies -->
+
+    <!-- Jakarta Activation API -->
+    <dependency>
+      <groupId>jakarta.activation</groupId>
+      <artifactId>jakarta.activation-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Jakarta Annotation API -->
+    <dependency>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Jakarta Interceptor API -->
+    <dependency>
+      <groupId>jakarta.interceptor</groupId>
+      <artifactId>jakarta.interceptor-api</artifactId>
+      <optional>true</optional>
+    </dependency>
 
     <!-- Jakarta Inject API -->
     <dependency>
       <groupId>jakarta.inject</groupId>
       <artifactId>jakarta.inject-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Jakarta Optional API -->
+    <dependency>
+      <groupId>jakarta.enterprise</groupId>
+      <artifactId>jakarta.enterprise.cdi-api</artifactId>
       <optional>true</optional>
     </dependency>
 
@@ -129,13 +158,6 @@
     <dependency>
       <groupId>jakarta.xml.bind</groupId>
       <artifactId>jakarta.xml.bind-api</artifactId>
-      <optional>true</optional>
-    </dependency>
-
-    <!-- JMS -->
-    <dependency>
-      <groupId>jakarta.jms</groupId>
-      <artifactId>jakarta.jms-api</artifactId>
       <optional>true</optional>
     </dependency>
 
@@ -165,10 +187,15 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- GraalVM JS -->
+    <!-- GraalVM Polyglot support -->
+    <dependency>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>polyglot</artifactId>
+      <optional>true</optional>
+    </dependency>
     <dependency>
       <groupId>org.graalvm.js</groupId>
-      <artifactId>js</artifactId>
+      <artifactId>js-language</artifactId>
       <optional>true</optional>
     </dependency>
 
@@ -204,26 +231,27 @@
       <optional>true</optional>
     </dependency>
 
+    <!-- OpenTelemetry -->
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-context</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk</artifactId>
+      <optional>true</optional>
+    </dependency>
+
     <!-- Caffeine -->
     <dependency>
       <groupId>com.github.ben-manes.caffeine</groupId>
       <artifactId>caffeine</artifactId>
-      <optional>true</optional>
-    </dependency>
-
-    <!-- jakarta.activation -->
-    <dependency>
-      <groupId>com.sun.activation</groupId>
-      <artifactId>jakarta.activation</artifactId>
-      <version>${jakarta.activation.version}</version>
-      <optional>true</optional>
-    </dependency>
-
-    <!-- jakarta.annotation-api -->
-    <dependency>
-      <groupId>jakarta.annotation</groupId>
-      <artifactId>jakarta.annotation-api</artifactId>
-      <version>${jakarta.annotation.version}</version>
       <optional>true</optional>
     </dependency>
 
@@ -268,6 +296,14 @@
   </properties>
 
   <build>
+    <resources>
+      <!-- include the coherence-core-21 build output in MR JAR format -->
+      <resource>
+        <directory>../coherence-core-21/target/classes</directory>
+        <targetPath>META-INF/versions/21</targetPath>
+      </resource>
+    </resources>
+
     <plugins>
       <!-- create the shaded JAR by combining existing dependencies and relocating some -->
       <plugin>
@@ -292,14 +328,15 @@
                   <include>org.ow2.asm:asm-commons</include>
                   <include>org.ow2.asm:asm-tree</include>
                   <include>org.ow2.asm:asm-util</include>
-                  <include>org.jboss:jandex</include>
+                  <include>io.github.classgraph:classgraph</include>
+                  <include>it.unimi.dsi:fastutil-core</include>
                   <include>com.sleepycat:je</include>
-                  <include>com.sun.codemodel:codemodel</include>
                   <include>${coherence.group.id}:coherence-discovery</include>
                   <include>${coherence.group.id}:coherence-core</include>
+                  <include>${coherence.group.id}:coherence-core-21</include>
                   <include>${coherence.group.id}:coherence-core-components</include>
-                  <include>${coherence.group.id}:opentracing-common</include>
-                  <include>${coherence.group.id}:opentracing-0.33</include>
+                  <include>${coherence.group.id}:opentracing</include>
+                  <include>${coherence.group.id}:opentelemetry</include>
                 </includes>
                 <excludes>
                   <exclude>${coherence.group.id}:coherence-core:*:sources</exclude>
@@ -310,28 +347,30 @@
                   <artifact>*:*</artifact>
                   <excludes>
                     <exclude>module-info*</exclude>
+                    <exclude>META-INF/versions/9/module-info.class</exclude>
                     <exclude>META-INF/MANIFEST.MF</exclude>
                     <exclude>META-INF/maven/**/*</exclude>
-                    <exclude>META-INF/versions/**/*</exclude>
                   </excludes>
                 </filter>
                 <filter>
-                  <artifact>org.jboss:jandex</artifact>
+                  <artifact>${coherence.group.id}:coherence-core-21</artifact>
                   <excludes>
-                    <exclude>org/jboss/jandex/JandexAntTask*</exclude>
+                    <exclude>**/*</exclude>
                   </excludes>
                 </filter>
                 <filter>
                   <artifact>com.sleepycat:je</artifact>
                   <excludes>
                     <exclude>com/sleepycat/persist/model/ClassEnhancerTask*</exclude>
+                    <!-- see COH-28458 -->
+                    <exclude>com/sleepycat/je/utilint/JVMSystemUtils*</exclude>
                   </excludes>
                 </filter>
               </filters>
               <relocations>
                 <relocation>
-                  <pattern>org.jboss.jandex</pattern>
-                  <shadedPattern>com.tangosol.internal.jandex</shadedPattern>
+                  <pattern>it.unimi.dsi.fastutil</pattern>
+                  <shadedPattern>com.tangosol.internal.fastutil</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.objectweb.asm</pattern>
@@ -350,15 +389,19 @@
                   <shadedPattern>com.tangosol.internal.asm.util</shadedPattern>
                 </relocation>
                 <relocation>
+                  <pattern>io.github.classgraph</pattern>
+                  <shadedPattern>com.tangosol.internal.classgraph</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>nonapi.io.github.classgraph</pattern>
+                  <shadedPattern>com.tangosol.internal.classgraph.nonapi</shadedPattern>
+                </relocation>
+                <relocation>
                   <pattern>com.sleepycat</pattern>
                   <shadedPattern>com.tangosol.internal.sleepycat</shadedPattern>
                   <excludes>
                     <exclude>com/tangosol/io/bdb/**/*</exclude>
                   </excludes>
-                </relocation>
-                <relocation>
-                  <pattern>com.sun.codemodel</pattern>
-                  <shadedPattern>com.tangosol.internal.codemodel</shadedPattern>
                 </relocation>
               </relocations>
               <transformers>
@@ -423,12 +466,8 @@
                   <artifactId>je</artifactId>
                 </exclusion>
                 <exclusion>
-                  <groupId>com.sun.codemodel</groupId>
-                  <artifactId>codemodel</artifactId>
-                </exclusion>
-                <exclusion>
-                  <groupId>org.jboss</groupId>
-                  <artifactId>jandex</artifactId>
+                  <groupId>io.github.classgraph</groupId>
+                  <artifactId>classgraph</artifactId>
                 </exclusion>
                 <!-- can't exclude ASM, because it's required by org.graalvm.js -->
               </exclusions>
@@ -596,6 +635,7 @@
               <manifestLocation>${artifact.classes.path}/META-INF</manifestLocation>
               <outputDirectory>${artifact.classes.path}</outputDirectory>
               <instructions>
+                <Multi-Release>true</Multi-Release>
                 <Main-Class>${main.class}</Main-Class>
                 <Build-Timestamp>${project.timestamp}</Build-Timestamp>
                 <Bundle-SymbolicName>${coherence.group.id}.${project.artifactId}</Bundle-SymbolicName>
@@ -672,24 +712,14 @@
 
               <additionalDependencies>
                 <additionalDependency>
-                  <groupId>org.graalvm.sdk</groupId>
-                  <artifactId>graal-sdk</artifactId>
-                  <version>${graal.version}</version>
+                  <groupId>org.graalvm.js</groupId>
+                  <artifactId>js-language</artifactId>
+                  <version>${graalvm.version}</version>
                 </additionalDependency>
                 <additionalDependency>
-                  <groupId>org.graalvm.js</groupId>
-                  <artifactId>js</artifactId>
-                  <version>${graal.version}</version>
-                </additionalDependency>
-                <additionalDependency>
-                  <groupId>org.graalvm.js</groupId>
-                  <artifactId>js-scriptengine</artifactId>
-                  <version>${graal.version}</version>
-                </additionalDependency>
-                <additionalDependency>
-                  <groupId>org.graalvm.js</groupId>
-                  <artifactId>js-launcher</artifactId>
-                  <version>${graal.version}</version>
+                  <groupId>org.graalvm.polyglot</groupId>
+                  <artifactId>polyglot</artifactId>
+                  <version>${graalvm.version}</version>
                 </additionalDependency>
                 <additionalDependency>
                   <groupId>jakarta.enterprise</groupId>

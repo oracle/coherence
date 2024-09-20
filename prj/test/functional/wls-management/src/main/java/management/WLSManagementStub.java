@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -71,8 +71,16 @@ public class WLSManagementStub
 
             String      sName      = CacheFactory.getCluster().getClusterName();
             Set<String> setCluster = Collections.singleton(sName);
+            boolean     fMetrics   = Boolean.getBoolean("test.management.metrics");
 
-            RestManagement.configure(this, new MBeanServerSupplier(), () -> setCluster);
+            if (fMetrics)
+                {
+                RestManagement.configureMetrics(this, new MBeanServerSupplier(), () -> setCluster);
+                }
+            else
+                {
+                RestManagement.configure(this, new MBeanServerSupplier(), () -> setCluster);
+                }
             }
         }
 

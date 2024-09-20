@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -10,6 +10,7 @@ package com.tangosol.util;
 
 import com.oracle.coherence.common.base.NonBlocking;
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.internal.util.invoke.Lambdas;
 
 import com.tangosol.io.Serializer;
@@ -20,7 +21,6 @@ import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.LocalCache;
 
-import com.tangosol.util.InvocableMap.EntryProcessor;
 import com.tangosol.util.comparator.EntryComparator;
 import com.tangosol.util.comparator.SafeComparator;
 
@@ -52,6 +52,7 @@ import java.util.Set;
 
 import java.util.concurrent.CompletableFuture;
 
+import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import java.util.function.ToIntFunction;
 
@@ -79,28 +80,12 @@ public abstract class InvocableMapHelper
      *
      * @return a CompletableFuture which will contain the result
      *
-     * @deprecated As of Coherence 14.1.1, use enhanced {@link #invokeAsync(NamedCache, Object, int, EntryProcessor, BiConsumer[])}.
+     * @deprecated As of Coherence 14.1.1, use enhanced
+     * {@link #invokeAsync(NamedCache, Object, int, InvocableMap.EntryProcessor, BiConsumer[])}.
      */
     public static <K, V, R> CompletableFuture<R> invokeAsync(NamedCache<K, V> cache, K key, InvocableMap.EntryProcessor<K, V, R> proc)
         {
-        CompletableFuture<R>           future    = new CompletableFuture<>();
-        AsynchronousProcessor<K, V, R> procAsync = new AsynchronousProcessor<>(proc);
-
-        procAsync.getCompletableFuture().whenComplete((mapResult, e) ->
-            {
-            if (e == null)
-                {
-                future.complete(mapResult == null ? null : mapResult.get(key));
-                }
-            else
-                {
-                future.completeExceptionally(e);
-                }
-            });
-
-        cache.invoke(key, procAsync);
-
-        return future;
+        return invokeAsync(cache, key, Thread.currentThread().hashCode(), proc);
         }
 
     /**
@@ -126,13 +111,42 @@ public abstract class InvocableMapHelper
     public static <K, V, R> CompletableFuture<R> invokeAsync(NamedCache<K, V> cache, K key, int nOrderId,
             InvocableMap.EntryProcessor<K, V, R> proc, BiConsumer<? super R, ? super Throwable>... continuations)
         {
-        SingleEntryAsynchronousProcessor<K, V, R> procAsync = new SingleEntryAsynchronousProcessor<>(proc, nOrderId);
+        return invokeAsync(cache, key, nOrderId, proc, Daemons.commonPool(), continuations);
+        }
+
+    /**
+     * Invoke the specified EntryProcessor asynchronously.
+     * <p>
+     * The continuation which will be invoked when the processor completes and most importantly on the thread
+     * on which the operation completes which is not something that can be guaranteed if the continuation is
+     * applied via the returned CompletableFuture.
+     *
+     * @param cache          the cache to invoke against
+     * @param key            the key to invoke upon
+     * @param nOrderId       the unit of order
+     * @param proc           the processor to invoke
+     * @param executor       an optional {@link Executor} to use to complete the returned future
+     * @param continuations  continuations which will be invoked when the operation completes
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @param <R> the result type
+     *
+     * @return a CompletableFuture which will contain the result
+     */
+    @SafeVarargs
+    public static <K, V, R> CompletableFuture<R> invokeAsync(NamedCache<K, V> cache, K key, int nOrderId,
+            InvocableMap.EntryProcessor<K, V, R> proc, Executor executor,
+            BiConsumer<? super R, ? super Throwable>... continuations)
+        {
+        SingleEntryAsynchronousProcessor<K, V, R> procAsync =
+                new SingleEntryAsynchronousProcessor<>(proc, nOrderId, executor);
 
         CompletableFuture<R> future = procAsync.getCompletableFuture();
         for (BiConsumer<? super R, ? super Throwable> continuation : continuations)
             {
             // must occur before calling invoke, this is the entire point of this method
-            future = future.whenComplete(continuation::accept);
+            future = future.whenComplete(continuation);
             }
 
         cache.invoke(key, procAsync);
@@ -166,10 +180,10 @@ public abstract class InvocableMapHelper
      */
     @SafeVarargs
     public static <K, V, R> CompletableFuture<Map<K, R>> invokeAllAsync(NamedCache<K, V> cache, Collection<? extends K> setKey,
-            int nOrderId, InvocableMap.EntryProcessor<K, V, R> proc,
+            int nOrderId, InvocableMap.EntryProcessor<K, V, R> proc, Executor executor,
             BiConsumer<? super Map<? extends K, ? extends R>, ? super Throwable>... continuations)
         {
-        AsynchronousProcessor<K, V, R> procAsync = new AsynchronousProcessor<>(proc, nOrderId);
+        AsynchronousProcessor<K, V, R> procAsync = new AsynchronousProcessor<>(proc, nOrderId, executor);
 
         CompletableFuture<Map<K, R>> future = procAsync.getCompletableFuture();
         for (BiConsumer<? super Map<K, R>, ? super Throwable> continuation : continuations)
@@ -212,12 +226,41 @@ public abstract class InvocableMapHelper
             ToIntFunction<K> funcOrder, InvocableMap.EntryProcessor<K, V, R> proc,
             BiConsumer<? super Map<? extends K, ? extends R>, ? super Throwable>... continuations)
         {
+        return invokeAllAsync(cache, setKey, funcOrder, proc, Daemons.commonPool(), continuations);
+        }
+
+    /**
+     * Invoke the specified EntryProcessor asynchronously.
+     * <p>
+     * The continuation which will be invoked when the processor completes and most importantly on the thread
+     * on which the operation completes which is not something that can be guaranteed if the continuation is
+     * applied via the returned CompletableFuture.
+     *
+     * @param cache          the cache to invoke against
+     * @param setKey         the set of keys to invoke upon
+     * @param funcOrder      function to compute unit of order based on the key
+     * @param proc           the processor to invoke
+     * @param executor       an optional {@link Executor} to use to complete the future
+     * @param continuations  continuations which will be invoked when the operation completes
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @param <R> the result type
+     *
+     * @return a CompletableFuture which will contain the result
+     */
+    @SafeVarargs
+    @SuppressWarnings("unchecked")
+    public static <K, V, R> CompletableFuture<Map<K, R>> invokeAllAsync(NamedCache<K, V> cache, Collection<? extends K> setKey,
+            ToIntFunction<K> funcOrder, InvocableMap.EntryProcessor<K, V, R> proc, Executor executor,
+            BiConsumer<? super Map<? extends K, ? extends R>, ? super Throwable>... continuations)
+        {
         Object[]                                    aKey    = setKey.toArray();
         SingleEntryAsynchronousProcessor<K, V, R>[] aProc   = new SingleEntryAsynchronousProcessor[aKey.length];
         CompletableFuture<R>[]                      aFuture = new CompletableFuture[aKey.length];
         for (int i = 0; i < aKey.length; ++i)
             {
-            aProc  [i] = new SingleEntryAsynchronousProcessor<>(proc, funcOrder.applyAsInt((K) aKey[i]));
+            aProc  [i] = new SingleEntryAsynchronousProcessor<>(proc, funcOrder.applyAsInt((K) aKey[i]), executor);
             aFuture[i] = aProc[i].getCompletableFuture();
             }
 
@@ -652,33 +695,32 @@ public abstract class InvocableMapHelper
             filter = null;
             }
 
-        Object[] aoResult; // may contain keys or entries
+        Object[] aoResult = null; // may contain keys or entries
 
-        // apply an index
-        if (filter instanceof IndexAwareFilter)
+        if (mapIndexes != null && !mapIndexes.isEmpty())
             {
-            IndexAwareFilter filterIx        = (IndexAwareFilter) filter;
-            Set              setFilteredKeys = new SubSet(map.keySet());
+            // apply an index
+            if (filter instanceof IndexAwareFilter)
+                {
+                IndexAwareFilter filterIx = (IndexAwareFilter) filter;
+                Set setFilteredKeys = new SubSet(map.keySet());
 
-            if (mapIndexes == null)
-                {
-                mapIndexes = Collections.emptyMap();
+                try
+                    {
+                    filter = filterIx.applyIndex(mapIndexes, setFilteredKeys);
+                    }
+                catch (ConcurrentModificationException e)
+                    {
+                    // applyIndex failed; try again with a snapshot of the key set
+                    setFilteredKeys = new SubSet(
+                            new ImmutableArrayList(map.keySet().toArray()));
+                    filter = filterIx.applyIndex(mapIndexes, setFilteredKeys);
+                    }
+                aoResult = setFilteredKeys.toArray();
                 }
-
-            try
-                {
-                filter = filterIx.applyIndex(mapIndexes, setFilteredKeys);
-                }
-            catch (ConcurrentModificationException e)
-                {
-                // applyIndex failed; try again with a snapshot of the key set
-                setFilteredKeys = new SubSet(
-                        new ImmutableArrayList(map.keySet().toArray()));
-                filter = filterIx.applyIndex(mapIndexes, setFilteredKeys);
-                }
-            aoResult = setFilteredKeys.toArray();
             }
-        else
+
+        if (aoResult == null)
             {
             aoResult = map.keySet().toArray();
             }

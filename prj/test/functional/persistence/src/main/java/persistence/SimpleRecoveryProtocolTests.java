@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,6 +16,8 @@ import com.oracle.coherence.persistence.PersistentStore;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+
+import com.oracle.coherence.persistence.PersistentStoreInfo;
 
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.ReadBuffer;
@@ -614,6 +616,15 @@ public class SimpleRecoveryProtocolTests
          * {@inheritDoc}
          */
         @Override
+        public boolean isEmpty(String sId)
+            {
+            return f_manager.isEmpty(sId);
+            }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
         public String getName()
             {
             return f_manager.getName();
@@ -674,13 +685,13 @@ public class SimpleRecoveryProtocolTests
          * {@inheritDoc}
          */
         @Override
-        public String[] list()
+        public PersistentStoreInfo[] listStoreInfo()
             {
-            String[] asGUIDAll = f_manager.list();
+            PersistentStoreInfo[] aInfos = f_manager.listStoreInfo();
             String   sTestCase = System.getProperty("test.manager.testcase", "testNoPersistentData");
             if (sTestCase.equals("testNoPersistentData"))
                 {
-                return new String[0];
+                return new PersistentStoreInfo[0];
                 }
             else if (sTestCase.equals("testAllOnMember3"))
                 {
@@ -690,15 +701,15 @@ public class SimpleRecoveryProtocolTests
                 switch (nMemberThis)
                     {
                     case 3:
-                        {
-                        return asGUIDAll;
-                        }
+                    {
+                    return aInfos;
+                    }
 
                     case 1:
                     case 2:
                     case 4:
                     case 5:
-                        return new String[0];
+                        return new PersistentStoreInfo[0];
 
                     default:
                         fail();
@@ -712,41 +723,41 @@ public class SimpleRecoveryProtocolTests
                 switch (nMemberThis)
                     {
                     case 3:
+                    {
+                    int  cGUID = aInfos.length;
+                    List list  = new ArrayList(cGUID);
+                    for (int i = 0; i < cGUID; i++)
                         {
-                        int  cGUID = asGUIDAll.length;
-                        List list  = new ArrayList(cGUID);
-                        for (int i = 0; i < cGUID; i++)
+                        String sGUID = aInfos[i].getId();
+                        if (GUIDHelper.getPartition(sGUID) <= 20)
                             {
-                            String sGUID = asGUIDAll[i];
-                            if (GUIDHelper.getPartition(sGUID) <= 20)
-                                {
-                                list.add(sGUID);
-                                }
+                            list.add(aInfos[i]);
                             }
-
-                        return (String[]) list.toArray(new String[list.size()]);
                         }
+
+                    return (PersistentStoreInfo[]) list.toArray(new PersistentStoreInfo[list.size()]);
+                    }
 
                     case 4:
+                    {
+                    int  cGUID = aInfos.length;
+                    List list  = new ArrayList(cGUID);
+                    for (int i = 0; i < cGUID; i++)
                         {
-                        int  cGUID = asGUIDAll.length;
-                        List list  = new ArrayList(cGUID);
-                        for (int i = 0; i < cGUID; i++)
+                        String sGUID = aInfos[i].getId();
+                        if (GUIDHelper.getPartition(sGUID) >= 21)
                             {
-                            String sGUID = asGUIDAll[i];
-                            if (GUIDHelper.getPartition(sGUID) >= 21)
-                                {
-                                list.add(sGUID);
-                                }
+                            list.add(aInfos[i]);
                             }
-
-                        return (String[]) list.toArray(new String[list.size()]);
                         }
+
+                    return (PersistentStoreInfo[]) list.toArray(new PersistentStoreInfo[list.size()]);
+                    }
 
                     case 1:
                     case 2:
                     case 5:
-                        return new String[0];
+                        return new PersistentStoreInfo[0];
 
                     default:
                         fail();
@@ -760,26 +771,26 @@ public class SimpleRecoveryProtocolTests
                 switch (nMemberThis)
                     {
                     case 3:
+                    {
+                    int  cGUID = aInfos.length;
+                    List list  = new ArrayList(cGUID);
+                    for (int i = 0; i < cGUID; i++)
                         {
-                        int  cGUID = asGUIDAll.length;
-                        List list  = new ArrayList(cGUID);
-                        for (int i = 0; i < cGUID; i++)
+                        String sGUID = aInfos[i].getId();
+                        if (GUIDHelper.getPartition(sGUID) <= 20)
                             {
-                            String sGUID = asGUIDAll[i];
-                            if (GUIDHelper.getPartition(sGUID) <= 20)
-                                {
-                                list.add(sGUID);
-                                }
+                            list.add(aInfos[i]);
                             }
-
-                        return (String[]) list.toArray(new String[list.size()]);
                         }
+
+                    return (PersistentStoreInfo[]) list.toArray(new PersistentStoreInfo[list.size()]);
+                    }
 
                     case 1:
                     case 2:
                     case 4:
                     case 5:
-                        return new String[0];
+                        return new PersistentStoreInfo[0];
 
                     default:
                         fail();

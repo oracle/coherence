@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -51,6 +51,13 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- HNSW -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-hnsw</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- Coherence CDI -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -90,14 +97,19 @@
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-rest</artifactId>
+      <artifactId>coherence-protobuf</artifactId>
       <version>${project.version}</version>
     </dependency>
 
-    <!-- Coherence Helidon -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-helidon-client</artifactId>
+      <artifactId>coherence-discovery</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-rest</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -107,20 +119,10 @@
       <artifactId>je</artifactId>
     </dependency>
 
-    <!-- codemodel -->
+    <!-- classgraph -->
     <dependency>
-      <groupId>com.sun.codemodel</groupId>
-      <artifactId>codemodel</artifactId>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-
-    <!-- jandex for searching for PortableType -->
-    <dependency>
-      <groupId>org.jboss</groupId>
-      <artifactId>jandex</artifactId>
-      <scope>provided</scope>
-      <optional>true</optional>
+      <groupId>io.github.classgraph</groupId>
+      <artifactId>classgraph</artifactId>
     </dependency>
 
     <!-- IMPORTANT: intentional dependency on old versions of Servlet and JSP specs,
@@ -134,32 +136,41 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- graal -->
+    <!-- GraalVM Polyglot support -->
     <dependency>
-      <groupId>org.graalvm.sdk</groupId>
-      <artifactId>graal-sdk</artifactId>
-      <scope>provided</scope>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>polyglot</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.graalvm.js</groupId>
-      <artifactId>js</artifactId>
-      <scope>provided</scope>
+      <artifactId>js-language</artifactId>
     </dependency>
 
+    <!-- ASM -->
     <dependency>
-      <groupId>org.graalvm.js</groupId>
-      <artifactId>js-scriptengine</artifactId>
-      <scope>provided</scope>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
     </dependency>
-
     <dependency>
-      <groupId>org.graalvm.js</groupId>
-      <artifactId>js-launcher</artifactId>
-      <scope>provided</scope>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-commons</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-tree</artifactId>
     </dependency>
 
     <!-- grpc -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-grpc-proxy-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-grpc-proxy-helidon</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-grpc-proxy</artifactId>
@@ -172,22 +183,26 @@
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-grpc-client-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-grpc-client-helidon</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-java-client</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <!-- Helidon -->
     <dependency>
-      <groupId>io.helidon.microprofile.grpc</groupId>
-      <artifactId>helidon-microprofile-grpc-server</artifactId>
+      <groupId>io.helidon.microprofile.bundles</groupId>
+      <artifactId>helidon-microprofile</artifactId>
       <scope>provided</scope>
       <optional>true</optional>
-      <exclusions>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-http2</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <!-- Jackson -->
@@ -215,13 +230,6 @@
       <groupId>jakarta.servlet</groupId>
       <artifactId>jakarta.servlet-api</artifactId>
       <version>${jakarta.servlet.version}</version>
-    </dependency>
-
-    <!-- JMS -->
-    <dependency>
-      <groupId>jakarta.jms</groupId>
-      <artifactId>jakarta.jms-api</artifactId>
-      <version>${jakarta.jms.version}</version>
     </dependency>
 
     <!-- JCA -->
@@ -281,29 +289,70 @@
       <artifactId>netty-all</artifactId>
     </dependency>
 
+    <!-- opentelemetry -->
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-api</artifactId>
+      <version>${opentelemetry.version}</version>
+      <optional>true</optional>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-context</artifactId>
+      <version>${opentelemetry.version}</version>
+      <optional>true</optional>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk</artifactId>
+      <version>${opentelemetry.version}</version>
+      <optional>true</optional>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry.instrumentation</groupId>
+      <artifactId>opentelemetry-grpc-1.6</artifactId>
+      <version>${opentelemetry.version}-alpha</version>
+      <optional>true</optional>
+      <scope>provided</scope>
+    </dependency>
+
     <!-- opentracing -->
     <dependency>
       <groupId>io.opentracing</groupId>
       <artifactId>opentracing-api</artifactId>
       <version>${opentracing.version}</version>
+      <optional>true</optional>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.opentracing</groupId>
       <artifactId>opentracing-util</artifactId>
       <version>${opentracing.version}</version>
+      <optional>true</optional>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.opentracing</groupId>
       <artifactId>opentracing-noop</artifactId>
       <version>${opentracing.version}</version>
+      <optional>true</optional>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.opentracing.contrib</groupId>
       <artifactId>opentracing-tracerresolver</artifactId>
       <version>${opentracing.tracerresolver.version}</version>
+      <optional>true</optional>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.opentracing.contrib</groupId>
+      <artifactId>opentracing-grpc</artifactId>
+      <version>${opentracing.grpc.version}</version>
+      <optional>true</optional>
       <scope>provided</scope>
     </dependency>
 
@@ -417,15 +466,22 @@
                     </resource>
 
                     <resource>
+                      <directory>../coherence-grpc-proxy-common/src/main/java</directory>
+                    </resource>
+
+                    <resource>
+                      <directory>../coherence-grpc-proxy-helidon/src/main/java</directory>
+                    </resource>
+
+                    <resource>
                       <directory>../coherence-grpc-proxy/src/main/java</directory>
                     </resource>
 
                     <resource>
                       <directory>../coherence-java-client/src/main/java</directory>
                     </resource>
-
-                    <resource>
-                      <directory>../coherence-helidon-client/src/main/java</directory>
+                  <resource>
+                      <directory>../coherence-discovery/src/main/java</directory>
                     </resource>
                   </resources>
 
@@ -444,6 +500,7 @@
             <configuration>
               <sourcepath>${javadoc.src}</sourcepath>
               <doclint>${doclint.check}</doclint>
+              <notimestamp>true</notimestamp>
             </configuration>
 
             <executions>
@@ -497,9 +554,18 @@
                     <include>com/tangosol/coherence/config/xml/preprocessor/*.java</include>
                     <include>com/tangosol/coherence/config/xml/processor/*.java</include>
 
+<include>com/tangosol/discovery/*.java</include>
                     <include>com/oracle/coherence/concurrent/atomic/*.java</include>
                     <include>com/oracle/coherence/concurrent/cdi/*.java</include>
                     <include>com/oracle/coherence/concurrent/executor/RemoteExecutor.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/Result.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/Task.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/TaskCollectors.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/function/Predicates.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/function/PortablePredicate.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/tasks/*.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/options/*.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/subscribers/*.java</include>
                     <include>com/oracle/coherence/concurrent/locks/*.java</include>
 
                     <include>com/tangosol/coherence/dslquery/*.java</include>
@@ -578,6 +644,7 @@
 
                     <include>com/tangosol/net/management/*.java</include>
                     <include>com/tangosol/net/management/annotation/*.java</include>
+                    <include>com/tangosol/net/messaging/*Exception.java</include>
                     <include>com/tangosol/net/partition/*.java</include>
                     <include>com/tangosol/net/proxy/*.java</include>
                     <include>com/tangosol/net/security/*.java</include>
@@ -642,30 +709,27 @@
                     <exclude>com/oracle/coherence/concurrent/executor/PortableAbstractProcessor.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/PortableCollector.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/RecoveringTask.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/Result.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/StandardExecutionStrategy.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/Task.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/TaskCollectors.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/TaskExecutorService.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/TaskProperties.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/function/BiPredicates.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/options/CloseExecutor.java</exclude>
 
                     <exclude>com/oracle/coherence/concurrent/config/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/config/builders/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/config/processors/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/atomic/*.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/function/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/internal/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/internal/cdi/*.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/options/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/processors/*.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/subscribers/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/subscribers/internal/*.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/tasks/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/tasks/internal/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/util/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/internal/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/internal/cdi/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/locks/internal/*.java</exclude>
+
+                    <exclude>com/oracle/coherence/grpc/internal/*.java</exclude>
 
                     <exclude>com/tangosol/util/CheckedWrapperException.java</exclude>
                     <exclude>com/tangosol/util/CommandLine.java</exclude>
@@ -704,7 +768,11 @@
                           com.tangosol.coherence.dsl*
                       </packages>
                     </group>
-                    <group>
+
+                        <group>
+                          <title>Discovery</title>
+                          <packages>com.tangosol.discovery*</packages>
+</group>                    <group>
                       <title>JCache</title>
                       <packages>com.tangosol.coherence.jcache*</packages>
                     </group>

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.metrics;
 
@@ -18,6 +18,6 @@ public class MetricsHttpHandlerTest
         {
         MetricsHttpHandler resource = new MetricsHttpHandler();
         MetricsHttpHandler.Format format = resource.getFormat();
-        assertThat(format, is(MetricsHttpHandler.Format.Legacy));
+        assertThat(format, is(MetricsHttpHandler.Format.Default));
         }
     }

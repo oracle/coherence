@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,6 +18,7 @@ import com.tangosol.io.pof.schema.annotation.PortableType;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
+import com.tangosol.util.Resources;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -81,12 +82,9 @@ public class PortableTypeMultipleIndexesTests
             s_dirCountryIndex = FileHelper.createTempDir();
 
             // get the locations of the indexes
-            URL urlAddressIndex = PortableTypeMultipleIndexesTests.class.getClassLoader()
-                                      .getResource("data/portabletype/META-INF/address-index/custom.idx");
-            URL urlPersonIndex = PortableTypeMultipleIndexesTests.class.getClassLoader()
-                                      .getResource("data/portabletype/META-INF/person-index/custom.idx");
-            URL urlCountryIndex = PortableTypeMultipleIndexesTests.class.getClassLoader()
-                                      .getResource("data/portabletype/META-INF/country-index/custom.idx");
+            URL urlAddressIndex = Resources.findFileOrResource("META-INF/address-index/custom.idx", null);
+            URL urlPersonIndex  = Resources.findFileOrResource("META-INF/person-index/custom.idx", null);
+            URL urlCountryIndex = Resources.findFileOrResource("META-INF/country-index/custom.idx", null);
 
             assertThat(urlAddressIndex, is(notNullValue()));
             assertThat(urlPersonIndex, is(notNullValue()));
@@ -110,9 +108,9 @@ public class PortableTypeMultipleIndexesTests
             assertThat(dirCountryMetaInf.mkdir(), is(true));
 
             // copy the files
-            assertThat(Files.copy(filePerson.toPath(), new File(dirPersonMetaInf, "jandex.idx").toPath()), is(notNullValue()));
-            assertThat(Files.copy(fileAddress.toPath(), new File(dirAddressMetaInf, "jandex.idx").toPath()), is(notNullValue()));
-            assertThat(Files.copy(fileCountry.toPath(), new File(dirCountryMetaInf, "jandex.idx").toPath()), is(notNullValue()));
+            assertThat(Files.copy(filePerson.toPath(), new File(dirPersonMetaInf, "pof.idx").toPath()), is(notNullValue()));
+            assertThat(Files.copy(fileAddress.toPath(), new File(dirAddressMetaInf, "pof.idx").toPath()), is(notNullValue()));
+            assertThat(Files.copy(fileCountry.toPath(), new File(dirCountryMetaInf, "pof.idx").toPath()), is(notNullValue()));
 
             // create the Jar files
             s_dirJarBase = FileHelper.createTempDir();

@@ -1,19 +1,20 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
+import com.tangosol.application.Context;
 import com.tangosol.net.events.EventInterceptor;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ServiceLoader;
 
 /**
@@ -35,7 +36,7 @@ public interface CoherenceConfiguration
      */
     static Builder builder()
         {
-        return new Builder();
+        return new Builder().discoverSessions();
         }
 
     /**
@@ -83,6 +84,26 @@ public interface CoherenceConfiguration
      */
     Iterable<EventInterceptor<?>> getInterceptors();
 
+    /**
+     * Return the optional application {@link Context} associated to this {@link Coherence} instance.
+     *
+     * @return the optional application {@link Context} associated to this {@link Coherence} instance
+     */
+    default Optional<Context> getApplicationContext()
+        {
+        return Optional.empty();
+        }
+
+    /**
+     * Return the name of the default session.
+     *
+     * @return the name of the default session
+     */
+    default String getDefaultSessionName()
+        {
+        return Coherence.DEFAULT_NAME;
+        }
+
     // ----- inner class: Builder -------------------------------------------
 
     /**
@@ -94,6 +115,14 @@ public interface CoherenceConfiguration
      */
     class Builder
         {
+        /**
+         * Create a {@link Builder}.
+         */
+        public Builder()
+            {
+            m_fDiscoverSessions = true;
+            }
+
         /**
          * Set the name of the {@link Coherence} instance.
          * <p>
@@ -113,6 +142,31 @@ public interface CoherenceConfiguration
             }
 
         /**
+         * Set the name of the {@link Session} to return is a {@link Session}
+         * is requested with the {@link Coherence#DEFAULT_NAME default name}.
+         *
+         * @param sName  the name of the default {@link Session}
+         *
+         * @return  this {@link Builder}
+         *
+         * @throws IllegalArgumentException if this configuration does not contain
+         *         a session with the specified name
+         */
+        public Builder withDefaultSession(String sName)
+            {
+            if (sName != null)
+                {
+                if (!sName.equals(Coherence.DEFAULT_NAME) && !f_mapConfig.containsKey(sName))
+                    {
+                    throw new IllegalArgumentException("A Session with the name " + sName
+                            + " has not been added to this configuration");
+                    }
+                m_sDefaultSession = sName;
+                }
+            return this;
+            }
+
+        /**
          * Add all of the {@link SessionConfiguration} instances discovered
          * using the {@link ServiceLoader}.
          *
@@ -120,7 +174,18 @@ public interface CoherenceConfiguration
          */
         public Builder discoverSessions()
             {
-            withSessions(ServiceLoader.load(SessionConfiguration.class));
+            return discoverSessions(true);
+            }
+
+        /**
+         * Add all of the {@link SessionConfiguration} instances discovered
+         * using the {@link ServiceLoader}.
+         *
+         * @return  this {@link Builder}
+         */
+        public Builder discoverSessions(boolean f)
+            {
+            m_fDiscoverSessions = f;
             return this;
             }
 
@@ -143,6 +208,12 @@ public interface CoherenceConfiguration
          */
         public Builder withSession(SessionConfiguration config)
             {
+            withSession(config, f_mapConfig);
+            return this;
+            }
+
+        private void withSession(SessionConfiguration config, Map<String, SessionConfiguration> map)
+            {
             if (config != null && config.isEnabled())
                 {
                 String sName = config.getName();
@@ -150,9 +221,8 @@ public interface CoherenceConfiguration
                     {
                     throw new IllegalArgumentException("A session configuration must provide a non-null name");
                     }
-                f_mapConfig.put(sName, config);
+                map.put(sName, config);
                 }
-            return this;
             }
 
         /**
@@ -255,18 +325,34 @@ public interface CoherenceConfiguration
             }
 
         /**
+         * Set the {@link Context application context} to associate to the {@link Coherence} instance.
+         *
+         * @param context  the {@link Context application context} to associate to the {@link Coherence} instance
+         *
+         * @return  this {@link Builder}
+         */
+        public Builder withApplicationContext(Context context)
+            {
+            m_context = context;
+            return this;
+            }
+
+        /**
          * Build a {@link CoherenceConfiguration} from this {@link Builder}.
          *
          * @return  a {@link CoherenceConfiguration} created from this {@link Builder}
          */
         public CoherenceConfiguration build()
             {
-            if (Coherence.getInstance(m_sName) != null)
+            Map<String, SessionConfiguration> mapConfig = new HashMap<>();
+            if (m_fDiscoverSessions)
                 {
-                throw new IllegalStateException("A Coherence instance already exists with the name " + m_sName);
+                for (SessionConfiguration configuration : ServiceLoader.load(SessionConfiguration.class))
+                    {
+                    withSession(configuration, mapConfig);
+                    }
                 }
-
-            Map<String, SessionConfiguration> mapConfig = new HashMap<>(f_mapConfig);
+            mapConfig.putAll(f_mapConfig);
 
             if (mapConfig.isEmpty())
                 {
@@ -275,7 +361,7 @@ public interface CoherenceConfiguration
                 mapConfig.put(cfgDefault.getName(), cfgDefault);
                 }
 
-            return new SimpleConfig(m_sName, mapConfig, f_listInterceptor);
+            return new SimpleConfig(this, mapConfig);
             }
 
         // ----- data members -----------------------------------------------
@@ -284,6 +370,16 @@ public interface CoherenceConfiguration
          * The name of the {@link Coherence} instance.
          */
         private String m_sName;
+
+        /**
+         * The name of the default {@link Session}
+         */
+        private String m_sDefaultSession = Coherence.DEFAULT_NAME;
+
+        /**
+         * A flag to determine whether to automatically discover session configurations.
+         */
+        private boolean m_fDiscoverSessions;
 
         /**
          * A map of named {@link SessionConfiguration} instances.
@@ -295,6 +391,11 @@ public interface CoherenceConfiguration
          * created by the {@link Coherence} instance.
          */
         private final List<EventInterceptor<?>> f_listInterceptor = new ArrayList<>();
+
+        /**
+         * The Context application context to associate to the {@link Coherence} instance
+         */
+        private Context m_context;
         }
 
     // ----- inner class: SimpleConfig --------------------------------------
@@ -311,22 +412,20 @@ public interface CoherenceConfiguration
          * Create an instance of a {@link CoherenceConfiguration} using the state from the
          * specified {@link Builder}.
          *
-         * @param sName            the name for the {@link Coherence} instance created
-         *                         from this {@link CoherenceConfiguration}
+         * @param builder          the configuration {@link Builder}
          * @param mapConfig        the {@link SessionConfiguration} to use to create
          *                         {@link com.tangosol.net.Session} instances
          *                         instances
-         * @param listInterceptor  the interceptors to add to the
-         *                         {@link com.tangosol.net.Session}
-         *                         instances
          */
-        private SimpleConfig(String                            sName,
-                             Map<String, SessionConfiguration> mapConfig,
-                             List<EventInterceptor<?>>         listInterceptor)
+        private SimpleConfig(Builder                           builder,
+                             Map<String, SessionConfiguration> mapConfig)
             {
-            f_sName           = sName == null || sName.trim().isEmpty() ? Coherence.DEFAULT_NAME : sName.trim();
+            f_sName           = builder.m_sName == null || builder.m_sName.trim().isEmpty()
+                                        ? Coherence.DEFAULT_NAME : builder.m_sName.trim();
             f_mapConfig       = Collections.unmodifiableMap(new HashMap<>(mapConfig));
-            f_listInterceptor = Collections.unmodifiableList(new ArrayList<>(listInterceptor));
+            f_listInterceptor = Collections.unmodifiableList(new ArrayList<>(builder.f_listInterceptor));
+            f_context         = builder.m_context;
+            f_sDefaultSession = builder.m_sDefaultSession == null ? Coherence.DEFAULT_NAME : builder.m_sDefaultSession;
             }
 
         // ----- CoherenceConfiguration API methods -------------------------
@@ -349,6 +448,18 @@ public interface CoherenceConfiguration
             return f_listInterceptor;
             }
 
+        @Override
+        public Optional<Context> getApplicationContext()
+            {
+            return Optional.ofNullable(f_context);
+            }
+
+        @Override
+        public String getDefaultSessionName()
+            {
+            return f_sDefaultSession;
+            }
+
         // ----- data members ---------------------------------------------------
 
         /**
@@ -365,5 +476,15 @@ public interface CoherenceConfiguration
          * The global interceptors to be added to all sessions.
          */
         private final List<EventInterceptor<?>> f_listInterceptor;
+
+        /**
+         * An optional application {@link Context}.
+         */
+        private final Context f_context;
+
+        /**
+         * The name of the default session.
+         */
+        private final String f_sDefaultSession;
         }
     }

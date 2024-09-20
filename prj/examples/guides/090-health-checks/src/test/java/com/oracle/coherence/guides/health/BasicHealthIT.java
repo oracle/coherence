@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -26,8 +26,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * A simple integration test showing different parts of the
  * Coherence health check API.
  */
-class BasicHealthIT
-    {
+class BasicHealthIT {
+
     /**
      * Start Coherence, and wait a maximum of five minutes for start-up.
      * Start-up should be considerably less than this, so the test will
@@ -37,63 +37,56 @@ class BasicHealthIT
      */
     // # tag::bootstrap[]
     @BeforeAll
-    static void startCoherence() throws Exception
-        {
+    static void startCoherence() throws Exception {
         Coherence.clusterMember()
-                .start()
-                .get(5, TimeUnit.MINUTES);
-        }
+                 .start()
+                 .get(5, TimeUnit.MINUTES);
+    }
     // # end::bootstrap[]
 
     // # tag::cleanup[]
     @AfterAll
-    static void cleanup()
-        {
+    static void cleanup() {
         Coherence coherence = Coherence.getInstance();
-        if (coherence != null)
-            {
+        if (coherence != null) {
             coherence.close();
-            }
         }
+    }
     // # end::cleanup[]
 
     // # tag::started[]
     @Test
-    void shouldEventuallyBeStarted()
-        {
+    void shouldEventuallyBeStarted() {
         Coherence coherence = Coherence.getInstance();
         Registry  registry  = coherence.getManagement();
 
-        Eventually.assertDeferred(() -> registry.allHealthChecksStarted(), is(true));
-        }
+        Eventually.assertDeferred(registry::allHealthChecksStarted, is(true));
+    }
     // # end::started[]
 
     // # tag::ready[]
     @Test
-    void shouldEventuallyBeReady()
-        {
+    void shouldEventuallyBeReady() {
         Coherence coherence = Coherence.getInstance();
         Registry  registry  = coherence.getManagement();
 
-        Eventually.assertDeferred(() -> registry.allHealthChecksReady(), is(true));
-        }
+        Eventually.assertDeferred(registry::allHealthChecksReady, is(true));
+    }
     // # end::ready[]
 
     // # tag::safe[]
     @Test
-    void shouldEventuallyBeSafe()
-        {
+    void shouldEventuallyBeSafe() {
         Coherence coherence = Coherence.getInstance();
         Registry  registry  = coherence.getManagement();
 
-        Eventually.assertDeferred(() -> registry.allHealthChecksSafe(), is(true));
-        }
+        Eventually.assertDeferred(registry::allHealthChecksSafe, is(true));
+    }
     // # end::safe[]
 
     // # tag::get[]
     @Test
-    void shouldGetHealthChecks()
-        {
+    void shouldGetHealthChecks() {
         Coherence coherence = Coherence.getInstance();
         Registry  registry  = coherence.getManagement();
 
@@ -102,24 +95,23 @@ class BasicHealthIT
         assertThat(healthChecks.isEmpty(), is(false));
 
         HealthCheck healthCheck = healthChecks.stream()
-                .filter(h -> "PartitionedCache".equals(h.getName()))
-                .findFirst()
-                .orElse(null);
+                                              .filter(h->"PartitionedCache".equals(h.getName()))
+                                              .findFirst()
+                                              .orElse(null);
 
         assertThat(healthCheck, is(notNullValue()));
-        }
+    }
     // # end::get[]
 
     // # tag::name[]
     @Test
-    void shouldGetHealthCheckByName()
-        {
+    void shouldGetHealthCheckByName() {
         Coherence coherence = Coherence.getInstance();
         Registry  registry  = coherence.getManagement();
 
         Optional<HealthCheck> optional = registry.getHealthCheck("PartitionedCache");
 
         assertThat(optional.isPresent(), is(true));
-        }
-    // # end::name[]
     }
+    // # end::name[]
+}

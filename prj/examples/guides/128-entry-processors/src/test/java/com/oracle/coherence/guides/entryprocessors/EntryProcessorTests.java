@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2023 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -113,7 +113,7 @@ class EntryProcessorTests {
     void testIncreasePopulationForSingleEntry() {
         NamedCache<String, Country> map = getMap("countries"); // <1>
         Double result = map.invoke("de", new IncrementingEntryProcessor()); // <2>
-        assertThat(result).isEqualTo(84.2d);
+        assertThat(result).isEqualTo(84.2d); // <3>
     }
     // # end::testIncreasePopulationForSingleEntry[]
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 
 package com.tangosol.util;
 
+import com.oracle.coherence.common.base.Nullable;
 import com.tangosol.io.AbstractByteArrayReadBuffer;
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.ReadBuffer;
@@ -34,6 +35,12 @@ import java.nio.channels.FileChannel;
 
 import java.util.Arrays;
 
+import static com.oracle.coherence.common.base.Assertions.azzert;
+import static com.oracle.coherence.common.base.Exceptions.ensureRuntimeException;
+import static com.oracle.coherence.common.base.Formatting.toCrc;
+import static com.oracle.coherence.common.base.Formatting.toHexEscape;
+import static com.oracle.coherence.common.base.Reads.read;
+
 /**
 * A thread-safe immutable binary object.
 *
@@ -41,7 +48,7 @@ import java.util.Arrays;
 */
 public final class Binary
         extends AbstractByteArrayReadBuffer
-        implements Comparable, Externalizable, ExternalizableLite
+        implements Comparable<Binary>, Nullable<Binary>, Externalizable, ExternalizableLite
     {
     // ----- constructors ---------------------------------------------------
 
@@ -1085,7 +1092,7 @@ public final class Binary
     * negative integer, zero, or a positive integer as this object is less
     * than, equal to, or greater than the specified object.
     *
-    * @param   o the Object to be compared.
+    * @param   that  the Binary to be compared.
     *
     * @return  a negative integer, zero, or a positive integer as this object
     *          is less than, equal to, or greater than the specified object
@@ -1095,9 +1102,8 @@ public final class Binary
     * @throws NullPointerException if the specified object is
     *         <code>null</code>
     */
-    public int compareTo(Object o)
+    public int compareTo(Binary that)
         {
-        Binary that = (Binary) o;       // ClassCastException
         return memcmp(this.m_ab, this.m_of, this.m_cb,
                       that.m_ab, that.m_of, that.m_cb);
         }
@@ -1155,7 +1161,6 @@ public final class Binary
         int    cb = in.readInt();
         byte[] ab;
 
-        ExternalizableHelper.validateLoadArray(byte[].class, cb, in);
         if (cb < ExternalizableHelper.CHUNK_THRESHOLD)
             {
             ab = new byte[cb];

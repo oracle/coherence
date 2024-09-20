@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
@@ -33,6 +33,7 @@ import java.util.Set;
 *
 * @author cp/gg/hr 2002.11.08
 */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class InFilter<T, E>
         extends    ComparisonFilter<T, E, Set<? extends E>>
         implements IndexAwareFilter<Object, T>
@@ -68,6 +69,12 @@ public class InFilter<T, E>
         super(sMethod, new HashSet<>(setValues));
         }
 
+    // ----- Filter interface -----------------------------------------------
+
+    protected String getOperator()
+        {
+        return "IN";
+        }
 
     // ----- ExtractorFilter methods ----------------------------------------
 
@@ -76,7 +83,7 @@ public class InFilter<T, E>
     */
     protected boolean evaluateExtracted(E extracted)
         {
-        return ((Collection) getValue()).contains(extracted);
+        return getValue().contains(extracted);
         }
 
 
@@ -88,7 +95,7 @@ public class InFilter<T, E>
     @Override
     public String toStringValue()
         {
-        return Base.truncateString((Collection) getValue(), 255);
+        return Base.truncateString(getValue(), 255);
         }
 
 
@@ -100,8 +107,33 @@ public class InFilter<T, E>
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
-        return index == null ? calculateIteratorEffectiveness(setKeys.size())
-                             : ((Collection) getValue()).size();
+        if (index == null)
+            {
+            // there is no relevant index
+            return -1;
+            }
+        else
+            {
+            // calculating the exact number of keys retained is too expensive;
+            // ignore the fact that there may be duplicates and simply return
+            // the worst possible number of keys retained, as if they were unique
+
+            Set<? extends E> colValues   = getValue();
+            Map<E, Set<?>>   mapContents = index.getIndexContents();
+            int              cMatch      = 0;
+
+            for (E value : colValues)
+                {
+                Set<?> setEQ = mapContents.get(value);
+
+                if (setEQ != null)
+                    {
+                    cMatch += setEQ.size();
+                    }
+                }
+
+            return Math.min(cMatch, setKeys.size());
+            }
         }
 
     /**
@@ -112,49 +144,24 @@ public class InFilter<T, E>
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
         if (index == null)
             {
-            // there is no relevant index
+            // there is no relevant index; evaluate individual entries
             return this;
+            }
+        else if (index.getIndexContents().isEmpty())
+            {
+            // there are no entries in the index, which means no entries match this filter
+            setKeys.clear();
+            return null;
             }
         else
             {
-            Collection colValues = (Collection) getValue();
-            int        cValues   = colValues.size();
-            int        cKeys     = setKeys.size();
+            Map<E, Set<?>>   mapContents = index.getIndexContents();
+            Set<? extends E> colValues   = getValue();
 
-            // an empirically chosen factor that suits 90% of the data sets
-            // tested; the aim is to accommodate for common use cases in which
-            // colValues will contain between 10 - 1000 elements, thus iterating
-            // 128000 keys (upper bound) is considered the inflection point and
-            // as setKeys increases past this point, the value of collecting the
-            // inverse keys becomes more beneficial
-            final int FACTOR = 128;
-
-            // optimized branch for relatively small number of keys
-            use_fwd_index:
-            if (cKeys < Math.min(1000, cValues) * FACTOR)
+            List<Set<?>> listInverseKeys = new ArrayList<>(colValues.size());
+            for (E value : colValues)
                 {
-                for (Iterator iter = setKeys.iterator(); iter.hasNext(); )
-                    {
-                    Object oValue = index.get(iter.next());
-                    if (oValue == MapIndex.NO_VALUE)
-                        {
-                        // forward index is not supported
-                        break use_fwd_index;
-                        }
-
-                    if (!colValues.contains(oValue))
-                        {
-                        iter.remove();
-                        }
-                    }
-                return null;
-                }
-
-            List listInverseKeys = new ArrayList(colValues.size());
-            for (Iterator iter = colValues.iterator(); iter.hasNext(); )
-                {
-                Object oValue = iter.next();
-                Set    setEQ  = (Set) index.getIndexContents().get(oValue);
+                Set<?> setEQ = mapContents.get(value);
 
                 if (setEQ != null && !setEQ.isEmpty())
                     {
@@ -168,7 +175,7 @@ public class InFilter<T, E>
                 }
             else
                 {
-                setKeys.retainAll(new ChainedCollection(listInverseKeys));
+                setKeys.retainAll(new ChainedCollection<>(listInverseKeys.toArray(Set[]::new)));
                 }
             return null;
             }

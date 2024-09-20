@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor.internal;
-
-import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
 import com.oracle.coherence.concurrent.executor.Task;
@@ -15,6 +13,8 @@ import com.oracle.coherence.concurrent.executor.PortableAbstractProcessor;
 import com.oracle.coherence.concurrent.executor.options.Debugging;
 
 import com.oracle.coherence.concurrent.executor.util.Caches;
+
+import com.tangosol.coherence.config.Config;
 
 import com.tangosol.io.ExternalizableLite;
 
@@ -84,8 +84,6 @@ public class ClusteredTaskInterceptor
     public ClusteredTaskInterceptor(String sServiceName)
         {
         f_cacheService       = (DistributedCacheService) CacheFactory.getCluster().getService(sServiceName);
-        f_cMaxBatch          = 20;
-        f_cMaxAllowedTasks   = 100;
         f_cOrchestratedTasks = new AtomicInteger(0);
         f_fPendingTasks      = new AtomicBoolean(false);
         f_executorService    = Executors.newSingleThreadExecutor(new DaemonThreadFactory("TaskInterceptorThread-"));
@@ -101,6 +99,9 @@ public class ClusteredTaskInterceptor
 
         f_atomicPartsPending.set(new PartitionSet(cParts));
         f_mapPendingTasks = new ConcurrentHashMap<>();
+
+        Hook.addShutdownHook(f_cacheService.getBackingMapManager().getCacheFactory().getResourceRegistry(),
+                             f_executorService::shutdown);
         }
 
     // ----- ClusteredTaskInterceptor methods -------------------------------
@@ -272,6 +273,10 @@ public class ClusteredTaskInterceptor
                 setBinaryEntries = Collections.EMPTY_SET;
                 }
             }
+        else if (event instanceof EntryEvent)
+            {
+            setBinaryEntries = Set.of(((EntryEvent) event).getEntry());
+            }
 
         for (BinaryEntry binaryEntry : setBinaryEntries)
             {
@@ -313,6 +318,13 @@ public class ClusteredTaskInterceptor
                                 {
                                 type = EntryEvent.Type.INSERTED;
                                 }
+                            else if (oldManager.getState() == ClusteredTaskManager.State.ORCHESTRATED
+                                && manager.getState() == ClusteredTaskManager.State.TERMINATING)
+                                {
+                                // treat the transition to TERMINATING as a REMOVED event as the task
+                                // could be retained, and we want to keep the PENDING queue moving
+                                type = EntryEvent.Type.REMOVED;
+                                }
                             }
                         else
                             {
@@ -331,6 +343,14 @@ public class ClusteredTaskInterceptor
                     }
                 else if (transType == TransferEvent.Type.DEPARTING)
                     {
+                    type = EntryEvent.Type.REMOVED;
+                    }
+                }
+            else
+                {
+                if (event.getType() == EntryEvent.Type.REMOVED)
+                    {
+                    // explicit remove or expiry
                     type = EntryEvent.Type.REMOVED;
                     }
                 }
@@ -376,11 +396,10 @@ public class ClusteredTaskInterceptor
                         binaryEntry.setValue(manager);
 
                         Debugging debug = manager.getDebugging();
-                        debug = debug.getLogLevel() < Logger.FINEST ? new Debugging() : debug;
-                        ExecutorTrace.log(() -> String.format("INSERTING: In Partition [%s], Task Sequence [%s],"
-                                                       + " Task State [%s], Orchestrated Count [%s]",
-                                                       manager.getPartitionId(), manager.getTaskSequence(),
-                                                       manager.getState(), cOrchestrated), debug);
+                        ExecutorTrace.log(() -> String.format("INSERTING: Task [%s], In Partition [%s], Task Sequence [%s],"
+                                + " Task State [%s], Orchestrated Count [%s]",
+                                manager.getTaskId(), manager.getPartitionId(),
+                                manager.getTaskSequence(), manager.getState(), cOrchestrated), debug);
                         }
                     break;
 
@@ -395,11 +414,10 @@ public class ClusteredTaskInterceptor
                             }
 
                         Debugging debug = manager.getDebugging();
-                        debug = debug.getLogLevel() < Logger.FINEST ? new Debugging() : debug;
-                        ExecutorTrace.log(() -> String.format("INSERTED: In Partition [%s], Task Sequence [%s],"
-                                                       + " Task State [%s], Orchestrated Count [%s]",
-                                                       manager.getPartitionId(), manager.getTaskSequence(),
-                                                       manager.getState(), f_cOrchestratedTasks.get()), debug);
+                        ExecutorTrace.log(() -> String.format("INSERTED: Task [%s], In Partition [%s], Task Sequence [%s],"
+                                + " Task State [%s], Orchestrated Count [%s]",
+                                manager.getTaskId(), manager.getPartitionId(),
+                                manager.getTaskSequence(), manager.getState(), f_cOrchestratedTasks.get()), debug);
                         }
                     break;
 
@@ -415,7 +433,7 @@ public class ClusteredTaskInterceptor
                         ClusteredTaskManager manager = (ClusteredTaskManager) oValue;
                         int cOrchestrated;
 
-                        if (manager.getState() != ClusteredTaskManager.State.PENDING)
+                        if (manager.getState() == ClusteredTaskManager.State.ORCHESTRATED)
                             {
                             cOrchestrated = f_cOrchestratedTasks.decrementAndGet();
                             }
@@ -424,13 +442,17 @@ public class ClusteredTaskInterceptor
                             cOrchestrated = f_cOrchestratedTasks.get();
                             }
 
-                        Debugging debug = manager.getDebugging();
-                        debug = debug.getLogLevel() < Logger.FINEST ? new Debugging() : debug;
-                        ExecutorTrace.log(() -> String.format(
-                                "REMOVED: Orchestrated Task Count [%s], Partition [%s], Task Sequence [%s]",
-                                cOrchestrated, manager.getPartitionId(), manager.getTaskSequence()), debug);
+                        // if true, we need to wait to run more tasks
+                        boolean   fDraining = cOrchestrated < f_cMaxAllowedTasks - f_cMaxBatch;
 
-                        if (cOrchestrated < f_cMaxAllowedTasks - f_cMaxBatch)
+                        Debugging debug     = manager.getDebugging();
+                        ExecutorTrace.log(() -> String.format(
+                                "REMOVED: Orchestrated Task ID [%s], State[%s], Task Count [%s], Partition [%s], Task Sequence [%s],"
+                                + " Draining [%s]",
+                                cOrchestrated, manager.getTaskId(), manager.getState(), manager.getPartitionId(),
+                                manager.getTaskSequence(), fDraining), debug);
+
+                        if (!fDraining)
                             {
                             // schedule pending tasks to run
                             f_executorService.submit(new Runnable()
@@ -450,6 +472,14 @@ public class ClusteredTaskInterceptor
                                                                      ? partsPending.next(0)
                                                                      : partsPending.next(nPidLast + 1);
 
+                                    if (cOrchestrated < f_cMaxAllowedTasks && !partsPending.isEmpty())
+                                        {
+                                        ExecutorTrace.log(() -> String.format("Preparing PENDING tasks to run: "
+                                                + "Batch Size [%s], Last PID [%s], Pending Partitions [%s],"
+                                                + " Orchestrated Count [%s]", nMaxSize, nPidLast,
+                                                partsPending, cOrchestrated));
+                                        }
+
                                     while (nPid >= 0
                                            && (nMaxSize == 0 || (nBatchSize < nMaxSize))
                                            && cOrchestrated < f_cMaxAllowedTasks)
@@ -457,13 +487,19 @@ public class ClusteredTaskInterceptor
                                         removePending(nPid);
 
                                         LongArray keyMap = f_mapPendingTasks.get(nPid);
-                                        if (keyMap != null)
+                                        int finalNPid = nPid;
+;                                        if (keyMap != null)
                                             {
                                             int count = keyMap.getSize();
                                             if (count > 0)
                                                 {
+                                                int finalCount = count;
+                                                ExecutorTrace.log(() -> String.format("Processing PENDING tasks [%s][%s] from PID [%s]",
+                                                                                      finalCount, keyMap, finalNPid), debug);
                                                 if (count > nMaxSize)
                                                     {
+                                                    // this partition has a task count that exceeds
+                                                    // the batch size; add it back to the pending partitions
                                                     addPending(nPid);
                                                     }
 
@@ -489,6 +525,9 @@ public class ClusteredTaskInterceptor
 
                                     if (!setTasks.isEmpty())
                                         {
+                                        ExecutorTrace.log(() -> String.format(
+                                                "Moving PENDING tasks [%s] to ORCHESTRATED", setTasks), debug);
+
                                         taskCache.invokeAll(
                                                 setTasks,
                                                 new SetTaskStateProcessor(ClusteredTaskManager.State.PENDING,
@@ -681,12 +720,14 @@ public class ClusteredTaskInterceptor
     /**
      * The maximum batch size.
      */
-    protected final int f_cMaxBatch;
+    protected final int f_cMaxBatch =
+            Config.getInteger("coherence.executor.batch.max", 20);
 
     /**
      * The maximum tasks allowed to be run.
      */
-    protected final int f_cMaxAllowedTasks;
+    protected final int f_cMaxAllowedTasks =
+            Config.getInteger("coherence.executor.concurrent.tasks.max", Integer.MAX_VALUE);
 
     /**
      * The number of orchestrated tasks.

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.filter;
 
@@ -217,7 +217,7 @@ public class BetweenFilterTest
         BetweenFilter filter        = new BetweenFilter(f_extractor, 10, 20);
         int           effectiveness = filter.calculateEffectiveness(mapIndexes, s_setKeys);
 
-        assertThat(effectiveness, is(ComparisonFilter.EVAL_COST * s_setKeys.size()));
+        assertThat(effectiveness, is(-1));
         }
 
     /**
@@ -232,12 +232,10 @@ public class BetweenFilterTest
 
         mapIndexes.put(f_extractor, s_sortedIndex);
 
-        SortedMap indexContents = (SortedMap) s_sortedIndex.getIndexContents();
-        int         expected      = indexContents.subMap(10, 20).size();
         BetweenFilter filter        = new BetweenFilter(f_extractor, 10, 20);
-        int         effectiveness = filter.calculateEffectiveness(mapIndexes, s_setKeys);
+        int           effectiveness = filter.calculateEffectiveness(mapIndexes, s_setKeys);
 
-        assertThat(effectiveness, is(expected));
+        assertThat(effectiveness, is(s_setKeysTenToTwenty.size()));
         }
 
     /**
@@ -255,7 +253,7 @@ public class BetweenFilterTest
         BetweenFilter filter        = new BetweenFilter(f_extractor, 10, 20);
         int         effectiveness = filter.calculateEffectiveness(mapIndexes, s_setKeys);
 
-        assertThat(effectiveness, is(s_unsortedIndex.getIndexContents().size()));
+        assertThat(effectiveness, is(s_setKeysTenToTwenty.size()));
         }
 
     /**
@@ -444,7 +442,7 @@ public class BetweenFilterTest
         s_setKeysTenToTwenty = new HashSet<>();
 
         Binary key;
-        Map.Entry entry;
+        Map.Entry<Binary, Integer> entry;
 
         for (int i = 50; i < 250; i++)
             {
@@ -459,7 +457,7 @@ public class BetweenFilterTest
                 s_setKeysTenToTwenty.add(key);
                 }
 
-            entry = new SimpleMapEntry(key, i % 30);
+            entry = new SimpleMapEntry<>(key, value);
 
             s_sortedIndex.insert(entry);
             s_unsortedIndex.insert(entry);
@@ -467,7 +465,7 @@ public class BetweenFilterTest
 
         // Add null value
         key = ExternalizableHelper.toBinary(Integer.MIN_VALUE, f_serializer);
-        entry = new SimpleMapEntry(key, null);
+        entry = new SimpleMapEntry<>(key, null);
         s_sortedIndex.insert(entry);
         s_unsortedIndex.insert(entry);
 

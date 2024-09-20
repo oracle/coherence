@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -564,7 +564,7 @@ public class SerializationCache
     * Get the LRU data structure. The key is a touch count, the value is the
     * Object key for the cache.
     *
-    * @return the the LRU data structure
+    * @return the LRU data structure
     */
     protected LongArray getLruArray()
         {
@@ -580,7 +580,7 @@ public class SerializationCache
     * Get the Expiry data structure. The key is a date/time value, the value
     * is a set of Object keys for the cache that expire at that time.
     *
-    * @return the the Expiry data structure
+    * @return the Expiry data structure
     */
     protected LongArray getExpiryArray()
         {

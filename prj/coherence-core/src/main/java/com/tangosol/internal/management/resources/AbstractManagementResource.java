@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.internal.health.HealthCheckWrapperMBean;
 import com.tangosol.internal.http.HttpException;
+import com.tangosol.internal.http.HttpMethod;
 import com.tangosol.internal.http.HttpRequest;
 import com.tangosol.internal.http.QueryParameters;
 import com.tangosol.internal.http.RequestRouter;
@@ -34,9 +35,11 @@ import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.ValueExtractor;
 
+import java.io.ByteArrayInputStream;
+
 import java.net.URI;
 import java.net.URISyntaxException;
-
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -350,6 +353,16 @@ public abstract class AbstractManagementResource
                 {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
                 }
+            else if (!mapMBeans.isEmpty() &&
+                     HttpMethod.GET.name().equals(request.getMethod().name()) &&
+                     !MEDIA_TYPE_JSON.equals(request.getHeaderString("Accept")))
+                {
+                Object obj = mapMBeans.get(mapMBeans.keySet().iterator().next());
+                if (obj instanceof String)
+                    {
+                    return Response.ok(new ByteArrayInputStream(((String) obj).getBytes(StandardCharsets.UTF_8))).build();
+                    }
+                }
             }
         catch (RuntimeException e)
             {
@@ -377,6 +390,7 @@ public abstract class AbstractManagementResource
             // some other reason so return a 400
             return Response.status(Response.Status.BAD_REQUEST).entity(response.toJson()).build();
             }
+
         return response(new MBeanResponse(request).toJson());
         }
 
@@ -1847,6 +1861,11 @@ public abstract class AbstractManagementResource
     public static final String MEDIA_TYPE_JSON = "application/json";
 
     /**
+     * Constant used for xml application type.
+     */
+    public static final String MEDIA_TYPE_XML = "application/xml";
+
+    /**
      * Constant used for Swagger.
      */
     public static final String MEDIA_TYPE_SWAGGER_JSON = "application/swagger+json";
@@ -1882,6 +1901,16 @@ public abstract class AbstractManagementResource
      * MBean query to filter out all the PagedTopicMBean objects of a particular topic.
      */
     public static final String TOPIC_QUERY = TOPICS_QUERY + "," + Registry.KEY_NAME;
+
+    /**
+     * MBean query to filter out all the ViewMBean objects in the cluster.
+     */
+    public static final String VIEWS_QUERY = ":" + Registry.VIEW_TYPE;
+
+    /**
+     * MBean query to filter out all the ViewMBean objects of a particular view.
+     */
+    public static final String VIEW_QUERY = VIEWS_QUERY + "," + Registry.KEY_NAME;
 
     /**
      * MBean query to filter out all the TopicSubscriberMBean  objects in the cluster.
@@ -1928,6 +1957,11 @@ public abstract class AbstractManagementResource
      * MBean query to filter out all the ReporterMBean objects.
      */
     public static final String REPORTER_MEMBERS_QUERY = ":" + Registry.REPORTER_TYPE;
+
+    /**
+     * MBean query to filter out all the ViewMBean objects of a particular cache and service.
+     */
+    public static final String VIEW_MEMBERS_WITH_SERVICE_QUERY = VIEWS_QUERY +"," + Registry.KEY_NAME;
 
     /**
      * MBean query to filter out all the Flash journal MBean objects.
@@ -2067,12 +2101,6 @@ public abstract class AbstractManagementResource
             = ":type=Platform,Domain=java.lang,subType=MemoryPool,name=PS Old Gen";
 
     /**
-     * MBean query to filter out platform(JVM) PS MemoryPool MBean(Code Cache).
-     */
-    public static final String CODECACHE_QUERY
-            = ":type=Platform,Domain=java.lang,subType=MemoryPool,name=Code Cache";
-
-    /**
      * MBean query to filter out platform(JVM) PS MemoryPool MBean(PS Eden Space).
      */
     public static final String PS_EDEN_SPACE_QUERY
@@ -2168,6 +2196,11 @@ public abstract class AbstractManagementResource
     public static final String CWEB_APPLICATION_QUERY = ":type=*HttpSessionManager,appId=";
 
     /**
+     * MBean query to filter out all StorageManager MBean objects in the cluster.
+     */
+    public static final String STORAGE_MANAGERS_ALL_QUERY = ":type=StorageManager";
+
+    /**
      * MBean query to filter out StorageManager MBean of a specific cache and service, running on a specific node.
      */
     public static final String STORAGE_MANAGERS_QUERY = ":type=StorageManager,cache=%s";
@@ -2221,42 +2254,44 @@ public abstract class AbstractManagementResource
     public static final String SNAPSHOT_NAME    = "snapshotName";
     public static final String JFR_CMD          = "jfrCmd";
     public static final String TOPIC_NAME       = "topicName";
+    public static final String VIEW_NAME        = "viewName";
     public static final String SUBSCRIBER_GROUP_NAME = "subscriberGroupName";
 
     // ------------------------------ Path param constants ends --------------------------------------
 
     // ------------------------------ URL constants --------------------------------------------------
 
-    public static final String METADATA_CATALOG = "metadata-catalog";
-    public static final String SERVICES         = "services";
-    public static final String MEMBERS          = "members";
-    public static final String REPORTERS        = "reporters";
-    public static final String CACHES           = "caches";
-    public static final String MANAGEMENT       = "management";
-    public static final String SHUTDOWN         = "shutdown";
-    public static final String CLUSTER_STATE    = "logClusterState";
-    public static final String MEMBER_STATE     = "logMemberState";
-    public static final String CLUSTER          = "cluster";
-    public static final String SEARCH           = "search";
-    public static final String STORAGE          = "storage";
-    public static final String JOURNAL          = "journal";
-    public static final String JOURNAL_TYPE     = "journalType";
-    public static final String NETWORK_STATS    = "networkStats";
-    public static final String VERBOSE          = "verbose";
-    public static final String HOTCACHE         = "hotcache";
-    public static final String WEB_APPS         = "webApplications";
-    public static final String PERSISTENCE      = "persistence";
-    public static final String PROXY            = "proxy";
-    public static final String PARTICIPANTS     = "participants";
-    public static final String STATISTICS       = "statistics";
-    public static final String INCOMING         = "incoming";
-    public static final String OUTGOING         = "outgoing";
-    public static final String EXECUTORS        = "executors";
-    public static final String STATE            = "state";
-    public static final String ENVIRONMENT      = "environment";
-    public static final String HEALTH           = "health";
-    public static final String TOPICS           = "topics";
-    public static final String SUBSCRIBERS      = "subscribers";
+    public static final String METADATA_CATALOG  = "metadata-catalog";
+    public static final String SERVICES          = "services";
+    public static final String MEMBERS           = "members";
+    public static final String REPORTERS         = "reporters";
+    public static final String CACHES            = "caches";
+    public static final String MANAGEMENT        = "management";
+    public static final String SHUTDOWN          = "shutdown";
+    public static final String CLUSTER_STATE     = "logClusterState";
+    public static final String MEMBER_STATE      = "logMemberState";
+    public static final String CLUSTER           = "cluster";
+    public static final String SEARCH            = "search";
+    public static final String STORAGE           = "storage";
+    public static final String JOURNAL           = "journal";
+    public static final String JOURNAL_TYPE      = "journalType";
+    public static final String NETWORK_STATS     = "networkStats";
+    public static final String VERBOSE           = "verbose";
+    public static final String HOTCACHE          = "hotcache";
+    public static final String WEB_APPS          = "webApplications";
+    public static final String PERSISTENCE       = "persistence";
+    public static final String PROXY             = "proxy";
+    public static final String PARTICIPANTS      = "participants";
+    public static final String STATISTICS        = "statistics";
+    public static final String INCOMING          = "incoming";
+    public static final String OUTGOING          = "outgoing";
+    public static final String EXECUTORS         = "executors";
+    public static final String STATE             = "state";
+    public static final String ENVIRONMENT       = "environment";
+    public static final String HEALTH            = "health";
+    public static final String TOPICS            = "topics";
+    public static final String VIEWS             = "views";
+    public static final String SUBSCRIBERS       = "subscribers";
     public static final String SUBSCRIBER_GROUPS = "subscriberGroups";
 
     public static final String SUBSCRIBER_GROUPS_LCASE = "subscribergroups";
@@ -2277,6 +2312,7 @@ public abstract class AbstractManagementResource
     public static final String PARTITION          = "partition";
     public static final String FEDERATION         = "federation";
     public static final String RESET_STATS        = "resetStatistics";
+    public static final String PARTITION_STATS    = "reportPartitionStats";
     public static final String CHILDREN           = "children";
     public static final String NAME               = "name";
     public static final String TYPE               = "type";
@@ -2286,6 +2322,10 @@ public abstract class AbstractManagementResource
     public static final String TIER_BACK          = "back";
     public static final String TIER               = "tier";
     public static final String OPTIONS            = "options";
+    public static final String CACHE              = "cache";
+    public static final String TRUNCATE           = "truncate";
+    public static final String CLEAR              = "clear";
+    public static final String DESCRIPTION        = "description";
 
     public static final String DOMAIN_NAME        = "domainName";
     public static final String DOMAIN_FILTER      = "domainPartitionFilter";
@@ -2315,7 +2355,6 @@ public abstract class AbstractManagementResource
                 put("psOldGen", PS_OLDGEN_QUERY);
                 put("psEdenSpace", PS_EDEN_SPACE_QUERY);
                 put("psSurvivorSpace", PS_SURVIVOR_SPACE_QUERY);
-                put("codeCache", CODECACHE_QUERY);
             }});
 
     /**

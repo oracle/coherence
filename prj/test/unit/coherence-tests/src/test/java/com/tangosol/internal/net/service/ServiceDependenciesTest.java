@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service;
 
@@ -16,6 +16,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 import java.util.Random;
 
@@ -24,9 +25,78 @@ import java.util.Random;
  *
  * @author pfm  2011.07.18
  */
+@SuppressWarnings("deprecation")
 public class ServiceDependenciesTest
     {
     // ----- tests ----------------------------------------------------------
+
+    @Test
+    public void testThreadCounts()
+        {
+        DefaultServiceDependencies deps = new DefaultServiceDependencies();
+
+        deps.setWorkerThreadCountMin(4);
+        deps.setWorkerThreadCount(0);
+
+
+        deps.validate();  // should not throw
+
+        // deprecated setting will take precedence over
+        // new configuration settings
+        assertEquals(0, deps.getWorkerThreadCountMin());
+        assertEquals(0, deps.getWorkerThreadCountMax());
+
+
+        // simulate behavior on windows
+        deps = new DefaultServiceDependencies();
+        deps.setWorkerThreadCount(0);
+        deps.setWorkerThreadCountMin(4);
+
+        deps.validate();  // should not throw
+
+        // deprecated setting will take precedence over
+        // new configuration settings
+        assertEquals(0, deps.getWorkerThreadCountMin());
+        assertEquals(0, deps.getWorkerThreadCountMax());
+
+        // validate min > max - this should result in max being set to min
+        deps = new DefaultServiceDependencies();
+        deps.setWorkerThreadCountMin(4);
+        deps.setWorkerThreadCountMax(0);
+
+        deps.validate();
+
+        assertEquals(4, deps.getWorkerThreadCountMin());
+        assertEquals(4, deps.getWorkerThreadCountMax());
+
+        // validate min/max -1
+        deps = new DefaultServiceDependencies();
+        deps.setWorkerThreadCountMin(-1);
+        deps.setWorkerThreadCountMax(-1);
+
+        deps.validate();  // should not throw
+
+        assertEquals(-1, deps.getWorkerThreadCountMin());
+        assertEquals(-1, deps.getWorkerThreadCountMax());
+
+        // validate min -1 and max Integer.MAX_VALUE
+        deps = new DefaultServiceDependencies();
+        deps.setWorkerThreadCountMin(-1);
+        deps.setWorkerThreadCountMax(Integer.MAX_VALUE);
+
+        deps.validate();  // should not throw
+
+        assertEquals(-1,                deps.getWorkerThreadCountMin());
+        assertEquals(Integer.MAX_VALUE, deps.getWorkerThreadCountMax());
+
+        // validate min -1 and max some other value other than -1
+        // or Integer.MAX_VALUE
+        deps = new DefaultServiceDependencies();
+        deps.setWorkerThreadCountMin(-1);
+        deps.setWorkerThreadCountMax(5);
+
+        assertThrows(AssertionException.class, deps::validate);
+        }
 
     /**
      * Test the setters and getters plus the clone.
@@ -37,11 +107,11 @@ public class ServiceDependenciesTest
         DefaultServiceDependencies deps1 = new DefaultServiceDependencies();
 
         deps1.validate();
-        System.out.println(deps1.toString());
+        System.out.println(deps1);
 
         populate(deps1);
         deps1.validate();
-        System.out.println(deps1.toString());
+        System.out.println(deps1);
 
         DefaultServiceDependencies deps2 = new DefaultServiceDependencies(deps1);
 
@@ -63,11 +133,7 @@ public class ServiceDependenciesTest
             deps.setRequestTimeoutMillis(-1);
             deps.validate();
             }
-        catch (IllegalArgumentException e)
-            {
-            return;
-            }
-        catch (AssertionException e)
+        catch (IllegalArgumentException | AssertionException e)
             {
             return;
             }
@@ -89,11 +155,7 @@ public class ServiceDependenciesTest
             deps.setTaskHungThresholdMillis(-1);
             deps.validate();
             }
-        catch (IllegalArgumentException e)
-            {
-            return;
-            }
-        catch (AssertionException e)
+        catch (IllegalArgumentException | AssertionException e)
             {
             return;
             }
@@ -115,11 +177,7 @@ public class ServiceDependenciesTest
             deps.setTaskTimeoutMillis(-1);
             deps.validate();
             }
-        catch (IllegalArgumentException e)
-            {
-            return;
-            }
-        catch (AssertionException e)
+        catch (IllegalArgumentException | AssertionException e)
             {
             return;
             }
@@ -148,8 +206,6 @@ public class ServiceDependenciesTest
      * Populate the dependencies and test the getters.
      *
      * @param deps  the DefaultServiceDependencies to populate
-     *
-     * @return the DefaultServiceDependencies that was passed in
      */
     public static void populate(DefaultServiceDependencies deps)
         {

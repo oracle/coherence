@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000-2021 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.guides.cachestores;
 
@@ -45,7 +45,7 @@ public class SimpleCacheStoreTest
         assertEquals("Number 1", namedMap.get(1));  // <3>
         assertEquals(1, namedMap.size());
 
-        // update the cache and the the store method is called
+        // update the cache and the store method is called
         namedMap.put(1, "New Value"); // <4>
         assertEquals("New Value", namedMap.get(1));
 

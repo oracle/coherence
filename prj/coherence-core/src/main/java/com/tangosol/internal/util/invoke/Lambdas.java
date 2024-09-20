@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -399,10 +399,8 @@ public abstract class Lambdas
 
                     if (mode == null)
                         {
-                        // no explicit lambda serialization configured, compute default based on whether coherence production mode
-                        mode = CacheFactory.getLicenseMode().equalsIgnoreCase("prod")
-                                                    ? SerializationMode.STATIC
-                                                    : SerializationMode.DYNAMIC;
+                        // default to DYNAMIC mode if lambda serialization mode is not set.
+                        mode = SerializationMode.DYNAMIC;
                         if (sMsg != null)
                             {
                             Logger.err(sMsg + "Reverting to default lambdas serialization mode of " + mode + ".");

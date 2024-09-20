@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.persistence;
 
@@ -16,6 +16,7 @@ import com.tangosol.io.ReadBuffer;
 
 import com.tangosol.net.GuardSupport;
 
+import com.tangosol.util.Base;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -113,10 +114,17 @@ public class DirectorySnapshotArchiver
                 // generate the file to write to
                 File fileStore = new File(fileArchivedSnapshot, sStore);
 
-                // the output stream will be used by the manager to write the store to
-                os = new FileOutputStream(fileStore);
+                if (mgr.isEmpty(sStore))
+                    {
+                    fileStore.createNewFile();
+                    }
+                else
+                    {
+                    // the output stream will be used by the manager to write the store to
+                    os = new FileOutputStream(fileStore);
 
-                mgr.write(sStore, os);    // instruct the mgr to write the store to the stream
+                    mgr.write(sStore, os);    // instruct the mgr to write the store to the stream
+                    }
 
                 // issue heartbeat as operations could take a relatively long time
                 GuardSupport.heartbeat();
@@ -178,13 +186,20 @@ public class DirectorySnapshotArchiver
                     throw new PersistenceException("Store " + fileStore + " does not exist. Unable to retrieve.");
                     }
 
-                // the input stream will be used by the manager to retrieve the archives store
-                is = new FileInputStream(fileStore);
+                if (fileStore.length() != 0)
+                    {
+                    // the input stream will be used by the manager to retrieve the archives store
+                    is = new FileInputStream(fileStore);
 
-                mgr.read(sStore, is);    // instruct the mgr to read the store from the stream
+                    mgr.read(sStore, is);    // instruct the mgr to read the store from the stream
 
-                // issue heartbeat as operations could take a relatively long time
-                GuardSupport.heartbeat();
+                    // issue heartbeat as operations could take a relatively long time
+                    GuardSupport.heartbeat();
+                    }
+                else
+                    {
+                    mgr.createStore(sStore);
+                    }
                 }
             catch (IOException e)
                 {
@@ -286,6 +301,15 @@ public class DirectorySnapshotArchiver
             }
 
         return CachePersistenceHelper.readMetadata(fileSnapshot);
+        }
+
+    @Override
+    protected boolean isEmpty(String sSnapshot, String sStore)
+        {
+        File fileStore = new File(f_fileSharedDirectoryPath, sSnapshot);
+        fileStore      = new File(fileStore, sStore);
+
+        return fileStore.length() == 0;
         }
 
     // ----- Object methods -------------------------------------------------

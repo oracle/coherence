@@ -1,10 +1,16 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
+
+import com.oracle.coherence.ai.DistanceAlgorithm;
+import com.oracle.coherence.ai.Vector;
+import com.oracle.coherence.ai.search.SimilaritySearch;
+
+import com.tangosol.internal.util.Daemons;
 
 import com.tangosol.util.aggregator.AsynchronousAggregator;
 import com.tangosol.util.aggregator.BigDecimalAverage;
@@ -32,23 +38,23 @@ import com.tangosol.util.function.Remote;
 
 import java.math.BigDecimal;
 
-import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.concurrent.Executor;
 
 /**
  * Simple Aggregator DSL.
  * <p>
  * The methods in this class are for the most part simple factory methods for
- * various {@link InvocableMap.EntryAggregator} classes, but in some cases provide additional type
- * safety. They also tend to make the code more readable, especially if imported
+ * various {@link InvocableMap.StreamingAggregator} classes, but in some cases
+ * provide additional type safety.
+ * <p>
+ * They also tend to make the code more readable, especially if imported
  * statically, so their use is strongly encouraged in lieu of direct construction
- * of {@code InvocableMap.EntryAggregator} classes.
+ * of {@code InvocableMap.StreamingAggregator} classes.
  *
  * @author lh, hr  2018.06.12
  */
-@SuppressWarnings({"unchecked", "rawtypes", "Convert2MethodRef"})
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class Aggregators
     {
     /**
@@ -70,13 +76,46 @@ public class Aggregators
     /**
      * Return an AsynchronousAggregator for a given streaming aggregator.
      *
+     * @param aggregator  the underlying streaming aggregator
+     * @param executor    an optional {@link Executor} to complete the future on,
+     *                    if not provided the {@link Daemons#commonPool()} is used
+     *
+     * @param <K> the type of the Map entry keys
+     * @param <V> the type of the Map entry values
+     * @param <P> the type of the intermediate result during the parallel stage
+     * @param <R> the type of the value returned by the StreamingAggregator
+     */
+    public static <K, V, P, R> AsynchronousAggregator<K, V, P, R>
+        asynchronous(InvocableMap.StreamingAggregator<K, V, P, R> aggregator, Executor executor)
+        {
+        return new AsynchronousAggregator(aggregator, executor);
+        }
+
+    /**
+     * Return an AsynchronousAggregator for a given streaming aggregator.
+     *
      * @param aggregator    the underlying streaming aggregator
      * @param iUnitOrderId  the unit-of-order id for this aggregator
      */
-    public static <K, V, P, R>  InvocableMap.EntryAggregator<K, V, R>
-        asynchronous(InvocableMap.StreamingAggregator<K, V, P, R> aggregator, int iUnitOrderId)
+    public static <K, V, P, R> AsynchronousAggregator<K, V, P, R>
+    asynchronous(InvocableMap.StreamingAggregator<K, V, P, R> aggregator, int iUnitOrderId)
         {
         return new AsynchronousAggregator(aggregator, iUnitOrderId);
+        }
+
+    /**
+     * Return an AsynchronousAggregator for a given streaming aggregator.
+     *
+     * @param aggregator    the underlying streaming aggregator
+     * @param iUnitOrderId  the unit-of-order id for this aggregator
+     * @param executor      an optional {@link Executor} to complete the future on,
+     *                      if not provided the {@link Daemons#commonPool()} is used
+     */
+    public static <K, V, P, R> AsynchronousAggregator<K, V, P, R>
+        asynchronous(InvocableMap.StreamingAggregator<K, V, P, R> aggregator,
+                     int iUnitOrderId, Executor executor)
+        {
+        return new AsynchronousAggregator(aggregator, iUnitOrderId, executor);
         }
 
     /**
@@ -920,9 +959,9 @@ public class Aggregators
      * @param <K>  the type of the entry's key
      * @param <V>  the type of the entry's value
      */
-    public static <K, V> InvocableMap.StreamingAggregator<K, V, Integer, Integer> count()
+    public static <K, V> Count<K, V> count()
         {
-        return new Count();
+        return new Count<>();
         }
 
     /**
@@ -931,9 +970,9 @@ public class Aggregators
      * @param <K>  the type of the entry's key
      * @param <V>  the type of the entry's value
      */
-    public static <K, V> InvocableMap.StreamingAggregator<K, V, ?, Collection<V>> distinctValues()
+    public static <K, V> DistinctValues<K, V, ?, V> distinctValues()
         {
-        return new DistinctValues(Extractors.identity());
+        return new DistinctValues<>(Extractors.identity());
         }
 
     /**
@@ -947,10 +986,10 @@ public class Aggregators
      * @param <T>  the type of the value to extract from
      * @param <R>  the type of the aggregation result
      */
-    public static <K, V, T, R> InvocableMap.StreamingAggregator<K, V, ?, Collection<R>>
+    public static <K, V, T, R> DistinctValues<K, V, T, R>
         distinctValues(ValueExtractor<? super T, ? extends R> extractor)
         {
-        return new DistinctValues(extractor);
+        return new DistinctValues<>(extractor);
         }
 
     /**
@@ -963,13 +1002,13 @@ public class Aggregators
      * @param <V>  the type of the entry's value
      * @param <R>  the type of the aggregation result
      */
-    public static <K, V, R> InvocableMap.StreamingAggregator<K, V, ?, Collection<R>> distinctValues(String sMethod)
+    public static <K, V, R> DistinctValues<K, V, ?, R> distinctValues(String sMethod)
         {
         return distinctValues(Extractors.extract(sMethod));
         }
 
     /**
-     * Return an aggregator that calculates the the combined set of results from a number of aggregators.
+     * Return an aggregator that calculates the combined set of results from a number of aggregators.
      *
      * @param aAggregator  an array of EntryAggregator objects; may not be null
      *
@@ -978,10 +1017,10 @@ public class Aggregators
      *
      * @throws NullPointerException  if the aggregator array is null
      */
-    public static <K, V> InvocableMap.StreamingAggregator<K, V, ?, List<?>>
+    public static <K, V> CompositeAggregator<K, V>
         composite(InvocableMap.EntryAggregator... aAggregator)
         {
-        return new CompositeAggregator(aAggregator);
+        return new CompositeAggregator<>(aAggregator);
         }
 
     /**
@@ -998,7 +1037,7 @@ public class Aggregators
      * @param <E>  the type of the extracted value
      * @param <R>  the type of the group aggregator result
      */
-    public static <K, V, E, R> InvocableMap.StreamingAggregator<K, V, Map<E, Object>, Map<E, R>>
+    public static <K, V, E, R> GroupAggregator<K, V, ?, E, R>
         grouping(InvocableMap.EntryAggregator<K, V, R> aggregator, String... asNames)
         {
         return grouping(aggregator, null, asNames);
@@ -1020,7 +1059,7 @@ public class Aggregators
      * @param <E>  the type of the extracted value
      * @param <R>  the type of the group aggregator result
      */
-    public static <K, V, E, R> InvocableMap.StreamingAggregator<K, V, Map<E, Object>, Map<E, R>>
+    public static <K, V, E, R> GroupAggregator<K, V, ?, E, R>
     grouping(InvocableMap.EntryAggregator<K, V, R> aggregator,
              Filter                                filter,
              String...                             asNames)
@@ -1057,7 +1096,7 @@ public class Aggregators
      * @param <E>  the type of the extracted value
      * @param <R>  the type of the group aggregator result
      */
-    public static <K, V, T, E, R> InvocableMap.StreamingAggregator<K, V, Map<E, Object>, Map<E, R>>
+    public static <K, V, T, E, R> GroupAggregator<K, V, T, E, R>
         grouping(ValueExtractor<? super T, ? extends E> extractor, InvocableMap.EntryAggregator<K, V, R> aggregator)
         {
         return grouping(extractor, aggregator, null);
@@ -1079,7 +1118,7 @@ public class Aggregators
      * @param <E>  the type of the extracted value
      * @param <R>  the type of the group aggregator result
      */
-    public static <K, V, T, E, R> InvocableMap.StreamingAggregator<K, V, Map<E, Object>, Map<E, R>>
+    public static <K, V, T, E, R> GroupAggregator<K, V, T, E, R>
         grouping(ValueExtractor<? super T, ? extends E>                     extractor,
                  InvocableMap.EntryAggregator<? super K, ? super V, R> aggregator,
                  Filter                                                filter)
@@ -1102,7 +1141,7 @@ public class Aggregators
      * @param <T>  the type of the value to extract from
      * @param <R>  the type of the aggregation result
      */
-    public static <K, V, T, R extends Comparable<? super R>> InvocableMap.StreamingAggregator<K, V, ?, R[]>
+    public static <K, V, T, R extends Comparable<? super R>> TopNAggregator<K, V, T, R>
         topN(ValueExtractor<? super T, ? extends R> extractor, int cResults)
         {
         return new TopNAggregator<>(extractor, null, cResults);
@@ -1122,7 +1161,7 @@ public class Aggregators
      * @param <T>  the type of the value to extract from
      * @param <R>  the type of the aggregation result
      */
-    public static <K, V, T, R> InvocableMap.StreamingAggregator<K, V, ?, R[]>
+    public static <K, V, T, R> TopNAggregator<K, V, T, R>
         topN(ValueExtractor<? super T, ? extends R> extractor, Comparator<? super R> comparator, int cResults)
         {
         return  new TopNAggregator<>(extractor, comparator, cResults);
@@ -1143,7 +1182,7 @@ public class Aggregators
      * @param <T>  the type of the value to extract from
      * @param <R>  the type of the aggregation result
      */
-    public static <K, V, T, R extends Comparable<? super R>> InvocableMap.StreamingAggregator<K, V, ?, R[]>
+    public static <K, V, T, R extends Comparable<? super R>> TopNAggregator<K, V, T, R>
         topN(String sMethod, int cResults)
         {
         return new TopNAggregator(Extractors.extract(sMethod), null, cResults);
@@ -1163,7 +1202,7 @@ public class Aggregators
      * @param <T>  the type of the value to extract from
      * @param <R>  the type of the aggregation result
      */
-    public static <K, V, T, R> InvocableMap.StreamingAggregator<K, V, ?, R[]>
+    public static <K, V, T, R> TopNAggregator<K, V, T, R>
         topN(String sMethod, Comparator<? super R> comparator, int cResults)
         {
         return new TopNAggregator(Extractors.extract(sMethod), comparator, cResults);
@@ -1179,7 +1218,7 @@ public class Aggregators
      * @param <T>  the type of the value to extract from
      * @param <R>  the type of the aggregation result
      */
-    public static <K, V, T, R extends Comparable<? super R>> InvocableMap.StreamingAggregator<K, V, ?, Map<K, R>>
+    public static <K, V, T, R extends Comparable<? super R>> ReducerAggregator<K, V, T, R>
         reduce(ValueExtractor<? super T, ? extends R> extractor)
         {
         return new ReducerAggregator(extractor);
@@ -1194,7 +1233,7 @@ public class Aggregators
      * @param <V>  the type of the entry's value
      * @param <R>  the type of the aggregation result
      */
-    public static <K, V, R extends Comparable<? super R>> InvocableMap.StreamingAggregator<K, V, ?, Map<K, R>>
+    public static <K, V, T, R extends Comparable<? super R>> ReducerAggregator<K, V, T, R>
         reduce(String sMethod)
         {
         return new ReducerAggregator(Extractors.extract(sMethod));
@@ -1224,7 +1263,7 @@ public class Aggregators
      *                                   any errors occur during its execution
      * @throws IllegalArgumentException  if the specified language is not supported
      */
-    public static <K, V, P, R> InvocableMap.StreamingAggregator<K, V, P, R> script(
+    public static <K, V, P, R> ScriptAggregator<K, V, P, R> script(
             String sLanguage, String sName, Object... aoArgs)
         {
         return script(sLanguage, sName, 0, aoArgs);
@@ -1258,10 +1297,36 @@ public class Aggregators
      *
      * @see InvocableMap.StreamingAggregator#characteristics()
      */
-    public static <K, V, P, R> InvocableMap.StreamingAggregator<K, V, P, R> script(
+    public static <K, V, P, R> ScriptAggregator<K, V, P, R> script(
             String sLanguage, String sName, int characteristics, Object... aoArgs)
         {
         return new ScriptAggregator<>(sLanguage, sName, characteristics, aoArgs);
         }
 
+    /**
+     * Return a {@link SimilaritySearch} aggregator that will use cosine distance to calculate and return
+     * up to {@code maxResults} results that are closest to the specified {@code vector}.
+     * <p/>
+     * To use a different distance algorithm, provide it via {@link SimilaritySearch#algorithm(DistanceAlgorithm)} method.
+     * <p/>
+     * You can also specify a filter criteria using {@link SimilaritySearch#filter(Filter)} method, and force the aggregator
+     * to perform a brute force calculation by calling {@link SimilaritySearch#bruteForce()} method. The latter is useful for
+     * testing, as it will ignore any available indexes, which allows you to compare the results of an
+     * index-based query against the exact matches returned by the brute force search to verify that the recall
+     * is where you need it to be, and tune index parameters if it isn't.
+     *
+     * @param extractor   the {@link ValueExtractor} to extract the vector from the cache value
+     * @param vector      the vector to calculate similarity with
+     * @param maxResults  the maximum number of results to return
+     * @param <K>  the type of the cache key
+     * @param <V>  the type of the cache value
+     * @param <T>  the type of the vector
+     *
+     * @return a {@link SimilaritySearch} aggregator that will use cosine distance to calculate and return
+     *         up to {@code maxResults} results that are closest to the specified {@code vector}
+     */
+    public static <K, V, T> SimilaritySearch<K, V, T> similaritySearch(ValueExtractor<? super V, ? extends Vector<T>> extractor, Vector<T> vector, int maxResults)
+        {
+        return new SimilaritySearch<>(extractor, vector, maxResults);
+        }
     }

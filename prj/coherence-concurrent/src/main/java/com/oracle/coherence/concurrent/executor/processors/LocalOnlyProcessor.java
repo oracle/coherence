@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -83,6 +83,9 @@ public class LocalOnlyProcessor<K, V, R>
      * {@link InvocableMap.EntryProcessor}.
      *
      * @param processor  the {@link InvocableMap.EntryProcessor}
+     * @param <K>        the type of the Map entry key
+     * @param <V>        the type of the Map entry value
+     * @param <R>        the type of value returned by the EntryProcessor
      *
      * @return a {@link LocalOnlyProcessor}
      */

@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -408,6 +408,18 @@ public class StorageManagerMBean
                 "rest.collector=sum,metrics.value=_default",
                 });
             }
+
+        // property ClearCount
+            {
+            mapInfo.put("ClearCount", new Object[]
+                {
+                "The number of clear() operations since the last time statistics were reset.",
+                "getClearCount",
+                null,
+                "J",
+                "rest.collector=sum,metrics.value=_default",
+                });
+            }
         
         // property TriggerInfo
             {
@@ -447,7 +459,55 @@ public class StorageManagerMBean
                 null,
                 });
             }
-        
+        // behavior clearCache()
+            {
+            mapInfo.put("clearCache()", new Object[]
+                {
+                "Removes all items from this cache. Clearing cache can be both a memory and CPU intensive task.",
+                "clearCache",
+                "V",
+                new String[] {},
+                new String[] {},
+                null,
+                });
+            }
+        // behavior truncateCache()
+            {
+            mapInfo.put("truncateCache()", new Object[]
+                {
+                "Removes all items from this cache. The removal of entries caused by this truncate operation will not be observable.",
+                "truncateCache",
+                "V",
+                new String[] {},
+                new String[] {},
+                null,
+                });
+            }
+        // behavior size()
+            {
+            mapInfo.put("size()", new Object[]
+                {
+                "Returns the total size of the cache.",
+                "size",
+                "Ljava/lang/Integer;",
+                new String[] {},
+                new String[] {},
+                null,
+                });
+            }
+        // behavior reportPartitionStats()
+            {
+            mapInfo.put("reportPartitionStats()", new Object[]
+                {
+                "Reports the size and count of entries for this cache across partitions. Format can be 'json' or 'csv'. For 'csv' the columns are partition, count, totalSize, maxEntrySize and memberId.",
+                "reportPartitionStats",
+                "Ljava/lang/Object;",
+                new String[] {"sFormat", },
+                new String[] {"Ljava/lang/String;"},
+                null,
+                });
+            }
+
         return mapInfo;
         }
     
@@ -562,7 +622,19 @@ public class StorageManagerMBean
         {
         return 0;
         }
-    
+
+    // Accessor for the property "ClearCount"
+    /**
+     * Getter for property ClearCount.<p>
+     * The number of clear() operations since the last time statistics were reset.
+     *
+     * @descriptor rest.collector=set,metrics.value=_default
+     */
+    public long getClearCount()
+        {
+        return 0L;
+        }
+
     // Accessor for the property "ListenerKeyCount"
     /**
      * Getter for property ListenerKeyCount.<p>
@@ -782,6 +854,48 @@ public class StorageManagerMBean
         {
         }
     
+    /**
+     * Clears cache.
+     *
+     * Invoking the clear() operation against a distributed cache can be both
+     * a memory and CPU intensive task and therefore is generally not recommended.
+     */
+    public void clearCache()
+        {
+        }
+
+    /**
+     * Truncates cache.
+     *
+     * The removal of entries caused by this truncate operation will not be
+     * observable. This includes any registered listeners, triggers, or
+     * interceptors. However, a CacheLifecycleEvent is raised to notify
+     * subscribers of the execution of this operation.
+     */
+    public void truncateCache()
+        {
+        }
+
+    /**
+     * Returns the total size of the cache.
+     */
+    public int size()
+        {
+        return 0;
+        }
+
+    /**
+     * Reports the size and count of entries for this cache across partitions.
+     *
+     * @param sFormat if "native" then the underlying return type is an array of PartitionSize[] is returned. This is
+     *                only used for the REST API.
+     *                if format is "json" then Json text is returned otherwise "csv" returns a csv list.
+     */
+    public Object reportPartitionStats(String sFormat)
+        {
+        return null;
+        }
+
     // Accessor for the property "MaxQueryThresholdMillis"
     /**
      * Setter for property MaxQueryThresholdMillis.<p>

@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.config;
 
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
 
+import com.oracle.coherence.concurrent.executor.options.CloseExecutor;
 import com.oracle.coherence.concurrent.executor.options.Description;
 import com.oracle.coherence.concurrent.executor.options.Name;
 
@@ -17,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
 
 /**
  * A simple holder for the parsing result of an {@code coherence-concurrent}
@@ -83,7 +83,7 @@ public final class ConcurrentConfiguration
         for (NamedExecutorService service : f_mapNamedExecutorServices.values())
             {
             executorService.register(service.getExecutorService(),
-                                     Name.of(service.getName()), Description.of(service.getDescription()));
+                                     Name.of(service.getName()), new CloseExecutor(), Description.of(service.getDescription()));
             }
         }
 
@@ -125,7 +125,7 @@ public final class ConcurrentConfiguration
         // when this is the case, register the executors on-the-fly
         if (m_executorService != null)
             {
-            m_executorService.register(service.getExecutorService(), Name.of(sName));
+            m_executorService.register(service.getExecutorService(), Name.of(sName), new CloseExecutor());
             }
         }
 

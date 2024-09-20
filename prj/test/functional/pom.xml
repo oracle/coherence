@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -113,6 +113,7 @@
 
       <!-- the following modules are buildable by this profile -->
       <modules>
+        <module>ai</module>
         <module>aggregator</module>
         <module>bootstrap</module>
         <module>bundler</module>
@@ -123,6 +124,7 @@
         <module>concurrent</module>
         <module>concurrent-cdi</module>
         <module>core</module>
+        <module>core21</module>
         <module>dependencies</module>
         <module>discovery</module>
         <module>dslquery</module>
@@ -134,12 +136,19 @@
         <module>filter</module>
         <module>graal</module>
         <module>grpc</module>
-        <module>grpc-proxy</module>
-        <module>grpc-client</module>
+        <module>grpc-proxy-tck</module>
+        <module>grpc-proxy-tck-21</module>
+        <module>grpc-proxy-helidon</module>
+        <module>grpc-proxy-netty</module>
+        <module>grpc-proxy-netty-21</module>
+        <module>grpc-client-tck</module>
+        <module>grpc-client-tck-21</module>
+        <module>grpc-client-helidon</module>
+        <module>grpc-client-netty</module>
+        <module>grpc-client-netty-21</module>
         <module>guardian</module>
         <module>health</module>
-        <module>helidon-grpc-proxy</module>
-        <module>helidon-grpc-client</module>
+        <module>hnsw-index</module>
         <module>http</module>
         <module>http-config</module>
         <module>http-netty</module>
@@ -152,6 +161,8 @@
         <module>mp-config</module>
         <module>mp-health</module>
         <module>mp-metrics</module>
+        <module>protobuf</module>
+        <module>queues</module>
         <module>wls-management</module>
         <module>memcached</module>
         <module>metrics</module>
@@ -165,7 +176,6 @@
         <module>reporter</module>
         <module>repository</module>
         <module>rest</module>
-        <module>rest-mvel</module>
         <module>rest-netty</module>
         <module>rwbm</module>
         <module>security</module>
@@ -295,6 +305,14 @@
     <!-- profile>
       <id>stage8</id>
       <modules>
+        <module>grpc</module>
+        <module>grpc-proxy-tck</module>
+        <module>grpc-proxy-helidon</module>
+        <module>grpc-proxy-netty</module>
+        <module>grpc-proxy-gar</module>
+        <module>grpc-client-tck</module>
+        <module>grpc-client-helidon</module>
+        <module>grpc-client-netty</module>
         <module>processor</module>
         <module>quorum</module>
         <module>reporter</module>
@@ -325,12 +343,7 @@
         <module>cdi-server</module>
         <module>concurrent</module>
         <module>concurrent-cdi</module>
-        <module>grpc</module>
-        <module>grpc-proxy</module>
-        <module>grpc-client</module>
         <module>health</module>
-        <module>helidon-grpc-proxy</module>
-        <module>helidon-grpc-client</module>
         <module>session</module>
         <module>ssl</module>
         <module>tcmp</module>

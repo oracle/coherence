@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.discovery;
-
-import com.tangosol.discovery.NSLookup.Connection;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -369,7 +367,7 @@ public class PingRequest
         for (InetAddress address : aHostAddresses)
             {
             InetSocketAddress socketAddr = new InetSocketAddress(address, m_nPort);
-            try (NSLookup.Connection conn = Connection.open(m_sCluster, socketAddr, m_cTimeoutMillis))
+            try (Connection conn = Connection.open(m_sCluster, socketAddr, m_cTimeoutMillis))
                 {
                 DataInputStream resultStream = conn.lookupRaw(NSLookup.NS_STRING_PREFIX + m_sName + "/addresses");
                 byte[] resultReturned = new byte[256];

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,6 +14,7 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
+import com.tangosol.util.ChainedCollection;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMapHelper;
 import com.tangosol.util.MapIndex;
@@ -27,8 +28,10 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -80,8 +83,8 @@ public abstract class ExtractorFilter<T, E>
     public ExtractorFilter(String sMethod)
         {
         m_extractor = sMethod.indexOf('.') < 0
-                ? new ReflectionExtractor(sMethod)
-                : new ChainedExtractor(sMethod);
+                ? new ReflectionExtractor<>(sMethod)
+                : new ChainedExtractor<>(sMethod);
         }
 
 
@@ -158,8 +161,9 @@ public abstract class ExtractorFilter<T, E>
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
-        return index == null ? calculateIteratorEffectiveness(setKeys.size())
-                : index.getIndexContents().size();
+        return index == null
+               ? -1
+               : setKeys.size();
         }
 
     /**
@@ -174,17 +178,17 @@ public abstract class ExtractorFilter<T, E>
             return this;
             }
 
-        Set setMatch  = new HashSet();
         Map<E, ? extends Set<?>> mapValues = index.getIndexContents();
+        List<Set<?>>             listMatch = new ArrayList<>(mapValues.size());
 
         for (Map.Entry<E, ? extends Set<?>> entry : mapValues.entrySet())
             {
             if (evaluateExtracted(entry.getKey()))
                 {
-                setMatch.addAll(ensureSafeSet(entry.getValue()));
+                listMatch.add(ensureSafeSet(entry.getValue()));
                 }
             }
-        setKeys.retainAll(setMatch);
+        setKeys.retainAll(new ChainedCollection<>(listMatch.toArray(Set[]::new)));
         return null;
         }
 

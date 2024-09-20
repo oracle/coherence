@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.internal.net;
 
@@ -272,6 +272,9 @@ public class WrapperSelector
             }
 
         // now finish cancellation of the wrappers
+
+        // TBD: Commented out while considering Bug 35728460.
+        /*
         if (aKey != null && METHOD_REMOVE_KEY != null)
             {
             for (SelectionKey key : aKey)
@@ -287,6 +290,7 @@ public class WrapperSelector
                     }
                 }
             }
+         */
         }
 
     // ------ inner interface: WrapperSelectableChannel -----------------
@@ -475,27 +479,28 @@ public class WrapperSelector
         // our extension to ASK, adding a special cancelInternal() or something.  But until we have issues because of
         // lack of multi-reg we'll just hold off
         Method metRemove = null;
-        try
-            {
-            if (System.getProperty("java.vm.specification.version").startsWith("1."))
-                {
-                metRemove = AccessController.doPrivileged(
-                        (PrivilegedAction<Method>) () -> {
-                        try
-                            {
-                            Method met = AbstractSelectableChannel.class.getDeclaredMethod("removeKey", SelectionKey.class);
-                            met.setAccessible(true);
-                            return met;
-                            }
-                        catch (Throwable e)
-                            {
-                            return null;
-                            }
-                        });
-                }
-            // else; java9 blocks this unless --permit-illegal-access is on which will also issue an ugly warning
-            }
-        catch (Exception e) {}
+
+        // TBD: Commented out while considering Bug 35728460.
+        //      In JDK 11 and greater, JPMS option --add-open java.base/java.nio=com.oracle.coherence
+        //      is needed to call package private method AbstractSelectableChannel#removeKey(SelectionKey).
+        //try
+        //    {
+        //    metRemove = AccessController.doPrivileged(
+        //            (PrivilegedAction<Method>) () -> {
+        //            try
+        //                {
+        //                Method met = AbstractSelectableChannel.class.getDeclaredMethod("removeKey", SelectionKey.class);
+        //                met.setAccessible(true);
+        //                return met;
+        //                }
+        //            catch (Throwable e)
+        //                {
+        //                return null;
+        //                }
+        //            });
+        //
+        //    }
+        //catch (Exception e) {}
 
         METHOD_REMOVE_KEY = metRemove;
         }

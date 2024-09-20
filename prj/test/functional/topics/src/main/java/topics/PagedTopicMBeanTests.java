@@ -43,7 +43,6 @@ import static com.tangosol.net.topic.Subscriber.inGroup;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.collection.IsEmptyIterable.emptyIterable;
 import static org.mockito.Mockito.mock;
@@ -85,7 +84,7 @@ public class PagedTopicMBeanTests
             // MBean should not be on this member (storage disabled)
             String sMBeanNamePrefix = MBeanHelper.getTopicMBeanName(topic);
             String sLocalMBeanName  = s_registry.ensureGlobalName(sMBeanNamePrefix);
-            assertThat(s_mBeanProxy.getMBeanInfo(sLocalMBeanName), is(nullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sLocalMBeanName), is(nullValue()));
 
             // MBean should be on storage enabled members
             String      sQuery   = sMBeanNamePrefix + ",*";
@@ -116,7 +115,7 @@ public class PagedTopicMBeanTests
             topic.destroy();
 
             // MBean should not be on this member
-            assertThat(s_mBeanProxy.getMBeanInfo(sLocalMBeanName), is(nullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sLocalMBeanName), is(nullValue()));
 
             // MBean should not be on any other cluster member
             Eventually.assertDeferred(() -> s_mBeanProxy.queryNames(sQuery, Filters.always()), is(emptyIterable()));
@@ -138,7 +137,7 @@ public class PagedTopicMBeanTests
 
             topic.ensureSubscriberGroup(groupOneId.getGroupName());
             // GroupOne MBean should not be on this member
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameOne), is(nullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameOne), is(nullValue()));
             // GroupOne MBean should be on storage members
             assertSubscriberGroupPresent(groupOneId, sTopicName, service);
             // GroupOne MBean should not be on non-storage members
@@ -146,13 +145,13 @@ public class PagedTopicMBeanTests
 
             topic.ensureSubscriberGroup(groupTwoId.getGroupName());
             // GroupTwo MBean should not be on this member
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameTwo), is(nullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameTwo), is(nullValue()));
             // GroupTwo MBean should be on storage members
             assertSubscriberGroupPresent(groupTwoId, sTopicName, service);
             // GroupTwo MBean should not be on non-storage members
             assertSubscriberGroupNotPresent(groupTwoId, sTopicName, service);
             // GroupOne MBean should not be on this member
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameOne), is(nullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameOne), is(nullValue()));
             // GroupOne MBean should be on storage members
             assertSubscriberGroupPresent(groupOneId, sTopicName, service);
             // GroupOne MBean should not be on non-storage members
@@ -162,9 +161,9 @@ public class PagedTopicMBeanTests
             // GroupOne MBean should be gone
             String      sQuery   = sNameOne + ",*";
             Set<String> setNames = s_mBeanProxy.queryNames(sQuery, Filters.always());
-            assertThat(setNames, is(emptyIterable()));
+            Eventually.assertDeferred(() -> setNames, is(emptyIterable()));
             // GroupTwo MBean should not be on this member
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameTwo), is(nullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameTwo), is(nullValue()));
             // GroupTwo MBean should be on storage members
             assertSubscriberGroupPresent(groupTwoId, sTopicName, service);
             // GroupTwo MBean should not be on non-storage members
@@ -172,13 +171,9 @@ public class PagedTopicMBeanTests
 
             topic.destroySubscriberGroup(groupTwoId.getGroupName());
             // GroupOne MBean should be gone
-            sQuery   = sNameOne + ",*";
-            setNames = s_mBeanProxy.queryNames(sQuery, Filters.always());
-            assertThat(setNames, is(emptyIterable()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.queryNames(sNameOne + ",*", Filters.always()), is(emptyIterable()));
             // GroupTwo MBean should be gone
-            sQuery   = sNameOne + ",*";
-            setNames = s_mBeanProxy.queryNames(sQuery, Filters.always());
-            assertThat(setNames, is(emptyIterable()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.queryNames(sNameOne + ",*", Filters.always()), is(emptyIterable()));
             }
         }
 
@@ -233,8 +228,8 @@ public class PagedTopicMBeanTests
             String sQueryOne = sNameOne + ",*";
             String sQueryTwo = sNameTwo + ",*";
 
-            assertThat(s_mBeanProxy.queryNames(sQueryOne, Filters.always()), is(not(emptyIterable())));
-            assertThat(s_mBeanProxy.queryNames(sQueryTwo, Filters.always()), is(not(emptyIterable())));
+            Eventually.assertDeferred(() -> s_mBeanProxy.queryNames(sQueryOne, Filters.always()), is(not(emptyIterable())));
+            Eventually.assertDeferred(() -> s_mBeanProxy.queryNames(sQueryTwo, Filters.always()), is(not(emptyIterable())));
 
             topic.destroy();
 
@@ -260,19 +255,19 @@ public class PagedTopicMBeanTests
             sNameTwo   = MBeanHelper.getSubscriberMBeanName(subscriberTwo);
             sNameThree = MBeanHelper.getSubscriberMBeanName(subscriberThree);
 
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameOne), is(notNullValue()));
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameTwo), is(notNullValue()));
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameThree), is(notNullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameOne), is(notNullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameTwo), is(notNullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameThree), is(notNullValue()));
 
             subscriberOne.close();
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameOne), is(nullValue()));
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameTwo), is(notNullValue()));
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameThree), is(notNullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameOne), is(nullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameTwo), is(notNullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameThree), is(notNullValue()));
 
             subscriberTwo.close();
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameOne), is(nullValue()));
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameTwo), is(nullValue()));
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameThree), is(notNullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameOne), is(nullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameTwo), is(nullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameThree), is(notNullValue()));
 
             // Subscriber three should be unregistered when topic is closed
             topic.close();
@@ -289,10 +284,8 @@ public class PagedTopicMBeanTests
             TopicService service = topic.getTopicService();
             try (PagedTopicSubscriber<String> ignored = (PagedTopicSubscriber<String>) topic.createSubscriber())
                 {
-                String      sPattern = s_registry.ensureGlobalName(MBeanHelper.getSubscriberGroupMBeanName(null, sTopicName, service));
-                Set<String> setNames = s_mBeanProxy.queryNames(sPattern, Filters.always());
-
-                assertThat(setNames.isEmpty(), is(true));
+                String sPattern = s_registry.ensureGlobalName(MBeanHelper.getSubscriberGroupMBeanName(null, sTopicName, service));
+                Eventually.assertDeferred(() -> s_mBeanProxy.queryNames(sPattern, Filters.always()).isEmpty(), is(true));
                 }
             }
         }
@@ -311,30 +304,28 @@ public class PagedTopicMBeanTests
             String sNameTwo   = MBeanHelper.getSubscriberMBeanName(subscriberTwo);
             String sNameThree = MBeanHelper.getSubscriberMBeanName(subscriberThree);
 
-            Set<String> setNames;
+            String sTopicPattern = MBeanHelper.getSubscriberMBeanPattern(topic, false);
+            Eventually.assertDeferred(() -> s_mBeanProxy.queryNames(sTopicPattern, Filters.always()).size(), is(3));
 
-            setNames = s_mBeanProxy.queryNames(MBeanHelper.getSubscriberMBeanPattern(topic, false), Filters.always());
-            assertThat(setNames.size(), is(3));
+            String sSubscriberPattern = MBeanHelper.getSubscriberMBeanPattern(topic, subscriberOne.getSubscriberGroupId(), false);
+            Eventually.assertDeferred(() -> s_mBeanProxy.queryNames(sSubscriberPattern, Filters.always()).size(), is(2));
 
-            setNames = s_mBeanProxy.queryNames(MBeanHelper.getSubscriberMBeanPattern(topic, subscriberOne.getSubscriberGroupId(), false), Filters.always());
-            assertThat(setNames.size(), is(2));
+            String sGroupPattern = MBeanHelper.getSubscriberMBeanPattern(topic, subscriberThree.getSubscriberGroupId(), false);
+            Eventually.assertDeferred(() -> s_mBeanProxy.queryNames(sGroupPattern, Filters.always()).size(), is(1));
 
-            setNames = s_mBeanProxy.queryNames(MBeanHelper.getSubscriberMBeanPattern(topic, subscriberThree.getSubscriberGroupId(), false), Filters.always());
-            assertThat(setNames.size(), is(1));
-
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameOne), is(notNullValue()));
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameTwo), is(notNullValue()));
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameThree), is(notNullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameOne), is(notNullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameTwo), is(notNullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameThree), is(notNullValue()));
 
             subscriberOne.close();
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameOne), is(nullValue()));
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameTwo), is(notNullValue()));
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameThree), is(notNullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameOne), is(nullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameTwo), is(notNullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameThree), is(notNullValue()));
 
             subscriberTwo.close();
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameOne),  is(nullValue()));
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameTwo),  is(nullValue()));
-            assertThat(s_mBeanProxy.getMBeanInfo(sNameThree), is(notNullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameOne),  is(nullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameTwo),  is(nullValue()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.getMBeanInfo(sNameThree), is(notNullValue()));
 
             // Subscriber three should be unregistered when topic is closed
             topic.close();
@@ -358,12 +349,12 @@ public class PagedTopicMBeanTests
                  PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("two")))
                 {
                 // Group Mbeans should be on each storage member
-                assertThat(s_mBeanProxy.queryNames(sGroupPattern, Filters.always()).size(), is(STORAGE_ENABLED_COUNT * 2));
+                Eventually.assertDeferred(() -> s_mBeanProxy.queryNames(sGroupPattern, Filters.always()).size(), is(STORAGE_ENABLED_COUNT * 2));
                 }
 
             // durable groups should still exist after subscribers have closed
             // Group Mbeans should be on each storage member
-            assertThat(s_mBeanProxy.queryNames(sGroupPattern, Filters.always()).size(), is(STORAGE_ENABLED_COUNT * 2));
+            Eventually.assertDeferred(() -> s_mBeanProxy.queryNames(sGroupPattern, Filters.always()).size(), is(STORAGE_ENABLED_COUNT * 2));
             }
         }
 

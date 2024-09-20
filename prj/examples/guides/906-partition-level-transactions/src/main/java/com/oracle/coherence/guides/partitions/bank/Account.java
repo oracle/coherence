@@ -30,9 +30,22 @@ import java.math.BigDecimal;
  */
 public class Account
         extends AbstractEvolvable
-        implements ExternalizableLite, PortableObject
-    {
-    // ----- constructors ---------------------------------------------------
+        implements ExternalizableLite, PortableObject {
+
+    /**
+     * The evolvable portable object implementation version for this class.
+     */
+    public static final int IMPLEMENTATION_VERSION = 1;
+
+    /**
+     * The account's identifier.
+     */
+    private AccountId id;
+
+    /**
+     * The account balance.
+     */
+    private BigDecimal balance;
 
     /**
      * A default no-args constructor required for serialization.
@@ -83,8 +96,6 @@ public class Account
         balance = balance.add(amount);
         }
 
-    // ----- ExternalizableLite methods -------------------------------------
-
     @Override
     public void readExternal(DataInput in) throws IOException
         {
@@ -98,8 +109,6 @@ public class Account
         ExternalizableHelper.writeObject(out, id);
         ExternalizableHelper.writeBigDecimal(out, balance);
         }
-
-    // ----- AbstractEvolvable / PortableObject methods ---------------------
 
     @Override
     public int getImplVersion()
@@ -120,23 +129,4 @@ public class Account
         out.writeObject(0, id);
         out.writeBigDecimal(1, balance);
         }
-
-    // ----- constants ------------------------------------------------------
-
-    /**
-     * The evolvable portable object implementation version for this class.
-     */
-    public static final int IMPLEMENTATION_VERSION = 1;
-
-    // ----- data members ---------------------------------------------------
-
-    /**
-     * The account's identifier.
-     */
-    private AccountId id;
-
-    /**
-     * The account balance.
-     */
-    private BigDecimal balance;
     }

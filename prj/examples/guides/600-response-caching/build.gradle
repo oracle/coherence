@@ -1,22 +1,22 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 plugins {
 	id 'java'
-	id "org.kordamp.gradle.jandex" version "0.12.0"
+	id "org.kordamp.gradle.jandex" version "1.1.0"
 }
 
 ext {
-	helidonversion = '3.1.2'
+	helidonversion = '4.0.5'
 	mainClass='io.helidon.microprofile.cdi.Main'
 }
 group = 'com.oracle.coherence.guides'
 coherenceVersion = '15.1.1-0-0-SNAPSHOT'
 version = coherenceVersion
-sourceCompatibility = '17'
+sourceCompatibility = '21'
 
 repositories {
 	mavenCentral()
@@ -36,7 +36,7 @@ dependencies {
 
 	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
 	testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
-	testImplementation "io.helidon.microprofile.tests:helidon-microprofile-tests-junit5:${helidonVersion}"
+	testImplementation "io.helidon.microprofile.testing:helidon-microprofile-testing-junit5:${helidonVersion}"
 	testImplementation "org.hamcrest:hamcrest-all:1.3"
 
 	testImplementation "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
@@ -93,5 +93,5 @@ task moveBeansXML {
                  todir: "${buildDir}/classes/java/main/META-INF"
     }
 }
-compileTestJava.dependsOn jandex
+compileTestJava.dependsOn("jandex")
 test.dependsOn moveBeansXML

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -27,12 +27,15 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
-public class SmartCacheStoreTest
-    {
+public class SmartCacheStoreTest {
+
+    public static final Serializer serializer = new DefaultSerializer();
+
+    public static final Binary DEFAULT_DECORATION = Binary.NO_BINARY;
+
     @Test
-    public void shouldCallLoad()
-        {
-        CacheStore<String, String> delegate = mock(CacheStore.class);
+    public void shouldCallLoad() {
+        CacheStore<String, String>  delegate    = mock(CacheStore.class);
         BinaryEntry<String, String> binaryEntry = mock(BinaryEntry.class);
 
         when(delegate.load("foo")).thenReturn("bar");
@@ -43,12 +46,11 @@ public class SmartCacheStoreTest
 
         verify(delegate).load("foo");
         verify(binaryEntry).setValue("bar");
-        }
+    }
 
     @Test
-    public void shouldCallLoadAll()
-        {
-        CacheStore<String, String> delegate = mock(CacheStore.class);
+    public void shouldCallLoadAll() {
+        CacheStore<String, String>  delegate     = mock(CacheStore.class);
         BinaryEntry<String, String> binaryEntry1 = mock(BinaryEntry.class, "1");
         BinaryEntry<String, String> binaryEntry2 = mock(BinaryEntry.class, "2");
         BinaryEntry<String, String> binaryEntry3 = mock(BinaryEntry.class, "3");
@@ -69,12 +71,11 @@ public class SmartCacheStoreTest
         verify(binaryEntry1).setValue("Value-One");
         verify(binaryEntry2, never()).setValue(any());
         verify(binaryEntry3).setValue("Value-Three");
-        }
+    }
 
     @Test
-    public void shouldCallErase()
-        {
-        CacheStore<String, String> delegate = mock(CacheStore.class);
+    public void shouldCallErase() {
+        CacheStore<String, String>  delegate    = mock(CacheStore.class);
         BinaryEntry<String, String> binaryEntry = mock(BinaryEntry.class);
 
         when(binaryEntry.getKey()).thenReturn("foo");
@@ -83,12 +84,11 @@ public class SmartCacheStoreTest
         cacheStore.erase(binaryEntry);
 
         verify(delegate).erase("foo");
-        }
+    }
 
     @Test
-    public void shouldCallEraseAll()
-        {
-        CacheStore<String, String> delegate = mock(CacheStore.class);
+    public void shouldCallEraseAll() {
+        CacheStore<String, String>  delegate     = mock(CacheStore.class);
         BinaryEntry<String, String> binaryEntry1 = mock(BinaryEntry.class, "1");
         BinaryEntry<String, String> binaryEntry2 = mock(BinaryEntry.class, "2");
         BinaryEntry<String, String> binaryEntry3 = mock(BinaryEntry.class, "3");
@@ -101,14 +101,13 @@ public class SmartCacheStoreTest
         cacheStore.eraseAll(Set.of(binaryEntry1, binaryEntry2, binaryEntry3));
 
         verify(delegate).eraseAll(Set.of("One", "Two", "Three"));
-        }
+    }
 
     @Test
-    public void shouldCallStoreWithUndecoratedBinary()
-        {
-        CacheStore<String, String> delegate = mock(CacheStore.class);
+    public void shouldCallStoreWithUndecoratedBinary() {
+        CacheStore<String, String>  delegate    = mock(CacheStore.class);
         BinaryEntry<String, String> binaryEntry = mock(BinaryEntry.class);
-        Binary binaryValue = toBinary("bar");
+        Binary                      binaryValue = toBinary("bar");
 
         when(binaryEntry.getKey()).thenReturn("foo");
         when(binaryEntry.getBinaryValue()).thenReturn(binaryValue);
@@ -118,14 +117,13 @@ public class SmartCacheStoreTest
         cacheStore.store(binaryEntry);
 
         verify(delegate).store("foo", "bar");
-        }
+    }
 
     @Test
-    public void shouldNotCallStoreWithDecoratedBinary()
-        {
-        CacheStore<String, String> delegate = mock(CacheStore.class);
+    public void shouldNotCallStoreWithDecoratedBinary() {
+        CacheStore<String, String>  delegate    = mock(CacheStore.class);
         BinaryEntry<String, String> binaryEntry = mock(BinaryEntry.class);
-        Binary binaryValue = toDecoratedBinary("bar");
+        Binary                      binaryValue = toDecoratedBinary("bar");
 
         when(binaryEntry.getKey()).thenReturn("foo");
         when(binaryEntry.getBinaryValue()).thenReturn(binaryValue);
@@ -135,20 +133,19 @@ public class SmartCacheStoreTest
         cacheStore.store(binaryEntry);
 
         verifyNoInteractions(delegate);
-        }
+    }
 
     @Test
-    public void shouldOnlyCallStoreAllWithUndecoratedBinaries()
-        {
-        CacheStore<String, String> delegate = mock(CacheStore.class);
+    public void shouldOnlyCallStoreAllWithUndecoratedBinaries() {
+        CacheStore<String, String>  delegate     = mock(CacheStore.class);
         BinaryEntry<String, String> binaryEntry1 = mock(BinaryEntry.class, "1");
-        Binary binaryValue1 = toBinary("One");
+        Binary                      binaryValue1 = toBinary("One");
         BinaryEntry<String, String> binaryEntry2 = mock(BinaryEntry.class, "2");
-        Binary binaryValue2 = toDecoratedBinary("Two");
+        Binary                      binaryValue2 = toDecoratedBinary("Two");
         BinaryEntry<String, String> binaryEntry3 = mock(BinaryEntry.class, "3");
-        Binary binaryValue3 = toBinary("Three");
+        Binary                      binaryValue3 = toBinary("Three");
         BinaryEntry<String, String> binaryEntry4 = mock(BinaryEntry.class, "4");
-        Binary binaryValue4 = toDecoratedBinary("Four");
+        Binary                      binaryValue4 = toDecoratedBinary("Four");
 
         when(binaryEntry1.getKey()).thenReturn("One");
         when(binaryEntry1.getBinaryValue()).thenReturn(binaryValue1);
@@ -167,24 +164,14 @@ public class SmartCacheStoreTest
         cacheStore.storeAll(Set.of(binaryEntry1, binaryEntry2, binaryEntry3, binaryEntry4));
 
         verify(delegate).storeAll(Map.of("One", "Value-One", "Three", "Value-Three"));
-        }
+    }
 
-    // ----- helper methods -------------------------------------------------
-
-    Binary toBinary(Object o)
-        {
+    Binary toBinary(Object o) {
         return ExternalizableHelper.toBinary(o, serializer);
-        }
+    }
 
-    Binary toDecoratedBinary(Object o)
-        {
+    Binary toDecoratedBinary(Object o) {
         Binary binary = toBinary(o);
         return ExternalizableHelper.decorate(binary, SmartCacheStore.DEFAULT_DECORATION_ID, DEFAULT_DECORATION);
-        }
-
-    // ----- data members ---------------------------------------------------
-
-    public static final Serializer serializer = new DefaultSerializer();
-
-    public static final Binary DEFAULT_DECORATION = Binary.NO_BINARY;
     }
+}

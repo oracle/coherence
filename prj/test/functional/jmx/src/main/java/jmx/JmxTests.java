@@ -23,7 +23,7 @@ import com.tangosol.net.Cluster;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
-
+import com.tangosol.net.ServiceInfo;
 import com.tangosol.net.events.EventInterceptor;
 
 import com.tangosol.net.events.annotation.Interceptor;
@@ -67,7 +67,6 @@ import javax.management.InstanceNotFoundException;
 import javax.management.IntrospectionException;
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanException;
 import javax.management.MBeanInfo;
 import javax.management.MBeanOperationInfo;
 import javax.management.MBeanServer;
@@ -97,6 +96,8 @@ import static org.hamcrest.Matchers.sameInstance;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -105,6 +106,7 @@ import static org.junit.Assert.fail;
 *
 * @author gg 2010.07.22
 */
+@SuppressWarnings({"rawtypes", "resource", "unchecked"})
 public class JmxTests
         extends AbstractFunctionalTest implements Serializable
     {
@@ -180,8 +182,8 @@ public class JmxTests
                 assertEquals(COUNT, cEvents);
                 }
 
-            Eventually.assertThat(invoking(this).getEventAttribute(sService, iNodeId, "EventBacklog"), is(0));
-            Eventually.assertThat(invoking(this).getEventAttribute(sService, iNodeId, "EventCount"), is((long) COUNT));
+            Eventually.assertDeferred(() -> getEventAttribute(sService, iNodeId, "EventBacklog"), is(0));
+            Eventually.assertDeferred(() -> getEventAttribute(sService, iNodeId, "EventCount"), is((long) COUNT));
             }
         finally
             {
@@ -207,7 +209,6 @@ public class JmxTests
     */
     @Test
     public void testStatusHAPAS()
-        throws JMException
         {
         try
             {
@@ -294,7 +295,7 @@ public class JmxTests
             assertEquals("cluster already exists", 1, cluster.getMemberSet().size());
 
             Registry registry = cluster.getManagement();
-            assertTrue("JMX is disabled", registry != null);
+            assertNotNull("JMX is disabled", registry);
 
             MBeanServer serverJMX = MBeanHelper.findMBeanServer();
             String      sDomain   = registry.getDomainName();
@@ -310,7 +311,7 @@ public class JmxTests
             try
                 {
                 Member member2 = findCacheServer("testLocalOnlyFalse1");
-                assertTrue("Failed to start the testLocalOnlyFalse1 node", member2 != null);
+                assertNotNull("Failed to start the testLocalOnlyFalse1 node", member2);
                 String sNode2 = sDomain + ":" + Registry.NODE_TYPE + ",nodeId=" + member2.getId();
                 assertFalse("Should not be registered: " + sNode2, serverJMX.isRegistered(new ObjectName(sNode2)));
                 }
@@ -318,7 +319,7 @@ public class JmxTests
                 {
                 stopCacheServer("testLocalOnlyFalse1", true);
                 member.waitFor();
-                assertTrue("Failed to stop", findCacheServer("testLocalOnlyFalse1") == null);
+                assertNull("Failed to stop", findCacheServer("testLocalOnlyFalse1"));
                 }
 
             // local-only, false <-> all, true
@@ -328,7 +329,7 @@ public class JmxTests
             try
                 {
                 Member member2 = findCacheServer("testLocalOnlyFalse2");
-                assertTrue("Failed to start the testLocalOnlyFalse2 node", member2 != null);
+                assertNotNull("Failed to start the testLocalOnlyFalse2 node", member2);
                 String sNode2 = sDomain + ":" + Registry.NODE_TYPE + ",nodeId=" + member2.getId();
                 assertFalse("Should not be registered: " + sNode2, serverJMX.isRegistered(new ObjectName(sNode2)));
 
@@ -343,7 +344,7 @@ public class JmxTests
                 {
                 stopCacheServer("testLocalOnlyFalse2", true);
                 member.waitFor();
-                assertTrue("Failed to stop", findCacheServer("testLocalOnlyFalse2") == null);
+                assertNull("Failed to stop", findCacheServer("testLocalOnlyFalse2"));
                 }
             }
         finally
@@ -373,7 +374,7 @@ public class JmxTests
             assertEquals("cluster already exists", 1, cluster.getMemberSet().size());
 
             Registry registry = cluster.getManagement();
-            assertTrue("JMX is disabled", registry != null);
+            assertNotNull("JMX is disabled", registry);
 
             MBeanServer serverJMX = MBeanHelper.findMBeanServer();
             String      sDomain   = registry.getDomainName();
@@ -389,7 +390,7 @@ public class JmxTests
                 try
                 {
                 Member member2 = findCacheServer("testLocalOnlyTrue1");
-                assertTrue("Failed to start the testLocalOnlyTrue1 node", member2 != null);
+                assertNotNull("Failed to start the testLocalOnlyTrue1 node", member2);
                 String sNode2 = sDomain + ":" + Registry.NODE_TYPE + ",nodeId=" + member2.getId();
                 assertFalse("Should not be registered: " + sNode2, serverJMX.isRegistered(new ObjectName(sNode2)));
                 }
@@ -397,7 +398,7 @@ public class JmxTests
                 {
                 stopCacheServer("testLocalOnlyTrue1", true);
                 member.waitFor();
-                assertTrue("Failed to stop", findCacheServer("testLocalOnlyTrue1") == null);
+                assertNull("Failed to stop", findCacheServer("testLocalOnlyTrue1"));
                 }
 
             // local-only, true <-> all, true
@@ -407,7 +408,7 @@ public class JmxTests
             try
                 {
                 Member member2 = findCacheServer("testLocalOnlyTrue2");
-                assertTrue("Failed to start the testLocalOnlyTrue2 node", member2 != null);
+                assertNotNull("Failed to start the testLocalOnlyTrue2 node", member2);
                 String sNode2 = sDomain + ":" + Registry.NODE_TYPE + ",nodeId=" + member2.getId();
                 assertFalse("Should not be registered: " + sNode2, serverJMX.isRegistered(new ObjectName(sNode2)));
 
@@ -422,7 +423,7 @@ public class JmxTests
                 {
                 stopCacheServer("testLocalOnlyTrue2");
                 member.waitFor();
-                assertTrue("Failed to stop", findCacheServer("testLocalOnlyTrue2") == null);
+                assertNull("Failed to stop", findCacheServer("testLocalOnlyTrue2"));
                 }
             }
         finally
@@ -453,7 +454,7 @@ public class JmxTests
             assertEquals("cluster already exists", 1, cluster.getMemberSet().size());
 
             Registry registry = cluster.getManagement();
-            assertTrue("JMX is disabled", registry != null);
+            assertNotNull("JMX is disabled", registry);
 
             MBeanServer serverJMX = MBeanHelper.findMBeanServer();
             String      sDomain   = registry.getDomainName();
@@ -471,7 +472,7 @@ public class JmxTests
             try
                 {
                 Member member2 = findCacheServer("testRemoteOnlyFalse1");
-                assertTrue("Failed to start the testRemoteOnlyFalse1 node", member2 != null);
+                assertNotNull("Failed to start the testRemoteOnlyFalse1 node", member2);
                 String sNode2 = sDomain + ":" + Registry.NODE_TYPE + ",nodeId=" + member2.getId();
                 assertFalse("Should not be registered: " + sNode2, serverJMX.isRegistered(new ObjectName(sNode2)));
                 }
@@ -479,7 +480,7 @@ public class JmxTests
                 {
                 stopCacheServer("testRemoteOnlyFalse1");
                 member.waitFor();
-                assertTrue("Failed to stop", findCacheServer("testRemoteOnlyFalse1") == null);
+                assertNull("Failed to stop", findCacheServer("testRemoteOnlyFalse1"));
                 }
 
             // remote-only, false <-> none, true
@@ -489,20 +490,21 @@ public class JmxTests
             try
                 {
                 Member member2 = findCacheServer("testRemoteOnlyFalse2");
-                assertTrue("Failed to start the testRemoteOnlyFalse2 node", member2 != null);
+                assertNotNull("Failed to start the testRemoteOnlyFalse2 node", member2);
                 String sNode2 = sDomain + ":" + Registry.NODE_TYPE + ",nodeId=" + member2.getId();
-                Eventually.assertThat(invoking(this).isMBeanRegistered(serverJMX, new ObjectName(sNode2)), is(true));
+                ObjectName oName = new ObjectName(sNode2);
+                Eventually.assertDeferred(() -> isMBeanRegistered(serverJMX, oName), is(true));
 
                 testCoh3500(cluster, member);
 
                 // wait for the remote MBeans registration
-                Eventually.assertThat(invoking(this).isMBeanRegistered(serverJMX, new ObjectName(sNode2)), is(true));
+                Eventually.assertDeferred(() -> isMBeanRegistered(serverJMX, oName), is(true));
                 }
             finally
                 {
                 stopCacheServer("testRemoteOnlyFalse2");
                 member.waitFor();
-                assertTrue("Failed to stop", findCacheServer("testRemoteOnlyFalse2") == null);
+                assertNull("Failed to stop", findCacheServer("testRemoteOnlyFalse2"));
                 }
 
             // remote-only, false <-> all, true
@@ -512,11 +514,12 @@ public class JmxTests
             try
                 {
                 Member member2 = findCacheServer("testRemoteOnlyFalse3");
-                assertTrue("Failed to start the testRemoteOnlyFalse3 node", member2 != null);
+                assertNotNull("Failed to start the testRemoteOnlyFalse3 node", member2);
                 String sNode2 = sDomain + ":" + Registry.NODE_TYPE + ",nodeId=" + member2.getId();
 
                 // wait for the remote MBeans registration
-                Eventually.assertThat(invoking(this).isMBeanRegistered(serverJMX, new ObjectName(sNode2)), is(true));
+                ObjectName oName = new ObjectName(sNode2);
+                Eventually.assertDeferred(() -> isMBeanRegistered(serverJMX, oName), is(true));
 
                 testCoh3500(cluster, member);
                 }
@@ -524,7 +527,7 @@ public class JmxTests
                 {
                 stopCacheServer("testRemoteOnlyFalse3");
                 member.waitFor();
-                assertTrue("Failed to stop", findCacheServer("testRemoteOnlyFalse3") == null);
+                assertNull("Failed to stop", findCacheServer("testRemoteOnlyFalse3"));
                 }
             }
         finally
@@ -573,7 +576,7 @@ public class JmxTests
             assertEquals("cluster already exists", 1, cluster.getMemberSet().size());
 
             Registry registry = cluster.getManagement();
-            assertTrue("JMX is disabled", registry != null);
+            assertNotNull("JMX is disabled", registry);
 
             MBeanServer serverJMX = MBeanHelper.findMBeanServer();
             String      sDomain   = registry.getDomainName();
@@ -592,9 +595,10 @@ public class JmxTests
             try
                 {
                 Member member2 = findCacheServer("testAll1");
-                assertTrue("Failed to start the testAll1 node", member2 != null);
+                assertNotNull("Failed to start the testAll1 node", member2);
                 String sNode2 = sDomain + ":" + Registry.NODE_TYPE + ",nodeId=" + member2.getId();
-                Eventually.assertThat(invoking(this).isMBeanRegistered(serverJMX, new ObjectName(sNode2)), is(true));
+                ObjectName oName = new ObjectName(sNode2);
+                Eventually.assertDeferred(() -> isMBeanRegistered(serverJMX, oName), is(true));
                 }
             finally
                 {
@@ -612,7 +616,7 @@ public class JmxTests
             try
                 {
                 Member member2 = findCacheServer("testAll2");
-                assertTrue("Failed to start the testAll2 node", member2 != null);
+                assertNotNull("Failed to start the testAll2 node", member2);
                 String sNode2 = sDomain + ":" + Registry.NODE_TYPE + ",nodeId=" + member2.getId();
                 Eventually.assertThat(
                         invoking(this).isMBeanRegistered(serverJMX, new ObjectName(sNode2)),
@@ -861,7 +865,7 @@ public class JmxTests
      * the thread dump is logged.
      */
     @Test
-    public void testLogClusterNodeState()
+    public void testLogClusterNodeState() throws Exception
         {
         CacheFactory.shutdown();
 
@@ -881,18 +885,9 @@ public class JmxTests
         CacheFactory.getCache("dist-cache");
 
         // invoke the logClusterState operation of ClusterMBean.
-        try
-            {
-            serverJMX.invoke(new ObjectName("Coherence:type=Cluster"), "logClusterState",
-                    new Object[]{cluster.getLocalMember().getRoleName()},
-                    new String[]{String.class.getName()});
-            }
-        catch (MalformedObjectNameException | InstanceNotFoundException |
-               MBeanException | ReflectionException e)
-            {
-            e.printStackTrace();
-            fail();
-            }
+        serverJMX.invoke(new ObjectName("Coherence:type=Cluster"), "logClusterState",
+                new Object[]{cluster.getLocalMember().getRoleName()},
+                new String[]{String.class.getName()});
 
         // assert that the full thread dump is logged.
         try
@@ -910,11 +905,60 @@ public class JmxTests
         }
 
     /**
+     * Test get{Node|Service|Cluster}Description operations.
+     */
+    @Test
+    public void testDescriptions() throws Exception
+        {
+        CacheFactory.shutdown();
+
+        System.setProperty("coherence.management","all");
+        System.setProperty("coherence.management.remote","true");
+        try
+            {
+            MBeanServer serverJMX = MBeanHelper.findMBeanServer();
+            Cluster     cluster   = CacheFactory.ensureCluster();
+            Registry    registry  = cluster.getManagement();
+            String      sDomain   = registry.getDomainName();
+            NamedCache  cache     = CacheFactory.getCache("dist-cache");
+
+            // invoke the getClusterDescription operation of ClusterMBean.
+            String clusterDesc = (String) serverJMX.invoke(new ObjectName(sDomain + ":" + Registry.CLUSTER_TYPE), "getClusterDescription",
+                                             new Object[] {},
+                                             new String[] {});
+            assertTrue(clusterDesc.startsWith("SafeCluster: Name="));
+            assertTrue(clusterDesc.contains("MasterMemberSet("));
+
+            // invoke the getServiceDescription operation of ServiceMBean.
+            ServiceInfo serviceInfo = cache.getCacheService().getInfo();
+            String      sService    = sDomain + ":" + Registry.SERVICE_TYPE
+                                              + ",name=" + serviceInfo.getServiceName() 
+                                              + ",nodeId=" + ((Member) serviceInfo.getServiceMembers().stream().findFirst().get()).getId();
+            String      serviceDesc = (String) serverJMX.invoke(new ObjectName(sService), "getServiceDescription",
+                                             new Object[] {},
+                                             new String[] {});
+            assertTrue(serviceDesc.contains("PartitionedCache{Name=DistributedCache, State=(SERVICE_STARTED)"));
+
+            // invoke the getNodeDescription operation of ClusterNodeMBean.
+            String sNode    = sDomain + ":" + Registry.NODE_TYPE + ",nodeId=" + cluster.getLocalMember().getId();
+            String nodeDesc = (String) serverJMX.invoke(new ObjectName(sNode), "getNodeDescription",
+                                             new Object[] {},
+                                             new String[] {});
+            assertTrue(nodeDesc.startsWith("Member(Id="));
+            }
+        finally
+            {
+            System.clearProperty("coherence.management");
+            System.clearProperty("coherence.management.remote");
+            }
+        }
+
+    /**
      * Test that when tangosol.coherence.management.extendedmbeanname is set to true,
      * and the member name is set, the thread dump is logged. COH-12831.
      */
     @Test
-    public void testLogClusterNodeStateWithExtendedMBeanName()
+    public void testLogClusterNodeStateWithExtendedMBeanName() throws Exception
         {
         CacheFactory.shutdown();
 
@@ -937,22 +981,12 @@ public class JmxTests
         CacheFactory.getCache("dist-cache");
 
         // invoke the logClusterState operation of ClusterMBean.
-        try
-            {
-            String sMBeanName = cluster.getManagement().ensureGlobalName("Coherence:type=Cluster",
-                cluster.getLocalMember());
-            CacheFactory.log("testLogClusterNodeStateWithExtendedMBeanName: MBean Name=" + sMBeanName,
-                CacheFactory.LOG_INFO);
-            serverJMX.invoke(new ObjectName(sMBeanName), "logClusterState",
-                    new Object[]{cluster.getLocalMember().getRoleName()},
-                    new String[]{String.class.getName()});
-            }
-        catch (MalformedObjectNameException | InstanceNotFoundException |
-               MBeanException | ReflectionException e)
-            {
-            e.printStackTrace();
-            fail();
-            }
+        String sMBeanName = cluster.getManagement().ensureGlobalName("Coherence:type=Cluster",
+            cluster.getLocalMember());
+
+        serverJMX.invoke(new ObjectName(sMBeanName), "logClusterState",
+                new Object[]{cluster.getLocalMember().getRoleName()},
+                new String[]{String.class.getName()});
 
         // assert that the full thread dump is logged.
         try
@@ -1047,17 +1081,18 @@ public class JmxTests
     // helper classes for testMBeansAndMXBeans
 
     // interface and class for MBean tests
+    @SuppressWarnings("unused")
     public interface QueueSampler1MBean
         {
-        public QueueSample getQueueSample();
+        QueueSample getQueueSample();
 
-        public void clearQueue();
+        void clearQueue();
         }
 
-    public class QueueSampler1
+    public static class QueueSampler1
             implements QueueSampler1MBean
         {
-        private Queue<String> queue;
+        private final Queue<String> queue;
 
         public QueueSampler1(Queue<String> queue)
             {
@@ -1082,19 +1117,20 @@ public class JmxTests
         }
 
     // interface and class for MXBean tests
+    @SuppressWarnings("unused")
     public interface QueueSamplerMXBean
         {
-        public QueueSample getQueueSample();
+        QueueSample getQueueSample();
 
-        public void clearQueue();
+        void clearQueue();
         }
 
-    public class QueueSampler2
+    public static class QueueSampler2
             implements QueueSamplerMXBean
         {
         // import com.example.QueueSample;
 
-        private Queue<String> queue;
+        private final Queue<String> queue;
 
         public QueueSampler2(Queue<String> queue)
             {
@@ -1120,17 +1156,18 @@ public class JmxTests
 
     // interface and class for @MXBean tests
     @MXBean
+    @SuppressWarnings("unused")
     public interface QueueSamplerAnno
         {
-        public QueueSample getQueueSample();
+        QueueSample getQueueSample();
 
-        public void clearQueue();
+        void clearQueue();
         }
 
-    public class QueueSampler3
+    public static class QueueSampler3
             implements QueueSamplerAnno
         {
-        private Queue<String> queue;
+        private final Queue<String> queue;
 
         public QueueSampler3(Queue<String> queue)
             {
@@ -1154,7 +1191,8 @@ public class JmxTests
             }
         }
 
-    public class QueueSample
+    @SuppressWarnings("unused")
+    public static class QueueSample
         {
         private final Date   date;
         private final int    size;
@@ -1235,14 +1273,14 @@ public class JmxTests
 
     /**
      * Test Remote Emitter for a custom MBean as a part of COH-5987. The remote test uses both the trigger API
-     * as well as the WrapperJMX notification support. The test has two servers, the local one to the test
+     * and the WrapperJMX notification support. The test has two servers, the local one to the test
      * and a remote one. We use the RegisterEmitterInvocable via the invocation service to register the TestEmitter
      * on the remote server and validate that it's visible on the local server. The TestEmitter will be registered as
      * a LocalModel on the remote server and a RemoteModel in the local server. Because TestEmitter is a
      * NotificationBroadcaster, it will support adding notifications. Once we've validated that it's registered in
      * the local MBS, we then register our listener with the local MBS. This will cause the local MBS to register the
      * listener with the coherence management framework, leading to the listener being registered with the RemoteModel.
-     * The RemoteModel in turn is then updated with a listener and it registers with the Emitter Mbean. When the
+     * The RemoteModel in turn is then updated with a listener, and it registers with the Emitter Mbean. When the
      * MBean then calls handle notification, the notification is sent back to the local server's RemoteModel which will
      * pass the notification on to the TestListener registered by the Local MBS. The TriggerInvocable is then used to
      * trigger a second notification using the Coherence trigger API.
@@ -1250,8 +1288,7 @@ public class JmxTests
     @Test
     public void testRemoteEmitterMBean()
             throws MalformedObjectNameException,
-            IntrospectionException, InstanceNotFoundException,
-            ReflectionException, InterruptedException
+            IntrospectionException, InstanceNotFoundException, ReflectionException
         {
         Properties propsMain = new Properties();
         propsMain.put("coherence.management", "all");
@@ -1273,20 +1310,21 @@ public class JmxTests
             assertEquals("cluster already exists", 1, cluster.getMemberSet().size());
 
             CoherenceClusterMember clusterMember = startCacheServer("emitter2", PROJECT, null, propsSecond);
-            Eventually.assertThat(invoking(clusterMember).getClusterSize(), is(2));
-            Eventually.assertThat(invoking(clusterMember).isServiceRunning(INVOCATION_SERVICE_NAME), is(true));
-            Eventually.assertThat(invoking(clusterMember).isServiceRunning("InvocationService"), is(true));
+            Eventually.assertDeferred(clusterMember::getClusterSize, is(2));
+            Eventually.assertDeferred(() -> clusterMember.isServiceRunning(INVOCATION_SERVICE_NAME), is(true));
+            Eventually.assertDeferred(() -> clusterMember.isServiceRunning("InvocationService"), is(true));
 
             final MBeanServer serverJMX = MBeanHelper.findMBeanServer();
             try
                 {
                 Member member2 = findCacheServer("emitter2");
-                assertTrue("Failed to start the emitter2 node", member2 != null);
+                assertNotNull("Failed to start the emitter2 node", member2);
 
                 String sNode2 = sDomain + ":" + Registry.NODE_TYPE + ",nodeId=" + member2.getId();
  
                 // wait for the remote MBeans registration
-                Eventually.assertThat(invoking(this).isMBeanRegistered(serverJMX, new ObjectName(sNode2)), is(true));
+                ObjectName oName1 = new ObjectName(sNode2);
+                Eventually.assertDeferred(() -> isMBeanRegistered(serverJMX, oName1), is(true));
 
                 // Get the invocation service
                 InvocationService service    = (InvocationService) cluster.getService(INVOCATION_SERVICE_NAME);
@@ -1296,16 +1334,17 @@ public class JmxTests
                 service.query(new RegisterEmitterInvocable(), setMembers);
 
                 // validate that the emitter class has been registered for the node
-                final String     sName =  TestEmitter.EMITTER_NAME + ",nodeId=" + member2.getId();
-                final ObjectName oName = new ObjectName(sName);
+                String     sName =  TestEmitter.EMITTER_NAME + ",nodeId=" + member2.getId();
+                ObjectName oName2 = new ObjectName(sName);
 
-                MBeanInfo info = serverJMX.getMBeanInfo(oName);
+                Eventually.assertDeferred(() -> isMBeanRegistered(serverJMX, oName2), is(true));
+                MBeanInfo info = serverJMX.getMBeanInfo(oName2);
 
                 assertEquals("Failed to register Emitter Bean:", info.getClassName(), TestEmitter.class.getName());
 
                 // Add a notification listener
                 TestListener listener = new TestListener();
-                serverJMX.addNotificationListener(oName, listener, null, null);
+                serverJMX.addNotificationListener(oName2, listener, null, null);
 
                 // Modify the remote value
                 service.query(new ModifyEmitterInvocable(),  setMembers);
@@ -1322,12 +1361,12 @@ public class JmxTests
                 // Stop the remote cache server and ensure that the custom MBean is unregistered.
                 stopCacheServer("emitter2");
 
-                Eventually.assertThat(invoking(this).isMBeanRegistered(serverJMX, oName), is(false));
+                Eventually.assertDeferred(() -> isMBeanRegistered(serverJMX, oName2), is(false));
                 }
             finally
                 {
                 stopCacheServer("emitter2");
-                assertTrue("Failed to stop", findCacheServer("emitter2") == null);
+                assertNull("Failed to stop", findCacheServer("emitter2"));
                 }
             }
         finally
@@ -1352,7 +1391,7 @@ public class JmxTests
             MBeanServer server    = MBeanHelper.findMBeanServer();
             ObjectName  oBeanName = new ObjectName("Coherence:type=Service,name=" + sService + ",nodeId=" + nodeId);
 
-            Eventually.assertThat(invoking(this).getMbeanAttribute(server, oBeanName, "StatusHA"), is((Object) sTrueStatus));
+            Eventually.assertDeferred(() -> getMbeanAttribute(server, oBeanName, "StatusHA"), is(sTrueStatus));
             }
         catch (Exception e)
             {
@@ -1414,7 +1453,7 @@ public class JmxTests
         CoherenceClusterMember server = startCacheServer(sServerName, "jmx", FILE_CFG_CACHE, propsServer);
 
         Member member = findCacheServer(sServerName);
-        assertTrue("Failed to start the " + sServerName + " node", member != null);
+        assertNotNull("Failed to start the " + sServerName + " node", member);
 
         return server;
         }
@@ -1499,7 +1538,7 @@ public class JmxTests
         public void onEvent(TransactionEvent event)
             {
             Set<BinaryEntry> set = event.getEntrySet();
-            if (set != null && set.size() > 0)
+            if (set != null && !set.isEmpty())
                 {
                 for (BinaryEntry entry : set)
                     {
@@ -1511,6 +1550,7 @@ public class JmxTests
                             }
                         catch (Exception e)
                             {
+                            // empty
                             }
                         }
                     }
@@ -1521,7 +1561,7 @@ public class JmxTests
     /**
      * Listener used to validate notifications have occurred
      */
-    public class TestListener implements NotificationListener
+    public static class TestListener implements NotificationListener
         {
         public synchronized void handleNotification(Notification notification, Object o)
             {
@@ -1531,27 +1571,19 @@ public class JmxTests
 
         public synchronized int getCount(int iExpected)
             {
-            synchronized(this)
+            if (m_iCount != iExpected)
                 {
-                if (m_iCount == iExpected)
+                try
                     {
-                    return m_iCount;
+                    wait(1000);
                     }
-                else
+                catch (InterruptedException e)
                     {
-                    try
-                        {
-                        wait(1000);
-                        }
-                    catch (InterruptedException e)
-                        {
-                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                        }
+                    CacheFactory.err(e);
+                    }
 
-                    return m_iCount;
-                    }
                 }
-
+            return m_iCount;
             }
 
         private int m_iCount = 0;
@@ -1560,7 +1592,7 @@ public class JmxTests
     /**
      * Invocable used to register and modify the TestEmitterMBean on a remote server.
      */
-    public class RegisterEmitterInvocable
+    public static class RegisterEmitterInvocable
             extends AbstractInvocable implements Serializable
         {
         public void run()
@@ -1582,7 +1614,7 @@ public class JmxTests
     /**
      * Invocable used to register and modify the TestEmitterMBean on a remote server.
      */
-    public class ModifyEmitterInvocable
+    public static class ModifyEmitterInvocable
             extends AbstractInvocable implements Serializable
         {
         public void run()
@@ -1600,7 +1632,7 @@ public class JmxTests
                 }
             catch(Exception e)
                 {
-                e.printStackTrace();
+                CacheFactory.err(e);
                 }
             }
         }
@@ -1608,7 +1640,7 @@ public class JmxTests
     /**
      * Invocable used to register and modify the TestEmitterMBean on a remote server.
      */
-    public class TriggerInvocable
+    public static class TriggerInvocable
             extends AbstractInvocable implements Serializable
         {
 
@@ -1624,7 +1656,7 @@ public class JmxTests
                 }
             catch(Exception e)
                 {
-                e.printStackTrace();
+                CacheFactory.err(e);
                 }
             }
         }
@@ -1645,5 +1677,6 @@ public class JmxTests
      * A reference to logger to ensure it is not gc'd as jdk only holds a
      * weak reference to the logger.
      */
+    @SuppressWarnings("unused")
     private static Logger m_logger;
     }

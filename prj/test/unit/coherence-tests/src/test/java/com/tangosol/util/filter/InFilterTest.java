@@ -1,12 +1,15 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
 
+import com.tangosol.util.SimpleMapEntry;
+import com.tangosol.util.SimpleMapIndex;
+import com.tangosol.util.ValueExtractor;
 import org.junit.Test;
 import org.junit.runners.Parameterized;
 import org.junit.runner.RunWith;
@@ -40,7 +43,7 @@ public class InFilterTest
         m_fPartial = fPartial;
         }
 
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name ="ordered={0} partial={1}")
     public static Collection data() {
        Object[][] data = new Object[][]
             { new Object[] {Boolean.FALSE, Boolean.FALSE},
@@ -57,48 +60,46 @@ public class InFilterTest
     @Test
     public void testApplyIndex()
         {
-        // create the mocks
-        MapIndex index = mock(MapIndex.class);
+        // create the index
+        MapIndex<String, Integer, Integer> index = new SimpleMapIndex(IdentityExtractor.INSTANCE, m_fOrdered, null, null);
 
         // create the InFilter to be tested
-        IndexAwareFilter filter = new InFilter(IdentityExtractor.INSTANCE, new HashSet(Arrays.asList(3,2)));
+        InFilter<Integer, Integer> filter = new InFilter<>(IdentityExtractor.INSTANCE(), Set.of(3, 2));
 
-        Map mapIndexes = new HashMap();
+        Map<ValueExtractor<?, ?>, MapIndex<?, ?, ?>> mapIndexes = new HashMap<>();
         mapIndexes.put(IdentityExtractor.INSTANCE, index);
 
-        Map<String, Integer> mapFwd = new HashMap<>();
-        mapFwd.put("key1", 1);
-        mapFwd.put("key2", 2);
-        mapFwd.put("key3", 2);
-        mapFwd.put("key4", 4);
-        mapFwd.put("key5", 1);
-        mapFwd.put("key6", 2);
-        mapFwd.put("key7", 3);
-
-        // set mock expectations
-        when(index.isOrdered()).thenReturn(m_fOrdered);
-        when(index.isPartial()).thenReturn(m_fPartial);
-
-        for (Entry<String, Integer> entry : mapFwd.entrySet())
-            {
-            when(index.get(entry.getKey())).thenReturn(entry.getValue());
-            }
+        Map<String, Integer> map = new HashMap<>();
+        map.put("key1", 1);
+        map.put("key2", 2);
+        map.put("key3", 2);
+        map.put("key4", 4);
+        map.put("key5", 1);
+        map.put("key6", 2);
+        map.put("key7", 3);
 
         if (m_fPartial)
             {
-            mapFwd.put("key0", null);
-            mapFwd.put("key8", null);
-            mapFwd.put("key9", null);
-            mapFwd.put("key10", null);
+            map.put("key0", null);
+            map.put("key8", null);
+            map.put("key9", null);
+            map.put("key10", null);
+            }
+
+        for (Entry<String, Integer> entry : map.entrySet())
+            {
+            index.insert(entry);
             }
 
         // begin test
-        Set setKeys = new HashSet(mapFwd.keySet());
+        Set<String> setKeys = new HashSet<>(map.keySet());
+        assertEquals(4, filter.calculateEffectiveness(mapIndexes, setKeys));
+
         filter.applyIndex(mapIndexes, setKeys);
 
         assertEquals(4, setKeys.size());
 
-        assertTrue("key1 should not have been removed.", setKeys.contains("key2"));
+        assertTrue("key2 should not have been removed.", setKeys.contains("key2"));
         assertTrue("key3 should not have been removed.", setKeys.contains("key3"));
         assertTrue("key6 should not have been removed.", setKeys.contains("key6"));
         assertTrue("key7 should not have been removed.", setKeys.contains("key7"));

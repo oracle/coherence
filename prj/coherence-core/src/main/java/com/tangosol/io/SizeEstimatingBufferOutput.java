@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io;
 
 import java.io.IOException;
-
+import java.nio.ByteBuffer;
 
 /**
  * SizeEstimatingBufferOutput is a WriteBuffer.BufferOutput implementation which writes nothing, and simply maintains
@@ -134,6 +134,12 @@ public class SizeEstimatingBufferOutput
     public WriteBuffer getBuffer()
         {
         throw new UnsupportedOperationException();
+        }
+
+    public ByteBuffer getByteBuffer(int cb)
+        {
+        m_cb += cb;
+        return ByteBuffer.allocate(cb);
         }
 
     @Override

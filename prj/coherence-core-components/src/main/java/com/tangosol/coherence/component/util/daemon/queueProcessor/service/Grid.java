@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,7 @@
 
 package com.tangosol.coherence.component.util.daemon.queueProcessor.service;
 
+import com.oracle.coherence.common.collections.NullableSortedMap;
 import com.tangosol.coherence.component.net.Cluster;
 import com.tangosol.coherence.component.net.Member;
 import com.tangosol.coherence.component.net.MemberSet;
@@ -46,6 +47,7 @@ import com.tangosol.internal.net.service.grid.DefaultGridDependencies;
 import com.tangosol.internal.net.service.grid.GridDependencies;
 import com.tangosol.internal.tracing.Scope;
 import com.tangosol.internal.tracing.Span;
+import com.tangosol.internal.tracing.SpanContext;
 import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.internal.util.MessagePublisher;
 import com.tangosol.internal.util.NullMessagePublisher;
@@ -57,6 +59,7 @@ import com.tangosol.io.WrapperDataOutputStream;
 import com.tangosol.io.WriteBuffer;
 import com.tangosol.license.LicenseException;
 import com.tangosol.net.ActionPolicy;
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.GuardSupport;
 import com.tangosol.net.MemberEvent;
 import com.tangosol.net.MemberListener;
@@ -76,7 +79,6 @@ import com.tangosol.util.Listeners;
 import com.tangosol.util.LiteMap;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.ObservableHashMap;
-import com.tangosol.util.SafeSortedMap;
 import com.tangosol.util.WrapperException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -93,12 +95,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.IntPredicate;
 import javax.management.Notification;
 
 /**
@@ -147,8 +151,9 @@ import javax.management.Notification;
  * 12   * RESERVED for join protocol compatibility *
  * 13   * RESERVED for join protocol compatibility *
  * 17   * RESERVED for join protocol compatibility *
+ * 18    MemberRecovered
  */
-@SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
+@SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment", "JavadocBlankLines", "JavadocDeclaration", "EnhancedSwitchMigration"})
 public abstract class Grid
         extends    com.tangosol.coherence.component.util.daemon.queueProcessor.Service
         implements com.tangosol.internal.util.GridComponent,
@@ -550,6 +555,7 @@ public abstract class Grid
         __mapChildren.put("DispatchNotification", Grid.DispatchNotification.get_CLASS());
         __mapChildren.put("MemberConfigUpdate", Grid.MemberConfigUpdate.get_CLASS());
         __mapChildren.put("MemberJoined", Grid.MemberJoined.get_CLASS());
+        __mapChildren.put("MemberRecovered", Grid.MemberRecovered.get_CLASS());
         __mapChildren.put("MemberWelcome", Grid.MemberWelcome.get_CLASS());
         __mapChildren.put("MemberWelcomeRequest", Grid.MemberWelcomeRequest.get_CLASS());
         __mapChildren.put("MemberWelcomeRequestTask", Grid.MemberWelcomeRequestTask.get_CLASS());
@@ -2532,14 +2538,94 @@ public abstract class Grid
         }
     
     /**
-     * Check whether the specified members runs a version that precedes the
-    * specified one.
+     * Check whether the members of this service run a version that is greater than
+     * or equal to the specified version.
+     *
+     * @param nMajor     the major version number
+     * @param nMinor     the minor version number
+     * @param nMicro     the micro version number
+     * @param nPatchSet  the patch set version number
+     * @param nPatch     the patch version number
+     *
+     * @return {@code true} if the members of the service are all running a version that
+     *         is greater than or equal to the specified version
      */
-    protected boolean isVersionCompatible(com.tangosol.coherence.component.net.Member member, int nVersion)
+    public boolean isVersionCompatible(int nMajor, int nMinor, int nMicro, int nPatchSet, int nPatch)
+        {
+        int nEncoded = ServiceMemberSet.encodeVersion(nMajor, nMinor, nMicro, nPatchSet, nPatch);
+        return isVersionCompatible(nEncoded);
+        }
+
+    /**
+     * Check whether the members of this service run a version that is greater than
+     * or equal to the specified version.
+     *
+     * @param nYear   the year version number
+     * @param nMonth  the month version number
+     * @param nPatch  the patch version number
+     *
+     * @return {@code true} if the members of the service are all running a version that
+     *         is greater than or equal to the specified version
+     */
+    public boolean isVersionCompatible(int nYear, int nMonth, int nPatch)
+        {
+        int nEncoded = ServiceMemberSet.encodeVersion(nYear, nMonth, nPatch);
+        return isVersionCompatible(nEncoded);
+        }
+
+    /**
+     * Check whether the members of this service run a version that is greater than
+     * or equal to the specified version.
+     *
+     * @param nVersion  the encoded version to compare
+     *
+     * @return {@code true} if the members of the service are all running a version that
+     *         is greater than or equal to the specified version
+     */
+    public boolean isVersionCompatible(int nVersion)
+        {
+        MasterMemberSet memberSet = getClusterMemberSet();
+        return memberSet != null && memberSet.isVersionCompatible(nVersion);
+        }
+
+    /**
+     * Check whether the members of this service run a minimum service version
+     * that matches a specified {@link IntPredicate}.
+     *
+     * @param predicate  an {@link IntPredicate} to apply to the minimum encoded service version
+     *
+     * @return {@code true} if the minimum service version matches the predicate
+     */
+    public boolean isVersionCompatible(IntPredicate predicate)
+        {
+        MasterMemberSet memberSet = getClusterMemberSet();
+        return memberSet != null && memberSet.isVersionCompatible(predicate);
+        }
+
+    /**
+     * Return the minimum Coherence version being run by members of this service.
+     *
+     * @return  the minimum Coherence version being run by members of this service,
+     *          or zero if the service member set is {@code null}.
+     */
+    public int getMinimumServiceVersion()
+        {
+        MasterMemberSet memberSet = getClusterMemberSet();
+        return memberSet == null ? 0 : memberSet.getMinimumVersion();
+        }
+
+    /**
+     * Check whether the specified member run a version that is greater than
+     * or equal to the specified one.
+     *
+     * @param member    the {@link com.tangosol.coherence.component.net.Member} member to check
+     * @param nVersion  the encoded version to compare
+     */
+    public boolean isVersionCompatible(com.tangosol.coherence.component.net.Member member, int nVersion)
         {
         return getClusterMemberSet().getServiceVersionInt(member.getId()) >= nVersion;
         }
-    
+
     /**
      * Check whether the specified members runs a version that precedes the
     * specified one.
@@ -2567,7 +2653,7 @@ public abstract class Grid
      * Check whether any of the members in the specified MemberSet run a version
     * that precedes the specified one.
      */
-    protected boolean isVersionCompatible(com.tangosol.coherence.component.net.MemberSet setMembers, int nVersion)
+    public boolean isVersionCompatible(com.tangosol.coherence.component.net.MemberSet setMembers, int nVersion)
         {
         // import Component.Net.MemberSet.ActualMemberSet.ServiceMemberSet.MasterMemberSet as com.tangosol.coherence.component.net.memberSet.actualMemberSet.serviceMemberSet.MasterMemberSet;
         
@@ -2619,7 +2705,37 @@ public abstract class Grid
         return isVersionCompatible(setMembers,
             com.tangosol.coherence.component.net.memberSet.actualMemberSet.serviceMemberSet.MasterMemberSet.encodeVersion(nMajor, nMinor, nMicro, nPatchSet, nPatch));
         }
-    
+
+    public boolean isPatchCompatible(Member member, int nEncodedVersion)
+        {
+        return getClusterMemberSet().isPatchCompatible(member.getId(), nEncodedVersion);
+        }
+
+    public boolean isPatchCompatible(MemberSet setMembers, int nEncodedVersion)
+        {
+        if (setMembers.isEmpty())
+            {
+            return true;
+            }
+
+        MasterMemberSet setMaster = getClusterMemberSet();
+        int[]           anId      = setMembers.toIdArray();
+
+        for (int i = 0; i < anId.length; i++)
+            {
+            if (anId[i] == 0)
+                {
+                continue;
+                }
+            if (!setMaster.isPatchCompatible(anId[i], nEncodedVersion))
+                {
+                return false;
+                }
+            }
+
+        return true;
+        }
+
     /**
      * Check whether the specified member is welcomed by the local member.
      */
@@ -3030,11 +3146,17 @@ public abstract class Grid
                
                 if (fTracing)
                     {
-                    span = newTracingSpan(msg instanceof Runnable ? "dispatch" : "process", msg)
-                            .setParent(((RequestMessage) msg).getTracingSpanContext())
+                    SpanContext  ctx     = msg.getTracingSpanContext();
+                    Span.Builder builder = newTracingSpan(msg instanceof Runnable ? "dispatch" : "process", msg)
                             .withMetadata("member.source",
-                                Long.valueOf(memberFrom == null ? -1 : memberFrom.getId()).longValue())
-                            .startSpan();
+                                          Long.valueOf(memberFrom == null ? -1 : memberFrom.getId()).longValue());
+
+                    if (!TracingHelper.isNoop(ctx))
+                        {
+                        builder.setParent(ctx);
+                        }
+
+                    span  = builder.startSpan();
                     scope = TracingHelper.getTracer().withSpan(span);
                     }
         
@@ -3223,7 +3345,7 @@ public abstract class Grid
     
     /**
      * Called to complete the "service-left" processing for the specified
-    * member.  This notification is processed only after the the associated
+    * member.  This notification is processed only after the associated
     * endpoint has been released by the message handler.  See
     * $NotifyServiceLeft#onReceived/#proceed.
     * Called on the service thread only.
@@ -3435,15 +3557,19 @@ public abstract class Grid
         
                         if (cDelayMillis > 0)
                             {
-                            Grid    service = (Grid) get_Module();
-                            com.tangosol.coherence.component.util.DaemonPool pool    = service.getDaemonPool();
+                            Grid service = (Grid) get_Module();
+                            com.tangosol.coherence.component.util.DaemonPool pool = service.getDaemonPool();
         
-                            if (pool.getDaemonCount() == 0)
+                            if (pool.isStarted())
                                 {
-                                pool.setDaemonCount(1);
-                                pool.start();
-                                }                   
-                            pool.schedule(task, cDelayMillis);
+                                pool.schedule(task, cDelayMillis);
+                                }
+                            else
+                                {
+                                ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+                                scheduler.schedule(task, cDelayMillis, TimeUnit.MILLISECONDS);
+                                scheduler.shutdown();
+                                }
                             }
                         else
                             {
@@ -8603,6 +8729,170 @@ public abstract class Grid
             }
         }
 
+    /**
+     * This Message is used to signal that recovery has completed either as 
+     * part of active persistence or snapshot recovery.
+     */
+    @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
+    public static class MemberRecovered
+            extends    com.tangosol.coherence.component.net.Message
+        {
+        // ---- Fields declarations ----
+
+        /**
+         * Property MemberId
+         *
+         * The ID of the member who has recovered.
+         */
+        private int __m_MemberId;
+
+        // Default constructor
+        public MemberRecovered()
+            {
+            this(null, null, true);
+            }
+
+        // Initializing constructor
+        public MemberRecovered(String sName, com.tangosol.coherence.Component compParent, boolean fInit)
+            {
+            super(sName, compParent, false);
+
+            if (fInit)
+                {
+                __init();
+                }
+            }
+
+        // Main initializer
+        public void __init()
+            {
+            // private initialization
+            __initPrivate();
+
+            // state initialization: public and protected properties
+            try
+                {
+                setMessageType(18);
+                }
+            catch (java.lang.Exception e)
+                {
+                // re-throw as a runtime exception
+                throw new com.tangosol.util.WrapperException(e);
+                }
+
+            // signal the end of the initialization
+            set_Constructed(true);
+            }
+
+        // Private initializer
+        protected void __initPrivate()
+            {
+
+            super.__initPrivate();
+            }
+
+        //++ getter for static property _Instance
+        /**
+         * Getter for property _Instance.<p>
+         * Auto generated
+         */
+        public static com.tangosol.coherence.Component get_Instance()
+            {
+            return new com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.MemberRecovered();
+            }
+
+        //++ getter for static property _CLASS
+        /**
+         * Getter for property _CLASS.<p>
+         * Property with auto-generated accessor that returns the Class object
+         * for a given component.
+         */
+        public static Class get_CLASS()
+            {
+            Class clz;
+            try
+                {
+                clz = Class.forName("com.tangosol.coherence/component/util/daemon/queueProcessor/service/Grid$MemberRecovered".replace('/', '.'));
+                }
+            catch (ClassNotFoundException e)
+                {
+                throw new NoClassDefFoundError(e.getMessage());
+                }
+            return clz;
+            }
+
+        //++ getter for autogen property _Module
+        /**
+         * This is an auto-generated method that returns the global [design
+         * time] parent component.
+         * 
+         * Note: the class generator will ignore any custom implementation for
+         * this behavior.
+         */
+        private com.tangosol.coherence.Component get_Module()
+            {
+            return this.get_Parent();
+            }
+
+        // Declared at the super level
+        /**
+         * Getter for property Description.<p>
+         * Used for debugging purposes (from toString). Create a human-readable
+         * description of the specific Message data.
+         */
+        public String getDescription()
+            {
+            return "MemberRecovered=" + getFromMember();
+            }
+
+        // Accessor for the property "MemberId"
+        /**
+         * Getter for property MemberId.<p>
+         * The ID of the member who has recovered.
+         */
+        public int getMemberId()
+            {
+            return __m_MemberId;
+            }
+
+        // Declared at the super level
+        public void onReceived()
+            {
+            super.onReceived();
+            Grid   service = (Grid) get_Module();
+            Member member  = service.getServiceMemberSet().getMember(getMemberId());
+            service.dispatchMemberEvent(member, MemberEvent.MEMBER_RECOVERED);
+            }
+
+        // Declared at the super level
+        public void read(com.tangosol.io.ReadBuffer.BufferInput input)
+                throws java.io.IOException
+            {
+            super.read(input);
+
+            setMemberId(input.readInt());
+            }
+
+        // Accessor for the property "MemberId"
+        /**
+         * Setter for property MemberId.<p>
+         * The ID of the member who has recovered.
+         */
+        public void setMemberId(int nId)
+            {
+            __m_MemberId = nId;
+            }
+
+        // Declared at the super level
+        public void write(com.tangosol.io.WriteBuffer.BufferOutput output)
+                throws java.io.IOException
+            {
+            super.write(output);
+
+            output.writeInt(getMemberId());
+            }
+        }
+
     // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid$MemberWelcome
     
     /**
@@ -13374,7 +13664,7 @@ public abstract class Grid
          * PollExpiryMap holds the polls that auto-expire, keyed by the expiry
          * time.
          */
-        private com.tangosol.util.SafeSortedMap __m_ExpiryMap;
+        private NullableSortedMap __m_ExpiryMap;
         
         /**
          * Property LastNullPollId
@@ -13443,7 +13733,7 @@ public abstract class Grid
             // state initialization: public and protected properties
             try
                 {
-                setExpiryMap(new com.tangosol.util.SafeSortedMap());
+                setExpiryMap(new NullableSortedMap());
                 }
             catch (java.lang.Exception e)
                 {
@@ -13617,12 +13907,11 @@ public abstract class Grid
             // import java.util.Map$Entry as java.util.Map.Entry;
             // import java.util.NoSuchElementException;
             // import java.util.Set;
-            // import com.tangosol.util.SafeSortedMap;
-            
-            SafeSortedMap map = getExpiryMap();
+
+            NullableSortedMap map = (NullableSortedMap) getExpiryMap();
             
             // most of the time we will have nothing to do, so start by just checking
-            // if there oldest key has yet to expire
+            // if their oldest key has yet to expire
             try
                 {
                 if (map.isEmpty() || ((Long) map.firstKey()).longValue() > ldt)
@@ -13691,7 +13980,7 @@ public abstract class Grid
         * PollExpiryMap holds the polls that auto-expire, keyed by the expiry
         * time.
          */
-        public com.tangosol.util.SafeSortedMap getExpiryMap()
+        public Map getExpiryMap()
             {
             return __m_ExpiryMap;
             }
@@ -13819,9 +14108,9 @@ public abstract class Grid
         * PollExpiryMap holds the polls that auto-expire, keyed by the expiry
         * time.
          */
-        protected void setExpiryMap(com.tangosol.util.SafeSortedMap mapExpiry)
+        protected void setExpiryMap(Map mapExpiry)
             {
-            __m_ExpiryMap = mapExpiry;
+            __m_ExpiryMap = (NullableSortedMap) mapExpiry;
             }
         
         // Accessor for the property "LastNullPollId"

@@ -116,9 +116,9 @@ public class BooksIT
         }
 
 
-    @RegisterExtension
-    @Order(1)
-    static TestLogsExtension s_testLogsExtension = new TestLogsExtension(BooksIT.class);
+//    @RegisterExtension
+//    @Order(1)
+//    static TestLogsExtension s_testLogsExtension = new TestLogsExtension(BooksIT.class);
 
     @RegisterExtension
     @Order(2)
@@ -127,8 +127,8 @@ public class BooksIT
                   DisplayName.of("Storage"),
                   IPv4Preferred.yes(),
                   WellKnownAddress.loopback(),
-                  LocalHost.only(),
-                  s_testLogsExtension)
+                  LocalHost.only())
+                  // s_testLogsExtension)
             .include(3, CoherenceClusterMember.class);
 
     private static Coherence s_coherence;

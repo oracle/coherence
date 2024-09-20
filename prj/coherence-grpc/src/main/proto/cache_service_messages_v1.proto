@@ -1,0 +1,404 @@
+/*
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+// -----------------------------------------------------------------
+// Messages used by the Coherence gRPC NamedCache Service.
+//
+// NOTE: If you add a new request message to this message the current
+// protocol version in com.oracle.coherence.grpc.NamedCacheProtocol must
+// be increased. This only needs to be done once for any given Coherence
+// release.
+// -----------------------------------------------------------------
+
+syntax = "proto3";
+
+package coherence.cache.v1;
+
+import "common_messages_v1.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+option java_multiple_files = true;
+option java_package = "com.oracle.coherence.grpc.messages.cache.v1";
+
+// An enum representing the types of request for a Named Cache Service proxy
+//
+// NOTE: The index numbers for the enum elements MUST NOT BE CHANGED as
+// that would break backwards compatibility. Only new index numbers can
+// be added.
+//
+enum NamedCacheRequestType {
+    // An unknown message.
+    // This request type is not used, it is here as enums must have a zero value,
+    // but we need to know the difference between a zero value and the field being 
+    // incorrectly set.
+    Unknown = 0;
+    // Called to ensure a cache.
+    // Must be the first message called prior to any other cache requests.
+    // The message field must be an EnsureCacheRequest.
+    // The response will contain the Cache Id and an empty response field.
+    EnsureCache = 1;
+    // Execute an aggregator on the cache and return the result.
+    // The message field must contain an ExecuteRequest where the agent field
+    // is the serialized aggregator.
+    // The response will be a BytesValue containing the aggregator result.
+    Aggregate = 2;
+    // Clear the specified cache.
+    // The message field should not be set.
+    // The response will just be a Complete message corresponding to the request id.
+    Clear = 3;
+    // Determine whether the specified cache is contains a specified key mapped
+    // to a specified value.
+    // The message field must contain a BinaryKeyAndValue that contains the
+    // serialized key and value.
+    // The response will contain the Cache Id and a BoolValue in the response field.
+    ContainsEntry = 4;
+    // Determine whether the specified cache is contains a specified key.
+    // The message field must contain a BytesValue that contains the
+    // serialized key.
+    // The response will contain the Cache Id and a BoolValue in the response field.
+    ContainsKey = 5;
+    // Determine whether the specified cache is contains a specified value.
+    // The message field must contain a BytesValue that contains the
+    // serialized value.
+    // The response will contain the Cache Id and a BoolValue in the response field.
+    ContainsValue = 6;
+    // Destroy the specified cache.
+    // The message field should not be set.
+    // The response will just be a Complete message corresponding to the request id.
+    Destroy = 7;
+    // Determine whether the specified cache is empty.
+    // The message field should not be set.
+    // The response will contain the Cache Id and a BoolValue in the response field.
+    IsEmpty = 8;
+    // Determine whether the specified cache is ready.
+    // The message field should not be set.
+    // The response will contain the Cache Id and a BoolValue in the response field.
+    IsReady = 9;
+    // Determine whether the specified cache is contains a specified key.
+    // The message field must contain a BytesValue that contains the
+    // serialized key of the entry to get.
+    // The response will contain the Cache Id and an OptionalValue that will be empty
+    // if the cache did not contain an entry for the key or will contain the value from
+    // the cache.
+    Get = 10;
+    // Return the values from the specified cache that are mapped to a collection of keys.
+    // The message field must contain a CollectionOfBytesValues that contains the
+    // serialized keys of the entries to get.
+    // There will be multiple responses containing the Cache Id and an BinaryKeyAndValue for
+    // each requested key.
+    GetAll = 11;
+    // Add or remove an index.
+    // The message field must contain an IndexRequest.
+    // The response will just be a Complete message corresponding to the request id.
+    Index = 12;
+    // Execute an entry processor against a single entry in the cache and return the result.
+    // The message field must contain a ExecuteRequest where the agent field
+    // is the serialized entry processor.
+    // The response will be a stream of BinaryKeyAndValue values followed by a Complete 
+    // message to signal the end of the response stream.
+    Invoke = 13;
+    // Add or remove a MapListener.
+    // The message field must contain a MapListenerRequest.
+    // The response will just be a Complete message corresponding to the request id.
+    MapListener = 14;
+    // Retrieve a page of entries from the cache
+    // The message field must contain a BytesValue that is the opaque cookie returned
+    // by a previous page request, or an empty (or not set) BytesValue to retrieve the
+    // first page.
+    // The response will be a stream of results. The first response will be a BytesValue
+    // which is the new cookie, followed by a stream of BinaryKeyAndValue messages for
+    // each cache entry in the page, finally followed by a Complete message to signal
+    // the end of the response stream.
+    PageOfEntries = 15;
+    // Retrieve a page of keys from the cache
+    // The message field must contain a BytesValue that is the opaque cookie returned
+    // by a previous page request, or an empty (or not set) BytesValue to retrieve the
+    // first page.
+    // The response will be a stream of results. The first response will be a BytesValue
+    // which is the new cookie, followed by a stream of BytesValue messages for
+    // each cache key in the page, finally followed by a Complete message to signal
+    // the end of the response stream.
+    PageOfKeys = 16;
+    // Add a key and value to the cache, with an optional TTL.
+    // The message field must contain a PutRequest that contains the
+    // serialized key, serialized value and optional TTL.
+    // The response will contain the Cache Id and an BytesValue that will be empty
+    // if the cache did not contain an entry for the key or will contain the previous
+    // value from the cache that was mapped to the key.
+    Put = 17;
+    // Add a set of keys and values to the cache, with an optional TTL.
+    // The message field must contain a PutAllRequest that contains the
+    // serialized keys and values and optional TTL.
+    // The response will just be a Complete message corresponding to the request id.
+    PutAll = 18;
+    // Add a key and value to the cache if a value is not already mapped to the key.
+    // The message field should contain a PutRequest that contains the
+    // serialized key, serialized value.
+    // The response will contain the Cache Id and an BytesValue that will contain the
+    // serialized previous value mapped to the key.
+    PutIfAbsent = 19;
+    // Execute a query for cache entries
+    // The message field must contain a QueryRequest 
+    // The response will be a stream of BinaryKeyAndValue representing each cache entry 
+    // in the results of the query, finally followed by a Complete message to signal
+    // the end of the response stream.
+    QueryEntries = 20;
+    // Execute a query for cache keys
+    // The message field must contain a QueryRequest 
+    // The response will be a stream of BytesValue representing each cache key in 
+    // the results of the query, finally followed by a Complete message to signal
+    // the end of the response stream.
+    QueryKeys = 21;
+    // Execute a query for cache values
+    // The message field must contain a QueryRequest 
+    // The response will be a stream of BytesValue representing each cache value in 
+    // the results of the query, finally followed by a Complete message to signal
+    // the end of the response stream.
+    QueryValues = 22;
+    // Remove an entry from the cache.
+    // The message field must contain a BytesValue that contains the
+    // serialized key of the entry to remove.
+    // The response will contain the Cache Id and an BytesValue that will be empty
+    // if the cache did not contain an entry for the key or will contain the value from
+    // the cache.
+    Remove = 23;
+    // Remove an entry from the cache if the specified key maps to the specified value.
+    // The message field must contain a BinaryKeyAndValue that contains the
+    // serialized key and expected value of the entry to remove.
+    // The response will contain the Cache Id and an BoolValue that will true if the
+    // entry was removed.
+    RemoveMapping = 24;
+    // Replace an entry in the cache only if the key is currently mapped to a value.
+    // The message field must contain a BinaryKeyAndValue that contains the
+    // serialized key of the entry to replace and the serialized value to map to the
+    // key.
+    // The response will contain the Cache Id and an BytesValue that will contain the
+    // serialized previous value mapped to the key.
+    Replace = 25;
+    // Replace an entry in the cache only if the key is currently mapped to a
+    // specified value.
+    // The message field must contain a ReplaceMappingRequest that contains the
+    // serialized key of the entry to replace, the serialized expected value and the
+    // serialized new value to map to the key.
+    // The response will contain the Cache Id and an BoolValue that will be true if
+    // the cache mapping was updated.
+    ReplaceMapping = 26;
+    // Obtain the size of the specified cache.
+    // The message field should not be set.
+    // The response will contain the Cache Id and an Int32Value in the response field.
+    Size = 27;
+    // Truncate the specified cache.
+    // The message field should not be set.
+    // The response will just be a Complete message corresponding to the request id.
+    Truncate = 28;
+}
+
+// A request to perform an operation on a remote NamedCache.
+message NamedCacheRequest {
+    // The type of the request
+    NamedCacheRequestType type = 1;
+    // The cache identifier for the request.
+    // The identifier must be the same value returned by the initial ensure cache request.
+    // This is optional only for EnsureCache as this cannot have a cache identifier
+    optional int32 cacheId = 2;
+    // The actual request message, this is optional because some messages do not require
+    // a message body, for example cache.size()
+    // The actual request message should be packed inside an Any message and set in this field.
+    // The proxy will know which message type to expect here based on the "type" field's value.
+    optional google.protobuf.Any message = 3;
+}
+
+// An enum representing different types of response.
+//
+// NOTE: The index numbers for the enum elements MUST NOT BE CHANGED as
+// that would break backwards compatibility. Only new index numbers can
+// be added.
+enum ResponseType {
+    // The response is a message.
+    Message = 0;
+    // The response is a map event.
+    MapEvent = 1;
+    // The response is destroy event
+    Destroyed = 2;
+    // The response is truncated event
+    Truncated = 3;
+}
+
+// A response message from a Named Cache Service proxy.
+//
+// NOTE: If you add a new request message to this message the protocol
+// version in com.oracle.coherence.grpc.NamedCacheProtocol must be
+// increased. This only needs to be done once for any given Coherence
+// release.
+message NamedCacheResponse {
+    // The cache identifier for the request
+    int32 cacheId = 1;
+    // An enum representing different response types.
+    // The type of the request.
+    ResponseType type = 2;
+    // The response can contain one of a number of response types
+    // The sender of the corresponding request should know which
+    // response type it expects
+    optional google.protobuf.Any message = 3;
+}
+
+// A request to ensure a specific cache.
+message EnsureCacheRequest {
+    // The name of the cache.
+    string cache = 1;
+}
+
+// A request to associate the specified value with the
+// specified key in a cache with an optional TTL.
+message PutRequest {
+    // The cache entry key.
+    bytes key = 1;
+    // The value of the entry.
+    bytes value = 2;
+    // The time to live in millis.
+    optional int64 ttl = 3;
+}
+
+// A request to associate the specified value with the
+// specified key in a cache with an optional TTL.
+message PutAllRequest {
+    // The cache entries to put.
+    repeated coherence.common.v1.BinaryKeyAndValue entries = 1;
+    // The time to live in millis.
+    optional int64 ttl = 2;
+}
+
+// A request to replace the mapping for the specified key
+// with the specified newValue in a cache only if the specified
+// key is associated with the specified previousValue in
+// that cache.
+message ReplaceMappingRequest {
+    // The key of the entry to be replaced.
+    bytes key = 1;
+    // The previous value that should exist in the cache.
+    bytes previousValue = 2;
+    // The new value to put.
+    bytes newValue = 3;
+}
+
+// A request to add or remove an index to a cache
+message IndexRequest {
+    // True to add an index, false to remove an index
+    bool add = 1;
+    // The serialized ValueExtractor to use to create or remove the index.
+    bytes extractor = 2;
+    // A flag indicating whether to sort the index.
+    // This is not required for index removal.
+    optional bool sorted = 3;
+    // The optional comparator to use to sort the index.
+    // This is not required for index removal.
+    optional bytes comparator = 4;
+}
+
+// A message containing either a single serialized key, or a
+// collection of serialized keys, or a serialized Filter.
+message KeysOrFilter {
+    oneof keyOrFilter {
+        // A single serialized key
+        bytes key = 1;
+        // The collection of serialized keys
+        coherence.common.v1.CollectionOfBytesValues keys = 2;
+        // The serialized filter
+        bytes filter = 3;
+    }
+}
+
+// A message containing either a single serialized key,
+// or a serialized Filter.
+message KeyOrFilter {
+    oneof keyOrFilter {
+        // A single serialized key
+        bytes key = 1;
+        // The serialized filter
+        bytes filter = 2;
+    }
+}
+
+// A request to aggregate entries in a cache.
+message ExecuteRequest {
+    // The serialized executable agent (for example an entry processor or aggregator).
+    bytes agent = 1;
+    // The optional collection of keys or filter to use to execute the agent.
+    optional KeysOrFilter keys = 3;
+}
+
+// A request cache query request.
+message QueryRequest {
+    // The serialized Filter to identify the data to return.
+    optional bytes filter = 1;
+    // The optional comparator to use to sort the returned data.
+    optional bytes comparator = 2;
+}
+
+// A message to subscribe to or unsubscribe from MapEvents for a cache.
+message MapListenerRequest {
+    // A flag indicating whether to subscribe to (true) or unsubscribe from (false) events.
+    bool subscribe = 1;
+    // The optional serialized key, or serialized Filter, to identify the entry
+    // (or entries) to subscribe to.
+    // If neither key nor filter are set then an Always filter will be used.
+    optional KeyOrFilter keyOrFilter = 2;
+    // A unique filter identifier used if the keyOrFilter contains a Filter.
+    int64 filterId = 3;
+    // A flag set to true to indicate that the MapEvent objects do
+    // not have to include the OldValue and NewValue property values
+    // in order to allow optimizations
+    bool lite = 4;
+    // Whether the listener is synchronous
+    bool synchronous = 5;
+    // A flag set to true to indicate that the listener is a priming listener.
+    // A priming listener can only be used when the keyOrFilter field contains
+    // a single key, or an InKeySetFilter.
+    bool priming = 6;
+    // An optional serialized MapTrigger.
+    bytes trigger = 7;
+}
+
+// A response containing a MapEvent for a MapListener
+message MapEventMessage {
+    // The type of the event
+    int32 id = 1;
+    // The key of the entry
+    bytes key = 2;
+    // The new value of the entry
+    bytes newValue = 3;
+    // The old value of the entry
+    bytes oldValue = 4;
+    // An enum of TransformationState values to describes how a CacheEvent has been or should be transformed.
+    enum TransformationState {
+        // Value used to indicate that an event is non-transformable and should
+        // not be passed to any transformer-based listeners.
+        NON_TRANSFORMABLE = 0;
+        // Value used to indicate that an event is transformable and could be
+        // passed to transformer-based listeners.
+        TRANSFORMABLE = 1;
+        // Value used to indicate that an event has been transformed, and should
+        // only be passed to transformer-based listeners.
+        TRANSFORMED = 2;
+    }
+    // TransformationState describes how a CacheEvent has been or should be transformed.
+    TransformationState transformationState = 5;
+    // The Filter identifiers applicable to the event.
+    repeated int64 filterIds = 6;
+    // A flag indicating whether the event is a synthetic event.
+    bool synthetic = 7;
+    // A flag indicating whether the event is a priming event.
+    bool priming = 8;
+    // A flag indicating whether this is an expiry event.
+    bool expired = 9;
+    // true iff this event is caused by a synthetic version update sent
+    // by the server to notify clients of the current version.
+    bool versionUpdate = 10;
+}

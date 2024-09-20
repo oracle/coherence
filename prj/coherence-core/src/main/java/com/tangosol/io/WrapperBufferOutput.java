@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io;
@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.ObjectOutput;
 import java.io.OutputStream;
 
+import java.nio.ByteBuffer;
 
 /**
 * This is an imitation BufferOutput implementation that provides the
@@ -223,6 +224,14 @@ public class WrapperBufferOutput
 
 
     // ----- BufferOutput interface -----------------------------------------
+
+    /**
+    * {@inheritDoc}
+    */
+    public ByteBuffer getByteBuffer(int cb)
+        {
+        return m_bufOut == null ? null : m_bufOut.getByteBuffer(cb);
+        }
 
     /**
     * {@inheritDoc}
@@ -466,6 +475,32 @@ public class WrapperBufferOutput
         public boolean isVersionCompatible(int nYear, int nMonth, int nPatch)
             {
             return f_message.isRecipientCompatible(nYear, nMonth, nPatch);
+            }
+
+        /**
+        * Determine whether all the recipients of the content of this BufferOutput
+        * run versions that supersede (greater or equal to) the specified
+        * version.
+        *
+        * @return true iff all the recipients' versions are greater or equal
+        *         to the specified one
+        */
+        public boolean isVersionCompatible(int nEncodedVersion)
+            {
+            return f_message.isRecipientCompatible(nEncodedVersion);
+            }
+
+        /**
+        * Determine whether all the recipients of the content of this BufferOutput
+        * run versions that are the same as the encode version with the same or a
+        * higher patch level.
+        *
+        * @return true iff all the recipients' versions are the same version with
+        *         the same or a higher patch level to the specified one
+        */
+        public boolean isPatchCompatible(int nEncodedVersion)
+            {
+            return f_message.isRecipientPatchCompatible(nEncodedVersion);
             }
 
 

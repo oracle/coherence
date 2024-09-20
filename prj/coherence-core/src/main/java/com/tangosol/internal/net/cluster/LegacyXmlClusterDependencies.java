@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package com.tangosol.internal.net.cluster;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.net.InetAddresses;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.config.ParameterMacroExpressionParser;
 import com.tangosol.coherence.config.builder.AddressProviderBuilder;
 import com.tangosol.coherence.config.builder.ListBasedAddressProviderBuilder;
@@ -17,8 +18,8 @@ import com.tangosol.coherence.config.builder.ServiceFailurePolicyBuilder;
 import com.tangosol.coherence.config.builder.SocketProviderBuilder;
 import com.tangosol.coherence.config.xml.OperationalConfigNamespaceHandler;
 import com.tangosol.coherence.config.xml.processor.AddressProviderBuilderProcessor;
-
 import com.tangosol.coherence.config.xml.processor.SocketProviderProcessor;
+
 import com.tangosol.config.ConfigurationException;
 import com.tangosol.config.expression.ChainedParameterResolver;
 import com.tangosol.config.expression.ScopedParameterResolver;
@@ -41,10 +42,10 @@ import com.tangosol.net.ConfigurableAddressProviderFactory;
 import com.tangosol.net.InetAddressHelper;
 import com.tangosol.net.SocketOptions;
 
+import com.tangosol.net.internal.SubstitutionAddressProvider;
+
 import com.tangosol.persistence.ConfigurableSnapshotArchiverFactory;
 import com.tangosol.persistence.SnapshotArchiverFactory;
-
-import com.tangosol.net.internal.SubstitutionAddressProvider;
 
 import com.tangosol.run.xml.SimpleElement;
 import com.tangosol.run.xml.XmlElement;
@@ -148,6 +149,10 @@ public class LegacyXmlClusterDependencies
         ctxPasswordProviders.processDocument(xmlPasswordProviders);
         ctxPasswordProviders.close();
 
+        // process the <license-mode> element.
+        String sMode = xml.getSafeElement("license-mode").getString("dev");
+        setMode(translateModeName(sMode));
+
         // process the <socket-providers> definitions.  could be referenced in unicast-listener/socket-provider.
         XmlElement xmlSocketProviders = xml.getSafeElement("socket-providers");
         DefaultProcessingContext ctxSocketProviders = new DefaultProcessingContext(ctxClusterConfig, xmlSocketProviders);
@@ -155,11 +160,18 @@ public class LegacyXmlClusterDependencies
         ctxSocketProviders.close();
 
         // process the <global-socket-provider> definition. This must be after processing the <socket-providers>
-        // definitions becuase the global provider may be a reference to an exiting provider.
+        // definitions because the global provider may be a reference to an exiting provider.
         XmlElement xmlGlobalSocketProvider = xml.getSafeElement("global-socket-provider");
         DefaultProcessingContext ctxGlobalSocketProvider = new DefaultProcessingContext(ctxClusterConfig, xmlGlobalSocketProvider);
         ctxGlobalSocketProvider.processDocument(xmlGlobalSocketProvider);
         ctxGlobalSocketProvider.close();
+
+        XmlElement xmlCommonPool = xml.getSafeElement("common-daemon-pool");
+        DefaultProcessingContext ctxCommonPool = new DefaultProcessingContext(ctxClusterConfig, xmlCommonPool);
+        ctxCommonPool.processDocument(xmlCommonPool);
+        ctxCommonPool.close();
+
+        setVirtualThreadsEnabled(xml.getSafeElement("virtual-threads-enabled").getBoolean(isVirtualThreadsEnabled()));
 
         // ------------------------------------------------------------------------
         // SUSPEND: Use CODI to parse the operational configuration
@@ -200,8 +212,6 @@ public class LegacyXmlClusterDependencies
         String sEdition = xml.getSafeElement("edition-name").getString("CE");
         setEdition(translateEditionName(sEdition));
 
-        String sMode = xml.getSafeElement("license-mode").getString("dev");
-        setMode(translateModeName(sMode));
         setLambdasSerializationMode(xml.getSafeElement("lambdas-serialization").getString());
 
         // ------------------------------------------------------------------------
@@ -962,14 +972,12 @@ public class LegacyXmlClusterDependencies
         Set<?> set = (Set<?>) provider;
         if (set.isEmpty())
             {
-            boolean fRetry = Boolean.getBoolean(PROP_WKA_RESOLVE_RETRY);
+            boolean fRetry = Config.getBoolean(PROP_WKA_RESOLVE_RETRY);
             if (fRetry)
                 {
-                long nTimeout = Long.parseLong(System.getProperty(PROP_WKA_TIMEOUT,
-                                        String.valueOf(DEFAULT_WKA_RESOLVE_TIMEOUT.toMillis())));
-                long nRetry   = Long.parseLong(System.getProperty(PROP_WKA_RESOLVE_FREQUENCY,
-                                        String.valueOf(DEFAULT_WKA_RESOLVE_FREQUENCY.toMillis())));
-                long nStart = System.currentTimeMillis();
+                long nTimeout = Config.getLong(PROP_WKA_TIMEOUT, DEFAULT_WKA_RESOLVE_TIMEOUT.toMillis());
+                long nRetry   = Config.getLong(PROP_WKA_RESOLVE_FREQUENCY, DEFAULT_WKA_RESOLVE_FREQUENCY.toMillis());
+                long nStart   = System.currentTimeMillis();
 
                 Logger.info("Failed to resolve WKA addresses, retrying for " + nTimeout + " millis");
                 while (set.isEmpty() && nTimeout > (System.currentTimeMillis() - nStart))

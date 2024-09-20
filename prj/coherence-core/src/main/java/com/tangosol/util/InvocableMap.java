@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -963,6 +963,29 @@ public interface InvocableMap<K, V>
          * @return the final result of the aggregation
          */
         public R finalizeResult();
+
+        /**
+         * Return the final result of the aggregation.
+         * <p/>
+         * This method has a default implementation that simply calls {@link #finalizeResult()}
+         * in order to avoid compilation errors and preserve backwards compatibility of custom
+         * aggregator implementations, even though it would make more sense to do it the other
+         * way around if we were designing this API from scratch.
+         * <p/>
+         * The unfortunate consequence is that even if you override this method in order to use
+         * the provided converter, you still need to implement {@link #finalizeResult()} method,
+         * although you could simply implement it to throw {@code java.lang.UnsupportedOperationException}.
+         * 
+         * @param convFromInternal  converter that can be used to convert result
+         *                          from internal format
+         *
+         * @return the final result of the aggregation
+         * @since 24.09
+         */
+        public default R finalizeResult(Converter<Binary, ?> convFromInternal)
+            {
+            return finalizeResult();
+            }
 
         /**
          * A bit mask representing the set of characteristics of this aggregator.

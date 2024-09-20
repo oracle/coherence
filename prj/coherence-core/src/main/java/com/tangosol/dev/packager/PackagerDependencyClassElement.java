@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.dev.packager;
@@ -113,7 +113,7 @@ public class PackagerDependencyClassElement
 
     /**
     * This method is used only by getDependents().
-    * Add the specified Class to the the collection if it is not the
+    * Add the specified Class to the collection if it is not the
     * packaged class itself, not primitive, and not already added.
     */
     private void addDependentClass(Hashtable collector, String className)

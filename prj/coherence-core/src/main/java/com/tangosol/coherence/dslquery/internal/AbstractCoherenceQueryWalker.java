@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.dslquery.internal;
 
@@ -11,6 +11,7 @@ import com.tangosol.coherence.config.SimpleParameterList;
 
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 
+import com.tangosol.coherence.dslquery.CohQLException;
 import com.tangosol.coherence.dslquery.CoherenceQueryLanguage;
 import com.tangosol.coherence.dslquery.ExtractorBuilder;
 
@@ -35,9 +36,11 @@ import com.tangosol.util.extractor.ChainedExtractor;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.KeyExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
+import com.tangosol.util.extractor.UniversalExtractor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -505,14 +508,19 @@ public abstract class AbstractCoherenceQueryWalker
      */
     protected Object reflectiveMakeObject(boolean fUseNew, Object oExtractor)
         {
-        String              sName     = null;
-        StringBuilder       sbPath    = new StringBuilder();
-        ReflectionExtractor extractor = null;
+        String              sName               = null;
+        StringBuilder       sbPath              = new StringBuilder();
+        UniversalExtractor  universalExtractor  = null;
+        ReflectionExtractor reflectionExtractor = null;
         Class               cls;
 
         if (oExtractor instanceof ReflectionExtractor)
             {
-            extractor = (ReflectionExtractor) oExtractor;
+            reflectionExtractor = (ReflectionExtractor) oExtractor;
+            }
+        else if (oExtractor instanceof UniversalExtractor)
+            {
+            universalExtractor = (UniversalExtractor) oExtractor;
             }
         else if (oExtractor instanceof ChainedExtractor)
             {
@@ -521,19 +529,36 @@ public abstract class AbstractCoherenceQueryWalker
 
             for (int i = 0; i < aExtractors.length - 1; i++)
                 {
-                ReflectionExtractor reflectionExtractor = (ReflectionExtractor) aExtractors[i];
+                ReflectionExtractor re = null;
+                UniversalExtractor  ue = null;
+
+                if (aExtractors[i] instanceof ReflectionExtractor)
+                    {
+                    re = (ReflectionExtractor) aExtractors[i];
+                    }
+                else if (aExtractors[i] instanceof UniversalExtractor)
+                    {
+                    ue = (UniversalExtractor) aExtractors[i];
+                    }
 
                 if (sbPath.length() > 0)
                     {
                     sbPath.append('.');
                     }
 
-                String sMethodName = reflectionExtractor.getMethodName();
+                String sMethodName = ue == null ? re.getMethodName() : ue.getMethodName();
 
                 sbPath.append(f_propertyBuilder.plainName(sMethodName));
                 }
 
-            extractor = (ReflectionExtractor) aExtractors[aExtractors.length - 1];
+            if (aExtractors[aExtractors.length - 1] instanceof UniversalExtractor)
+                {
+                universalExtractor = (UniversalExtractor) aExtractors[aExtractors.length - 1];
+                }
+            else if (aExtractors[aExtractors.length - 1] instanceof ReflectionExtractor)
+                {
+                reflectionExtractor = (ReflectionExtractor) aExtractors[aExtractors.length - 1];
+                }
             }
         else if (oExtractor instanceof Object[])
             {
@@ -549,11 +574,37 @@ public abstract class AbstractCoherenceQueryWalker
                 sbPath.append(ao[i]);
                 }
 
-            extractor = (ReflectionExtractor) ao[ao.length - 1];
+            if (ao[ao.length - 1] instanceof UniversalExtractor)
+                {
+                universalExtractor = (UniversalExtractor) ao[ao.length - 1];
+                }
+            else if (ao[ao.length - 1] instanceof ReflectionExtractor)
+                {
+                reflectionExtractor = (ReflectionExtractor) ao[ao.length - 1];
+                }
             }
 
-        String   sMethod = extractor.getMethodName();
-        Object[] aoArgs  = extractor.getParameters();
+        String sMethod = universalExtractor == null ? reflectionExtractor.getMethodName() : universalExtractor.getMethodName();
+
+        // check if we have an alias for the static method. E.g. "json" maps to
+        // com.oracle.coherence.io.json.JsonSerializer.fromJson.
+        // allowing user to issue "insert into test key 1 value new json('{"foo": 1}')"
+        // and this converts to a call to com.oracle.coherence.io.json.JsonSerializer.fromJson
+        String sClassAndMethod = CLASS_ALIAS_MAP.get(sMethod);
+        if (sClassAndMethod != null)
+            {
+            fUseNew = false;
+            int nIdx = sClassAndMethod.lastIndexOf(".");
+            if (nIdx == -1)
+                {
+                throw new CohQLException("Invalid class alias " + sClassAndMethod);
+                }
+
+            sbPath.append(sClassAndMethod.substring(0, nIdx));
+            sMethod = sClassAndMethod.substring(nIdx + 1);
+            }
+
+        Object[] aoArgs  = universalExtractor == null ? reflectionExtractor.getParameters() : universalExtractor.getParameters();
 
         try
             {
@@ -588,6 +639,10 @@ public abstract class AbstractCoherenceQueryWalker
                         {
                         String setter = f_propertyBuilder.updaterStringFor((String) e.getKey());
 
+                        if (setter.endsWith(UniversalExtractor.METHOD_SUFFIX))
+                            {
+                            setter = setter.substring(0, setter.length() - UniversalExtractor.METHOD_SUFFIX.length());
+                            }
                         ClassHelper.invoke(cls, oInstance, setter, new Object[] {e.getValue()});
                         }
                     }
@@ -667,6 +722,19 @@ public abstract class AbstractCoherenceQueryWalker
         {
         m_sAlias = sAlias;
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * A {@link Map} of alias to class and static method to call.  The value is in the format of
+     * class-fqdn.method.
+     */
+    private static final Map<String, String> CLASS_ALIAS_MAP =
+        new HashMap<>() {
+            {
+            put("json", "com.oracle.coherence.io.json.JsonSerializer.fromJson");
+            }
+        };
 
     // ----- data members ---------------------------------------------------
 

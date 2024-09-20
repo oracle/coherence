@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
@@ -59,9 +59,17 @@ else
   fi
 fi
 
-chmod +x "${SCRIPT_NAME}"
+if [ "${SCRIPT_NAME}" != "" ]
+then
+  chmod +x "${SCRIPT_NAME}"
+fi
 
-BUILDAH=$(which buildah || true)
+BUILDAH=""
+if [ "${LOCAL_BUILDAH}" == "true" ]
+then
+  BUILDAH=$(which buildah || true)
+fi
+
 if [ "${BUILDAH}" != "" ]
 then
   echo "Running Buildah locally"
@@ -69,7 +77,8 @@ then
   then
     export NO_DAEMON=true
   fi
-  sh "${SCRIPT_NAME}"
+# we must run the script with Buildah unshare
+  buildah unshare "${SCRIPT_NAME}"
 else
   echo "Buildah not found locally - running in container"
   if [ "${NO_DAEMON}" == "" ]
@@ -88,22 +97,47 @@ else
   then
     docker volume create "${BUILDAH_VOLUME}"
   fi
+  if [ "${MY_DOCKER_HOST}" == "" ]
+  then
+    DOCKER_HOST="${MY_DOCKER_HOST}"
+  fi
+
+  if [ "${DOCKER_HOST}" == "" ]
+  then
+    PDM=$(which podman || true)
+    if [ "${USE_PODMAN}" != "false" && "${PDM}" != "" ]
+    then
+#     we're using Podman
+      MY_UID=$(id -u)
+      DOCKER_HOST=/run/user/${MY_UID}/podman/podman.sock
+    else
+#     we're using Docker
+      DOCKER_HOST=/var/run/docker.sock
+    fi
+  fi
 
   docker run --rm ${ARGS} -v "${BASEDIR}:${BASEDIR}" \
-      -v /var/run/docker.sock:/var/run/docker.sock  \
+      -v ${DOCKER_HOST}:${DOCKER_HOST}  \
       -v $BUILDAH_VOLUME:/var/lib/containers:Z  \
       --privileged --network host \
+      -e JAVA_EA_BASE_URL="${JAVA_EA_BASE_URL}" \
+      -e BUILDER_IMAGE="${BUILDER_IMAGE}" \
       -e IMAGE_NAME="${IMAGE_NAME}" \
       -e IMAGE_ARCH="${IMAGE_ARCH}" \
       -e AMD_BASE_IMAGE="${AMD_BASE_IMAGE}" \
       -e ARM_BASE_IMAGE="${ARM_BASE_IMAGE}" \
+      -e AMD_BASE_IMAGE_17="${AMD_BASE_IMAGE_17}" \
+      -e ARM_BASE_IMAGE_17="${ARM_BASE_IMAGE_17}" \
       -e GRAAL_AMD_BASE_IMAGE="${GRAAL_AMD_BASE_IMAGE}" \
       -e GRAAL_ARM_BASE_IMAGE="${GRAAL_ARM_BASE_IMAGE}" \
+      -e NO_GRAAL="${NO_GRAAL}" \
       -e PORT_EXTEND="${PORT_EXTEND}" \
       -e PORT_GRPC="${PORT_GRPC}" \
       -e PORT_MANAGEMENT="${PORT_MANAGEMENT}" \
       -e PORT_METRICS="${PORT_METRICS}" \
       -e MAIN_CLASS="${MAIN_CLASS}" \
+      -e PODMAN_IMPORT="${PODMAN_IMPORT}" \
+      -e DOCKER_HOST="${DOCKER_HOST}" \
       -e NO_DAEMON="${NO_DAEMON}" \
       -e COHERENCE_VERSION="${COHERENCE_VERSION}" \
       -e DOCKER_REGISTRY="${DOCKER_REGISTRY}" \
@@ -120,6 +154,6 @@ else
       -e HTTP_PROXY="${HTTP_PROXY}" -e HTTPS_PROXY="${HTTPS_PROXY}" -e NO_PROXY="${NO_PROXY}" \
       -e http_proxy="${http_proxy}" -e https_proxy="${https_proxy}" -e no_proxy="${no_proxy}" \
       --name buildah \
-      quay.io/buildah/stable:v1.29.0 "${SCRIPT_NAME}"
+      quay.io/buildah/stable:v1.37.1 "${SCRIPT_NAME}"
 fi
 

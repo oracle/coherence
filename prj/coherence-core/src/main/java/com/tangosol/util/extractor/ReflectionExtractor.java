@@ -1,16 +1,15 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-
 package com.tangosol.util.extractor;
-
 
 import com.oracle.coherence.common.internal.util.CanonicalNames;
 
 import com.tangosol.io.ExternalizableLite;
+import com.tangosol.io.ResolvingObjectInputStream;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -18,17 +17,19 @@ import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.ValueExtractor;
+
+import jakarta.json.bind.annotation.JsonbProperty;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.NotActiveException;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
 
 import java.lang.reflect.Method;
-
-import jakarta.json.bind.annotation.JsonbProperty;
-
 
 /**
 * Reflection-based ValueExtractor implementation.
@@ -152,6 +153,15 @@ public class ReflectionExtractor<T, E>
             sCName = m_sNameCanon = computeCanonicalName(m_sMethod, m_aoParam);
             }
         return sCName;
+        }
+
+
+    @Override
+    public ValueExtractor<T, E> fromKey()
+        {
+        ReflectionExtractor<T, E> extractor = new ReflectionExtractor<>(m_sMethod, m_aoParam, KEY);
+        extractor.m_sNameCanon = m_sNameCanon;
+        return extractor;
         }
 
     // ----- Object methods -------------------------------------------------
@@ -449,6 +459,32 @@ public class ReflectionExtractor<T, E>
         // slot #1 is not used @since Coherence 3.5
         out.writeObjectArray(2, m_aoParam);
         out.writeInt(3, m_nTarget);
+        }
+
+    // ----- Serializable methods -------------------------------------------
+
+    /**
+     * See {@link java.io.Serializable} for documentation on this method.
+     *
+     * @param inputStream  the input stream
+     *
+     * @throws NotSerializableException, ClassNotFoundException, IOException
+     *
+     * @since 12.2.1.4.22
+     */
+    @java.io.Serial
+    private void readObject(ObjectInputStream inputStream) throws ClassNotFoundException, IOException
+        {
+        if (inputStream instanceof ResolvingObjectInputStream || ExternalizableHelper.s_tloInEHDeserialize.get())
+            {
+            // deserialization was initiated via ExternalizableHelper; proceed
+            inputStream.defaultReadObject();
+            }
+        else
+            {
+            // this class is not intended for "external" use
+            throw new NotSerializableException();
+            }
         }
 
     // ----- data members ---------------------------------------------------

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -91,6 +91,9 @@
                 <xsd:element ref="storage-authorizers" minOccurs="0" />
                 <xsd:element ref="password-providers" minOccurs="0" />
                 <xsd:element ref="resources" minOccurs="0" />
+                <xsd:element ref="secured-production" minOccurs="0" />
+                <xsd:element ref="common-daemon-pool" minOccurs="0" />
+                <xsd:element ref="virtual-threads-enabled" minOccurs="0"/>
 
                 <!-- Must remain last. Next 2 elements are appended to cluster-config
                      child elements in Coherence.loadConfiguration method. -->
@@ -1641,8 +1644,7 @@
                 Valid values are "dynamic" and "static".
 
                 It is optional to provide a value for this element.
-                The default value is calculated based on the value of coherence license mode:
-                "static" for production mode and "dynamic" for eval/dev mode.
+                The default value is "dynamic".
 
                 Used in: cluster-config
             </xsd:documentation>
@@ -3305,4 +3307,40 @@
             </xsd:sequence>
         </xsd:complexType>
     </xsd:element>
+
+    <xsd:element name="common-daemon-pool">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configures the common daemon pool.
+
+                The common pool is a Coherence DaemonPool used internally by
+                Coherence for common tasks such as async future handling.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="thread-count" minOccurs="0" />
+                <xsd:element ref="thread-count-max" minOccurs="0" />
+                <xsd:element ref="thread-count-min" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="virtual-threads-enabled" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The virtual-threads-enabled element specifies whether virtual
+                threads are used by Coherence.
+
+                Legal values are true or false.
+
+                Default value is true.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
 </xsd:schema>

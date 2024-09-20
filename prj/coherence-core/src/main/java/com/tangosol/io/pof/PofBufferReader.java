@@ -1,14 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io.pof;
 
 import com.tangosol.io.ReadBuffer;
-import com.tangosol.io.SerializationSupport;
-import com.tangosol.io.SerializerAware;
 
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
@@ -22,6 +20,8 @@ import java.io.StreamCorruptedException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import java.nio.ByteBuffer;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import java.util.function.IntFunction;
@@ -46,6 +47,7 @@ import java.util.function.IntFunction;
 *
 * @since Coherence 3.2
 */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class PofBufferReader
         extends PofHelper
         implements PofReader
@@ -126,7 +128,7 @@ public class PofBufferReader
                     {
                     int nId = in.readPackedInt();
                     n = readInt(iProp);
-                    registerIdentity(nId, Integer.valueOf(n));
+                    registerIdentity(nId, n);
                     }
                     break;
 
@@ -170,7 +172,7 @@ public class PofBufferReader
                     {
                     int nId = in.readPackedInt();
                     n = readLong(iProp);
-                    registerIdentity(nId, Long.valueOf(n));
+                    registerIdentity(nId, n);
                     }
                     break;
 
@@ -214,7 +216,7 @@ public class PofBufferReader
                     {
                     int nId = in.readPackedInt();
                     fl = readFloat(iProp);
-                    registerIdentity(nId, Float.valueOf(fl));
+                    registerIdentity(nId, fl);
                     }
                     break;
 
@@ -258,7 +260,7 @@ public class PofBufferReader
                     {
                     int nId = in.readPackedInt();
                     dfl = readDouble(iProp);
-                    registerIdentity(nId, Double.valueOf(dfl));
+                    registerIdentity(nId, dfl);
                     }
                     break;
 
@@ -395,7 +397,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
             }
@@ -519,7 +522,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
             }
@@ -603,11 +607,22 @@ public class PofBufferReader
                     int nElementType = in.readPackedInt();
                     int cElements    = in.readPackedInt();
                     ach = new char[cElements];
-                    for (int i = 0; i < cElements; ++i)
+
+                    if (nElementType == T_OCTET)
                         {
-                        ach[i] = nElementType == T_CHAR
-                                 ? readChar(in)
-                                 : (char) readAsInt(in, nElementType);
+                        // raw encoding (since 24.09)
+                        int        cb = cElements * 2;
+                        ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
+                        bb.asCharBuffer().get(ach, 0, cElements);
+                        }
+                    else
+                        {
+                        for (int i = 0; i < cElements; ++i)
+                            {
+                            ach[i] = nElementType == T_CHAR
+                                     ? readChar(in)
+                                     : (char) readAsInt(in, nElementType);
+                            }
                         }
                     }
                     break;
@@ -650,7 +665,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
             }
@@ -722,6 +738,12 @@ public class PofBufferReader
                                 }
                             break;
 
+                        case T_OCTET:  // raw encoding (since 24.09)
+                            int        cb = cElements * 2;
+                            ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
+                            bb.asShortBuffer().get(an, 0, cElements);
+                            break;
+
                         default:
                             for (int i = 0; i < cElements; ++i)
                                 {
@@ -789,7 +811,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
             }
@@ -861,6 +884,12 @@ public class PofBufferReader
                                 }
                             break;
 
+                        case T_OCTET:  // raw encoding (since 24.09)
+                            int        cb = cElements * 4;
+                            ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
+                            bb.asIntBuffer().get(an, 0, cElements);
+                            break;
+
                         default:
                             for (int i = 0; i < cElements; ++i)
                                 {
@@ -928,7 +957,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
             }
@@ -1000,6 +1030,12 @@ public class PofBufferReader
                                 }
                             break;
 
+                        case T_OCTET:  // raw encoding (since 24.09)
+                            int        cb = cElements * 8;
+                            ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
+                            bb.asLongBuffer().get(an, 0, cElements);
+                            break;
+
                         default:
                             for (int i = 0; i < cElements; ++i)
                                 {
@@ -1067,7 +1103,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
             }
@@ -1127,11 +1164,22 @@ public class PofBufferReader
                     int nElementType = in.readPackedInt();
                     int cElements    = in.readPackedInt();
                     afl = new float[cElements];
-                    for (int i = 0; i < cElements; ++i)
+
+                    if (nElementType == T_OCTET)
                         {
-                        afl[i] = nElementType == T_FLOAT32
-                                 ? in.readFloat()
-                                 : readAsFloat(in, nElementType);
+                        // raw encoding (since 24.09)
+                        int        cb = cElements * 4;
+                        ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
+                        bb.asFloatBuffer().get(afl, 0, cElements);
+                        }
+                    else
+                        {
+                        for (int i = 0; i < cElements; ++i)
+                            {
+                            afl[i] = nElementType == T_FLOAT32
+                                     ? in.readFloat()
+                                     : readAsFloat(in, nElementType);
+                            }
                         }
                     }
                     break;
@@ -1174,7 +1222,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
             }
@@ -1234,11 +1283,22 @@ public class PofBufferReader
                     int nElementType = in.readPackedInt();
                     int cElements    = in.readPackedInt();
                     adfl = new double[cElements];
-                    for (int i = 0; i < cElements; ++i)
+
+                    if (nElementType == T_OCTET)
                         {
-                        adfl[i] = nElementType == T_FLOAT64
-                                  ? in.readDouble()
-                                  : readAsDouble(in, nElementType);
+                        // raw encoding (since 24.09)
+                        int        cb = cElements * 8;
+                        ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
+                        bb.asDoubleBuffer().get(adfl, 0, cElements);
+                        }
+                    else
+                        {
+                        for (int i = 0; i < cElements; ++i)
+                            {
+                            adfl[i] = nElementType == T_FLOAT64
+                                      ? in.readDouble()
+                                      : readAsDouble(in, nElementType);
+                            }
                         }
                     }
                     break;
@@ -1281,7 +1341,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
             }
@@ -1546,7 +1607,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a Binary type");
                 }
             }
@@ -1691,7 +1753,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a String type");
                 }
             }
@@ -1742,7 +1805,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a Java Date type");
                 }
             }
@@ -1782,7 +1846,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a Java LocalDate type");
                 }
             }
@@ -1822,7 +1887,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a Java LocalDateTime type");
                 }
             }
@@ -1862,7 +1928,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a Java LocalTime type");
                 }
             }
@@ -1902,7 +1969,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a Java OffsetDateTime type");
                 }
             }
@@ -1942,7 +2010,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a Java OffsetTime type");
                 }
             }
@@ -2019,7 +2088,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a RawDate type");
                 }
             }
@@ -2087,7 +2157,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a RawTime type");
                 }
             }
@@ -2160,7 +2231,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a RawDateTime type");
                 }
             }
@@ -2207,7 +2279,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a RawYearMonthInterval type");
                 }
             }
@@ -2254,7 +2327,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a RawTimeInterval type");
                 }
             }
@@ -2303,7 +2377,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a RawDayTimeInterval type");
                 }
             }
@@ -2380,7 +2455,7 @@ public class PofBufferReader
                     break;
 
                 default:
-                    aoResult = readAsObjectArray(nType, ao);
+                    aoResult = readAsObjectArray(iProp, nType, ao);
                     break;
                 }
             }
@@ -2458,7 +2533,7 @@ public class PofBufferReader
                     break;
 
                 default:
-                    aoResult = readAsTypedObjectArray(nType, supplier);
+                    aoResult = readAsTypedObjectArray(iProp, nType, supplier);
                     break;
                 }
             }
@@ -2594,7 +2669,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to an array type");
                 }
             }
@@ -2659,7 +2735,7 @@ public class PofBufferReader
                     {
                     if (coll == null)
                         {
-                        Object[] ao = readAsObjectArray(nType, null);
+                        Object[] ao = readAsObjectArray(iProp, nType, null);
                         coll = (C) new ImmutableArrayList(ao).getList();
                         }
                     else
@@ -2678,7 +2754,7 @@ public class PofBufferReader
                     {
                     if (coll == null)
                         {
-                        Object[] ao = readAsObjectArray(nType, null);
+                        Object[] ao = readAsObjectArray(iProp, nType, null);
                         coll = (C) new ImmutableArrayList(ao).getList();
                         }
                     else
@@ -2737,7 +2813,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a Collection type");
                 }
             }
@@ -2833,7 +2910,8 @@ public class PofBufferReader
                     break;
 
                 default:
-                    throw new IOException("unable to convert type " + nType
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                           + " to a Map type");
                 }
             }
@@ -3080,7 +3158,7 @@ public class PofBufferReader
         switch (nType)
             {
             case T_INT16:
-                o = Short.valueOf((short) in.readPackedInt());
+                o = (short) in.readPackedInt();
                 break;
 
             case T_INT32:
@@ -3108,11 +3186,11 @@ public class PofBufferReader
             case V_INT_20:
             case V_INT_21:
             case V_INT_22:
-                o = Integer.valueOf(readAsInt(in, nType));
+                o = readAsInt(in, nType);
                 break;
 
             case T_INT64:
-                o = Long.valueOf(in.readPackedLong());
+                o = in.readPackedLong();
                 break;
 
             case T_INT128:
@@ -3120,11 +3198,11 @@ public class PofBufferReader
                 break;
 
             case T_FLOAT32:
-                o = Float.valueOf(in.readFloat());
+                o = in.readFloat();
                 break;
 
             case T_FLOAT64:
-                o = Double.valueOf(in.readDouble());
+                o = in.readDouble();
                 break;
 
             case T_FLOAT128:
@@ -3160,7 +3238,7 @@ public class PofBufferReader
                 break;
 
             case T_OCTET:
-                o = Byte.valueOf(in.readByte());
+                o = in.readByte();
                 break;
 
             case T_OCTET_STRING:
@@ -3168,7 +3246,7 @@ public class PofBufferReader
                 break;
 
             case T_CHAR:
-                o = Character.valueOf(readChar(in));
+                o = readChar(in);
                 break;
 
             case T_CHAR_STRING:
@@ -3234,11 +3312,11 @@ public class PofBufferReader
 
             case T_COLLECTION:
             case T_UNIFORM_COLLECTION:
-                o = new ImmutableArrayList(readAsObjectArray(nType, null)).getList();
+                o = new ImmutableArrayList(readAsObjectArray(-1, nType, null)).getList();
                 break;
 
             case T_ARRAY:
-                o = readAsObjectArray(nType, null);
+                o = readAsObjectArray(-1, nType, null);
                 break;
 
             case T_UNIFORM_ARRAY:
@@ -3606,7 +3684,8 @@ public class PofBufferReader
                 {
                 if (nType < 0)
                     {
-                    throw new StreamCorruptedException("illegal type " + nType);
+                    throw new StreamCorruptedException("illegal type " 
+                            + PofConstants.getTypeName(nType));
                     }
 
                 PofContext    ctx = getPofContext();
@@ -3702,7 +3781,7 @@ public class PofBufferReader
     *
     * @throws IOException  if an I/O error occurs
     */
-    protected Object[] readAsObjectArray(int nType, Object[] ao)
+    protected Object[] readAsObjectArray(int iProp, int nType, Object[] ao)
             throws IOException
         {
         Object[] aoResult = null;
@@ -3779,7 +3858,14 @@ public class PofBufferReader
                 break;
 
             default:
-                throw new IOException("unable to convert type " + nType
+                if (iProp != -1)
+                    {
+                    throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
+                                          + " to an array type");
+                    }
+                throw new IOException("unable to convert type " 
+                            + PofConstants.getTypeName(nType)
                                       + " to an array type");
             }
 
@@ -3790,6 +3876,7 @@ public class PofBufferReader
     * Read a POF value as an Object array.
     *
     * @param <T>      the identifier type
+    * @param iProp    the property index to read
     * @param nType    the type identifier of the value
     * @param factory  the optional factory to use to initialize the array
     *
@@ -3797,7 +3884,7 @@ public class PofBufferReader
     *
     * @throws IOException  if an I/O error occurs
     */
-    protected <T> T[] readAsTypedObjectArray(int nType, IntFunction<T[]> factory)
+    protected <T> T[] readAsTypedObjectArray(int iProp, int nType, IntFunction<T[]> factory)
             throws IOException
         {
         T[] aoResult = null;
@@ -3874,7 +3961,8 @@ public class PofBufferReader
                 break;
 
             default:
-                throw new IOException("unable to convert type " + nType
+                throw new IOException("unable to convert field " + iProp + " of type " 
+                            + PofConstants.getTypeName(nType)
                                       + " to an array type");
             }
 
@@ -4084,10 +4172,23 @@ public class PofBufferReader
                 throws IOException
             {
             UserTypeReader reader;
-            if (advanceTo(iProp))
+            PropertyInfo prop = m_propertyMap == null ? null : m_propertyMap.get(iProp);
+            if (prop != null)
                 {
-                reader = new PofBufferReader.UserTypeReader(this, m_in,
-                        getPofContext());
+                // ensure that the existing nested stream is closed before creating one for a skipped property
+                closeNested();
+
+                // create new buffer to read skipped property from
+                ReadBuffer.BufferInput in = m_in.getBuffer().getReadBuffer(prop.offset(), prop.length()).getBufferInput();
+
+                reader = new PofBufferReader.UserTypeReader(this, in, getPofContext());
+                
+                // note: there is no complete() call at this point, since the
+                //       property has yet to be read
+                }
+            else if (advanceTo(iProp))
+                {
+                reader = new PofBufferReader.UserTypeReader(this, m_in, getPofContext());
 
                 // note: there is no complete() call at this point, since the
                 //       property has yet to be read
@@ -4098,8 +4199,7 @@ public class PofBufferReader
                 complete(iProp);
 
                 // return a "fake" reader that contains no data
-                reader = new PofBufferReader.UserTypeReader(this, m_in,
-                        getPofContext(), getUserTypeId());
+                reader = new PofBufferReader.UserTypeReader(this, m_in, getPofContext(), iProp);
                 }
 
             m_readerNested = reader;
@@ -4223,12 +4323,18 @@ public class PofBufferReader
 
             ReadBuffer.BufferInput in = m_in;
             int ofNextProp = m_ofNextProp;
-            while (iNextProp != EOPS && iNextProp < iProp)
+            while (iNextProp < iProp)
                 {
+                int ofCurrentProp = in.getOffset();
+                int iCurrentProp  = iNextProp;
+
                 skipValue(in);
 
                 ofNextProp = in.getOffset();
                 iNextProp  = in.readPackedInt();
+
+                ensurePropertyMap().put(iCurrentProp, new PropertyInfo(ofCurrentProp, in.getOffset() - ofCurrentProp));
+
                 if (iNextProp < 0)
                     {
                     iNextProp = EOPS;
@@ -4296,6 +4402,23 @@ public class PofBufferReader
             return m_parent;
             }
 
+        /**
+         * Lazily creates a map of skipped properties, if necessary.
+         *
+         * @return a map of skipped properties
+         */
+        private Map<Integer, PropertyInfo> ensurePropertyMap()
+            {
+            Map<Integer, PropertyInfo> map = m_propertyMap;
+            if (map == null)
+                {
+                map = m_propertyMap = new LinkedHashMap<>();
+                }
+            return map;
+            }
+
+        private record PropertyInfo(int offset, int length) {}
+
         // ----- constants ----------------------------------------------
 
         /**
@@ -4347,6 +4470,11 @@ public class PofBufferReader
         * nested reader is reading from.
         */
         private int m_iNestedProp;
+
+        /**
+         * Map of property indexes to their offset and length.
+         */
+        private Map<Integer, PropertyInfo> m_propertyMap;
         }
 
 
@@ -4365,7 +4493,7 @@ public class PofBufferReader
         public static void set(PofBufferReader reader, int nId)
             {
             Map mapId = (Map) s_mapId.get();
-            mapId.put(reader, Integer.valueOf(nId));
+            mapId.put(reader, nId);
             }
 
         public static void reset(PofBufferReader reader, int nId, Object o)
@@ -4378,7 +4506,7 @@ public class PofBufferReader
                     Object oValue = mapId.get(reader);
                     if (oValue != null)
                         {
-                        int nValue = ((Integer) oValue).intValue();
+                        int nValue = (Integer) oValue;
                         if (nId == -1 || nValue == nId)
                             {
                             reader.registerIdentity(nValue, o);

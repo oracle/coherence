@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+  <defaults>
+    <serializer>${coherence.serializer}</serializer>
+  </defaults>
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>fixed</cache-name>
+      <scheme-name>grpc-fixed</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>empty</cache-name>
+      <scheme-name>grpc-empty</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>default</cache-name>
+      <scheme-name>grpc-default</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>inline</cache-name>
+      <scheme-name>grpc-inline</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <remote-grpc-cache-scheme>
+      <scheme-name>grpc-fixed</scheme-name>
+      <service-name>FixedRemoteGrpcCache</service-name>
+      <grpc-channel>
+        <remote-addresses>
+          <socket-address>
+            <address system-property="coherence.grpc.host"/>
+            <port system-property="coherence.grpc.port"/>
+          </socket-address>
+        </remote-addresses>
+      </grpc-channel>
+    </remote-grpc-cache-scheme>
+
+    <remote-grpc-cache-scheme>
+      <scheme-name>grpc-empty</scheme-name>
+      <service-name>EmptyRemoteGrpcCache</service-name>
+    </remote-grpc-cache-scheme>
+
+    <remote-grpc-cache-scheme>
+      <scheme-name>grpc-default</scheme-name>
+      <service-name>DefaultRemoteGrpcCache</service-name>
+      <grpc-channel>default-lookup</grpc-channel>
+    </remote-grpc-cache-scheme>
+
+    <remote-grpc-cache-scheme>
+      <scheme-name>grpc-inline</scheme-name>
+      <service-name>InlineRemoteGrpcCache</service-name>
+      <grpc-channel>
+        <name-service-addresses>
+          <socket-address>
+            <address system-property="coherence.grpc.ns.host"/>
+            <port system-property="coherence.grpc.ns.port"/>
+          </socket-address>
+        </name-service-addresses>
+      </grpc-channel>
+    </remote-grpc-cache-scheme>
+  </caching-schemes>
+</cache-config>

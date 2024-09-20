@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,7 +19,6 @@ import com.oracle.coherence.concurrent.executor.options.Debugging;
 import com.oracle.coherence.concurrent.executor.processors.LocalOnlyProcessor;
 
 import com.oracle.coherence.concurrent.executor.util.Caches;
-import com.oracle.coherence.concurrent.executor.util.FilteringIterable;
 import com.oracle.coherence.concurrent.executor.util.OptionsByType;
 
 import com.tangosol.internal.tracing.Span;
@@ -36,8 +35,11 @@ import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.Extractors;
 import com.tangosol.util.Filter;
+import com.tangosol.util.Filters;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMap.Entry;
 
@@ -58,7 +60,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -122,7 +123,11 @@ public class ClusteredTaskManager<T, A, R>
         m_completionRunnable     = completionRunnable;
         m_fRunCompletionRunnable = completionRunnable != null;
         m_retainDuration         = retainDuration;
-        m_debugging              = optionsByType.get(Debugging.class, Debugging.of(Logger.FINEST));
+
+        // a value less than zero means that debug logging, unless overriden by the user,
+        // will only be available if the system property coherence.executor.trace.logging
+        // is true and coherence.log.level is set to seven or higher
+        m_debugging = optionsByType.get(Debugging.class, Debugging.of(Integer.MIN_VALUE));
 
         m_lastResult     = Result.none();
         m_nResultVersion = 0;
@@ -302,41 +307,41 @@ public class ClusteredTaskManager<T, A, R>
                                     String       key,
                                     Cause        cause)
         {
-        ExecutorTrace.entering(ClusteredTaskManager.class, "asyncProcessChanges", service, key, cause);
+        ExecutorTrace.entering(ClusteredTaskManager.class, "asyncProcessChanges", service, key, this, cause);
 
-        long newResultCount = m_lCurrentResultGeneration - m_lProcessedResultGeneration;
+        long          nNewResultCount = m_lCurrentResultGeneration - m_lProcessedResultGeneration;
+        Debugging     debug           = m_debugging;
+        boolean       fWillLog        = Logger.isEnabled(debug.getLogLevel());
+        StringBuilder bldrDebug       = fWillLog ? new StringBuilder(256) : null;
 
-        Debugging debug = m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : m_debugging;
-
-        ExecutorTrace.log(() -> "------------------------------------", debug);
-        ExecutorTrace.log(() -> String.format("Task                               : %s", key),     debug);
-        ExecutorTrace.log(() -> String.format("State                              : %s", m_state), debug);
-        ExecutorTrace.log(() -> String.format("Completed ?                        : %s", m_fCompleted), debug);
-        ExecutorTrace.log(() -> String.format("Cancelled ?                        : %s", m_fCancelled), debug);
-        ExecutorTrace.log(() -> String.format("Last Result                        : %s", m_lastResult), debug);
-        ExecutorTrace.log(() -> String.format("Result Version                     : %s", m_nResultVersion), debug);
-        ExecutorTrace.log(() -> String.format("Pending Results from Executors     : %s", newResultCount), debug);
-        ExecutorTrace.log(() -> String.format("Total Results from Executors       : %s", m_lCurrentResultGeneration), debug);
-        ExecutorTrace.log(() -> String.format("Pending Execution Strategy Updates : %s", m_cPendingExecutionStrategyUpdateCount), debug);
-        ExecutorTrace.log(() -> String.format("Pending Execution Plan Updates     : %s", m_cPendingExecutionPlanOptimizationCount), debug);
-        ExecutorTrace.log(() -> String.format("Execution Plan                     : %s", m_executionPlan), debug);
-        ExecutorTrace.log(() -> "------------------------------------", debug);
-
-        ExecutorTrace.log("Acquiring Updated Executor Information", debug);
+        if (fWillLog)
+            {
+            bldrDebug.append("\n------------------------------------\n");
+            bldrDebug.append("Task                               : ").append(key).append(EOL);
+            bldrDebug.append("State                              : ").append(m_state).append(EOL);
+            bldrDebug.append("Completed ?                        : ").append(m_fCompleted).append(EOL);
+            bldrDebug.append("Cancelled ?                        : ").append(m_fCancelled).append(EOL);
+            bldrDebug.append("Last Result                        : ").append(m_lastResult).append(EOL);
+            bldrDebug.append("Result Version                     : ").append(m_nResultVersion).append(EOL);
+            bldrDebug.append("Pending Results from Executors     : ").append(nNewResultCount).append(EOL);
+            bldrDebug.append("Last Processed Generation          : ").append(m_lProcessedResultGeneration).append(EOL);
+            bldrDebug.append("Total Results from Executors       : ").append(m_lCurrentResultGeneration).append(EOL);
+            bldrDebug.append("Pending Execution Strategy Updates : ").append(m_cPendingExecutionStrategyUpdateCount).append(EOL);
+            bldrDebug.append("Pending Execution Plan Updates     : ").append(m_cPendingExecutionPlanOptimizationCount).append(EOL);
+            bldrDebug.append("Execution Plan                     : ").append(m_executionPlan).append(EOL);
+            }
 
         // assume the task result won't be changed
-        boolean resultChanged = false;
+        boolean fResultChanged = false;
 
         // remember the original result
         Result<R> originalResult = m_lastResult;
 
         // assume the task execution plan won't be changed
-        boolean executionPlanChanged = false;
+        boolean fExecutionPlanChanged = false;
 
         // remember the original pending update counts
         int originalPendingExecutionStrategyUpdateCount = m_cPendingExecutionStrategyUpdateCount;
-
-        ExecutorTrace.log("Building Rationales For Updating the Result", debug);
 
         // determine the rationales for evaluating the ExecutionStrategy
         EnumSet<ExecutionStrategy.EvaluationRationale> rationales =
@@ -352,7 +357,7 @@ public class ClusteredTaskManager<T, A, R>
             rationales.add(ExecutionStrategy.EvaluationRationale.EXECUTOR_SERVICES_CHANGED);
             }
 
-        if (newResultCount > 0)
+        if (nNewResultCount > 0)
             {
             rationales.add(ExecutionStrategy.EvaluationRationale.TASK_RESULT_PROVIDED);
             }
@@ -362,43 +367,50 @@ public class ClusteredTaskManager<T, A, R>
             rationales.add(ExecutionStrategy.EvaluationRationale.TASK_RECOVERED);
             }
 
-        ExecutorTrace.log(() -> String.format("Evaluation Rationales              : %s", rationales), debug);
+        if (fWillLog)
+            {
+            bldrDebug.append("Evaluation Rationales              : ").append(rationales).append(EOL);
+            }
 
         // only process changes if the task is running, not completed, not cancelled, and there are updates to process
+        boolean fEvaluatedResult   = false;
+        boolean fEvaluatedStrategy = false;
+
         if (m_state == State.ORCHESTRATED
             && !m_fCompleted
             && !m_fCancelled
-            && (newResultCount > 0 || m_cPendingExecutionStrategyUpdateCount > 0))
+            && (nNewResultCount > 0 || m_cPendingExecutionStrategyUpdateCount > 0))
             {
-            // only evaluate the result if there have been updates to the resultMap
-            if (newResultCount > 0)
-                {
-                ExecutorTrace.log("(re) Evaluating Task Result", debug);
 
-                resultChanged = asyncEvaluateResult(originalResult);
+            // only evaluate the result if there have been updates to the resultMap
+            if (nNewResultCount > 0)
+                {
+                fEvaluatedResult = true;
+                fResultChanged    = asyncEvaluateResult(originalResult);
                 }
 
             // only evaluate the execution strategy if we're not completed and there have been updates
             if (!m_fCompleted
                 && !m_fCancelled
-                && (newResultCount > 0 || originalPendingExecutionStrategyUpdateCount > 0))
+                && (nNewResultCount > 0 || originalPendingExecutionStrategyUpdateCount > 0))
                 {
-                ExecutorTrace.log("(re) Evaluating Task Execution Strategy", debug);
-
-                executionPlanChanged = asyncEvaluateExecutionStrategy(service, rationales);
+                fEvaluatedStrategy   = true;
+                fExecutionPlanChanged = asyncEvaluateExecutionStrategy(service, rationales);
                 }
             }
 
-        if (Logger.isEnabled(debug.getLogLevel()))
+        if (fWillLog)
             {
-            ExecutorTrace.log(String.format("Result Changed?                    : %s", resultChanged), debug);
-            ExecutorTrace.log(String.format("Execution Plan Changed?            : %s", executionPlanChanged), debug);
+            bldrDebug.append("(re) Evaluated Task Result?        : ").append(fEvaluatedResult).append(EOL);
+            bldrDebug.append("Result Changed?                    : ").append(fResultChanged).append(EOL);
+            bldrDebug.append("(re) Evaluated Execution Strategy? : ").append(fEvaluatedStrategy).append(EOL);
+            bldrDebug.append("Execution Plan Changed?            : ").append(fExecutionPlanChanged).append(EOL);
             }
 
         // prepare the update to the task
         ChainedProcessor chain = ChainedProcessor.empty();
 
-        if (resultChanged || newResultCount > 0)
+        if (fResultChanged || nNewResultCount > 0)
             {
             // update the collected result when the result was changed or pending count changed
             chain.andThen(new UpdateCollectedResultProcessor<>(m_lastResult,
@@ -406,11 +418,16 @@ public class ClusteredTaskManager<T, A, R>
                                                                m_fCompleted));
             }
 
-        if (executionPlanChanged)
+        if (fExecutionPlanChanged)
             {
-            ExecutorTrace.log(() -> String.format("Updated Execution Plan             : %s", m_executionPlan), debug);
+            if (fWillLog)
+                {
+                bldrDebug.append("Updated Execution Plan             : ").append(m_executionPlan)
+                        .append(EOL).append(EOL);
+                }
 
-            chain.andThen(new UpdateExecutionPlanProcessor(m_executionPlan, originalPendingExecutionStrategyUpdateCount));
+            chain.andThen(new UpdateExecutionPlanProcessor(
+                    m_executionPlan, originalPendingExecutionStrategyUpdateCount));
             }
 
         // assume the task being updated is local
@@ -419,7 +436,10 @@ public class ClusteredTaskManager<T, A, R>
         // only update if we have processors to execute
         if (!chain.isEmpty())
             {
-            ExecutorTrace.log(() -> String.format("Updating Task [%s]", m_sTaskId), debug);
+            if (fWillLog)
+                {
+                bldrDebug.append("\nUpdating Task ...").append(EOL);
+                }
 
             Result result = (Result) Caches.tasks(service).invoke(m_sTaskId, LocalOnlyProcessor.of(chain));
 
@@ -433,51 +453,66 @@ public class ClusteredTaskManager<T, A, R>
             // ensure the executors are updated with the current execution plan (when we haven't yet completed)
             if (!m_fCompleted && !m_fCancelled && m_cPendingExecutionPlanOptimizationCount > 0)
                 {
-                ExecutorTrace.log(() -> String.format(
-                        "Commenced Assigning and Optimizing Execution Plan for Task [%s] using [%s]",
-                        m_sTaskId, m_executionPlan), debug);
+                if (fWillLog)
+                    {
+                    bldrDebug.append("Commenced Assigning and Optimizing Execution Plan using [")
+                            .append(m_executionPlan).append(']').append(EOL);
+                    }
 
                 // register the task assignments with the executors based on the execution plan
                 ClusteredAssignment.registerAssignments(m_sTaskId, m_executionPlan, service);
 
-                ExecutorTrace.log(() -> String.format("Optimizing Execution Plan for Task [%s]", m_sTaskId), debug);
+                if (fWillLog)
+                    {
+                    bldrDebug.append("Optimizing Execution Plan ...").append(EOL);
+                    }
 
                 // optimize the execution plan (to remove RELEASE actions).
-                executionPlanChanged = m_executionPlan.optimize();
+                fExecutionPlanChanged = m_executionPlan.optimize();
 
-                if (Logger.isEnabled(debug.getLogLevel()))
+                if (fWillLog)
                     {
-                    ExecutorTrace.log(String.format("Execution Plan for Task [%s] %s",
-                                             m_sTaskId,
-                                             (executionPlanChanged
-                                                 ? "was optimized"
-                                                 : "did not require optimization")), debug);
+                    bldrDebug.append("Execution Plan ")
+                            .append(fExecutionPlanChanged
+                                        ? "was optimized"
+                                        : "did not require optimization").append(EOL);
                     }
 
                 // use an EntryProcessor update the execution plan and count (that it's now completed)
                Caches.tasks(service).invoke(m_sTaskId, LocalOnlyProcessor.of(
                        new OptimizeExecutionPlanProcessor(m_executionPlan, m_cPendingExecutionPlanOptimizationCount)));
 
-                ExecutorTrace.log(() -> String.format(
-                        "Completed Assigning and Optimizing Execution Plan for Task [%s]", m_sTaskId), debug);
+                if (fWillLog)
+                    {
+                    bldrDebug.append("Completed Assigning and Optimizing Execution Plan").append(EOL);
+                    }
                 }
             else
                 {
-                if (Logger.isEnabled(debug.getLogLevel()))
+                if (fWillLog)
                     {
-                    String sMsg = "Skipping Optimization of Execution Plan for Task [%s] as it is completed,"
-                                 + " cancelled or has no pending optimizations to perform";
-                    ExecutorTrace.log(String.format(sMsg, m_sTaskId), debug);
+                    bldrDebug.append("Skipping Optimization of Execution Plan as it is completed,")
+                            .append(" cancelled or has no pending optimizations to perform")
+                            .append(EOL);
                     }
                 }
             }
         else
             {
-            ExecutorTrace.log(() -> String.format("Abandoned Performing Updates as the Task [%s] as it is no longer local",
-                                           m_sTaskId), debug);
+            if (fWillLog)
+                {
+                bldrDebug.append("Abandoned Performing Updates as the task ")
+                        .append("is no longer local").append(EOL);
+                }
             }
 
-        ExecutorTrace.exiting(ClusteredTaskManager.class, "asyncProcessChanges");
+        if (fWillLog)
+            {
+            bldrDebug.append("------------------------------------");
+            ExecutorTrace.log(bldrDebug.toString(), debug);
+            }
+
+        ExecutorTrace.exiting(ClusteredTaskManager.class, "asyncProcessChanges", null, this);
         }
 
     // ----- accessors ------------------------------------------------------
@@ -765,7 +800,7 @@ public class ClusteredTaskManager<T, A, R>
         out.writeBoolean(16, m_fCancelled);
         out.writeBoolean(17, m_fCompleted);
         out.writeObject(18,  m_state);
-        out.writeObject(19, TracingHelper.getTracer().inject(m_parentSpanContext));
+        out.writeObject(19,  TracingHelper.getTracer().inject(m_parentSpanContext));
         }
 
     // ----- Object methods -------------------------------------------------
@@ -813,7 +848,7 @@ public class ClusteredTaskManager<T, A, R>
 
         ExecutorTrace.entering(ClusteredTaskManager.class, "asyncEvaluateResult", sTaskId, originalResult);
 
-        Debugging debug = m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : m_debugging;
+        Debugging debug = m_debugging;
 
         // assume there is no change in the result
         boolean resultChanged = false;
@@ -938,7 +973,7 @@ public class ClusteredTaskManager<T, A, R>
     protected boolean asyncEvaluateExecutionStrategy(CacheService service,
             EnumSet<ExecutionStrategy.EvaluationRationale> rationales)
         {
-        Debugging debug = m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : m_debugging;
+        Debugging debug = m_debugging;
 
         // assume there is no change in the ExecutionPlan
         boolean fExecutionPlanUpdated;
@@ -950,34 +985,27 @@ public class ClusteredTaskManager<T, A, R>
 
         try
             {
-            // create Map of the available executors (info), that are candidates for executing a task
-
             // obtain the cache containing ExecutionInfo
-            NamedCache executorInfoCache = Caches.executors(service);
+            NamedCache<String, ExecutorInfo> executorInfoCache = Caches.executors(service);
 
-            HashMap<String, ExecutorInfo> executorInfoMap = new HashMap<>();
-
-            Iterable<ExecutorInfo> iterable = new FilteringIterable<>(executorInfoCache.values(),
-                    (Predicate<ExecutorInfo>) executorInfo ->
-                            executorInfo.getState() == ExecutorInfo.State.JOINING ||
-                                executorInfo.getState() == ExecutorInfo.State.RUNNING);
-
-            for (ExecutorInfo info : iterable)
-                {
-                executorInfoMap.put(info.getId(), info);
-                }
+            // filter-in only running executors
+            Map<String, ExecutorInfo> executors =
+                    executorInfoCache.invokeAll(RUNNING_EXECUTOR_FILTER, Entry::getValue);
 
             // determine the new assignments based on the current assignments and execution service information
             ExecutionPlan executionPlan =
-                    m_executionStrategy.analyze(m_executionPlan, executorInfoMap, rationales);
+                    m_executionStrategy.analyze(m_executionPlan, executors, rationales);
 
             // has the execution plan changed?
             fExecutionPlanUpdated = (executionPlan == null && m_executionPlan != null) ||
                                     (executionPlan != null && m_executionPlan == null) ||
                                     (executionPlan != null && !executionPlan.equals(m_executionPlan));
 
-            ExecutorTrace.log(() -> String.format("Current execution plan [%s]",    m_executionPlan));
-            ExecutorTrace.log(() -> String.format("Updated(?) execution plan [%s]", executionPlan));
+            if (ExecutorTrace.isEnabled())
+                {
+                ExecutorTrace.log(String.format("Current execution plan [%s]",    m_executionPlan));
+                ExecutorTrace.log(String.format("Updated(?) execution plan [%s]", executionPlan));
+                }
 
             if (fExecutionPlanUpdated)
                 {
@@ -1030,14 +1058,9 @@ public class ClusteredTaskManager<T, A, R>
             {
             Caches.tasks(service).remove(sKey);
             }
-        else if (retain != Duration.ZERO)
+        else if (!Duration.ZERO.equals(retain))
             {
-            long                 cRetainMillis = m_retainDuration.toMillis();
-            ClusteredTaskManager value         = this;
-
-            m_retainDuration  = Duration.ZERO;
-
-            Caches.tasks(service).put(sKey, value, cRetainMillis);
+            Caches.tasks(service).invoke(sKey, new RetainProcessor(m_retainDuration.toMillis()));
             }
 
         // clean up the task properties
@@ -1286,6 +1309,89 @@ public class ClusteredTaskManager<T, A, R>
         protected ArrayList<InvocableMap.EntryProcessor> m_listProcessors;
         }
 
+    // ----- inner class: RetainProcessor -----------------------------------
+
+    /**
+     * Handles updating the {@link ClusteredTaskManager} appropriately if
+     * the task is being retained after execution.
+     *
+     * @since 22.06.7
+     */
+    public static class RetainProcessor
+        extends PortableAbstractProcessor
+        implements ExternalizableLite
+        {
+        // ----- constructors -----------------------------------------------
+
+        /**
+         * For serialization.
+         */
+        @SuppressWarnings("unused")
+        public RetainProcessor()
+            {
+            }
+
+        /**
+         * Constructs a new {@code RetainProcessor} that will apply
+         * the given expiry value to the processed entry.
+         *
+         * @param cMillis  the {@code time-to-live} for the entry.
+         */
+        public RetainProcessor(long cMillis)
+            {
+            m_cMillis = cMillis;
+            }
+
+        // ----- ExternalizableList interface -------------------------------
+
+        @Override
+        public void readExternal(DataInput in) throws IOException
+            {
+            m_cMillis = ExternalizableHelper.readLong(in);
+            }
+
+        @Override
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            ExternalizableHelper.writeLong(out, m_cMillis);
+            }
+
+        // ----- PortableAbstractProcessor methods --------------------------
+
+        @Override
+        public Object process(Entry entry)
+            {
+            if (entry.isPresent())
+                {
+                ClusteredTaskManager manager = (ClusteredTaskManager) entry.getValue();
+                manager.m_retainDuration = Duration.ZERO;
+                entry.setValue(manager, true);
+                ((BinaryEntry) entry).expire(m_cMillis);
+                }
+
+            return null;
+            }
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            m_cMillis = in.readLong(0);
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            out.writeLong(0, m_cMillis);
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The {@code ttl} to apply to the processed entry.
+         */
+        protected long m_cMillis;
+        }
+
     // ----- inner class: CleanupContinuation -------------------------------
 
     /**
@@ -1428,7 +1534,7 @@ public class ClusteredTaskManager<T, A, R>
             if (entry.isPresent())
                 {
                 ClusteredTaskManager manager = entry.getValue();
-                Debugging            debug   = manager.m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : manager.m_debugging;
+                Debugging            debug   = manager.m_debugging;
 
                 if (manager.isCompleted())
                     {
@@ -1588,7 +1694,7 @@ public class ClusteredTaskManager<T, A, R>
                     || m_previous == null
                     || m_previous.isEmpty())
                     {
-                    Debugging debug = manager.m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : manager.m_debugging;
+                    Debugging debug = manager.m_debugging;
                     ExecutorTrace.log(() -> String.format("Changing Executor [%s] action from [%s] to [%s]",
                                                    m_sExecutorId, existing, m_desired), debug);
 
@@ -1731,7 +1837,7 @@ public class ClusteredTaskManager<T, A, R>
             if (entry.isPresent())
                 {
                 ClusteredTaskManager manager = entry.getValue();
-                Debugging            debug   = manager.m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : manager.m_debugging;
+                Debugging            debug   = manager.m_debugging;
 
                 if (manager.m_collector != null)
                     {
@@ -1753,6 +1859,9 @@ public class ClusteredTaskManager<T, A, R>
                         {
                         manager.m_lastResult = m_newResult;
                         manager.m_nResultVersion++;
+
+                        // move forward the generation of processed results
+                        manager.m_lProcessedResultGeneration = m_lProcessedResultMapGeneration;
                         }
                     else
                         {
@@ -1762,9 +1871,6 @@ public class ClusteredTaskManager<T, A, R>
                         }
                     }
 
-                // move forward the generation of processed results
-                manager.m_lProcessedResultGeneration = m_lProcessedResultMapGeneration;
-
                 // update if the result completed the task (iff completed)
                 if (!manager.m_fCompleted && m_fCompleted)
                     {
@@ -1773,9 +1879,8 @@ public class ClusteredTaskManager<T, A, R>
                     }
 
                 ExecutorTrace.log(() -> String.format(
-                        "Task [%s] (completed=[%s], cancelled=[%s], state=[%s], resultVersion[%s]",
-                        manager.getTaskId(), manager.isCompleted(), manager.isCancelled(), manager.m_state,
-                        manager.m_nResultVersion), debug);
+                        "Task [%s] ([%s])",
+                        manager.getTaskId(), manager), debug);
 
                 entry.setValue(manager);
                 }
@@ -1872,7 +1977,7 @@ public class ClusteredTaskManager<T, A, R>
                 if (entry.isPresent())
                     {
                     ClusteredTaskManager taskManager = entry.getValue();
-                    Debugging            debug       = taskManager.m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : taskManager.m_debugging;
+                    Debugging            debug       = taskManager.m_debugging;
 
                     if (taskManager.isOwner(m_sExecutorId))
                         {
@@ -1902,9 +2007,9 @@ public class ClusteredTaskManager<T, A, R>
                     }
                 else
                     {
-                    if (Logger.isEnabled(Logger.FINE))
+                    if (Logger.isEnabled(Logger.FINEST))
                         {
-                        Logger.fine(String.format("Ignoring result contributed for Task [%s] as the Task is no longer"
+                        Logger.finest(String.format("Ignoring result contributed for Task [%s] as the Task is no longer"
                                 + " present. Executor [%s]: %s", entry.getKey(), m_sExecutorId, m_result));
                         }
 
@@ -1987,7 +2092,7 @@ public class ClusteredTaskManager<T, A, R>
             if (entry.isPresent())
                 {
                 ClusteredTaskManager manager = entry.getValue();
-                Debugging            debug   = manager.m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : manager.m_debugging;
+                Debugging            debug   = manager.m_debugging;
 
                 if (manager.isCompleted())
                     {
@@ -2069,6 +2174,17 @@ public class ClusteredTaskManager<T, A, R>
          */
         TERMINATING
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * {@link Filter} for obtaining only JOINING and RUNNING executors.
+     *
+     * @since 22.06.7
+     */
+    protected static final Filter<ExecutorInfo> RUNNING_EXECUTOR_FILTER =
+            Filters.equal(Extractors.extract("state"), ExecutorInfo.State.JOINING)
+                    .or(Filters.equal(Extractors.extract("state"), ExecutorInfo.State.RUNNING));
 
     // ----- data members ---------------------------------------------------
 
@@ -2192,4 +2308,6 @@ public class ClusteredTaskManager<T, A, R>
      * The {@link SpanContext} of the span enqueuing this task.
      */
     private SpanContext m_parentSpanContext = SpanContext.Noop.INSTANCE;
+
+    private static final String EOL = System.lineSeparator();
     }

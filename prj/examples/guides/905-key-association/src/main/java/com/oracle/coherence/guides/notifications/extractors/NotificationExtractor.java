@@ -48,10 +48,10 @@ import java.util.stream.Collectors;
  * @since 22.06
  */
 // # tag::one[]
-@PortableType(id=1200, version=1)
+@PortableType(id = 1200, version = 1)
 public class NotificationExtractor
-        extends AbstractExtractor<Customer, List<Notification>>
-    {
+        extends AbstractExtractor<Customer, List<Notification>> {
+
     /**
      * An optional region identifier to use to retrieve
      * only notifications for a specific region.
@@ -64,89 +64,79 @@ public class NotificationExtractor
      *
      * @param region an optional region identifier
      */
-    public NotificationExtractor(String region)
-        {
+    public NotificationExtractor(String region) {
         this.region = region;
-        }
+    }
     // # end::one[]
 
     // # tag::extract[]
     @Override
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public List<Notification> extractFromEntry(Map.Entry entry)
-        {
+    @SuppressWarnings( {"rawtypes", "unchecked"})
+    public List<Notification> extractFromEntry(Map.Entry entry) {
         BinaryEntry binaryEntry = (BinaryEntry) entry;
         BackingMapContext ctx = binaryEntry.getContext()
-                .getBackingMapContext(CustomerRepository.NOTIFICATIONS_MAP_NAME);
+                                           .getBackingMapContext(CustomerRepository.NOTIFICATIONS_MAP_NAME);
         Map<ValueExtractor, MapIndex> indexMap = ctx.getIndexMap(binaryEntry.getKeyPartition());
 
         MapIndex<Binary, Notification, String> index = indexMap
                 .get(ValueExtractor.of(NotificationId::getCustomerId).fromKey());
 
-        String customerId = (String) entry.getKey();
-        Set<Binary> keys = index.getIndexContents().get(customerId);
+        String      customerId = (String) entry.getKey();
+        Set<Binary> keys       = index.getIndexContents().get(customerId);
 
-        if (keys == null || keys.isEmpty())
-            {
+        if (keys == null || keys.isEmpty()) {
             return Collections.emptyList();
-            }
+        }
 
-        if (region != null && !region.isBlank())
-            {
+        if (region != null && !region.isBlank()) {
             // copy the keys, so we don't modify the underlying index
             keys = new HashSet<>(keys);
 
             ValueExtractor<NotificationId, String> extractor = ValueExtractor.of(NotificationId::getRegion).fromKey();
-            EqualsFilter<NotificationId, String> filter = new EqualsFilter<>(extractor, region);
+            EqualsFilter<NotificationId, String>   filter    = new EqualsFilter<>(extractor, region);
             filter.applyIndex(indexMap, keys);
-            }
+        }
 
         // # tag::streams[]
-        Comparator<InvocableMap.Entry> comparator = (e1, e2) ->
+        Comparator<InvocableMap.Entry> comparator = (e1, e2)->
                 SafeComparator.compareSafe(Comparator.naturalOrder(), e1.getKey(), e2.getKey());
 
         return keys.stream()
-                .map(ctx::getReadOnlyEntry)             // <1>
-                .filter(InvocableMap.Entry::isPresent)  // <2>
-                .sorted(comparator)                     // <3>
-                .map(InvocableMap.Entry::getValue)      // <4>
-                .map(Notification.class::cast)          // <5>
-                .collect(Collectors.toList());          // <6>
+                   .map(ctx::getReadOnlyEntry)             // <1>
+                   .filter(InvocableMap.Entry::isPresent)  // <2>
+                   .sorted(comparator)                     // <3>
+                   .map(InvocableMap.Entry::getValue)      // <4>
+                   .map(Notification.class::cast)          // <5>
+                   .collect(Collectors.toList());          // <6>
         // # end::streams[]
-        }
+    }
     // # end::extract[]
 
     @Override
     @SuppressWarnings("rawtypes")
-    public List<Notification> extractOriginalFromEntry(MapTrigger.Entry entry)
-        {
+    public List<Notification> extractOriginalFromEntry(MapTrigger.Entry entry) {
         return extractFromEntry(entry);
-        }
+    }
 
     // # tag::two[]
     @Override
-    public boolean equals(Object o)
-        {
-        if (this == o)
-            {
+    public boolean equals(Object o) {
+        if (this == o) {
             return true;
-            }
-        if (o == null || getClass() != o.getClass())
-            {
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
-            }
-        if (!super.equals(o))
-            {
+        }
+        if (!super.equals(o)) {
             return false;
-            }
+        }
         NotificationExtractor that = (NotificationExtractor) o;
         return Objects.equals(region, that.region);
-        }
+    }
 
     @Override
-    public int hashCode()
-        {
+    public int hashCode() {
         return Objects.hash(super.hashCode(), region);
-        }
-    // # end::two[]
     }
+    // # end::two[]
+}

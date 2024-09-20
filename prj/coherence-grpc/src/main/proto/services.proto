@@ -1,15 +1,13 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
-// Authors:
-//  Mahesh Kannan
-//  Jonathan Knight
-
-// NamedCacheService service definition.
+// -----------------------------------------------------------------
+// The legacy (version zero) NamedCacheService service definition.
+// -----------------------------------------------------------------
 
 syntax = "proto3";
 
@@ -20,7 +18,7 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
 option java_multiple_files = true;
-option java_package = "com.oracle.coherence.grpc";
+option java_package = "com.oracle.coherence.grpc.services.cache.v0";
 
 // A gRPC NamedCache service.
 //
@@ -83,6 +81,10 @@ service NamedCacheService {
 
     // Determine whether a cache is empty.
     rpc isEmpty (IsEmptyRequest) returns (google.protobuf.BoolValue) {
+    }
+
+    // Determine whether a cache is empty.
+    rpc isReady (IsReadyRequest) returns (google.protobuf.BoolValue) {
     }
 
     // Obtain all of the keys in the cache where the cache entries

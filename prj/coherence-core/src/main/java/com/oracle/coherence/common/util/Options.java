@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.util;
 
@@ -21,7 +21,10 @@ import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Stack;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 import java.util.function.Consumer;
 
@@ -49,8 +52,9 @@ public class Options<T>
      */
     Options(Class<T> clsType)
         {
-        m_mapOptions = new LinkedHashMap<>();
-        m_clsType    = clsType;
+        m_mapOptions        = new LinkedHashMap<>();
+        m_mapDefaultOptions = new ConcurrentHashMap<>();
+        m_clsType           = clsType;
         }
 
     /**
@@ -64,8 +68,7 @@ public class Options<T>
      */
     private Options(Class<T> clsType, T[] aOptions)
         {
-        m_mapOptions = new LinkedHashMap<>();
-        m_clsType    = clsType;
+        this(clsType);
 
         if (aOptions != null)
             {
@@ -419,15 +422,17 @@ public class Options<T>
      * @return a default value or <code>null</code> if a default can't be
      *         determined
      */
+    @SuppressWarnings("unchecked")
     protected <U extends T> U getDefaultFor(Class<U> clzOption)
         {
         if (clzOption == null)
             {
             return null;
             }
-        else
+
+        return (U) m_mapDefaultOptions.computeIfAbsent(clzOption, clz ->
             {
-            for (Method method : clzOption.getMethods())
+            for (Method method : clz.getMethods())
                 {
                 int modifiers = method.getModifiers();
 
@@ -435,7 +440,7 @@ public class Options<T>
                     method.getParameterCount() == 0 &&
                     Modifier.isStatic(modifiers) &&
                     Modifier.isPublic(modifiers) &&
-                    clzOption.isAssignableFrom(method.getReturnType()))
+                    clz.isAssignableFrom(method.getReturnType()))
                     {
                     try
                         {
@@ -447,53 +452,54 @@ public class Options<T>
                         }
                     }
                 }
-            }
 
-        for (Field field : clzOption.getFields())
-            {
-            int modifiers = field.getModifiers();
-
-            if (field.getAnnotation(Default.class) != null &&
-                Modifier.isStatic(modifiers) &&
-                Modifier.isPublic(modifiers) &&
-                clzOption.isAssignableFrom(field.getType()))
+            for (Field field : clz.getFields())
                 {
-                try
+                int modifiers = field.getModifiers();
+
+                if (field.getAnnotation(Default.class) != null &&
+                    Modifier.isStatic(modifiers) &&
+                    Modifier.isPublic(modifiers) &&
+                    clz.isAssignableFrom(field.getType()))
                     {
-                    return (U) field.get(null);
-                    }
-                catch (Exception e)
-                    {
-                    // carry on... perhaps we can use another approach?
+                    try
+                        {
+                        return (U) field.get(null);
+                        }
+                    catch (Exception e)
+                        {
+                        // carry on... perhaps we can use another approach?
+                        }
                     }
                 }
-            }
 
-        try {
-            Constructor constructor = clzOption.getConstructor();
-
-            int modifiers = constructor.getModifiers();
-
-            if (constructor.getAnnotation(Default.class) != null &&
-                Modifier.isPublic(modifiers))
+            try
                 {
-                try
+                Constructor<? extends T> constructor = clz.getConstructor();
+
+                int modifiers = constructor.getModifiers();
+
+                if (constructor.getAnnotation(Default.class) != null &&
+                    Modifier.isPublic(modifiers))
                     {
-                    return (U) constructor.newInstance();
-                    }
-                catch (Exception e)
-                    {
-                    //carry on... perhaps we can use another approach?
+                    try
+                        {
+                        return constructor.newInstance();
+                        }
+                    catch (Exception e)
+                        {
+                        //carry on... perhaps we can use another approach?
+                        }
                     }
                 }
-            }
-        catch (NoSuchMethodException e)
-            {
-            // carry on... there's no no-args constructor
-            }
+            catch (NoSuchMethodException e)
+                {
+                // carry on... there's no no-args constructor
+                }
 
-        // couldn't find a default so let's return null
-        return null;
+            // couldn't find a default so let's return null
+            return null;
+            });
         }
 
     // ----- data members ---------------------------------------------------
@@ -503,7 +509,12 @@ public class Options<T>
      */
     LinkedHashMap<Class<? extends T>, T> m_mapOptions;
 
-    private Class<T> m_clsType;
+    /**
+     * The map of option defaults, keyed by their concrete class.
+     */
+    private final Map<Class<? extends T>, T> m_mapDefaultOptions;
+
+    private final Class<T> m_clsType;
 
     // ----- constants ------------------------------------------------------
 

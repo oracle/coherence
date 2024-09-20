@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,10 +8,13 @@ package jmx;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.internal.PartitionSize;
 import com.tangosol.net.management.MBeanHelper;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
+import com.tangosol.util.MapEvent;
+import com.tangosol.util.MapListener;
 import com.tangosol.util.filter.AndFilter;
 import com.tangosol.util.filter.BetweenFilter;
 import com.tangosol.util.filter.EqualsFilter;
@@ -20,6 +23,8 @@ import com.tangosol.util.filter.OrFilter;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import data.persistence.Person;
 
 import java.io.Serializable;
@@ -27,13 +32,19 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
@@ -110,15 +121,185 @@ public class StorageManagerMBeanTests
             }
 
         ObjectName name = getQueryName(cache);
-        Integer keyListenerCount = (Integer) server.getAttribute(name, "ListenerKeyCount");
-        assertEquals("expected ListenerKeyCount to be 100", Integer.valueOf(100), keyListenerCount);
+
+        Eventually.assertDeferred(() -> getListenerKeyCount(server, name), is(100));
+
         for (int i = 0; i < 100; i++ )
             {
             cache.remove(i);
             }
 
-        Integer afterRemoveKeyListenerCount =  (Integer) server.getAttribute(name, "ListenerKeyCount");
-        assertEquals("COH-13113 regression: expected ListenerKeyCount to be 0, if non-zero, still a leak when removing KeyListener", Integer.valueOf(0), afterRemoveKeyListenerCount);
+        Eventually.assertDeferred(() -> getListenerKeyCount(server, name), is(0));
+        }
+
+    /**
+     * Static method to return listener key count given a {@link MBeanServer} and {@link ObjectName}.
+     *
+     * @param server  {@link MBeanServer} to query
+     * @param name    {@link ObjectName} to use
+     * @return the value of the listener key count
+     */
+    private static int getListenerKeyCount(MBeanServer server, ObjectName name)
+        {
+        try
+            {
+            return (Integer) server.getAttribute(name, "ListenerKeyCount");
+            }
+        catch (Exception e)
+            {
+            return -1;
+            }
+        }
+
+    /**
+     * Test cache clear operation.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testClearOperation()
+            throws Exception
+        {
+        final AtomicInteger atomicInsert = new AtomicInteger();
+        final AtomicInteger atomicDelete = new AtomicInteger();
+        NamedCache<Integer, Integer> cache = getNamedCache("dist-clear");
+        MapListener<Integer, Integer> listener = new MapListener<>()
+            {
+            public void entryInserted(MapEvent<Integer, Integer> evt)
+                {
+                atomicInsert.incrementAndGet();
+                }
+
+            public void entryUpdated(MapEvent<Integer, Integer> evt)
+                {
+                }
+
+            public void entryDeleted(MapEvent<Integer, Integer> evt)
+                {
+                atomicDelete.incrementAndGet();
+                }
+            };
+
+        cache.addMapListener(listener);
+        MBeanServer server = MBeanHelper.findMBeanServer();
+
+        for (int i = 0; i < 100; i++)
+            {
+            cache.put(i, i + 1);
+            }
+        assertEquals(100, cache.size());
+        Eventually.assertDeferred(atomicInsert::get, is(100));
+        ObjectName name = getQueryName(cache);
+        server.invoke(name, "clearCache", null, null);
+        Eventually.assertDeferred(cache::size, is(0));
+        Eventually.assertDeferred(atomicDelete::get, is(100));
+        Long ClearCount = (Long) server.getAttribute(name, "ClearCount");
+        assertEquals("expected ClearCount to be 1", Long.valueOf(1), ClearCount);
+        }
+
+    /**
+     * Test reportPartitionStats operation.
+     *
+     * @throws Exception which could be ReflectionException, InstanceNotFoundException or MBeanException.
+     */
+    @Test
+    public void testReportPartitionStats()
+            throws Exception
+        {
+        NamedCache<Integer, Integer> cache = getNamedCache("dist-stats");
+        MBeanServer server = MBeanHelper.findMBeanServer();
+
+        for (int i = 0; i < 100; i++)
+            {
+            cache.put(i, i + 1);
+            }
+        
+        ObjectName name = getQueryName(cache);
+        String sJson = (String) server.invoke(name, "reportPartitionStats", new Object[]{"json"}, new String[]{"java.lang.String"});
+        assertNotNull(sJson);
+        assertEquals(sJson.substring(0,1), "[");
+
+        String sCSV = (String) server.invoke(name, "reportPartitionStats", new Object[]{"csv"}, new String[]{"java.lang.String"});
+        assertNotNull(sCSV);
+        String[] asLines = sCSV.split("\n");
+        assertTrue(asLines.length > 0);
+        for (String asLine : asLines)
+            {
+            assertTrue(asLine.contains(","));
+            }
+        }
+
+    /**
+     * Test StorageManager size() operation.
+     */
+    @Test
+    public void testSizeOperation()
+        {
+        NamedCache<Integer, Integer> cache = getNamedCache("dist-size");
+        MBeanServer server = MBeanHelper.findMBeanServer();
+
+        for (int i = 0; i < 100; i++)
+            {
+            cache.put(i, i + 1);
+            }
+        assertEquals(100, cache.size());
+        ObjectName name = getQueryName(cache);
+        Eventually.assertDeferred(() ->
+            {
+            try
+                {
+                return (Integer) server.invoke(name, "size", null, null);
+                }
+            catch (Exception e)
+                {
+                Assert.fail(e.getMessage());
+                }
+            return 0;
+            }, is(100));
+        }
+
+    /**
+     * Test cache truncate operation.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testTruncateOperation()
+            throws Exception
+        {
+        final AtomicInteger atomicInsert = new AtomicInteger();
+        final AtomicInteger atomicDelete = new AtomicInteger();
+        NamedCache<Integer, Integer> cache = getNamedCache("dist-truncate");
+        MapListener<Integer, Integer> listener = new MapListener<>()
+            {
+            public void entryInserted(MapEvent<Integer, Integer> evt)
+                {
+                atomicInsert.incrementAndGet();
+                }
+
+            public void entryUpdated(MapEvent<Integer, Integer> evt)
+                {
+                }
+
+            public void entryDeleted(MapEvent<Integer, Integer> evt)
+                {
+                atomicDelete.incrementAndGet();
+                }
+            };
+
+        cache.addMapListener(listener);
+        MBeanServer server = MBeanHelper.findMBeanServer();
+
+        for (int i = 0; i < 100; i++)
+            {
+            cache.put(i, i + 1);
+            }
+        assertEquals(100, cache.size());
+        Eventually.assertDeferred(atomicInsert::get, is(100));
+        ObjectName name = getQueryName(cache);
+        server.invoke(name, "truncateCache", null, null);
+        Eventually.assertDeferred(cache::size, is(0));
+        Eventually.assertDeferred(atomicDelete::get, is(0), Eventually.delayedBy(2, TimeUnit.SECONDS));
         }
 
     // ----- helpers --------------------------------------------------------
@@ -237,6 +418,13 @@ public class StorageManagerMBeanTests
         @Override
         public boolean evaluateEntry(Map.Entry entry)
             {
+            try
+                {
+                Thread.sleep(2);
+                }
+            catch (InterruptedException ignore)
+                {
+                }
             return true;
             }
 

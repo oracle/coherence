@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -262,6 +262,31 @@ public class SSLSocketProviderDependenciesBuilder
         }
 
     /**
+     * Set the client auth mode to use.
+     *
+     * @param sAuthMode  the client auth mode to use
+     */
+    @Injectable("client-auth")
+    public void setClientAuth(String sAuthMode)
+        {
+        if (sAuthMode == null || sAuthMode.isEmpty())
+            {
+            m_clientAuthMode = SSLSocketProvider.ClientAuthMode.none;
+            }
+        else
+            {
+            try
+                {
+                m_clientAuthMode = SSLSocketProvider.ClientAuthMode.valueOf(sAuthMode);
+                }
+            catch (IllegalArgumentException e)
+                {
+                throw new IllegalArgumentException("Invalid client auth configuration", e);
+                }
+            }
+        }
+
+    /**
      * Set the auto-refresh period.
      *
      * @param refreshPeriod  the period to use to auto-refresh keys and certs
@@ -369,6 +394,7 @@ public class SSLSocketProviderDependenciesBuilder
 
             deps.setRefreshPeriod(m_refreshPeriod);
             deps.setRefreshPolicy(m_refreshPolicy);
+            deps.setClientAuth(m_clientAuthMode);
 
             ParameterizedBuilder<HostnameVerifier> bldrHostnameVerifier = getHostnameVerifierBuilder();
 
@@ -384,7 +410,7 @@ public class SSLSocketProviderDependenciesBuilder
             SSLContextDependencies sslContextDependencies = new SSLContextDependencies(null);
             sslContextDependencies.setProvider(provider, sProviderName);
             sslContextDependencies.setDependencies(deps, depsIdMgr, depsTrustMgr);
-            sslContextDependencies.setPeerAuthentication(deps.isClientAuthenticationRequired());
+            sslContextDependencies.setClientAuth(deps.getClientAuth());
             sslContextDependencies.setRefreshPeriodInMillis(m_refreshPeriod.as(Duration.Magnitude.MILLI));
             sslContextDependencies.setSecureRandom(random);
             deps.setSSLContextDependencies(sslContextDependencies);
@@ -614,12 +640,12 @@ public class SSLSocketProviderDependenciesBuilder
             {
             boolean fMatched = false;
 
-            if (sUrlHostname != null && sslSession != null)
+            if (sUrlHostname != null && !sUrlHostname.isEmpty() && sslSession != null)
                 {
                 Collection<String> colWildcardDNSNames = SSLCertUtility.getDNSSubjAltNames(sslSession, true, false);
                 String             sCertHostname       = SSLCertUtility.getCommonName(sslSession);
 
-                if (colWildcardDNSNames != null && colWildcardDNSNames.size() > 0)
+                if (colWildcardDNSNames != null && !colWildcardDNSNames.isEmpty())
                     {
                     fMatched = VERIFY_CN_AFTER_SAN
                             ? verifySANWildcardDNSNames(sUrlHostname, colWildcardDNSNames)
@@ -637,7 +663,7 @@ public class SSLSocketProviderDependenciesBuilder
                     // non-wildcard SAN DNS Names
                     Collection<String> colSubAltNames = SSLCertUtility.getDNSSubjAltNames(sslSession, false, true);
 
-                    if (colSubAltNames != null && colSubAltNames.size() > 0)
+                    if (colSubAltNames != null && !colSubAltNames.isEmpty())
                         {
                         fMatched = VERIFY_CN_AFTER_SAN
                                 ? doDNSSubjAltNamesVerify(sUrlHostname, colSubAltNames) || doVerify(sUrlHostname, sCertHostname)
@@ -668,6 +694,17 @@ public class SSLSocketProviderDependenciesBuilder
             if (sUrlHostname.equalsIgnoreCase(sCertHostname))
                 {
                 return true;
+                }
+
+            if (sCertHostname.indexOf(".") < 0 && sUrlHostname.indexOf(".") > 0)
+                {
+                int domainIndex = sUrlHostname.indexOf(".");
+                if (domainIndex == sCertHostname.length()
+                    && sCertHostname.compareToIgnoreCase(sUrlHostname.substring(0, domainIndex)) == 0)
+                    {
+                    return true;
+                    }
+
                 }
 
             if (!ALLOW_LOCALHOST)
@@ -1110,6 +1147,11 @@ public class SSLSocketProviderDependenciesBuilder
      * SSL Socket provider protocol.
      */
     private String m_sNameProtocol;
+
+    /**
+     * The client authentication mode.
+     */
+    private SSLSocketProvider.ClientAuthMode m_clientAuthMode;
 
     /**
      * The period to use to auto-refresh keys and certs.

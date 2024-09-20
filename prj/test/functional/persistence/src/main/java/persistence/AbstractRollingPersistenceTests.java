@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,8 @@
 package persistence;
 
 import com.oracle.coherence.common.base.SimpleHolder;
+
+import com.oracle.bedrock.runtime.java.options.JvmOptions;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.tangosol.coherence.component.util.SafeService;
@@ -122,6 +124,7 @@ public abstract class AbstractRollingPersistenceTests
         File fileSnapshot = FileHelper.createTempDir();
         File fileTrash    = FileHelper.createTempDir();
 
+        System.setProperty("test.heap.min", "128");
         System.setProperty("test.persistence.active.dir", fileActive.getAbsolutePath());
         System.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         System.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
@@ -133,7 +136,8 @@ public abstract class AbstractRollingPersistenceTests
                 CacheFactory.ensureCluster(), sTest + "-", cBackups);
         for (int i = 0; i < cServers; i++)
             {
-            memberHandler.addServer();
+            memberHandler.addServer(null,
+                                    JvmOptions.include("-XX:+ExitOnOutOfMemoryError"));
             }
 
         try
@@ -222,6 +226,7 @@ public abstract class AbstractRollingPersistenceTests
                 }
             }
         }
+
     /**
      * Test dynamic recovery.
      */
@@ -260,16 +265,19 @@ public abstract class AbstractRollingPersistenceTests
                 invoking(service).getOwnershipEnabledMembers().size(),
                 is(cServers));
 
-            waitForBalanced(service);
-
-            // the following sleep should be removed once COH-19735 is done
-            sleep(4000); // when COH-14809 is done, replace with an event check
-
             HashMap map = new HashMap();
             for (int i = 0; i < 5000; i++)
                 {
                 map.put(i, Base.getRandomBinary(100, 1024));
                 }
+
+            // partition stabilization could take over a minute which should not be
+            // a failure condition; wait after sleep
+            waitForBalanced(service, 180);
+
+            // the following sleep should be removed once COH-19735 is done
+            sleep(4000); // when COH-14809 is done, replace with an event check
+
             cache.putAll(map);
 
             // stop all servers at once (kinda)
@@ -459,7 +467,7 @@ public abstract class AbstractRollingPersistenceTests
         {
         public MemberHandler(Cluster cluster, String sPrefix, int cBackups)
             {
-            super(cluster, sPrefix, true, false);
+            super(cluster, sPrefix, true, System.getProperty("os.name").toLowerCase().contains("windows"));
 
             m_cBackups = cBackups;
             }

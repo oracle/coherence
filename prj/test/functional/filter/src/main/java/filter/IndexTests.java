@@ -7,7 +7,6 @@
 
 package filter;
 
-
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.Base;
@@ -32,6 +31,7 @@ import com.tangosol.util.filter.GreaterFilter;
 
 import com.tangosol.util.filter.LessEqualsFilter;
 import com.tangosol.util.filter.NeverFilter;
+import com.tangosol.util.filter.NotEqualsFilter;
 import com.tangosol.util.processor.AbstractProcessor;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
@@ -40,6 +40,7 @@ import data.Person;
 
 import java.io.Serializable;
 
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -49,6 +50,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,12 +58,12 @@ import org.junit.runners.Parameterized;
 
 import static org.junit.Assert.*;
 
-
 /**
  * Index-related tests
  *
  * @author coh 2011.03.07
  */
+@SuppressWarnings({"unchecked", "rawtypes"})
 @RunWith(Parameterized.class)
 public class IndexTests
         extends AbstractFunctionalTest
@@ -85,7 +87,7 @@ public class IndexTests
         {
         m_sCacheName = sCacheName;
         }
-    private String m_sCacheName;
+    private final String m_sCacheName;
 
     /**
      * Return the name of the cache.
@@ -110,11 +112,16 @@ public class IndexTests
         System.setProperty("coherence.distributed.threads", "4");
 
         s_cIterations = Integer.getInteger("test.iterations", 1);
-        s_cThreads = Integer.getInteger("test.threads", 1);
+        s_cThreads = Integer.getInteger("test.threads", 4);
 
         AbstractFunctionalTest._startup();
         }
 
+    @Before
+    public void _reset()
+        {
+        getNamedCache().removeIndex(IdentityExtractor.INSTANCE);
+        }
 
     // ----- test methods ---------------------------------------------------
 
@@ -158,12 +165,9 @@ public class IndexTests
         {
         final NamedCache cache = getNamedCache();
 
-        // sorted or non sorted doesn't make any difference - test
-        // still fails
         cache.addIndex(IdentityExtractor.INSTANCE, true, null);
 
-        // sleep 30ms between each update
-        UpdateThread[] updateThreads = startUpdateThreads(cache, 30);
+        UpdateThread[] updateThreads = startUpdateThreads(cache, 0);
 
         for (int i = 0; i < s_cIterations; i++)
             {
@@ -174,30 +178,55 @@ public class IndexTests
         }
 
     @Test
+    public void testConditionalIndexOnKey()
+        {
+        final NamedCache<Long, String> cache = getNamedCache();
+
+        cache.clear();
+        
+        ValueExtractor<Long, Integer> extractor = new LastDigit().fromKey();
+        Filter<String> condition = new NotEqualsFilter<>(ValueExtractor.identity(), "");
+
+        ConditionalExtractor condExtractor = new ConditionalExtractor<>(condition, extractor, false);
+        try
+            {
+            cache.addIndex(condExtractor, false, null);
+
+            Filter<?> query = new EqualsFilter<>(extractor, 3);
+
+            cache.put(123L, ""); //fail condition
+            assertTrue(cache.entrySet(query).isEmpty());
+
+            cache.put(123L, "notEmpty"); //pass condition
+            assertTrue(cache.entrySet(query).contains(new AbstractMap.SimpleEntry<>(123L, "notEmpty")));
+
+            cache.put(123L, ""); //fail condition
+            assertTrue(cache.entrySet(query).isEmpty());
+            }
+        finally
+            {
+            cache.removeIndex(condExtractor);
+            }
+        }
+
+    @Test
     public void testConcurrentUpdates()
         {
         final NamedCache cache = getNamedCache();
 
-        try
+        cache.addIndex(IdentityExtractor.INSTANCE, true, null);
+
+        // Insert/Update
+        UpdateThread[] updateThreads = startUpdateThreads(cache, 0);
+
+        for (int i = 0; i < s_cIterations; i++)
             {
-            cache.addIndex(IdentityExtractor.INSTANCE, true, null);
-
-            // Insert/Update
-            UpdateThread[] updateThreads = startUpdateThreads(cache, 0);
-
-            for (int i = 0; i < s_cIterations; i++)
-                {
-                testFilter(cache, new GreaterEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
-                testFilter(cache, new EqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
-                testFilter(cache, new LessEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
-                }
-
-            stopUpdateThreads(updateThreads);
+            testFilter(cache, new GreaterEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
+            testFilter(cache, new EqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
+            testFilter(cache, new LessEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
             }
-        finally
-            {
-            cache.removeIndex(IdentityExtractor.INSTANCE);
-            }
+
+        stopUpdateThreads(updateThreads);
         }
 
     @Test
@@ -205,8 +234,6 @@ public class IndexTests
         {
         final NamedCache cache = getNamedCache();
 
-        // sorted or non sorted doesn't make any difference - test
-        // still fails
         cache.addIndex(IdentityExtractor.INSTANCE, true, null);
 
         // Insert/Update
@@ -217,6 +244,23 @@ public class IndexTests
             testFilter(cache, new AndFilter(
                     new GreaterEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE),
                     new GreaterEqualsFilter("hashCode", QUERY_VALUE)));
+            }
+
+        stopUpdateThreads(updateThreads);
+        }
+
+    @Test
+    public void testConcurrentUpdatesNoIndex()
+        {
+        final NamedCache cache = getNamedCache();
+
+        UpdateThread[] updateThreads = startUpdateThreads(cache, 0);
+
+        for (int i = 0; i < s_cIterations; i++)
+            {
+            testFilter(cache, new GreaterEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
+            testFilter(cache, new EqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
+            testFilter(cache, new LessEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
             }
 
         stopUpdateThreads(updateThreads);
@@ -575,8 +619,7 @@ public class IndexTests
      */
     private  void testCollectionsCondIndex(NamedCache cache, boolean fFwdIdx)
         {
-        ValueExtractor extractorCond = new ConditionalExtractor(new AlwaysFilter(),
-                new EveryOtherTimeExtractor(), fFwdIdx);
+        ValueExtractor extractorCond = new ConditionalExtractor(new AlwaysFilter(), new EveryOtherTimeExtractor(), fFwdIdx);
 
         // test update with intersecting old and new values and non-deterministic extractor
         cache.addIndex(extractorCond, fFwdIdx, null);
@@ -754,8 +797,8 @@ public class IndexTests
 
         public Object process(Entry entry)
             {
-            assertTrue("Value is not greater or equal ("
-                        + entry.getValue() + ")", ((Integer) entry.getValue()) >= queryValue);
+            assertTrue("Value " + entry.getValue() + " is not greater or equal to " + queryValue,
+                       ((Integer) entry.getValue()) >= queryValue);
 
             // Set back the value to something predictable: (key)
             Object newValue = entry.getKey();
@@ -1058,6 +1101,30 @@ public class IndexTests
             return super.hashCode();
             }
         public static boolean s_fFail;
+        }
+
+    public class LastDigit
+            implements ValueExtractor<Long, Integer>
+        {
+        @Override
+        public Integer extract(Long key)
+            {
+            String digits = key.toString();
+            Integer ret = Integer.parseInt(digits.substring(digits.length() - 1));
+            return ret;
+            }
+
+        @Override
+        public int hashCode()
+            {
+            return -89342518;
+            }
+
+        @Override
+        public boolean equals(Object that)
+            {
+            return that instanceof LastDigit;
+            }
         }
 
     // ----- constants and data members -------------------------------------

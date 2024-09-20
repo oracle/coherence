@@ -1,15 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service.extend.remote;
 
-import com.tangosol.internal.net.service.peer.initiator.DefaultJmsInitiatorDependencies;
 import com.tangosol.internal.net.service.peer.initiator.DefaultTcpInitiatorDependencies;
 import com.tangosol.internal.net.service.peer.initiator.InitiatorDependencies;
-import com.tangosol.internal.net.service.peer.initiator.LegacyXmlJmsInitiatorHelper;
 import com.tangosol.internal.net.service.peer.initiator.LegacyXmlTcpInitiatorHelper;
 
 import com.tangosol.net.OperationalContext;
@@ -88,14 +86,9 @@ public class LegacyXmlRemoteServiceHelper
             xmlSub.setString(xml.getSafeElement("task-timeout").getString());
             }
 
-        // create and populate either a JMS or TCP initiator dependencies object
+        // create and populate either a TCP initiator dependencies object
         InitiatorDependencies depsInitiator;
-        if (xmlConfig.getElement("jms-initiator") != null)
-            {
-            depsInitiator = LegacyXmlJmsInitiatorHelper.fromXml(xmlConfig,
-                    new DefaultJmsInitiatorDependencies(), ctx, loader);
-            }
-        else if (xmlConfig.getElement("tcp-initiator") != null)
+        if (xmlConfig.getElement("tcp-initiator") != null)
             {
             depsInitiator = LegacyXmlTcpInitiatorHelper.fromXml(xmlConfig,
                     new DefaultTcpInitiatorDependencies(), ctx, loader);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,10 +14,13 @@ import com.tangosol.internal.util.processor.CacheProcessors;
 
 import com.tangosol.io.Serializer;
 
+import com.tangosol.net.AsyncNamedCache;
+import com.tangosol.net.AsyncNamedMap;
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 
 import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.CacheMap;
@@ -45,11 +48,15 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
+import java.util.concurrent.CompletableFuture;
+
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 /**
 * A collection of Collection implementation classes that use the Converter
@@ -485,6 +492,42 @@ public abstract class ConverterCollections
         return new ConverterNamedCache<>(cache, convKeyUp, convKeyDown, convValUp, convValDown);
         }
 
+
+    /**
+    * Returns a Converter instance of an {@link AsyncNamedCache} that converts between
+     * the raw/from types to the desired/to types.
+    * <p>
+    * <b>There is a strong disclaimer in the use of this implementation:</b>
+    * <p>
+    * This conversion is entirely performed locally and therefore when using
+    * methods such as {@link AsyncNamedCache#invoke(Object, EntryProcessor)
+    * invoke}, or {@link AsyncNamedCache#aggregate(EntryAggregator) aggregate}, the
+    * provided agent ({@link EntryProcessor EntryProcessor}, or {@link EntryAggregator
+    * EntryAggregator}, or {@link Filter}) do not go through the provided converters.
+    * Hence, the given agent(s) must operate against the raw types.
+    *
+    * @param cache        the underlying {@link AsyncNamedCache}
+    * @param convKeyUp    the Converter to view the underlying NamedCache's
+    *                     keys through
+    * @param convKeyDown  the Converter to use to pass keys down to the
+    *                     underlying NamedCache
+    * @param convValUp    the Converter to view the underlying NamedCache's
+    *                     values through
+    * @param convValDown  the Converter to use to pass values down to the
+    *                     underlying NamedCache
+    *
+    * @return an {@link AsyncNamedCache} that views the keys and values of the passed
+    *         {@link AsyncNamedCache} through the specified Converters
+    */
+    public static <FK, FV, TK, TV> AsyncNamedCache<TK, TV> getAsyncNamedCache(AsyncNamedCache<FK, FV> cache,
+                                                                              Converter<FK, TK> convKeyUp,
+                                                                              Converter<TK, FK> convKeyDown,
+                                                                              Converter<FV, TV> convValUp,
+                                                                              Converter<TV, FV> convValDown)
+        {
+        return new ConverterAsyncNamedCache<>(cache, convKeyUp, convKeyDown, convValUp, convValDown);
+        }
+
     /**
     * Returns an instance of a MapEvent that uses Converters to retrieve
     * the event's data.
@@ -821,7 +864,22 @@ public abstract class ConverterCollections
         @Override
         public boolean contains(Object o)
             {
-            return getCollection().contains(getConverterDown().convert((T) o));
+            Converter<T, F> converterDown = getConverterDown();
+            if (converterDown == NullImplementation.NullConverter.INSTANCE)
+                {
+                for (F value : getCollection())
+                    {
+                    if (Objects.equals(o, getConverterUp().convert(value)))
+                        {
+                        return true;
+                        }
+                    }
+                return false;
+                }
+            else
+                {
+                return getCollection().contains(converterDown.convert((T) o));
+                }
             }
 
         /**
@@ -881,10 +939,25 @@ public abstract class ConverterCollections
         @Override
         public boolean containsAll(Collection<?> col)
             {
-            return getCollection().containsAll(
-                    instantiateCollection((Collection<T>) col,
-                    getConverterDown(),
-                    getConverterUp()));
+            Converter<T, F> converterDown = getConverterDown();
+            if (converterDown == NullImplementation.NullConverter.INSTANCE)
+                {
+                for (Object oValue : col)
+                    {
+                    if (!contains(oValue))
+                        {
+                        return false;
+                        }
+                    }
+                return true;
+                }
+            else
+                {
+                return getCollection().containsAll(
+                        instantiateCollection((Collection<T>) col,
+                                              getConverterDown(),
+                                              getConverterUp()));
+                }
             }
 
         /**
@@ -2944,6 +3017,18 @@ public abstract class ConverterCollections
 
         // ----- NamedCache interface ---------------------------------------
 
+        @Override
+        public AsyncNamedCache<TK, TV> async()
+            {
+            return new ConverterAsyncNamedCache<>(getNamedCache().async(), m_convKeyUp, m_convKeyDown, m_convValUp, m_convValDown);
+            }
+
+        @Override
+        public AsyncNamedCache<TK, TV> async(AsyncNamedMap.Option... options)
+            {
+            return new ConverterAsyncNamedCache<>(getNamedCache().async(options), m_convKeyUp, m_convKeyDown, m_convValUp, m_convValDown);
+            }
+
         /**
         * {@inheritDoc}
         */
@@ -2966,6 +3051,12 @@ public abstract class ConverterCollections
         public boolean isActive()
             {
             return getNamedCache().isActive();
+            }
+
+        @Override
+        public boolean isReady()
+            {
+            return getNamedCache().isReady();
             }
 
         /**
@@ -3187,6 +3278,185 @@ public abstract class ConverterCollections
         protected QueryMap<TK, TV>      m_mapQuery;
         }
 
+    // ----- inner class: ConverterAsyncNamedCache --------------------------
+
+    public static class ConverterAsyncNamedCache<FK, TK, FV, TV>
+            implements AsyncNamedCache<TK, TV>
+        {
+        // ----- constructors -----------------------------------------------
+
+        /**
+        * Constructor.
+        *
+        * @param cache        the underlying {@link AsyncNamedCache}
+        * @param convKeyUp    the Converter to view the underlying
+        *                     AsyncNamedMap's keys through
+        * @param convKeyDown  the Converter to use to pass keys down to the
+        *                     underlying AsyncNamedMap
+        * @param convValUp    the Converter to view the underlying
+        *                     AsyncNamedMap's values through
+        * @param convValDown  the Converter to use to pass values down to the
+        *                     underlying AsyncNamedMap
+        */
+        public ConverterAsyncNamedCache(AsyncNamedCache<FK, FV> cache, Converter<FK, TK> convKeyUp,
+                                        Converter<TK, FK> convKeyDown, Converter<FV, TV> convValUp,
+                                        Converter<TV, FV> convValDown)
+            {
+            m_asyncNamedCache = cache;
+            m_convKeyUp       = convKeyUp;
+            m_convKeyDown     = convKeyDown;
+            m_convValUp       = convValUp;
+            m_convValDown     = convValDown;
+            m_namedCache      = new ConverterNamedCache<>(cache.getNamedCache(), convKeyUp, convKeyDown, convValUp, convValDown);
+            }
+
+        @Override
+        public NamedMap<TK, TV> getNamedMap()
+            {
+            return m_namedCache;
+            }
+
+        @Override
+        public NamedCache<TK, TV> getNamedCache()
+            {
+            return m_namedCache;
+            }
+
+        @Override
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        public <R> CompletableFuture<R> invoke(TK key, EntryProcessor<TK, TV, R> processor)
+            {
+            CompletableFuture<Object> future = m_asyncNamedCache.invoke(m_convKeyDown.convert(key), (EntryProcessor) processor);
+
+            return future.thenApply(oResult -> (R) ConverterInvocableMap.convertSafe(m_convValUp, oResult));
+            }
+
+        @Override
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        public <R> CompletableFuture<Map<TK, R>> invokeAll(Collection<? extends TK> collKeys, EntryProcessor<TK, TV, R> processor)
+            {
+            Collection<? extends FK> colKeysConv = collKeys instanceof Set ?
+                    m_namedCache.instantiateSet((Set) collKeys, m_convKeyDown, m_convKeyUp) :
+                    m_namedCache.instantiateCollection((Collection) collKeys, m_convKeyDown, m_convKeyUp);
+
+            CompletableFuture<Map<FK, R>> future = m_asyncNamedCache.invokeAll(colKeysConv, (EntryProcessor) processor);
+            return future.thenApply(this::instantiateMap);
+            }
+
+        @Override
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        public <R> CompletableFuture<Map<TK, R>> invokeAll(Filter<?> filter, EntryProcessor<TK, TV, R> processor)
+            {
+            CompletableFuture<Map<FK, R>> future = m_asyncNamedCache.invokeAll(filter, (EntryProcessor) processor);
+            return future.thenApply(this::instantiateMap);
+            }
+
+        @Override
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        public <R> CompletableFuture<Void> invokeAll(Collection<? extends TK> collKeys, EntryProcessor<TK, TV, R> processor, Consumer<? super Entry<? extends TK, ? extends R>> callback)
+            {
+            Collection<? extends FK> colKeysConv = collKeys instanceof Set ?
+                    m_namedCache.instantiateSet((Set) collKeys, m_convKeyDown, m_convKeyUp) :
+                    m_namedCache.instantiateCollection((Collection) collKeys, m_convKeyDown, m_convKeyUp);
+
+            Consumer consumer = instantiateCallback(callback);
+            return m_asyncNamedCache.invokeAll(colKeysConv, (EntryProcessor) processor, consumer);
+            }
+
+        @Override
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        public <R> CompletableFuture<Void> invokeAll(Filter<?> filter, EntryProcessor<TK, TV, R> processor, Consumer<? super Entry<? extends TK, ? extends R>> callback)
+            {
+            Consumer consumer = instantiateCallback(callback);
+            return m_asyncNamedCache.invokeAll(filter, (EntryProcessor) processor, consumer);
+            }
+
+        @Override
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        public <R> CompletableFuture<R> aggregate(Collection<? extends TK> collKeys, EntryAggregator<? super TK, ? super TV, R> aggregator)
+            {
+            Collection<? extends FK> colKeysConv = collKeys instanceof Set ?
+                    m_namedCache.instantiateSet((Set) collKeys, m_convKeyDown, m_convKeyUp) :
+                    m_namedCache.instantiateCollection((Collection) collKeys, m_convKeyDown, m_convKeyUp);
+
+            // the EntryAggregator is not converted to work against FK & FV
+            // this is expected / required behavior for usages such as extend
+            // and more generically where there is no real type conversion but
+            // instead converts between the real type and binary; we could introduce
+            // a Binary specific version of ConverterNC that passes the function/aggregator
+            // without type conversion
+            CompletableFuture future = m_asyncNamedCache.aggregate(colKeysConv, (EntryAggregator) aggregator);
+            return future.thenApply(r -> ConverterInvocableMap.convertSafe(m_convValUp, r));
+            }
+
+        @Override
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        public <R> CompletableFuture<R> aggregate(Filter<?> filter, EntryAggregator<? super TK, ? super TV, R> aggregator)
+            {
+            // the EntryAggregator is not converted to work against FK & FV
+            // this is expected / required behavior for usages such as extend
+            // and more generically where there is no real type conversion but
+            // instead converts between the real type and binary; we could introduce
+            // a Binary specific version of ConverterNC that passes the function/aggregator
+            // without type conversion
+            CompletableFuture future = m_asyncNamedCache.aggregate(filter, (EntryAggregator) aggregator);
+            return future.thenApply(r -> ConverterInvocableMap.convertSafe(m_convValUp, r));
+            }
+
+        // ----- helper methods -------------------------------------------------
+
+        @SuppressWarnings({"unchecked"})
+        protected <R> Map<TK, R> instantiateMap(Map<FK, R> mapResult)
+            {
+            return mapResult == null || mapResult.isEmpty()
+                    ? Collections.emptyMap()
+                    : m_namedCache.instantiateMap(mapResult, m_convKeyUp, m_convKeyDown,
+                    value -> (R) ConverterInvocableMap.convertSafe(m_convValUp, value),
+                    value -> (R) ConverterInvocableMap.convertSafe(m_convValDown, value));
+            }
+
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        protected <R> Consumer<? extends Entry<FK, R>> instantiateCallback(Consumer<? super Entry<? extends TK, ? extends R>> callback)
+            {
+            return (entry) ->
+                {
+                Entry<TK, R> entryConv = new ConverterEntry<>(entry, m_convKeyUp, (Converter) m_convKeyUp, (Converter) m_convValDown);
+                callback.accept(entryConv);
+                };
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The underlying AsyncNamedMap.
+         */
+        protected final AsyncNamedMap<FK, FV> m_asyncNamedCache;
+
+        /**
+         * A converter version of the underlying {@link NamedCache}.
+         */
+        protected final ConverterNamedCache<FK, TK, FV, TV> m_namedCache;
+
+        /**
+         * The Converter used to view keys stored in the Map.
+         */
+        protected final Converter<FK, TK> m_convKeyUp;
+
+        /**
+         * The Converter used to pass keys down to the Map.
+         */
+        protected final Converter<TK, FK> m_convKeyDown;
+
+        /**
+         * The Converter used to view values stored in the Map.
+         */
+        protected final Converter<FV, TV> m_convValUp;
+
+        /**
+         * The Converter used to pass keys down to the Map.
+         */
+        protected final Converter<TV, FV> m_convValDown;
+        }
 
     // ----- inner class: ConverterEntrySet ---------------------------------
 

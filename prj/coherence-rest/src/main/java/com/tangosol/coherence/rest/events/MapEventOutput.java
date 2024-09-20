@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,12 +21,15 @@ import com.tangosol.util.filter.MapEventFilter;
 
 import java.io.IOException;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 
 import jakarta.ws.rs.core.MediaType;
 
 import org.glassfish.jersey.media.sse.EventOutput;
 import org.glassfish.jersey.media.sse.OutboundEvent;
+
+import org.glassfish.jersey.server.ChunkedOutput;
 
 
 /**
@@ -35,6 +38,7 @@ import org.glassfish.jersey.media.sse.OutboundEvent;
  *
  * @author as  2015.06.25
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class MapEventOutput<K, V>
         extends EventOutput
         implements MapListener<K, V>
@@ -164,6 +168,18 @@ public class MapEventOutput<K, V>
             {
             Logger.finest("Registered listener: " + this);
             }
+
+        // Some web servers (e.g. Helidon) so not immediately send anything
+        // causing the receiver to block, so we send an empty event
+        ChunkedOutput co = this;
+        try
+            {
+            co.write(SSE_EVENT_DELIMITER);
+            }
+        catch (IOException e)
+            {
+            throw new RuntimeException(e);
+            }
         }
 
     /**
@@ -268,6 +284,8 @@ public class MapEventOutput<K, V>
             new WrapperCollections.ConcurrentWrapperSet<>(new HashSet<>());
 
     // ---- data members ----------------------------------------------------
+
+    private static final byte[] SSE_EVENT_DELIMITER = "\n".getBytes(StandardCharsets.UTF_8);
 
     /**
      * The cache to register listener for.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -26,6 +26,7 @@ import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.PartitionedService;
 
 import com.tangosol.persistence.CachePersistenceHelper;
 
@@ -40,6 +41,7 @@ import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -130,7 +132,6 @@ public abstract class AbstractSnapshotAnalyzerTests
         CacheService     service          = cache.getCacheService();
         Cluster          cluster          = service.getCluster();
         String           sService         = service.getInfo().getServiceName();
-        int              nLocalId         = cluster.getLocalMember().getId();
 
         String           sSafeClusterName = FileHelper.toFilename(cluster.getClusterName());
         String           sSafeServiceName = FileHelper.toFilename(sService);
@@ -202,8 +203,8 @@ public abstract class AbstractSnapshotAnalyzerTests
             File file10000Archive  = new File(fileArchiveDirectory, sSnapshot10000);
 
             // test happy path
-            testSnapshotAnalayzer(fileEmptySnapshot, true);    // valid
-            testSnapshotAnalayzer(file10000Snapshot, true);    // valid
+            testSnapshotAnalyzer(fileEmptySnapshot, true);    // valid
+            testSnapshotAnalyzer(file10000Snapshot, true);    // valid
 
             System.out.println("Archive: " + fileEmptyArchive);
 
@@ -223,7 +224,24 @@ public abstract class AbstractSnapshotAnalyzerTests
                 testArchivedSnapshotAnalyzer(sEmptySnapshot, sSafeServiceName, false);    // invalid
                 }
 
-            fileRandom = getRandomFromDirectory(fileEmptySnapshot, false);
+            boolean notFound  = true;
+            int     cAttempts = 0;
+            while (notFound && cAttempts++ <= ((PartitionedService) service).getPartitionCount())
+                {
+                fileRandom   = getRandomFromDirectory(fileEmptySnapshot, false);
+                File[] files = fileRandom.listFiles();
+                // since lazy store open, an empty snapshot directory only contains the global partition,
+                // all other directories are empty
+                // if the global partition is deleted, the snapshot is no longer valid
+                if (files != null && files.length == 0)
+                    {
+                    notFound = false;
+                    }
+                }
+            if (notFound)
+                {
+                fail("Could not find suitable directory for random deletion");
+                }
 
             if (fileRandom != null)
                 {
@@ -232,8 +250,7 @@ public abstract class AbstractSnapshotAnalyzerTests
                 // the result of this should be valid as the analyzer treats a local snapshot
                 // as valid if one more more partitions are not present as it could be
                 // local to this machine only
-                testSnapshotAnalayzer(fileEmptySnapshot, true);    // valid
-
+                testSnapshotAnalyzer(fileEmptySnapshot, true);    // valid
                 }
 
             // get a random file from the 10000 archive and corrupt the file
@@ -305,7 +322,7 @@ public abstract class AbstractSnapshotAnalyzerTests
 
             // some basic invalid directory tests
             testArchivedSnapshotAnalyzer("rubbish you know", sSafeServiceName, false);
-            testSnapshotAnalayzer(new File("a_file_that_definitely_doesnt_exist"), false);
+            testSnapshotAnalyzer(new File("a_file_that_definitely_doesnt_exist"), false);
 
             stopAllApplications();
             }
@@ -435,7 +452,7 @@ public abstract class AbstractSnapshotAnalyzerTests
      * @param fileDirectory      Directory to check
      * @param fShouldBeValid     true if snapshot should be valid
      */
-    private void testSnapshotAnalayzer(File fileDirectory, boolean fShouldBeValid)
+    private void testSnapshotAnalyzer(File fileDirectory, boolean fShouldBeValid)
         {
         Map<String, String> mapResults = null;
         Exception           e          = null;
@@ -444,7 +461,7 @@ public abstract class AbstractSnapshotAnalyzerTests
 
         try
             {
-            PersistenceTools tools = tools = CachePersistenceHelper.getSnapshotPersistenceTools(fileDirectory);
+            PersistenceTools tools =  CachePersistenceHelper.getSnapshotPersistenceTools(fileDirectory);
 
             Assert.assertFalse(tools.getPersistenceInfo().isArchived());
 
@@ -535,7 +552,9 @@ public abstract class AbstractSnapshotAnalyzerTests
             File fileSelected = afileLIst[i];
 
             if (!fileSelected.getName().equals(".") && !fileSelected.getName().equals("..")
-                && fileSelected.getName().indexOf(".lck") == -1 && !fileSelected.getName().equals(CachePersistenceHelper.META_FILENAME))
+                && fileSelected.getName().indexOf(".lck") == -1
+                && fileSelected.getName().indexOf(".lock") == -1
+                && !fileSelected.getName().equals(CachePersistenceHelper.META_FILENAME))
                 {
                 if ((fisFile && !fileSelected.isDirectory()) || !fisFile && afileLIst[i].isDirectory())
                     {

@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2013, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2013, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io.pof.schema.handler;
+
+import com.oracle.coherence.common.base.Formatting;
 
 import com.oracle.coherence.common.schema.AbstractPropertyHandler;
 import com.oracle.coherence.common.schema.AbstractTypeHandler;
@@ -33,6 +35,8 @@ import com.tangosol.io.pof.schema.annotation.PortableList;
 import com.tangosol.io.pof.schema.annotation.PortableMap;
 import com.tangosol.io.pof.schema.annotation.PortableSet;
 import com.tangosol.io.pof.schema.annotation.PortableType;
+
+import java.nio.charset.StandardCharsets;
 
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
@@ -69,7 +73,8 @@ public class ClassFileHandler
             AnnotationNode an = AsmUtils.getAnnotation(source, PortableType.class);
             if (an != null)
                 {
-                type.setId((Integer) getAnnotationAttribute(an, "id"));
+                int id = (int) getAnnotationAttribute(an, "id");
+                type.setId(id > 0 ? id : Math.abs(Formatting.toCrc(type.getFullName().getBytes(StandardCharsets.UTF_8))));
                 type.setVersion((Integer) getAnnotationAttribute(an, "version"));
                 }
             }
@@ -112,7 +117,8 @@ public class ClassFileHandler
                 if (an.desc.endsWith("PortableArray;"))
                     {
                     property.setInfo(new PofArray(
-                            ((Type) getAnnotationAttribute(an, "elementClass")).getClassName()
+                            ((Type)   getAnnotationAttribute(an, "elementClass")).getClassName(),
+                            (Boolean) getAnnotationAttribute(an, "useRawEncoding")
                     ));
                     }
                 if (an.desc.endsWith("PortableCollection;"))

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -39,6 +39,9 @@
             <classpathDependencyExclude>io.opentracing:opentracing-noop</classpathDependencyExclude>
             <classpathDependencyExclude>io.opentracing:opentracing-util</classpathDependencyExclude>
             <classpathDependencyExclude>io.opentracing.contrib:opentracing-tracerresolver</classpathDependencyExclude>
+            <classpathDependencyExclude>io.opentelemetry:opentelemetry-api</classpathDependencyExclude>
+            <classpathDependencyExclude>io.opentelemetry:opentelemetry-context</classpathDependencyExclude>
+            <classpathDependencyExclude>io.opentelemetry:opentelemetry-sdk</classpathDependencyExclude>
           </classpathDependencyExcludes>
           <useModulePath>false</useModulePath>
         </configuration>
@@ -57,6 +60,9 @@
             <classpathDependencyExclude>io.opentracing:opentracing-noop</classpathDependencyExclude>
             <classpathDependencyExclude>io.opentracing:opentracing-util</classpathDependencyExclude>
             <classpathDependencyExclude>io.opentracing.contrib:opentracing-tracerresolver</classpathDependencyExclude>
+            <classpathDependencyExclude>io.opentelemetry:opentelemetry-api</classpathDependencyExclude>
+            <classpathDependencyExclude>io.opentelemetry:opentelemetry-context</classpathDependencyExclude>
+            <classpathDependencyExclude>io.opentelemetry:opentelemetry-sdk</classpathDependencyExclude>
           </classpathDependencyExcludes>
           <useModulePath>false</useModulePath>
         </configuration>

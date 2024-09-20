@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -155,11 +155,13 @@ abstract public class AbstractRemoteFunctionTests
             }
         catch (WrapperException e)
             {
+            e.printStackTrace();
             assertTrue(sKindLambdaInvoke + " lamdba invocation failed unexpectedly: " + e, m_fServerDynamicLambdasDisabled && !m_fIncludeTestClassInServerClasspath);
             assertFalse(m_fIncludeTestClassInServerClasspath);
             }
         catch (PortableException e)
             {
+            e.printStackTrace();
             assertTrue(m_fPOF == true && m_fServerDynamicLambdasDisabled && !m_fIncludeTestClassInServerClasspath);
             assertFalse(m_fIncludeTestClassInServerClasspath);
             }
@@ -196,10 +198,12 @@ abstract public class AbstractRemoteFunctionTests
             }
         catch (WrapperException e)
             {
-            assertTrue("dynamic lamdba invocation failed unexpectedly: " + e, m_fServerDynamicLambdasDisabled && !m_fIncludeTestClassInServerClasspath);
+            e.printStackTrace();
+            assertTrue(sKindLambdaInvoke + " lamdba invocation failed unexpectedly: " + e, m_fServerDynamicLambdasDisabled && !m_fIncludeTestClassInServerClasspath);
             }
         catch (PortableException e)
             {
+            e.printStackTrace();
             assertTrue(m_fPOF == true && m_fServerDynamicLambdasDisabled && !m_fIncludeTestClassInServerClasspath);
             }
         finally

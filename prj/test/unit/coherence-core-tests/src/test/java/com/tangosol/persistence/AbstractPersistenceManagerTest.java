@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.persistence;
+
+import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.persistence.ConcurrentAccessException;
 import com.oracle.coherence.persistence.FatalAccessException;
@@ -356,6 +358,7 @@ public abstract class AbstractPersistenceManagerTest
                 };
 
         when(storeFrom.extents()).thenReturn(new long[]{1L});
+        when(storeFrom.isOpen()).thenReturn(true);
         doAnswer(invMock ->
             {
             Visitor<ReadBuffer> visitor = (Visitor<ReadBuffer>) invMock.getArguments()[0];
@@ -465,36 +468,44 @@ public abstract class AbstractPersistenceManagerTest
     protected void testDelete(boolean fOpen)
             throws IOException
         {
-        AbstractPersistenceManager manager = m_manager;
-
-        // create a new PersistentStore
-        manager.open(TEST_STORE_ID, null);
-
-        // release the PersistenceManager
-        manager.release();
-
-        // assert that the actual underlying persistent store directory exists
-        assertTrue(m_fileStore.exists());
-
-        // recreate the same PersistenceManager, delete the PersistentStore,
-        // and assert that it no longer exists in the list
-        m_manager = manager = createPersistenceManager();
-        if (fOpen)
+        try
             {
+            AbstractPersistenceManager manager = m_manager;
+
+            // create a new PersistentStore
             manager.open(TEST_STORE_ID, null);
+
+            // release the PersistenceManager
+            manager.release();
+
+            // assert that the actual underlying persistent store directory exists
+            assertTrue(m_fileStore.exists());
+
+            // recreate the same PersistenceManager, delete the PersistentStore,
+            // and assert that it no longer exists in the list
+            m_manager = manager = createPersistenceManager();
+            if (fOpen)
+                {
+                manager.open(TEST_STORE_ID, null);
+                }
+            manager.delete(TEST_STORE_ID, false);
+            assertEquals(0, manager.list().length);
+
+            // assert that the actual underlying persistent store directory no
+            // longer exists
+            assertFalse(m_fileStore.exists());
+
+            // recreate the same PersistenceManager and make sure the newly
+            // deleted PersistentStore no longer exists in the list
+            manager.release();
+            m_manager = manager = createPersistenceManager();
+            assertEquals(0, manager.list().length);
             }
-        manager.delete(TEST_STORE_ID, false);
-        assertEquals(0, manager.list().length);
-
-        // assert that the actual underlying persistent store directory no
-        // longer exists
-        assertFalse(m_fileStore.exists());
-
-        // recreate the same PersistenceManager and make sure the newly
-        // deleted PersistentStore no longer exists in the list
-        manager.release();
-        m_manager = manager = createPersistenceManager();
-        assertEquals(0, manager.list().length);
+        catch (Exception e)
+            {
+            Logger.info("##got exception ", e);
+            fail();
+            }
         }
 
     @Test

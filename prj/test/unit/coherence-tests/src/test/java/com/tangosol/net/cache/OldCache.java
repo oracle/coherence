@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -836,11 +837,11 @@ public class OldCache
                 if (c > 0)
                     {
                     // walk all buckets
-                    SafeHashMap.Entry[] aeBucket = map.m_aeBucket;
-                    for (SafeHashMap.Entry e : aeBucket)
+                    AtomicReferenceArray aeBucket = map.m_aeBucket;
+                    for (int i = 0; i < aeBucket.length(); i++)
                         {
                         // walk all entries in the bucket
-                        Entry entry = (Entry) e;
+                        Entry entry = (Entry) aeBucket.get(i);
                         while (entry != null)
                             {
                             if (removeIfExpired(entry))
@@ -958,11 +959,11 @@ public class OldCache
                 if (c > 0)
                     {
                     // walk all buckets
-                    SafeHashMap.Entry[] aeBucket = map.m_aeBucket;
-                    for (SafeHashMap.Entry e : aeBucket)
+                    AtomicReferenceArray aeBucket = map.m_aeBucket;
+                    for (int i = 0; i < aeBucket.length(); i++)
                         {
                         // walk all entries in the bucket
-                        Entry entry = (Entry) e;
+                        Entry entry = (Entry) aeBucket.get(i);
                         while (entry != null)
                             {
                             if (removeIfExpired(entry))
@@ -1749,10 +1750,10 @@ public class OldCache
                                 / ((super.size() + 1L) * (stats.getCachePrunes() + 1L)));
 
                     // sort the entries by their priorities to be retained
-                    SafeHashMap.Entry[] aeBucket = m_aeBucket;
-                    for (SafeHashMap.Entry e : aeBucket)
+                    AtomicReferenceArray aeBucket = m_aeBucket;
+                    for (int i = 0; i < aeBucket.length(); i++)
                         {
-                        Entry entry = (Entry) e;
+                        Entry entry = (Entry) aeBucket.get(i);
                         while (entry != null)
                             {
                             alist[entry.getPriority()].add(entry);
@@ -1783,10 +1784,10 @@ public class OldCache
                     SparseArray array = new SparseArray();
 
                     // sort the entries by their recentness / frequentness of use
-                    SafeHashMap.Entry[] aeBucket = m_aeBucket;
-                    for (SafeHashMap.Entry e : aeBucket)
+                    AtomicReferenceArray aeBucket = m_aeBucket;
+                    for (int i = 0; i < aeBucket.length(); i++)
                         {
-                        Entry entry = (Entry) e;
+                        Entry entry = (Entry) aeBucket.get(i);
                         while (entry != null)
                             {
                             long lOrder = fLRU ? entry.getLastTouchMillis()
@@ -1846,10 +1847,10 @@ public class OldCache
             if (!fLRU)
                 {
                 // reset touch counts
-                SafeHashMap.Entry[] aeBucket = m_aeBucket;
-                for (SafeHashMap.Entry e : aeBucket)
+                AtomicReferenceArray aeBucket = m_aeBucket;
+                for (int i = 0; i < aeBucket.length(); i++)
                     {
-                    Entry entry = (Entry) e;
+                    Entry entry = (Entry) aeBucket.get(i);
                     while (entry != null)
                         {
                         entry.resetTouchCount();

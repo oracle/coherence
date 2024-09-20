@@ -892,8 +892,9 @@ public abstract class AbstractTestInfrastructure
         optionsByType.add(jvmOptions);
 
         int cMax = Integer.parseInt(System.getProperty("test.heap.max", "1024"));
+        int cMin = Integer.parseInt(System.getProperty("test.heap.min", "256"));
 
-        optionsByType.add(HeapSize.of(256, HeapSize.Units.MB, cMax, HeapSize.Units.MB));
+        optionsByType.add(HeapSize.of(cMin, HeapSize.Units.MB, cMax, HeapSize.Units.MB));
         optionsByType.add(Headless.enabled());
 
         optionsByType.add(LocalHost.only());

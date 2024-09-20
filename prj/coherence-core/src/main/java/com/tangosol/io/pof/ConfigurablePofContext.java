@@ -1,14 +1,16 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-
 package com.tangosol.io.pof;
 
 
 import com.oracle.coherence.common.base.Logger;
+
+import com.oracle.coherence.common.collections.NullableConcurrentMap;
+
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.io.ClassLoaderAware;
@@ -17,6 +19,7 @@ import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.WriteBuffer;
 
 import com.tangosol.io.pof.annotation.Portable;
+
 import com.tangosol.io.pof.schema.annotation.PortableType;
 
 import com.tangosol.run.xml.SimpleElement;
@@ -29,21 +32,10 @@ import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.CopyOnWriteMap;
 import com.tangosol.util.ExternalizableHelper;
-import com.tangosol.util.LiteMap;
-import com.tangosol.util.Resources;
-import com.tangosol.util.SafeHashMap;
-
-import org.jboss.jandex.AnnotationInstance;
-import org.jboss.jandex.AnnotationTarget;
-import org.jboss.jandex.AnnotationValue;
-import org.jboss.jandex.DotName;
-import org.jboss.jandex.Index;
-import org.jboss.jandex.IndexReader;
 
 import jakarta.inject.Named;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import java.lang.ref.WeakReference;
 
@@ -56,9 +48,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 
@@ -83,50 +77,43 @@ import java.util.stream.Collectors;
 * <p>
 * The format of the configuration XML is as follows:
 * <pre>{@code
-* &lt;pof-config&gt;
-*   &lt;user-type-list&gt;
+* <pof-config>
+*   <user-type-list>
 *     ..
-*     &lt;user-type&gt;
-*       &lt;type-id&gt;53&lt;/type-id&gt;
-*       &lt;class-name&gt;com.mycompany.data.Trade&lt;/class-name&gt;
-*       &lt;serializer&gt;
-*         &lt;class-name&gt;com.tangosol.io.pof.PortableObjectSerializer&lt;/class-name&gt;
-*         &lt;init-params&gt;
-*           &lt;init-param&gt;
-*             &lt;param-type&gt;int&lt;/param-type&gt;
-*             &lt;param-value&gt;{type-id}&lt;/param-value&gt;
-*           &lt;/init-param&gt;
-*         &lt;/init-params&gt;
-*       &lt;/serializer&gt;
-*     &lt;/user-type&gt;
-
-*     &lt;user-type&gt;
-*       &lt;type-id&gt;54&lt;/type-id&gt;
-*       &lt;class-name&gt;com.mycompany.data.Position&lt;/class-name&gt;
-*     &lt;/user-type&gt;
+*     <user-type>
+*       <type-id>53</type-id>
+*       <class-name>com.mycompany.data.Trade</class-name>
+*       <serializer>
+*         <class-name>com.tangosol.io.pof.PortableObjectSerializer</class-name>
+*         <init-params>
+*           <init-param>
+*             <param-type>int</param-type>
+*             <param-value>{type-id}</param-value>
+*           </init-param>
+*         </init-params>
+*       </serializer>
+*     </user-type>
+*     <user-type>
+*       <type-id>54</type-id>
+*       <class-name>com.mycompany.data.Position</class-name>
+*     </user-type>
 *
 *     ..
-*     &lt;include&gt;file:/my-pof-config.xml&lt;/include&gt;
+*     <include>file:/my-pof-config.xml</include>
 *
 *     ..
-*   &lt;/user-type-list&gt;
+*   </user-type-list>
 *
-*   &lt;allow-interfaces&gt;false&lt;/allow-interfaces&gt;
-*   &lt;allow-subclasses&gt;false&lt;/allow-subclasses&gt;
-* &lt;/pof-config&gt;
+*   <allow-interfaces>false</allow-interfaces>
+*   <allow-subclasses>false</allow-subclasses>
+* </pof-config>
 * }</pre>
 * For each user type, a <tt>user-type</tt> element must exist inside the
 * <tt>user-type-list</tt> element. The <tt>user-type-list</tt> element
 * contains up to three elements, in the following order:
 * <ul>
-* <li>The <tt>user-type</tt> element should contain a <tt>type-id</tt>
-*     element whose value specifies the unique integer type ID; if none of
-*     the <tt>user-type</tt> elements contains a <tt>type-id</tt> element,
-*     then the type IDs for the user types will be based on the order in
-*     which they appear in the configuration, with the first user type being
-*     assigned the type ID 0, the second user type being assigned the type ID
-*     1, and so on. (It is strongly recommended that user types IDs always be
-*     specified, in order to support schema versioning and evolution.)</li>
+* <li>The <tt>user-type</tt> element must contain a <tt>type-id</tt>
+*     element whose value specifies the unique non-negative integer type ID.</li>
 * <li>The <tt>class-name</tt> element is required, and specifies the fully
 *     qualified name of the Java class or interface that all values of the
 *     user type are type-assignable to.</li>
@@ -147,7 +134,7 @@ import java.util.stream.Collectors;
 * that specifies the location of the target PofContext configuration file.
 * The <tt>user-type</tt> elements of the target file are imported verbatum;
 * therefore, if the included elements contain explicit type identifiers, each
-* identifier must be unique with respect to the the user type identifiers
+* identifier must be unique with respect to the user type identifiers
 * (either explicit or generated) defined within the including file. If the
 * included user types do not contain explicit type identifiers, then the type
 * identifiers will be based on the order in which the user types appear in
@@ -212,7 +199,7 @@ import java.util.stream.Collectors;
 * configuration. To achieve acceptable performance, and to limit the
 * redundant use of resources, the ConfigurablePofContext maintains a
 * WeakHashMap keyed by ClassLoader, whose corresponding values are each a
-* SafeHashMap keyed by configuration locator, whose corresponding values
+* ConcurrentHashMap keyed by configuration locator, whose corresponding values
 * contain the data necessary to efficiently perform the operations prescribed
 * by the PofContext interface.
 * <p>
@@ -221,6 +208,7 @@ import java.util.stream.Collectors;
 * {@link #PROPERTY_CONFIG tangosol.pof.config} system property.
 *
 * @author jh/cp  2006.07.24
+* @author Gunnar Hillert 2024.04.20
 *
 * @since Coherence 3.2
 */
@@ -434,15 +422,7 @@ public class ConfigurablePofContext
         {
         ensureInitialized();
 
-        PofSerializer serializer;
-        try
-            {
-            serializer = m_cfg.m_aSerByTypeId[nTypeId];
-            }
-        catch (IndexOutOfBoundsException e)
-            {
-            serializer = null;
-            }
+        PofSerializer serializer = m_cfg.m_mapSerByTypeId.get(nTypeId);
 
         if (serializer == null)
             {
@@ -498,7 +478,7 @@ public class ConfigurablePofContext
     */
     public String getClassName(int nTypeId)
         {
-        return (String) m_cfg.m_mapClassNameByTypeId.get(Integer.valueOf(nTypeId));
+        return m_cfg.m_mapClassNameByTypeId.get(nTypeId);
         }
 
     /**
@@ -508,19 +488,12 @@ public class ConfigurablePofContext
         {
         ensureInitialized();
 
-        Class clz;
-        try
-            {
-            clz = (Class) m_cfg.m_aClzByTypeId[nTypeId].get();
-            }
-        catch (IndexOutOfBoundsException e)
-            {
-            clz = null;
-            }
+        WeakReference<Class<?>> ref = m_cfg.m_mapClzByTypeId.get(nTypeId);
+        Class                   clz = ref != null ? ref.get() : null;
 
         if (clz == null)
             {
-            String sClass = (String) m_cfg.m_mapClassNameByTypeId.get(Integer.valueOf(nTypeId));
+            String sClass = m_cfg.m_mapClassNameByTypeId.get(nTypeId);
             if (sClass != null && !sClass.isEmpty())
                 {
                 // since we hold a weak reference, Class may have been GC'd;
@@ -587,10 +560,8 @@ public class ConfigurablePofContext
         {
         ensureInitialized();
 
-        Integer ITypeId = (Integer) m_cfg.m_mapTypeIdByClass.get(clz);
-        return ITypeId == null
-                ? getInheritedUserTypeIdentifier(clz)
-                : ITypeId.intValue();
+        Integer ITypeId = m_cfg.m_mapTypeIdByClass.get(clz);
+        return ITypeId == null ? getInheritedUserTypeIdentifier(clz) : ITypeId;
         }
 
     /**
@@ -605,7 +576,7 @@ public class ConfigurablePofContext
     */
     protected int getInheritedUserTypeIdentifier(Class clz)
         {
-        Map mapClzToId = m_cfg.m_mapTypeIdByClass;
+        Map<Class<?>, Integer> mapClzToId = m_cfg.m_mapTypeIdByClass;
 
         if (clz == null)
             {
@@ -617,15 +588,13 @@ public class ConfigurablePofContext
             Class clzSuper = clz.getSuperclass();
             while (clzSuper != null)
                 {
-                Integer ITypeId = (Integer) mapClzToId.get(clzSuper);
+                Integer ITypeId = mapClzToId.get(clzSuper);
                 if (ITypeId != null)
                     {
-                    int nTypeId = ITypeId.intValue();
-
                     // update the mapping so that we don't have to
                     // brute-force search again
                     mapClzToId.put(clz, ITypeId);
-                    return nTypeId;
+                    return ITypeId;
                     }
 
                 clzSuper = clzSuper.getSuperclass();
@@ -648,12 +617,10 @@ public class ConfigurablePofContext
                             && clzCur.isInterface()
                             && clzCur.isAssignableFrom(clz))
                         {
-                        int nTypeId = ICurId.intValue();
-
                         // update the mapping so that we don't have to
                         // brute-force search again
                         mapClzToId.put(clz, ICurId);
-                        return nTypeId;
+                        return ICurId;
                         }
                     }
                 }
@@ -661,7 +628,7 @@ public class ConfigurablePofContext
 
         // update the mapping with the miss so that we don't have to
         // brute-force search again
-        mapClzToId.put(clz, Integer.valueOf(-1));
+        mapClzToId.put(clz, -1);
         return -1;
         }
 
@@ -678,9 +645,10 @@ public class ConfigurablePofContext
         {
         ensureInitialized();
 
-        int     nTypeId = -1;
-        Map     mapNameToId = m_cfg.m_mapTypeIdByClassName;
-        Integer ITypeId     = (Integer) mapNameToId.get(sClass);
+        int                  nTypeId     = -1;
+        Map<String, Integer> mapNameToId = m_cfg.m_mapTypeIdByClassName;
+        Integer ITypeId                  = mapNameToId.get(sClass);
+
         if (ITypeId == null)
             {
             if (sClass == null || sClass.length() == 0)
@@ -695,13 +663,13 @@ public class ConfigurablePofContext
                 nTypeId = getUserTypeIdentifierInternal(loadClass(sClass));
                 if (nTypeId >= 0)
                     {
-                    mapNameToId.put(sClass, Integer.valueOf(nTypeId));
+                    mapNameToId.put(sClass, nTypeId);
                     }
                 }
             }
         else
             {
-            nTypeId = ITypeId.intValue();
+            nTypeId = ITypeId;
             }
 
         return nTypeId;
@@ -776,7 +744,7 @@ public class ConfigurablePofContext
     /**
      * Determine if implicit root lambda class processing is allowed.
      *
-     * @return true iff implicit root lambda class processing is allowed.
+     * @return true if implicit root lambda class processing is allowed.
      */
     protected boolean isLambdaAllowed()
         {
@@ -817,9 +785,21 @@ public class ConfigurablePofContext
         }
 
     /**
-     * Set the Jandex index file name to use to discover portable types.
+     * If portable type discovery is enabled, and we were unable to retrieve indexed classes, shall we try to auto-discover
+     * portable type annotated classes from the classpath? This is enabled by default but for testing purposes it may be
+     * needed to set this property to false.
      *
-     * @param sIndexFile  Jandex index file name to use to discover portable types
+     * @param fEnableAutoTypeDiscovery true by default (if not set)
+     */
+    public void setEnableAutoTypeDiscovery(boolean fEnableAutoTypeDiscovery)
+        {
+        m_fEnableAutoTypeDiscovery = fEnableAutoTypeDiscovery;
+        }
+
+    /**
+     * Set the POF index file name to use to discover portable types.
+     *
+     * @param sIndexFile the POF index file name to use to discover portable types
      */
     public void setIndexFileName(String sIndexFile)
         {
@@ -827,9 +807,9 @@ public class ConfigurablePofContext
         }
 
     /**
-     * Return the Jandex index file name to use to discover portable types.
+     * Return the POF index file name to use to discover portable types.
      *
-     * @return the Jandex index file name to use to discover portable types
+     * @return the POF index file name to use to discover portable types
      */
     public String getIndexFileName()
         {
@@ -895,7 +875,7 @@ public class ConfigurablePofContext
                 mapConfigByURI = (Map) mapConfigByLoader.get(loader);
                 if (mapConfigByURI == null)
                     {
-                    mapConfigByURI = new SafeHashMap();
+                    mapConfigByURI = new ConcurrentHashMap<>();
                     mapConfigByLoader.put(loader, mapConfigByURI);
                     }
                 }
@@ -928,10 +908,61 @@ public class ConfigurablePofContext
                 }
 
             // store configuration
-            m_cfg = cfg;
+            m_cfg               = cfg;
             m_fReferenceEnabled = cfg.m_fReferenceEnabled;
             m_fPreferJavaTime   = cfg.m_fPreferJavaTime;
             }
+        }
+
+    /**
+     * Discovers classes that are annotated with {@link PortableType} annotations. It will fist try to load a class index
+     * from {@link PofIndexer#DEFAULT_INDEX_FILE_NAME}. If no portable type classes are returned, we will perform
+     * automatic type discovery using the available classpath. Keep in mind that this might be a potentially slow operation.
+     * @return a map of PortableType annotated classes with the respective type id. Never null.
+     */
+    protected Map<? extends String, ? extends Integer> discoverPortableTypes()
+        {
+        final PofIndexer pofIndexer = new PofIndexer(getContextClassLoader());
+        pofIndexer.setIndexFileName(getIndexFileName());
+
+        final Map<URL, Properties> mapIndexes       = pofIndexer.loadIndexes();
+        final Map<String, Integer> mapPortableTypes = new ConcurrentHashMap<>();
+
+        if (mapIndexes.isEmpty() && m_fEnableAutoTypeDiscovery)
+            {
+            Logger.finer("No POF index files found. Executing auto-discovery of PortableType-annotated " +
+                    "classes from the classpath. Be aware that this might be a time-consuming operation. The use of POF " +
+                    "index files is preferred.");
+            mapPortableTypes.putAll(pofIndexer.discoverPortableTypes());
+            Logger.info(mapPortableTypes.size() + " class" + (mapPortableTypes.size() != 1 ? "es" : "") +
+                    " auto-discovered with PortableType annotation from classpath");
+            return mapPortableTypes;
+            }
+
+        // find the list of classes that implement PortableType
+        for (Map.Entry<URL, Properties> entry : mapIndexes.entrySet())
+            {
+            final Properties properties = entry.getValue();
+            for (Map.Entry mapEntry : properties.entrySet())
+                {
+                final Integer pofId;
+                final String  sClassName = (String) mapEntry.getKey();
+
+                if (mapEntry.getValue() != null && mapEntry.getValue() instanceof Integer)
+                    {
+                    pofId = Integer.valueOf((String) mapEntry.getValue());
+                    }
+                else
+                    {
+                    pofId = pofIndexer.getPortableTypeIdForClassName(sClassName);
+                    }
+                mapPortableTypes.put(sClassName, pofId);
+                }
+            Logger.info(properties.size() + " class" + (properties.size() != 1 ? "es" : "") +
+                    " registered with PortableType annotation " +
+                    "from index: " + entry.getKey());
+            }
+            return mapPortableTypes;
         }
 
     /**
@@ -946,7 +977,6 @@ public class ConfigurablePofContext
         // load the XML configuration if it is not already provided
         String     sURI      = m_sUri;
         XmlElement xmlConfig = m_xml;
-        int        cClasses  = 0;
 
         if (xmlConfig == null)
             {
@@ -970,34 +1000,11 @@ public class ConfigurablePofContext
         boolean fEnableConfigDiscovery = xmlConfig.getSafeElement("enable-config-discovery").getBoolean(true);
         boolean fPreferJavaTime        = xmlConfig.getSafeElement("prefer-java-time").getBoolean();
 
-        Map<String, Integer> mapPortableTypes = new SafeHashMap<>();
+        Map<String, Integer> mapPortableTypes = new ConcurrentHashMap<>();
 
         if (fEnableTypeDiscovery)
             {
-            Map<URL, Index> mapIndexes = loadIndexes();
-
-            // find the list of classes that implement PortableType
-            if (mapIndexes.size() > 0)
-                {
-                for (Map.Entry<URL, Index> entry : mapIndexes.entrySet())
-                    {
-                    Index index = entry.getValue();
-                    cClasses = 0;
-                    for (AnnotationInstance anno : index.getAnnotations(DotName.createSimple(PortableType.class.getName())))
-                        {
-                        if (anno.target().kind().equals(AnnotationTarget.Kind.CLASS))
-                            {
-                            AnnotationValue id = anno.value("id");
-                            mapPortableTypes.put(anno.target().asClass().toString(), id == null ? -1 : id.asInt());
-                            cClasses++;
-                            }
-                        }
-
-                    Logger.info(cClasses + " class" + (cClasses != 1 ? "es" : "") +
-                                " registered with PortableType annotation " +
-                                "from index: " + entry.getKey());
-                    }
-                }
+            mapPortableTypes.putAll(discoverPortableTypes());
             }
 
         // scan the types for the highest type-id
@@ -1051,27 +1058,20 @@ public class ConfigurablePofContext
 
         // get max value of discovered PortableType
         int cPortableTypes     = mapPortableTypes.size();
-        int nMaxPortableTypeId = cPortableTypes == 0
-                             ? 0
-                             : mapPortableTypes.values().stream().reduce(Integer::max).get();
         int nMinPortableTypeId = cPortableTypes == 0
                              ? 0
                              : mapPortableTypes.values().stream().reduce(Integer::min).get();
-        if (nMaxPortableTypeId > nMaxTypeId)
-            {
-            nMaxTypeId = nMaxPortableTypeId;
-            }
 
         boolean fAutoNumber = fSomeMissing || nMinPortableTypeId == -1;
-        int     cElements   = fAutoNumber ? listTypes.size() + cPortableTypes : nMaxTypeId + 1;
 
         // create the relationships between type ids, class names and
         // classes
-        Map mapTypeIdByClass         = new WeakHashMap();
-        Map mapTypeIdByClassName     = new SafeHashMap();
-        Map mapClassNameByTypeId     = new SafeHashMap();
-        WeakReference[] aClzByTypeId = new WeakReference[cElements];
-        PofSerializer[] aSerByTypeId = new PofSerializer[cElements];
+        Map<Class<?>, Integer> mapTypeIdByClass     = new WeakHashMap<>();
+        Map<String, Integer>   mapTypeIdByClassName = new NullableConcurrentMap<>();
+        Map<Integer, String>   mapClassNameByTypeId = new ConcurrentHashMap<>();
+
+        Map<Integer, WeakReference<Class<?>>> mapClzByTypeId = new ConcurrentHashMap<>();
+        Map<Integer, PofSerializer>           mapSerByTypeId = new ConcurrentHashMap<>();
 
         int cTypeIds = 0;
         for (Iterator iter = listTypes.iterator(); iter.hasNext(); )
@@ -1080,7 +1080,7 @@ public class ConfigurablePofContext
 
             // determine the user type ID
             int nTypeId = fAutoNumber ? cTypeIds : xmlType.getElement("type-id").getInt();
-            if (aClzByTypeId[nTypeId] != null)
+            if (mapClzByTypeId.containsKey(nTypeId))
                 {
                 report(sURI, nTypeId, null, null, "Duplicate user type id");
                 }
@@ -1091,7 +1091,7 @@ public class ConfigurablePofContext
                 {
                 report(sURI, nTypeId, null, null, "Missing class name");
                 }
-            final Integer ITypeId = Integer.valueOf(nTypeId);
+            final Integer ITypeId = nTypeId;
 
             // load the class for the user type, and register it
             final Class<?> clz = loadClass(sURI, sClass, nTypeId);
@@ -1105,11 +1105,15 @@ public class ConfigurablePofContext
 
             if (xmlSer == null)
                 {
-                if (PortableObject.class.isAssignableFrom(clz))
+                if (clz.isAnnotationPresent(PortableType.class))
                     {
-                    serializer = clz.isAnnotationPresent(PortableType.class)
-                                 ? new PortableTypeSerializer<>(nTypeId, clz)
-                                 : new PortableObjectSerializer(nTypeId);
+                    serializer = clz.isEnum()
+                                 ? new EnumPofSerializer<>()
+                                 : instantiateSerializer(clz.getAnnotation(PortableType.class).serializer(), nTypeId, clz);
+                    }
+                else if (PortableObject.class.isAssignableFrom(clz))
+                    {
+                    serializer = new PortableObjectSerializer(nTypeId);
                     }
                 else if (clz.getAnnotation(Portable.class) == null)
                     {
@@ -1162,39 +1166,24 @@ public class ConfigurablePofContext
             mapTypeIdByClass.put(clz, ITypeId);
             mapTypeIdByClassName.put(sClass, ITypeId);
             mapClassNameByTypeId.put(ITypeId, sClass);
-            aClzByTypeId[nTypeId] = new WeakReference(clz);
-            aSerByTypeId[nTypeId] = serializer;
+            mapClzByTypeId.put(nTypeId, new WeakReference<>(clz));
+            mapSerByTypeId.put(nTypeId, serializer);
 
             ++cTypeIds;
-            }
-
-        // validate that all classes annotated with PortableType annotation have specified
-        // id's or not. There cannot be a mix of types otherwise this could cause clashes or array bounds errors
-        if (!mapPortableTypes.isEmpty() && nMinPortableTypeId <= 0 && nMaxPortableTypeId > 0)
-            {
-            report(sURI, -1, null, null,
-                    "Mixed mode of specifying 'id' attribute of annotation on some types and not others is not supported");
             }
 
         // look for any classes that implement PortableType and add them automatically
         for (Map.Entry<String, Integer> entry : mapPortableTypes.entrySet())
             {
-            String sClass  = entry.getKey();
-            int    nTypeId = entry.getValue();
-
-            if (nTypeId == -1)
-                {
-                // handle auto-generated type id
-                nTypeId = cTypeIds++;
-                }
-
+            String sClass         = entry.getKey();
+            int    nTypeId        = entry.getValue();
             final Integer ITypeId = nTypeId;
 
             if (mapClassNameByTypeId.containsKey(ITypeId))
                 {
                 report(sURI, nTypeId, null, null, "Duplicate user type id from PortableType annotation");
                 }
-            
+
             final Class<?> clz = loadClass(sURI, sClass, nTypeId);
 
             validateClass(sURI, sClass, clz, nTypeId, fAllowInterfaces, fAllowSubclasses);
@@ -1202,18 +1191,22 @@ public class ConfigurablePofContext
             mapTypeIdByClass.put(clz, ITypeId);
             mapTypeIdByClassName.put(sClass, ITypeId);
             mapClassNameByTypeId.put(ITypeId, sClass);
-            aClzByTypeId[nTypeId] = new WeakReference(clz);
-            aSerByTypeId[nTypeId] = new PortableTypeSerializer<>(nTypeId, clz);
+            mapClzByTypeId.put(nTypeId, new WeakReference<>(clz));
+
+            PofSerializer serializer = clz.isEnum()
+                                 ? new EnumPofSerializer<>()
+                                 : instantiateSerializer(clz.getAnnotation(PortableType.class).serializer(), nTypeId, clz);
+            mapSerByTypeId.put(nTypeId, serializer);
             }
 
         // store off the reusable configuring in a PofConfig object
         PofConfig cfg = new PofConfig();
-        cfg.m_mapTypeIdByClass       = new CopyOnWriteMap(mapTypeIdByClass);
+        cfg.m_mapTypeIdByClass       = new CopyOnWriteMap<>(mapTypeIdByClass);
         cfg.m_mapTypeIdByClassName   = mapTypeIdByClassName;
         cfg.m_mapClassNameByTypeId   = mapClassNameByTypeId;
         cfg.m_mapPortableTypes       = mapPortableTypes;
-        cfg.m_aClzByTypeId           = aClzByTypeId;
-        cfg.m_aSerByTypeId           = aSerByTypeId;
+        cfg.m_mapClzByTypeId         = mapClzByTypeId;
+        cfg.m_mapSerByTypeId         = mapSerByTypeId;
         cfg.m_fInterfaceAllowed      = fAllowInterfaces;
         cfg.m_fSubclassAllowed       = fAllowSubclasses;
         cfg.m_fReferenceEnabled      = fEnableReferences;
@@ -1225,7 +1218,7 @@ public class ConfigurablePofContext
         }
 
     /**
-     * Load a class from a given class name and throw and exception if it does not exist.
+     * Load a class from a given class name and throw an exception if it does not exist.
      *
      * @param sURI    URI that specifies the location of the configuration file
      * @param sClass  class name to load
@@ -1329,48 +1322,11 @@ public class ConfigurablePofContext
             // transposed form of the parameters)
             XmlElement xmlParams = xmlSer.getElement("init-params");
             Iterator   iterParam;
-            InstantiateSerializer: if (xmlParams == null
+            if (xmlParams == null
                     || (iterParam = xmlParams.getElements("init-param")).hasNext()
                     && ((XmlElement) iterParam.next()).getElement("param-type") == null)
                 {
-                // try the four prescribed constructors
-                try
-                    {
-                    serializer = (PofSerializer) ClassHelper.newInstance(clzSer,
-                            new Object[] {ITypeId, clz, getContextClassLoader()});
-                    break InstantiateSerializer;
-                    }
-                catch (Throwable e) {}
-
-                try
-                    {
-                    serializer = (PofSerializer) ClassHelper.newInstance(clzSer,
-                            new Object[] {ITypeId, clz});
-                    break InstantiateSerializer;
-                    }
-                catch (Throwable e) {}
-
-                try
-                    {
-                    serializer = (PofSerializer) ClassHelper.newInstance(clzSer,
-                            new Object[] {ITypeId});
-                    break InstantiateSerializer;
-                    }
-                catch (Throwable e) {}
-
-                try
-                    {
-                    serializer = (PofSerializer) clzSer.newInstance();
-                    }
-                catch (Throwable e)
-                    {
-                    // all four failed, so use the exception from this
-                    // most recent failure as the basis for reporting
-                    // the failure
-                    report(sURI, nTypeId, clz.getName(), e,
-                            "Unable to instantiate PofSerializer class using"
-                            + " predefined constructors: " + sSerClass);
-                    }
+                serializer = instantiateSerializer(clzSer, nTypeId, clz);
                 }
             else
                 {
@@ -1430,6 +1386,57 @@ public class ConfigurablePofContext
             }
 
         return serializer;
+        }
+
+    /**
+     * Instantiate specified {@link PofSerializer}.
+     *
+     * @param clzSer   the class of the serializer to create
+     * @param nTypeId  the user type id this class is registered with
+     * @param clz      the class of the user type
+     *
+     * @return a PofSerializer implementation capable of (de)serializing
+     *         <tt>clz</tt>
+     */
+    protected PofSerializer<?> instantiateSerializer(Class<? extends PofSerializer> clzSer, Integer nTypeId, Class<?> clz)
+        {
+        // try the four prescribed constructors
+        try
+            {
+            return (PofSerializer<?>) ClassHelper.newInstance(clzSer,
+                    new Object[] {nTypeId, clz, getContextClassLoader()});
+            }
+        catch (Throwable ignore) {}
+
+        try
+            {
+            return (PofSerializer<?>) ClassHelper.newInstance(clzSer,
+                    new Object[] {nTypeId, clz});
+            }
+        catch (Throwable ignore) {}
+
+        try
+            {
+            return (PofSerializer<?>) ClassHelper.newInstance(clzSer,
+                    new Object[] {nTypeId});
+            }
+        catch (Throwable ignore) {}
+
+        try
+            {
+            return clzSer.getDeclaredConstructor().newInstance();
+            }
+        catch (Throwable e)
+            {
+            // all four failed, so use the exception from this
+            // most recent failure as the basis for reporting
+            // the failure
+            report(m_sUri, nTypeId, clz.getName(), e,
+                "Unable to instantiate PofSerializer class using"
+                     + " predefined constructors: " + clzSer.getName());
+            }
+
+        return null;
         }
 
     /**
@@ -1507,42 +1514,6 @@ public class ConfigurablePofContext
         throw e == null
               ? new IllegalStateException(sText)
               : Base.ensureRuntimeException(e, sText);
-        }
-
-    /**
-     * Attempt to load all Jandex index files which will we will use to search for
-     * classes that have the PortableType annotation.
-     *
-     * @return a {@link Map} of {@link Index}es keyed by {@link URL} or an empty {@link Map} if none found.
-     */
-    private Map<URL, Index> loadIndexes()
-        {
-        Map<URL, Index> mapIndexes     = new LiteMap<>();
-        String          sIndexFileName = m_sIndexFileName;
-
-        try {
-            Iterable<URL> iterUrls = Resources.findResources(sIndexFileName, getContextClassLoader());
-
-            // loop through each URL and load the index
-            for (URL url : iterUrls)
-                {
-                try (InputStream input = url.openStream())
-                    {
-                    mapIndexes.put(url, new IndexReader(input).read());
-                    }
-                catch (Exception ignore)
-                    {
-                    Logger.warn("Unable to read Jandex index file " + url + ", error is " + ignore.getMessage());
-                    }
-                }
-            }
-        catch (IOException e)
-            {
-            // any Exception coming from getResources() or toURL() is ignored and
-            // the Map of indexes remain empty
-            }
-
-        return mapIndexes;
         }
 
     /**
@@ -1716,7 +1687,7 @@ public class ConfigurablePofContext
         * sub-classes of the contained classes are resolved to type IDs (and
         * those mappings are added).
         */
-        public Map m_mapTypeIdByClass;
+        public Map<Class<?>, Integer> m_mapTypeIdByClass;
 
         /**
         * Once initialized, this references a thread-safe Map that contains
@@ -1727,17 +1698,17 @@ public class ConfigurablePofContext
         * class names) are resolved to type IDs (and those mappings are
         * added).
         */
-        public Map m_mapTypeIdByClassName;
+        public Map<String, Integer> m_mapTypeIdByClassName;
 
         /**
-        * An array of WeakReferences to user type classes, indexed by type identifier.
+        * A {@link Map} of {@link WeakReference}s to user type classes, keyed by type identifier.
         */
-        public WeakReference[] m_aClzByTypeId;
+        public Map<Integer, WeakReference<Class<?>>> m_mapClzByTypeId;
 
         /**
-        * An array of PofSerializer objects, indexed by type identifier.
+        * A {@link Map} of PofSerializer objects, keyed by type identifier.
         */
-        public PofSerializer[] m_aSerByTypeId;
+        public Map<Integer, PofSerializer> m_mapSerByTypeId;
 
         /**
         * True iff an interface name is acceptable in the configuration as
@@ -1770,7 +1741,7 @@ public class ConfigurablePofContext
         * class names) are resolved to type IDs (and those mappings are
         * added).
         */
-        public Map m_mapClassNameByTypeId;
+        public Map<Integer, String> m_mapClassNameByTypeId;
 
         /**
          * Discovered list of types that are annotated with {@link PortableType}.
@@ -1823,9 +1794,9 @@ public class ConfigurablePofContext
     protected static final Class ROOT_LAMBDA_CLASS = FunctionalInterface.class;
 
     /**
-     * Default Jandex index file.
+     * Default POF index file.
      */
-    protected static final String DEFAULT_INDEX_FILE_NAME = "META-INF/jandex.idx";
+    protected static final String DEFAULT_INDEX_FILE_NAME = "META-INF/pof.idx";
 
     // ----- data members ---------------------------------------------------
 
@@ -1839,6 +1810,13 @@ public class ConfigurablePofContext
     * use.
     */
     private WeakReference<ClassLoader> m_refLoader;
+
+    /**
+     * If portable type discovery is enabled, and we were unable to retrieve indexed classes, shall we try to auto-discover
+     * portable type annotated classes from the classpath? This is disabled by default, it can be enabled by setting the
+     * {@code coherence.pof.classpath.scanning.enabled} system property to {@code true}.
+     */
+    private boolean m_fEnableAutoTypeDiscovery = Config.getBoolean("coherence.pof.classpath.scanning.enabled", false);
 
     /**
     * The URI that specifies the location of the configuration file.
@@ -1869,7 +1847,8 @@ public class ConfigurablePofContext
     private volatile PofConfig m_cfg;
 
     /**
-     * The Jandex index file name to use.
+     * The POF index file name to use.
      */
     private String m_sIndexFileName = DEFAULT_INDEX_FILE_NAME;
+
     }

@@ -15,6 +15,7 @@ import com.tangosol.application.ContainerHelper;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.pof.ConfigurablePofContext;
+import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.CacheMap;
 import com.tangosol.net.cache.KeyAssociation;
@@ -327,6 +328,16 @@ public class RemoteNamedCache
     public Object aggregate(java.util.Collection collKeys, com.tangosol.util.InvocableMap.EntryAggregator agent)
         {
         return getConverterCache().aggregate(collKeys, agent);
+        }
+
+    /**
+     * Coherence*Extend does not support AsyncNamedCache
+     */
+    // From interface: com.tangosol.net.NamedCache
+    @Override
+    public AsyncNamedCache async(AsyncNamedCache.Option... options)
+        {
+        throw new UnsupportedOperationException();
         }
     
     // From interface: com.tangosol.net.NamedCache
@@ -646,7 +657,13 @@ public class RemoteNamedCache
         {
         return getBinaryCache().isActive();
         }
-    
+
+    @Override
+    public boolean isReady()
+        {
+        return getBinaryCache().isReady();
+        }
+
     // Accessor for the property "DeferKeyAssociationCheck"
     /**
      * Getter for property DeferKeyAssociationCheck.<p>
@@ -2186,6 +2203,30 @@ public class RemoteNamedCache
         public boolean isEmpty()
             {
             return size() == 0;
+            }
+
+        // From interface: com.tangosol.net.NamedCache
+        @Override
+        public boolean isReady()
+            {
+            // import Component.Net.Extend.MessageFactory.NamedCacheFactory$SizeRequest as com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory.SizeRequest;
+            // import com.tangosol.net.messaging.Channel;
+            // import com.tangosol.net.messaging.Protocol$MessageFactory as com.tangosol.net.messaging.Protocol.MessageFactory;
+
+            Channel channel = ensureChannel();
+            com.tangosol.net.messaging.Protocol.MessageFactory factory = channel.getMessageFactory();
+
+            if (factory.getVersion() < 11)
+                {
+                throw new UnsupportedOperationException("NamedMap.isReady is not supported by the current proxy. "
+                                                        + "Either upgrade the version of Coherence on the proxy or connect to a proxy "
+                                                        + "that supports the isReady operation.");
+
+                }
+
+            com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory.ReadyRequest request = (com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory.ReadyRequest) factory.createMessage(com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory.ReadyRequest.TYPE_ID);
+
+            return (boolean) channel.request(request);
             }
         
         // From interface: com.tangosol.net.NamedCache

@@ -88,9 +88,9 @@ public class BankIT
         assertThat(accounts.invoke(accountIdTwo, Processors.extract(ValueExtractor.of(Account::getBalance))), is(new BigDecimal(600)));
         }
 
-    @RegisterExtension
-    @Order(1)
-    static TestLogsExtension s_testLogsExtension = new TestLogsExtension(BankIT.class);
+//    @RegisterExtension
+//    @Order(1)
+//    static TestLogsExtension s_testLogsExtension = new TestLogsExtension(BankIT.class);
 
     @RegisterExtension
     @Order(2)
@@ -99,8 +99,9 @@ public class BankIT
                   DisplayName.of("Storage"),
                   IPv4Preferred.yes(),
                   WellKnownAddress.loopback(),
-                  LocalHost.only(),
-                  s_testLogsExtension)
+                  LocalHost.only()
+                  // s_testLogsExtension
+                  )
             .include(3, CoherenceClusterMember.class);
 
     private static Coherence s_coherence;

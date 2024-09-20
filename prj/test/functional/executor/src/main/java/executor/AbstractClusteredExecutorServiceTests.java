@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -63,6 +63,7 @@ import com.oracle.coherence.concurrent.executor.util.Caches;
 
 import com.tangosol.io.Serializer;
 
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
@@ -123,7 +124,7 @@ import static org.junit.Assert.fail;
  * @author lh
  * @since 21.12
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({"rawtypes", "resource"})
 public abstract class AbstractClusteredExecutorServiceTests
         extends AbstractTaskExecutorServiceTests
     {
@@ -145,6 +146,10 @@ public abstract class AbstractClusteredExecutorServiceTests
     public void setup()
         {
         initCluster();
+
+        ensureConcurrentServiceRunning(getCluster());
+        ensureExecutorProxyAvailable(getCluster());
+
         // establish an ExecutorService based on the *Extend client
         m_taskExecutorService = createExecutorService();
 
@@ -178,6 +183,11 @@ public abstract class AbstractClusteredExecutorServiceTests
     public void cleanup()
         {
         String sMsg = ">>>>> Finished test: " + f_watcher.getMethodName();
+        if (m_cacheFactory != null && m_cacheFactory.isActive())
+            {
+            m_cacheFactory.dispose();
+            m_cacheFactory = null;
+            }
         for (CoherenceClusterMember member : getCoherence().getCluster())
             {
             if (member != null)
@@ -197,6 +207,7 @@ public abstract class AbstractClusteredExecutorServiceTests
 
             Eventually.assertDeferred(() -> m_taskExecutorService.isShutdown(), is(true));
             }
+        CacheFactory.shutdown();
         }
 
     // ----- contract -------------------------------------------------------
@@ -234,10 +245,12 @@ public abstract class AbstractClusteredExecutorServiceTests
         clusterResource.getCluster();
 
         // connect as an *Extend client
+        System.setProperty("coherence.client", "remote-fixed");
         m_cacheFactory = clusterResource.createSession((
                 SessionBuilders.extendClient(m_extendConfig,
                                              SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, "true"),
                                              SystemProperty.of("coherence.client", "remote-fixed"))));
+        m_cacheFactory.activate();
         }
 
     // ----- test methods ---------------------------------------------------
@@ -836,7 +849,7 @@ public abstract class AbstractClusteredExecutorServiceTests
 
         Task.Coordinator<String> coordinator2 =
             m_taskExecutorService
-                .orchestrate(CronTask.of(new LongRunningTask(Duration.ofSeconds(15), 2), "* * * * *"))
+                .orchestrate(CronTask.of(new LongRunningTask(Duration.ofSeconds(15), 2), "* * * * *", false))
                 .filter(Predicates.role(STORAGE_DISABLED_MEMBER_ROLE))
                 .limit(1)
                 .collect(TaskCollectors.lastOf())
@@ -963,14 +976,28 @@ public abstract class AbstractClusteredExecutorServiceTests
         cluster.filter(member -> member.getRoleName().equals(STORAGE_ENABLED_MEMBER_ROLE)).clone(2);
         server.close(SystemExit.withExitCode(-1));
 
+        Logger.info("Storage member terminated ...");
+
         // Verify that the task is recovered from failover and is executed at lease 1 time in the 2 minutes interval
         int cReceived1 = subscriber1.size();
-        int cReceived2 = subscriber2.size();
-        int cReceived3 = subscriber3.size();
+        Logger.info(String.format("Subscriber1 [%s] size=%s", coordinator1.getTaskId(), cReceived1));
 
+        int cReceived2 = subscriber2.size();
+        Logger.info(String.format("Subscriber2 [%s] size=%s", coordinator2.getTaskId(), cReceived2));
+
+        int cReceived3 = subscriber3.size();
+        Logger.info(String.format("Subscriber3 [%s] size=%s", coordinator3.getTaskId(), cReceived3));
+
+        Logger.info("Begin wait for two minutes to ensure task doesn't complete");
         Repetitively.assertThat(invoking(subscriber1).isCompleted(), Matchers.is(false), Timeout.of(2, TimeUnit.MINUTES));
+
+        Logger.info("Checking subscriber1 ...");
         MatcherAssert.assertThat(subscriber1.size(), Matchers.greaterThan(cReceived1));
+
+        Logger.info("Checking subscriber2 ...");
         MatcherAssert.assertThat(subscriber2.size(), Matchers.greaterThan(cReceived2));
+
+        Logger.info("Checking subscriber3 ...");
         MatcherAssert.assertThat(subscriber3.size(), Matchers.greaterThan(cReceived3));
 
         MatcherAssert.assertThat(coordinator1.cancel(true), Matchers.is(true));
@@ -1439,7 +1466,8 @@ public abstract class AbstractClusteredExecutorServiceTests
 
     public CacheService getCacheService()
         {
-        return m_taskExecutorService.getCacheService();
+        return m_taskExecutorService == null
+                ? null : m_taskExecutorService.getCacheService();
         }
 
     /**

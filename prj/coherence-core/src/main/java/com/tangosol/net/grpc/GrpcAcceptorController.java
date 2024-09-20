@@ -1,14 +1,21 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.grpc;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
+
 import com.tangosol.internal.util.DaemonPool;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import java.util.ServiceLoader;
 
 /**
@@ -18,6 +25,7 @@ import java.util.ServiceLoader;
  * @since 22.06.2
  */
 public interface GrpcAcceptorController
+        extends Comparable<GrpcAcceptorController>
     {
     /**
      * Set the {@link GrpcAcceptorDependencies}.
@@ -79,6 +87,33 @@ public interface GrpcAcceptorController
     int getLocalPort();
 
     /**
+     * Return the list of services this controller is serving.
+     *
+     * @return the list of services this controller is serving
+     */
+    List<?> getBindableServices();
+
+    /**
+     * Return the priority of this controller if multiple controllers
+     * are discovered. The controller with the highest priority will
+     * be used. If multiple controllers have the highest priority the
+     * actual controller used cannot be determined.
+     *
+     * @return the priority of this controller if multiple controllers
+     *         are discovered
+     */
+    default int getPriority()
+        {
+        return PRIORITY_NORMAL - 1;
+        }
+
+    @Override
+    default int compareTo(GrpcAcceptorController o)
+        {
+        return Integer.compare(getPriority(), o.getPriority());
+        }
+
+    /**
      * Discover any {@link GrpcAcceptorController} instances.
      *
      * @return the first {@link GrpcAcceptorController} instance discovered
@@ -86,9 +121,27 @@ public interface GrpcAcceptorController
     static GrpcAcceptorController discoverController()
         {
         return ServiceLoader.load(GrpcAcceptorController.class)
-                .findFirst()
+                .stream()
+                .map(GrpcAcceptorController::createInstance)
+                .filter(Objects::nonNull)
+                .max(Comparator.naturalOrder())
                 .orElse(NULL_CONTROLLER);
         }
+
+    private static GrpcAcceptorController createInstance(ServiceLoader.Provider<GrpcAcceptorController> provider)
+        {
+        try
+            {
+            return provider.get();
+            }
+        catch (Exception e)
+            {
+            Logger.err("Error during discovery of GrpcAcceptorController instances", e);
+            return null;
+            }
+        }
+
+    GrpcDependencies.ServerType getServerType();
 
     // ----- data members ---------------------------------------------------
 
@@ -148,9 +201,26 @@ public interface GrpcAcceptorController
             return null;
             }
 
+        @Override
+        public List<?> getBindableServices()
+            {
+            return Collections.emptyList();
+            }
+
+        @Override
+        public GrpcDependencies.ServerType getServerType()
+            {
+            return GrpcDependencies.ServerType.Asynchronous;
+            }
+
         /**
          * The gRPC acceptor dependencies.
          */
         private GrpcAcceptorDependencies m_deps;
         };
+
+    /**
+     * The default priority for a controller.
+     */
+    int PRIORITY_NORMAL = 0;
     }

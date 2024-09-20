@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io.pof;
 
@@ -20,7 +20,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 import java.util.Collection;
@@ -47,6 +46,22 @@ import java.util.function.IntFunction;
 */
 public interface PofReader
     {
+    // ----- versioning helper ----------------------------------------------
+
+    /**
+     * Return a {@code PofReader} that will only attempt to read properties
+     * from the wrapped {@code PofReader} if the data version of this reader is
+     * greater or equal to the specified implementation version.
+     *
+     * @param nImplVersion  the maximum implementation version to read
+     *
+     * @return a version-aware {@code PofReader}
+     */
+    default PofReader version(int nImplVersion)
+        {
+        return new VersionedPofReader(this, nImplVersion);
+        }
+
     // ----- primitive value support ----------------------------------------
 
     /**

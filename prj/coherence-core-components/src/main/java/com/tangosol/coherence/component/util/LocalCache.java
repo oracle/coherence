@@ -11,8 +11,11 @@
 package com.tangosol.coherence.component.util;
 
 import com.tangosol.application.ContainerHelper;
+import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
+import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.BackingMapManager;
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.cache.CacheMap;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
@@ -26,6 +29,7 @@ import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.IntPredicate;
 
 /**
  * Coherence Local implementation.
@@ -818,7 +822,39 @@ public class LocalCache
             setRunning(false);
             }
         }
-    
+
+    @Override
+    public boolean isVersionCompatible(int nMajor, int nMinor, int nMicro, int nPatchSet, int nPatch)
+        {
+        int nEncoded = ServiceMemberSet.encodeVersion(nMajor, nMinor, nMicro, nPatchSet, nPatch);
+        return CacheFactory.VERSION_ENCODED >= nEncoded;
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nYear, int nMonth, int nPatch)
+        {
+        int nEncoded = ServiceMemberSet.encodeVersion(nYear, nMonth, nPatch);
+        return CacheFactory.VERSION_ENCODED >= nEncoded;
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nVersion)
+        {
+        return CacheFactory.VERSION_ENCODED >= nVersion;
+        }
+
+    @Override
+    public boolean isVersionCompatible(IntPredicate predicate)
+        {
+        return predicate.test(CacheFactory.VERSION_ENCODED);
+        }
+
+    @Override
+    public int getMinimumServiceVersion()
+        {
+        return CacheFactory.VERSION_ENCODED;
+        }
+
     // Declared at the super level
     public String toString()
         {
@@ -1193,7 +1229,17 @@ public class LocalCache
             
             return agent.aggregate(com.tangosol.util.InvocableMapHelper.makeEntrySet(getActualMap(), collKeys, true));
             }
-        
+
+        /**
+         * LocalCache does not support AsyncNamedCache
+         */
+        // From interface: com.tangosol.net.NamedCache
+        @Override
+        public AsyncNamedCache async(AsyncNamedCache.Option... options)
+            {
+            throw new UnsupportedOperationException();
+            }
+
         // From interface: com.tangosol.net.NamedCache
         public void destroy()
             {

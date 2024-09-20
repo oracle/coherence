@@ -12,6 +12,7 @@ package com.tangosol.coherence.component.net.extend;
 
 import com.tangosol.coherence.component.net.extend.Channel;
 import com.tangosol.coherence.component.net.extend.remoteService.RemoteNameService;
+import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.Service;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Initiator;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.initiator.TcpInitiator;
@@ -37,6 +38,7 @@ import com.tangosol.net.messaging.ConnectionManager;
 import com.tangosol.util.Listeners;
 import com.tangosol.util.ServiceEvent;
 import java.util.Collections;
+import java.util.function.IntPredicate;
 
 /**
  * Service implementation that allows a JVM to use a remote clustered Service
@@ -1165,5 +1167,37 @@ public abstract class RemoteService
     public void stop()
         {
         doStop();
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nMajor, int nMinor, int nMicro, int nPatchSet, int nPatch)
+        {
+        int nEncoded = ServiceMemberSet.encodeVersion(nMajor, nMinor, nMicro, nPatchSet, nPatch);
+        return CacheFactory.VERSION_ENCODED >= nEncoded;
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nYear, int nMonth, int nPatch)
+        {
+        int nEncoded = ServiceMemberSet.encodeVersion(nYear, nMonth, nPatch);
+        return CacheFactory.VERSION_ENCODED >= nEncoded;
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nVersion)
+        {
+        return CacheFactory.VERSION_ENCODED >= nVersion;
+        }
+
+    @Override
+    public boolean isVersionCompatible(IntPredicate predicate)
+        {
+        return predicate.test(CacheFactory.VERSION_ENCODED);
+        }
+
+    @Override
+    public int getMinimumServiceVersion()
+        {
+        return CacheFactory.VERSION_ENCODED;
         }
     }

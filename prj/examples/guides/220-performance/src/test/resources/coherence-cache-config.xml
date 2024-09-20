@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2023, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+  <!-- tag::cacheScheme[] -->
+  <caching-scheme-mapping>
+    <cache-mapping> <!--1-->
+      <cache-name>base-*</cache-name>
+      <scheme-name>server-base</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping> <!--2-->
+      <cache-name>rl-*</cache-name>
+      <scheme-name>server-rl</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping> <!--3-->
+      <cache-name>async-backup-*</cache-name>
+      <scheme-name>server-async-backup</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping> <!--4-->
+      <cache-name>sched-backup-*</cache-name>
+      <scheme-name>server-sched-backup</scheme-name>
+    </cache-mapping>
+    
+    <cache-mapping> <!--5-->
+      <cache-name>no-backup-*</cache-name>
+      <scheme-name>server-no-backup</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+  <!-- end::cacheScheme[] -->
+
+  <caching-schemes>
+    <!-- tag::base[] -->
+    <distributed-scheme>
+      <scheme-name>server-base</scheme-name>
+      <service-name>PartitionedCache</service-name>
+      <backing-map-scheme>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+    <!-- end::base[] -->
+
+    <!-- tag::rl[] -->
+    <distributed-scheme>
+      <scheme-name>server-rl</scheme-name>
+      <service-name>PartitionedCacheReadLocator</service-name>
+      <backing-map-scheme>
+        <read-locator>closest</read-locator>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+   <!-- end::rl[] -->
+
+    <!-- tag::async[] -->
+    <distributed-scheme>
+      <scheme-name>server-async-backup</scheme-name>
+      <service-name>PartitionedCacheAsyncBackup</service-name>
+      <backing-map-scheme>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+      <async-backup>true</async-backup>
+    </distributed-scheme>
+    <!-- end::async[] -->
+
+    <!-- tag::sched[] -->
+    <distributed-scheme>
+      <scheme-name>server-sched-backup</scheme-name>
+      <service-name>PartitionedCacheSchedBackup</service-name>
+      <backing-map-scheme>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+      <async-backup>2s</async-backup>
+    </distributed-scheme>
+    <!-- end::sched[] -->
+
+    <!-- tag::none[] -->
+    <distributed-scheme>
+      <scheme-name>server-no-backup</scheme-name>
+      <service-name>PartitionedCacheNoBackup</service-name>
+      <backup-count>0</backup-count>
+      <backing-map-scheme>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+  </caching-schemes>
+  <!-- end::none[] -->
+</cache-config>

@@ -1,37 +1,37 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
+import com.tangosol.internal.util.OrderedView;
 import com.tangosol.net.cache.ContinuousQueryCache;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.ValueExtractor;
+import com.tangosol.util.comparator.SafeComparator;
 import com.tangosol.util.filter.AlwaysFilter;
 
+import java.util.Comparator;
 import java.util.function.Supplier;
 
 /**
  * The {@link ViewBuilder} provides a means to {@link #build()} a {@code map view}
  * using a fluent pattern / style.
  *
- * @param <K>        the type of the map entry keys
- * @param <V_BACK>   the type of the entry values in the backing map that is used
- *                   as the source for this {@code view}
- * @param <V_FRONT>  the type of the entry values in this {@code view}, which
- *                   will be the same as {@code V_BACK}, unless a {@code transformer} is specified
- *                   when creating this {@code view}
+ * @param <K>  the type of the map entry keys
+ * @param <V>  the type of the entry values in the backing map that is used
+ *             as the source for this {@code view}
  *
  * @author Aleks Seovic  2020.06.06
  *
  * @since 20.06
  */
-public class MapViewBuilder<K, V_BACK, V_FRONT>
+public class MapViewBuilder<K, V>
     {
     // ---- constructors ----------------------------------------------------
 
@@ -40,9 +40,9 @@ public class MapViewBuilder<K, V_BACK, V_FRONT>
      *
      * @param map  the {@link NamedMap} from which the view will be created
      */
-    MapViewBuilder(NamedMap<K, V_BACK> map)
+    MapViewBuilder(NamedMap<K, V> map)
         {
-        this(() -> (NamedCache<K, V_BACK>) map);
+        this(() -> (NamedCache<K, V>) map);
         }
 
     /**
@@ -51,7 +51,7 @@ public class MapViewBuilder<K, V_BACK, V_FRONT>
      * @param supplierNamedCache  the {@link Supplier} returning a {@link NamedCache}
      *                            from which the view will be created
      */
-    protected MapViewBuilder(Supplier<NamedCache<K, V_BACK>> supplierNamedCache)
+    protected MapViewBuilder(Supplier<NamedCache<K, V>> supplierNamedCache)
         {
         f_supplierNamedCache = supplierNamedCache;
         }
@@ -67,7 +67,7 @@ public class MapViewBuilder<K, V_BACK, V_FRONT>
      *
      * @return this {@link MapViewBuilder}
      */
-    public MapViewBuilder<K, V_BACK, V_FRONT> filter(Filter filter)
+    public MapViewBuilder<K, V> filter(Filter<?> filter)
         {
         m_filter = filter;
         return this;
@@ -83,7 +83,7 @@ public class MapViewBuilder<K, V_BACK, V_FRONT>
      *
      * @return this {@link MapViewBuilder}
      */
-    public MapViewBuilder<K, V_BACK, V_FRONT> listener(MapListener<? super K, ? super V_FRONT> listener)
+    public MapViewBuilder<K, V> listener(MapListener<? super K, ? super V> listener)
         {
         m_listener = listener;
         return this;
@@ -97,23 +97,52 @@ public class MapViewBuilder<K, V_BACK, V_FRONT>
      *                transform values retrieved from the underlying map
      *                before storing them locally; if specified, this
      *                {@code view} will become {@code read-only}
+     * @param <U>     the type of the extracted value
      *
      * @return this {@link MapViewBuilder}
      */
-    public MapViewBuilder<K, V_BACK, V_FRONT> map(ValueExtractor<? super V_BACK, ? extends V_FRONT> mapper)
+    @SuppressWarnings("unchecked")
+    public <U> MapViewBuilder<K, U> map(ValueExtractor<? super V, ? extends U> mapper)
         {
         m_mapper = mapper;
+        return (MapViewBuilder<K, U>) this;
+        }
+
+    /**
+     * Ensure that the view is sorted  based on the natural order of
+     * the values, which must implement {@link Comparable} interface.
+     *
+     * @return this {@link MapViewBuilder}
+     */
+    public MapViewBuilder<K, V> sorted()
+        {
+        return sorted(null);
+        }
+
+    /**
+     * Ensure that the view is sorted using specified {@link Comparator}.
+     *
+     * @param comparator  the {@link Comparator} that will be used to sort the
+     *                    entries in this view; if {@code null}, the entries will
+     *                    be sorted based on the natural order of the values, which
+     *                    must implement {@link Comparable} interface
+     *
+     * @return this {@link MapViewBuilder}
+     */
+    public MapViewBuilder<K, V> sorted(Comparator<? super V> comparator)
+        {
+        m_comparator = comparator == null ? SafeComparator.INSTANCE() : comparator;
         return this;
         }
 
     /**
      * The resulting {@code view} will only map keys.
-     *
+     * <p></p>
      * NOTE: this is mutually exclusive with {@link #values()}.
      *
      * @return this {@link MapViewBuilder}
      */
-    public MapViewBuilder<K, V_BACK, V_FRONT> keys()
+    public MapViewBuilder<K, V> keys()
         {
         m_fCacheValues = false;
         return this;
@@ -121,12 +150,12 @@ public class MapViewBuilder<K, V_BACK, V_FRONT>
 
     /**
      * The resulting {@code view} with both map keys and values.
-     *
+     * <p></p>
      * NOTE: this is mutually exclusive with {@link #keys()}, and the default.
      *
      * @return this {@link MapViewBuilder}
      */
-    public MapViewBuilder<K, V_BACK, V_FRONT> values()
+    public MapViewBuilder<K, V> values()
         {
         m_fCacheValues = true;
         return this;
@@ -139,7 +168,7 @@ public class MapViewBuilder<K, V_BACK, V_FRONT>
      *
      * @return this {@link MapViewBuilder}
      */
-    public MapViewBuilder<K, V_BACK, V_FRONT> withClassLoader(ClassLoader loader)
+    public MapViewBuilder<K, V> withClassLoader(ClassLoader loader)
         {
         m_loader = loader;
         return this;
@@ -150,16 +179,17 @@ public class MapViewBuilder<K, V_BACK, V_FRONT>
      *
      * @return the {@code view} of the {@link NamedMap} provided to this builder
      */
-    public NamedMap<K, V_FRONT> build()
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public NamedMap<K, V> build()
         {
-        Filter      filter = m_filter;
-        ClassLoader loader = m_loader;
-        return new ContinuousQueryCache<>(f_supplierNamedCache,
-                                          filter == null ? AlwaysFilter.INSTANCE : filter,
-                                          m_fCacheValues,
-                                          m_listener,
-                                          m_mapper,
-                                          loader == null ? Base.getContextClassLoader(this) : loader);
+        Filter<?>        filter = m_filter;
+        ClassLoader      loader = m_loader;
+        NamedCache<K, V> view   = new ContinuousQueryCache(f_supplierNamedCache,
+                                                           filter == null ? AlwaysFilter.INSTANCE : filter,
+                                                           m_fCacheValues, m_listener, m_mapper,
+                                                           loader == null ? Base.getContextClassLoader(this) : loader);
+
+        return m_comparator == null ? view : new OrderedView<>(view, m_comparator);
         }
 
     // ----- data members ---------------------------------------------------
@@ -168,27 +198,32 @@ public class MapViewBuilder<K, V_BACK, V_FRONT>
      * The {@link Supplier} returning a {@link NamedCache} from which the
      * view will be created.
      */
-    protected final Supplier<NamedCache<K, V_BACK>> f_supplierNamedCache;
+    protected final Supplier<NamedCache<K, V>> f_supplierNamedCache;
 
     /**
      * The {@link Filter} that will be used to define the entries maintained
      * in this view.
      */
-    protected Filter m_filter;
+    protected Filter<?> m_filter;
 
     /**
      * The {@link MapListener} that will receive all the events from
      * the {@code view}, including those corresponding to its initial
      * population.
      */
-    protected MapListener<? super K, ? super V_FRONT> m_listener;
+    protected MapListener<? super K, ? super V> m_listener;
 
     /**
      * The {@link ValueExtractor} that will be used to transform values
      * retrieved from the underlying map before storing them locally; if
      * specified, this {@code view} will become {@code read-only}.
      */
-    protected ValueExtractor<? super V_BACK, ? extends V_FRONT> m_mapper;
+    protected ValueExtractor<? super V, ?> m_mapper;
+
+    /**
+     * The {@link Comparator} to use when creating a sorted view.
+     */
+    protected Comparator<? super V> m_comparator;
 
     /**
      * Flag controlling if the {@code view} will store both keys and values

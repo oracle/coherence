@@ -1,19 +1,15 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.discovery;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 
@@ -22,13 +18,11 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
-import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -44,30 +38,38 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.management.remote.JMXServiceURL;
 
 /**
- * NSLookup is a helper class for doing lookup from the Coherence NameService.
+ * NSLookup is a helper class for performing lookup from the Coherence NameService.
  * <p>
  * This helper class has no dependency on any other Coherence class and can be
- * used to do NameService lookup without requiring coherence jar.
- *
+ * used to perform NameService lookup without requiring coherence jar.
+ * <p>
+ * <b>List of Service Endpoints registered in NameService</b>
  * <ul>
- * <li>Using the NSLookup class for JMX query
- *    <pre>
- *    JMXServiceURL         jmxServiceURL = NSLookup.lookupJMXServiceURL(new InetSocketAddress("127.0.0.1", 8888));
- *    JMXConnector          jmxConnector  = JMXConnectorFactory.connect(jmxServiceURL, null);
- *    MBeanServerConnection conn          = jmxConnector.getMBeanServerConnection();
- *    System.out.println(conn.queryNames(new javax.management.ObjectName("Coherence:type=Cluster,*"), null));
- *    </pre>
- * </li>
+ *     <li>{@link #lookupExtendProxy(String, SocketAddress, String) ExtendClient Proxy socket address(es)}
+ *     <li>{@link #lookupGrpcProxy(String, SocketAddress)           GRPC Proxy socket address(es)}
+ *     <li>{@link #lookupHTTPHealthURL(String, SocketAddress)       HTTP Health URL(s)}
+ *     <li>{@link #lookupHTTPManagementURL(String, SocketAddress)   HTTP Management URL(s)}
+ *     <li>{@link #lookupHTTPMetricsURL(String, SocketAddress)      HTTP Metrics URL(s)}
+ *     <li>{@link #lookupJMXServiceURL(String, SocketAddress)       JMX Service URL}
  * </ul>
- *
+ * <p>
+ * Here is an example using the NSLookup class for JMX query, assuming cluster running on local host with cluster port of 7574.
+ * <pre>
+ *   JMXServiceURL         jmxServiceURL = NSLookup.lookupJMXServiceURL(new InetSocketAddress("127.0.0.1", 7574));
+ *   JMXConnector          jmxConnector  = JMXConnectorFactory.connect(jmxServiceURL, null);
+ *   MBeanServerConnection conn          = jmxConnector.getMBeanServerConnection();
+ *   System.out.println(conn.queryNames(new javax.management.ObjectName("Coherence:type=Cluster,*"), null));
+ * </pre>
  * @author bb  2014.04.24
+ *
+ * @since 12.2.1
  */
 public class NSLookup
     {
     /**
      * Lookup the current management node mbean connector url.
      *
-     * @param socketAddr  Unicast socket address of the coherence cluster node
+     * @param socketAddr  unicast socket address of a coherence cluster node and cluster port
      *
      * @return JMXServiceURL for the management node
      *
@@ -83,7 +85,7 @@ public class NSLookup
      * Lookup the current management node mbean connector url.
      *
      * @param sCluster    the target cluster
-     * @param socketAddr  Unicast socket address of the coherence cluster node
+     * @param socketAddr  unicast socket address of a coherence cluster node and cluster port
      *
      * @return JMXServiceURL for the management node
      *
@@ -99,7 +101,7 @@ public class NSLookup
     /**
      * Lookup the current management HTTP connector URL.
      *
-     * @param socketAddr  Unicast socket address of the coherence cluster node
+     * @param socketAddr  unicast socket address of a coherence cluster node and cluster port
      *
      * @return a collection of URLs which can be used to access an HTTP management service
      *
@@ -117,7 +119,7 @@ public class NSLookup
      * Lookup the current management HTTP connector URL.
      *
      * @param sCluster    the target cluster
-     * @param socketAddr  Unicast socket address of the coherence cluster node
+     * @param socketAddr  unicast socket address of a coherence cluster node  and cluster port
      *
      * @return a collection of URLs which can be used to access an HTTP management service
      *
@@ -134,7 +136,7 @@ public class NSLookup
     /**
      * Lookup the current metrics HTTP connector URLs for current cluster.
      *
-     * @param socketAddr  Unicast socket address of the coherence cluster node
+     * @param socketAddr  unicast socket address of a coherence cluster node and cluster port
      *
      * @return a collection of URLs which can be used to access a HTTP metrics endpoints
      *
@@ -152,7 +154,7 @@ public class NSLookup
      * Lookup the current metrics HTTP connector URLs for a specified cluster.
      *
      * @param sCluster    the target cluster
-     * @param socketAddr  Unicast socket address of the coherence cluster node
+     * @param socketAddr  unicast socket address of a coherence cluster node  and cluster port
      *
      * @return a collection of URLs which can be used to access a HTTP metrics endpoint
      *
@@ -169,7 +171,7 @@ public class NSLookup
     /**
      * Lookup the current health check HTTP connector URLs for current cluster.
      *
-     * @param socketAddr  Unicast socket address of the coherence cluster node
+     * @param socketAddr  unicast socket address of a coherence cluster node and cluster port
      *
      * @return a collection of URLs which can be used to access a HTTP health check endpoints
      *
@@ -187,7 +189,7 @@ public class NSLookup
      * Lookup the current health check HTTP connector URLs for a specified cluster.
      *
      * @param sCluster    the target cluster
-     * @param socketAddr  Unicast socket address of the coherence cluster node
+     * @param socketAddr  unicast socket address of a coherence cluster node and cluster port
      *
      * @return a collection of URLs which can be used to access a HTTP health check endpoint
      *
@@ -201,12 +203,35 @@ public class NSLookup
         return lookupURL(sCluster, socketAddr, NS_STRING_PREFIX + HTTP_HEALTH_URL);
         }
 
+    /**
+     * Lookup the Grpc Proxy service socket address(es)
+     *
+     * @param socketAddr  unicast socket address of a coherence cluster node and cluster port
+     *
+     * @return a collection of {@link SocketAddress} which can be used to access a proxy endpoints in the target cluster
+     *
+     * @throws IOException  if an I/O error occurs while doing the URL lookup
+     *
+     * @since 22.06.2
+     */
     public static Collection<SocketAddress> lookupGrpcProxy(SocketAddress socketAddr)
             throws IOException
         {
         return lookupGrpcProxy(null, socketAddr);
         }
 
+    /**
+     * Lookup the Grpc Proxy socket address(es) for a specified cluster.
+     *
+     * @param sCluster    the target cluster name
+     * @param socketAddr  unicast socket address of a coherence cluster node and cluster port
+     *
+     * @return a collection of {@link SocketAddress} which can be used to access grpc proxy endpoints in the target cluster
+     *
+     * @throws IOException  if an I/O error occurs while doing the URL lookup
+     *
+     * @since 22.06.2
+     */
     public static Collection<SocketAddress> lookupGrpcProxy(String sCluster, SocketAddress socketAddr)
             throws IOException
         {
@@ -228,6 +253,75 @@ public class NSLookup
         return list;
         }
 
+    /**
+     * Lookup the extend proxy service {@link SocketAddress SocketAddress(es)} for current cluster.
+     *
+     * @param socketAddr  unicast socket address of a coherence cluster node and cluster port
+     * @param sName       proxy service name, must be fully scoped service name when application scoping is enabled
+     *
+     * @return a collection of socket address(es) which can be used to access extend client proxy's endpoint(s)
+     *
+     * @throws IOException  if an I/O error occurs while doing the extend client proxy service lookup
+     *
+     * @since 24.09
+     */
+    public static Collection<SocketAddress> lookupExtendProxy(SocketAddress socketAddr, String sName)
+            throws IOException
+        {
+        return lookupExtendProxy(null, socketAddr, sName);
+        }
+
+    /**
+     * Lookup the extend proxy service {@link SocketAddress SocketAddress(es)} for specified cluster.
+     *
+     * @param sCluster    the target cluster name
+     * @param socketAddr  unicast socket address of a coherence cluster node and cluster port
+     * @param sName       proxy service name, must be fully scoped service name when application scoping is enabled
+     *
+     * @return a collection of socket addresses which can be used to access extend proxy endpoints in the target cluster
+     *
+     * @throws IOException  if an I/O error occurs while doing the extend client proxy service lookup
+     *
+     * @since 24.09
+     */
+    public static Collection<SocketAddress> lookupExtendProxy(String sCluster, SocketAddress socketAddr, String sName)
+            throws IOException
+        {
+        List<SocketAddress> list    = new ArrayList<>();
+        String              sResult = lookup(sCluster, NS_STRING_PREFIX + sName, socketAddr, DEFAULT_TIMEOUT);
+
+        // do not use streams as this class needs to be buildable on Java 7
+        // format is "[URL1, URL2, URL3, ...]"
+        String [] asResult  = sResult == null ? null : sResult.split("[\\[,\\] ]+");
+        if (asResult != null)
+            {
+            for (int i = 1; i < asResult.length; i += 2)
+                {
+                list.add(new InetSocketAddress(asResult[i], Integer.parseUnsignedInt(asResult[i+1])));
+                }
+            }
+        return list;
+        }
+
+    /**
+     * Return a collection of URLs for the specified named endpoint, <code>sName</code>, for target cluster.
+     * <p>
+     * <b><code>sName</code> suffix options:</b>
+     * <ul>
+     *      <li> {@link #JMX_CONNECTOR_URL   "management/JMXServiceURL"}
+     *      <li> {@link #HTTP_MANAGEMENT_URL "management/HTTPManagementURL"}
+     *      <li> {@link #HTTP_METRICS_URL    "metrics/HTTPMetricsURL"}
+     *      <li> {@link #HTTP_HEALTH_URL     "health/HTTPHealthURL"}
+     * </ul>
+
+     * @param sCluster    target cluster
+     * @param socketAddr  unicast socket address of a coherence cluster node and cluster port
+     * @param sName       {@link #NS_STRING_PREFIX } and one of the <code>sName</code> suffix options listed above
+     *
+     * @return a collection of URLs for the named endpoint
+     *
+     * @throws IOException  if an I/O error occurs while doing the endpoint lookup
+     */
     private static Collection<URL> lookupURL(String sCluster, SocketAddress socketAddr, String sName)
             throws IOException
         {
@@ -252,143 +346,19 @@ public class NSLookup
         return colUrl;
         }
 
-    public static class Connection
-        implements Closeable
-        {
-        protected Connection(SocketAddress socketAddr, int cTimeOutMillis)
-                throws IOException
-            {
-            socket = new Socket();
-            socket.setTcpNoDelay(true);
-            socket.setSoTimeout(cTimeOutMillis);
-            socket.connect(socketAddr, cTimeOutMillis);
-
-            outStream = new DataOutputStream(
-                    new BufferedOutputStream(socket.getOutputStream()));
-
-            inStream = new DataInputStream(
-                    new BufferedInputStream(socket.getInputStream()));
-
-            // connect to NameService sub-port
-            outStream.writeInt(MULTIPLEXED_SOCKET);
-            outStream.writeInt(NAMESERVICE_SUBPORT);
-            write(outStream, CONN_OPEN);    // write open connection request
-            write(outStream, CHANNEL_OPEN); // write open channel request
-            outStream.flush();              // send open requests
-
-            read(inStream);                        // wait for and skip over response to connect request
-            byte[] aChanResponse = read(inStream); // wait for open channel response
-
-            // extract the channel id from the response, this appears to start at offset 8, but not including
-            // the last byte, the chan id is variable length, so we can't just walk back from the tail.
-            // the header is also technically variable length as it contains packed ints, but unlike the channel id they
-            // are constants and thus appear to be non-variable for this specific request.  This is only true
-            // because we limit ourselves to a single request per connection.
-            // TODO: properly parse the header
-            int cbChanId = aChanResponse.length - 9;
-            abChan = Arrays.copyOfRange(aChanResponse, 8, 8 + cbChanId);
-            }
-
-        public static Connection open(String sCluster, SocketAddress socketAddr, int cTimeOutMillis)
-                throws IOException
-            {
-            Connection connection = null;
-            do
-                {
-                connection = new Connection(socketAddr, cTimeOutMillis);
-                if (sCluster != null && !sCluster.equals(connection.lookup("Cluster/name")))
-                    {
-                    String sPort = connection.lookup(NS_STRING_PREFIX + "Cluster/foreign/" + sCluster + "/NameService/localPort");
-                    connection.close();
-                    connection = null;
-                    if (sPort == null)
-                        {
-                        throw new IOException(sCluster == null
-                                ? "no cluster could be located"
-                                : "cluster '" + sCluster + "' could not be located");
-                        }
-
-                    socketAddr = new InetSocketAddress(((InetSocketAddress) socketAddr).getAddress(), Integer.valueOf(sPort));
-                    }
-                }
-            while (connection == null);
-
-            return connection;
-            }
-
-        public String lookup(String sName)
-                throws IOException
-            {
-            DataInputStream stream = lookupRaw(sName);
-            return stream == null ? null : readString(stream);
-            }
-
-        public DataInputStream lookupRaw(String sName)
-                throws IOException
-            {
-            // build the lookup request.
-            ByteArrayOutputStream baos      = new ByteArrayOutputStream();
-            DataOutputStream      reqStream = new DataOutputStream(baos);
-
-            reqStream.write(abChan);
-
-            // write request id
-            reqStream.write(NS_LOOKUP_REQ_ID, 0, NS_LOOKUP_REQ_ID.length);
-
-            byte[] abName = sName.getBytes("utf-8");
-
-            // write length of the lookup string
-            writePackedInt(reqStream, abName.length);
-
-            // write lookup string
-            reqStream.write(abName, 0, abName.length);
-
-            // write terminating byte
-            reqStream.write(REQ_END_MARKER);
-            reqStream.flush();
-
-            // write lookup request
-            write(outStream, baos.toByteArray());
-            outStream.flush(); // send request
-
-            // wait for the request response
-            byte[] aResponse = read(inStream);
-            int    nLen      = aResponse.length;
-            int    nMinLen   = abChan.length + 1;
-
-            if (nLen <= nMinLen)
-                {
-                throw new EOFException("protocol error");
-                }
-            else if (nLen == nMinLen + 7)
-                {
-                // just has the terminating byte
-                return null;
-                }
-
-            // strip channel id and request id from the response
-            return new DataInputStream(
-                    new ByteArrayInputStream(aResponse, nMinLen, nLen - nMinLen - 1));
-            }
-
-        public void close()
-                throws IOException
-            {
-            socket.close();
-            }
-
-        final Socket socket;
-        final DataOutputStream outStream;
-        final DataInputStream  inStream;
-        final byte[] abChan;
-        }
-
     /**
      * Lookup the given name from the NameService. The object bound to the NameService
      * should be a String.
+     * <p>
+     * The <code>sName</code> parameter string consists of {@link #NS_STRING_PREFIX "NameService/string/"} followed by
+     * one of the following:
+     * <ul>
+     *   <li>service name when application scoping is not enabled
+     *   <li>a fully scoped service name, i.e {@code application-scope-name:proxy-service-name}
+     * </ul>
      *
-     * @param sName           Name to lookup
-     * @param socketAddr      Unicast socket address of the coherence cluster node
+     * @param sName           name service name, syntax provided above
+     * @param socketAddr      unicast socket address of a coherence cluster node and the cluster port
      * @param cTimeOutMillis  timeout in millis
      *
      * @return String bound to the NameService with the given name
@@ -407,9 +377,17 @@ public class NSLookup
     /**
      * Lookup the given name from the NameService. The object bound to the NameService
      * should be a String.
+     * <p>
+     * The <code>sName</code> parameter string consists of {@link #NS_STRING_PREFIX "NameService/string/"} followed by
+     * one of the following:
+     * <ul>
+     *   <li>service name when application scoping is not enabled
+     *   <li>a fully scoped service name, i.e application-scope-name:proxy-service-name
+     * </ul>
      *
-     * @param sName           Name to lookup
-     * @param socketAddr      Unicast socket address of the coherence cluster node
+     * @param sCluster        target cluster name
+     * @param sName           name service name, syntax provided above
+     * @param socketAddr      unicast socket address of a coherence cluster node and cluster port
      * @param cTimeOutMillis  timeout in millis
      *
      * @return String bound to the NameService with the given name
@@ -433,7 +411,7 @@ public class NSLookup
      *
      * @throws IOException if an I/O error occurs while writing to the socket stream
      */
-    private static void write(DataOutputStream outStream, byte[] ab)
+    protected static void write(DataOutputStream outStream, byte[] ab)
             throws IOException
         {
         int cb = ab.length;
@@ -480,7 +458,7 @@ public class NSLookup
      *
      * @throws IOException if an I/O error occurs while writing to the socket stream
      */
-    private static void writePackedInt(DataOutputStream outStream, int n)
+    protected static void writePackedInt(DataOutputStream outStream, int n)
             throws IOException
         {
         // first byte contains sign bit (bit 7 set if neg)
@@ -584,9 +562,9 @@ public class NSLookup
      * When java starts an application the arguments in the command line
      * are placed into a string array by breaking at spaces.
      * The purpose of this method is to place the command line
-     * into a LinkedHashMap where each <command> would represent
-     * an entry in this map with values equal to <cmd-value> (null if not
-     * present) and each <argument> represented with an entry that has
+     * into a LinkedHashMap where each {@code <command>} would represent
+     * an entry in this map with values equal to {@code <cmd-value>} (null if not
+     * present) and each {@code <argument>} represented with an entry that has
      * the key equal to an Integer object holding on the 0-based argument number
      * and the value equal to the argument itself.
      *
@@ -1173,63 +1151,6 @@ public class NSLookup
      */
     public static final String DEFAULT_NAME = "Cluster/info";
 
-    /**
-     * Multiplexed Socket ID. See com.oracle.coherence.common.internal.net.ProtocolIdentifiers.
-     */
-    private static final int MULTIPLEXED_SOCKET = 0x05AC1E000;
-
-    /**
-     * NameService Sub port. See com.oracle.coherence.common.internal.net.MultiplexedSocketProvider.WellKnownSubPorts.
-     */
-    private static final int NAMESERVICE_SUBPORT = 3;
-
-    /**
-     * End of request marker. This marks the end of complex value. See WritingPofHandler.endComplexValue
-     */
-    private static final byte REQ_END_MARKER = 64; // This is -1 in packed int format.
-
-    /**
-     * byte[] for open connection request. Sniffed from
-     * Component.Util.Daemon.QueueProcessor.Service.Peer.Initiator.TcpInitiator$TcpConnection.send(WriteBuffer).
-     */
-    private static final byte[] CONN_OPEN = new byte[]
-        {
-        0, 1, 2, 0, 66, 0, 1, 14, 0, 0, 66, -90, -74, -97, -34, -78, 81,
-        1, 65, -29, -13, -28, -35, 15, 2, 65, -113, -10, -70, -103, 1, 3,
-        65, -8, -76, -27, -14, 4, 4, 65, -60, -2, -36, -11, 5, 5, 65, -41,
-        -50, -61, -115, 7, 6, 65, -37, -119, -36, -43, 10, 64, 2, 110, 3,
-        93, 78, 87, 2, 17, 77, 101, 115, 115, 97, 103, 105, 110, 103, 80,
-        114, 111, 116, 111, 99, 111, 108, 2, 65, 2, 65, 2, 19, 78, 97, 109,
-        101, 83, 101, 114, 118, 105, 99, 101, 80, 114, 111, 116, 111, 99,
-        111, 108, 2, 65, 1, 65, 1, 5, -96, 2, 0, 0, 14, 0, 0, 66, -82, -119,
-        -98, -34, -78, 81, 1, 65, -127, -128, -128, -16, 15, 5, 65, -104, -97,
-        -127, -128, 8, 6, 65, -109, -98, 1, 64, 1, 106, 2, 110, 3, 106, 4, 113,
-        5, 113, 6, 78, 8, 67, 108, 117, 115, 116, 101, 114, 66, 9, 78, 9, 108,
-        111, 99, 97, 108, 104, 111, 115, 116, 10, 78, 5, 50, 48, 50, 51, 51, 12,
-        78, 16, 67, 111, 104, 101, 114, 101, 110, 99, 101, 67, 111, 110, 115,
-        111, 108, 101, 64, 64
-        };
-
-    /**
-     * byte[] for open channel request. Sniffed from
-     * Component.Util.Daemon.QueueProcessor.Service.Peer.Initiator.TcpInitiator$TcpConnection.send(WriteBuffer).
-     */
-    private static final byte[] CHANNEL_OPEN = new byte[]
-        {
-        0, 11, 2, 0, 66, 1, 1, 78, 19, 78, 97, 109, 101, 83, 101, 114, 118,
-        105, 99, 101, 80, 114, 111, 116, 111, 99, 111, 108, 2, 78, 11, 78,
-        97, 109, 101, 83, 101, 114, 118, 105, 99, 101, 64
-        };
-
-    /**
-     * byte[] for lookup request id. Sniffed from
-     * Component.Util.Daemon.QueueProcessor.Service.Peer.Initiator.TcpInitiator$TcpConnection.send(WriteBuffer).
-     */
-    private static final byte[] NS_LOOKUP_REQ_ID = new byte[]
-        {
-        1, 1, 0, 66, 0, 1, 78
-        };
-    
     // ----- inner classes -------------------------------------------
 
     /**

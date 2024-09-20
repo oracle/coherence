@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -50,6 +50,9 @@ public class ClusterResource
         router.addGet(sPathRoot + "/" + PLATFORM + "/{" + PLATFORM_MBEAN + "}", this::getPlatformResponse);
         router.addGet(sPathRoot + "/" + METADATA_CATALOG, this::getMetadataCatalog)
                 .produces(MEDIA_TYPE_JSON, MEDIA_TYPE_SWAGGER_JSON);
+        router.addGet(sPathRoot + "/" + GET_CLUSTER_CONFIG, this::getClusterConfig)
+                .produces(MEDIA_TYPE_XML);
+        router.addGet(sPathRoot + "/" + DESCRIPTION, this::getClusterDescription);
 
         router.addPost(sPathRoot, this::updateNodes);
         router.addPost(sPathRoot + "/" + SHUTDOWN, this::shutdownCluster);
@@ -70,7 +73,9 @@ public class ClusterResource
         router.addRoutes(sPathRoot + "/" + MEMBERS, new ClusterMembersResource());
         router.addRoutes(sPathRoot + "/" + REPORTERS, new ReportersResource());
         router.addRoutes(sPathRoot + "/" + SERVICES, new ServicesResource());
+        router.addRoutes(sPathRoot + "/" + STORAGE, new StorageManagersResource());
         router.addRoutes(sPathRoot + "/" + TOPICS, new TopicsResource());
+        router.addRoutes(sPathRoot + "/" + VIEWS, new ViewsResource());
         }
 
     // ----- GET API --------------------------------------------------------
@@ -169,6 +174,18 @@ public class ClusterResource
         addAggregatedMetricsToResponseMap(request, sRoleName, sCollector, queryBuilder, responseMap);
 
         return response(responseMap);
+        }
+
+    /**
+     * Return the cluster description.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response getClusterDescription(HttpRequest request)
+        {
+        return response(getResponseFromMBeanOperation(request, getQuery(request), DESCRIPTION, "getClusterDescription"));
         }
 
     // ----- POST API (Operations) ------------------------------------------
@@ -351,6 +368,23 @@ public class ClusterResource
     // ----- ClusterResource methods ----------------------------------------
 
     /**
+     * Get Coherence Cluster Configuration
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     *
+     * @since 14.1.2.0
+     */
+    public Response getClusterConfig(HttpRequest request)
+        {
+        return executeMBeanOperation(request, getQuery(request),
+                                     GET_CLUSTER_CONFIG,
+                                     null,
+                                     null);
+        }
+
+    /**
      * The response for a Coherence ClusterMBean.
      *
      * @param request       the {@link HttpRequest}
@@ -504,6 +538,15 @@ public class ClusterResource
      */
     public static final String CONFIGURE_TRACING = "configureTracing";
 
+    // ----- GET API (Operations) constants --------------------------------
+
+    /**
+     * The name of operation to get Coherence cluster configuration
+     *
+     *  @since 14.1.2.0
+     */
+    public static final String GET_CLUSTER_CONFIG = "getClusterConfig";
+
     // ----- constants ------------------------------------------------------
 
     public static final String ROLE = "role";
@@ -515,5 +558,5 @@ public class ClusterResource
      */
     public static final String TRACING_RATIO = "tracingRatio";
 
-    public static final String[] CHILD_LINKS = {SERVICES, CACHES, MEMBERS, MANAGEMENT, JOURNAL, HOTCACHE, REPORTERS, WEB_APPS, EXECUTORS, TOPICS};
+    public static final String[] CHILD_LINKS = {SERVICES, CACHES, MEMBERS, MANAGEMENT, JOURNAL, HOTCACHE, REPORTERS, WEB_APPS, EXECUTORS, TOPICS, STORAGE, VIEWS};
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -51,28 +51,28 @@ public interface HealthCheck
         }
 
     /**
-     * Returns {@link true} if the resource represented by
+     * Returns {@code true} if the resource represented by
      * this {@link HealthCheck} is ready, otherwise returns
      * {@code false}.
      * <p>
      * The concept of what "ready" means may vary for different
      * types of resources.
      *
-     * @return {@link true} if the resource represented by this
+     * @return {@code true} if the resource represented by this
      *         {@link HealthCheck} is ready, otherwise {@code false}
      */
     @Description("Indicates if the resource represented by this health check is ready.")
     boolean isReady();
 
     /**
-     * Returns {@link true} if the resource represented by
+     * Returns {@code true} if the resource represented by
      * this {@link HealthCheck} is alive, otherwise returns
      * {@code false}.
      * <p>
      * The concept of what "alive" means may vary for different
      * types of resources.
      *
-     * @return {@link true} if the resource represented by this
+     * @return {@code true} if the resource represented by this
      *         {@link HealthCheck} is alive, otherwise returns
      *         {@code false}
      */
@@ -80,14 +80,14 @@ public interface HealthCheck
     boolean isLive();
 
     /**
-     * Returns {@link true} if the resource represented by
+     * Returns {@code true} if the resource represented by
      * this {@link HealthCheck} is started, otherwise returns
      * {@code false}.
      * <p>
      * The concept of what "started" means may vary for different
      * types of resources.
      *
-     * @return {@link true} if the resource represented by this
+     * @return {@code true} if the resource represented by this
      *         {@link HealthCheck} is started, otherwise returns
      *         {@code false}
      */
@@ -95,14 +95,14 @@ public interface HealthCheck
     boolean isStarted();
 
     /**
-     * Returns {@link true} if the resource represented by this
+     * Returns {@code true} if the resource represented by this
      * {@link HealthCheck} is in a safe state to allow a rolling
      * upgrade to proceed, otherwise returns {@code false}.
      * <p>
      * The concept of what "safe" means may vary for different
      * types of resources.
      *
-     * @return {@link true} if the resource represented by this
+     * @return {@code true} if the resource represented by this
      *         {@link HealthCheck} is in a safe state to allow
      *         a rolling upgrade to proceed, otherwise returns
      *         {@code false}

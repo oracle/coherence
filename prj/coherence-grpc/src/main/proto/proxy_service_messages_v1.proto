@@ -1,0 +1,94 @@
+/*
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+syntax = "proto3";
+
+package coherence.proxy.v1;
+
+import "common_messages_v1.proto";
+import "google/protobuf/any.proto";
+
+option java_multiple_files = true;
+option java_package = "com.oracle.coherence.grpc.messages.proxy.v1";
+
+// -----------------------------------------------------------------
+// Messages used by the Coherence gRPC Proxy Service.
+// -----------------------------------------------------------------
+
+// A request to the Coherence gRPC proxy.
+// Except for a Heartbeat, every request must have a unique id field.
+message ProxyRequest {
+    int64 id = 1;
+    oneof request {
+        // The initialization request, which must be the first request sent.
+        InitRequest init = 3;
+        // A message that is specific to a Coherence gRPC service.
+        // Each service on the proxy will know what type to expect here.
+        google.protobuf.Any message = 4;
+        // A periodic heartbeat message sent by the client
+        coherence.common.v1.HeartbeatMessage heartbeat = 5;
+    }
+}
+
+// A response from a Coherence gRPC proxy.
+// Except for a Heartbeat, every response will contain an id field
+// that corresponds to the id of the request that the response if for.
+message ProxyResponse {
+    // The identifier of the request messages this response is for, or zero if
+    // this message is non-request related, for example it is an event.
+    int64 id = 1;
+    // The actual response message.
+    oneof response {
+        // The response to the initial InitRequest.
+        InitResponse init = 4;
+        // A response of a type specific to a Coherence gRPC service.
+        // The client that sent the corresponding request will know what
+        // type of message it expects in this field.
+        google.protobuf.Any message = 5;
+        // An error response to a specific request id
+        coherence.common.v1.ErrorMessage error = 6;
+        // A complete message is sent to indicate that a stream of messages for
+        // the same request id have been completed.
+        coherence.common.v1.Complete complete = 7;
+        // A periodic heart beat sent by the server
+        coherence.common.v1.HeartbeatMessage heartbeat = 8;
+    }
+}
+
+// Initialize a connection.
+message InitRequest {
+    // The scope name to use to obtain the server resources.
+    string scope = 2;
+    // The serialization format to use.
+    string format = 3;
+    // The protocol to use for the channel
+    string protocol = 4;
+    // The protocol version requested by the client
+    int32 protocolVersion = 5;
+    // The minimum protocol version supported by the client
+    int32 supportedProtocolVersion = 6;
+    // The requested frequency that heartbeat messages should be sent by the server (in millis)
+    optional int64 heartbeat = 7;
+    // The optional client UUID (usually from Coherence clients that have a local Member UUID).
+    optional bytes clientUuid = 8;
+}
+
+// The response to an InitRequest
+message InitResponse {
+    // This client connection's UUID.
+    bytes uuid = 1;
+    // The Coherence version of the proxy
+    string version = 2;
+    // The encoded version of the proxy
+    int32 encodedVersion = 3;
+    // The protocol version the client should use
+    int32 protocolVersion = 4;
+    // The proxy member Id
+    int32 proxyMemberId = 5;
+    // The proxy member UUID
+    bytes proxyMemberUuid = 6;
+}

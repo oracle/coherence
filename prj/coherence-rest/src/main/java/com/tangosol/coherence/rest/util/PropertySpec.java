@@ -1,14 +1,12 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.util;
 
 import com.tangosol.coherence.dslquery.UniversalExtractorBuilder;
-
-import com.tangosol.coherence.rest.util.extractor.MvelExtractor;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -249,9 +247,7 @@ public class PropertySpec
         ValueExtractor extractor = m_extractor;
         if (extractor == null)
             {
-            m_extractor = extractor = MvelHelper.isEnabled()
-                                          ? new MvelExtractor(m_sName)
-                                          : new UniversalExtractorBuilder().realize("", VALUE, m_sName);
+            m_extractor = extractor = new UniversalExtractorBuilder().realize("", VALUE, m_sName);
             }
         return extractor;
         }

@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,61 +10,83 @@
 
 package com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache;
 
+import com.tangosol.coherence.Component;
 import com.tangosol.coherence.component.net.Cluster;
 import com.tangosol.coherence.component.net.Member;
 import com.tangosol.coherence.component.net.MemberSet;
-import com.tangosol.coherence.component.net.Message;
-import com.tangosol.coherence.component.net.Poll;
 import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.TimeHelper;
 import com.oracle.coherence.common.base.Timeout;
+import com.tangosol.coherence.component.net.Message;
+import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
+import com.tangosol.coherence.component.net.memberSet.actualMemberSet.serviceMemberSet.MasterMemberSet;
+import com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.PartialRequest;
+import com.tangosol.internal.net.topic.ChannelAllocationStrategy;
 import com.tangosol.internal.net.topic.SimpleChannelAllocationStrategy;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicConfigMap;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
+import com.tangosol.internal.net.topic.impl.paged.agent.CloseSubscriptionProcessor;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
+import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
+import com.tangosol.internal.net.topic.impl.paged.model.Usage;
+import com.tangosol.internal.util.Daemons;
+import com.tangosol.io.ReadBuffer;
+import com.tangosol.io.WriteBuffer;
 import com.tangosol.net.CacheService;
+import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.RequestPolicyException;
 import com.tangosol.net.RequestTimeoutException;
 import com.tangosol.net.ServiceDependencies;
 import com.tangosol.net.cache.LocalCache;
+import com.tangosol.net.events.EventInterceptor;
+import com.tangosol.net.events.internal.ServiceDispatcher;
+import com.tangosol.net.events.partition.TransferEvent;
 import com.tangosol.net.internal.ScopedTopicReferenceStore;
 import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.partition.PartitionSet;
 import com.tangosol.net.topic.NamedTopic;
+import com.tangosol.net.topic.Subscriber;
 import com.tangosol.net.topic.TopicException;
 import com.tangosol.run.xml.SimpleElement;
 import com.tangosol.run.xml.XmlElement;
-import com.tangosol.run.xml.XmlHelper;
+import com.tangosol.run.xml.XmlValue;
+import com.tangosol.util.BinaryEntry;
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
+import com.tangosol.util.ListMap;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.TaskDaemon;
+import com.tangosol.util.UUID;
 import com.tangosol.util.ValueExtractor;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.SortedMap;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * See PartitionedCacheService.doc in the main depot
  * (//dev/main/doc/coherence-core).
- * 
+ * <p/>
  * The message range from [51, 100] is reserved for usage by the
  * PartitionedCache component.
- * 
+ * <p/>
  * Currently used MessageTypes:
  * 51    AggregateAllRequest
  * 52    AggregateFilterRequest
@@ -102,6 +124,10 @@ import java.util.concurrent.locks.ReentrantLock;
  * 84    UpdateIndexRequest
  * 85    KeyListenerAllRequest
  * 86    BackupListenerAllRequest
+ * 1000  SetChannelCountRequest
+ * 1001  SubscriberIdRequest
+ * 1002  SubscriberConfirmRequest
+ * 1003  ChannelCountConfirmRequest
  */
 @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
 public class PagedTopic
@@ -169,8 +195,70 @@ public class PagedTopic
      *
      */
     private java.util.concurrent.locks.ReentrantLock __m_TopicStoreLock;
+
+    /**
+     * The list of subscription listeners.
+     */
+    private final Set<PagedTopicSubscription.Listener> __m_subscriptionListener = new HashSet<>();
+
     private static com.tangosol.util.ListMap __mapChildren;
-    
+
+    /**
+     * Topic API version zero
+     * 14.1.1.2206.2 and below
+     * 22.09.*
+     */
+    public static final int TOPIC_API_v0 = 0;
+
+    /**
+     * Topic API version one
+     * 14.1.1.2206.3 - 14.1.1.2206.5
+     * 23.03.0 - 22.03.1
+     */
+    public static final int TOPIC_API_v1 = 1;
+
+    /**
+     * Topic API version two
+     * 14.1.1.2206.6 -> and above
+     * 23.03.2 and above
+     */
+    public static final int TOPIC_API_v2 = 2;
+
+    /**
+     * The encoded 22.06.3 version
+     */
+    private static final int VERSION_22_06_3 = MasterMemberSet.encodeVersion(22, 6, 3);
+
+    /**
+     * The encoded 22.06.4 version
+     */
+    private static final int VERSION_22_06_4 = MasterMemberSet.encodeVersion(22, 6, 4);
+
+    /**
+     * The encoded 22.06.5 version
+     */
+    private static final int VERSION_22_06_5 = MasterMemberSet.encodeVersion(22, 6, 5);
+
+    /**
+     * The encoded 22.09.0 version
+     */
+    private static final int VERSION_22_09_0 = MasterMemberSet.encodeVersion(22, 9, 0);
+
+    /**
+     * The encoded 23.03.0 version
+     */
+    private static final int VERSION_23_03_0 = MasterMemberSet.encodeVersion(23, 3, 0);
+
+    /**
+     * The encoded 23.03.1 version
+     */
+    private static final int VERSION_23_03_1 = MasterMemberSet.encodeVersion(23, 3, 1);
+
+    /**
+     * The encoded 22.09.2 version
+     */
+    private static final int VERSION_23_03_2 = MasterMemberSet.encodeVersion(23, 3, 2);
+
     // Static initializer
     static
         {
@@ -183,7 +271,7 @@ public class PagedTopic
         // register child classes
         __mapChildren = new com.tangosol.util.ListMap();
         __mapChildren.put("Acknowledgement", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.Acknowledgement.get_CLASS());
-        __mapChildren.put("AggregateAllRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.AggregateAllRequest.get_CLASS());
+        __mapChildren.put("AggregateAllRequest", AggregateAllRequest.get_CLASS());
         __mapChildren.put("AggregateFilterRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.AggregateFilterRequest.get_CLASS());
         __mapChildren.put("BackingMapContext", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BackingMapContext.get_CLASS());
         __mapChildren.put("BackupAllRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BackupAllRequest.get_CLASS());
@@ -197,6 +285,7 @@ public class PagedTopic
         __mapChildren.put("BinaryMap", PagedTopic.BinaryMap.get_CLASS());
         __mapChildren.put("BusEventMessage", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.BusEventMessage.get_CLASS());
         __mapChildren.put("CentralDistribution", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.CentralDistribution.get_CLASS());
+        __mapChildren.put("ChannelCountConfirmRequest", PagedTopic.ChannelCountConfirmRequest.get_CLASS());
         __mapChildren.put("ClearRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.ClearRequest.get_CLASS());
         __mapChildren.put("ConfigRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.ConfigRequest.get_CLASS());
         __mapChildren.put("ConfigResponse", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.ConfigResponse.get_CLASS());
@@ -267,7 +356,9 @@ public class PagedTopic
         __mapChildren.put("PutAllRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.PutAllRequest.get_CLASS());
         __mapChildren.put("PutRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.PutRequest.get_CLASS());
         __mapChildren.put("QueryRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.QueryRequest.get_CLASS());
+        __mapChildren.put("PartitionedQueryRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.PartitionedQueryRequest.get_CLASS());
         __mapChildren.put("QueryResponse", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.QueryResponse.get_CLASS());
+        __mapChildren.put("PartitionedQueryResponse", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.PartitionedQueryResponse.get_CLASS());
         __mapChildren.put("RemoveAllRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.RemoveAllRequest.get_CLASS());
         __mapChildren.put("RemoveRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.RemoveRequest.get_CLASS());
         __mapChildren.put("Response", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.Response.get_CLASS());
@@ -278,8 +369,8 @@ public class PagedTopic
         __mapChildren.put("SnapshotArchiveRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.SnapshotArchiveRequest.get_CLASS());
         __mapChildren.put("SnapshotListRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.SnapshotListRequest.get_CLASS());
         __mapChildren.put("SnapshotRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.SnapshotRequest.get_CLASS());
-        __mapChildren.put("Storage", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage.get_CLASS());
-        __mapChildren.put("StorageConfirmRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.StorageConfirmRequest.get_CLASS());
+        __mapChildren.put("Storage", Storage.get_CLASS());
+        __mapChildren.put("StorageConfirmRequest", StorageConfirmRequest.get_CLASS());
         __mapChildren.put("StorageIdRequest", PagedTopic.StorageIdRequest.get_CLASS());
         __mapChildren.put("SubscriberConfirmRequest", PagedTopic.SubscriberConfirmRequest.get_CLASS());
         __mapChildren.put("SubscriberIdRequest", PagedTopic.SubscriberIdRequest.get_CLASS());
@@ -287,7 +378,7 @@ public class PagedTopic
         __mapChildren.put("TransferResponse", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.TransferResponse.get_CLASS());
         __mapChildren.put("UnlockRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.UnlockRequest.get_CLASS());
         __mapChildren.put("UpdateIndexRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.UpdateIndexRequest.get_CLASS());
-        __mapChildren.put("ViewMap", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.ViewMap.get_CLASS());
+        __mapChildren.put("ViewMap", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.ViewMap.get_CLASS());
         __mapChildren.put("WrapperGuardable", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.WrapperGuardable.get_CLASS());
         }
     
@@ -340,7 +431,7 @@ public class PagedTopic
             setPartitionListeners(new com.tangosol.util.Listeners());
             setPendingIndexUpdate(new java.util.concurrent.ConcurrentLinkedQueue());
             setProcessedEvents(new com.tangosol.util.SparseArray());
-            setReferencesBinaryMap(new com.tangosol.util.SafeHashMap());
+            setReferencesBinaryMap(new ConcurrentHashMap());
             setResourceRegistry(new com.tangosol.util.SimpleResourceRegistry());
             setScopedCacheStore(new com.tangosol.net.internal.ScopedCacheReferenceStore());
             setScopedTopicStore(new com.tangosol.net.internal.ScopedTopicReferenceStore());
@@ -467,24 +558,30 @@ public class PagedTopic
     
     protected boolean confirmSubscriber(String sTopicName, long lSubscription, com.tangosol.internal.net.topic.impl.paged.model.SubscriberId subscriberId)
         {
-        // import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches$Names as com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names;
-        // import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
-        // import java.util.Map;
-        
         boolean fConfirmed = false;
         
         if (lSubscription != 0)
             {
-            String     sCacheName    = com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names.SUBSCRIPTIONS.cacheNameForTopicName(sTopicName);
-            Map        mapRefsBinary = getReferencesBinaryMap();
+            String               sCacheName    = com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names.SUBSCRIPTIONS.cacheNameForTopicName(sTopicName);
+            Map                  mapRefsBinary = getReferencesBinaryMap();
             PagedTopic.BinaryMap mapBinary     = (PagedTopic.BinaryMap) mapRefsBinary.get(sCacheName);
-        
+
             fConfirmed = mapBinary != null && mapBinary.confirmSubscriber(lSubscription, subscriberId);
             }
         
         return fConfirmed;
         }
-    
+
+    protected boolean confirmChannelCount(String sTopicName, int cChannel)
+        {
+        boolean              fConfirmed    = false;
+        String               sCacheName    = PagedTopicCaches.Names.PAGES.cacheNameForTopicName(sTopicName);
+        Map                  mapRefsBinary = getReferencesBinaryMap();
+        PagedTopic.BinaryMap mapBinary     = (PagedTopic.BinaryMap) mapRefsBinary.get(sCacheName);
+
+        return mapBinary != null && mapBinary.confirmChannelCount(sTopicName, cChannel);
+        }
+
     // Declared at the super level
     /**
      * Return an XmlElement that holds cache info; specifically the cache name
@@ -547,7 +644,7 @@ public class PagedTopic
         if (id == null || id instanceof SubscriberId)
             {
             com.tangosol.coherence.component.net.Member memberCoordinator = getServiceOldestMember();
-            if (isVersionCompatible(memberCoordinator, 22, 6, 4))
+            if (isTopicsApiVersionCompatible(memberCoordinator, TOPIC_API_v1))
                 {
                 SubscriberId subscriberId = (SubscriberId) id;
         
@@ -557,7 +654,7 @@ public class PagedTopic
                 msg.addToMember(getServiceOldestMember());
                 msg.setSubscriptionId(lSubscriptionId);
                 msg.setSubscriberAction(PagedTopic.SubscriberIdRequest.SUBSCRIBER_DESTROY);
-        
+
                 if (subscriberId == null)
                     {
                     msg.setSubscriberIds(new SubscriberId[0]);
@@ -603,7 +700,18 @@ public class PagedTopic
                     aSubscription.remove(lSubscriptionId);
                     return true;
                     }
-                
+
+                for (PagedTopicSubscription.Listener listener : __m_subscriptionListener)
+                    {
+                    try
+                        {
+                        listener.onDelete(subscription);
+                        }
+                    catch (Throwable e)
+                        {
+                        Logger.err(e);
+                        }
+                    }
                 }
             finally
                 {
@@ -633,61 +741,54 @@ public class PagedTopic
         }
     
     // From interface: com.tangosol.net.PagedTopicService
+    @Override
     public int ensureChannelCount(String sTopic, int cChannel)
         {
         return ensureChannelCount(sTopic, cChannel, cChannel);
         }
     
     // From interface: com.tangosol.net.PagedTopicService
+    @Override
     public int ensureChannelCount(String sTopic, int cRequired, int cChannel)
         {
-        // import com.oracle.coherence.common.base.Blocking;
-        // import com.oracle.coherence.common.base.Exceptions;
-        // import com.oracle.coherence.common.base.TimeHelper;
-        // import com.oracle.coherence.common.base.Timeout;
-        // import com.tangosol.net.RequestTimeoutException;
-        // import com.tangosol.net.ServiceDependencies;
-        // import Component.Net.Member;
-        
         int cActual = getChannelCountFromConfigMap(sTopic);
         if (cActual < cRequired)
             {
             PagedTopic.SetChannelCountRequest msg = (PagedTopic.SetChannelCountRequest) instantiateMessage("SetChannelCountRequest");
             Member member = getServiceOldestMember();
         
-            // senior must be >= 22.06.2 but not 22.09.0
-            if (isVersionCompatible(member, 22, 9, 1)
-                    || (isVersionCompatible(member, 22, 6, 3) && !isVersionCompatible(member, 22, 9, 0)))
+            // senior must be topics API v1 or above
+            if (isTopicsApiVersionCompatible(member, TOPIC_API_v1))
                 {
                 msg.addToMember(getServiceOldestMember());
                 msg.setTopicName(sTopic);
                 msg.setRequiredCount(cRequired);
                 msg.setChannelCount(cChannel);
-        
+
                 send(msg);
-        
+
                 Logger.config("Request for increase of channel count for topic \"" + sTopic + "\" from "
-                    + cActual + " to " + cChannel + " sent to senior member " + member);
-        
+                                      + cActual + " to " + cChannel + " sent to senior member " + member);
+
                 ServiceDependencies deps = getDependencies();
-        
-                long cRequestTimeout = deps == null ? 0l : deps.getRequestTimeoutMillis();
-                long cStart = TimeHelper.getSafeTimeMillis();
-                long cTimeout = Timeout.isSet()
-                        ? Timeout.remainingTimeoutMillis()
-                        : cRequestTimeout;
-        
+
+                long cRequestTimeout = deps == null ? 0L : deps.getRequestTimeoutMillis();
+                long cStart          = TimeHelper.getSafeTimeMillis();
+                long cTimeout        = Timeout.isSet() ? Timeout.remainingTimeoutMillis() : cRequestTimeout;
+
                 if (cTimeout <= 0)
                     {
                     cTimeout = 5L * 60L * 1000L;
                     }
-        
+
+                // Wait for the update to appear in the local configmap
                 cActual = getChannelCountFromConfigMap(sTopic);
                 while (cActual < cRequired)
                     {
                     if (TimeHelper.getSafeTimeMillis() - cStart > cTimeout)
                         {
-                        throw new RequestTimeoutException("Timed out waiting for topic channel count to be set to " + cRequired);
+                        throw new RequestTimeoutException("Timed out waiting for config map update of channel count to be set to "
+                                + cRequired + " for topic " + sTopic + " (actual=" + cActual + ")");
                         }
                     try
                         {
@@ -700,6 +801,32 @@ public class PagedTopic
                         }
                     cActual = getChannelCountFromConfigMap(sTopic);
                     }
+
+                // Get confirmation of the new channel count from all storage members
+                cStart = TimeHelper.getSafeTimeMillis();
+                long nThirtySecs = 30L * 1000L;
+                long nLog        = cStart + nThirtySecs;
+                int cFinalActual = cActual;
+                while (!confirmChannelCount(sTopic, cActual))
+                    {
+                    long nTime = TimeHelper.getSafeTimeMillis() - cStart;
+                    if (nTime > nLog)
+                        {
+                        long cSeconds = nTime / 1000L;
+                        Logger.info(() -> String.format("This member has been waiting %d seconds for the channel count of topic %s to be set to %d across all storage members",
+                                cSeconds, sTopic, cFinalActual));
+                        }
+
+                    try
+                        {
+                        Blocking.sleep(10L);
+                        }
+                    catch (InterruptedException e)
+                        {
+                        Thread.currentThread().interrupt();
+                        throw Exceptions.ensureRuntimeException(e);
+                        }
+                    }
                 }
             else
                 {
@@ -711,28 +838,19 @@ public class PagedTopic
         return cActual;
         }
     
+    @SuppressWarnings("resource")
     public void ensureKnownTopics()
         {
-        // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
-        // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription$Key as com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key;
-        // import java.util.Map;;
-        // import java.util.Map;
-        // import java.util.Iterator;
-        
         Map map = getTopicConfigMap();
         for (Iterator it = map.keySet().iterator(); it.hasNext(); )
             {
             Object oKey = it.next();
-            if (oKey instanceof com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key)
+            if (oKey instanceof PagedTopicSubscription.Key)
                 {
-                ensureSubscription((PagedTopicSubscription) map.get(oKey));
+                PagedTopicSubscription subscription = (PagedTopicSubscription) map.get(oKey);
+                ensureSubscription(subscription);
                 }
             }
-        }
-    
-    protected com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches ensurePagedTopicCaches(String sTopicName)
-        {
-        return null;
         }
     
     // Declared at the super level
@@ -748,47 +866,70 @@ public class PagedTopic
      */
     public void ensureStorageInternal(String sName, long lCacheId, boolean fInit)
         {
-        // import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches$Names as com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names;
-        
         super.ensureStorageInternal(sName, lCacheId, fInit);
         
-        if (com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names.SUBSCRIPTIONS.isA(sName))
+        if (PagedTopicCaches.Names.SUBSCRIPTIONS.isA(sName))
             {
-            // we need to also ensure the BimaryMap for Subscriptions as we
+            // we need to also ensure the BinaryMap for Subscriptions as we
             // need to use if for subscriber confirmation calls later
             ensureBinaryMap(sName, lCacheId);
             }
-        else if (com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names.CONTENT.isA(sName))
+        else if (PagedTopicCaches.Names.USAGE.isA(sName))
             {
-            // we need to also ensure the BimaryMap for Content as we
+            // we need to also ensure the BinaryMap for Usage and ensure the channel index is added
+            BinaryMap binaryMap = (BinaryMap) ensureBinaryMap(sName, lCacheId);
+            }
+        else if (PagedTopicCaches.Names.CONTENT.isA(sName))
+            {
+            // we need to also ensure the BinaryMap for Content as we
             // need to use if for topic confirmation calls later
             ensureBinaryMap(sName, lCacheId);
         
             if (isOwnershipEnabled())
                 {
-                String sTopicName = com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names.getTopicName(sName);
+                String sTopicName = PagedTopicCaches.Names.getTopicName(sName);
                 MBeanHelper.registerPagedTopicMBean(this, sTopicName);
                 }
             }
         }
-    
-    public void ensureSubscription(long lSubscription, com.tangosol.net.topic.Subscriber.Id id)
+
+    @Override
+    public void addSubscriptionListener(PagedTopicSubscription.Listener listener)
         {
+        ReentrantLock lock = getSubscriptionLock();
+        lock.lock();
+        try
+            {
+            __m_subscriptionListener.add(listener);
+            }
+        finally
+            {
+            lock.unlock();
+            }
         }
-    
-    public long ensureSubscription(com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription subscription)
+
+    @Override
+    public void removeSubscriptionListener(PagedTopicSubscription.Listener listener)
         {
-        // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
-        // import com.tangosol.net.management.MBeanHelper;
-        // import com.tangosol.util.LongArray;
-        // import java.util.concurrent.locks.ReentrantLock;;
-        // import java.util.concurrent.locks.ReentrantLock;
-        
+        ReentrantLock lock = getSubscriptionLock();
+        lock.lock();
+        try
+            {
+            __m_subscriptionListener.remove(listener);
+            }
+        finally
+            {
+            lock.unlock();
+            }
+        }
+
+    public long ensureSubscription(PagedTopicSubscription subscription)
+        {
         long lSubscriptionId = subscription.getSubscriptionId();
         _assert(lSubscriptionId != 0);
         
-        PagedTopic   service       = (PagedTopic) get_Module();
-        LongArray aSubscription = getSubscriptionArray();
+        PagedTopic service       = (PagedTopic) get_Module();
+        LongArray  aSubscription = getSubscriptionArray();
         
         ReentrantLock lock = getSubscriptionLock();
         lock.lock();
@@ -810,6 +951,18 @@ public class PagedTopic
                 {
                 subCurrent.update(subscription);
                 }
+
+            for (PagedTopicSubscription.Listener listener : __m_subscriptionListener)
+                {
+                try
+                    {
+                    listener.onUpdate(subCurrent);
+                    }
+                catch (Throwable e)
+                    {
+                    Logger.err(e);
+                    }
+                }
             }
         finally
             {
@@ -819,21 +972,21 @@ public class PagedTopic
         return lSubscriptionId;
         }
     
-    // From interface: com.tangosol.net.PagedTopicService
-    public void ensureSubscription(String sTopicName, long lSubscription, com.tangosol.net.topic.Subscriber.Id id)
+    @Override
+    public void ensureSubscription(String sTopicName, long lSubscription, Subscriber.Id id)
         {
-        // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
-        // import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
-        // import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
-        // import com.tangosol.util.Filter;
-        // import com.tangosol.util.ValueExtractor;
-        
+        ensureSubscription(sTopicName, lSubscription, id, false);
+        }
+
+    @Override
+    public void ensureSubscription(String sTopicName, long lSubscription, Subscriber.Id id, boolean fForceReconnect)
+        {
         if (id == null || id instanceof SubscriberId)
             {
             SubscriberId           subscriberId = (SubscriberId) id;
             PagedTopicSubscription subscription = getSubscription(lSubscription);
         
-            if (subscription != null && subscription.hasSubscriber(subscriberId))
+            if (!fForceReconnect && subscription != null && subscription.hasSubscriber(subscriberId))
                 {
                 return;
                 }
@@ -843,6 +996,7 @@ public class PagedTopic
                 PagedTopic.SubscriberIdRequest msg = (PagedTopic.SubscriberIdRequest) instantiateMessage("SubscriberIdRequest");
         
                 msg.addToMember(getThisMember());
+                msg.setTopicName(sTopicName);
                 msg.setSubscriptionId(lSubscription);
                 msg.setSubscriberAction(PagedTopic.SubscriberIdRequest.SUBSCRIBER_CREATE);
         
@@ -879,14 +1033,9 @@ public class PagedTopic
             }
         }
     
-    // From interface: com.tangosol.net.PagedTopicService
-    public long ensureSubscription(String sTopicName, com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId groupId, com.tangosol.net.topic.Subscriber.Id id, com.tangosol.util.Filter filter, com.tangosol.util.ValueExtractor extractor)
+    @Override
+    public long ensureSubscription(String sTopicName, SubscriberGroupId groupId, Subscriber.Id id, Filter filter, ValueExtractor extractor)
         {
-        // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
-        // import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
-        // import com.tangosol.util.Filter;
-        // import com.tangosol.util.ValueExtractor;
-        
         if (id == null || id instanceof SubscriberId)
             {
             SubscriberId           subscriberId = (SubscriberId) id;
@@ -963,10 +1112,19 @@ public class PagedTopic
         
                 cAttempt++;
                 long now = System.currentTimeMillis();
+                long nTime = now - start;
+                long cSeconds = nTime / 1000;
+
+                if (nTime > 300000)
+                    {
+                    throw new RequestTimeoutException("This member has been waiting for subscription confirmation for " + cSeconds + " seconds (attempts "
+                            + cAttempt + ") for subscription "
+                            + lSubscription + " on topic " + sTopicName + " group " + groupId + " subscriber " + id);
+                    }
+
                 if ((now - lastTime) > 30000)
                     {
                     lastTime = now;
-                    long cSeconds = (now - start) / 1000;
                     _trace("This member has been waiting for subscription confirmation for " + cSeconds + " seconds (attempts "
                             + cAttempt + ") for subscription "
                             + lSubscription + " on topic " + sTopicName + " group " + groupId + " subscriber " + id, 7);
@@ -1131,21 +1289,26 @@ public class PagedTopic
     // From interface: com.tangosol.net.PagedTopicService
     public int getChannelCount(String sName)
         {
-        // import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
-        // import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
-        
-        int cChannel = getChannelCountFromConfigMap(sName);
-        
-        if (cChannel <= 0)
-            {
-            PagedTopicBackingMapManager mgr  = (PagedTopicBackingMapManager) getTopicBackingMapManager();
-            PagedTopicDependencies      deps = mgr.getTopicDependencies(sName);
-            cChannel = deps.getConfiguredChannelCount();
-            }
-        
-        return cChannel;
+        int cChannelMap    = getChannelCountFromConfigMap(sName);
+        int cChannelConfig = getConfiguredChannelCount(sName);
+        return Math.max(cChannelMap, cChannelConfig);
         }
-    
+
+    /**
+     * Return the channel count configured in the topic dependencies.
+     * This may be different (less than) the actual channel count.
+     *
+     * @param sName  the name of the topic
+     *
+     * @return the channel count configured in the topic dependencies
+     */
+    protected int getConfiguredChannelCount(String sName)
+        {
+        PagedTopicBackingMapManager mgr  = getTopicBackingMapManager();
+        PagedTopicDependencies      deps = mgr.getTopicDependencies(sName);
+        return deps.getConfiguredChannelCount();
+        }
+
     // Accessor for the property "ChannelCountExecutor"
     /**
      * Getter for property ChannelCountExecutor.<p>
@@ -1236,7 +1399,19 @@ public class PagedTopic
         
         return PagedTopicConfigMap.getSubscribers(getTopicConfigMap(), sTopicName, groupId);
         }
-    
+
+    @Override
+    public boolean hasSubscribers(String sTopicName)
+        {
+        return PagedTopicConfigMap.hasSubscriptions(getTopicConfigMap(), sTopicName);
+        }
+
+    @Override
+    public long getSubscriptionCount(String sTopicName)
+        {
+        return PagedTopicConfigMap.getSubscriptionCount(getTopicConfigMap(), sTopicName);
+        }
+
     // From interface: com.tangosol.net.PagedTopicService
     public com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription getSubscription(long lSubscriptionId)
         {
@@ -1383,22 +1558,82 @@ public class PagedTopic
         return getSubscriptionGraveyard().containsKey(Long.valueOf(lSubscriptionId));
         }
     
-    // Declared at the super level
     /**
-     * Check whether the specified members runs a version that precedes the
-    * specified one.
+     * Check whether any of the members in the specified MemberSet run a version
+     * that precedes the specified one.
      */
-    public boolean isVersionCompatible(com.tangosol.coherence.component.net.Member member, int nYear, int nMonth, int nPatch)
+    public boolean isTopicsApiVersionCompatible(MemberSet setMembers, int nVersion)
         {
-        if (nYear == 22 && nMonth == 6 && nPatch == 4)
+        MasterMemberSet setMaster = getClusterMemberSet();
+
+        switch (setMembers.size())
             {
-            // 22.06.4 is versions >= 22.06.4 but not 22.09.0
-            return super.isVersionCompatible(member, 22, 9, 1)
-                || (super.isVersionCompatible(member, 22, 6, 4) && !super.isVersionCompatible(member, 22, 9, 0));
+            case 0: // no recipients
+                return true;
+
+            case 1: // common case
+                return isTopicsApiVersionCompatible(setMembers.getFirstId(), nVersion);
+
+            default:
+                {
+                int[] anMember = setMembers.toIdArray();
+                for (int i = 0, c = anMember.length; i < c; i++)
+                    {
+                    if (getTopicsApiVersion(anMember[i]) < nVersion)
+                        {
+                        return false;
+                        }
+                    }
+                return true;
+                }
             }
-        return super.isVersionCompatible(member, nYear, nMonth, nPatch);
         }
-    
+
+    public boolean isTopicsApiVersionCompatible(com.tangosol.coherence.component.net.Member member, int nVersion)
+        {
+        return isTopicsApiVersionCompatible(member.getId(), nVersion);
+        }
+
+    public boolean isTopicsApiVersionCompatible(int nMemberId, int nVersion)
+        {
+        return getTopicsApiVersion(nMemberId) >= nVersion;
+        }
+
+    /**
+     * Topic API version zero
+     * 14.1.1.2206.2 and below
+     * 22.09.*
+     * <p/>
+     * Topic API version one
+     * 14.1.1.2206.3 - 14.1.1.2206.5
+     * 23.03.0 - 22.03.1
+     * <p/>
+     * Topic API version two
+     * 14.1.1.2206.6 -> and above
+     * 23.03.2 and above
+     */
+    public int getTopicsApiVersion(int nMemberId)
+        {
+        MasterMemberSet memberSet = getClusterMemberSet();
+        int             nVersion  = memberSet.getServiceVersionInt(nMemberId);
+
+        if (nVersion < VERSION_22_06_3 || nVersion == VERSION_22_09_0)
+            {
+            // less than 14.1.1.2206.3 or is 22.09.0 (version is 0)
+            return TOPIC_API_v0;
+            }
+
+        if (nVersion <= VERSION_22_06_5 || nVersion == VERSION_23_03_0 || nVersion == VERSION_23_03_1)
+            {
+            // less than 14.1.1.2206.5 or 23.03.0 or 23.03.1 (version is 1)
+            return TOPIC_API_v1;
+            }
+
+        // greater than or equal 14.1.1.2206.5 or greater than or equal 23.03.3 (version 2)
+        return TOPIC_API_v2;
+        }
+
+
     // Declared at the super level
     /**
      * Event notification called right before the daemon thread terminates. This
@@ -1423,7 +1658,15 @@ public class PagedTopic
     protected void onFinalizeStartup()
         {
         super.onFinalizeStartup();
-        
+
+        // Add the interceptor that will handle topic logic on transfer events
+        ServiceDispatcher dispatcher  = getEventsHelper().getServiceDispatcher();
+        if (dispatcher != null)
+            {
+            TransferInterceptor interceptor = new TransferInterceptor(this);
+            dispatcher.addEventInterceptor("$Recovery$", interceptor, Set.of(TransferEvent.Type.RECOVERED, TransferEvent.Type.ARRIVED), true);
+            }
+
         // ensureKnownTopics() should only be called after AcceptingClients flag is set
         // to true, at which point the client thread performing the service "start" sequence
         // is notified, allowing it to release all acquired monitors (cluster, service, etc).
@@ -1459,7 +1702,175 @@ public class PagedTopic
         
         setChannelAllocationStrategy(new SimpleChannelAllocationStrategy());
         }
-    
+
+    @Override
+    public void onOwnershipSeniority(com.tangosol.coherence.component.net.Member memberPreviousSenior)
+        {
+        super.onOwnershipSeniority(memberPreviousSenior);
+        cleanupSubscribers();
+
+        // Ensure the channel counts are consistent for subscriptions
+        // We do this on acquiring seniority due to bugs in earlier
+        // versions where this could be out of sync
+        // If the channel counts are already correct these calls will basically
+        // be no-op calls.
+        ReentrantLock lock = getSubscriptionLock();
+        lock.lock();
+        try
+            {
+            TopicConfig.Map           configMap = getTopicConfigMap();
+            ChannelAllocationStrategy strategy  = getChannelAllocationStrategy();
+            for (String sTopic : PagedTopicConfigMap.getTopicNames(configMap))
+                {
+                int cChannel = getChannelCount(sTopic);
+                PagedTopicConfigMap.setChannelCount(configMap, sTopic, cChannel, strategy);
+                }
+            }
+        finally
+            {
+            lock.unlock();
+            }
+        }
+
+    @Override
+    public void onNotifyServiceLeft(Member member)
+        {
+        super.onNotifyServiceLeft(member);
+        cleanupSubscribers();
+        }
+
+    /**
+     * Clean up any left-over subscribers.
+     * <p/>
+     * If this member is not the service senior this is a no-op.
+     */
+    public void cleanupSubscribers()
+        {
+        Member memberThis        = getThisMember();
+        Member memberCoordinator = getServiceOldestMember();
+
+        if (memberThis == memberCoordinator)
+            {
+            Daemons.commonPool().add(() ->
+                {
+                try
+                    {
+                    Set<UUID>        setUuid  = new HashSet<>();
+                    ServiceMemberSet memberSet = getServiceMemberSet();
+                    for (int nId : memberSet.toIdArray())
+                        {
+                        Member member = memberSet.getMember(nId);
+                        if (member != null)
+                            {
+                            setUuid.add(member.getUuid());
+                            }
+                        }
+                    Map configMap = getTopicConfigMap();
+                    Map<String, Map<PagedTopicConfigMap.SubscriptionAndGroup, Set<SubscriberId>>> mapDeparted
+                            = PagedTopicConfigMap.getDepartedSubscriptions(configMap, setUuid);
+
+                    if (!mapDeparted.isEmpty())
+                        {
+                        for (Map.Entry<String, Map<PagedTopicConfigMap.SubscriptionAndGroup, Set<SubscriberId>>> entry : mapDeparted.entrySet())
+                            {
+                            String sTopicName = entry.getKey();
+                            for (Map.Entry<PagedTopicConfigMap.SubscriptionAndGroup, Set<SubscriberId>> entrySub : entry.getValue().entrySet())
+                                {
+                                PagedTopicConfigMap.SubscriptionAndGroup sg              = entrySub.getKey();
+                                long                                     lSubscriptionId = sg.getSubscriptionId();
+                                SubscriberGroupId                        groupId         = sg.getSubscriberGroupId();
+                                for (SubscriberId id : entrySub.getValue())
+                                    {
+                                    notifySubscriberClosed(sTopicName, groupId, lSubscriptionId, id);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                catch (Throwable t)
+                    {
+                    Logger.err(t);
+                    }
+                });
+            }
+        }
+
+    /**
+     * Called to notify the topic that a subscriber has closed or timed-out.
+     *
+     * @param sTopicName         the topic name
+     * @param subscriberGroupId  the subscriber group identifier
+     * @param subscriberId       the subscriber identifier
+     * @param lSubscriptionId    the unique identifier of the subscription
+     */
+    void notifySubscriberClosed(String sTopicName, SubscriberGroupId subscriberGroupId, long lSubscriptionId, SubscriberId subscriberId)
+        {
+        String               sCacheName    = PagedTopicCaches.Names.SUBSCRIPTIONS.cacheNameForTopicName(sTopicName);
+        long                 lCacheId      = getCacheId(sTopicName, PagedTopicCaches.Names.SUBSCRIPTIONS);
+        Map                  mapRefsBinary = getReferencesBinaryMap();
+        PagedTopic.BinaryMap mapBinary     = (PagedTopic.BinaryMap) mapRefsBinary.get(sCacheName);
+
+        if (mapBinary == null)
+            {
+            mapBinary = (PagedTopic.BinaryMap) ensureBinaryMap(sCacheName, lCacheId);
+            }
+        
+        if (mapBinary == null || !mapBinary.isActive())
+            {
+            return;
+            }
+
+        if (lSubscriptionId == 0)
+            {
+            lSubscriptionId = getSubscriptionId(sTopicName, subscriberGroupId);
+            }
+
+        PagedTopicSubscription subscription = getSubscription(lSubscriptionId);
+        if (subscription != null && subscription.hasSubscriber(subscriberId))
+            {
+            destroySubscription(lSubscriptionId, subscriberId);
+            }
+
+        try
+            {
+            int                    cParts       = getPartitionCount();
+            List<Subscription.Key> listSubParts = new ArrayList<>(cParts);
+
+            for (int i = 0; i < cParts; ++i)
+                {
+                // Note: we unsubscribe against channel 0 in each partition, and it will in turn update all channels
+                listSubParts.add(new Subscription.Key(i, /*nChannel*/ 0, subscriberGroupId));
+                }
+
+            if (mapBinary.isActive())
+                {
+                try
+                    {
+                    mapBinary.invokeAll(listSubParts, new CloseSubscriptionProcessor(subscriberId));
+                    }
+                catch (Exception e)
+                    {
+                    // ignored -
+                    }
+                }
+            }
+        catch (Throwable t)
+            {
+            // this could have been caused by the cache becoming inactive during clean-up, if so ignore the error
+            if (mapBinary.isActive())
+                {
+                // cache is still active, so log the error
+                String sId = SubscriberId.NullSubscriber.equals(subscriberId)
+                        ? "<ALL>"
+                        : PagedTopicSubscriber.idToString(subscriberId.getId());
+
+                Logger.fine("Caught exception closing subscription for subscriber "
+                    + sId + " in group " + subscriberGroupId.getGroupName(), t);
+                }
+            }
+        }
+
+
     // Declared at the super level
     /**
      * The default implementation of this method sets AcceptingClients to true.
@@ -1513,7 +1924,118 @@ public class PagedTopic
             getChannelCountExecutor().executeTask(task);
             }
         }
-    
+
+    public void onChannelCount(EnsureChannelCountTask task)
+        {
+        String     sTopic     = task.getTopicName();
+        int        cRequired  = task.getRequiredChannelCount();
+        int        cChannel   = task.getChannelCount();
+        int        cConfigMap = getChannelCountFromConfigMap(sTopic);
+        int        cActual;
+
+        if (cConfigMap == 0)
+            {
+            // the channel count is not in the config map, so the senior when the
+            // topic was created was an older version. We need to use whatever is
+            // the configured channel count for this member.
+            cActual = getChannelCount(sTopic);
+            }
+        else
+            {
+            cActual = cConfigMap;
+            }
+
+        if (cRequired > cConfigMap)
+            {
+            ReentrantLock lock = getTopicStoreLock();
+            lock.lock();
+            try
+                {
+                cConfigMap = getChannelCountFromConfigMap(sTopic);
+                if (cRequired > cConfigMap)
+                    {
+                    String  sServiceName = getServiceName();
+                    boolean fSuspend     = !isSuspendedFully();
+
+                    try
+                        {
+                        if (fSuspend)
+                            {
+                            ((Cluster) getCluster()).suspendService(sServiceName, /*fResumeOnFailover*/ true);
+                            }
+
+                        String            sCacheName   = PagedTopicCaches.Names.CONTENT.cacheNameForTopicName(sTopic);
+                        ServiceConfig.Map map          = getServiceConfigMap();
+                        XmlElement         xmlElement  = (XmlElement) map.get(sCacheName);
+                        XmlValue           xmlChannels = xmlElement.getAttribute("channels");
+
+                        if (xmlChannels == null)
+                            {
+                            xmlChannels = xmlElement.addAttribute("channels");
+                            }
+                        xmlChannels.setInt(cChannel);
+                        map.put(sCacheName, xmlElement);
+
+                        if (cConfigMap != cChannel)
+                            {
+                            // only log if we actually changed the count, we may have only updated the config map
+                            Logger.config("Increased channel count for topic \"" + sTopic + "\" from "
+                                + cActual + " to " + cChannel + " requested by " + task.getMember());
+                            }
+
+                        PagedTopicConfigMap.setChannelCount(getTopicConfigMap(), sTopic, cChannel, getChannelAllocationStrategy());
+                        }
+                    finally
+                        {
+                        if (fSuspend)
+                            {
+                            getCluster().resumeService(sServiceName);
+                            }
+                        }
+                    }
+                }
+            finally
+                {
+                lock.unlock();
+                }
+            }
+        }
+
+    public void onChannelCountConfirmRequest(ChannelCountConfirmRequest request)
+        {
+        int     cRequired  = request.getChannelCount();
+        String  sTopic     = request.getTopicName();
+        int     cConfigMap = getChannelCountFromConfigMap(sTopic);
+        boolean fHasCount;
+
+        if (cConfigMap == 0)
+            {
+            // the channel count is not in the config map, so the senior when the
+            // topic was created was an older version. We need to use whatever is
+            // the configured channel count for this member.
+            int cActual = getChannelCount(sTopic);
+            fHasCount = cActual >= cRequired;
+            }
+        else
+            {
+            fHasCount = cConfigMap >= cRequired;
+            }
+
+        PagedTopic.PartialValueResponse msgResponse =
+            (PagedTopic.PartialValueResponse) instantiateMessage("PartialValueResponse");
+
+        msgResponse.respondTo(request);
+
+        PartitionSet partsMask = request.getRequestMaskSafe();
+        if (fHasCount)
+            {
+            partsMask.remove(collectOwnedPartitions(/*fPrimary*/ true));
+            msgResponse.setResult(Boolean.TRUE);
+            }
+        msgResponse.setRejectPartitions(partsMask);
+        post(msgResponse);
+        }
+
     public void onSubscriberConfirm(PagedTopic.SubscriberConfirmRequest request)
         {
         // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
@@ -1529,7 +2051,7 @@ public class PagedTopic
         PartitionSet partsMask       = request.getRequestMaskSafe();
         long         lSubscriptionId = request.getSubscriptionId();
         SubscriberId subscriberId    = request.getSubscriberId();          
-        
+
         PagedTopicSubscription subscription = getSubscription(lSubscriptionId);
         if (subscription == null)
             {
@@ -1548,43 +2070,17 @@ public class PagedTopic
             partsMask.remove(collectOwnedPartitions(/*fPrimary*/ true));
             msgResponse.setResult(Boolean.TRUE);
             }
-        
         msgResponse.setRejectPartitions(partsMask);
         post(msgResponse);
         }
     
     public void onSubscriberId(PagedTopic.SubscriberIdRequest request)
         {
-        // import Component.Net.Member as com.tangosol.coherence.component.net.Member;
-        // import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches$Names as com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names;;
-        // import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches$Names as com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names;
-        // import com.tangosol.internal.net.topic.impl.paged.PagedTopicConfigMap;
-        // import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
-        // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
-        // import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
-        // import com.tangosol.net.topic.TopicException;
-        // import com.tangosol.run.xml.SimpleElement;
-        // import com.tangosol.run.xml.XmlElement;
-        // import com.tangosol.run.xml.XmlHelper;
-        // import com.tangosol.util.Filter;
-        // import com.tangosol.util.ValueExtractor;
-        // import java.util.ArrayList;;
-        // import java.util.ArrayList;
-        // import java.util.Arrays;
-        // import java.util.ConcurrentModificationException;
-        // import java.util.Iterator;
-        // import java.util.SortedMap;
-        // import java.util.HashMap;
-        // import java.util.List;
-        // import java.util.Map;
-        // import java.util.Objects;
-        // import java.util.concurrent.locks.ReentrantLock;
-        
-        long           lSubscriptionId = request.getSubscriptionId();
-        SubscriberId[] aSubscriberId   = request.getSubscriberIds();          
-        Map            configMap       = getTopicConfigMap();
-        PagedTopic.Response      msgResponse     = (PagedTopic.Response) instantiateMessage("Response");
-        
+        long                lSubscriptionId = request.getSubscriptionId();
+        SubscriberId[]      aSubscriberId   = request.getSubscriberIds();
+        String              sTopicName      = request.getTopicName();
+        PagedTopic.Response msgResponse     = (PagedTopic.Response) instantiateMessage("Response");
+
         msgResponse.respondTo(request);
         
         com.tangosol.coherence.component.net.Member memberThis        = getThisMember();
@@ -1597,6 +2093,7 @@ public class PagedTopic
             lock.lock();
             try
                 {
+                Map configMap = getTopicConfigMap();
                 msgResponse.respondTo(request);
         
                 PagedTopicSubscription subscription = null;
@@ -1611,8 +2108,7 @@ public class PagedTopic
                             {
                             // the caller did not have a subscription id, but we may already
                             // have a subscription with the group name
-                            String            sTopicName = request.getTopicName();
-                            SubscriberGroupId groupId    = request.getGroupId();
+                            SubscriberGroupId groupId = request.getGroupId();
                             subscription = ensureSubscriptionInternal(sTopicName, groupId, lSubscriptionId, filter, converter);
                             }
                         else
@@ -1628,9 +2124,9 @@ public class PagedTopic
                                 subscription.assertFilterAndConverter(filter, converter);
                                 if (aSubscriberId.length > 0)
                                     {
-                                    if (subscription.addSubscribers(aSubscriberId))
+                                    if (subscription.addSubscribers(aSubscriberId) || subscription.getChannelCount() != getChannelCount(sTopicName))
                                         {
-                                        subscription.updateChannelAllocations(getChannelAllocationStrategy(), getChannelCount(subscription.getTopicName()));                            
+                                        subscription.updateChannelAllocations(getChannelAllocationStrategy(), getChannelCount(subscription.getTopicName()));
                                         Logger.finest("Added subscribers " + Arrays.toString(aSubscriberId) + " to subscription " + subscription);
                                         PagedTopicConfigMap.updateSubscription(configMap, subscription);
                                         }
@@ -1656,7 +2152,7 @@ public class PagedTopic
                             String sReason = isSubscriptionDestroyed(lSubscriptionId)
                                     ? "has been destroyed"
                                     : "is invalid";
-        
+
                             IllegalStateException error = new IllegalStateException("The subscriber group id=" + lSubscriptionId + ") " + sReason);
                             msgResponse.setResult(PagedTopic.Response.RESULT_FAILURE);
                             msgResponse.setValue(error);
@@ -1697,7 +2193,7 @@ public class PagedTopic
                                     }
                                 }
                             }
-        
+
                         msgResponse.setResult(PagedTopic.Response.RESULT_SUCCESS);
                         msgResponse.setValue(Long.valueOf(lSubscriptionId));
                         post(msgResponse);
@@ -1756,12 +2252,12 @@ public class PagedTopic
     /**
      * Remove storage of the specified cacheId from the storage array.
      */
-    public com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage removeStorage(long lCacheId)
+    public Storage removeStorage(long lCacheId)
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         // import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches$Names as com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = super.removeStorage(lCacheId);
+        Storage storage = super.removeStorage(lCacheId);
         if (storage != null && isOwnershipEnabled())
             {
             String  sName   = storage.getCacheName(); 
@@ -1887,7 +2383,7 @@ public class PagedTopic
      */
     @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
     public static class BinaryMap
-            extends    com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap
+            extends    com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap
         {
         // ---- Fields declarations ----
         private static com.tangosol.util.ListMap __mapChildren;
@@ -1903,13 +2399,13 @@ public class PagedTopic
             {
             // register child classes
             __mapChildren = new com.tangosol.util.ListMap();
-            __mapChildren.put("Entry", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.Entry.get_CLASS());
-            __mapChildren.put("EntryAdvancer", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.EntryAdvancer.get_CLASS());
-            __mapChildren.put("KeyAdvancer", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.KeyAdvancer.get_CLASS());
-            __mapChildren.put("KeyRequestStatus", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.KeyRequestStatus.get_CLASS());
-            __mapChildren.put("KeySetRequestStatus", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.KeySetRequestStatus.get_CLASS());
-            __mapChildren.put("MapRequestStatus", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.MapRequestStatus.get_CLASS());
-            __mapChildren.put("PartialRequestStatus", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.PartialRequestStatus.get_CLASS());
+            __mapChildren.put("Entry", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.Entry.get_CLASS());
+            __mapChildren.put("EntryAdvancer", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.EntryAdvancer.get_CLASS());
+            __mapChildren.put("KeyAdvancer", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.KeyAdvancer.get_CLASS());
+            __mapChildren.put("KeyRequestStatus", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.KeyRequestStatus.get_CLASS());
+            __mapChildren.put("KeySetRequestStatus", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.KeySetRequestStatus.get_CLASS());
+            __mapChildren.put("MapRequestStatus", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.MapRequestStatus.get_CLASS());
+            __mapChildren.put("PartialRequestStatus", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.PartialRequestStatus.get_CLASS());
             }
         
         // Default constructor
@@ -1948,9 +2444,9 @@ public class PagedTopic
                 }
             
             // containment initialization: children
-            _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.EntrySet("EntrySet", this, true), "EntrySet");
-            _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.KeySet("KeySet", this, true), "KeySet");
-            _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.Values("Values", this, true), "Values");
+            _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.EntrySet("EntrySet", this, true), "EntrySet");
+            _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.KeySet("KeySet", this, true), "KeySet");
+            _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.Values("Values", this, true), "Values");
             
             // signal the end of the initialization
             set_Constructed(true);
@@ -2034,7 +2530,7 @@ public class PagedTopic
             try
                 {
                 // we don't care about the responses, just that the request completes
-                mergePartialResponse(sendPartitionedRequestByMember(msg, makePartitionSet(), true));
+                mergePartialResponse(sendPartitionedRequest(msg, makePartitionSet(), true));
                 }
             catch (RequestPolicyException e)
                 {
@@ -2042,6 +2538,41 @@ public class PagedTopic
                 }
             
             return true;
+            }
+
+        protected boolean confirmChannelCount(String sTopicName, int cChannel)
+            {
+            PagedTopic service   = (PagedTopic) getService();
+            MemberSet  memberSet = service.getOwnershipMemberSet();
+
+            if (service.isTopicsApiVersionCompatible(memberSet, TOPIC_API_v2))
+                {
+                PagedTopic.ChannelCountConfirmRequest msg = (PagedTopic.ChannelCountConfirmRequest) getService()
+                        .instantiateMessage("ChannelCountConfirmRequest");
+
+                msg.setCacheId(getCacheId());
+                msg.setTopicName(sTopicName);
+                msg.setChannelCount(cChannel);
+
+                try
+                    {
+                    // we don't care about the responses, just that the request completes
+                    mergePartialResponse(sendPartitionedRequest(msg, makePartitionSet(), true));
+                    }
+                catch (RequestPolicyException e)
+                    {
+                    return false;
+                    }
+
+                return true;
+                }
+            else
+                {
+                // One or more storage members are not topics API version compatible and
+                // cannot run the confirm channel count request.
+                // We return true and have to assume the count is correct across the cluster
+                return true;
+                }
             }
         }
 
@@ -2213,78 +2744,8 @@ public class PagedTopic
         // From interface: java.lang.Runnable
         public void run()
             {
-            // import Component.Net.Cluster;
-            // import Component.Util.Daemon.QueueProcessor.Service.Grid$ServiceConfig$Map as com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.ServiceConfig.Map;
-            // import com.oracle.coherence.common.base.Logger;
-            // import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches$Names as com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names;
-            // import java.util.concurrent.locks.ReentrantLock;
-            
-            PagedTopic service    = getService();
-            String  sTopic     = getTopicName();
-            int     cRequired  = getRequiredChannelCount();
-            int     cChannel   = getChannelCount();
-            int     cConfigMap = service.getChannelCountFromConfigMap(sTopic);
-            int     cActual;
-            
-            if (cConfigMap == 0)
-                {
-                // the channel count is not in the config map, so the senior when the
-                // topic was created was an older version. We need to use whatever is
-                // the configured channel count for this member.
-                cActual = service.getChannelCount(sTopic);
-                }
-            else
-                {
-                cActual = cConfigMap;
-                }
-            
-            if (cRequired > cConfigMap)
-                {
-                ReentrantLock lock = service.getTopicStoreLock();
-                lock.lock();
-                try
-                    {
-                    cConfigMap = service.getChannelCountFromConfigMap(sTopic);
-                    if (cRequired > cConfigMap)
-                        {
-                        String  sServiceName = service.getServiceName();
-                        boolean fSuspend     = !service.isSuspendedFully();
-            
-                        try
-                            {
-                            if (fSuspend)
-                                {
-                                ((Cluster) service.getCluster()).suspendService(sServiceName, /*fResumeOnFailover*/ true);
-                                }
-            
-                            String     sCacheName = com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names.CONTENT.cacheNameForTopicName(sTopic);
-                            com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.ServiceConfig.Map      map        = service.getServiceConfigMap(); 
-                            XmlElement xmlElement = (XmlElement) map.get(sCacheName);
-            
-                            xmlElement.getSafeAttribute("channels").setInt(cChannel);
-                            map.put(sCacheName, xmlElement);
-                            
-                            if (cConfigMap != cChannel)
-                                {
-                                // only log if we actually changed the count, we may have only updated the config map
-                                Logger.config("Increased channel count for topic \"" + sTopic + "\" from "
-                                    + cActual + " to " + cChannel + " requested by " + getMember());
-                                }
-                            }
-                        finally
-                            {
-                            if (fSuspend)
-                                {
-                                ((Cluster) service.getCluster()).resumeService(sServiceName);
-                                }
-                            }
-                        }
-                    }
-                finally
-                    {
-                    lock.unlock();
-                    }
-                }
+            PagedTopic service = getService();
+            service.onChannelCount(this);
             }
         
         // Accessor for the property "ChannelCount"
@@ -2800,8 +3261,13 @@ public class PagedTopic
         private int __m_RequiredCount;
         
         /**
+         * This request's unique message identifier.
+         */
+        public static final int MESSAGE_TYPE = 1000;
+
+        /**
          * Property TopicName
-         *
+         * <p/>
          * The name of the topic to set the channel count for.
          */
         private String __m_TopicName;
@@ -2832,7 +3298,7 @@ public class PagedTopic
             // state initialization: public and protected properties
             try
                 {
-                setMessageType(1000);
+                setMessageType(MESSAGE_TYPE);
                 }
             catch (java.lang.Exception e)
                 {
@@ -3064,7 +3530,7 @@ public class PagedTopic
             {
             // register child classes
             __mapChildren = new com.tangosol.util.ListMap();
-            __mapChildren.put("Poll", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.StorageIdRequest.Poll.get_CLASS());
+            __mapChildren.put("Poll", StorageIdRequest.Poll.get_CLASS());
             }
         
         // Default constructor
@@ -3275,13 +3741,7 @@ public class PagedTopic
     // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.PagedTopic$SubscriberConfirmRequest
     
     /**
-     * DistributeCacheRequest is a base component for RequestMessage(s) used by
-     * the partitioned cache service that are key set or filter based. Quite
-     * often a collection of similar requests are sent in parallel and a client
-     * thread has to wait for all of them to return.
-     * 
-     * PartialRequest is a DistributeCacheRequest that is constrained by a
-     * subset of partitions owned by a single storage-enabled Member.
+     * A request used to confirm existence of a specific subscriber on a member.
      */
     @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
     public static class SubscriberConfirmRequest
@@ -3306,8 +3766,14 @@ public class PagedTopic
          *
          */
         private long __m_SubscriptionId;
+
         private static com.tangosol.util.ListMap __mapChildren;
-        
+
+        /**
+         * This request's unique message identifier.
+         */
+        public static final int MESSAGE_TYPE = 1002;
+
         // Static initializer
         static
             {
@@ -3348,7 +3814,7 @@ public class PagedTopic
             // state initialization: public and protected properties
             try
                 {
-                setMessageType(1002);
+                setMessageType(MESSAGE_TYPE);
                 }
             catch (java.lang.Exception e)
                 {
@@ -3654,6 +4120,344 @@ public class PagedTopic
             }
         }
 
+    // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.PagedTopic$ChannelCountConfirmRequest
+
+    /**
+     * A request used to confirm the channel count for a topic is
+     * greater than, or equal to, a required channel count.
+     */
+    public static class ChannelCountConfirmRequest
+            extends PartialRequest
+        {
+        /**
+         * The required channel count.
+         */
+        private int m_cChannel;
+
+        /**
+         * The name of the topic to set the channel count for.
+         */
+        private String m_sTopicName;
+
+        /**
+         * This request's unique message identifier.
+         */
+        public static final int MESSAGE_TYPE = 1003;
+
+        private static ListMap s_mapChildren;
+
+        // Static initializer
+        static
+            {
+            __initStatic();
+            }
+
+        // Default static initializer
+        private static void __initStatic()
+            {
+            // register child classes
+            s_mapChildren = new ListMap();
+            s_mapChildren.put("Poll", PagedTopic.ChannelCountConfirmRequest.Poll.get_CLASS());
+            }
+
+        // Default constructor
+        public ChannelCountConfirmRequest()
+            {
+            this(null, null, true);
+            }
+
+        // Initializing constructor
+        public ChannelCountConfirmRequest(String sName, Component compParent, boolean fInit)
+            {
+            super(sName, compParent, false);
+
+            if (fInit)
+                {
+                __init();
+                }
+            }
+
+        // Main initializer
+        @Override
+        public void __init()
+            {
+            // private initialization
+            __initPrivate();
+
+            // state initialization: public and protected properties
+            try
+                {
+                setMessageType(MESSAGE_TYPE);
+                }
+            catch (java.lang.Exception e)
+                {
+                // re-throw as a runtime exception
+                throw Exceptions.ensureRuntimeException(e);
+                }
+
+            // containment initialization: children
+
+            // signal the end of the initialization
+            set_Constructed(true);
+            }
+
+        // Private initializer
+        @Override
+        protected void __initPrivate()
+            {
+            super.__initPrivate();
+            }
+
+        //++ getter for static property _Instance
+
+        /**
+         * Getter for property _Instance.<p>
+         * Auto generated
+         */
+        public static Component get_Instance()
+            {
+            return new ChannelCountConfirmRequest();
+            }
+
+        //++ getter for static property _CLASS
+
+        /**
+         * Getter for property _CLASS.<p>
+         * Property with auto-generated accessor that returns the Class object
+         * for a given component.
+         */
+        public static Class get_CLASS()
+            {
+            Class clz;
+            try
+                {
+                clz = Class.forName("com.tangosol.coherence/component/util/daemon/queueProcessor/service/grid/partitionedService/partitionedCache/PagedTopic$ChannelCountConfirmRequest".replace('/', '.'));
+                }
+            catch (ClassNotFoundException e)
+                {
+                throw new NoClassDefFoundError(e.getMessage());
+                }
+            return clz;
+            }
+
+        /**
+         * This is an auto-generated method that returns the global [design
+         * time] parent component.
+         * <p/>
+         * Note: the class generator will ignore any custom implementation for
+         * this behavior.
+         */
+        private Component get_Module()
+            {
+            return this.get_Parent();
+            }
+
+        /**
+         * This is an auto-generated method that returns the map of design time
+         * [static] children.
+         * <p/>
+         * Note: the class generator will ignore any custom implementation for
+         * this behavior.
+         */
+        @Override
+        protected Map get_ChildClasses()
+            {
+            return s_mapChildren;
+            }
+
+        /**
+         * Instantiate a copy of this message. This is quite different from the
+         * standard "clone" since only the "transmittable" portion of the
+         * message (and none of the internal) state should be cloned.
+         */
+        @Override
+        public Message cloneMessage()
+            {
+            PagedTopic.ChannelCountConfirmRequest msg = (PagedTopic.ChannelCountConfirmRequest) super.cloneMessage();
+            msg.m_sTopicName = m_sTopicName;
+            msg.m_cChannel   = m_cChannel;
+            return msg;
+            }
+
+        /**
+         * Returns the required channel count.
+         *
+         * @return the required channel count
+         */
+        public int getChannelCount()
+            {
+            return m_cChannel;
+            }
+
+        /**
+         * Set the channel count.
+         *
+         * @param cChannel  the required channel count
+         */
+        public void setChannelCount(int cChannel)
+            {
+            m_cChannel = cChannel;
+            }
+
+        /**
+         * Returns the topic name.
+         *
+         * @return the topic name
+         */
+        public String getTopicName()
+            {
+            return m_sTopicName;
+            }
+
+        /**
+         * Set the topic name.
+         *
+         * @param sTopicName  the topic name
+         */
+        public void setTopicName(String sTopicName)
+            {
+            m_sTopicName = sTopicName;
+            }
+
+        /**
+         * This is the event that is executed when a Message is received.
+         * <p>
+         * It is the main processing event of the Message called by the
+         * <code>Service.onMessage()</code> event. With regard to the use of
+         * Message components within clustered Services, Services are designed
+         * by dragging Message components into them as static children. These
+         * Messages are the components that a Service can send to other running
+         * instances of the same Service within a cluster. When the onReceived
+         * event is invoked by a Service, it means that the Message has been
+         * received; the code in the onReceived event is therefore the Message
+         * specific logic for processing a received Message. For example, when
+         * onReceived is invoked on a Message named FindData, the onReceived
+         * event should do the work to "find the data", because it is being
+         * invoked by the Service that received the "find the data" Message.
+         */
+        @Override
+        public void onReceived()
+            {
+            ((PagedTopic) getService()).onChannelCountConfirmRequest(this);
+            }
+
+        /**
+         * Preprocess this message.
+         *
+         * @return true iff this message has been fully processed (onReceived
+         * was called)
+         */
+        @Override
+        public boolean preprocess()
+            {
+            return false;
+            }
+
+        @Override
+        public void read(ReadBuffer.BufferInput input)
+                throws java.io.IOException
+            {
+            super.read(input);
+            m_sTopicName = ExternalizableHelper.readSafeUTF(input);
+            m_cChannel = ExternalizableHelper.readInt(input);
+            }
+
+        @Override
+        public void write(WriteBuffer.BufferOutput output)
+                throws IOException
+            {
+            super.write(output);
+            ExternalizableHelper.writeSafeUTF(output, m_sTopicName);
+            ExternalizableHelper.writeInt(output, m_cChannel);
+            }
+
+        // ---- inner class: PagedTopic$ChannelCountConfirmRequest$Poll
+
+        /**
+         * The Poll contains information regarding a request sent to one or
+         * more Cluster Members that require responses. A Service may poll
+         * other Members that are running the same Service, and the Poll is
+         * used to wait for and assemble the responses from each of those
+         * Members. A client thread may also use the Poll to block on a
+         * response or set of responses, thus waiting for the completion of the
+         * Poll. In its simplest form, which is a Poll that is sent to one
+         * Member of the Cluster, the Poll actually represents the
+         * request/response model.
+         */
+        public static class Poll
+                extends PartialRequest.Poll
+            {
+            public Poll()
+                {
+                this(null, null, true);
+                }
+
+            public Poll(String sName, Component compParent, boolean fInit)
+                {
+                super(sName, compParent, false);
+
+                if (fInit)
+                    {
+                    __init();
+                    }
+                }
+
+            public void __init()
+                {
+                // private initialization
+                __initPrivate();
+
+                // signal the end of the initialization
+                set_Constructed(true);
+                }
+
+            protected void __initPrivate()
+                {
+                super.__initPrivate();
+                }
+
+            /**
+             * Getter for property _Instance.<p>
+             * Auto generated
+             */
+            public static Component get_Instance()
+                {
+                return new PagedTopic.ChannelCountConfirmRequest.Poll();
+                }
+
+            /**
+             * Getter for property _CLASS.<p>
+             * Property with auto-generated accessor that returns the Class
+             * object for a given component.
+             */
+            public static Class get_CLASS()
+                {
+                Class clz;
+                try
+                    {
+                    clz = Class.forName("com.tangosol.coherence/component/util/daemon/queueProcessor/service/grid/partitionedService/partitionedCache/PagedTopic$ChannelCountConfirmRequest$Poll".replace('/', '.'));
+                    }
+                catch (ClassNotFoundException e)
+                    {
+                    throw new NoClassDefFoundError(e.getMessage());
+                    }
+                return clz;
+                }
+
+            /**
+             * This is an auto-generated method that returns the global [design
+             * time] parent component.
+             * <p/>
+             * Note: the class generator will ignore any custom implementation
+             * for this behavior.
+             */
+            private Component get_Module()
+                {
+                return this.get_Parent().get_Parent();
+                }
+            }
+        }
+
     // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.PagedTopic$SubscriberIdRequest
     
     /**
@@ -3741,8 +4545,14 @@ public class PagedTopic
          * The name of the topic to set the channel count for.
          */
         private String __m_TopicName;
+
         private static com.tangosol.util.ListMap __mapChildren;
-        
+
+        /**
+         * This request's unique message identifier.
+         */
+        public static final int MESSAGE_TYPE = 1001;
+
         // Static initializer
         static
             {
@@ -3783,7 +4593,7 @@ public class PagedTopic
             // state initialization: public and protected properties
             try
                 {
-                setMessageType(1001);
+                setMessageType(MESSAGE_TYPE);
                 }
             catch (java.lang.Exception e)
                 {
@@ -4659,37 +5469,32 @@ public class PagedTopic
             // Declared at the super level
             public void entryInserted(com.tangosol.util.MapEvent evt)
                 {
-                // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
-                // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription$Key as com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key;
-                
                 super.entryInserted(evt);
                 
                 PagedTopic service = (PagedTopic) get_Module();
                 Object  oKey    = evt.getKey();
                 
-                if (oKey instanceof com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key)
+                if (oKey instanceof PagedTopicSubscription.Key)
                     {
-                    com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key key = (com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key) oKey;
-                    service.ensureSubscription((PagedTopicSubscription) evt.getNewValue());
+                    PagedTopicSubscription.Key key          = (PagedTopicSubscription.Key) oKey;
+                    PagedTopicSubscription     subscription = (PagedTopicSubscription) evt.getNewValue();
+                    service.ensureSubscription(subscription);
                     }
                 }
             
             // Declared at the super level
             public void entryUpdated(com.tangosol.util.MapEvent evt)
                 {
-                // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
-                // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription$Key as com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key;
-                // import com.tangosol.run.xml.XmlElement;
-                
                 super.entryUpdated(evt);
                 
                 PagedTopic service = (PagedTopic) get_Module();
-                Object  oKey    = evt.getKey();
+                Object     oKey    = evt.getKey();
                 
-                if (oKey instanceof com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key)
+                if (oKey instanceof PagedTopicSubscription.Key)
                     {
-                    com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key key = (com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Key) oKey;
-                    service.ensureSubscription((PagedTopicSubscription) evt.getNewValue());
+                    PagedTopicSubscription.Key key          = (PagedTopicSubscription.Key) oKey;
+                    PagedTopicSubscription     subscription = (PagedTopicSubscription) evt.getNewValue();
+                    service.ensureSubscription(subscription);
                     }
                 }
             }
@@ -4823,7 +5628,7 @@ public class PagedTopic
             * An integer value, unique to the Service using this map, that
             * defines the type of this config map.
             * 
-            * @see Grid#getConfigMap(int)
+            * @see com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid#getConfigMap(int)
              */
             public int getMapType()
                 {
@@ -5558,4 +6363,60 @@ public class PagedTopic
                 }
             }
         }
+
+    /**
+    * An interceptor that intercepts recovered transfer events, specifically for a topic Usage cache.
+    * The data in the cache is used to determine the number of channels for a topic.
+    * If the channel count determined by the data in the Usage cache is greater than the configured
+    * channel count, the channel count will be increased to match the data.
+    * This is because channels count could be increased by a publisher that has been configured to
+    * have a higher count that that configured on the storage member. If storage is restarted the only
+    * way to know the number of actual published channels is to look at the data.
+    */
+    protected static class TransferInterceptor
+           implements EventInterceptor<TransferEvent>
+       {
+       protected TransferInterceptor(PagedTopic service)
+           {
+           f_service = service;
+           }
+
+       @Override
+       public void onEvent(TransferEvent event)
+           {
+           Map<String, Set<BinaryEntry>> entries = event.getEntries();
+           PagedTopicService             service = (PagedTopicService) event.getService();
+
+           for (Map.Entry<String, Set<BinaryEntry>> entry : entries.entrySet())
+               {
+               String sCacheName = entry.getKey();
+               if (PagedTopicCaches.Names.USAGE.equals(PagedTopicCaches.Names.fromCacheName(sCacheName)))
+                   {
+                   String sTopic   = PagedTopicCaches.Names.getTopicName(sCacheName);
+                   int    cChannel = 0;
+                   for (BinaryEntry binaryEntry : entry.getValue())
+                       {
+                       Usage.Key key = (Usage.Key) binaryEntry.getKey();
+                       cChannel = Math.max(cChannel, 1 + key.getChannelId());
+                       }
+                   int cActual = service.getChannelCount(sTopic);
+                   if (cChannel > cActual)
+                       {
+                       final int cFinal = cChannel;
+                       Daemons.commonPool().execute(() ->
+                           {
+                           Logger.config("Post partition recovery, increasing channel count for topic \"" + sTopic
+                                   + "\" from " + cActual + " to " + cFinal);
+                           f_service.ensureChannelCount(sTopic, cFinal, cFinal);
+                           });
+                       }
+                   }
+               }
+           }
+
+       // ----- data members ---------------------------------------------------
+
+       private final PagedTopic f_service;
+       }
+
     }

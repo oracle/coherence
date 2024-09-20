@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,8 +8,6 @@ package rest;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
-
-import com.tangosol.coherence.rest.util.MvelHelper;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -57,15 +55,7 @@ public class PofMisconfiguredRestTests
 
         // validate in server log that there are large number of "unknown user type" for rest types
         validateLogMessages(System.getProperty("test.project.dir"), "target/test-output/functional/PofMisconfiguredRestTests.out",
-                            "unknown user type", 75);
-
-        if (MvelHelper.isEnabled())
-            {
-            validateLogMessages(System.getProperty("test.project.dir"), "target/test-output/functional/PofMisconfiguredRestTests.out",
-                                "unknown user type: com.tangosol.coherence.rest.util.extractor.MvelExtractor", 32);
-            validateLogMessages(System.getProperty("test.project.dir"), "target/test-output/functional/PofMisconfiguredRestTests.out",
-                                "unknown user type: com.tangosol.coherence.rest.util.MvelManipulator", 24);
-            }
+                            "unknown user type", 50);
         validateLogMessages(System.getProperty("test.project.dir"), "target/test-output/functional/PofMisconfiguredRestTests.out",
                             "unknown user type: com.tangosol.coherence.rest.util.StaticContent", 16);
         }

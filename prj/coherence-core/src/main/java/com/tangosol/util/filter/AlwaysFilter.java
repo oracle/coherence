@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
@@ -55,6 +55,10 @@ public class AlwaysFilter<T>
         return true;
         }
 
+    public String toExpression()
+        {
+        return "TRUE";
+        }
 
     // ----- EntryFilter interface ------------------------------------------
 
@@ -74,7 +78,7 @@ public class AlwaysFilter<T>
     */
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
-        return 1;
+        return setKeys.size();
         }
 
     /**

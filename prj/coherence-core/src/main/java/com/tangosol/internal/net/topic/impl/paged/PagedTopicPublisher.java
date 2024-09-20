@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -60,6 +60,7 @@ import java.util.Objects;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
@@ -115,7 +116,7 @@ public class PagedTopicPublisher<V>
 
         ChannelCount channelCount = options.get(ChannelCount.class, ChannelCount.USE_CONFIGURED);
         int          cChannel     = channelCount.isUseConfigured()
-                                            ? pagedTopicCaches.getPublisherChannelCount()
+                                            ? topic.getChannelCount()
                                             : channelCount.getChannelCount();
 
         long cbBatch  = m_caches.getDependencies().getMaxBatchSizeBytes();
@@ -134,7 +135,8 @@ public class PagedTopicPublisher<V>
         dependencies.setThreadCount(1);
         dependencies.setThreadCountMax(Integer.MAX_VALUE);
 
-        f_daemon = Daemons.newDaemonPool(dependencies);
+        f_daemon   = Daemons.newDaemonPool(dependencies);
+        f_executor = f_daemon::add;
         f_daemon.start();
 
         for (int nChannel = 0; nChannel < cChannel; ++nChannel)
@@ -188,7 +190,7 @@ public class PagedTopicPublisher<V>
                 PagedTopicChannelPublisher channelPublisher = ensureChannelPublisher(value);
                 CompletableFuture<Status>  future           = channelPublisher.publish(f_convValueToBinary.convert(value));
 
-                future.handleAsync((status, error) -> handlePublished(channelPublisher.getChannel()));
+                future.handleAsync((status, error) -> handlePublished(channelPublisher.getChannel()), f_executor);
 
                 return future;
                 }
@@ -367,7 +369,7 @@ public class PagedTopicPublisher<V>
                     // we need to do the actual close async as we're on the service thread here
                     // setting the state to OnError will stop us accepting further messages to publish
                     m_state = State.OnError;
-                    CompletableFuture.runAsync(() -> closeInternal(false));
+                    CompletableFuture.runAsync(() -> closeInternal(false), Daemons.commonPool());
                     break;
                 case Continue:
                     // Do nothing as the individual errors will
@@ -1013,6 +1015,12 @@ public class PagedTopicPublisher<V>
      * The {@link DaemonPool} used to complete published message futures so that they are not on the service thread.
      */
     private final DaemonPool f_daemon;
+
+    /**
+     * The {@link Executor} used to complete async operations (this will wrap {@link #f_daemon}).
+     */
+    private final Executor f_executor;
+
 
     /**
      * A unique identifier for this publisher.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,12 +20,16 @@ import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.Session;
 
+import com.tangosol.net.ViewBuilder;
 import com.tangosol.util.Extractors;
+import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 
 import com.tangosol.util.function.Remote;
 
 import java.util.List;
+
+import java.util.Objects;
 
 import java.util.concurrent.RejectedExecutionException;
 
@@ -47,14 +51,17 @@ public class NamedClusteredExecutorService
      *
      * @param name  the executor service name
      */
+    @SuppressWarnings("unchecked")
     public NamedClusteredExecutorService(Name name)
         {
         super(session());
 
         f_name = name;
 
-        m_viewNamed = Caches.executors(session())
-                .view().filter(Filters.equal(Extractors.extract("getOption", Name.class, null), f_name)).build();
+        Filter<?>         filter  = Filters.equal(Extractors.extract("getExecutorName()"), f_name.getName());
+        ViewBuilder<?, ?> builder = Caches.executors(session()).view();
+
+        m_viewNamed = builder.keys().filter(filter).build();
         }
 
     // ----- ClusteredExecutorService methods ---------------------------
@@ -62,7 +69,7 @@ public class NamedClusteredExecutorService
     @Override
     public <T> Task.Orchestration<T> orchestrate(Task<T> task)
         {
-        return new NamedOrchestration<>(this, f_name, task);
+        return new NamedOrchestration<>(this, f_name, Objects.requireNonNull(task));
         }
 
     @Override
@@ -118,10 +125,38 @@ public class NamedClusteredExecutorService
     protected static class NamedOrchestration<T>
             extends ClusteredOrchestration<T>
         {
+        // ----- constructors -----------------------------------------------
+
+        /**
+         * Creates a NamedOrchestration.
+         *
+         * @param clusteredExecutorService the {@link ClusteredExecutorService}
+         * @param name                     the executor {@link Name}
+         * @param task                     the {@link Task} to execute
+         */
         public NamedOrchestration(ClusteredExecutorService clusteredExecutorService, Name name, Task<T> task)
             {
             super(clusteredExecutorService, task);
-            filter(Predicates.has(name));
+            m_strategyBuilder.m_predicate = Predicates.has(name);
+            }
+
+        /**
+         * As this orchestration installs a filter as part of its required
+         * function, any user predicates will be <em>and</em>'d together.
+         * @param predicate  the {@link TaskExecutorService.ExecutorInfo} predicate
+         *
+         * @return this orchestration
+         */
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        @Override
+        public Task.Orchestration<T> filter(Remote.Predicate<? super ExecutorInfo> predicate)
+            {
+            Remote.Predicate<?> predExisting = m_strategyBuilder.m_predicate;
+            if (predExisting != null)
+                {
+                m_strategyBuilder.m_predicate = predExisting.and((Remote.Predicate) predicate);
+                }
+            return this;
             }
         }
 
@@ -170,6 +205,5 @@ public class NamedClusteredExecutorService
      * If the map is empty, it means there is no registered executors
      * for the given name causing attempted executions to be rejected.
      */
-    @SuppressWarnings("rawtypes")
-    protected NamedCache m_viewNamed;
+    protected NamedCache<?, ?> m_viewNamed;
     }

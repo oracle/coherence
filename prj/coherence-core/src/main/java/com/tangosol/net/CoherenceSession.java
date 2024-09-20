@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
@@ -99,6 +99,18 @@ public class CoherenceSession
     public <V> NamedTopic<V> getTopic(String sName, NamedTopic.Option... options)
         {
         return m_session.getTopic(sName, options);
+        }
+
+    @Override
+    public void close(NamedCollection col)
+        {
+        m_session.close(col);
+        }
+
+    @Override
+    public void destroy(NamedCollection col)
+        {
+        m_session.destroy(col);
         }
 
     @Override

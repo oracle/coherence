@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.oracle.coherence.common.base.Associated;
 import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.common.util.Duration;
 import com.tangosol.internal.net.DebouncedFlowControl;
 
 import com.tangosol.internal.net.topic.impl.paged.agent.OfferProcessor;
@@ -84,10 +85,10 @@ public class PagedTopicChannelPublisher
         f_onErrorHandler          = onErrorHandler;
         m_caches                  = caches;
         f_nNotifyPostFull         = nNotifyPostFull;
-        f_keyUsageSync            = m_caches.getUsageSyncKey(nChannel);
-        f_nUsageSyncUnitOfOrder   = m_caches.getUnitOfOrder(f_keyUsageSync.getPartitionId());
-        f_serializer              = m_caches.getSerializer();
-        f_keyPartitioningStrategy = m_caches.getService().getKeyPartitioningStrategy();
+        f_keyUsageSync            = caches.getUsageSyncKey(nChannel);
+        f_nUsageSyncUnitOfOrder   = caches.getUnitOfOrder(f_keyUsageSync.getPartitionId());
+        f_serializer              = caches.getSerializer();
+        f_keyPartitioningStrategy = caches.getService().getKeyPartitioningStrategy();
 
         BatchingOperationsQueue.Executor executor   = new AssociatedExecutor(pool);
         NamedTopic.ElementCalculator     calculator = caches.getElementCalculator();
@@ -123,19 +124,30 @@ public class PagedTopicChannelPublisher
 
     private void ensureConnected()
         {
-        PagedTopicDependencies dependencies = m_caches.getDependencies();
-        long                   retry        = dependencies.getReconnectRetryMillis();
-        long                   now          = System.currentTimeMillis();
-        long                   timeout      = now + dependencies.getReconnectTimeoutMillis();
-        Throwable              error        = null;
+        long      now     = System.currentTimeMillis();
+        long      retry   = PagedTopic.DEFAULT_RECONNECT_TIMEOUT_SECONDS.as(Duration.Magnitude.MILLI);
+        long      timeout = now *2;
+        Throwable error   = null;
+
         while (now < timeout)
             {
+            PagedTopicCaches caches = m_caches;
+            if (m_state != State.Active || caches == null)
+                {
+                // we're closed
+                return;
+                }
+
             try
                 {
-                m_caches.ensureConnected();
+                PagedTopicDependencies dependencies = caches.getDependencies();
+                retry   = dependencies.getReconnectRetryMillis();
+                timeout = now + dependencies.getReconnectTimeoutMillis();
+
+                caches.ensureConnected();
 
                 // we must ensure the topic has the required number of channels
-                PagedTopicService service = m_caches.getService();
+                PagedTopicService service = caches.getService();
                 if (service.isSuspended())
                     {
                     Blocking.sleep(100);
