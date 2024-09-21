@@ -1,14 +1,16 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
 
 
 import com.oracle.coherence.common.base.Logger;
+
+import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.util.GridComponent;
 
@@ -1103,7 +1105,7 @@ public abstract class ConfigurableQuorumPolicy
             {
             long ldtNow = getLastSafeTimeMillis();
 
-            if (m_ldtLastReport > ldtNow - 60_000)
+            if (m_ldtLastReport > ldtNow - LAST_DISALLOWED_REPORT_INTERVAL)
                 {
                 return;
                 }
@@ -1276,6 +1278,15 @@ public abstract class ConfigurableQuorumPolicy
          * The highest used bitmask value.
          */
         protected static final int MASK_LAST = MASK_RECOVER;
+
+        /**
+         * Configurable quorum disallowed report interval.
+         * Configurable using system property "coherence.quorum.disallowed_report_interval_ms" set to milliseconds.
+         * Defaults to 60 seconds.
+         *
+         * @since 24.09
+         */
+        protected static final long LAST_DISALLOWED_REPORT_INTERVAL = Config.getLong("coherence.quorum.disallowed_report_interval_ms", 60_0000);
 
         /**
          * The recovery address-provider.
