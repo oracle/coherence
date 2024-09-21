@@ -20,6 +20,7 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
+import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.PartitionedService;
@@ -33,6 +34,7 @@ import com.tangosol.persistence.CachePersistenceHelper;
 
 import com.tangosol.util.Base;
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.testing.AbstractRollingRestartTest;
 
 import org.junit.Test;
@@ -47,6 +49,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanServer;
@@ -247,6 +250,9 @@ public abstract class AbstractRollingPersistenceTests
         props.setProperty("test.recover.quorum", "0"); // dynamic recovery
         props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
+        // default is 1 minute and this test runs in 30 seconds. Disable report interval to aid debugging test failures.
+        props.setProperty("coherence.quorum.disallowed_report_interval_ms", "0");
+
         try
             {
             for (String sMember : listMembers)
@@ -339,6 +345,13 @@ public abstract class AbstractRollingPersistenceTests
 
             Eventually.assertThat(
                 invoking(service).getOwnershipEnabledMembers().size(), is(3));
+
+            try
+                {
+                Logger.info("verify recovery disallowed due to not enough nodes. ownershipenabledMembers size:" +
+                            service.getOwnershipEnabledMembers().size());
+                }
+            catch (Throwable t) {}
             assertNull("Not enough nodes", service.getPartitionOwner(0));
 
 //            notification = holderNotification.get();
@@ -351,7 +364,31 @@ public abstract class AbstractRollingPersistenceTests
 
             Eventually.assertThat(
                 invoking(service).getOwnershipEnabledMembers().size(), is(5));
-            assertNull("Not enough nodes on m2 and m3", service.getPartitionOwner(0));
+            try
+                {
+                Logger.info("verify recovery disallowed due to not enough nodes on m2 and m3 ownershipenabledMembers size:" +
+                            service.getOwnershipEnabledMembers().size());
+
+                assertNull("Not enough nodes on m2 and m3", service.getPartitionOwner(0));
+                }
+            catch (Throwable e)
+                {
+                Set<Member> setMember = service.getOwnershipEnabledMembers();
+                int size = setMember == null ? -1 : setMember.size();
+                StringBuffer sb = new StringBuffer("handled " + e + " number of ownershipenabledMembers:" + size);
+                sb.append("\n");
+                sb.append("Members: ");
+                if (setMember != null)
+                    {
+                    for (Member member : setMember)
+                        {
+                        sb.append(member).append(", ");
+                        }
+                    }
+                Logger.info(sb.toString());
+                throw e;
+                }
+
 
 //            notification = holderNotification.get();
 //            assertTrue("Missing notification", notification != null &&
