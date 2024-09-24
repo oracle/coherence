@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2022, 2023 Oracle and/or its affiliates.
+    Copyright (c) 2022, 2024 Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
@@ -53,12 +53,6 @@ The following table describes the mapping of javax packages to jakarta packages 
 |jakarta.interceptor
 |jakarta.interceptor-api
 |2.0.0
-
-|javax.jms
-|jakarta.jms
-|jakarta.jms
-|jakarta.jms-api
-|3.0.0
 
 |javax.json
 |jakarta.json

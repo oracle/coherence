@@ -125,13 +125,6 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- JMS -->
-    <dependency>
-      <groupId>jakarta.jms</groupId>
-      <artifactId>jakarta.jms-api</artifactId>
-      <optional>true</optional>
-    </dependency>
-
     <!-- JCA -->
     <dependency>
       <groupId>jakarta.resource</groupId>
