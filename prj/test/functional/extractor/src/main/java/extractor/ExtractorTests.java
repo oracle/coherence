@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-
 package extractor;
-
 
 import com.tangosol.io.ExternalizableLite;
 
@@ -16,17 +14,20 @@ import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.util.Extractors;
 import com.tangosol.util.Filter;
+import com.tangosol.util.Filters;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.WrapperException;
 
 import com.tangosol.util.extractor.AbstractExtractor;
+import com.tangosol.util.extractor.CollectionExtractor;
 import com.tangosol.util.extractor.DeserializationAccelerator;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.MultiExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
-
 import com.tangosol.util.extractor.UniversalExtractor;
+
 import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.filter.LessEqualsFilter;
 
@@ -36,6 +37,8 @@ import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import data.Person;
 
+import data.collectionExtractor.City;
+import data.collectionExtractor.Country;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -46,16 +49,23 @@ import java.io.IOException;
 
 import java.util.Calendar;
 import java.util.List;
+import java.util.Set;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.hasItems;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 
 /**
  * A collection of functional tests for the {@link ValueExtractor}.
  *
  * @author oew 01/22/2007
+ * @author Gunnar Hillert 09/12/2024
  */
 public class ExtractorTests
         extends AbstractFunctionalTest
@@ -105,6 +115,65 @@ public class ExtractorTests
         Filter         filter    = new LessEqualsFilter(itTestExt, nAge);
         assertTrue("ReflextionExtractor : Error invoking cache query Extractor",
                    (cache.entrySet(filter).size() == 26));
+
+        cache.destroy();
+        }
+
+    /**
+     * Test for {@link CollectionExtractor}.
+     */
+    @Test
+    public void testCollection()
+        {
+        NamedCache cache = getNamedCache();
+
+        Country usa = new Country("USA");
+        usa.setArea(3_796_742);
+        usa.setPopulation(334_914_895);
+        usa.addCity(new City("New York", 8_258_035))
+           .addCity(new City("Los Angeles", 3_820_914))
+           .addCity(new City("Chicago", 2_664_452));
+
+        Country germany = new Country("Germany");
+        germany.setArea(357_569);
+        germany.setPopulation(82_719_540);
+        germany.addCity(new City("Berlin", 3_677_472))
+               .addCity(new City("Hamburg", 1_906_411))
+               .addCity(new City("Munich", 1_487_708));
+
+        Country taiwan = new Country("Taiwan");
+        taiwan.setArea(36_197);
+        taiwan.setPopulation(23_894_394);
+        taiwan.addCity(new City("New Taipei", 3_974_911))
+              .addCity(new City("Kaohsiung", 2_778_992))
+              .addCity(new City("Taichung", 2_759_887))
+              .addCity(new City("Taipei", 2_696_316));
+
+        cache.put("us", usa);
+        cache.put("de", germany);
+        cache.put("tw", taiwan);
+
+        cache.values(Filters.in(Extractors.extract("name"), Set.of("USA", "Germany"))).size();
+
+        ValueExtractor<Country, String> countryNameExtractor = Extractors.extract("name");
+
+        Filter countryFilter = Filters.in(Extractors.extract("name"), "USA", "Germany");
+
+        ValueExtractor<Country, List<City>> listOfCitiesExtractor = Extractors.extract("cities");
+        ValueExtractor<City, String> cityNameExtractor = Extractors.extract("name");
+        CollectionExtractor<City, String> cityExtractor = new CollectionExtractor<>(cityNameExtractor);
+
+        ValueExtractor<Country, List<String>> chainedExtractor  = Extractors.chained(listOfCitiesExtractor, cityExtractor);
+
+        List<List<String>> cityNames = cache.stream(countryFilter, chainedExtractor).toList();
+
+        assertEquals("Expected 2 results (Countries) but got " + cityNames.size(), 2, cityNames.size());
+
+        List<String> justCities = cityNames.stream().flatMap(list -> list.stream()).toList();
+
+        assertEquals("Expected 6 cities but got " + justCities.size(), 6, justCities.size());
+
+        assertThat(justCities, hasItems("Berlin", "Hamburg", "Munich", "Los Angeles", "New York", "Chicago"));
 
         cache.destroy();
         }
