@@ -1,8 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
-    http://oss.oracle.com/licenses/upl.
+    https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Durable Events
 :description: Coherence Guides Durable Events
@@ -24,7 +24,7 @@ More advanced use cases for Durable Events include the ability to replay all eve
 
 Please see {commercial-docs-base-url}/develop-applications/using-map-events.html#GUID-35236F52-2815-494F-9231-1363B8206AE4[Durable Events Documentation] for more information on Durable Events.
 
-NOTE: Durable events are an experimental feature only and should not be used in product as yet.
+NOTE: Durable events are an experimental feature only and should not be used in production environments.
 
 NOTE: Durable Events are not yet supported for Coherence*Extend clients.
 
