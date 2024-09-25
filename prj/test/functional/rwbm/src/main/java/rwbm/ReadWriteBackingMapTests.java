@@ -1996,6 +1996,11 @@ public class ReadWriteBackingMapTests
             }
         finally
             {
+            if (store instanceof TestNonBlockingStore)
+                {
+                ((TestNonBlockingStore) store).shutdownExecutorService();
+                }
+                    
             cache.destroy();
             }
         }
