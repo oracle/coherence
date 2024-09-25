@@ -12,6 +12,7 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.cache.NonBlockingEntryStore;
 import com.tangosol.net.cache.StoreObserver;
 
+import com.tangosol.util.Base;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.NullImplementation;
@@ -275,7 +276,7 @@ public class TestNonBlockingStore<K, V>
     @Override
     public void store(BinaryEntry<K, V> binEntry, StoreObserver<K, V> observer)
         {
-        log(isVerboseStore(), "TestNonBlockingStore store");
+        log(true, "TestNonBlockingStore store\n" + Base.getStackTrace());
 
         Object oKey   = binEntry.getKey();
         Object oValue = binEntry.getValue();
