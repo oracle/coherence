@@ -103,7 +103,7 @@
       Note that this property has to be named 'revision' and that it has
       special meaning for Maven (see http://maven.apache.org/maven-ci-friendly.html)
       -->
-    <revision>24.09</revision>
+    <revision>24.09.1-SNAPSHOT</revision>
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
 
     <maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
