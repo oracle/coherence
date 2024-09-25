@@ -22,6 +22,7 @@ import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.Service;
 
 import com.tangosol.net.PartitionedService;
 
@@ -255,16 +256,23 @@ public abstract class AbstractRollingPersistenceTests
 
         try
             {
+            ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                    .getConfigurableCacheFactory("client-cache-config.xml", null);
+            setFactory(factory);
+
+            // ensure client is senior for service to stabilize test
+            Service svc = factory.ensureService("DistributedCachePersistence");
+            Logger.info("Started Service: " + svc + " before starting servers");
+
             for (String sMember : listMembers)
                 {
                 startServer(sTestPrefix, sMember, dirActive, dirTrash, props, null);
                 }
 
-            ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
-                    .getConfigurableCacheFactory("client-cache-config.xml", null);
-            setFactory(factory);
-
             NamedCache cache = getNamedCache("rolling-" + sTestPrefix + "data");
+            cache.truncate();
+            Eventually.assertDeferred(() -> cache.size(), is(0));
+
             DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
 
             Eventually.assertThat(
@@ -282,9 +290,14 @@ public abstract class AbstractRollingPersistenceTests
             waitForBalanced(service, 180);
 
             // the following sleep should be removed once COH-19735 is done
-            sleep(4000); // when COH-14809 is done, replace with an event check
+            // increased wait time since the referenced bug for an event was never implemented.
+            // failure scenario is definitely when partition map is not persisted before suspend.
+            sleep(8000); // when COH-14809 is done, replace with an event check
 
             cache.putAll(map);
+
+            // ensure putAll completes before suspending service
+            Eventually.assertDeferred(() -> cache.size(), is(map.size()));
 
             // stop all servers at once (kinda)
             // Note: we do this under a suspended service to avoid restore completing
