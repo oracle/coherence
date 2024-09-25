@@ -59,6 +59,13 @@ Create sorted client-side views of cached data.
 --
 
 [CARD]
+.Vector DB
+[icon=fa-database,link=docs/core/08_vector_db.adoc]
+--
+Use Coherence as a Vector Database.
+--
+
+[CARD]
 .Queues
 [icon=line_weight,link=docs/core/09_queues.adoc]
 --
