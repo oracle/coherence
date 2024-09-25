@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -117,10 +117,14 @@ public abstract class AbstractDistEntryProcessorTests
         {
         NamedCache cache = getNamedCache();
         cache.clear();
+        Eventually.assertDeferred(cache::size, is(0));
+        Eventually.assertDeferred("The cache should be empty. Cache contents: " + cache.entrySet(), cache::isEmpty, is(true));
 
         cache.put("key", "value");
+        Eventually.assertDeferred(cache::size, is(1));
+
         InvocableMap.EntryProcessor processor =
-                new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_NONE, 1L);
+                new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_NONE, 100L);
         cache.invoke("key", processor);
 
         Eventually.assertDeferred(cache::isEmpty, is(true));
@@ -139,11 +143,14 @@ public abstract class AbstractDistEntryProcessorTests
         {
         NamedCache cache = getNamedCache();
         cache.clear();
-        Eventually.assertDeferred(cache::isEmpty, is(true));
+        Eventually.assertDeferred("The cache should be empty. Cache contents: " + cache.entrySet(), cache::isEmpty, is(true));
+        Eventually.assertDeferred(cache::size, is(0));
 
         cache.put("key", "value");
+        Eventually.assertDeferred(cache::size, is(1));
+
         InvocableMap.EntryProcessor processor =
-                new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_BEFORE_BIN, 1L);
+                new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_BEFORE_BIN, 100L);
         cache.invoke("key", processor);
 
         Eventually.assertDeferred(cache::isEmpty, is(true));
@@ -164,11 +171,14 @@ public abstract class AbstractDistEntryProcessorTests
         {
         NamedCache cache = getNamedCache();
         cache.clear();
-        Eventually.assertDeferred(cache::isEmpty, is(true));
+        Eventually.assertDeferred("The cache should be empty. Cache contents: " + cache.entrySet(), cache::isEmpty, is(true));
+        Eventually.assertDeferred(cache::size, is(0));
 
         cache.put("key", "value");
+        Eventually.assertDeferred(cache::size, is(1));
+
         InvocableMap.EntryProcessor processor =
-                new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_AFTER_BIN, 1L);
+                new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_AFTER_BIN, 100L);
         cache.invoke("key", processor);
 
         Eventually.assertDeferred(cache::isEmpty, is(true));
