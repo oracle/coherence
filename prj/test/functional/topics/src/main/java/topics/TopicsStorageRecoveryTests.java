@@ -38,6 +38,9 @@ import com.oracle.bedrock.testsupport.junit.TestLogs;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
+import com.oracle.coherence.common.util.Threads;
+import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
+
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPublisher;
 import com.tangosol.io.ExternalizableLite;
 
@@ -857,13 +860,26 @@ public class TopicsStorageRecoveryTests
     @ClassRule
     public static TestLogs s_testLogs = new TestLogs(TopicsRecoveryTests.class);
 
+    private static CoherenceCluster s_storageCluster;
+
+    /**
+     * A JUnit rule that will cause the test to fail if it runs too long.
+     * A thread dump will be generated on failure.
+     */
+    @ClassRule
+    public static final ThreadDumpOnTimeoutRule timeout = ThreadDumpOnTimeoutRule.after(30, TimeUnit.MINUTES, () ->
+            s_storageCluster.forEach(member -> member.invoke(() ->
+                                                 {
+                                                 System.err.println(Threads.getThreadDump(true));
+                                                 return null;
+                                                 })));
+
     private static final OptionsByType s_options = OptionsByType.of(
             SystemProperty.of("coherence.guard.timeout", 60000),
             CacheConfig.of("simple-persistence-bdb-cache-config.xml"),
             OperationalOverride.of("common-tangosol-coherence-override.xml"),
             SystemProperty.of("coherence.distributed.partitioncount", "13"));
 
-    private static CoherenceCluster s_storageCluster;
 
     private static Coherence s_coherence;
 
