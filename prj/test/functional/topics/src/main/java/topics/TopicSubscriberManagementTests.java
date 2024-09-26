@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -56,6 +56,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -220,9 +221,15 @@ public class TopicSubscriberManagementTests
 
             // all channels should eventually be allocated to subscriberTwo
             Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(topic.getChannelCount()));
-            Eventually.assertDeferred(() -> caches.getChannelAllocations(sGroupOne).size(), is(1));
-            Map<Long, Set<Integer>> mapAllocation = caches.getChannelAllocations(sGroupOne);
-            assertThat(mapAllocation.get(subscriberTwo.getId()), is(subscriberTwo.getChannelSet()));
+            final AtomicReference<Map<Long, Set<Integer>>> ref = new AtomicReference<>();
+            Eventually.assertDeferred(() ->
+                {
+                Map<Long, Set<Integer>> map = caches.getChannelAllocations(sGroupOne);
+                ref.set(map);
+                return map.size();
+                }, is(1));
+
+            assertThat(ref.get().get(subscriberTwo.getId()), is(subscriberTwo.getChannelSet()));
 
             // receive futures should still be waiting
             assertThat(futureOne.isDone(), is(false));
