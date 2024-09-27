@@ -13,14 +13,12 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.concurrent.Queues;
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.NamedQueueProtocol;
-import com.oracle.coherence.grpc.messages.cache.v1.NamedCacheResponse;
-import com.oracle.coherence.grpc.messages.cache.v1.ResponseType;
 import com.oracle.coherence.grpc.messages.common.v1.ErrorMessage;
 import com.oracle.coherence.grpc.messages.common.v1.OptionalValue;
 import com.oracle.coherence.grpc.messages.concurrent.queue.v1.EnsureQueueRequest;
@@ -58,6 +56,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -339,7 +338,7 @@ public class NamedQueueProxyProtocolIT
         int queueId = ensureQueue(channel, observer, sQueueName);
 
         NamedQueueResponse response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.PeekHead, Empty.getDefaultInstance());
-        OptionalValue      value    = response.getMessage().unpack(OptionalValue.class);
+        OptionalValue      value    = unpackAny(response, NamedQueueResponse::getMessage, OptionalValue.class);
 
         assertThat(value, is(notNullValue()));
         assertThat(value.getPresent(), is(true));
@@ -365,7 +364,7 @@ public class NamedQueueProxyProtocolIT
         int queueId = ensureQueue(channel, observer, sQueueName);
 
         NamedQueueResponse response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.PeekHead, Empty.getDefaultInstance());
-        OptionalValue      value    = response.getMessage().unpack(OptionalValue.class);
+        OptionalValue      value    = unpackAny(response, NamedQueueResponse::getMessage, OptionalValue.class);
 
         assertThat(value, is(notNullValue()));
         assertThat(value.getPresent(), is(false));
@@ -390,7 +389,7 @@ public class NamedQueueProxyProtocolIT
         int queueId = ensureDeque(channel, observer, sQueueName);
 
         NamedQueueResponse response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.PeekTail, Empty.getDefaultInstance());
-        OptionalValue      value    = response.getMessage().unpack(OptionalValue.class);
+        OptionalValue      value    = unpackAny(response, NamedQueueResponse::getMessage, OptionalValue.class);
 
         assertThat(value, is(notNullValue()));
         assertThat(value.getPresent(), is(true));
@@ -416,7 +415,7 @@ public class NamedQueueProxyProtocolIT
         int queueId = ensureDeque(channel, observer, sQueueName);
 
         NamedQueueResponse response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.PeekTail, Empty.getDefaultInstance());
-        OptionalValue      value    = response.getMessage().unpack(OptionalValue.class);
+        OptionalValue      value    = unpackAny(response, NamedQueueResponse::getMessage, OptionalValue.class);
 
         assertThat(value, is(notNullValue()));
         assertThat(value.getPresent(), is(false));
@@ -442,7 +441,7 @@ public class NamedQueueProxyProtocolIT
         int queueId = ensureQueue(channel, observer, sQueueName);
 
         NamedQueueResponse response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.PollHead, Empty.getDefaultInstance());
-        OptionalValue      value    = response.getMessage().unpack(OptionalValue.class);
+        OptionalValue      value    = unpackAny(response, NamedQueueResponse::getMessage, OptionalValue.class);
 
         assertThat(value, is(notNullValue()));
         assertThat(value.getPresent(), is(true));
@@ -468,7 +467,7 @@ public class NamedQueueProxyProtocolIT
         int queueId = ensureQueue(channel, observer, sQueueName);
 
         NamedQueueResponse response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.PollHead, Empty.getDefaultInstance());
-        OptionalValue      value    = response.getMessage().unpack(OptionalValue.class);
+        OptionalValue      value    = unpackAny(response, NamedQueueResponse::getMessage, OptionalValue.class);
 
         assertThat(value, is(notNullValue()));
         assertThat(value.getPresent(), is(false));
@@ -494,7 +493,7 @@ public class NamedQueueProxyProtocolIT
         int queueId = ensureDeque(channel, observer, sQueueName);
 
         NamedQueueResponse response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.PollTail, Empty.getDefaultInstance());
-        OptionalValue      value    = response.getMessage().unpack(OptionalValue.class);
+        OptionalValue      value    = unpackAny(response, NamedQueueResponse::getMessage, OptionalValue.class);
 
         assertThat(value, is(notNullValue()));
         assertThat(value.getPresent(), is(true));
@@ -520,7 +519,7 @@ public class NamedQueueProxyProtocolIT
         int queueId = ensureDeque(channel, observer, sQueueName);
 
         NamedQueueResponse response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.PollTail, Empty.getDefaultInstance());
-        OptionalValue      value    = response.getMessage().unpack(OptionalValue.class);
+        OptionalValue      value    = unpackAny(response, NamedQueueResponse::getMessage, OptionalValue.class);
 
         assertThat(value, is(notNullValue()));
         assertThat(value.getPresent(), is(false));
@@ -545,12 +544,12 @@ public class NamedQueueProxyProtocolIT
         ByteString bytesTwo = toByteString("value-2", serializer);
 
         NamedQueueResponse response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.OfferTail, BytesValue.of(bytesOne));
-        QueueOfferResult   result   = response.getMessage().unpack(QueueOfferResult.class);
+        QueueOfferResult   result   = unpackAny(response, NamedQueueResponse::getMessage, QueueOfferResult.class);
         assertThat(result, is(notNullValue()));
         assertThat(result.getSucceeded(), is(true));
 
         response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.OfferTail, BytesValue.of(bytesTwo));
-        result   = response.getMessage().unpack(QueueOfferResult.class);
+        result   = unpackAny(response, NamedQueueResponse::getMessage, QueueOfferResult.class);
         assertThat(result, is(notNullValue()));
         assertThat(result.getSucceeded(), is(true));
 
@@ -577,12 +576,12 @@ public class NamedQueueProxyProtocolIT
         ByteString bytesTwo = toByteString("value-2", serializer);
 
         NamedQueueResponse response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.OfferHead, BytesValue.of(bytesOne));
-        QueueOfferResult   result   = response.getMessage().unpack(QueueOfferResult.class);
+        QueueOfferResult   result   = unpackAny(response, NamedQueueResponse::getMessage, QueueOfferResult.class);
         assertThat(result, is(notNullValue()));
         assertThat(result.getSucceeded(), is(true));
 
         response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.OfferHead, BytesValue.of(bytesTwo));
-        result   = response.getMessage().unpack(QueueOfferResult.class);
+        result   = unpackAny(response, NamedQueueResponse::getMessage, QueueOfferResult.class);
         assertThat(result, is(notNullValue()));
         assertThat(result.getSucceeded(), is(true));
 
@@ -604,7 +603,7 @@ public class NamedQueueProxyProtocolIT
         int queueId = ensureQueue(channel, observer, sQueueName);
 
         NamedQueueResponse response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.IsReady, Empty.getDefaultInstance());
-        BoolValue          result   = response.getMessage().unpack(BoolValue.class);
+        BoolValue          result   = unpackAny(response, NamedQueueResponse::getMessage, BoolValue.class);
         assertThat(result, is(notNullValue()));
         assertThat(result.getValue(), is(true));
         }
@@ -625,7 +624,7 @@ public class NamedQueueProxyProtocolIT
         int queueId = ensureQueue(channel, observer, sQueueName);
 
         NamedQueueResponse response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.IsEmpty, Empty.getDefaultInstance());
-        BoolValue          result   = response.getMessage().unpack(BoolValue.class);
+        BoolValue          result   = unpackAny(response, NamedQueueResponse::getMessage, BoolValue.class);
         assertThat(result, is(notNullValue()));
         assertThat(result.getValue(), is(true));
         }
@@ -648,7 +647,7 @@ public class NamedQueueProxyProtocolIT
         int queueId = ensureQueue(channel, observer, sQueueName);
 
         NamedQueueResponse response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.IsEmpty, Empty.getDefaultInstance());
-        BoolValue          result   = response.getMessage().unpack(BoolValue.class);
+        BoolValue          result   = unpackAny(response, NamedQueueResponse::getMessage, BoolValue.class);
         assertThat(result, is(notNullValue()));
         assertThat(result.getValue(), is(false));
         }
@@ -669,7 +668,7 @@ public class NamedQueueProxyProtocolIT
         int queueId = ensureQueue(channel, observer, sQueueName);
 
         NamedQueueResponse response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.Size, Empty.getDefaultInstance());
-        Int32Value         result   = response.getMessage().unpack(Int32Value.class);
+        Int32Value         result   = unpackAny(response, NamedQueueResponse::getMessage, Int32Value.class);
         assertThat(result, is(notNullValue()));
         assertThat(result.getValue(), is(0));
         }
@@ -692,7 +691,7 @@ public class NamedQueueProxyProtocolIT
         int queueId = ensureQueue(channel, observer, sQueueName);
 
         NamedQueueResponse response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.Size, Empty.getDefaultInstance());
-        Int32Value          result  = response.getMessage().unpack(Int32Value.class);
+        Int32Value          result  = unpackAny(response, NamedQueueResponse::getMessage, Int32Value.class);
         assertThat(result, is(notNullValue()));
         assertThat(result.getValue(), is(queue.size()));
         }
@@ -765,17 +764,7 @@ public class NamedQueueProxyProtocolIT
                 .stream()
                 .skip(count)
                 .filter(ProxyResponse::hasMessage)
-                .map(m ->
-                    {
-                    try
-                        {
-                        return m.getMessage().unpack(NamedQueueResponse.class);
-                        }
-                    catch (InvalidProtocolBufferException e)
-                        {
-                        throw new RuntimeException(e);
-                        }
-                    })
+                .map(m -> unpackAny(m, ProxyResponse::getMessage, NamedQueueResponse.class))
                 .filter(m -> m.getQueueId() == queueId)
                 .filter(m -> m.getType() == NamedQueueResponseType.Destroyed)
                 .findFirst();
@@ -843,7 +832,7 @@ public class NamedQueueProxyProtocolIT
         }
 
     protected int ensureQueue(StreamObserver<ProxyRequest> channel, TestStreamObserver<ProxyResponse> observer,
-            String sQueueName, NamedQueueType type) throws Exception
+                              String sQueueName, NamedQueueType type) throws Exception
         {
         EnsureQueueRequest ensureQueueRequest = EnsureQueueRequest.newBuilder()
                 .setQueue(sQueueName)
@@ -862,16 +851,17 @@ public class NamedQueueProxyProtocolIT
         observer.awaitCount(responseId, 1, TimeUnit.MINUTES);
         observer.assertNoErrors();
 
-        ProxyResponse              proxyResponse = observer.valueAt(responseId - 1);
-        ProxyResponse.ResponseCase responseCase  = proxyResponse.getResponseCase();
+        ProxyResponse proxyResponse = observer.valueAt(responseId - 1);
+        assertThat(proxyResponse, is(notNullValue()));
 
+        ProxyResponse.ResponseCase responseCase  = proxyResponse.getResponseCase();
         if (responseCase == ProxyResponse.ResponseCase.ERROR)
             {
             ErrorMessage error = proxyResponse.getError();
             fail(error.getMessage());
             }
 
-        NamedQueueResponse response = proxyResponse.getMessage().unpack(NamedQueueResponse.class);
+        NamedQueueResponse response = unpackAny(proxyResponse, ProxyResponse::getMessage, NamedQueueResponse.class);
         int                queueId  = response.getQueueId();
 
         assertThat(queueId, is(not(0)));
@@ -922,7 +912,7 @@ public class NamedQueueProxyProtocolIT
             {
             return (Resp) proxyResponse.getComplete();
             }
-        return (Resp) proxyResponse.getMessage().unpack(NamedQueueResponse.class);
+        return (Resp) unpackAny(proxyResponse, ProxyResponse::getMessage, NamedQueueResponse.class);
         }
 
     protected void init(StreamObserver<ProxyRequest> channel, TestStreamObserver<ProxyResponse> observer,
@@ -952,6 +942,21 @@ public class NamedQueueProxyProtocolIT
         enumeration.asIterator().forEachRemaining(cacheNames::add);
         return cacheNames;
         }
+
+    protected <M extends Message, T extends Message> T unpackAny(M message, Function<M, Any> fn, Class<T> expected)
+        {
+        assertThat(message, is(notNullValue()));
+        try
+            {
+            return fn.apply(message).unpack(expected);
+            }
+        catch (Throwable e)
+            {
+            throw Exceptions.ensureRuntimeException(e,
+                    "Failed to unpack proto message: " + e.getMessage() + "\nMessage:\n" + message);
+            }
+        }
+
 
     // ----- data members ---------------------------------------------------
 
