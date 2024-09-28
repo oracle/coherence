@@ -19616,8 +19616,10 @@ public abstract class PartitionedService
             // state initialization: public and protected properties
             try
                 {
+                // identified pendingPolls required thread-safe data structure and
+                // verified that pendingConfigUpdates only accessed on single service thread, see details in COH-30132.
                 setPendingConfigUpdates(new java.util.LinkedList());
-                setPendingPolls(new com.tangosol.util.LiteMap());
+                setPendingPolls(new ConcurrentHashMap<>());
                 }
             catch (java.lang.Exception e)
                 {
