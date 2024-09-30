@@ -3564,7 +3564,7 @@ public class ReadWriteBackingMap
     protected Entry removeFromWriteQueue(Object binKey)
         {
         WriteQueue queue = getWriteQueue();
-        return queue == null ? null : queue.remove(binKey);
+        return queue == null ? null : queue.remove(binKey, isWriteBehindRemove());
         }
 
 
@@ -3987,12 +3987,13 @@ public class ReadWriteBackingMap
         * is used, for example, if an item has actually been removed from
         * the backing map.
         *
-        * @param binKey  the key object
+        * @param binKey        the key object
+        * @param fWriteBehind  a flag to indicate whether write behind is enabled
         *
         * @return the corresponding entry in the queue or null if the
         *         specified key was not in the queue
         */
-        protected synchronized Entry remove(Object binKey)
+        protected synchronized Entry remove(Object binKey, boolean fWriteBehind)
             {
             // 1. ensure any outstanding updates have been completed prior to
             //    processing the remove such that the following order is visible
@@ -4001,12 +4002,19 @@ public class ReadWriteBackingMap
             if (getContext().isKeyOwned(binKey) &&
                 Thread.currentThread() != ReadWriteBackingMap.this.getWriteThread().getThread())
                 {
-                while (getPendingMap().containsKey(binKey))
+                if (fWriteBehind)
                     {
-                    // If re-queue is enabled, it would be done as part of the current
-                    // store operation.
-                    setWaitingOnPending(true);
-                    waitFor(this, 100L);
+                    getPendingMap().remove(binKey);
+                    }
+                else
+                    {
+                    while (getPendingMap().containsKey(binKey))
+                        {
+                        // If re-queue is enabled, it would be done as part of the current
+                        // store operation.
+                        setWaitingOnPending(true);
+                        waitFor(this, 100L);
+                        }
                     }
                 }
 
