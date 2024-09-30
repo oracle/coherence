@@ -1854,7 +1854,7 @@ public class ExtensibleConfigurableCacheFactory
             DistributedScheme schemeDist = findDistributedScheme(sName);
             ParameterResolver resolver   = getResolver(sName);
 
-            return !schemeDist.getBackingMapScheme().isTransient(resolver);
+            return schemeDist != null && !schemeDist.getBackingMapScheme().isTransient(resolver);
             }
 
         /**
