@@ -292,10 +292,9 @@ public class TestNonBlockingStore<K, V>
                         }
                     }
 
-                delay(getDurationStore());
+                delay(getDurationStore() + 200);
                 getStorageMap().put(oKey, oValue);
                 getProcessor().process(binEntry);
-                delay(200);
                 observer.onNext(binEntry);
                 });
         }
