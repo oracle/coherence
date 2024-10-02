@@ -1,14 +1,18 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
 
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.util.Threads;
+
+import com.tangosol.coherence.config.Config;
+
 import com.tangosol.net.Guardian.GuardContext;
 
 import com.tangosol.util.Base;
@@ -842,10 +846,10 @@ public class GuardSupport
         AtomicLong atomicLogTime = s_atomicLogTime;
         long       ldtNow        = getSafeTimeMillis();
         long       ldtLast       = atomicLogTime.get();
-        long       ldtNext       = ldtNow + GUARDIAN_LOG_INTERVAL;
+        long       ldtNext       = ldtNow + LOG_THREADDUMP_INTERVAL_MS;
 
         // COH-3131: Prevent concurrent or too frequent thread dumps
-        if (ldtNow >= ldtLast + GUARDIAN_LOG_INTERVAL
+        if (ldtNow >= ldtLast + LOG_THREADDUMP_INTERVAL_MS
             && atomicLogTime.compareAndSet(ldtLast, ldtNext))
             {
             Base.err(getThreadDump());
@@ -860,6 +864,29 @@ public class GuardSupport
     public static String getThreadDump()
         {
         return Threads.getThreadDump();
+        }
+
+    /**
+     * Configure guardian log thread dump interval using property {@link #PROP_LOG_THREADDUMP_INTERVAL} set to
+     * a time duration, i.e. {@code 15m} or {@code 2h}. The maximum allowed duration is {@link #MAX_LOG_THREADDUMP_INTERVAL}, any value
+     * provided above this value is treated as the max allowed log thread dump interval.
+     * Default duration of {@link #DEFAULT_LOG_THREADDUMP_INTERVAL} is used when property is not or set to an invalid time duration.
+     *
+     * @return the computed guardian log thread dump interval in milliseconds.
+     *
+     * @since 25.03
+     */
+    protected static long getLogThreaddumpIntervalMs()
+        {
+        long  ldtInterval = Config.getDuration(PROP_LOG_THREADDUMP_INTERVAL, new Duration(DEFAULT_LOG_THREADDUMP_INTERVAL)).as(Duration.Magnitude.MILLI);
+
+        if (ldtInterval > MAX_LOG_THREADDUMP_INTERVAL_MS)
+            {
+            Logger.warn("Property \"" + PROP_LOG_THREADDUMP_INTERVAL + "\" is set to a duration that exceeds maximum " +
+                        MAX_LOG_THREADDUMP_INTERVAL + " duration, adjusting to maximum value allowed.");
+                        ldtInterval = MAX_LOG_THREADDUMP_INTERVAL_MS;
+            }
+        return ldtInterval;
         }
 
     // ----- constants ----------------------------------------------------
@@ -884,10 +911,53 @@ public class GuardSupport
     protected static final long GUARDIAN_EARLY_THRESHOLD = 500L;
 
     /**
-    * The minimum interval at which the Guardian should log thread dumps.
+    * Property for configuring minimum Guardian log thread dump interval as a time duration.
+    * Configure this property to reduce the number of Guardian log thread dumps in logs when
+    * too many are occurring over a short duration of time.
+    *
+    * Format is documented as {@code String} parameter of {@link Duration#Duration(String)}.
+    *
+    * @see #DEFAULT_LOG_THREADDUMP_INTERVAL
+    * @see #MAX_LOG_THREADDUMP_INTERVAL
+    *
+    * @since 25.03
     */
-    protected static final long GUARDIAN_LOG_INTERVAL = 3000L;
+    protected static final String PROP_LOG_THREADDUMP_INTERVAL = "coherence.guardian.log.threaddump.interval";
 
+    /**
+    * Default guardian log thread dump interval as a time duration.
+    *
+    * @since 25.03
+    */
+    protected static final String DEFAULT_LOG_THREADDUMP_INTERVAL = "3s";
+
+    /*
+    * Max guardian log thread dump interval as a time duration. This is ceiling value for {@link #PROP_LOG_THREADDUMP_INTERVAL}.
+    * Since the thread dumps are needed to analyze what caused guardian hard timeout, one is not allowed to disable guardian
+    * log thread dumps, only to reduce the frequency of the thread dumps.
+    *
+    * @since 25.03
+    */
+    protected static final String MAX_LOG_THREADDUMP_INTERVAL = "3h";
+
+    /**
+     * Max interval in milliseconds at which the Guardian log thread dump interval can be configured.
+     *
+     * @since 25.03
+     */
+    protected static final long MAX_LOG_THREADDUMP_INTERVAL_MS = new Duration(MAX_LOG_THREADDUMP_INTERVAL).as(Duration.Magnitude.MILLI);
+
+    /**
+    * The minimum interval at which the Guardian should log thread dumps in milliseconds.
+    *
+    * Override default {@link #DEFAULT_LOG_THREADDUMP_INTERVAL} by setting property
+    * {@link #PROP_LOG_THREADDUMP_INTERVAL} to a time duration.
+    *
+    * @see #MAX_LOG_THREADDUMP_INTERVAL
+    *
+    * @since 25.03
+    */
+    protected static final long LOG_THREADDUMP_INTERVAL_MS = getLogThreaddumpIntervalMs();
 
     // ----- data members -------------------------------------------------
 
