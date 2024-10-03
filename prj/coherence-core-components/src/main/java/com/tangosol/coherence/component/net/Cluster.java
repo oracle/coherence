@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -120,6 +120,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.naming.NamingException;
 
 /**
@@ -13497,8 +13498,10 @@ public class Cluster
                 // state initialization: public and protected properties
                 try
                     {
+                    // identified pendingPolls required thread-safe data structure and
+                    // verified that pendingConfigUpdates only accessed on single service thread, see details in COH-30132.
                     setPendingConfigUpdates(new java.util.LinkedList());
-                    setPendingPolls(new com.tangosol.util.LiteMap());
+                    setPendingPolls(new ConcurrentHashMap<>());
                     }
                 catch (java.lang.Exception e)
                     {
@@ -36852,8 +36855,10 @@ public class Cluster
                 // state initialization: public and protected properties
                 try
                     {
+                    // identified pendingPolls required thread-safe data structure and
+                    // verified that pendingConfigUpdates only accessed on single service thread, see details in COH-30132.
                     setPendingConfigUpdates(new java.util.LinkedList());
-                    setPendingPolls(new com.tangosol.util.LiteMap());
+                    setPendingPolls(new ConcurrentHashMap<>());
                     }
                 catch (java.lang.Exception e)
                     {
