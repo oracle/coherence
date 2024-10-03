@@ -16,13 +16,15 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
+import jakarta.json.bind.annotation.JsonbProperty;
+import jakarta.json.bind.annotation.JsonbNillable;
+
 import java.io.IOException;
 
 import java.util.EventListener;
 import java.util.EventObject;
 import java.util.Map;
 
-import jakarta.json.bind.annotation.JsonbProperty;
 
 import static com.tangosol.net.cache.ReadWriteBackingMap.BIN_ERASE_PENDING;
 
@@ -557,13 +559,15 @@ public class MapEvent<K, V>
     /**
     * A previous value.  May be null if not known.
     */
-    @JsonbProperty(value = "oldValue", nillable = true)
+    @JsonbProperty(value = "oldValue")
+    @JsonbNillable
     protected V m_valueOld;
 
     /**
     * A new value.  May be null if not known.
     */
-    @JsonbProperty(value = "newValue", nillable = true)
+    @JsonbProperty(value = "newValue")
+    @JsonbNillable
     protected V m_valueNew;
 
     /**
