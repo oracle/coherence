@@ -180,11 +180,12 @@ public interface InvocableMap<K, V>
     public default V getOrDefault(Object key, V defaultValue)
         {
         Object[] aoResult = invoke((K) key, entry -> {
-            if (entry.isPresent())
+            V value = entry.getValue();
+            if (value != null || entry.isPresent())
                 {
-                return new Object[]{true, entry.getValue()};
+                return new Object[] {true, value};
                 }
-            return new Object[]{false};
+            return new Object[] {false};
         });
 
         if (Boolean.TRUE.equals(aoResult[0]))

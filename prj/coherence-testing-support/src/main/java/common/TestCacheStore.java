@@ -85,6 +85,13 @@ public class TestCacheStore
         log(isVerboseLoad(), "load(" + oKey + ")");
         logMethodInvocation("load");
 
+        // Note: This is for the getOrDefault() test in ReadWriteBackingMapTests.readThroughBasic()
+        // when the entry does not exist.
+        if (!getStorageMap().containsKey(oKey) && oKey.equals("Key10"))
+            {
+            return oKey;
+            }
+
         delay(getDurationLoad());
 
         checkForFailure(getFailureKeyLoad(), oKey);
