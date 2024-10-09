@@ -1923,6 +1923,22 @@ public abstract class BaseManagementInfoResourceTests
         }
 
     @Test
+    public void testMembersRunReport()
+            throws IOException
+        {
+        WebTarget target   = getBaseTarget().path(REPORTERS).path("1").path("runReport").path("report-node");
+        Response response  = target.request(MediaType.APPLICATION_JSON_TYPE).get();
+        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+
+        Map    mapEntity = new LinkedHashMap();
+        Entity entity    = Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE);
+
+        Map mapResponse = readEntity(target, response, entity);
+        assertThat(mapResponse.size(), is(1));
+        assertThat(mapResponse.containsKey("items"), is(true));
+        }
+
+    @Test
     public void testCacheMemberResetStats()
         {
         WebTarget target = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path(CACHES).path(CACHE_NAME)
