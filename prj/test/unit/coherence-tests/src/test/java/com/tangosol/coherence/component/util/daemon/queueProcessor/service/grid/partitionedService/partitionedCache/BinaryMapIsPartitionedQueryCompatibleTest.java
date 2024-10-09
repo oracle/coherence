@@ -32,9 +32,6 @@ public class BinaryMapIsPartitionedQueryCompatibleTest
      * - 23.09.1
      * - 14.1.1.2206.7
      * - 22.06.7
-     * - 14.1.1.0.16
-     * - 12.2.1.4.20
-     * - 12.2.1.6.6
      */
     @Test
     public void testIsPartitionedQueryCompatible()
@@ -50,10 +47,10 @@ public class BinaryMapIsPartitionedQueryCompatibleTest
         assertFalse(BinaryMap.isPartitionedQueryCompatible(VersionHelper.encodeVersion(22, 6, 6)));
         assertTrue(BinaryMap.isPartitionedQueryCompatible(VersionHelper.encodeVersion(22, 6, 7)));
         assertFalse(BinaryMap.isPartitionedQueryCompatible(VersionHelper.encodeVersion(14, 1, 1, 0, 15)));
-        assertTrue(BinaryMap.isPartitionedQueryCompatible(VersionHelper.encodeVersion(14, 1, 1, 0, 16)));
+        assertFalse(BinaryMap.isPartitionedQueryCompatible(VersionHelper.encodeVersion(14, 1, 1, 0, 16)));
         assertFalse(BinaryMap.isPartitionedQueryCompatible(VersionHelper.encodeVersion(12, 2, 1, 4, 19)));
-        assertTrue(BinaryMap.isPartitionedQueryCompatible(VersionHelper.encodeVersion(12, 2, 1, 4, 20)));
+        assertFalse(BinaryMap.isPartitionedQueryCompatible(VersionHelper.encodeVersion(12, 2, 1, 4, 20)));
         assertFalse(BinaryMap.isPartitionedQueryCompatible(VersionHelper.encodeVersion(12, 2, 1, 6, 5)));
-        assertTrue(BinaryMap.isPartitionedQueryCompatible(VersionHelper.encodeVersion(12, 2, 1, 6, 7)));
+        assertFalse(BinaryMap.isPartitionedQueryCompatible(VersionHelper.encodeVersion(12, 2, 1, 6, 7)));
         }
     }
