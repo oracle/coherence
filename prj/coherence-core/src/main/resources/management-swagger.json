@@ -1373,6 +1373,30 @@
         }
       }
     },
+    "/management/coherence/cluster/reporters/{memberIdentifier}/runReport/{reportName}": {
+      "get": {
+        "tags": [
+          "Reporter"
+        ],
+        "summary": "Run a report",
+        "description": "Use this endpoint to run a report and return the output in JSON format",
+        "operationId": "/management/coherence/cluster/reporters/{memberIdentifier}/runReport/{reportName} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+        {
+          "$ref": "#/parameters/memberIdentifier",
+          "$ref": "#/parameters/reportName"
+        }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/reporters/{memberIdentifier}/resetStatistics": {
       "post": {
         "tags": [
@@ -10485,6 +10509,13 @@
       "name": "memberIdentifier",
       "in": "path",
       "description": "An identifier of the member, it can either be the name or the nodeId of the member.",
+      "required": true,
+      "type": "string"
+    },
+    "reportName": {
+      "name": "reportName",
+      "in": "path",
+      "description": "An identifier of the report to run without the xml extension.",
       "required": true,
       "type": "string"
     },
