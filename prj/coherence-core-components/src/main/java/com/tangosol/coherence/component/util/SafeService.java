@@ -12,9 +12,11 @@ package com.tangosol.coherence.component.util;
 
 import com.tangosol.coherence.component.net.Security;
 import com.tangosol.coherence.component.net.extend.RemoteService;
+
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid;
+
 import com.oracle.coherence.common.base.Timeout;
-import com.tangosol.net.CacheFactory;
+
 import com.tangosol.net.Cluster;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.Member;
@@ -23,18 +25,28 @@ import com.tangosol.net.ProxyService;
 import com.tangosol.net.RequestTimeoutException;
 import com.tangosol.net.Service;
 import com.tangosol.net.ServiceDependencies;
+
 import com.tangosol.net.management.Registry;
+
+import com.tangosol.net.messaging.ConnectionException;
+
 import com.tangosol.net.security.DoAsAction;
 import com.tangosol.net.security.LocalPermission;
+
 import com.tangosol.run.xml.XmlElement;
+
 import com.tangosol.util.Base;
 import com.tangosol.util.Listeners;
 import com.tangosol.util.ServiceEvent;
 import com.tangosol.util.SimpleResourceRegistry;
 import com.tangosol.util.SynchronousListener;
+
 import java.security.AccessController;
+
 import java.util.concurrent.TimeUnit;
+
 import java.util.concurrent.locks.Lock;
+
 import java.util.function.IntPredicate;
 
 /*
@@ -1452,8 +1464,17 @@ public class SafeService
             }
         catch (Throwable e)
             {
-            _trace("Error while starting service \"" + getServiceName() + "\": " +
-                    getStackTrace(e), 1);
+            String sMessage = "Error while starting service \"" + getServiceName() + "\": ";
+            if (service instanceof RemoteService && e instanceof ConnectionException)
+                {
+                // COH-30321 - skip printing the stack trace as connection failures are common and the stack trace
+                // doesn't provide anything useful
+                _trace(sMessage + e, 1);
+                }
+            else
+                {
+                _trace(sMessage + getStackTrace(e), 1);
+                }
             try
                 {
                 service.stop();
