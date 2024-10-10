@@ -60,9 +60,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 
-import static com.tangosol.internal.util.VersionHelper.VERSION_12_2_1_4_20;
-import static com.tangosol.internal.util.VersionHelper.VERSION_12_2_1_6_6;
-import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_1_0_16;
 import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_1_2206_7;
 import static com.tangosol.internal.util.VersionHelper.VERSION_23_09;
 import static com.tangosol.internal.util.VersionHelper.VERSION_23_09_1;
@@ -2344,10 +2341,7 @@ public class BinaryMap
         {
         return (isVersionCompatible(VERSION_14_1_2_0, nVersion) && nVersion != VERSION_23_09)
                || isPatchCompatible(VERSION_23_09_1, nVersion)
-               || isPatchCompatible(VERSION_14_1_1_2206_7, nVersion)
-               || isPatchCompatible(VERSION_14_1_1_0_16, nVersion)
-               || isPatchCompatible(VERSION_12_2_1_4_20, nVersion)
-               || isPatchCompatible(VERSION_12_2_1_6_6, nVersion);
+               || isPatchCompatible(VERSION_14_1_1_2206_7, nVersion);
         }
 
     // From interface: com.tangosol.net.NamedCache
