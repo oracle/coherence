@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -378,6 +378,20 @@ public abstract class AsynchronousAgent<T>
         return future;
         }
 
+    /**
+     * Set the converter from internal format.
+     *
+     * @implNote This method is only called by RequestCoordinator.createContext,
+     *           so it is very much internal, but it has to be public in order
+     *           to be accessible.
+     *
+     * @param converter  the converter from internal format
+     */
+    public void setValueConverter(Converter<Binary, T> converter)
+        {
+        m_converter = converter;
+        }
+
     // ----- data fields ----------------------------------------------------
 
     /**
@@ -415,4 +429,9 @@ public abstract class AsynchronousAgent<T>
      * The {@link Executor} to complete the future on.
      */
     private final Executor f_executor;
+
+    /**
+     * Converter from internal format.
+     */
+    protected Converter<Binary, T> m_converter;
     }

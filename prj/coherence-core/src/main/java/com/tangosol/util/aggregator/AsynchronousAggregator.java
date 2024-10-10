@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.aggregator;
-
 
 import com.tangosol.internal.util.Daemons;
 import com.tangosol.net.NamedCache;
@@ -18,7 +17,6 @@ import com.tangosol.util.processor.AsynchronousProcessor;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
-
 
 /**
  * A marker {@link EntryAggregator EntryAggregator} wrapper class that allows for
@@ -145,7 +143,7 @@ public class AsynchronousAggregator<K, V, P, R>
         Throwable eReason = m_eReason;
         if (eReason == null)
             {
-            complete(m_aggregator::finalizeResult);
+            complete(() -> m_aggregator.finalizeResult(m_converter));
             }
         else
             {
@@ -153,7 +151,7 @@ public class AsynchronousAggregator<K, V, P, R>
             }
         }
 
-    // ----- data fields -----------------------------------------------------
+    // ----- data fields ----------------------------------------------------
 
     /**
      * Reason for the failed operation.
