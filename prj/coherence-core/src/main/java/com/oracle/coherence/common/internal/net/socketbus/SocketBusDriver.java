@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.internal.net.socketbus;
 
@@ -20,6 +20,8 @@ import com.oracle.coherence.common.io.BufferManager;
 import com.oracle.coherence.common.io.BufferManagers;
 import com.oracle.coherence.common.util.Duration;
 import com.oracle.coherence.common.util.MemorySize;
+
+import com.tangosol.coherence.config.Config;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -938,8 +940,8 @@ public class SocketBusDriver
                         "memory and mess bus protocols cannot use the sane names");
                 }
 
-            m_cAckTimeoutMillis = new Duration(System.getProperty( SocketBusDriver.class.getName()+".ackTimeoutMillis",
-                    getDefaultAckTimeoutMillis() + "ms")).getNanos()/1000000;
+            m_cAckTimeoutMillis = Config.getDuration(SocketBusDriver.class.getName() + ".ackTimeoutMillis",
+                                                     new Duration(getDefaultAckTimeoutMillis(), Duration.Magnitude.MILLI)).as(Duration.Magnitude.MILLI);
 
             return this;
             }
@@ -1006,22 +1008,22 @@ public class SocketBusDriver
         /**
          * Reconnect interval for the Connection in millis
          */
-        protected long m_cReconnectDelayMillis = new Duration(System.getProperty(
-                SocketBusDriver.class.getName()+".reconnectDelayMillis", "200ms")).getNanos()/1000000;
+        protected long m_cReconnectDelayMillis =
+                Config.getDuration(SocketBusDriver.class.getName() + ".reconnectDelayMillis",
+                                   new Duration(200, Duration.Magnitude.MILLI)).as(Duration.Magnitude.MILLI);
 
         /**
          * The maximum number of sequential reconnects to attempt.
          * <p>
          * A value of -1 indicates that no reconnects should be attempted.
          */
-        protected int m_cReconnectLimit = Integer.parseInt(System.getProperty(
-                SocketBusDriver.class.getName()+".reconnectLimit", "3"));
+        protected int m_cReconnectLimit = Config.getInteger(SocketBusDriver.class.getName()+".reconnectLimit", 3);
 
         /**
          * Maximum receipt ack delay in millis
          */
-        protected long m_cMaxReceiptDelayMillis = new Duration(System.getProperty(
-                SocketBusDriver.class.getName()+".maxReceiptDelayMillis", "500ms")).getNanos()/1000000;
+        protected long m_cMaxReceiptDelayMillis = Config.getDuration(SocketBusDriver.class.getName()+".maxReceiptDelayMillis",
+                                                                     new Duration(500, Duration.Magnitude.MILLI)).as(Duration.Magnitude.MILLI);
 
         /**
          * Ack timeout in millis
@@ -1037,59 +1039,54 @@ public class SocketBusDriver
         /**
          * Fatal ack timeout in millis
          */
-        protected long m_cAckFatalTimeoutMillis = new Duration(System.getProperty(
-                SocketBusDriver.class.getName()+".fatalTimeoutMillis", "10m")).getNanos()/1000000;
+        protected long m_cAckFatalTimeoutMillis = Config.getDuration(SocketBusDriver.class.getName()+".fatalTimeoutMillis",
+                                                                     new Duration(10, Duration.Magnitude.MINUTE)).as(Duration.Magnitude.MILLI);
 
         /**
          * Heartbeat interval in millis, disabled by default now that we support reconnects
          */
-        protected long m_cHeartbeatDelayMillis = new Duration(System.getProperty(
-                SocketBusDriver.class.getName()+".heartbeatInterval", "0s")).getNanos()/1000000;
+        protected long m_cHeartbeatDelayMillis = Config.getDuration(SocketBusDriver.class.getName()+".heartbeatInterval",
+                                                                    new Duration("0s")).as(Duration.Magnitude.MILLI);
 
         /**
          * Auto flush threshold
          */
-        protected long m_cbAutoFlush = getSafeMemorySize(System.getProperty(
-                SocketBusDriver.class.getName()+".autoFlushThreshold"));
+        protected long m_cbAutoFlush = getSafeMemorySize(SocketBusDriver.class.getName()+".autoFlushThreshold");
 
         /**
          * Threshold after which to request receipts.
          */
-        protected long m_cbReceiptRequest = getSafeMemorySize(System.getProperty(
-                SocketBusDriver.class.getName()+".receiptRequestThreshold"));
+        protected long m_cbReceiptRequest = getSafeMemorySize(SocketBusDriver.class.getName()+".receiptRequestThreshold");
 
         /**
          * The maximum number of concurrent writers on which to attempt direct writes.
          */
-        protected int m_cThreadsDirect = Integer.parseInt(System.getProperty(
-                SocketBusDriver.class.getName() + ".directWriteThreadThreshold", "4"));
+        protected int m_cThreadsDirect = Config.getInteger(
+                SocketBusDriver.class.getName() + ".directWriteThreadThreshold", 4);
 
         /**
          * The drop ratio.
          */
-        protected int m_nDropRatio = Integer.parseInt(System.getProperty(
-                        SocketBusDriver.class.getName() + ".dropRatio", "0"));
+        protected int m_nDropRatio = Config.getInteger(
+                        SocketBusDriver.class.getName() + ".dropRatio", 0);
 
         /**
          * The force corruption ratio.
          */
-        protected int m_nCorruptionRatio = Integer.parseInt(System.getProperty(
-                SocketBusDriver.class.getName() + ".corruptionRatio", "0"));
+        protected int m_nCorruptionRatio = Config.getInteger(
+                SocketBusDriver.class.getName() + ".corruptionRatio", 0);
 
         /**
          * True iff CRC validation is enabled
          */
-        protected boolean m_fCrc = Boolean.parseBoolean(System.getProperty(
-                SocketBusDriver.class.getName() + ".crc", "false"));
+        protected boolean m_fCrc = Config.getBoolean(SocketBusDriver.class.getName() + ".crc", false);
 
 
-        private static long getSafeMemorySize(String sValue)
+        private static long getSafeMemorySize(String sName)
             {
-            if (sValue == null)
-                {
-                return -1;
-                }
-            return new MemorySize(sValue).getByteCount();
+            MemorySize size = Config.getMemorySize(sName);
+
+            return size == null ? -1 : size.getByteCount();
             }
 
         // ----- constants ----------------------------------------------
@@ -1101,7 +1098,7 @@ public class SocketBusDriver
 
         static
             {
-            String sManager = System.getProperty(SocketBusDriver.class.getName() + ".bufferManager", "network");
+            String sManager = Config.getProperty(SocketBusDriver.class.getName() + ".bufferManager", "network");
             switch (sManager)
                 {
                 case "heap":
@@ -1156,10 +1153,10 @@ public class SocketBusDriver
                     }
                 }
 
-            final int RX_BUFFER_SIZE = (int) getSafeMemorySize(System.getProperty(
-                                        SocketBusDriver.class.getName()+".socketRxBuffer"));
-            final int TX_BUFFER_SIZE = (int) getSafeMemorySize(System.getProperty(
-                                        SocketBusDriver.class.getName()+".socketTxBuffer"));
+            final int RX_BUFFER_SIZE = (int) getSafeMemorySize(
+                                        SocketBusDriver.class.getName()+".socketRxBuffer");
+            final int TX_BUFFER_SIZE = (int) getSafeMemorySize(
+                                        SocketBusDriver.class.getName()+".socketTxBuffer");
             };
         }
 
