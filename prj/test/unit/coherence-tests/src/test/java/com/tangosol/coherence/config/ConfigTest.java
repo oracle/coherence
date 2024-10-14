@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config;
 
@@ -555,6 +555,50 @@ public class ConfigTest
 
         String result = Config.getEnvInternal("tangosol.foo", envVars);
         assertThat(result, is("bar"));
+        }
+
+    /**
+     * Test Coherence system property accessing, both 12.2.1 pattern beginning with <tt>coherence.</tt>
+     * and prior to 12.2.1 pattern of <tt>tangosol.</tt>
+     */
+    @Test
+    public void testClassPrefixPropertyDefaultingBackwardsCompatible()
+        {
+        final String COHERENCE_COMMON       = "com.oracle.coherence.common";  // from Coherence 14.1.1.0 and greater
+        final String ORACLE_COMMON          = "com.oracle.common";            // before Coherence 14.1.1.0
+        final String RECONNECT_LIMIT_SUFFIX = ".internal.net.socketbus.SocketBusDriver.reconnectLimit";
+        final int DEFAULT_VALUE             = 3;
+        final int SET_VALUE                 = 20;
+
+        // pre-condition
+        assertNull(System.getProperty(COHERENCE_COMMON + RECONNECT_LIMIT_SUFFIX));
+        assertNull(System.getProperty(ORACLE_COMMON + RECONNECT_LIMIT_SUFFIX));
+        assertThat(Config.getInteger(COHERENCE_COMMON + RECONNECT_LIMIT_SUFFIX, DEFAULT_VALUE), is(DEFAULT_VALUE));
+        assertThat(Config.getInteger(ORACLE_COMMON + RECONNECT_LIMIT_SUFFIX, DEFAULT_VALUE), is(DEFAULT_VALUE));
+
+        try (SystemPropertyResource p = new SystemPropertyResource(ORACLE_COMMON + RECONNECT_LIMIT_SUFFIX, Integer.toString(SET_VALUE));)
+            {
+            assertThat(Config.getInteger(ORACLE_COMMON + RECONNECT_LIMIT_SUFFIX),    is(SET_VALUE));
+            assertThat(Config.getInteger(COHERENCE_COMMON + RECONNECT_LIMIT_SUFFIX), is(SET_VALUE));
+            }
+
+        // post-condition
+        assertNull(System.getProperty(COHERENCE_COMMON + RECONNECT_LIMIT_SUFFIX));
+        assertNull(System.getProperty(ORACLE_COMMON + RECONNECT_LIMIT_SUFFIX));
+        assertThat(Config.getInteger(COHERENCE_COMMON + RECONNECT_LIMIT_SUFFIX, DEFAULT_VALUE), is(DEFAULT_VALUE));
+        assertThat(Config.getInteger(ORACLE_COMMON + RECONNECT_LIMIT_SUFFIX, DEFAULT_VALUE), is(DEFAULT_VALUE));
+
+        try (SystemPropertyResource p = new SystemPropertyResource(COHERENCE_COMMON + RECONNECT_LIMIT_SUFFIX, Integer.toString(SET_VALUE));)
+            {
+            assertThat(Config.getInteger(ORACLE_COMMON + RECONNECT_LIMIT_SUFFIX),    is(SET_VALUE));
+            assertThat(Config.getInteger(COHERENCE_COMMON + RECONNECT_LIMIT_SUFFIX), is(SET_VALUE));
+            }
+
+        // post-condition
+        assertNull(System.getProperty(COHERENCE_COMMON + RECONNECT_LIMIT_SUFFIX));
+        assertNull(System.getProperty(ORACLE_COMMON + RECONNECT_LIMIT_SUFFIX));
+        assertThat(Config.getInteger(COHERENCE_COMMON + RECONNECT_LIMIT_SUFFIX, DEFAULT_VALUE), is(DEFAULT_VALUE));
+        assertThat(Config.getInteger(ORACLE_COMMON + RECONNECT_LIMIT_SUFFIX, DEFAULT_VALUE), is(DEFAULT_VALUE));
         }
 
     //----- constants --------------------------------------------------------
