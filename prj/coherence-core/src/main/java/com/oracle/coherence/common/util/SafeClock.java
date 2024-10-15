@@ -1,16 +1,17 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.util;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import com.tangosol.coherence.config.Config;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * SafeClock maintains a "safe" time in milliseconds.
@@ -227,8 +228,8 @@ public class SafeClock
                     // Note: we do not use Config.getProperty to avoid a com.tangosol
                     //       import and the acceptable loss of not supporting a property
                     //       name that starts with tangosol.
-                    return System.getProperty("coherence.safeclock.jitter",
-                                System.getProperty(SafeClock.class.getName() + ".jitter",
+                    return Config.getProperty("coherence.safeclock.jitter",
+                                Config.getProperty(SafeClock.class.getName() + ".jitter",
                                 "16"));
                     }));
 

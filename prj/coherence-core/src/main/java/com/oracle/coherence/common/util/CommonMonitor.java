@@ -1,10 +1,14 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.util;
+
+
+import com.tangosol.coherence.config.Config;
+
 
 /**
  * Common monitors allow for a low-cost means to reduce contention by
@@ -149,7 +153,7 @@ public final class CommonMonitor
         // allocating will result in increased contention, while over-allocating
         // is not particularly expensive. The default is 512 monitors per CPU, or
         // approximately 4-6KB per CPU.
-        String sMonitors = System.getProperty(CommonMonitor.class.getName() + ".monitors");
+        String sMonitors = Config.getProperty(CommonMonitor.class.getName() + ".monitors");
         int    cMonitors = Runtime.getRuntime().availableProcessors() * 512;
         if (sMonitors != null)
             {
