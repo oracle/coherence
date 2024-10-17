@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.discovery;
 
@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -984,13 +985,25 @@ public class NSLookup
                                 sCluster = sTok.nextToken().trim();
                                 try (Connection conn2 = Connection.open(sCluster, socketAddr, cTimeoutMillis))
                                     {
-                                    System.out.println("Cluster " + sCluster + ":\t" + conn2.lookup(NS_STRING_PREFIX + sName));
+                                    String sResultLookup = conn2.lookup(NS_STRING_PREFIX + sName);
+
+                                    System.out.println("Cluster " + sCluster + ":\t" + sResultLookup);
+                                    if (sResultLookup == null)
+                                        {
+                                        reportNameWarning(sName);
+                                        }
                                     }
                                 }
                             }
                         else
                             {
-                            System.out.println(conn.lookup(NS_STRING_PREFIX + sName));
+                            String sResultLookup = conn.lookup(NS_STRING_PREFIX + sName);
+
+                            System.out.println(sResultLookup);
+                            if (sResultLookup == null)
+                                {
+                                reportNameWarning(sName);
+                                }
                             }
                         }
                     ex = null;
@@ -1017,6 +1030,14 @@ public class NSLookup
     protected static void showInstructions()
         {
         String sClass =  NSLookup.class.getCanonicalName();
+        StringBuffer sbLookupNames = new StringBuffer("Valid predefined lookup names for -" + COMMAND_NAME + " option: ");
+
+        for (String sName : VALID_PREDEFINED_LOOKUP_NAMES)
+            {
+            sbLookupNames.append(" " + sName + ",");
+            }
+        sbLookupNames.setCharAt(sbLookupNames.length() - 1, '.');
+
         System.out.println();
         System.out.println("java " + sClass + " <commands ...>");
         System.out.println();
@@ -1029,9 +1050,64 @@ public class NSLookup
         System.out.println("\t-" + COMMAND_PORT + "    the cluster port; default "  + DEFAULT_CLUSTERPORT);
         System.out.println("\t-" + COMMAND_TIMEOUT + " the timeout (in seconds) of the lookup request; default " + (DEFAULT_TIMEOUT/1000));
         System.out.println();
+        System.out.println(sbLookupNames.toString());
+        System.out.println();
         System.out.println("Example:");
         System.out.println("\tjava " + sClass + " -" + COMMAND_HOST + " host.mycompany.com -" + COMMAND_NAME + " " + JMX_CONNECTOR_URL);
         System.out.println();
+        }
+
+    /**
+     * Descriptive error feedback for a failed lookup of provided -name parameter.
+     *
+     * @param sName  value passed to -name argument
+     *
+     * @return null if no feedback or descriptive feedback
+     */
+    protected static String validateName(String sName)
+        {
+        for (String s : VALID_PREDEFINED_LOOKUP_NAMES)
+            {
+            if (s.equals(sName))
+                {
+                return null;
+                }
+            }
+
+        StringBuffer sb = new StringBuffer();
+
+        sb.append("Warning: provided -name parameter of \"" + sName + "\"");
+        sb.append(" does not match predefined Name Service lookups of ");
+        for (int i =0; i < VALID_PREDEFINED_LOOKUP_NAMES.length; i++)
+            {
+            sb.append("\"" + VALID_PREDEFINED_LOOKUP_NAMES[i] + "\"");
+            if (i + 1 < VALID_PREDEFINED_LOOKUP_NAMES.length)
+                {
+                sb.append(",");
+                }
+            else
+                {
+                sb.append(".");
+                }
+            }
+        sb.append(System.lineSeparator());
+        sb.append("warning: If looking up an extend proxy service, verify the scoped proxy service name is correct.");
+        return sb.toString();
+        }
+
+    /**
+     * Reports {@code -name} parameter warning when appropriate to standard error.
+     *
+     * @param sName Name Service looked up
+     */
+    protected static void reportNameWarning(String sName)
+        {
+        String sWarning = validateName(sName);
+
+        if (sWarning != null)
+            {
+            System.err.println(sWarning);
+            }
         }
 
     // ----- static data members -------------------------------------------
@@ -1080,7 +1156,21 @@ public class NSLookup
      * @since 12.2.1.4.0
      */
     public static final String HTTP_METRICS_URL = "metrics/HTTPMetricsURL";
+    
+    /**
+     * Cluster info lookup name.
+     *
+     * @since 25.03
+     */
+    public static final String CLUSTER_INFO = "Cluster/info";
 
+    /**
+     * Valid predefined lookup names.
+     *
+     * @since 25.03
+     */
+    public static final String[] VALID_PREDEFINED_LOOKUP_NAMES =
+            {JMX_CONNECTOR_URL, HTTP_MANAGEMENT_URL, HTTP_METRICS_URL, CLUSTER_INFO};
     /**
      * Default timeout in milliseconds
      */
