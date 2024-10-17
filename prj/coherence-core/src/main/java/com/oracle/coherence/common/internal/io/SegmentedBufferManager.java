@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.internal.io;
 
@@ -15,6 +15,8 @@ import com.oracle.coherence.common.io.BufferManagers;
 import com.oracle.coherence.common.io.Buffers;
 import com.oracle.coherence.common.util.Duration;
 import com.oracle.coherence.common.util.MemorySize;
+
+import com.tangosol.coherence.config.Config;
 
 import java.nio.ByteOrder;
 import java.util.logging.Logger;
@@ -1169,8 +1171,8 @@ public class SegmentedBufferManager
      * reevaluated, since it is possible that they have no activity that
      * would cause them to reevaluate on their own.
      */
-    protected static final long CLEANUP_FREQUENCY_MILLIS = new Duration(System.getProperty(
-            SegmentedBufferManager.class.getName() + ".cleanup.frequency", "1s")).as(Duration.Magnitude.MILLI);
+    protected static final long CLEANUP_FREQUENCY_MILLIS = Config.getDuration(SegmentedBufferManager.class.getName() + ".cleanup.frequency",
+                                                                              new Duration(1, Duration.Magnitude.SECOND)).as(Duration.Magnitude.MILLI);
 
     /**
      * The logger.

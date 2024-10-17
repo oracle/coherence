@@ -1,12 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config;
 
 import com.oracle.coherence.common.util.Duration;
+
+import com.oracle.coherence.common.util.MemorySize;
 
 import java.util.function.Supplier;
 
@@ -20,7 +22,14 @@ import java.util.function.Supplier;
  * lastly by replacing the <code>coherence.</code> in the system property name to
  * support Coherence system property naming conventions prior to Coherence 12.2.1.
  * <p>
- * Note:  These methods should only be used when the system property name may begin with "coherence.*" or "tangosol.*".
+ * As of Coherence 14.1.1.0, package {@code com.oracle.common} was moved to {@code com.oracle.coherence.common}.
+ * Backwards compatibility support is added to system properties look up to allow
+ * system properties used in 12.2.1 to work in later versions. If a system property
+ * with prefix {@code com.oracle.coherence.common} is not found, it will be looked up
+ * with backwards compatibile prefix {@code com.oracle.common} as it was in 12.2.1.
+ * <p>
+ * Note:  These methods should only be used when the system property name may begin with "coherence.*", "tangosol.*",
+ * "com.oracle.coherence.common.*" or "com.oracle.common.*".
  * The native method for looking up a system or environment property should be used to lookup up a OS/Language
  * native property.
  *
@@ -378,6 +387,14 @@ public abstract class Config
             else if (sName.startsWith("tangosol."))
                 {
                 sValue = sysProps.getProperty(sName.replaceFirst("tangosol", "coherence"));
+                }
+            else if (sName.startsWith("com.oracle.coherence.common."))
+                {
+                sValue = sysProps.getProperty(sName.replaceFirst("com.oracle.coherence.common.", "com.oracle.common."));
+                }
+            else if (sName.startsWith("com.oracle.common."))
+                {
+                sValue = sysProps.getProperty(sName.replaceFirst("com.oracle.common.", "com.oracle.coherence.common."));
                 }
             }
 

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.net;
 
@@ -14,6 +14,8 @@ import com.oracle.coherence.common.collections.ConcurrentHashMap;
 import com.oracle.coherence.common.internal.net.MultiplexedSocketProvider;
 import com.oracle.coherence.common.util.Duration;
 import com.oracle.coherence.common.util.SafeClock;
+
+import com.tangosol.coherence.config.Config;
 
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -1524,9 +1526,8 @@ public abstract class InetAddresses
      * and that machine has no listener on the port then we'll get a reject and be done quickly.  So we're only slow
      * on a failure if there we manage to connect to someone else, or if our connect attempt has no accept or reject.
      */
-    protected static final long NAT_CHECK_TIMEOUT = new Duration(
-            System.getProperty(InetAddresses.class.getName() + ".natCheckTimeout", "10s"))
-            .as(Duration.Magnitude.MILLI);
+    protected static final long NAT_CHECK_TIMEOUT = Config.getDuration(InetAddresses.class.getName() + ".natCheckTimeout",
+                                                                       new Duration(10, Duration.Magnitude.SECOND)).as(Duration.Magnitude.MILLI);
 
     /**
      * The default time the cache of local addresses is assumed to be correct.
@@ -1537,7 +1538,6 @@ public abstract class InetAddresses
      * to {@link NetworkInterface#getByInetAddress(InetAddress)} on windows which
      * should have no ill effects on linux.
      */
-    protected static final long INETADDRESS_REFRESH = new Duration(
-                System.getProperty(InetAddresses.class.getName() + ".localAddressCacheTimeout", "1h"))
-                .as(Duration.Magnitude.MILLI);
+    protected static final long INETADDRESS_REFRESH = Config.getDuration(InetAddresses.class.getName() + ".localAddressCacheTimeout",
+                                                                         new Duration(1, Duration.Magnitude.HOUR)).as(Duration.Magnitude.MILLI);
     }

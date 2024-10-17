@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,6 +14,8 @@ import com.oracle.coherence.common.internal.net.ResumableSelectionService;
 import com.oracle.coherence.common.internal.net.HashSelectionService;
 import com.oracle.coherence.common.internal.net.RoundRobinSelectionService;
 import com.oracle.coherence.common.util.Duration;
+
+import com.tangosol.coherence.config.Config;
 
 import java.util.concurrent.ThreadFactory;
 
@@ -76,12 +78,12 @@ public class SelectionServices
 
         static
             {
-            final int cThreads        = Integer.parseInt(System.getProperty(SelectionServices.class.getName() + ".threads",
-                     String.valueOf(Platform.getPlatform().getFairShareProcessors())));
-            final long cMillisTimeout = new Duration(System.getProperty(SelectionServices.class.getName() + ".timeout", "5s"))
-                    .as(Duration.Magnitude.MILLI);
+            final int cThreads        = Config.getInteger(SelectionServices.class.getName() + ".threads",
+                                                          Platform.getPlatform().getFairShareProcessors());
+            final long cMillisTimeout = Config.getDuration(SelectionServices.class.getName() + ".timeout",
+                                                           new Duration(5, Duration.Magnitude.SECOND)).as(Duration.Magnitude.MILLI);
             LoadBalancer balancer     = LoadBalancer.valueOf(
-                    System.getProperty(SelectionServices.class.getName() + ".loadBalancer", LoadBalancer.HASH.name()));
+                    Config.getProperty(SelectionServices.class.getName() + ".loadBalancer", LoadBalancer.HASH.name()));
 
             final Factory<SelectionService> factoryService =
                 new Factory<SelectionService>()

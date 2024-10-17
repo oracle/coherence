@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.internal.net;
 
@@ -19,6 +19,8 @@ import com.oracle.coherence.common.net.SelectionServices;
 import com.oracle.coherence.common.net.SocketProvider;
 import com.oracle.coherence.common.net.TcpSocketProvider;
 import com.oracle.coherence.common.util.Duration;
+
+import com.tangosol.coherence.config.Config;
 
 import java.net.ProtocolFamily;
 import java.net.SocketOption;
@@ -3170,9 +3172,7 @@ public class MultiplexedSocketProvider
             int nBacklog = Integer.MAX_VALUE;
             try
                 {
-                nBacklog = Integer.parseInt(System.getProperty(
-                        MultiplexedSocketProvider.class.getName() +
-                                ".server.backlog", Integer.toString(nBacklog)));
+                nBacklog = Config.getInteger(MultiplexedSocketProvider.class.getName() + ".server.backlog", nBacklog);
                 }
             catch (Throwable t) {}
             s_nBacklogDefault = nBacklog;
@@ -3200,9 +3200,8 @@ public class MultiplexedSocketProvider
             long cMillisId = 0;
             try
                 {
-                cMillisId = new Duration(System.getProperty(
-                        MultiplexedSocketProvider.class.getName() +
-                                ".server.identification.timeout", "1m")).as(Duration.Magnitude.MILLI); // default doc'd on getIdentificationTimeoutMillis
+                cMillisId = Config.getDuration(MultiplexedSocketProvider.class.getName() + ".server.identification.timeout",
+                                               new Duration(1, Duration.Magnitude.MINUTE)).as(Duration.Magnitude.MILLI); // default doc'd on getIdentificationTimeoutMillis
                 }
             catch (Throwable t) {}
             s_cMillisIdentifyDefault = cMillisId;

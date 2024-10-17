@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.util;
 
@@ -10,6 +10,8 @@ import com.oracle.coherence.common.base.Associated;
 import com.oracle.coherence.common.base.ConcurrentNotifier;
 
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
+
+import com.tangosol.coherence.config.Config;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -683,9 +685,9 @@ public class ConcurrentAssociationPile<T, A>
     /**
      * The maximum unorderedness of polls.
      */
-    protected static final int MAX_UNFAIRNESS_VARIANCE = Integer.parseInt(
-            System.getProperty(ConcurrentAssociationPile.class.getCanonicalName() + ".maxVariance",
-                    String.valueOf(Runtime.getRuntime().availableProcessors() * 4)));
+    protected static final int MAX_UNFAIRNESS_VARIANCE =
+            Config.getInteger(ConcurrentAssociationPile.class.getCanonicalName() + ".maxVariance",
+                              Runtime.getRuntime().availableProcessors() * 4);
 
     /**
      * A type-safe permanently empty marker queue.
