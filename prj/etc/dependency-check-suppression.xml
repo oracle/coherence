@@ -43,4 +43,28 @@
     <cve>CVE-2023-3635</cve>
   </suppress>
 
+  <suppress>
+    <notes><![CDATA[
+     file name: jetty-http-9.4.54.v20240208.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.eclipse\.jetty/jetty\-http@.*$</packageUrl>
+    <vulnerabilityName>CVE-2024-6763</vulnerabilityName>
+    <cpe>cpe:2.3:a:eclipse:jetty</cpe>
+    <cpe>cpe:2.3:a:jetty:jetty</cpe>
+    <cpe>cpe:2.3:a:mortbay_jetty:jetty</cpe>
+    <cve>CVE-2024-6763</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+     file name: jetty-server-9.4.54.v20240208.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.eclipse\.jetty/jetty\-server@.*$</packageUrl>
+    <vulnerabilityName>CVE-2024-8184</vulnerabilityName>
+    <cpe>cpe:2.3:a:eclipse:jetty</cpe>
+    <cpe>cpe:2.3:a:jetty:jetty</cpe>
+    <cpe>cpe:2.3:a:mortbay_jetty:jetty_http_server</cpe>
+    <cpe>cpe:2.3:a:mortbay_jetty:jetty</cpe>
+    <cve>CVE-2024-8184</cve>
+  </suppress>
+
 </suppressions>
