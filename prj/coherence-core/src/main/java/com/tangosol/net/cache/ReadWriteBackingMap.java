@@ -3274,7 +3274,7 @@ public class ReadWriteBackingMap
                     }
                 }
 
-            if (fBatch)
+            if (fBatch && !setBatch.isEmpty())
                 {
                 try
                     {
