@@ -767,11 +767,15 @@ public class ExtensibleConfigurableCacheFactory
                 {
                 if (service instanceof CacheService)
                     {
-                    // create and register the backing map manager
-                    BackingMapManager mgr = ((CachingScheme) scheme).realizeBackingMapManager(this);
+                    CacheService cacheService = (CacheService) service;
+                    if (cacheService.getBackingMapManager() == null)
+                        {
+                        // create and register the backing map manager
+                        BackingMapManager mgr = ((CachingScheme) scheme).realizeBackingMapManager(this);
 
-                    registerBackingMapManager(mgr);
-                    ((CacheService) service).setBackingMapManager(mgr);
+                        registerBackingMapManager(mgr);
+                        cacheService.setBackingMapManager(mgr);
+                        }
                     }
 
                 startService(service);
