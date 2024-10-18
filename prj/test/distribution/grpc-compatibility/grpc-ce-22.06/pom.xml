@@ -33,6 +33,7 @@
 
         <coherence.compatability.minJavaVersion>11</coherence.compatability.minJavaVersion>
         <coherence.compatability.maxJavaVersion>21</coherence.compatability.maxJavaVersion>
+        <skip.similarity.search>true</skip.similarity.search>
     </properties>
 
     <dependencies>

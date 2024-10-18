@@ -7,6 +7,9 @@
 
 package com.oracle.coherence.io.json;
 
+import com.oracle.coherence.ai.QueryResult;
+import com.oracle.coherence.ai.search.ConverterResult;
+import com.oracle.coherence.ai.search.SimpleQueryResult;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.io.json.genson.GenericType;
@@ -41,6 +44,7 @@ import com.oracle.coherence.io.json.internal.JsonObjectConverter;
 import com.oracle.coherence.io.json.internal.MapConverter;
 import com.oracle.coherence.io.json.internal.MathContextConverter;
 import com.oracle.coherence.io.json.internal.MissingClassConverter;
+import com.oracle.coherence.io.json.internal.QueryResultConverter;
 import com.oracle.coherence.io.json.internal.RoundingModeConverter;
 import com.oracle.coherence.io.json.internal.SerializationGate;
 import com.oracle.coherence.io.json.internal.SerializationSupportConverter;
@@ -171,6 +175,9 @@ public class JsonSerializer
                 .withConverter(InetSocketAddressConverter.INSTANCE, InetSocketAddress.class)
                 .withConverter(JsonObjectConverter.INSTANCE, JsonObject.class)
                 .withConverter(MathContextConverter.INSTANCE, MathContext.class)
+                .withConverter(QueryResultConverter.INSTANCE, QueryResult.class)
+                .withConverter(QueryResultConverter.INSTANCE, ConverterResult.class)
+                .withConverter(QueryResultConverter.INSTANCE, SimpleQueryResult.class)
                 .withConverter(RoundingModeConverter.INSTANCE, RoundingMode.class);
 
         addSafeBundle(builder, JsonbBundle.class);

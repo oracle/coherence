@@ -1874,6 +1874,10 @@ descriptor: pof-config.xsd.
       <type-id>935</type-id>
       <class-name>com.oracle.coherence.ai.Float32Vector</class-name>
     </user-type>
+    <user-type>
+      <type-id>936</type-id>
+      <class-name>com.oracle.coherence.ai.search.SimpleQueryResult</class-name>
+    </user-type>
 
     <!-- java.time (940 - 949) -->
 
