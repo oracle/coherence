@@ -7,6 +7,7 @@
 package com.oracle.coherence.common.io;
 
 
+import com.tangosol.coherence.config.Config;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -345,6 +346,6 @@ public class MultiBufferSequence
     /**
      * True iff dispose locations should be tracked (for debugging)
      */
-    private static final boolean TRACK_DISPOSE = Boolean.getBoolean(
+    private static final boolean TRACK_DISPOSE = Config.getBoolean(
             BufferSequence.class.getName() + ".trackDispose");
     }
