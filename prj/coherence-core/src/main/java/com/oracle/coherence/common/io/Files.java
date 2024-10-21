@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.io;
+
+import com.tangosol.coherence.config.Config;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -150,5 +152,5 @@ public class Files
     /**
      * The default value to assume if it cannot be determined if a path is local or not.
      */
-    protected static final boolean ASSUME_LOCAL = Boolean.getBoolean(Files.class.getCanonicalName() + ".assumeLocal");
+    protected static final boolean ASSUME_LOCAL = Config.getBoolean(Files.class.getCanonicalName() + ".assumeLocal");
     }
