@@ -48,6 +48,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -126,38 +127,11 @@ public class ExtractorTests
     public void testCollection()
         {
         NamedCache cache = getNamedCache();
-
-        Country usa = new Country("USA");
-        usa.setArea(3_796_742);
-        usa.setPopulation(334_914_895);
-        usa.addCity(new City("New York", 8_258_035))
-           .addCity(new City("Los Angeles", 3_820_914))
-           .addCity(new City("Chicago", 2_664_452));
-
-        Country germany = new Country("Germany");
-        germany.setArea(357_569);
-        germany.setPopulation(82_719_540);
-        germany.addCity(new City("Berlin", 3_677_472))
-               .addCity(new City("Hamburg", 1_906_411))
-               .addCity(new City("Munich", 1_487_708));
-
-        Country taiwan = new Country("Taiwan");
-        taiwan.setArea(36_197);
-        taiwan.setPopulation(23_894_394);
-        taiwan.addCity(new City("New Taipei", 3_974_911))
-              .addCity(new City("Kaohsiung", 2_778_992))
-              .addCity(new City("Taichung", 2_759_887))
-              .addCity(new City("Taipei", 2_696_316));
-
-        cache.put("us", usa);
-        cache.put("de", germany);
-        cache.put("tw", taiwan);
-
-        cache.values(Filters.in(Extractors.extract("name"), Set.of("USA", "Germany"))).size();
+        addTestCountriesToCache(cache);
 
         ValueExtractor<Country, String> countryNameExtractor = Extractors.extract("name");
 
-        Filter countryFilter = Filters.in(Extractors.extract("name"), "USA", "Germany");
+        Filter countryFilter = Filters.in(countryNameExtractor, "USA", "Germany");
 
         ValueExtractor<Country, List<City>> listOfCitiesExtractor = Extractors.extract("cities");
         ValueExtractor<City, String> cityNameExtractor = Extractors.extract("name");
@@ -174,6 +148,35 @@ public class ExtractorTests
         assertEquals("Expected 6 cities but got " + justCities.size(), 6, justCities.size());
 
         assertThat(justCities, hasItems("Berlin", "Hamburg", "Munich", "Los Angeles", "New York", "Chicago"));
+
+        cache.destroy();
+        }
+
+    /**
+     * Test for {@link CollectionExtractor}.
+     */
+    @Test
+    public void testCollectionInTypesafeManner()
+        {
+        NamedCache cache = getNamedCache();
+        addTestCountriesToCache(cache);
+
+        ValueExtractor<Country, String> countryNameExtractor = ValueExtractor.of(Country::getName);
+
+        Filter countryFilter = Filters.in(countryNameExtractor, "USA", "Germany");
+
+        ValueExtractor<Country, Collection<String>> listOfCityNamesExtractor = ValueExtractor.of(Country::getCities)
+                .andThen(Extractors.fromCollection(City::getName));
+
+        List<List<String>> listCityNames = cache.stream(countryFilter, listOfCityNamesExtractor).toList();
+
+        assertEquals("Expected 2 results (Countries) but got " + listCityNames.size(), 2, listCityNames.size());
+
+        List<String> listJustCities = listCityNames.stream().flatMap(list -> list.stream()).toList();
+
+        assertEquals("Expected 6 cities but got " + listJustCities.size(), 6, listJustCities.size());
+
+        assertThat(listJustCities, hasItems("Berlin", "Hamburg", "Munich", "Los Angeles", "New York", "Chicago"));
 
         cache.destroy();
         }
@@ -442,6 +445,35 @@ public class ExtractorTests
         private int m_iValue;
 
         protected static final AtomicInteger f_deserializationCount = new AtomicInteger();
+        }
+
+    private void addTestCountriesToCache(NamedCache cache)
+        {
+        Country usa = new Country("USA");
+        usa.setArea(3_796_742);
+        usa.setPopulation(334_914_895);
+        usa.addCity(new City("New York", 8_258_035))
+                .addCity(new City("Los Angeles", 3_820_914))
+                .addCity(new City("Chicago", 2_664_452));
+
+        Country germany = new Country("Germany");
+        germany.setArea(357_569);
+        germany.setPopulation(82_719_540);
+        germany.addCity(new City("Berlin", 3_677_472))
+                .addCity(new City("Hamburg", 1_906_411))
+                .addCity(new City("Munich", 1_487_708));
+
+        Country taiwan = new Country("Taiwan");
+        taiwan.setArea(36_197);
+        taiwan.setPopulation(23_894_394);
+        taiwan.addCity(new City("New Taipei", 3_974_911))
+                .addCity(new City("Kaohsiung", 2_778_992))
+                .addCity(new City("Taichung", 2_759_887))
+                .addCity(new City("Taipei", 2_696_316));
+
+        cache.put("us", usa);
+        cache.put("de", germany);
+        cache.put("tw", taiwan);
         }
 
     // ----- inner class: CountingExtractor ---------------------------------
