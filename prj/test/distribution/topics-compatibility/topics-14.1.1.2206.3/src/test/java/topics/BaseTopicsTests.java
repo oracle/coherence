@@ -117,7 +117,7 @@ public abstract class BaseTopicsTests
                 LocalHost.only(),
                 IPv4Preferred.yes(),
                 JvmOptions.include("-XX:+ExitOnOutOfMemoryError", "-XX:HeapDumpPath=" + file.getAbsolutePath()),
-                HeapSize.of(64, HeapSize.Units.MB, 512, HeapSize.Units.MB, true),
+                HeapSize.of(64, HeapSize.Units.MB, 1, HeapSize.Units.GB, true),
                 StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()),
                 Timeout.after(5, TimeUnit.MINUTES),
                 m_testLogs);
