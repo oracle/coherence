@@ -327,23 +327,30 @@ public class PartitionedCache
     /**
      * Property IndexPendingPartitions
      *
-     * This PartitionSet that contains partitions that have a pending index
+     * Map that contains partitions/counter mappings that have a pending index
      * rebuild due to partition redistribution or initial index creation.
+     * The counter is used to track when multiple extractors are added to the
+     * same cache. This avoids potentially removing a partition from status
+     * pending on deferred requests.
      * 
      * @volatile
      */
-    private volatile com.tangosol.net.partition.PartitionSet __m_IndexPendingPartitions;
-    
+    private volatile Map<Integer, AtomicInteger> __m_IndexPendingPartitions;
+
     /**
      * Property IndexProcessingPartitions
      *
-     * This PartitionSet that contains partitions that index rebuild are being
-     * processed,  used in condition check for index rebuild optimization,  see
-     * scheduleInitialIndexUpdate.
-     * 
+     * Map that contains partitions/counter mappings that have an index rebuild
+     * being processed, used in condition check for index rebuild optimization.
+     * The counter is used to track when multiple extractors are added to the
+     * same cache. This avoids potentially removing a partition from status
+     * pending on deferred requests.
+     *
+     * @see scheduleInitialIndexUpdate
+     *
      * @volatile
      */
-    private volatile com.tangosol.net.partition.PartitionSet __m_IndexProcessingPartitions;
+    private volatile Map<Integer, AtomicInteger> __m_IndexProcessingPartitions;
     
     /**
      * Property IndexUpdateCount
@@ -1951,7 +1958,7 @@ public class PartitionedCache
         long cSoftTimeout   = (long) (getDefaultGuardTimeout() * getDefaultGuardRecovery());
         long ldtStartTime   = Base.getSafeTimeMillis();
         long ldtSoftTimeout = ldtStartTime + cSoftTimeout;
-        while (getIndexPendingPartitions().contains(nPartition))
+        while (getIndexPendingPartitions().containsKey(nPartition))
             {
             try
                 {
@@ -2788,7 +2795,7 @@ public class PartitionedCache
         
         // since the asynchronous index update communicates using the service thread,
         // we should not block it (see COH-15478).
-        PartitionSet partsPending = getIndexPendingPartitions();
+        Map partsPending = getIndexPendingPartitions();
         return partsPending == null || partsPending.isEmpty() ? super.getDistributionContendMillis() : 0L;
         }
     
@@ -2836,12 +2843,15 @@ public class PartitionedCache
     // Accessor for the property "IndexPendingPartitions"
     /**
      * Getter for property IndexPendingPartitions.<p>
-    * This PartitionSet that contains partitions that have a pending index
-    * rebuild due to partition redistribution or initial index creation.
-    * 
-    * @volatile
+     * Map that contains partitions/counter mappings that have a pending index
+     * rebuild due to partition redistribution or initial index creation.
+     * The counter is used to track when multiple extractors are added to the
+     * same cache. This avoids potentially removing a partition from status
+     * pending on deferred requests.
+     *
+     * @volatile
      */
-    public com.tangosol.net.partition.PartitionSet getIndexPendingPartitions()
+    public Map<Integer, AtomicInteger> getIndexPendingPartitions()
         {
         return __m_IndexPendingPartitions;
         }
@@ -2849,13 +2859,17 @@ public class PartitionedCache
     // Accessor for the property "IndexProcessingPartitions"
     /**
      * Getter for property IndexProcessingPartitions.<p>
-    * This PartitionSet that contains partitions that index rebuild are being
-    * processed,  used in condition check for index rebuild optimization,  see
-    * scheduleInitialIndexUpdate.
-    * 
-    * @volatile
+     * Map that contains partitions/counter mappings that have an index rebuild
+     * being processed, used in condition check for index rebuild optimization.
+     * The counter is used to track when multiple extractors are added to the
+     * same cache. This avoids potentially removing a partition from status
+     * pending on deferred requests.
+     *
+     * @see scheduleInitialIndexUpdate
+     *
+     * @volatile
      */
-    public com.tangosol.net.partition.PartitionSet getIndexProcessingPartitions()
+    public Map<Integer, AtomicInteger> getIndexProcessingPartitions()
         {
         return __m_IndexProcessingPartitions;
         }
@@ -3486,12 +3500,12 @@ public class PartitionedCache
     
     /**
      * Return true iff partition is still pending or being processed for index
-    * rebuild.
+     * rebuild.
      */
-    protected boolean isPartitionIndexPending(int nPartition)
+    protected synchronized boolean isPartitionIndexPending(int nPartition)
         {
-        return getIndexPendingPartitions().contains(nPartition) &&
-                    !getIndexProcessingPartitions().contains(nPartition);
+        return getIndexPendingPartitions().containsKey(nPartition) &&
+                    !getIndexProcessingPartitions().containsKey(nPartition);
         }
     
     /**
@@ -4663,8 +4677,8 @@ public class PartitionedCache
         // and prior to accepting clients
         if (isOwnershipEnabled())
             {
-            setIndexPendingPartitions(new PartitionSet(getPartitionCount()));
-            setIndexProcessingPartitions(new PartitionSet(getPartitionCount()));
+            setIndexPendingPartitions(new ConcurrentHashMap());
+            setIndexProcessingPartitions(new ConcurrentHashMap());
             }
         
         super.onFinalizeStartup();
@@ -6510,9 +6524,9 @@ public class PartitionedCache
                 _trace("Ignoring duplicate event", 2);
                 return;
                 }
-        
+
             removeSUIDRange(laProcessed, getBaseSUID(nSender), lOldestPending, false);
-        
+
             laProcessed.set(lEventSUID, null);
             }
         else
@@ -6542,7 +6556,7 @@ public class PartitionedCache
         if (lOldestPending > lOldestKnown && lOldestPending < lEventSUID && !laProcessed.exists(lOldestPending))
             {
             // Non-null value acts as a marker that the oldest pending event still needs to be processed.
-            laProcessed.set(lOldestPending, Boolean.TRUE);  
+            laProcessed.set(lOldestPending, Boolean.TRUE);
             }
         
         BinaryMap mapBinary = (BinaryMap) getBinaryMapArray().get(msgEvent.getCacheId());
@@ -6551,7 +6565,7 @@ public class PartitionedCache
             mapBinary.dispatch(msgEvent);
             }
         }
-    
+
     // Declared at the super level
     /**
      * Event notification to perform a regular daemon activity. To get it
@@ -7035,7 +7049,7 @@ public class PartitionedCache
         // import com.tangosol.net.security.StorageAccessAuthorizer as com.tangosol.net.security.StorageAccessAuthorizer;
         // import com.tangosol.util.Binary;
         // import java.util.Collection;
-        
+
         PartitionedCache.Response msgResponse = (PartitionedCache.Response) instantiateMessage("Response");
         msgResponse.respondTo(msgRequest);
         
@@ -11132,28 +11146,31 @@ public class PartitionedCache
     // Accessor for the property "IndexPendingPartitions"
     /**
      * Setter for property IndexPendingPartitions.<p>
-    * This PartitionSet that contains partitions that have a pending index
-    * rebuild due to partition redistribution or initial index creation.
-    * 
-    * @volatile
+     * This Map that contains a partitions/AtomicInteger counter mapping for
+     * partitions that have a pending index rebuild due to partition
+     * redistribution or initial index creation.
+     *
+     * @volatile
      */
-    protected void setIndexPendingPartitions(com.tangosol.net.partition.PartitionSet parts)
+    protected void setIndexPendingPartitions(Map partsPending)
         {
-        __m_IndexPendingPartitions = parts;
+        __m_IndexPendingPartitions = partsPending;
         }
     
     // Accessor for the property "IndexProcessingPartitions"
     /**
      * Setter for property IndexProcessingPartitions.<p>
-    * This PartitionSet that contains partitions that index rebuild are being
-    * processed,  used in condition check for index rebuild optimization,  see
-    * scheduleInitialIndexUpdate.
-    * 
-    * @volatile
+     * This map contains partitions/counter mappings that have an index rebuild
+     * being processed, used in condition check for index rebuild optimization.
+     * The counter is used to track when multiple extractors are added to the
+     * same cache. This avoids potentially removing a partition from status
+     * pending on deferred requests.
+     *
+     * @volatile
      */
-    protected void setIndexProcessingPartitions(com.tangosol.net.partition.PartitionSet parts)
+    protected void setIndexProcessingPartitions(Map partsProcessing)
         {
-        __m_IndexProcessingPartitions = parts;
+        __m_IndexProcessingPartitions = partsProcessing;
         }
     
     // Accessor for the property "IndexUpdateCount"
@@ -11897,31 +11914,12 @@ public class PartitionedCache
         }
     
     /**
-     * Update IndexPendingPartitions that have a pending index rebuild.  Called
-    * on both service and worker threads.
+     * Update IndexPendingPartitions that have a pending index rebuild. Called
+     * on both service and worker threads.
      */
     public synchronized void updatePendingIndexPartition(int nPartition, boolean fAdd)
         {
-        // import com.tangosol.net.partition.PartitionSet;
-        
-        PartitionSet parts = getIndexPendingPartitions();
-        
-        if (fAdd ^ parts.contains(nPartition))
-            {
-            // use copy-on-write to protect concurrent readers
-            parts = new PartitionSet(parts);
-        
-            if (fAdd)
-                {
-                parts.add(nPartition);
-                }
-            else
-                {
-                parts.remove(nPartition);
-                }
-        
-            setIndexPendingPartitions(parts);
-            }
+        updateIndexPartition(getIndexPendingPartitions(), nPartition, fAdd);
         }
     
     /**
@@ -11930,28 +11928,42 @@ public class PartitionedCache
      */
     public synchronized void updateProcessingIndexPartition(int nPartition, boolean fAdd)
         {
-        // import com.tangosol.net.partition.PartitionSet;
-        
-        PartitionSet parts = getIndexProcessingPartitions();
-        
-        if (fAdd ^ parts.contains(nPartition))
+        updateIndexPartition(getIndexProcessingPartitions(), nPartition, fAdd);
+        }
+
+    /**
+     * Update map of partitions/counters.
+     */
+    protected synchronized void updateIndexPartition(Map<Integer, AtomicInteger> partsCounter, int nPartition, boolean fAdd)
+        {
+        if (fAdd)
             {
-            // use copy-on-write to protect concurrent readers
-            parts = new PartitionSet(parts);
-        
-            if (fAdd)
+            partsCounter.compute(nPartition, (k, v) ->
                 {
-                parts.add(nPartition);
-                }
-            else
+                if (v == null)
+                    {
+                    return new AtomicInteger(1);
+                    }
+                else
+                    {
+                    v.incrementAndGet();
+                    return v;
+                    }
+                });
+            }
+        else
+            {
+            partsCounter.computeIfPresent(nPartition, (k, v) ->
                 {
-                parts.remove(nPartition);
-                }
-        
-            setIndexProcessingPartitions(parts);
+                if (v.decrementAndGet() <= 1)
+                    {
+                    return null;
+                    }
+                return v;
+                });
             }
         }
-    
+
     // Declared at the super level
     /**
      * Validate the assignment array against the specified member-set.
@@ -43639,7 +43651,7 @@ public class PartitionedCache
                         {
                         int nPartition = msgRetry.getPartition();
                 
-                        if (service.getIndexPendingPartitions().contains(nPartition))
+                        if (service.getIndexPendingPartitions().containsKey(nPartition))
                             {
                             service.scheduleIndexUpdate(nPartition, msgRetry.getEventId(), msgRetry.getUpdateMap());
                             }

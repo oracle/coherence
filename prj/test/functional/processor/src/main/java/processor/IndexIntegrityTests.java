@@ -998,11 +998,11 @@ public class IndexIntegrityTests
         {
         try
             {
-            PartitionSet parts = ((PartitionedCache) context.getCacheService()).getIndexPendingPartitions();
-            if (!parts.isEmpty())
+            Map partsMap = ((PartitionedCache) context.getCacheService()).getIndexPendingPartitions();
+            if (!partsMap.isEmpty())
                 {
                 Base.sleep(100);
-                if (!parts.isEmpty())
+                if (!partsMap.isEmpty())
                     {
                     throw new IndexNotReadyException("Index is not ready!");
                     }
