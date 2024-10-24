@@ -1,22 +1,29 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package override;
 
-import com.oracle.coherence.testing.AbstractFunctionalTest;
+import com.oracle.coherence.concurrent.Queues;
 
+import com.oracle.coherence.testing.AbstractFunctionalTest;
+import com.oracle.bedrock.runtime.coherence.options.LocalHost;
+import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
+import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceSession;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
+import com.tangosol.net.NamedBlockingQueue;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.QueueService;
 import com.tangosol.net.RequestPolicyException;
 
 import com.tangosol.net.events.EventInterceptor;
@@ -67,6 +74,8 @@ public class CacheConfigOverrideTests
     public static void _startup()
         {
         // this test requires local storage to be enabled
+        System.setProperty(WellKnownAddress.PROPERTY, LocalHost.loopback().getAddress());
+        System.setProperty(IPv4Preferred.JAVA_NET_PREFER_IPV4_STACK, "true");
         System.setProperty("coherence.distributed.localstorage", "true");
         }
 
@@ -162,7 +171,7 @@ public class CacheConfigOverrideTests
             // Check for correct QuorumStatus for service "$SYS:MyCacheService2" with write
             objectName = "Coherence:type=Service,name=\"$SYS:MyCacheService2\",*";
             mbeanObj   = serverJMX.queryMBeans(new ObjectName(objectName), null);
-            assertTrue(mbeanObj.size() == 1);
+            assertEquals(mbeanObj.size(), 1);
 
             serviceON    = new ObjectName(mbeanObj.iterator().next().getObjectName().toString());
             quorumStatus = (String) serverJMX.getAttribute(serviceON, "QuorumStatus");
@@ -580,6 +589,40 @@ public class CacheConfigOverrideTests
             {
             System.clearProperty("coherence.cacheconfig");
             AbstractFunctionalTest._shutdown();
+            }
+        }
+
+    @Test
+    public void testConcurrentOverride()
+            throws Exception
+        {
+        System.setProperty("coherence.concurrent.cacheconfig.override", "override/test-override.xml");
+
+        try (Coherence coherence = Coherence.clusterMember().start().join())
+            {
+            try (NamedBlockingQueue<Integer> q = Queues.pagedQueue("elastic-numbers"))
+                {
+                QueueService qs = q.getService();
+                assertEquals("$SYS:OverrideQueue", qs.getInfo().getServiceName());
+                assertEquals("DistributedCache", qs.getInfo().getServiceType());
+
+                for (int i = 0; i < 10; i++)
+                    {
+                    q.add(i);
+                    }
+
+                Integer e = q.poll();
+                while (e != null)
+                    {
+                    Thread.sleep(1000L);
+                    System.out.println(e);
+                    e = q.poll();
+                    }
+                }
+            }
+        finally
+            {
+            System.clearProperty("coherence.concurrent.cacheconfig.override");
             }
         }
 

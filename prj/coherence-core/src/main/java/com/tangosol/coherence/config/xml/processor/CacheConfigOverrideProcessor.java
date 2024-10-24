@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml.processor;
 
@@ -11,6 +11,7 @@ import static com.tangosol.coherence.config.CacheConfig.TOP_LEVEL_ELEMENT_NAME;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.config.xml.OverrideProcessor;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
@@ -116,10 +117,13 @@ public class CacheConfigOverrideProcessor
                         if (sCacheNameOverride.equals(sCacheNameBase))
                             {
                             XmlHelper.overrideElement(xmlElementBase, xmlElementOverride);
-                            }
-                        else if (!listElements.contains(xmlElementOverride))
-                            {
-                            listElements.add(xmlElementOverride);
+
+                            if (listElements.contains(xmlElementOverride))
+                                {
+                                listElements.remove(xmlElementOverride);
+                                }
+
+                            break;
                             }
                         else if (sSchemeName.equals(sOverrideSchemeName))
                             {
