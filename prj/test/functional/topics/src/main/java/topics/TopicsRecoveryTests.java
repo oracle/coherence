@@ -72,6 +72,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -328,7 +329,7 @@ public class TopicsRecoveryTests
                 Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
 
                 try (Publisher<Message> publisher = topic.createPublisher();
-                     Subscriber<Message> subscriber = topic.createSubscriber())
+                     PagedTopicSubscriber<Message> subscriber = (PagedTopicSubscriber<Message>) topic.createSubscriber())
                     {
                     System.err.println("Publishing " + cMsgTotal + " messages of " + cbMessage + " bytes");
                     for (int i = 0; i < cMsgTotal; i++)
@@ -361,9 +362,21 @@ public class TopicsRecoveryTests
                         assertThat(element, is(notNullValue()));
                         }
 
+                    // A latch to catch the subscriber disconnect
+                    CountDownLatch latch = new CountDownLatch(1);
+                    subscriber.addStateListener((subscriber1, nNewState, nPrevState) ->
+                        {
+                        if (nNewState == PagedTopicSubscriber.STATE_DISCONNECTED)
+                            {
+                            latch.countDown();
+                            }
+                        });
+
                     restartService(topic);
 
-                    assertThat(((PagedTopicSubscriber<Message>) subscriber).getState(), is(PagedTopicSubscriber.STATE_DISCONNECTED));
+                    // The subscriber should have disconnected at least once, it may already be reconnected
+                    // so we cannot just check its state
+                    assertThat(latch.await(5, TimeUnit.MINUTES), is(true));
 
                     System.err.println("Subscriber receiving remaining " + (cMsgTotal - m) + " messages of " + cbMessage + " bytes");
                     for ( ; m < cMsgTotal; m++)
