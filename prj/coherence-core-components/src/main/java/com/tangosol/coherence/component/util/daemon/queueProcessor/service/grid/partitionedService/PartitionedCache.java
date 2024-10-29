@@ -10873,7 +10873,7 @@ public class PartitionedCache
         // import java.util.Iterator;
         // import java.util.Map;
         // import java.util.Queue as java.util.Queue;
-        
+
         if (isPartitionIndexPending(nPartition))
             {
             // find a pending request that pertains to the specified partition
@@ -42007,7 +42007,7 @@ public class PartitionedCache
             // import java.util.Map;
             
             super.onTransmitCompleted(iPartition, iStore);
-            
+
             if (iStore == 0)
                 {
                 // drop the deferred events for this partition
@@ -43664,6 +43664,8 @@ public class PartitionedCache
                 
                         if (service.getIndexPendingPartitions().containsKey(nPartition))
                             {
+                            // this is a retry, adjust pending count by decrementing as scheduleIndexUpdate increments
+                            service.updatePendingIndexPartition(nPartition, false);
                             service.scheduleIndexUpdate(nPartition, msgRetry.getEventId(), msgRetry.getUpdateMap());
                             }
                         }
