@@ -6,13 +6,14 @@
  */
 package override;
 
-import com.oracle.coherence.concurrent.Queues;
-
-import com.oracle.coherence.testing.AbstractFunctionalTest;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+
+import com.oracle.coherence.concurrent.Queues;
+
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
@@ -604,6 +605,40 @@ public class CacheConfigOverrideTests
                 {
                 QueueService qs = q.getService();
                 assertEquals("$SYS:OverrideQueue", qs.getInfo().getServiceName());
+                assertEquals("DistributedCache", qs.getInfo().getServiceType());
+
+                for (int i = 0; i < 10; i++)
+                    {
+                    q.add(i);
+                    }
+
+                Integer e = q.poll();
+                while (e != null)
+                    {
+                    Thread.sleep(1000L);
+                    System.out.println(e);
+                    e = q.poll();
+                    }
+                }
+            }
+        finally
+            {
+            System.clearProperty("coherence.concurrent.cacheconfig.override");
+            }
+        }
+
+    @Test
+    public void testConcurrentOverrideChangeBackingMap()
+            throws Exception
+        {
+        System.setProperty("coherence.concurrent.cacheconfig.override", "override/concurrent-override.xml");
+
+        try (Coherence coherence = Coherence.clusterMember().start().join())
+            {
+            try (NamedBlockingQueue<Integer> q = Queues.pagedQueue("elastic-numbers"))
+                {
+                QueueService qs = q.getService();
+                assertEquals("$SYS:ConcurrentQueueService", qs.getInfo().getServiceName());
                 assertEquals("DistributedCache", qs.getInfo().getServiceType());
 
                 for (int i = 0; i < 10; i++)
