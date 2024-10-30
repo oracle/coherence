@@ -9,21 +9,32 @@
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
   <caching-scheme-mapping>
     <cache-mapping>
-      <cache-name>my-cache-two</cache-name>
-      <scheme-name>my-cache-scheme-two</scheme-name>
+      <cache-name>Queue$*</cache-name>
+      <scheme-name>queue-concurrent</scheme-name>
     </cache-mapping>
   </caching-scheme-mapping>
 
   <caching-schemes>
+
+    <flashjournal-scheme>
+      <scheme-name>flash-scheme</scheme-name>
+    </flashjournal-scheme>
+
     <distributed-scheme>
-      <scheme-name>my-cache-scheme-two</scheme-name>
-      <service-name>MyCacheService2</service-name>
-      <partitioned-quorum-policy-scheme>
-        <write-quorum>1</write-quorum>
-      </partitioned-quorum-policy-scheme>
+      <scheme-name>queue-concurrent</scheme-name>
+      <service-name>ConcurrentQueueService</service-name>
+      <backup-storage>
+        <type>scheme</type>
+        <scheme-name>flash-scheme</scheme-name>
+      </backup-storage>
+      <backing-map-scheme>
+        <flashjournal-scheme/>
+      </backing-map-scheme>
       <autostart>true</autostart>
     </distributed-scheme>
   </caching-schemes>
 </cache-config>
+

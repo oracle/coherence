@@ -6,11 +6,12 @@
  */
 package override;
 
-import com.oracle.coherence.testing.AbstractFunctionalTest;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
@@ -604,6 +605,30 @@ public class CacheConfigOverrideTests
             assertTrue(cacheNames.hasMoreElements());
             assertEquals("elastic-numbers", cacheNames.nextElement());
             assertEquals("DistributedCache", elasticCache.getService().getInfo().getServiceName());
+            }
+        finally
+            {
+            System.clearProperty("coherence.concurrent.cacheconfig.override");
+            AbstractFunctionalTest._shutdown();
+            }
+        }
+
+    @Test
+    public void testConcurrentOverrideChangeBackingMap()
+            throws Exception
+        {
+        System.setProperty("coherence.concurrent.cacheconfig.override", "override/concurrent-override.xml");
+
+        try (Coherence coherence = Coherence.clusterMember().start().join())
+            {
+            NamedCache elasticCache = coherence.getSession("concurrent").getCache("Queue$Concurrent");
+            assertNotNull(elasticCache);
+            Eventually.assertDeferred(() -> elasticCache.getCacheService().isRunning(), is(true));
+            Enumeration cacheNames = elasticCache.getCacheService().getCacheNames();
+            assertTrue(cacheNames.hasMoreElements());
+            assertEquals("Queue$Concurrent", cacheNames.nextElement());
+            assertEquals("$SYS:ConcurrentQueueService", elasticCache.getService().getInfo().getServiceName());
+            assertEquals("DistributedCache", elasticCache.getService().getInfo().getServiceType());
             }
         finally
             {
