@@ -258,6 +258,12 @@ public class NamedCacheServiceGrpcImpl
         m_service.values(request, SafeStreamObserver.ensureSafeObserver(observer));
         }
 
+    @Override
+    public void close()
+        {
+        m_service.close();
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**

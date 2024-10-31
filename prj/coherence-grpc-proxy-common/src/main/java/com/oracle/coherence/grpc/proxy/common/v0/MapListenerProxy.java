@@ -53,6 +53,8 @@ import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -69,7 +71,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 @SuppressWarnings({"EnhancedSwitchMigration", "PatternVariableCanBeUsed"})
 public class MapListenerProxy
-        implements StreamObserver<MapListenerRequest>, MapListener<Object, Object>
+        implements StreamObserver<MapListenerRequest>, MapListener<Object, Object>, Closeable
     {
     // ----- constructors ---------------------------------------------------
 
@@ -77,22 +79,10 @@ public class MapListenerProxy
      * Create a {@link MapListenerProxy} to handle a{@link com.tangosol.util.MapListener}
      * subscription to a cache.
      *
-     * @param service   the {@link NamedCacheService} to proxy
-     * @param observer  the {@link StreamObserver} to stream {@link com.tangosol.util.MapEvent}
-     *                  instances to
-     */
-    public MapListenerProxy(NamedCacheService service, StreamObserver<MapListenerResponse> observer)
-        {
-        this (service, observer, NamedCacheService.Dependencies.NO_EVENTS_HEARTBEAT);
-        }
-
-    /**
-     * Create a {@link MapListenerProxy} to handle a{@link com.tangosol.util.MapListener}
-     * subscription to a cache.
-     *
-     * @param service   the {@link NamedCacheService} to proxy
-     * @param observer  the {@link StreamObserver} to stream {@link com.tangosol.util.MapEvent}
-     *                  instances to
+     * @param service           the {@link NamedCacheService} to proxy
+     * @param observer          the {@link StreamObserver} to stream {@link com.tangosol.util.MapEvent}
+     *                          instances to
+     * @param nHeartbeatMillis  the heart beat frequency
      */
     @SuppressWarnings("unchecked")
     public MapListenerProxy(NamedCacheService service, StreamObserver<MapListenerResponse> observer, long nHeartbeatMillis)
@@ -104,6 +94,12 @@ public class MapListenerProxy
         f_setKeys              = new HashSet<>();
         f_listenerDeactivation = new DeactivationListener(this);
         m_nHeartbeatMillis     = nHeartbeatMillis;
+        }
+
+    @Override
+    public void close() throws IOException
+        {
+        onError(Status.CANCELLED.asRuntimeException());
         }
 
     // ----- StreamObserver methods -----------------------------------------
@@ -223,8 +219,7 @@ public class MapListenerProxy
             if (!fClientCancel)
                 {
                 // only log the error if it was not due to the client cancelling the stream
-                Logger.err("Error received in MapListenerProxy onError");
-                Logger.err(throwable);
+                Logger.err("Error received in MapListenerProxy onError", throwable);
                 }
             try
                 {
@@ -236,6 +231,7 @@ public class MapListenerProxy
                 }
             m_fCompleted = true;
             m_holder     = null;
+            f_service.removeCloseable(this);
             }
         finally
             {
@@ -257,6 +253,7 @@ public class MapListenerProxy
                     removeAllListeners();
                     f_observer.onCompleted();
                     m_holder = null;
+                    f_service.removeCloseable(this);
                     }
                 }
             finally

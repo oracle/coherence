@@ -41,6 +41,8 @@ import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
@@ -61,7 +63,7 @@ import java.util.function.Supplier;
  */
 @SuppressWarnings("rawtypes")
 public class ProxyServiceChannel
-        implements StreamObserver<ProxyRequest>
+        implements StreamObserver<ProxyRequest>, Closeable
     {
     /**
      * Create a {@link ProxyServiceChannel}.
@@ -86,6 +88,7 @@ public class ProxyServiceChannel
         f_service        = service;
         f_observer       = SafeStreamObserver.ensureSafeObserver(LockingStreamObserver.ensureLockingObserver(observer));
         f_memberSupplier = Objects.requireNonNullElse(memberSupplier, () -> CacheFactory.getCluster().getLocalMember());
+        service.addCloseable(this);
         }
 
     // ----- StreamObserver methods -----------------------------------------
@@ -163,6 +166,7 @@ public class ProxyServiceChannel
             {
             m_protocol.close();
             }
+        f_service.removeCloseable(this);
         }
 
     /**
@@ -173,6 +177,12 @@ public class ProxyServiceChannel
     public Serializer getSerializer()
         {
         return m_protocol.getSerializer();
+        }
+
+    @Override
+    public void close() throws IOException
+        {
+        onCompleted();
         }
 
     // ----- helper methods ---------------------------------------------

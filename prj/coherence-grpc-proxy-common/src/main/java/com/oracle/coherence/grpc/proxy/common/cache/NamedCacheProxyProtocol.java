@@ -113,7 +113,21 @@ public class NamedCacheProxyProtocol
     @Override
     public void close()
         {
-        m_aProxy.clear();
+        f_lock.lock();
+        try
+            {
+            m_fClosed = true;
+            for (NamedCacheProxy proxy : m_aProxy)
+                {
+                com.tangosol.net.messaging.Channel channel = proxy.getChannel();
+                proxy.unregisterChannel(channel);
+                }
+            m_aProxy.clear();
+            }
+        finally
+            {
+            f_lock.unlock();
+            }
         super.close();
         }
 
@@ -335,6 +349,10 @@ public class NamedCacheProxyProtocol
         f_lock.lock();
         try
             {
+            if (m_fClosed)
+                {
+                throw new IllegalStateException("this proxy channel is closed");
+                }
             NamedCacheProxy proxy = m_aProxy.remove(nId);
             if (proxy != null)
                 {
@@ -354,6 +372,11 @@ public class NamedCacheProxyProtocol
         f_lock.lock();
         try
             {
+            if (m_fClosed)
+                {
+                throw new IllegalStateException("this proxy channel is closed");
+                }
+
             int cacheId;
             do
                 {
@@ -1144,4 +1167,9 @@ public class NamedCacheProxyProtocol
      * An array of {@link NamedCacheProxy} instances indexed by the cache identifier.
      */
     protected final LongArray<NamedCacheProxy> m_aProxy = new SparseArray<>();
+
+    /**
+     * A flag indicating whether this proxy protocol is closed.
+     */
+    protected boolean m_fClosed;
     }
