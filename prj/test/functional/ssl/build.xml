@@ -19,7 +19,7 @@
 
   <property environment="env"/>
 
-  <condition property="keytool" value="${env.JAVA_HOME}/bin/keytool.exe" else="keytool" >
+  <condition property="keytool" value="${env.JAVA_HOME}/bin/keytool.exe" else="${env.JAVA_HOME}/bin/keytool" >
     <os family="windows" />
   </condition>
 
