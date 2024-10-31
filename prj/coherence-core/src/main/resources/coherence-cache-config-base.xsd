@@ -776,6 +776,12 @@
                 If the value does not contain a unit, a
                 unit of milliseconds is assumed.
 
+                The value must be less than or equal to the heartbeat-interval
+                value. If a larger value is specified, the heartbeat-interval
+                value will be used.
+
+                The default value is the request-timeout value.
+
                 Ping requests are disabled by
                 default.
 
