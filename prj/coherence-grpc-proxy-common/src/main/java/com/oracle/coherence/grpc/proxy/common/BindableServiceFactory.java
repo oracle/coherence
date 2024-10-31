@@ -39,7 +39,9 @@ public interface BindableServiceFactory
             List<BindableGrpcProxyService> list = factory.createServices(depsService);
             if (list != null)
                 {
-                listService.addAll(list);
+                list.stream()
+                        .filter(BindableGrpcProxyService::isEnabled)
+                        .forEach(listService::add);
                 }
             }
         return listService;

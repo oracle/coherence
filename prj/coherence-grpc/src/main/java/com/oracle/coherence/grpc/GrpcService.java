@@ -12,6 +12,7 @@ import com.tangosol.application.Context;
 import com.tangosol.io.Serializer;
 import com.tangosol.net.ConfigurableCacheFactory;
 
+import java.io.Closeable;
 import java.util.Optional;
 
 /**
@@ -44,6 +45,22 @@ public interface GrpcService
      * @return the service dependencies
      */
     Dependencies getDependencies();
+
+    /**
+     * Add a {@link Closeable} to be closed when this service closes.
+     *
+     * @param closeable  the {@link Closeable} to be closed when this service closes
+     * @see GrpcService#removeCloseable(Closeable)
+     */
+    void addCloseable(Closeable closeable);
+
+    /**
+     * Remove a previously added {@link Closeable} from this service.
+     *
+     * @param closeable  the {@link Closeable} to be removed
+     * @see GrpcService#addCloseable(Closeable)
+     */
+    void removeCloseable(Closeable closeable);
 
     /**
      * The dependencies for this service.

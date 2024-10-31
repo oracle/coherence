@@ -43,11 +43,13 @@ import com.tangosol.util.NullImplementation;
 
 import io.grpc.Status;
 
+import java.io.Closeable;
 import java.util.Objects;
 import java.util.Optional;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 
 import java.util.function.Function;
@@ -405,6 +407,16 @@ public class BaseGrpcServiceImpl
         return serializer;
         }
 
+    public void addCloseable(Closeable closeable)
+        {
+        f_listCloseable.add(closeable);
+        }
+
+    public void removeCloseable(Closeable closeable)
+        {
+        f_listCloseable.remove(closeable);
+        }
+
     // ----- inner interface: Dependencies ----------------------------------
 
     /**
@@ -524,4 +536,9 @@ public class BaseGrpcServiceImpl
      * The transfer threshold used for paged requests.
      */
     protected long transferThreshold = DEFAULT_TRANSFER_THRESHOLD;
+
+    /**
+     * A list of things to close when this service is stopped.
+     */
+    protected ConcurrentLinkedQueue<Closeable> f_listCloseable = new ConcurrentLinkedQueue<>();
     }

@@ -17,4 +17,18 @@ import io.grpc.BindableService;
 public interface BindableGrpcProxyService
         extends GrpcProxyService, BindableService
     {
+    /**
+     * Close this service and clean up any state.
+     */
+    void close();
+
+    /**
+     * Return {@code true} if this service is enabled, otherwise {@code false}.
+     *
+     * @return {@code true} if this service is enabled, otherwise {@code false}
+     */
+    default boolean isEnabled()
+        {
+        return true;
+        }
     }

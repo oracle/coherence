@@ -13,6 +13,7 @@ import com.google.protobuf.BytesValue;
 import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
 
+import com.oracle.coherence.grpc.GrpcService;
 import com.oracle.coherence.grpc.proxy.common.BaseGrpcServiceImpl;
 import com.oracle.coherence.grpc.proxy.common.GrpcProxyService;
 import com.oracle.coherence.grpc.proxy.common.GrpcServiceDependencies;
@@ -69,8 +70,13 @@ import io.grpc.stub.StreamObserver;
  * @since 20.06
  */
 public interface NamedCacheService
-        extends GrpcProxyService
+        extends GrpcProxyService, GrpcService
     {
+    /**
+     * Close this service.
+     */
+    void close();
+
     /**
      * Add an index to a cache.
      *

@@ -9,6 +9,7 @@ package com.oracle.coherence.grpc.proxy.common;
 
 import com.oracle.coherence.common.base.Exceptions;
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultGrpcAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
 
@@ -98,6 +99,21 @@ public abstract class BaseGrpcAcceptorController
                     m_fRunning = false;
                     m_healthStatusManager.enterTerminalState();
                     m_healthStatusManager = null;
+                    List<BindableGrpcProxyService> list = m_listServices;
+                    if (list != null)
+                        {
+                        for (BindableGrpcProxyService service : list)
+                            {
+                            try
+                                {
+                                service.close();
+                                }
+                            catch (Exception e)
+                                {
+                                Logger.err(e);
+                                }
+                            }
+                        }
                     stopInternal();
                     m_listServices = null;
                     }

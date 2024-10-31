@@ -53,8 +53,10 @@ import com.tangosol.util.filter.AlwaysFilter;
 
 import io.grpc.Status;
 
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -65,6 +67,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import static com.oracle.coherence.grpc.proxy.common.v0.ResponseHandlers.handleUnary;
@@ -94,6 +98,33 @@ public abstract class BaseNamedCacheServiceImpl
         }
 
     // ----- BaseGrpcServiceImpl implementation -----------------------------
+
+    @Override
+    public void close()
+        {
+        f_lock.lock();
+        try
+            {
+            m_fClosed = true;
+            }
+        finally
+            {
+            f_lock.unlock();
+            }
+
+        f_listCloseable.forEach(closeable ->
+            {
+            try
+                {
+                closeable.close();
+                }
+            catch (Exception e)
+                {
+                Logger.err(e);
+                }
+            });
+        f_listCloseable.clear();
+        }
 
     // ----- addIndex -------------------------------------------------------
 
@@ -253,7 +284,21 @@ public abstract class BaseNamedCacheServiceImpl
     @Override
     public StreamObserver<MapListenerRequest> events(StreamObserver<MapListenerResponse> observer)
         {
-        return new MapListenerProxy(this, SafeStreamObserver.ensureSafeObserver(observer), m_nEventsHeartbeat);
+        f_lock.lock();
+        try
+            {
+            if (m_fClosed)
+                {
+                throw Status.UNAVAILABLE.asRuntimeException();
+                }
+            MapListenerProxy proxy = new MapListenerProxy(this, SafeStreamObserver.ensureSafeObserver(observer), m_nEventsHeartbeat);
+            addCloseable(proxy);
+            return proxy;
+            }
+        finally
+            {
+            f_lock.unlock();
+            }
         }
 
     // ----- getAll ---------------------------------------------------------
@@ -617,4 +662,8 @@ public abstract class BaseNamedCacheServiceImpl
     // ----- data members ---------------------------------------------------
 
     private final long m_nEventsHeartbeat;
+
+    protected volatile boolean m_fClosed = false;
+
+    protected final Lock f_lock = new ReentrantLock();
     }
