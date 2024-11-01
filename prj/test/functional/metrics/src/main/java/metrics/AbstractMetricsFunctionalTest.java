@@ -33,6 +33,13 @@ public class AbstractMetricsFunctionalTest extends AbstractFunctionalTest
     // ----- constructors ---------------------------------------------------
 
     /**
+     * Default constructor
+     */
+    public AbstractMetricsFunctionalTest()
+        {
+        }
+
+    /**
      * Constructor that initializes cluster member configuration file.
      *
      * @param cfgfile coherence configuration file
