@@ -7,6 +7,8 @@
 package com.oracle.coherence.grpc.client.common;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+
+import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
 
@@ -70,6 +72,12 @@ public class GrpcCacheLifecycleEventDispatcher
     public String getScopeName()
         {
         return f_service == null ? Coherence.SYSTEM_SCOPE : f_service.getScopeName();
+        }
+        
+    @Override
+    public CacheService getCacheService()
+        {
+        return getService();
         }
 
     // ----- RemoteSessionDispatcher methods --------------------------------

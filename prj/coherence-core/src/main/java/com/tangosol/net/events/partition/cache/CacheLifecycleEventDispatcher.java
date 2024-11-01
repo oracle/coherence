@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.events.partition.cache;
+
+import com.tangosol.net.CacheService;
 
 import com.tangosol.net.events.EventDispatcher;
 
@@ -33,6 +35,13 @@ public interface CacheLifecycleEventDispatcher
      *          if this dispatcher is not associated with a cache service.
      */
     public String getServiceName();
+
+    /**
+     * Return the {@link CacheService} associated with this dispatcher.
+     *
+     * @return the {@link CacheService}
+     */
+    public CacheService getCacheService();
 
     /**
      * Return the optional scope name that this dispatcher is associated with.
