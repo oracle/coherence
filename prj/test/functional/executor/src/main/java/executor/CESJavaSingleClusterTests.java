@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,24 +18,37 @@ import com.oracle.bedrock.runtime.coherence.options.Pof;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
-
 import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
-
 import com.oracle.bedrock.runtime.options.StabilityPredicate;
+import com.oracle.bedrock.testsupport.deferred.Eventually;
+
+import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 import com.tangosol.net.Coherence;
 
 import executor.common.CoherenceClusterResource;
 import executor.common.LogOutput;
 import executor.common.SingleClusterForAllTests;
+import executor.common.Utils;
 
-import org.junit.AfterClass;
+import metrics.AbstractMetricsFunctionalTest;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import org.hamcrest.CoreMatchers;
+
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
+
+import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.junit.Assert.fail;
+
 
 /**
  * Tests will spin up a cluster shared by each test using java as the serialization
@@ -78,9 +91,33 @@ public class CESJavaSingleClusterTests
         return CESJavaSingleClusterTests.class.getSimpleName();
         }
 
+    // Add Executor metrics verification.
+    @Override
+    @Test(timeout = 300000) // timeout after five minutes
+    public void shouldUseDefaultExecutor()
+        {
+        Utils.assertWithFailureAction(super::shouldUseDefaultExecutor, this::dumpExecutorCacheStates);
+
+        AbstractMetricsFunctionalTest metricsHelper = new AbstractMetricsFunctionalTest();
+        Map<String, String>           tags          = new LinkedHashMap<>();
+
+        try
+            {
+            Eventually.assertThat(invoking(metricsHelper).getCacheMetric(s_metrics_port, "Coherence.Executor.TasksCompletedCount", tags), CoreMatchers.is(greaterThan(4L)));
+            }
+        catch (Exception e)
+            {
+            fail("Get Executor metrics failed with exception: " + e);
+            }
+        }
+
     // ----- constants ------------------------------------------------------
 
     protected static final String EXTEND_CONFIG = "coherence-concurrent-client-config.xml";
+
+    protected static final String METRICS_ENABLED_PROPERTY = "coherence.metrics.http.enabled";
+
+    protected static int s_metrics_port = MetricsHttpHelper.DEFAULT_PROMETHEUS_METRICS_PORT;
 
     // ----- data members ---------------------------------------------------
 
@@ -113,6 +150,7 @@ public class CESJavaSingleClusterTests
                              LogOutput.to(CESJavaSingleClusterTests.class.getSimpleName(), "ComputeServer"),
                              RoleName.of(STORAGE_DISABLED_MEMBER_ROLE),
                              LocalStorage.disabled(),
+                             SystemProperty.of(METRICS_ENABLED_PROPERTY, true),
                              SystemProperty.of(EXTEND_ENABLED_PROPERTY, false),
                              SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true))
                     .include(PROXY_MEMBER_COUNT,
