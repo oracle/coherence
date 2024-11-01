@@ -1,17 +1,19 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.mp.config;
 
-import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.cdi.events.Activated;
 import com.oracle.coherence.cdi.events.MapName;
 import com.oracle.coherence.cdi.events.ScopeName;
 
+import com.oracle.coherence.common.base.Classes;
+
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
+
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
@@ -23,7 +25,6 @@ import com.tangosol.net.events.application.LifecycleEvent;
 
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 import com.tangosol.net.events.partition.cache.CacheLifecycleEventDispatcher;
-import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
 import com.tangosol.util.MapEvent;
 
 import java.util.Collections;
@@ -184,8 +185,7 @@ public class CoherenceConfigSource
 
         if (event.getType() == CacheLifecycleEvent.Type.CREATED)
             {
-            m_configMap = ((PartitionedCacheDispatcher) event.getEventDispatcher()).getBackingMapContext()
-                    .getManagerContext().getCacheService().ensureCache(MAP_NAME, Classes.getContextClassLoader());
+            m_configMap = event.getEventDispatcher().getCacheService().ensureCache(MAP_NAME, Classes.getContextClassLoader());
             }
         }
 

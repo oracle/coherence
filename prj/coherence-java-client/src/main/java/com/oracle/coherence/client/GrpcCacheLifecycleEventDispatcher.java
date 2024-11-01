@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,8 @@
 package com.oracle.coherence.client;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+
+import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
 
@@ -101,6 +103,12 @@ public class GrpcCacheLifecycleEventDispatcher
     public String getScopeName()
         {
         return f_service == null ? f_session.getScopeName() : f_service.getScopeName();
+        }
+
+    @Override
+    public CacheService getCacheService()
+        {
+        return getService();
         }
 
     // ----- RemoteSessionDispatcher methods --------------------------------
