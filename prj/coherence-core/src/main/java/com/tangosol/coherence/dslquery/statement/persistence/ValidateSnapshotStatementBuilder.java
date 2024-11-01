@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.dslquery.statement.persistence;
 
@@ -76,9 +76,9 @@ public class ValidateSnapshotStatementBuilder
                + "name and service name. When a directory name is not supplied, the\n"
                + "snapshot directory information is retrieved via the operational configuration.\n"
                + "Verbose mode provides more detailed information regarding the contents of the\n"
-               + "snapshot at the cost of increased execution time and resouce usage.\n"
+               + "snapshot at the cost of increased execution time and resource usage.\n"
                + "Note: the relevant operational and cache configuration pertaining\n"
-               + "to the cluster and services to be valdiated must be available to be loaded.";
+               + "to the cluster and services to be validated must be available to be loaded.";
         }
 
     /**
