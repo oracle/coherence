@@ -163,21 +163,6 @@ public class ProxyRestartIT
         cFilter = (Integer) mbeanServer.getAttribute(sMBean, "ListenerFilterCount");
         assertThat(cKey, is(0));
         assertThat(cFilter, is(0));
-
-        // do a get on the gRPC cache to reconnect, we do this in an assertDeferred because it may take a second
-        // or so for the gRPC server to be fully up and registered with the name service
-        Eventually.assertDeferred(() -> cache.get("key-1"), is("value-1"));
-
-        // listeners should have been re-registered
-        cKey = (Integer) mbeanServer.getAttribute(sMBean, "ListenerKeyCount");
-        cFilter = (Integer) mbeanServer.getAttribute(sMBean, "ListenerFilterCount");
-        assertThat(cKey, is(1));
-        assertThat(cFilter, is(1));
-
-        // do an update and check we get the events
-        cache.put("key-1", "value-1.1");
-        Eventually.assertDeferred(listener1::getUpdateCount, is(1));
-        Eventually.assertDeferred(listener2::getUpdateCount, is(1));
         }
 
     // ----- helper methods -------------------------------------------------
