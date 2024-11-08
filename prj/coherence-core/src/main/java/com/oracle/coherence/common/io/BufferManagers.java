@@ -305,6 +305,6 @@ public final class BufferManagers
      *
      * There is a performance impact to enabling this, it effectively negates the benefits of zcopy
      */
-    public static final boolean ZERO_ON_RELEASE = Boolean.getBoolean(
+    public static final boolean ZERO_ON_RELEASE = Config.getBoolean(
             BufferManagers.class.getName() + ".zeroed");
     }

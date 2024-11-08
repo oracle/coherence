@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.internal.util;
 
+import com.tangosol.coherence.config.Config;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -204,5 +205,5 @@ public class ApplicationLoader
     /**
      * Indicates if the launched applications should share the system classpath.
      */
-    private static final boolean SHARED_ROOT = Boolean.getBoolean(ApplicationLoader.class.getName() + ".sharedRoot");
+    private static final boolean SHARED_ROOT = Config.getBoolean(ApplicationLoader.class.getName() + ".sharedRoot");
     }
