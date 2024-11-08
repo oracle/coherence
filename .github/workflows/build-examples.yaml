@@ -33,7 +33,7 @@ jobs:
       fail-fast: false
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up JDK
       uses: oracle-actions/setup-java@v1
@@ -45,7 +45,7 @@ jobs:
       run: mvn -version
 
     - name: Cache Maven packages
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
@@ -67,7 +67,7 @@ jobs:
 
     # Upload build artifacts for diagnosing failures
     - name: Build Artifacts test logs
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: test-output
@@ -75,7 +75,7 @@ jobs:
         if-no-files-found: ignore
 
     - name: Build Artifacts test reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: failsafe-surefire-test-reports
@@ -83,7 +83,7 @@ jobs:
         if-no-files-found: ignore
 
     - name: Build Artifacts core dumps
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: core-dumps
@@ -91,7 +91,7 @@ jobs:
         if-no-files-found: ignore
 
     - name: Build Artifacts compiler replays
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: compiler-replay-logs
