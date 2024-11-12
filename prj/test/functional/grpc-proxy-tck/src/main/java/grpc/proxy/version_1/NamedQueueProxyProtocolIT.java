@@ -864,6 +864,9 @@ public class NamedQueueProxyProtocolIT
         NamedQueueResponse response = unpackAny(proxyResponse, ProxyResponse::getMessage, NamedQueueResponse.class);
         int                queueId  = response.getQueueId();
 
+        // wait for the completion message
+        observer.awaitCount(responseId + 1, 1, TimeUnit.MINUTES);
+
         assertThat(queueId, is(not(0)));
         return queueId;
         }
@@ -953,7 +956,9 @@ public class NamedQueueProxyProtocolIT
         catch (Throwable e)
             {
             throw Exceptions.ensureRuntimeException(e,
-                    "Failed to unpack proto message: " + e.getMessage() + "\nMessage:\n" + message);
+                    "Failed to unpack proto message: " + e.getMessage()
+                            + "\nMessage:\n" + message
+                            + "\nExpected:\n" + expected);
             }
         }
 
