@@ -479,4 +479,14 @@
     <cve>CVE-2023-5763</cve>
   </suppress>
 
+  <!-- Remove when this is resolved: COH-31345 - Update Netty version to 4.1.115.Final -->
+  <suppress>
+    <notes><![CDATA[
+    file name: netty-common-4.1.108.Final.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.netty/netty\-common@.*$</packageUrl>
+    <cpe>cpe:2.3:a:netty:netty</cpe>
+    <cve>CVE-2024-47535</cve>
+  </suppress>
+
 </suppressions>
