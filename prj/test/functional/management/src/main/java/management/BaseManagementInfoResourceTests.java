@@ -942,6 +942,34 @@ public abstract class BaseManagementInfoResourceTests
         }
 
     @Test
+    public void testResetStatsQuery()
+        {
+        WebTarget target   = getBaseTarget();
+        Response  response = target.request().get();
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+        Map mapResponse = readEntity(target, response);
+
+        List<Number> listMemberIds = (List<Number>) mapResponse.get("memberIds");
+
+        assertThat(listMemberIds, notNullValue());
+        assertThat(listMemberIds.size(), greaterThan(0));
+
+        Map<String, String> entity = new LinkedHashMap<>();
+        entity.put("query", "Coherence:type=Cache,*");
+        response = getBaseTarget()
+                .path("resetStatistics").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.entity(entity, MediaType.APPLICATION_JSON_TYPE));
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        Map r = readEntity(target, response);
+        List<String> result = (List) r.get("result");
+        assertThat(result.size(), greaterThan(0));
+        assertTrue(result.stream().anyMatch(s -> s.contains("Coherence:type=Cache") && s.endsWith("OK")));
+        }
+
+    @Test
     public void testProxyConnectionManagerResetStats()
         {
         WebTarget target   = getBaseTarget();
