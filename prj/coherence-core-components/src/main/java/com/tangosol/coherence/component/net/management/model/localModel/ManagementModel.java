@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,20 @@
 package com.tangosol.coherence.component.net.management.model.localModel;
 
 import com.tangosol.coherence.component.net.management.Connector;
+
+import com.tangosol.net.management.MBeanHelper;
+
+import com.oracle.coherence.common.base.Logger;
+
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanException;
+import javax.management.MBeanServer;
+import javax.management.ObjectInstance;
+import javax.management.ObjectName;
+import javax.management.ReflectionException;
+
+import java.util.ArrayList;
+import java.util.Set;
 
 /**
  * Model components implement the JMX-managed functionality of the
@@ -261,6 +275,43 @@ public class ManagementModel
         {
         get_Connector().resetStatistics();
         }
+
+    public String[] resetStatistics(String sName)
+        {
+        ArrayList<String> result = new ArrayList<>();
+        try
+            {
+            MBeanServer server = MBeanHelper.findMBeanServer();
+            ObjectName objectName = new ObjectName(sName);
+            Set<ObjectInstance> instances = server.queryMBeans(objectName, null);
+            for (ObjectInstance instance : instances)
+                {
+                try
+                    {
+                    server.invoke(instance.getObjectName(), "resetStatistics", new Object[0], new String[0]);
+                    result.add(instance.getObjectName() + " OK");
+                    }
+                catch (InstanceNotFoundException | MBeanException | ReflectionException e)
+                    {
+                    Throwable t = rootCause(e);
+                    result.add(instance.getObjectName() + " ERROR: " + t.getMessage());
+                    }
+                catch (Throwable e)
+                    {
+                    Throwable t = rootCause(e);
+                    result.add(instance.getObjectName() + " ERROR: " + t.getMessage());
+                    }
+                }
+            }
+        catch (Throwable e)
+            {
+            Throwable t = rootCause(e);
+            Logger.warn("Failed to execute query \"" + sName + "\"; " + t);
+            result.add("Error: " + t.getMessage());
+            }
+
+        return result.toArray(new String[0]);
+        }
     
     // Accessor for the property "_Connector"
     /**
@@ -311,5 +362,17 @@ public class ManagementModel
             throws java.io.IOException
         {
         throw new IllegalStateException("ManagementModel is not global");
+        }
+
+    private static Throwable rootCause(Throwable t)
+        {
+        Throwable rootCause = t;
+        Throwable cause     = t.getCause();
+        while (cause != null)
+            {
+            rootCause = cause;
+            cause     = cause.getCause();
+            }
+        return rootCause;
         }
     }

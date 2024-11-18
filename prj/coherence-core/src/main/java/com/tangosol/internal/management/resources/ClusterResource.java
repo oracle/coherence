@@ -279,6 +279,20 @@ public class ClusterResource
         if ("shutdown".equals(sOperationName) || "resetStatistics".equals(sOperationName)
              || "logNodeState".equals(sOperationName))
             {
+            if ("resetStatistics".equals(sOperationName))
+                {
+                Map<String, Object> mapQuery = getJsonBody(request);
+                String              query    = (String) mapQuery.get("query");
+                if (query != null && !query.isBlank())
+                    {
+                    return response(getResponseFromMBeanOperation(request,
+                                                 getManagementQuery(request),
+                                                 "result",
+                                                 sOperationName,
+                                                 new Object[] {query},
+                                                 new String[] {String.class.getName()}));
+                    }
+                }
             return executeMBeanOperation(request, getMembersQuery(request), sOperationName,
                     null, null);
             }

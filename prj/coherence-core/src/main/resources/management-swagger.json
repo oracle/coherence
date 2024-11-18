@@ -388,14 +388,41 @@
           "Cluster"
         ],
         "summary": "Reset Member Statistics for all the members",
-        "description": "Use this endpoint to clear the current statistics for all the members.",
+        "description": "Use this endpoint to clear the current statistics for all the members.\nThis end point also takes an ObjectName pattern (query) to allow you to control\n the MBeans to reset. For example, if you want to reset all the MBeans in\n the cluster, use pattern \"Coherence:type=*\" (for MBeans that don't support\n statistics reset an error will be returned). If you want to reset all the\n cache MBeans, pattern \"Coherence:type=Cache,*\". Pattern should be passed as\n a json object in the request body\n Example: {\"query\": \"Coherence:type=Service,name=DistributedCachePersistence,nodeId=1\"} - reset statistics on a specific service and member\n\n",
         "operationId": "/management/coherence/cluster/resetStatistics POST",
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [{
+          "in": "body",
+          "name": "query",
+          "description": "ObjectName pattern to search for.",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string"
+              }
+            }
+          }
+        }],
         "produces": [
           "application/json"
         ],
         "responses": {
           "200": {
-            "description": "Command invocation is successful"
+            "description": "It returns a collection of the status for all the MBeans that were reset.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
           }
         }
       }
