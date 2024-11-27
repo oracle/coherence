@@ -879,7 +879,7 @@
           <!-- creates the sources.jar artifact -->
           <execution>
             <id>create-sources-jar</id>
-            <phase>prepare-package</phase>
+            <phase>package</phase>
             <goals>
               <goal>single</goal>
             </goals>
