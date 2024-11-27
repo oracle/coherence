@@ -373,8 +373,8 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
         m_fReadOnly     = transformer != null;
         m_nState        = STATE_DISCONNECTED;
 
-        // initialize Observable listeners based on cached values
-        m_fListeners    = fCacheValues;
+        // initialize Observable listener on whether a standard (non-lite) listener passed at construction time
+        m_fListeners    = listener != null && fCacheValues;
         if (listener instanceof MapTriggerListener)
             {
             throw new IllegalArgumentException("ContinuousQueryCache does not support MapTriggerListeners");
