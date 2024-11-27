@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.cache;
@@ -12,8 +12,11 @@ import com.oracle.coherence.testing.cache.BaseContinuousQueryCacheTest;
 import com.tangosol.net.NamedCache;
 
 import com.oracle.coherence.testing.util.BaseMapTest;
+
+import com.tangosol.util.Extractors;
 import com.tangosol.util.Filter;
 import com.tangosol.util.MapIndex;
+import com.tangosol.util.MapListener;
 import com.tangosol.util.ObservableMap;
 import com.tangosol.util.SimpleMapEntry;
 import com.tangosol.util.ValueExtractor;
@@ -869,6 +872,45 @@ public class ContinuousQueryCacheTest
         expectedView.put(4, "Lisa");
 
         System.out.println(cacheCQC);
+        BaseMapTest.assertIdenticalMaps(expectedView, cacheCQC);
+
+        cacheBase.put(5, new Person("555-55-5555", "Maggie", "Simpson", 2000, null, new String[0]));
+        expectedView.put(5, "Maggie");
+        System.out.println(cacheCQC);
+
+        BaseMapTest.assertIdenticalMaps(expectedView, cacheCQC);
+        }
+
+    /**
+    * Ensure request for no local cache values is ignored when transformer is non-null.
+    */
+    @Test
+    public void testTransformerNoCacheValues()
+        {
+        NamedCache cacheBase = getNewCache("cqc-test");
+        cacheBase.put(1, new Person("111-11-1111", "Homer", "Simpson", 1945, null, new String[0]));
+        cacheBase.put(2, new Person("222-22-2222", "Marge", "Simpson", 1950, null, new String[0]));
+        cacheBase.put(3, new Person("333-33-3333", "Bart", "Simpson", 1985, null, new String[0]));
+        cacheBase.put(4, new Person("444-44-4444", "Lisa", "Simpson", 1987, null, new String[0]));
+
+        ContinuousQueryCache cacheCQC = new ContinuousQueryCache(cacheBase, AlwaysFilter.INSTANCE,
+                                                                 /*fCacheValues*/false, (MapListener)null,
+                                                                 Extractors.extract("firstName"));
+        Assert.assertTrue(cacheCQC.isReadOnly());
+        Assert.assertTrue("ensure non-null transformer results in locally cached values", cacheCQC.isCacheValues());
+
+        Map expectedView = new HashMap(5);
+        expectedView.put(1, "Homer");
+        expectedView.put(2, "Marge");
+        expectedView.put(3, "Bart");
+        expectedView.put(4, "Lisa");
+
+        // ensure transformed values are stored locally despite conflicting request for no local values
+        for (Object oValue : cacheCQC.getInternalCache().values())
+            {
+            assertNotNull(oValue);
+            }
+
         BaseMapTest.assertIdenticalMaps(expectedView, cacheCQC);
 
         cacheBase.put(5, new Person("555-55-5555", "Maggie", "Simpson", 2000, null, new String[0]));
