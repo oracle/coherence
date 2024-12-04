@@ -21348,8 +21348,15 @@ public class PartitionedCache
                     {
                     // typical case (com.tangosol.net.partition.PartitionAwareBackingMap); drive off of the partition-map
                     Map mapPart = mapPABM.getPartitionMap(getPartitionId());
-                
-                    return getEventsHelper().getBinaryEntries(storage, mapPart.entrySet());
+
+                    if (mapPart == null)
+                        {
+                        return Collections.emptySet();
+                        }
+                    else
+                        {
+                        return getEventsHelper().getBinaryEntries(storage, mapPart.entrySet());
+                        }
                     }
                 
                 Map map = storage.getBackingMap();
