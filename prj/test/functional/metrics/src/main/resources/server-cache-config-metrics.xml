@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -33,6 +33,10 @@
     <cache-mapping>
       <cache-name>write-through-*</cache-name>
       <scheme-name>write-through</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>view-*</cache-name>
+      <scheme-name>view-scheme</scheme-name>
     </cache-mapping>
   </caching-scheme-mapping>
 
@@ -147,6 +151,11 @@
       </persistence>
       <autostart system-property="test.persistence.enabled">true</autostart>
     </distributed-scheme>
+
+    <view-scheme>
+      <scheme-name>view-scheme</scheme-name>
+      <autostart>true</autostart>
+    </view-scheme>
 
     <proxy-scheme>
       <service-name>ExtendTcpProxyService</service-name>

@@ -1,18 +1,24 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2024 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.management;
 
 import com.tangosol.net.NamedCache;
+
 import com.tangosol.net.management.annotation.Description;
+import com.tangosol.net.management.annotation.MetricsScope;
+import com.tangosol.net.management.annotation.MetricsValue;
+
+import com.tangosol.net.metrics.MBeanMetric;
 
 import com.tangosol.util.Filter;
 import com.tangosol.util.ValueExtractor;
 
+@MetricsScope(MBeanMetric.Scope.VENDOR)
 @Description("Provides View Cache statistics.")
 public interface ViewMBean
     {
@@ -87,6 +93,7 @@ public interface ViewMBean
      *
      * @return the number of key-value mappings in this cache
      */
-    @Description("The number of entries in the cache.")
+    @Description("The number of entries in the view cache.")
+    @MetricsValue
     long getSize();
     }
