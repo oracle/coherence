@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,10 @@
 package filter;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
+import com.tangosol.coherence.config.Config;
+import com.tangosol.util.comparator.SafeComparator;
+import com.tangosol.util.filter.AlwaysFilter;
+import com.tangosol.util.filter.LimitFilter;
 import data.Person;
 
 import com.tangosol.net.CacheFactory;
@@ -20,20 +24,24 @@ import com.tangosol.util.extractor.ReflectionExtractor;
 import com.tangosol.util.filter.AllFilter;
 import com.tangosol.util.filter.BetweenFilter;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.util.SortedSet;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static junit.framework.Assert.fail;
 
-public class COH23114Tests
+import static junit.framework.Assert.fail;
+import static org.junit.Assert.assertEquals;
+
+public class MiscTests
     extends AbstractFunctionalTest
     {
     /**
      * Default constructor.
      */
-    public COH23114Tests()
+    public MiscTests()
         {
         super();
         }
@@ -51,8 +59,38 @@ public class COH23114Tests
 
     // ----- test methods ---------------------------------------------------
     @Test
+    public void testNullFirst()
+        {
+        NamedCache<String, data.repository.Person> cache = CacheFactory.getCache("dist");
+
+        Comparator compName = new SafeComparator(new ReflectionExtractor("getName"), false);
+
+        cache.clear();
+
+        // normal entries
+        data.repository.Person person1 = new data.repository.Person("111");
+        person1.setName("Aaaa");
+        cache.put(person1.getSsn(), person1);
+        data.repository.Person person2 = new data.repository.Person("222");
+        person2.setName("Bbbb");
+        cache.put(person2.getSsn(), person2);
+
+        // Person with null name
+        data.repository.Person person = new data.repository.Person("999");
+        cache.put(person.getSsn(), person);
+
+        SortedSet<Map.Entry<String, data.repository.Person>> s =
+                (SortedSet) cache.entrySet(new LimitFilter(AlwaysFilter.INSTANCE(), 20), compName);
+
+        assertEquals(s.last().getValue().getName(), null);
+        }
+
+
+
+    @Test
     public void testBetweenFilter()
         {
+        // COH23114 test
         ValueExtractor extrFirst = new ReflectionExtractor("getFirstName");
         ValueExtractor extrLast  = new ReflectionExtractor("getLastName");
         ValueExtractor extrYear  = new ReflectionExtractor("getBirthYear");
