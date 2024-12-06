@@ -9,6 +9,12 @@ package grpc.client;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.ai.DocumentChunk;
+import com.oracle.coherence.ai.Float32Vector;
+import com.oracle.coherence.ai.QueryResult;
+import com.oracle.coherence.ai.Vector;
+import com.oracle.coherence.ai.search.SimilaritySearch;
+import com.oracle.coherence.ai.util.Vectors;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.grpc.client.common.AsyncNamedCacheClient;
 import com.oracle.coherence.grpc.client.common.DeactivationListener;
@@ -34,6 +40,7 @@ import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.OperationalContext;
 
 import com.tangosol.net.RequestIncompleteException;
@@ -62,15 +69,12 @@ import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.filter.MapEventFilter;
 
-import com.tangosol.util.listener.SimpleMapListener;
 import com.tangosol.util.processor.ExtractorProcessor;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 
@@ -87,10 +91,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -2327,6 +2331,66 @@ public abstract class AbstractGrpcClientIT
 
         }
 
+    // ----- Coherence AI tests ---------------------------------------------
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldPerformSimilaritySearch(String sSerializerName, Serializer serializer) throws Exception
+        {
+        String                             cacheName = createCacheName("similarity-search");
+        NamedCache<Integer, DocumentChunk> cache     = ensureCache(cacheName);
+        cache.clear();
+
+        DocumentChunk   chunk  = populateVectors(cache);
+        Vector<float[]> vector = chunk.vector();
+
+        NamedCache<Integer, DocumentChunk>             grpcClient = createClient(cacheName, sSerializerName, serializer);
+        ValueExtractor<DocumentChunk, Vector<float[]>> extractor  = ValueExtractor.of(DocumentChunk::vector);
+
+        List<QueryResult<Integer, DocumentChunk>> result = grpcClient.aggregate(new SimilaritySearch<>(extractor, vector, 2));
+        assertThat(result.size(), is(2));
+        }
+
+    public static DocumentChunk populateVectors(NamedMap<Integer, DocumentChunk> vectors)
+        {
+        int       dimensions = 384;
+        float[][] matches = new float[5][];
+        matches[0] = randomFloats(dimensions);
+        matches[1] = Arrays.copyOf(matches[0], matches[0].length);
+        matches[2] = Arrays.copyOf(matches[0], matches[0].length);
+        matches[3] = Arrays.copyOf(matches[0], matches[0].length);
+        matches[4] = Arrays.copyOf(matches[0], matches[0].length);
+        matches[1][0] = matches[1][0] + 1.0f;
+        matches[2][0] = matches[2][0] + 1.0f;
+        matches[3][0] = matches[3][0] + 1.0f;
+        matches[4][0] = matches[4][0] + 1.0f;
+
+        DocumentChunk[] values = new DocumentChunk[10000];
+
+        for (int i = 0; i < matches.length; i++)
+            {
+            values[i] = new DocumentChunk(String.valueOf(i), new Float32Vector(Vectors.normalize(matches[i])));
+            vectors.put(i, values[i]);
+            }
+        for (int i = matches.length; i < values.length; i++)
+            {
+            values[i] = new DocumentChunk(String.valueOf(i), new Float32Vector(Vectors.normalize(randomFloats(dimensions))));
+            vectors.put(i, values[i]);
+            }
+
+        return values[0];
+        }
+
+    public static float[] randomFloats(int n)
+        {
+        float[] floats = new float[n];
+        for (int i = 0; i < n; i++)
+            {
+            floats[i] = m_random.nextFloat(-50, 50);
+            }
+        return floats;
+        }
+
     // ----- helper methods -------------------------------------------------
 
     protected void assumeDeferKeyAssociation(NamedCache<?, ?> cache)
@@ -2687,4 +2751,6 @@ public abstract class AbstractGrpcClientIT
     protected final String f_sScopeName;
 
     protected long m_nStart;
+
+    protected static final Random m_random = new Random(System.currentTimeMillis());
     }

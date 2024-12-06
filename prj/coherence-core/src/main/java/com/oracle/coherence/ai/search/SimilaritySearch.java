@@ -25,7 +25,6 @@ import com.tangosol.net.BackingMapContext;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.Converter;
-import com.tangosol.util.ConverterCollections;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
@@ -43,12 +42,14 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * An {@link StreamingAggregator} to execute a similarity query.
@@ -275,8 +276,10 @@ public class SimilaritySearch<K, V, T>
     @Override
     public List<QueryResult<K, V>> finalizeResult(Converter<Binary, ?> converterBin)
         {
-        Converter<BinaryQueryResult, QueryResult<K, V>> convUp = r -> new ConverterResult<>(r, converterBin);
-        return ConverterCollections.getList(new ArrayList<>(m_results), convUp, x -> null);
+        Converter<BinaryQueryResult, QueryResult<K, V>> convUp = new ResultConverter<>(converterBin);
+        return m_results.stream()
+                .map(convUp::convert)
+                .collect(Collectors.toList());
         }
 
     @Override
@@ -389,6 +392,23 @@ public class SimilaritySearch<K, V, T>
             }
 
         return false;
+        }
+
+    public static class ResultConverter<K, V>
+            implements Converter<BinaryQueryResult, QueryResult<K, V>>, Serializable
+        {
+        public ResultConverter(Converter<Binary, ?> f_converterBin)
+            {
+            this.f_converterBin = f_converterBin;
+            }
+
+        @Override
+        public QueryResult<K, V> convert(BinaryQueryResult value)
+            {
+            return new ConverterResult<>(value, f_converterBin);
+            }
+
+        private final Converter<Binary, ?> f_converterBin;
         }
 
     // ----- data members ---------------------------------------------------

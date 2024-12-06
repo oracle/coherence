@@ -8,9 +8,12 @@
 package com.oracle.coherence.ai.search;
 
 import com.oracle.coherence.ai.QueryResult;
+import com.tangosol.io.SerializationSupport;
 import com.tangosol.util.Binary;
 import com.tangosol.util.Converter;
 
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -22,7 +25,7 @@ import java.util.Objects;
  */
 @SuppressWarnings("unchecked")
 public class ConverterResult<K, V>
-        implements QueryResult<K, V>
+        implements QueryResult<K, V>, Serializable, SerializationSupport
     {
     /**
      * Create a {@link ConverterResult}.
@@ -86,6 +89,12 @@ public class ConverterResult<K, V>
                 " result=" + getDistance() +
                 ", key=" + oKey +
                 '}';
+        }
+
+    @Override
+    public Object writeReplace() throws ObjectStreamException
+        {
+        return new SimpleQueryResult<>(getDistance(), getKey(), getValue());
         }
 
     // ----- data members ---------------------------------------------------

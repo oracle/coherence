@@ -324,6 +324,13 @@ public class ClientCompatibilityIT
         }
 
     @Override
+    public void shouldPerformSimilaritySearch(String sSerializerName, Serializer serializer) throws Exception
+        {
+        Assumptions.assumeFalse(Boolean.getBoolean("skip.similarity.search"), "Similarity search test is skipped");
+        super.shouldPerformSimilaritySearch(sSerializerName, serializer);
+        }
+
+    @Override
     protected <K, V> NamedCache<K, V> createClient(String sCacheName, String sSerializerName, Serializer serializer)
         {
         String  sName   = sessionNameFromSerializerName(sSerializerName);
