@@ -361,16 +361,7 @@ public abstract class BackingMapManagerContext
     * The ClassLoader associated with this context.
      */
     public void setClassLoader(ClassLoader loader)
-        {
-        // import com.tangosol.net.security.LocalPermission;
-        
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(
-                new LocalPermission("BackingMapManagerContext.setClassLoader"));
-            }
-        
+        {      
         __m_ClassLoader = (loader);
         }
     

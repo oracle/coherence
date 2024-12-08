@@ -770,20 +770,6 @@ public abstract class Grid
         return cTimeoutMillis;
         }
     
-    /**
-     * Security check.
-     */
-    protected void checkShutdownPermission()
-        {
-        // import com.tangosol.net.security.LocalPermission;
-        
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(
-                new LocalPermission("Cluster.shutdown"));
-            }
-        }
     
     // Declared at the super level
     /**
@@ -4955,7 +4941,6 @@ public abstract class Grid
             {
             if (getServiceState() < SERVICE_STOPPING)
                 {
-                checkShutdownPermission();
         
                 // send the request to shut down
                 send(instantiateMessage("NotifyShutdown"));
@@ -5019,9 +5004,7 @@ public abstract class Grid
     public void stop()
         {
         // import com.tangosol.internal.util.NullMessagePublisher;
-        
-        checkShutdownPermission();
-        
+                
         setMessagePublisher(NullMessagePublisher.INSTANCE); // prevent further external communication
         
         super.stop();

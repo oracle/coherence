@@ -277,10 +277,7 @@ public class ScopedCacheFactoryBuilder
                                                   final ClassLoader       loader,
                                                   final ParameterResolver resolver)
         {
-        return System.getSecurityManager() == null
-                ? getFactoryInternal(sConfigURI, loader, resolver)
-                : AccessController.doPrivileged((PrivilegedAction<ConfigurableCacheFactory>)
-                    () -> getFactoryInternal(sConfigURI, loader, resolver));
+        return getFactoryInternal(sConfigURI, loader, resolver);
         }
 
     /**

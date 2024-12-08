@@ -3390,13 +3390,6 @@ public class Storage
      */
     public com.tangosol.util.ObservableMap getBackingMap()
         {
-        // import com.tangosol.net.security.LocalPermission;
-
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(LocalPermission.BACKING_MAP);
-            }
 
         return getBackingMapInternal();
         }
@@ -12915,14 +12908,7 @@ public class Storage
             {
             // import com.tangosol.net.security.DoAsAction;
             // import com.tangosol.util.ObservableMap;
-            // import java.security.AccessController;
-
-            if (System.getSecurityManager() == null)
-                {
-                return getStorage().getBackingMap();
-                }
-
-            return (ObservableMap) AccessController.doPrivileged(getStorage().getBackingMapAction());
+            return getStorage().getBackingMap();
             }
 
         // From interface: com.tangosol.util.BinaryEntry

@@ -749,18 +749,7 @@ public class SafeNamedCache
         
         return MapListener.ASYNCHRONOUS | MapListener.VERSION_AWARE;
         }
-    
-    private void checkInternalAccess()
-        {
-        // import com.tangosol.net.security.LocalPermission;
         
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(LocalPermission.INTERNAL_SERVICE);
-            }
-        }
-    
     // From interface: com.tangosol.net.NamedCache
     public void destroy()
         {
@@ -848,7 +837,6 @@ public class SafeNamedCache
         {
         // import com.tangosol.net.NamedCache;
         
-        checkInternalAccess();
         
         NamedCache  cache       = getInternalNamedCache();
         SafeService serviceSafe = getSafeCacheService();
@@ -1030,8 +1018,7 @@ public class SafeNamedCache
      */
     public com.tangosol.net.NamedCache getNamedCache()
         {
-        checkInternalAccess();
-        
+    	
         return getInternalNamedCache();
         }
     
@@ -1162,15 +1149,8 @@ public class SafeNamedCache
         {
         // import com.tangosol.net.NamedCache;
         // import com.tangosol.net.security.DoAsAction;
-        // import java.security.AccessController;
         
-        if (System.getSecurityManager() == null)
-            {
             return ensureRunningNamedCache();
-            }
-        
-        return (NamedCache) AccessController.doPrivileged(
-            new DoAsAction(getEnsureCacheAction()));
         }
     
     // Accessor for the property "SafeAsyncNamedCache"

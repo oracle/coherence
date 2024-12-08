@@ -7,7 +7,6 @@
 package com.tangosol.util;
 
 import com.oracle.coherence.common.base.Disposable;
-import com.tangosol.net.security.LocalPermission;
 
 import static com.tangosol.util.BuilderHelper.using;
 
@@ -164,13 +163,7 @@ public class SimpleResourceRegistry
     public <R> String registerResource(Class<R> clzResource, String sResourceName, Builder<? extends R> bldrResource,
                                        RegistrationBehavior behavior, ResourceLifecycleObserver<R> observer)
         {
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(
-                new LocalPermission("Service.registerResource"));
-            }
-
+      
         synchronized (clzResource)
             {
             // attempt to get an existing resource registration for the key
@@ -256,13 +249,6 @@ public class SimpleResourceRegistry
     @Override
     public <R> void unregisterResource(Class<R> clzResource, String sResourceName)
         {
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(
-                new LocalPermission("Service.registerResource"));
-            }
-
         m_mapResource.remove(new RegistryKey(clzResource, sResourceName));
         }
 

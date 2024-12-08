@@ -276,16 +276,6 @@ public class SafeNamedTopic
         }
     //-- com.tangosol.net.topic.NamedTopic integration
     
-    private void checkInternalAccess()
-        {
-        // import com.tangosol.net.security.LocalPermission;
-        
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(LocalPermission.INTERNAL_SERVICE);
-            }
-        }
     
     // From interface: com.tangosol.net.topic.NamedTopic
     public com.tangosol.net.topic.Publisher createPublisher(com.tangosol.net.topic.Publisher.Option[] options)
@@ -422,9 +412,7 @@ public class SafeNamedTopic
     public com.tangosol.net.topic.NamedTopic ensureRunningNamedTopic()
         {
         // import com.tangosol.net.topic.NamedTopic;
-        
-        checkInternalAccess();
-        
+                
         NamedTopic  topic       = getInternalNamedTopic();
         SafeService serviceSafe = getSafeTopicService();
         
@@ -542,8 +530,7 @@ public class SafeNamedTopic
      */
     public com.tangosol.net.topic.NamedTopic getNamedTopic()
         {
-        checkInternalAccess();
-        
+    	
         return getInternalNamedTopic();
         }
     
@@ -574,15 +561,8 @@ public class SafeNamedTopic
         {
         // import com.tangosol.net.topic.NamedTopic;
         // import com.tangosol.net.security.DoAsAction;
-        // import java.security.AccessController;
         
-        if (System.getSecurityManager() == null)
-            {
             return ensureRunningNamedTopic();
-            }
-        
-        return (NamedTopic) AccessController.doPrivileged(
-            new DoAsAction(getEnsureTopicAction()));
         }
     
     // Accessor for the property "SafeTopicService"

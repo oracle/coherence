@@ -65,7 +65,7 @@ public class VirtualThreads
         //              caller context; virtual threads have no permissions
         //              when executing code that performs a privileged
         //              action.
-        return System.getSecurityManager() == null;
+        return true;
         }
 
     /**

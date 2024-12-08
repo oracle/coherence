@@ -813,13 +813,7 @@ public class Gateway
     public Object execute(com.tangosol.util.function.Remote.Function function)
         {
         // import com.tangosol.util.Base;
-        
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(EXECUTE_PERMISSION);
-            }
-        
+               
         return executeInternal(function, /*continuation*/ null);
         }
     

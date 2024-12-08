@@ -24136,9 +24136,7 @@ public class PartitionedCache
                 Storage storage   = getStorage();
                 Map      mapStatus = (Map) ctx.getStorageStatusMap().get(storage);
                 
-                Map mapResource = System.getSecurityManager() == null
-                        ? storage.getBackingMapInternal()
-                        : (Map) AccessController.doPrivileged(new DoAsAction(storage.getBackingMapAction()));
+                Map mapResource = storage.getBackingMapInternal();
                 
                 Storage.EntryStatus status = mapStatus == null ? null : (Storage.EntryStatus) mapStatus.get((Binary) oKey);
                 

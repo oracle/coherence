@@ -471,18 +471,7 @@ public class SafeService
                 }     
             }
         }
-    
-    private void checkInternalAccess()
-        {
-        // import com.tangosol.net.security.LocalPermission;
         
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(LocalPermission.INTERNAL_SERVICE);
-            }
-        }
-    
     protected void cleanup()
         {
         // import com.tangosol.util.SimpleResourceRegistry;
@@ -579,9 +568,7 @@ public class SafeService
         // import com.tangosol.net.InvocationService;
         // import com.tangosol.net.ProxyService;
         // import com.tangosol.net.Service;
-        
-        checkInternalAccess();
-        
+                
         Service service = getInternalService();
         if (service == null || !service.isRunning())
             {
@@ -763,15 +750,7 @@ public class SafeService
         {
         // import com.tangosol.net.Service;
         // import com.tangosol.net.security.DoAsAction;
-        // import java.security.AccessController;
-        
-        if (System.getSecurityManager() == null)
-            {
             return ensureRunningService();
-            }
-        
-        return (Service) AccessController.doPrivileged(
-            new DoAsAction(getEnsureServiceAction()));
         }
     
     // Accessor for the property "SafeCluster"
@@ -804,8 +783,7 @@ public class SafeService
      */
     public com.tangosol.net.Service getService()
         {
-        checkInternalAccess();
-        
+    	
         return getInternalService();
         }
     
@@ -1151,14 +1129,7 @@ public class SafeService
         {
         // import com.tangosol.net.security.LocalPermission;
         // import com.tangosol.net.Service;
-        
-        SecurityManager security = System.getSecurityManager();
-        if (security != null && loader != null)
-            {
-            security.checkPermission(
-                new LocalPermission("BackingMapManagerContext.setClassLoader"));
-            }
-        
+                
         __m_ContextClassLoader = (loader);
         
         Service service = getInternalService();

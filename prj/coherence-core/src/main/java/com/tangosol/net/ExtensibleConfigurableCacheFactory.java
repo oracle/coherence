@@ -236,10 +236,7 @@ public class ExtensibleConfigurableCacheFactory
 
         Base.checkNotEmpty(sCacheName, "CacheName");
 
-        return System.getSecurityManager() == null
-                ? ensureCacheInternal(sCacheName, loader, options)
-                : AccessController.doPrivileged(new DoAsAction<>(
-                    () -> ensureCacheInternal(sCacheName, loader, options)));
+        return  ensureCacheInternal(sCacheName, loader, options);
         }
 
     /**
