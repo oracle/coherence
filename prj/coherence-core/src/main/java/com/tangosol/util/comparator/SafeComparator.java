@@ -18,6 +18,7 @@ import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.QueryMap;
+import com.tangosol.util.ValueExtractor;
 
 import com.tangosol.util.extractor.KeyExtractor;
 
@@ -225,7 +226,15 @@ public class SafeComparator<T>
             {
             try
                 {
+                if (comparator instanceof ValueExtractor)
+                    {
+                    // honor NullFirst; the default abstract implementation goes to the static (with NullFirst == true always) version of compare()
+                    return compareSafe(null, ((ValueExtractor) comparator).extract(o1), ((ValueExtractor) comparator).extract(o2), fNullFirst);
+                    }
+                else
+                    {
                 return comparator.compare(o1, o2);
+                }
                 }
             catch (NullPointerException e) {}
             }

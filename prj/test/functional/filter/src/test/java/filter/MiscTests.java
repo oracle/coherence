@@ -16,25 +16,31 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
 import com.tangosol.util.ValueExtractor;
+import com.tangosol.util.comparator.SafeComparator;
 import com.tangosol.util.extractor.ReflectionExtractor;
 import com.tangosol.util.filter.AllFilter;
+import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.BetweenFilter;
+import com.tangosol.util.filter.LimitFilter;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static junit.framework.Assert.fail;
+import static org.junit.Assert.assertEquals;
 
-public class COH23114Tests
+public class MiscTests
     extends AbstractFunctionalTest
     {
     /**
      * Default constructor.
      */
-    public COH23114Tests()
+    public MiscTests()
         {
         super();
         }
@@ -51,6 +57,33 @@ public class COH23114Tests
         }
 
     // ----- test methods ---------------------------------------------------
+    @Test
+    public void testNullFirst()
+        {
+        Comparator compName = new SafeComparator(new ReflectionExtractor("getName"), false);
+
+        NamedCache<String, SimplePerson> cache = CacheFactory.getCache("dist");
+
+        cache.clear();
+
+        // normal entries
+        SimplePerson person1 = new SimplePerson("111");
+        person1.setName("Aaaa");
+        cache.put(person1.getSsn(), person1);
+        SimplePerson person2 = new SimplePerson("222");
+        person2.setName("Bbbb");
+        cache.put(person2.getSsn(), person2);
+
+        // Person with null name
+        SimplePerson person = new SimplePerson("999");
+        cache.put(person.getSsn(), person);
+
+        SortedSet<Map.Entry<String, SimplePerson>> s =
+                (SortedSet) cache.entrySet(new LimitFilter(AlwaysFilter.INSTANCE(), 20), compName);
+
+        assertEquals(s.last().getValue().getName(), null);
+        }
+
     @Test
     public void testBetweenFilter()
         {
@@ -148,5 +181,9 @@ public class COH23114Tests
             {
             fail("Test run interrupted");
             }
+
+        cache.removeIndex(extrFirst);
+        cache.removeIndex(extrLast);
+        cache.removeIndex(extrYear);
         }
     }
