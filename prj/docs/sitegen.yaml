@@ -8,7 +8,7 @@ engine:
     libraries:
       - "asciidoctor-diagram"
     attributes:
-      commercial-docs-base-url: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.2.0"
+      commercial-docs-base-url: "https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0"
       source-highlighter: "highlight.js"
       highlightjs-theme: "idea"
       plantumlconfig: "_plantuml-config.txt"

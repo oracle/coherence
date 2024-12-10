@@ -7,7 +7,6 @@ set -e
 # https://oss.oracle.com/licenses/upl.
 #
 
-pwd
 CURRENT_VERSION=$(mvn -f prj help:evaluate -Dexpression=project.version -DforceStdout -q -nsu)
 
 if [ "${CURRENT_VERSION}" = "" ]; then
@@ -24,10 +23,6 @@ fi
 echo "Building version ${CURRENT_VERSION}"
 mvn -B clean install -Dproject.official=true -P-modules --file prj/pom.xml -DskipTests -s .github/maven/settings.xml
 mvn -B clean install -Dproject.official=true -Pmodules,-coherence,docs -nsu --file prj/pom.xml -DskipTests -s .github/maven/settings.xml
-
-echo "Deploying version ${CURRENT_VERSION}"
-mvn -B clean deploy -Dproject.official=true -P-modules -nsu --file prj/pom.xml -DskipTests -s .github/maven/settings.xml
-mvn -B clean deploy -Dproject.official=true -Pmodules,-coherence,docs -nsu --file prj/pom.xml -DskipTests -s .github/maven/settings.xml
 
 echo "Deploying docs for version ${CURRENT_VERSION}"
 git stash save --keep-index --include-untracked || true
