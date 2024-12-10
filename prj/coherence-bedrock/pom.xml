@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce</groupId>
+    <artifactId>main</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>coherence-bedrock-parent</artifactId>
+  <packaging>pom</packaging>
+
+  <name>Coherence Bedrock Parent</name>
+  <description>
+    Coherence Bedrock testing parent
+  </description>
+
+  <modules>
+    <module>coherence-bedrock</module>
+    <module>coherence-bedrock-testing-support</module>
+    <module>coherence-bedrock-tests-junit4</module>
+    <module>coherence-bedrock-tests-junit5</module>
+  </modules>
+</project>

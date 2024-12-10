@@ -1,0 +1,209 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Built-In Aggregators
+:description: Coherence Guides Aggregations
+:keywords: coherence, java, documentation, aggregation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Built-In Aggregators
+
+This guide walks you through how to use built-in aggregators such as including count, sum,
+min, average and top which allow you to process data stored in Coherence in parallel.
+
+Coherence supports entry aggregators that perform operations against all, or a subset
+of entries to obtain a single result. This aggregation is carried out in parallel across the cluster
+and is a map-reduce type of operation which can be performed efficiently across large amounts of data.
+
+See the {commercial-docs-base-url}/develop-applications/processing-data-cache.html#GUID-DFB7AB0C-1CE6-4259-8854-9DA1F40B6F15[Coherence Documentation]
+for detailed information on Aggregations.
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-will-need,What You Need>>
+* <<data-model, Example Data Model>>
+* <<example-code-1, Review the Example Code>>
+* <<run-example-1, Run the Example>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+In this example you will utilize the built-in aggregators such as `count`, `sum`,
+`min`, `average` and `top` on orders and customers maps.
+
+You will also use the `Aggregators` class and its helpers to simplify aggregator usage.
+
+[#what-you-will-need]
+==== What You Need
+:java_version: 11
+:duration: 15
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+[#running]
+==== Running the Examples
+
+This example can be run directly in your IDE, but to best demonstrate the functionality
+you should run 1 or more cache servers and then run the example class.
+
+1. Running Cache Servers
++
+[source,bash]
+----
+./mvnw exec:exec -P server
+----
++
+or
++
+[source,bash]
+----
+./gradlew runServer -x test
+----
+
+2. Running each example
++
+Each example can be run direct from the IDE, or can be run via executing the tests.
++
+[source,bash]
+----
+./mvnw clean verify
+----
++
+or
++
+[source,bash]
+----
+./gradlew clean test
+----
+
+[#data-model]
+=== Example Data Model
+
+The data model consists of the following classes in two maps, `customers` and `orders`
+
+* `Customer` - Represents a customer
+* `Order` - Represents and order for a customer and contains order lines
+* `OrderLine` - Represents an individual order line for an order
+* `Address` - Represents an address for a customer
+
+[#example-code-1]
+=== Review the Example Code
+
+In this example we will show a number of the built-in aggregation functions in action. The full list is:
+
+* count
+* distinct
+* average
+* max
+* min
+* top
+* sum
+
+All the above aggregators can be implemented using static helpers in the `Aggregators` class, for example
+`Aggregators.count()`. The helpers create the right aggregator type based on the type of method reference/extractor
+that is passed as an argument. They all return the `EntryAggregator` implementations
+ which allows them to be passed as argument to the aggregate methods below.
+
+* `public default <R> R aggregate(EntryAggregator<? super K, ? super V, R> aggregator)` - Aggregate across all entries in a cache
+* `public <R> R aggregate(Collection<? extends K> collKeys, EntryAggregator<? super K, ? super V, R> aggregator);` - Aggregate across a set of entries defined by the keys
+* `public <R> R aggregate(Filter filter, EntryAggregator<? super K, ? super V, R> aggregator);` - Aggregate across a set of entries defines by the filter
+
+The `SimpleAggregationExample` runs various aggregations using a number of the above functions.
+
+1. Example Details
++
+The `runExample()` method contains the code that exercises the above aggregators. Refer to the inline
+code comments for explanations of what each aggregator is doing.
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/aggregations/SimpleAggregationExample.java[tag=runExample]
+----
+
+[#run-example-1]
+=== Run the Example
+
+Carry out the following to run this example:
+
+1. Start 2 cache servers using the method described above:
++
+E.g. for Maven use:
++
+[source,bash]
+----
+./mvnw exec:exec -P server
+----
++
+or
++
+[source,bash]
+----
+./gradlew runServer -x test
+----
+
+2. Run the following to load the data and run the example.
++
+E.g. for Maven use:
++
+[source,bash]
+----
+./mvnw clean verify
+----
++
+or
++
+[source,bash]
+----
+./gradlew clean test
+----
++
+This will generate output similar to the following: (timestamps have been removed from output)
++
+[source,bash]
+----
+<Info> (thread=main, member=1): Creating 10000 customers
+<Info> (thread=main, member=1): Creating orders for customers
+<Info> (thread=main, member=1): Orders created
+<Info> (thread=main, member=1): Customer Count = 10000
+<Info> (thread=main, member=1): Order Count = 29848
+<Info> (thread=main, member=1): Total Order Value $89,689,872.00
+<Info> (thread=main, member=1): Average Order Value $3,004.89
+<Info> (thread=main, member=1): Min Order Value for orders with 1 line $500.08
+<Info> (thread=main, member=1): State: QLD, outstanding total is $567,600.00
+<Info> (thread=main, member=1): State: WA, outstanding total is $585,800.00
+<Info> (thread=main, member=1): State: SA, outstanding total is $561,900.00
+<Info> (thread=main, member=1): State: VIC, outstanding total is $556,500.00
+<Info> (thread=main, member=1): State: NT, outstanding total is $528,700.00
+<Info> (thread=main, member=1): State: ACT, outstanding total is $566,800.00
+<Info> (thread=main, member=1): State: TAS, outstanding total is $563,900.00
+<Info> (thread=main, member=1): State: NSW, outstanding total is $530,900.00
+<Info> (thread=main, member=1): Top 5 orders by value
+<Info> (thread=main, member=1): $8,304.27
+<Info> (thread=main, member=1): $8,273.82
+<Info> (thread=main, member=1): $8,229.51
+<Info> (thread=main, member=1): $8,197.35
+<Info> (thread=main, member=1): $8,194.63
+----
+
+[#summary]
+=== Summary
+
+You have seen how to use built-in aggregators which include `count`, `sum`,
+`min`, `average` and `top` on orders and customers maps.
+
+You also used the `Aggregators` class and its helpers to simplify aggregator usage.
+
+[#see-also]
+=== See Also
+
+* {commercial-docs-base-url}/develop-applications/processing-data-cache.html#GUID-C9DF96E0-FAF2-4CD9-958E-4DC5CF06B18A[Performing Data Grid Operations]
+* <<examples/guides/125-streams/README.adoc,Streams>>

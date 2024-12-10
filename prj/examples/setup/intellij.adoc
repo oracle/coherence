@@ -1,0 +1,57 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Import a Project Into IntelliJ IDEA
+:description: Coherence Guides Import Project Into Intellij
+:keywords: coherence, import, intellij
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Import a Project Into IntelliJ IDEA
+
+This guide walks you through importing one of the Coherence guides or tutorials into IntelliJ IDEA.
+
+=== What You Will Build
+
+You will pick a Coherence guide or example and import it into IntelliJ IDEA.
+Then you can then read and follow the individual guide or tutorial documentation.
+
+==== What You Need
+* About 15 Minutes
+* https://www.jetbrains.com/idea/download/[IntelliJ IDEA]
+* https://www.oracle.com/java/technologies/javase-downloads.html[JDK 6] or later
+
+==== Installing IntelliJ IDEA
+
+If you don’t have IntelliJ IDEA (Ultimate Edition) installed yet, visit the link up above.
+From there, you can download a copy for your platform. To install it simply unpack the downloaded archive.
+
+When you’re done, go ahead and launch IntelliJ IDEA.
+
+==== Clone the Coherence CE Repository
+
+To import an existing project you need to clone the https://github.com/oracle/coherence[Coherence CE repository]
+if you have not already done so.
+
+[source,bash]
+----
+$ git clone https://github.com/oracle/coherence.git
+----
+
+==== Importing a Guide or Tutorial
+
+1. With IntelliJ IDEA up and running, click `Import Project` on the Welcome Screen, or `File | New Project From Existing Sources`.
+
+2. Navigate to the cloned repository directory, then `prj/examples` and then to the guide or tutorial directory.
+For example for *Near Caching* you would open `prj/examples/guides/130-near-caching` directory.
+
+3. In the pop-up dialog select either `Maven` or `Gradle` as the external model to import from.
+
+4. Once the project is imported, follow the README to build or run the example or guide.
+
+==== See Also
+
+* https://www.jetbrains.com/idea/download/[IntelliJ IDEA]

@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+			  
+    <report>
+      <file-name>cluster-config.txt</file-name>
+      <delim>{tab}</delim>
+
+      <query>
+        <pattern>Coherence:type=Cluster</pattern>
+      </query>
+
+      <row>
+        <column id="ClusterName">
+           <name>ClusterName</name>
+           <header>ClusterName</header>
+        </column>
+
+        <column id="ClusterSize">
+           <name>ClusterSize</name>
+           <header>Cluster Size</header>
+        </column>
+
+        <column id="LicenseMode">
+           <name>LicenseMode</name>
+           <header>LicenseMode</header>
+        </column>
+
+        <column id="LocalMemberId">
+           <name>LocalMemberId</name>
+           <header>Local Member Id</header>
+        </column>
+
+        <column id="MemberIds">
+           <name>MemberIds</name>
+           <header>Member Ids</header>
+        </column>
+
+        <column id="Members">
+           <name>Members</name>
+           <header>Members</header>
+        </column>
+
+        <column id="MembersDeparted">
+           <name>MembersDeparted</name>
+           <header>Members Departed</header>
+        </column>
+
+        <column id="MembersDepartureCount">
+           <name>MembersDepartureCount</name>
+           <header>Members Departed Count</header>
+        </column>
+
+        <column id="OldestMemberId">
+           <name>OldestMemberId</name>
+           <header>Oldest Member Id</header>
+        </column>
+
+        <column id="Running">
+           <name>Running</name>
+           <header>Running Status</header>
+        </column>
+
+        <column id="Version">
+           <name>Version</name>
+           <header>Version</header>
+        </column>
+
+      </row>
+    </report>
+</report-config>

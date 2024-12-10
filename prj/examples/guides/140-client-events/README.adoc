@@ -1,0 +1,374 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Client Events
+:description: Coherence Guides Client Events
+:keywords: coherence, java, documentation, client events
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Client Events
+
+This guide walks you through how to use client events within Coherence to listen for insert,
+update or delete events on a Coherence `NamedMap`.
+
+An application object that implements the `MapListener` interface can sign up for events from any Coherence
+`NamedMap` simply by passing an instance of the application's MapListener implementation to a `addMapListener()` method.
+The MapListener can be registered against all entries, a specific key, or a Filter.
+
+Registrations with filters can use `MapEventFilter` which provide more fine-grained control for event registrations
+or `InKeySetFilter` which can be used to register against a Set of keys.
+
+The `MapListener` interface provides a call back mechanism for `NamedMap` events where any changes that happen
+to the source (NamedMap) are delivered to relevant clients asynchronously. The `MapEvent` object that is passed to the `MapListener` carries all the necessary
+information about the event that has occurred Including the event type
+(insert, update, or delete), the key, old value, new value, and the source (`NameMap`)
+that emitted the event.
+
+Client events are the key building blocks for other Coherence functionality including Near Cache
+and Continuous Query Caches (CQC).
+
+See the Coherence Documentation links below for more information:
+
+* {commercial-docs-base-url}/develop-applications/using-map-events.html[Develop Applications using Map Events]
+* {commercial-docs-base-url}/develop-applications/introduction-coherence-caches.html[Understanding Near Caches]
+* {commercial-docs-base-url}/develop-applications/using-continuous-query-caching.html[Using Continuous Query Caches]
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-will-need,What You Need>>
+* <<building, Building the Example Code>>
+* <<example-tests-1, Review the Tests>>
+* <<run-example-1, Run the Examples>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+In this example you will run a number of tests and that show the following features of client events including:
+
+* Understanding the `MapListener` interface
+* Listening for all events
+* Using `SimpleMapListener` and `MultiplexingMapListener`
+* Using lite events
+* Listening for events for a particular key
+* Listening for events based upon filters
+
+[#what-you-will-need]
+==== What You Need
+:java_version: 11
+:duration: 20
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+[#building]
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+[#running]
+==== Running the Examples
+
+This example can be run directly in your IDE, but you can also run
+1 or more cache servers and then run the example class.
+
+1. Running Cache Servers
++
+[source,bash]
+----
+./mvnw exec:exec -P server
+----
++
+or
++
+[source,bash]
+----
+./gradlew runServer -x test
+----
+
+2. Running each example
++
+Each example can be run direct from the IDE, or can be run via executing the tests.
++
+[source,bash]
+----
+./mvnw clean verify
+----
++
+or
++
+[source,bash]
+----
+./gradlew clean test
+----
+
+[#example-tests-1]
+=== Review the Tests
+
+The example code comprises the `ClientEventsTest` class, which runs a test showing various aspects of client events.
+
+The `testMapListeners` runs the following test code for various scenarios
+
+* `testStandardMapListener` - standard MapListener implementation listening to all events
+* `testMultiplexingMapListener` -  `MultiplexingMapListener` listening to all events through the `onMapEvent()` method
+* `testSimpleMapListener` - `SimpleMapListener` allows the use of lambdas to add event handlers to listen to events
+* `testListenOnQueries` - listening for only for events on New York customers
+* `testEventTypes` - listening for new or updated GOLD customers
+
+//-
+
+1. Review the `Customer` class
++
+All the tests use the `Customer` class which has the following fields:
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/clientevents/Customer.java[tag=vars]
+----
++
+
+2. Review the test boostrap and cleanup to start the cluster before all the tests and shutdown after the tests
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/clientevents/ClientEventsTest.java[tag=bootstrap]
+----
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/clientevents/ClientEventsTest.java[tag=cleanup]
+----
++
+
+3. Review the `testStandardMapListener` code
++
+This test uses the `CustomerMapListener` class which is an implementation of a standard `MapListener`
+listening for all events.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/clientevents/ClientEventsTest.java[tag=maplistener1]
+----
+<1> Implements `MapListener` interface
+<2> `AtomicIntegers` for test validation
+<3> Respond to `insert` events with new value
+<4> Respond to `update` events with old and new values
+<5> Respond to `delete` events with old value
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/clientevents/ClientEventsTest.java[tag=testStandardMapListener]
+----
+<1> Create the MapListener
+<2> Add the MapListener to listen for all events
+<3> Add the customers
+<4> Update the credit limit for customer 1
+<5> Remove customer 1
+<6> Wait for all events
+
+4. Review the `testMultiplexingMapListener` code
++
+This test uses the `MultiplexingCustomerMapListener` class which extends `MultiplexingMapListener` to
+listen for all events.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/clientevents/ClientEventsTest.java[tag=maplistener2]
+----
+<1> Extends abstract class `MultiplexingMapListener`
+<2> `AtomicInteger` for test validation
+<3> Respond to all events and use `MapEvent` methods to determine type of event
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/clientevents/ClientEventsTest.java[tag=testMultiplexingMapListener]
+----
+<1> Create the MapListener
+<2> Add the MapListener to listen for all events
+<3> Mutate the customers
+<4> Wait for all events
+
+5. Review the `testSimpleMapListener` code
++
+This test uses the `SimpleMapListener` and lambdas to register event handlers for only the key `1`.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/clientevents/ClientEventsTest.java[tag=testSimpleMapListener]
+----
+<1> Create the `SimpleMapListener` instance
+<2> Add an insert handler to display new customers
+<3> Add delete a handler to display deleted customers
+<4> Add an insert handler to increment an atomic
+<5> Add delete a handler to increment an atomic
+<6> Register the listener on the key `1` (customer id 1)
+<7> wait for all events
+
+6. Review the `testListenOnQueries` code
++
+This test uses the `CustomerMapListener` to listen on a query for customers in NY and returns lite events.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/clientevents/ClientEventsTest.java[tag=testListenOnQueries]
+----
+<1> Create the `MapListener` instance
+<2> Create a `like` filter to select only customers whose address contains `NY`
+<3> Add the map listener and specify a `MapEventFilter` which takes the filter created above as well as specifying the event is `lite` event where the
+new and old values may not necessarily be present
+<4> wait for all events
+
+7. Review the `testEventTypes` code
++
+This test uses the `CustomerMapListener` but also applies a filter to only receive insert or update events for GOLD customers.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/clientevents/ClientEventsTest.java[tag=testEventTypes]
+----
+<1> Create the `CustomerMapListener` instance
+<2> Create an `equals` filter to select only GOLD customers
+<3> Create a mask for inserted events for when the filter is matched or events that are updated and now the filter matches
+<4> Add the map listener and specify a `MapEventFilter` which takes the filter created above/
+<5> wait for all events
+
+[#run-example-1]
+=== Run the Examples
+
+Run the examples using the test case below.
+
+1. Run directly from your IDE by running either of the following test classes:
++
+* com.oracle.coherence.guides.clientevents.ClientEventsTest
++
+
+2. Run using Maven or Gradle
++
+E.g. for Maven use:
++
+[source,bash]
+----
+./mvnw clean verify
+----
++
+or
++
+[source,bash]
+----
+./gradlew clean test
+----
+
+NOTE: When the test is run you will see output from the various parts of the test code
+
+*testStandardMapListener Output*
+
+This test uses the `CustomerMapListener` class which is an implementation of a standard `MapListener`
+listening for all events.
+
+NOTE: Output has been formatted for easier reading.
+
+[source,bash]
+----
+<Info> (thread=main, member=1): *** testStandardMapListener
+<Info> (thread=DistributedCache:PartitionedCache:EventDispatcher, member=1): <1>
+      New customer: new key/value=1/Customer{id=1, name='Tim', address='123 James Street Perth', customerType='BRONZE', balance=1000}
+<Info> (thread=DistributedCache:PartitionedCache:EventDispatcher, member=1): <2>
+      New customer: new key/value=2/Customer{id=2, name='James Brown', address='1 Main Street New York NY', customerType='GOLD', balance=10000}
+<Info> (thread=DistributedCache:PartitionedCache:EventDispatcher, member=1): <3>
+       Updated customer key=1, old=Customer{id=1, name='Tim', address='123 James Street Perth', customerType='BRONZE', balance=1000},
+                               new=Customer{id=1, name='Tim', address='123 James Street Perth', customerType='BRONZE', balance=2000}
+<Info> (thread=DistributedCache:PartitionedCache:EventDispatcher, member=1): <4>
+      Deleted customer: old key/value=1/Customer{id=1, name='Tim', address='123 James Street Perth', customerType='BRONZE', balance=2000}
+----
+<1> Insert event from new customer id 1
+<2> Insert event from new customer id 2
+<3> Update event from updating of customer 1's credit limit
+<4> Delete event containing old version of deleted customer 1
+
+*testMultiplexingMapListener Output*
+
+This test uses the `MultiplexingCustomerMapListener` class which extends `MultiplexingMapListener` to
+listen for all events.
+
+[source,bash]
+----
+<Info> (thread=DistributedCache:PartitionedCache:EventDispatcher, member=1): isInsert=true, isDelete=false, isUpdate=false <1>
+<Info> (thread=DistributedCache:PartitionedCache:EventDispatcher, member=1): key=1, old=null,
+        new=Customer{id=1, name='James Brown', address='1 Main Street New York NY', customerType='GOLD', balance=10000}
+<Info> (thread=DistributedCache:PartitionedCache:EventDispatcher, member=1): isInsert=false, isDelete=false, isUpdate=true <2>
+<Info> (thread=DistributedCache:PartitionedCache:EventDispatcher, member=1): key=1,
+       old=Customer{id=1, name='James Brown', address='1 Main Street New York NY', customerType='GOLD', balance=10000},
+       new=Customer{id=1, name='James Brown', address='Updated address', customerType='GOLD', balance=10000}
+<Info> (thread=DistributedCache:PartitionedCache:EventDispatcher, member=1): isInsert=false, isDelete=true, isUpdate=false <3>
+<Info> (thread=DistributedCache:PartitionedCache:EventDispatcher, member=1): key=1,
+       old=Customer{id=1, name='James Brown', address='Updated address', customerType='GOLD', balance=10000}, new=null
+----
+<1> Insert event from new customer id 1
+<2> Update event from an update of customer 1 address
+<3> Delete event from customer 1
+
+*testSimpleMapListener Output*
+
+This test uses the `SimpleMapListener` and lambdas to register event handlers for only the key `1`.
+
+[source,bash]
+----
+<Info> (thread=main, member=1): *** testSimpleMapListener
+<Info> (thread=DistributedCache:PartitionedCache:EventDispatcher, member=1): New Customer added with id=1
+<Info> (thread=DistributedCache:PartitionedCache:EventDispatcher, member=1): Deleted customer id =1
+----
+
+*testListenOnQueries Output*
+
+This test uses the `CustomerMapListener` to listen on a query for customers in NY and returns lite events.
+
+[source,bash]
+----
+<Info> (thread=DistributedCache:PartitionedCache:EventDispatcher, member=1): New customer: new key/value=2/null
+<Info> (thread=DistributedCache:PartitionedCache:EventDispatcher, member=1): New customer: new key/value=4/null
+----
+NOTE: Both above queries only return the key because they are `lite` events and only customer 2 and 4 are returned as they
+are the only ones with `NY` in the address.
+
+*testEventTypes Output*
+
+This test uses the `CustomerMapListener` but also applies a filter to only receive insert or update events for GOLD customers.
+
+[source,bash]
+----
+<Info> (thread=main, member=1): *** testEventTypes
+<Info> (thread=DistributedCache:PartitionedCache:EventDispatcher, member=1): <1>
+      New customer: new key/value=2/Customer{id=2, name='James Brown', address='1 Main Street New York NY', customerType='GOLD', balance=10000}
+<Info> (thread=DistributedCache:PartitionedCache:EventDispatcher, member=1): Updated customer key=1, <2>
+      old=Customer{id=1, name='Tim', address='123 James Street Perth', customerType='BRONZE', balance=1000},
+      new=Customer{id=1, name='Tim', address='123 James Street Perth', customerType='GOLD', balance=1000}
+<Info> (thread=DistributedCache:PartitionedCache:EventDispatcher, member=1): Updated customer key=2, <3>
+      old=Customer{id=2, name='James Brown', address='1 Main Street New York NY', customerType='GOLD', balance=10000},
+      new=Customer{id=2, name='James Brown', address='1 Main Street New York NY', customerType='SILVER', balance=10000}
+
+----
+<1> Insert event from new GOLD customer id 2
+<2> Update event changing customer type from BRONZE to GOLD for customer id 1
+<3> Update event changing customer type from GOLD to BRONZE for customer id 2
+
+[#summary]
+=== Summary
+
+In this example you have seen how to use the following features of client events:
+
+* Understanding the `MapListener` interface
+* Listening for all events
+* Using `SimpleMapListener` and `MultiplexingMapListener`
+* Using lite events
+* Listening for events for a particular key
+* Listening for events based upon filters
+
+[#see-also]
+=== See Also
+
+* {commercial-docs-base-url}/develop-applications/using-map-events.html[Develop Applications using Map Events]
+* {commercial-docs-base-url}/develop-applications/introduction-coherence-caches.html[Understanding Near Caches]
+* {commercial-docs-base-url}/develop-applications/using-continuous-query-caching.html[Using Continuous Query Caches]

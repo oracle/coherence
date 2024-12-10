@@ -1,0 +1,96 @@
+<?xml version='1.0'?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<processor-dictionary>
+  <processor-template description='Intel Woodcrest Dual Core or Core2 Duo'>
+    <vendor>GenuineIntel</vendor>
+    <family>6</family>
+    <model>15</model>
+    <execution-units>2</execution-units>
+    <signature>302C021442AA21149EAC05420EB6207BB3A2B2C5D2C66FB6021436B592259BC8F273D890DE11E77C0BD7861FA39F</signature>
+  </processor-template>
+  <processor-template description='Intel Core Duo'>
+    <environment>Windows</environment>
+    <vendor>GenuineIntel</vendor>
+    <family>6</family>
+    <model>14</model>
+    <execution-units>2</execution-units>
+    <signature>302D0214094697CE235B3AC1E0EC257F484057D18E41593E0215008EBBB81A6E51C77D4C4085A9A01928D4846A93A7</signature>
+  </processor-template>
+  <processor-template description='Intel P4 HyperThreaded'>
+    <environment>Windows</environment>
+    <vendor>GenuineIntel</vendor>
+    <family>15</family>
+    <model regex='true'>[2-9]|\d{2,3}</model>
+    <execution-units>2</execution-units>
+    <signature>302C0214716DB06182D3BA592319206A9776E34F8E8516660214644ABB986E0481A94649F76DE427365083372868</signature>
+  </processor-template>
+  <processor-template description='Intel Dual Core or HyperThreaded'>
+    <vendor>GenuineIntel</vendor>
+    <flags regex='true'>.* ht .*</flags>
+    <execution-units>2</execution-units>
+    <signature>302C021437D70C22A871E6342093E1D82CF789D50705DEF30214104F1000B9E650F71BD53D54905FCB886B5B3F9D</signature>
+  </processor-template>
+  <processor-template description='Intel Clovertown Quad Core'>
+    <vendor>GenuineIntel</vendor>
+    <family>6</family>
+    <model>15</model>
+    <stepping>7</stepping>
+    <execution-units>4</execution-units>
+    <signature>302C021445F10E2B2B882A08103B3607B0A62BAD633BF78202145907187D23BE4EFD558B1E22A68524FD80DF8DFC</signature>
+  </processor-template>
+  <processor-template description='Intel Dual Core and HyperThreaded'>
+    <vendor>GenuineIntel</vendor>
+    <family>15</family>
+    <model regex='true'>4|6</model>
+    <stepping>8</stepping>
+    <execution-units thread-count='2'>4</execution-units>
+    <signature>302C02141F7BBB359B4F56F059461D378F163BEED9C7FC83021410CEA440AB90B0CC5B656877C56A79B1E9394AC0</signature>
+  </processor-template>
+  <processor-template description='AMD Opteron 850 Quad Core'>
+    <vendor>AuthenticAMD</vendor>
+    <family>15</family>
+    <model>5</model>
+    <execution-units>4</execution-units>
+    <signature>302C02141241A92B49548FC59153B55032A4AE32C3F53CA8021474970FE7DC902C12332810DE1A592EC4AF0192F2</signature>
+  </processor-template>
+  <processor-template description='AMD Opteron Dual Core r1'>
+    <vendor>AuthenticAMD</vendor>
+    <family>15</family>
+    <model>33</model>
+    <execution-units>2</execution-units>
+    <signature>302C021468EC7F0E2174FAD4644B9F990DD955A3DD233B2A02144C2EBAE8D2D8A1D1060B62120B700D44E655DA47</signature>
+  </processor-template>
+  <processor-template description='AMD Opteron Dual Core r2'>
+    <vendor>AuthenticAMD</vendor>
+    <family>15</family>
+    <model>35</model>
+    <execution-units>2</execution-units>
+    <signature>302C02142E6E6E8ECA844F5146C3C2CEC97719D49755D0840214747440501C29680FD6FEB48CB95EB8A150E81446</signature>
+  </processor-template>
+  <processor-template description='AMD Athlon 64 X2 Dual Core r1'>
+    <vendor>AuthenticAMD</vendor>
+    <family>15</family>
+    <model>43</model>
+    <execution-units>2</execution-units>
+    <signature>302C02147A9C2A87F18949ADB9FB173735D319B0F171A47802145D3A4F47B47AD69CAC9D12D3767162F6B468D404</signature>
+  </processor-template>
+  <processor-template description='AMD Athlon 64 X2 Dual Core r2'>
+    <vendor>AuthenticAMD</vendor>
+    <family>15</family>
+    <model>35</model>
+    <execution-units>2</execution-units>
+    <signature>302C021455274389617438BBD0F3AA769E8568BC7F860549021410F831823D690419E7DF759194DDDF8DC5109DD6</signature>
+  </processor-template>
+  <processor-template description='IBM Power5 Dual Core and HyperThreaded'>
+    <architecture>ppc64</architecture>
+    <cpu>POWER5 (gr)</cpu>
+    <revision regex='true'>2\.\d*</revision>
+    <execution-units>4</execution-units>
+    <signature>302C021419B61653EA35519BE2DFB757CC77AE58C9C8E61A02141320B3B7FB5B1481A5943CC3313F150D3D3B87C4</signature>
+  </processor-template>
+</processor-dictionary>

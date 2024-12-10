@@ -1,0 +1,43 @@
+/*
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+plugins {
+	id 'java'
+}
+
+group = 'com.oracle.coherence.guides'
+version = '${coherenceVersion}'
+sourceCompatibility = '17'
+
+repositories {
+	mavenCentral()
+	mavenLocal()
+}
+
+dependencies {
+	implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+
+	implementation "${coherenceGroupId}:coherence"
+
+    testImplementation "com.oracle.coherence.hibernate:coherence-hibernate-cache-store:${hibernateCacheStoreVersion}"
+	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+	testImplementation "org.hibernate:hibernate-core:${hibernateVersion}"
+    testImplementation "${coherenceGroupId}:coherence-bedrock-testing-support"
+    testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
+
+    implementation "com.h2database:h2:${h2Version}"
+    implementation "io.r2dbc:r2dbc-h2:${r2dbch2Version}"
+	testImplementation "org.hsqldb:hsqldb:${hsqldbVersion}"
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+}
+
+test {
+    testLogging {
+        events "PASSED", "SKIPPED", "FAILED", "STANDARD_OUT", "STANDARD_ERROR"
+    }
+    useJUnitPlatform()
+}

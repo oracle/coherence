@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<pof-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">        
+  <user-type-list>
+    <include>coherence-pof-config.xml</include>
+
+    <user-type>
+      <type-id>1024</type-id>
+      <class-name>java.util.Set</class-name>
+      <serializer>
+        <class-name>com.tangosol.io.pof.SetSerializer</class-name>
+      </serializer>
+    </user-type>
+
+  </user-type-list>
+
+  <allow-interfaces>true</allow-interfaces>
+  <allow-subclasses>true</allow-subclasses>
+</pof-config>

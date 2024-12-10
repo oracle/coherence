@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<ssl>
+  <provider>
+    <name>CustomSSLProvider</name>
+    <class-name>ssl.CustomProvider</class-name>
+    <init-params>
+      <init-param>
+        <param-type>String</param-type>
+        <param-value>CustomSSLProvider</param-value>
+      </init-param>
+    </init-params>
+  </provider>
+
+  <executor>
+    <class-factory-name>java.util.concurrent.Executors</class-factory-name>
+    <method-name>newSingleThreadExecutor</method-name>
+  </executor>
+
+  <identity-manager>
+    <provider>
+      <name>CustomKeyManagerProvider</name>
+      <class-name>ssl.CustomProvider</class-name>
+      <init-params>
+        <init-param>
+          <param-type>String</param-type>
+          <param-value>CustomKeyManagerProvider</param-value>
+        </init-param>
+      </init-params>
+    </provider>
+    <key-store>
+      <url>file:client.jks</url>
+      <password>password</password>
+    </key-store>
+    <password>private</password>
+  </identity-manager>
+
+  <trust-manager>
+    <provider>
+      <name>CustomTrustManagerProvider</name>
+      <class-name>ssl.CustomProvider</class-name>
+      <init-params>
+        <init-param>
+          <param-type>String</param-type>
+          <param-value>CustomTrustManagerProvider</param-value>
+        </init-param>
+      </init-params>
+    </provider>
+    <key-store>
+      <url>file:trust.jks</url>
+      <password>password</password>
+    </key-store>
+  </trust-manager>
+
+  <hostname-verifier>
+    <class-name>ssl.CustomHostnameVerifier</class-name>
+    <init-params>
+      <init-param>
+        <param-type>boolean</param-type>
+        <param-value>true</param-value>
+      </init-param>
+    </init-params>
+  </hostname-verifier>
+
+  <protocol-versions>
+    <name>knockknock</name>
+    <name>slowboat</name>
+    <name>jet</name>
+  </protocol-versions>
+
+  <cipher-suites>
+    <name>twizzlers</name>
+    <name>snickers</name>
+  </cipher-suites>
+</ssl>

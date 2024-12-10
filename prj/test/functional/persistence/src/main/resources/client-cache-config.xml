@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>default-persistent</cache-name>
+      <scheme-name>default-persistence</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>rolling-*</cache-name>
+      <scheme-name>rolling-persistence</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dynamic-quorum*</cache-name>
+      <scheme-name>dynamic-quorum</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>simple-persistent*</cache-name>
+      <scheme-name>simple-persistence</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>simple-transient</cache-name>
+      <scheme-name>simple-persistence</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>transient</param-name>
+          <param-value>true</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>simple-archiver</cache-name>
+      <scheme-name>simple-persistence-archiver</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>default-persistence</scheme-name>
+      <service-name>DistributedCachePersistenceDefault</service-name>
+      <partition-count system-property="test.partition-count">257</partition-count>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>rolling-persistence</scheme-name>
+      <service-name>DistributedCachePersistence</service-name>
+      <backing-map-scheme>
+        <local-scheme>
+          <high-units>32M</high-units>
+          <unit-calculator>binary</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart system-property="test.dist.enabled">true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>dynamic-quorum</scheme-name>
+      <service-name>DistributedCachePersistenceQuorum</service-name>
+      <thread-count-min system-property="test.threads">0</thread-count-min>
+      <backing-map-scheme>
+        <transient>{transient false}</transient>
+        <local-scheme/>
+      </backing-map-scheme>
+      <partitioned-quorum-policy-scheme>
+        <recover-quorum system-property="test.recover.quorum">3</recover-quorum>
+      </partitioned-quorum-policy-scheme>
+      <autostart>true</autostart>
+      <async-backup system-property="test.asyncbackup">false</async-backup>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>simple-persistence</scheme-name>
+      <service-name>DistributedCachePersistence</service-name>
+      <thread-count-min system-property="test.threads">0</thread-count-min>
+      <partition-count system-property="coherence.distributed.partitions">257</partition-count>
+      <backing-map-scheme>
+        <transient>{transient false}</transient>
+        <local-scheme/>
+      </backing-map-scheme>
+      <partitioned-quorum-policy-scheme>
+        <class-name>persistence.AbstractSimplePersistenceTests$QuorumPolicy</class-name>
+      </partitioned-quorum-policy-scheme>
+      <autostart>true</autostart>
+      <async-backup system-property="test.asyncbackup">false</async-backup>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>simple-persistence-archiver</scheme-name>
+      <service-name>DistributedCachePersistenceArchiver</service-name>
+      <thread-count-min system-property="test.threads">0</thread-count-min>
+      <backing-map-scheme>
+        <transient>{transient false}</transient>
+        <local-scheme/>
+      </backing-map-scheme>
+      <partitioned-quorum-policy-scheme>
+        <class-name>persistence.AbstractSimplePersistenceTests$QuorumPolicy</class-name>
+      </partitioned-quorum-policy-scheme>
+      <autostart system-property="test.start.archiver">false</autostart>
+      <async-backup system-property="test.asyncbackup">false</async-backup>
+    </distributed-scheme>
+  </caching-schemes>
+</cache-config>

@@ -1,0 +1,790 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Cache Stores
+:description: Use and configure Cache Stores within Coherence
+:keywords: coherence, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Cache Stores
+
+This guide walks you through how to use and configure Cache Stores within Coherence.
+
+Coherence supports transparent read/write caching of any data source, including databases,
+web services, packaged applications and file systems; however, databases are the most common use case.
+
+As shorthand, "database" is used to describe any back-end data source. Effective caches must
+support both intensive read-only and read/write operations, and for read/write operations,
+the cache and database must be kept fully synchronized. To accomplish caching of data sources,
+Coherence supports Read-Through, Write-Through, Refresh-Ahead and Write-Behind caching. Coherence also
+supports {javadoc-root}/com/tangosol/net/cache/BinaryEntryStore.html[BinaryEntryStore] which provides access to the serialized form of entries for
+data sources capable of manipulating those. A variant of `BinaryEntryStore` is
+the {javadoc-root}/com/tangosol/net/cache/NonBlockingEntryStore.html[NonBlockingEntryStore]
+which, besides providing access to entries in their {javadoc-root}/com/tangosol/util/BinaryEntry.html[BinaryEntry] form,
+integrates with data sources with non-blocking APIs such as R2DBC or Kafka.
+
+See the {commercial-docs-base-url}/develop-applications/caching-data-sources.html#GUID-9FAD1BFB-5063-4995-B0A7-3C6F9C64F600[Coherence Documentation]
+for detailed information on Cache Stores.
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-will-need,What You Need>>
+* <<cache-loaders-and-stores, CacheLoader and CacheStore Interface>>
+* <<simple-example, Simple Cache Store Example>>
+** <<simple-cache-loader, Simple CacheLoader>>
+** <<simple-cache-store, Simple CacheStore>>
+** <<enable-write-behind, Enable Write Behind>>
+* <<file-cache-store, File Cache Store Example>>
+* <<hsqldb-cache-store, HSQLDb Cache Store Example>>
+* <<expiring-hsqldb-cache-store, Refresh Ahead Expiring HSQLDb Cache Store Example>>
+* <<write-behind-hsqldb-cache-store, Write Behind HSQLDb Cache Store Example>>
+* <<h2-non-blocking-entry-store, H2 R2DBC Non Blocking Entry Store Example>>
+* <<pluggable, Pluggable Cache Stores>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+This code is written as a number of separate classes representing the different types of
+cache stores and can be run as a series of Junit tests to show the functionality.
+
+[#what-you-will-need]
+==== What You Need
+:java_version: 11
+:duration: 20
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+NOTE: As this example consists of Junit tests, please add `-DskipTests` for Maven or `-x test` for Gradle.
+
+[#cache-loaders-and-stores]
+=== CacheLoader and CacheStore Interfaces
+
+Before we go into some examples, we should review two interfaces that are key.
+
+* CacheLoader - {javadoc-root}com/tangosol/net/cache/CacheLoader.html[CacheLoader] - defines an interface for loading
+individual entries via a key or a collection keys from a backend `database`.
+* CacheStore - {javadoc-root}com/tangosol/net/cache/CacheStore.html[CacheStore] - defines and interface for storing
+ior erasing individual entries via a key or collection of keys into a backend `database`. This interface also
+extends `CacheLoader`.
+
+NOTE: In the rest of this document we will refer to `CacheLoaders` and `CacheStores` as just "Cache Stores" for simplicity.
+
+Coherence caches have an in-memory backing map on each storage-enabled member to store cache data. When
+cache stores are defined against a cache, operations are carried out on the cache stores in addition to the backing map.
+We will explain this in more detail below.
+
+[#simple-example]
+=== Simple Cache Store Example
+
+Before we jump straight into using a "Database", we will demonstrate how CacheLoaders and CacheStores
+work by implementing a mock cache loader that outputs messages to help us understand how this works behind the scenes.
+
+[#simple-cache-loader]
+==== Simple CacheLoader
+
+The {javadoc-root}com/tangosol/net/cache/CacheLoader.html[CacheLoader] interface defines the following methods:
+
+* `public V load(K key)` - Return the value associated with the specified key
+* `public default Map<K, V> loadAll(Collection<? extends K> colKeys)` - Return the values associated with each the specified keys in the passed collection
+
+We just need to implement the `load` method. See below for the `SimpleCacheLoader` implementation.
+
+The implementation of a `CacheLoader` is also known as *Read-Through Caching* as if the data is not present in the cache it is read from the cache loader.
+
+1. Review the SimpleCacheLoader
++
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/cachestores/SimpleCacheLoader.java[tag=class]
+----
+<1> Implement a `CacheLoader` with key `Integer` and value of `String`
+<2> Construct the cache loader passing in the cache name (not used in this case)
+<3> Implement the `load` method by returning a String "Number " plus the key and log the message
++
+NOTE: We are just logging messages for the sake of this example, and we would recommend that logging only used in rare cases where you might need to signify an error.
+
+2. Review the Cache Configuration `simple-cache-loader-cache-config.xml`
++
+[source,xml,indent=0]
+----
+include::src/main/resources/simple-cache-loader-cache-config.xml[tag=config]
+----
++
+<1> Cache mapping for all caches to the `simple-cache-loader` scheme
+<2> Specifies this schema has a cache store
+<3> Specify the class that implements the `CacheLoader` interface
+<4> Pass the cache name using the in-built macro to the constructor
+
+3. Review the Test
++
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/SimpleCacheLoaderTest.java[tag=class]
+----
++
+<1> Startup the test with the specified cache config
+<2> Obtain the `NamedMap`
+<3> Issue a get against the key *1* and as the cache entry is not present, the value will be loaded from the cache store and placed in the cache and returned to the user. See the message from the cache store.
+<4> Issue a second get against the key *1* and the cache store is not called and returned from the cache
+<5> Remove the cache entry for key *1* and re-issue the get. The value is read-through from the cache store.
+<6> Load a `Collection` of keys, causing each one to be loaded from cache loader.
+
+4. Run the Test
++
+For this test and all others you can run the test in one of three ways:
++
+* Using your IDE
+* Using Maven via `mvn clean verify -Dtest=SimpleCacheLoaderTest verify`
+* Using Gradle via `./gradlew test --tests SimpleCacheLoaderTest`
++
+Running the test shows the following (abbreviated) output on the cache server, where the cache store is running.
++
+[source,text]
+----
+... <Info> (thread=DistributedCache, member=1): SimpleCacheLoader constructed for cache simple-test
+...
+... <Info> (thread=DistributedCacheWorker:0x0000:6, member=1): load called for key 1
+... <Info> (thread=DistributedCacheWorker:0x0000:6, member=1): load called for key 1
+... <Info> (thread=DistributedCacheWorker:0x0000:6, member=1): load called for key 4
+... <Info> (thread=DistributedCacheWorker:0x0000:6, member=1): load called for key 2
+... <Info> (thread=DistributedCacheWorker:0x0000:6, member=1): load called for key 3
+----
++
+NOTE: Notice there are two loads of the key *1* which are the first get and subsequent get after the value was removed. The following loads are fom the getAll().
+
+[#simple-cache-store]
+==== Simple CacheStore
+
+The {javadoc-root}com/tangosol/net/cache/CacheStore.html[CacheStore] interface defines the following methods:
+
+* `public void store(K key, V value)` - Store the specified value under the specified key in the underlying  store
+* `public default void storeAll(Map<? extends K, ? extends V> mapEntries)` - Store the specified values under the specified keys in the underlying store
+* `public void erase(K key)` - Remove the specified key from the underlying store if present
+* `public default void eraseAll(Collection<? extends K> colKeys)` - Remove the specified keys from the underlying store if present
+
+Our implementation will extend the `SimpleCacheLoader` and implement the `store` and `erase` methods. See below for the `SimpleCacheStore` implementation.
+
+The implementation of a `CacheStore` is also known as *Write-Through Caching* as when the data is written to the cache
+it is also written through to the back end cache store in the same synchronous operation as the primate and backup.
+E.g. the client will block until primary, backup and cache store operations are complete.
+See <<enable-write-behind, write-behind>> on changing this behaviour.
+
+NOTE: We can change
+
+1. Review the SimpleCacheStore
++
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/cachestores/SimpleCacheStore.java[tag=class]
+----
+<1> Implement a `CacheStore` with key `Integer` and value of `String` which extends `SimpleCacheLoader`
+<2> Construct the cache store passing in the cache name (not used in this case)
+<3> Implement the `store` method by logging a message
+<4> Implement the `erase` method by logging a message
+
+2. Review the Cache Configuration `simple-cache-store-cache-config.xml`
++
+[source,xml,indent=0]
+----
+include::src/main/resources/simple-cache-store-cache-config.xml[tag=config]
+----
++
+<1> Cache mapping for all caches to the `simple-cache-store` scheme
+<2> Specifies this schema has a cache store
+<3> Specify the class that implements the `CacheStore` interface
+<4> Pass the cache name using the in-built macro to the constructor
+
+3. Review the Test
++
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/SimpleCacheStoreTest.java[tag=class]
+----
++
+<1> Startup the test with the specified cache config
+<2> Obtain the `NamedMap`
+<3> Issue a get against the key *1* and as the cache entry is not present, the value will be loaded from the cache store. (This is the SimpleCacheLoader.load() method)
+<4> Issue a put against the key *1* and the cache store `store` method is called and the message is logged
+<5> Remove the cache entry for key *1* and the cache store `erase` method is called and a message is logged
+<6> Issue a get against the key *1* and it will be loaded my the cache loader
+<7> Issue a `putAll` on the cache and the cache store `storeAll` method is called
++
+NOTE: We are not exercising the `eraseAll` method as this is used internally.
+
+4. Run the Test, using Maven in our case
++
+[source,bash]
+----
+mvn clean verify -Dtest=SimpleCacheStoreTest verify
+----
++
+Running the test shows the following (abbreviated) output on the cache server, where the cache store is running.
++
+[source,text]
+----
+... <Info> (thread=DistributedCacheWorker:0x0000:7, member=1): load called for key 1
+... <Info> (thread=DistributedCacheWorker:0x0000:7, member=1): Store key 1 with value New Value
+... <Info> (thread=DistributedCacheWorker:0x0000:7, member=1): Erase key 1
+... <Info> (thread=DistributedCacheWorker:0x0000:7, member=1): load called for key 1
+... <Info> (thread=DistributedCacheWorker:0x0000:7, member=1): Store key 4 with value value 4
+... <Info> (thread=DistributedCacheWorker:0x0000:7, member=1): Store key 2 with value value 2
+... <Info> (thread=DistributedCacheWorker:0x0000:7, member=1): Store key 3 with value value 3
+----
++
+NOTE: Notice the store and erase for key *1* and the store for key *2*, *3* and *4* from the `putAll`
+
+[#enable-write-behind]
+==== Enable Write Behind
+
+Typically, the time taken to write the primary and backup copy of an object is much less that writing to a back-end
+data store such as a database. These operations may be many orders of magnitude slower e.g. 1-2 ms to write primary and backup and
+100-200ms to write to a database.
+
+In these cases we can change a cache store to use write-behind. In the Write-Behind scenario, modified cache entries are asynchronously
+written to the data source after a configured delay, whether after 10 seconds or a day.
+This only applies to cache inserts and updates - cache entries are removed synchronously from the data source.
+
+See the https://docs.oracle.com/middleware/12213/coherence/develop-applications/caching-data-sources.htm#COHDG5181[Coherence Documentation] for detailed
+information and explanations on write-behind.
+
+The advantages of write-behind are:
+1. Improved application performance as the client does not have to wait for the value to be written to the back-end cache store. As long as the primary and backup are complete, the control is returned to the client.
+2. The back-end cache store, usually a database, can more efficiently batch updates that one at a time
+3. The application can be mostly immune from back-end database failures as the failure can be requeued.
+
+1. Open the Cache Configuration `simple-cache-store-cache-config.xml` and change the value of the `write-delay` from the default value of `0s` to `5s`.
+This simple change will make the cache store write-behind with a delay of 5 seconds before entries are written to the cache.
++
+[source,xml,indent=0]
+----
+include::src/main/resources/simple-cache-store-cache-config.xml[tag=write-delay]
+----
+
+2. Uncomment out the sleep in the `SimpleCacheStoreTest` class.
++
+NOTE: This is to ensure that the unit test does not exit before the values are written asynchronously to the cache store. This is not required in production systems.
++
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/SimpleCacheStoreTest.java[tag=sleep]
+----
+
+3. Run the `SimpleCacheStoreTest` test
++
+[source,text]
+----
+... <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): load called for key 1
+... <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): Erase key 1
+... <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): load called for key 1
+
+DELAY of approx 5s
+
+... <Info> (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.SimpleCacheStore):DistributedCache:simple-test, member=1): Store key 4 with value value 4
+... <Info> (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.SimpleCacheStore):DistributedCache:simple-test, member=1): Store key 2 with value value 2
+... <Info> (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.SimpleCacheStore):DistributedCache:simple-test, member=1): Store key 3 with value value 3
+----
++
+NOTE: You will see that there is a delay of at least 5 seconds before the stores for keys 2, 3 and 4. You can see that they are on the thread `WriteBehindThread`. The `load` and `erase`
+operations are on a `DistributedCacheWorker` thread and are executed as synchronous operations.
+
+[#file-cache-store]
+=== File Cache Store Example
+
+In this next example, we will create a file-based cache store which stores values in files with the name of the key
+under a specific directory. This is to show how a back-end cache store, and the cache interact.
+
+NOTE: This is an example only to see how cache stores work under the covers and will not work with multiple cache servers running and is not recommended for production use.
+
+1. Review the FileCacheStore
++
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/cachestores/FileCacheStore.java[tag=class]
+----
+<1> Implement a `CacheStore` with key `Integer` and value of `String` which extends `SimpleCacheLoader`
+<2> Construct the cache store passing in the directory to use
+<3> Implement the `store` method by writing the String value to a file in the base directory with the key + ".txt" as the name
+<4> Implement the `erase` method by removing the file with the key + ".txt" as the name
+<5> Implement the `load` method by loading the contents of the file with the key + ".txt" as the name
+
+2. Review the Cache Configuration `file-cache-store-cache-config.xml`
++
+[source,xml,indent=0]
+----
+include::src/main/resources/file-cache-store-cache-config.xml[tag=config]
+----
++
+<1> Specify the class that implements the `CacheStore` interface
+<2> Pass the directory to the constructor and optionally using a system property to override
+
+3. Uncomment the commented line below to a directory of your choice which must already exist. Comment out the line containg the `FileHelper` call.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/FileCacheStoreTest.java[tag=beforeAll]
+----
++
+Also comment out the `deleteDirectory` below so you can look at the contents of the directory.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/FileCacheStoreTest.java[tag=delete]
+----
+
+4. Inspect the contents of your directory:
++
+[source,bash]
+----
+$ ls -l /tmp/tim
+total 64
+-rw-r--r--  1 timmiddleton  wheel  8 18 Feb 14:37 2.txt
+-rw-r--r--  1 timmiddleton  wheel  8 18 Feb 14:37 3.txt
+-rw-r--r--  1 timmiddleton  wheel  8 18 Feb 14:37 4.txt
+-rw-r--r--  1 timmiddleton  wheel  8 18 Feb 14:37 5.txt
+-rw-r--r--  1 timmiddleton  wheel  8 18 Feb 14:37 6.txt
+-rw-r--r--  1 timmiddleton  wheel  8 18 Feb 14:37 7.txt
+-rw-r--r--  1 timmiddleton  wheel  8 18 Feb 14:37 8.txt
+-rw-r--r--  1 timmiddleton  wheel  8 18 Feb 14:37 9.txt
+----
++
+You will see there are 8 files for the 8 entries that were written to the cache store. entry `1.txt` was removed so does not exist in the cache store.
+
+5. Create a file `1.txt` in the directory and put the text `One`. Re-run the test.
++
+You will notice that the test fails as when the test issues the following assertion as the value was not in the cache, but it was in the cache store and loaded into memory:
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/FileCacheStoreTest.java[tag=assert]
+----
++
+[source,bash]
+----
+org.opentest4j.AssertionFailedError:
+Expected :null
+Actual   :One
+----
+
+[#hsqldb-cache-store]
+=== HSQLDb Cache Store Example
+
+In this next example, we will manually create a database backed cache store using a HSQLDb database in embedded mode.
+This will show how a cache store could interact with a back-end database.
+
+NOTE: In this example we are using an embedded HSQLDb database just as an example and normally the back-end database would
+be on a physically separate machine and not in-memory.
+
+In this example we are storing a simple `Customer` class in our cache and cache-store. Continue below to review the `HSQLDbCacheStore` class.
+
+*Review the HSQLDbCacheStore*
+
+1. Specify the class that implements the `CacheStore` interface
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStore.java[tag=class]
+----
+
+2. Construct the CacheStore passing the cache name to the constructor
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStore.java[tag=constructor]
+----
+
+3. Implement the `load` method by selecting the customer from the database based upon the primary key of `id`
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStore.java[tag=load]
+----
+
+4. Implement the `store` method by calling `storeInternal` and then issuing a commit.
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStore.java[tag=store]
+----
+
+5. Internal implementation of `store` to be re-used by `store` and `storeAll` to insert or update the record in the database
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStore.java[tag=storeInternal]
+----
+
+6. Implement the storeAll method
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStore.java[tag=storeAll]
+----
++
+NOTE: The `storeAll` method will use a single transaction to insert/update all values. This method will be used internally for write-behind only.
+
+7. Implement the `erase` method by removing the entry from the database.
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStore.java[tag=erase]
+----
+
+*Review the Cache Configuration*
+
+Review the Cache Configuration `hsqldb-cache-store-cache-config.xml`
+
+[source,xml,indent=0]
+----
+include::src/main/resources/hsqldb-cache-store-cache-config.xml[tag=config]
+----
+<1> Cache mapping for Customer cache to the `hsqldb-cache-loader` scheme
+<2> Cache mapping for CustomerExpiring cache to the `hsqldb-cache-loader` scheme (see next section)
+<3> Set the expiry to 20 seconds for the expiring cache
+<4> Override the refresh-ahead factor for the expiring cache
+<5> Specify the class that implements the `CacheStore` interface
+<6> Specify the cache name
+
+*Run the Unit Test*
+
+Next we will run the `HSqlDbCacheStoreTest.java` unit test below and observe the behaviour.
+
+1. Start and confirm NamedMap and database contents.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreTest.java[tag=initial]
+----
+
+2. Issue an initial get on the NamedMap and validate the object is read from the cache store.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreTest.java[tag=load1]
+----
++
+NOTE: You will see a message similar to the following indicating the time to retrieve a NamedMap entry that is not in the cache.
+`(thread=main, member=1): Time for read-through 17.023 ms`
+
+3. Issue a second get, the entry will be retrieved directly from memory and not the cache store.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreTest.java[tag=load2]
+----
++
+NOTE: You will see a message similar to the following indicating the time to retrieve a NamedMap entry is significantly quicker.
+`(thread=main, member=1): Time for no read-through 0.889 ms`
+
+4. Remove and entry from the NamedMap and the value should be removed from the underlying store.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreTest.java[tag=remove]
+----
+
+5. Issue a get for another customer and then update the customer details.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreTest.java[tag=update]
+----
+
+6. Add a new customer and ensure it is created in the database. Then remove the same customer.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreTest.java[tag=addRemove]
+----
+
+7. Clear the NamedMap and show how to preload the data from the cache store.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreTest.java[tag=loadData]
+----
+
+[#expiring-hsqldb-cache-store]
+=== Refresh Ahead HSQLDb Cache Store Example
+
+In this next example, we use the `CustomerExpiring` cache which will expire data after 20 seconds and also has a
+refresh-ahead-factor of 0.5 meaning that if the cache is accessed after 10 seconds then an asynchronous refresh-ahead
+will be performed to speed up the next access to the data.
+
+*Review the Cache Configuration*
+
+The `hsqldb-cache-store-cache-config.xml` below shows the `CustomerExpiring` cache passing in parameters to the `caching-scheme` to override
+expiry and refresh ahead values.
+
+[source,xml,indent=0]
+----
+include::src/main/resources/hsqldb-cache-store-cache-config.xml[tag=refresh]
+----
+
+The `local-scheme` uses the `back-expiry` parameter passed in:
+
+[source,xml,indent=0]
+----
+include::src/main/resources/hsqldb-cache-store-cache-config.xml[tag=local]
+----
+
+The `read-write-backing-map-scheme` uses the `refresh-ahead-factor` parameter passed in:
+
+[source,xml,indent=0]
+----
+include::src/main/resources/hsqldb-cache-store-cache-config.xml[tag=refresh2]
+----
+
+*Run the Unit Test*
+
+Next we will run the `HSqlDbCacheStoreExpiringTest.java` unit test below and observe the behaviour.
+
+1. Start and confirm NamedMap and database contents.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreExpiringTest.java[tag=initial]
+----
+
+2. Issue a get for customer 1 and log the time to load
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreExpiringTest.java[tag=readThrough1]
+----
++
+NOTE: Notice the initial read through time similar to the following in the log: `(thread=main, member=1): Time for read-through 19.129 ms`
+
+3. Update the credit limit to 10000 in the database for customer 1 and ensure that after 11 seconds the value is still 5000 in the NamedMap.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreExpiringTest.java[tag=readThrough2]
+----
++
+NOTE: The get within the 10 seconds (20s * 0.5), will cause an asynchronous refresh-ahead.
+
+4. Wait for 10 seconds and then retrieve the customer object which has been updated.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreExpiringTest.java[tag=readThrough3]
+----
++
+NOTE: Notice the time to retrieve the entry is significantly reduced: `(thread=main, member=1): Time for after refresh-ahead 1.116 ms`
+
+[#write-behind-hsqldb-cache-store]
+=== Write Behind HSQLDb Cache Store Example
+
+In this HSQLDb cache store example, we use the `CustomerWriteBehind` cache which has a write delay of 10 seconds.
+
+*Review the Cache Configuration*
+
+The `hsqldb-cache-store-cache-config.xml` below shows the `CustomerWriteBehind` cache passing in parameters to the `caching-scheme` to override
+`write-delay` value.
+
+[source,xml,indent=0]
+----
+include::src/main/resources/hsqldb-cache-store-cache-config.xml[tag=writeBehind]
+----
+
+*Run the Unit Test*
+
+Next we will run the `HSqlDbCacheStoreWriteBehindTest` unit test below and observe the behaviour.
+
+1. Start and confirm NamedMap and database contents. In this example we are not preloading the database.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreWriteBehindTest.java[tag=initial]
+----
+
+2. Insert 10 customers using an efficient `putAll` operation and confirm the data is not yet in the cache.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreWriteBehindTest.java[tag=insert]
+----
+
+3. Wait till after the write-delay has passed and confirm that the customers are in the database.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreWriteBehindTest.java[tag=wait]
+----
++
+NOTE: You will notice that you should see messages indicating 100 entries have been written. You may also see multiple writes as the data will be added in different partitions.
+load.
+[source,bash,indent=0]
+----
+<Info> (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.HSQLDbCacheStore):DistributedCache:CustomerWriteBehind, member=1):
+   Ran storeAll on 3 entries
+<Info> (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.HSQLDbCacheStore):DistributedCache:CustomerWriteBehind, member=1):
+   Ran storeAll on 97 entries
+OR
+<Info> (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.HSQLDbCacheStore):DistributedCache:CustomerWriteBehind, member=1):
+   Ran storeAll on 10 entries
+----
+
+[#h2-non-blocking-entry-store]
+=== H2 R2DBC Non Blocking Entry Store Example
+
+In this H2 R2DBC cache store example, we use the `H2Person` cache which implements the `NonBlockingEntryStore` for non-blocking APIs
+and access to entries in their serialized (`BinaryEntry`) form.
+
+*Review the Cache Configuration*
+
+The `h2r2dbc-entry-store-cache-config.xml` below shows the `H2Person` cache specifying the class name of the `NonBlockingEntryStore` implementation.
+
+[source,xml,indent=0]
+----
+include::src/main/resources/h2r2dbc-entry-store-cache-config.xml[tag=nonBlocking]
+----
+
+*Run the Unit Test*
+
+Next we will run the `H2R2DBCEntryStoreTest` unit test below and observe the behaviour.
+
+1. Start and confirm NamedMap and database contents.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/H2R2DBCEntryStoreTest.java[tag=initial]
+----
+
+2. Insert 1 person using a `put` operation and confirm the data is in the cache.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/H2R2DBCEntryStoreTest.java[tag=insert]
+----
+
+3. Delete a couple records and verify the state of the cache.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/H2R2DBCEntryStoreTest.java[tag=remove]
+----
+
+4. Insert 10 persons using a `putAll` operation and confirm the data is in the cache. The actual database operations take place in parallel.s
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/H2R2DBCEntryStoreTest.java[tag=insertmulti]
+----
++
+NOTE: You should see messages indicating activity on the store side:
+[source,bash,indent=0]
+----
+2021-06-29 15:01:36.365/5.583 Oracle Coherence GE 14.1.2.0.0 <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore load key: 101
+2021-06-29 15:01:36.495/5.713 Oracle Coherence GE 14.1.2.0.0 <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore store
+2021-06-29 15:01:36.501/5.720 Oracle Coherence GE 14.1.2.0.0 <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore erase
+2021-06-29 15:01:36.504/5.722 Oracle Coherence GE 14.1.2.0.0 <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): Rows updated: 1
+2021-06-29 15:01:36.507/5.726 Oracle Coherence GE 14.1.2.0.0 <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore erase
+2021-06-29 15:01:36.508/5.727 Oracle Coherence GE 14.1.2.0.0 <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): Rows updated: 1
+2021-06-29 15:01:36.509/5.728 Oracle Coherence GE 14.1.2.0.0 <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore load key: 101
+2021-06-29 15:01:36.512/5.730 Oracle Coherence GE 14.1.2.0.0 <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): Could not find row for key: 101
+2021-06-29 15:01:36.515/5.734 Oracle Coherence GE 14.1.2.0.0 <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore storeAll
+----
+
+[#pluggable]
+=== Pluggable Cache Stores
+
+A cache store is an application-specific adapter used to connect a cache to an
+underlying data source. The cache store implementation accesses the data source
+by using a data access mechanism (for example, Hibernate, Toplink, JPA, application-specific JDBC calls, etc).
+The cache store understands how to build a Java object using data retrieved
+from the data source, map and write an object to the data source, and erase
+an object from the data source.
+
+In this example we are going to use a Hibernate cache store from the https://github.com/coherence-community/coherence-hibernate[Coherence Hibernate OpenSource Project].
+
+*Review the Configuration*
+
+1. Review the Cache Configuration `hibernate-cache-store-cache-config.xml`
++
+[source,xml,indent=0]
+----
+include::src/main/resources/hibernate-cache-store-cache-config.xml[tag=config]
+----
++
+<1> Cache mapping for all caches to the `distributed-hibernate` scheme
+<2> Specify the `HibernateCacheStore` scheme
+<3> Pass the cache name using the in-built macro to the constructor
++
+NOTE: In this case we do not have to write any code for our cache store as the Hibernate cache store understands the entity mapping and will deal with this.
+
+2. Review the Hibernate Configuration
++
+[source,xml,indent=0]
+----
+include::src/main/resources/hibernate.cfg.xml[tag=config]
+----
++
+<1> - Specifies the Person mapping
+
+3. Review the Hibernate Mapping
++
+[source,xml,indent=0]
+----
+include::src/main/resources/Person.hbm.xml[tag=config]
+----
++
+<1> Specifies the Person mapping
+
+*Run the Unit Test*
+
+Next we will run the `HibernateCacheStoreTest` unit test below and observe the behaviour.
+
+1. Start and confirm NamedMap and database contents. In this example we are not preloading the database.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HibernateCacheStoreTest.java[tag=initial]
+----
+
+2. Create a new Person and put it into the NamedMap.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HibernateCacheStoreTest.java[tag=put]
+----
+
+3. Retrieve the Person from the database and validate that the person from the database and cache are equal.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HibernateCacheStoreTest.java[tag=get]
+----
+
+4. Update the persons age in the NamedMap and confirm it is saved in the database
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HibernateCacheStoreTest.java[tag=update]
+----
+
+5. Remove person 1 and ensure they are also removed from the database.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/HibernateCacheStoreTest.java[tag=remove]
+----
+
+[#summary]
+=== Summary
+
+You have seen how to use and configure Cache Stores within Coherence.
+
+[#see-also]
+=== See Also
+* {commercial-docs-base-url}/develop-applications/caching-data-sources.html#GUID-9FAD1BFB-5063-4995-B0A7-3C6F9C64F600[Caching Data Stores]
+* https://github.com/coherence-community/coherence-hibernate[Coherence Hibernate OpenSource Project]

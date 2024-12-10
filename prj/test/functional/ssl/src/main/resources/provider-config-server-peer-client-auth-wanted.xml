@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+<socket-provider>
+  <ssl>
+    <identity-manager>
+      <key-store>
+        <url>file:server.jks</url>
+        <password>password</password>
+      </key-store>
+      <password>private</password>
+    </identity-manager>
+
+    <trust-manager>
+      <algorithm>PeerX509</algorithm>
+      <provider>
+        <name>CoherenceSecurityProvider</name>
+      </provider>
+      <key-store>
+        <url>file:peer.jks</url>
+        <password>password</password>
+      </key-store>
+    </trust-manager>
+
+    <client-auth>wanted</client-auth>
+  </ssl>
+</socket-provider>

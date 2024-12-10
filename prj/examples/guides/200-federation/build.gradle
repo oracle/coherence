@@ -1,0 +1,85 @@
+/*
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+plugins {
+    id "application"
+}
+apply plugin: "java"
+
+
+group = 'com.oracle.coherence.tutorials'
+version = '${coherenceVersion}'
+sourceCompatibility = '17'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+
+    implementation "${coherenceGroupId}:coherence"
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
+    testImplementation "org.jline:jline:${jlineVersion}"
+    testImplementation "${coherenceGroupId}:coherence-bedrock-testing-support"
+
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+}
+
+test {
+    useJUnitPlatform()
+}
+
+
+task runServerPrimary(type: Exec) {
+    dependsOn build
+    group = "Execution"
+    description = "Run a Coherence Cache Server for PrimaryCluster"
+    commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(), "-Xms512m", "-Xmx512m",
+            "-Dcoherence.cacheconfig=federation-cache-config.xml",
+            "-Dcoherence.wka=127.0.0.1", "-Dcoherence.cluster=PrimaryCluster", "-Dcoherence.clusterport=7574",
+            "-Dprimary.cluster.host=127.0.0.1",   "-Dprimary.cluster.port=7574",
+            "-Dsecondary.cluster.host=127.0.0.1", "-Dsecondary.cluster.port=7575",
+            "com.tangosol.net.DefaultCacheServer"
+}
+
+task runServerSecondary(type: Exec) {
+    dependsOn build
+    group = "Execution"
+    description = "Run a Coherence Cache Server for SecondaryCluster"
+    commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(), "-Xms512m", "-Xmx512m",
+            "-Dcoherence.cacheconfig=federation-cache-config.xml",
+            "-Dcoherence.wka=127.0.0.1", "-Dcoherence.cluster=SecondaryCluster", "-Dcoherence.clusterport=7575",
+            "-Dprimary.cluster.host=127.0.0.1",   "-Dprimary.cluster.port=7574",
+            "-Dsecondary.cluster.host=127.0.0.1", "-Dsecondary.cluster.port=7575",
+            "com.tangosol.net.DefaultCacheServer"
+}
+
+task runCohQLPrimary(type: Exec) {
+    standardInput = System.in
+    dependsOn build
+    group = "Execution"
+    description = "Run CohQL on PrimaryCluster"
+    commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(), 
+            "-Dcoherence.cacheconfig=federation-cache-config.xml", "-Xms128m", "-Xmx128m",
+            "-Dcoherence.wka=127.0.0.1", "-Dcoherence.cluster=PrimaryCluster", "-Dcoherence.clusterport=7574",
+            "-Dcoherence.distributed.localstorage=false", "com.tangosol.coherence.dslquery.QueryPlus"
+}
+
+task runCohQLSecondary(type: Exec) {
+    standardInput = System.in
+    dependsOn build
+    group = "Execution"
+    description = "Run CohQL on SecondaryCluster"
+    commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(),
+            "-Dcoherence.cacheconfig=federation-cache-config.xml", "-Xms128m", "-Xmx128m",
+            "-Dcoherence.wka=127.0.0.1", "-Dcoherence.cluster=SecondaryCluster", "-Dcoherence.clusterport=7575",
+            "-Dcoherence.distributed.localstorage=false", "com.tangosol.coherence.dslquery.QueryPlus"
+}

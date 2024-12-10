@@ -1,0 +1,272 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2022, 2024 Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Querying Caches
+:description: Provides a guide for querying Coherence caches
+:keywords: coherence, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Querying Caches
+
+This guide walks you through the basic concepts of querying Coherence caches. We will provide a quick overview and
+examples of using _Coherence Query Language_ (CohQL) before learning more about `Filters`, `ValueExtractors` and `Aggregators`
+to query caches programmatically.
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-will-need,What You Need>>
+* <<building-the-example-code, Building The Example Code>>
+* <<the-power-of-cohql, The Power of CohQL>>
+* <<query-caches-programmatically, Query Caches Programmatically>>
+* <<create-the-test-class, Create the Test Class>>
+* <<bootstrap-coherence, Bootstrap Coherence>>
+* <<filter, Filter>>
+* <<value-extractor, ValueExtractor>>
+* <<aggregate-results, Aggregate Results>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+The example code is written as a set of unit tests, showing you how can simply executed sophisticated queries against your
+Coherence data.
+
+[#what-you-will-need]
+==== What You Need
+:java_version: 11
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+[#building-the-example-code]
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+[#the-power-of-cohql]
+=== The Power of CohQL
+
+Before we start querying caches programmatically, you should be aware of the power of the _Coherence Query Language_ (CohQL).
+CohQL is inspired by SQL and is a quick and easy way to interact with your caches. Commonly it is used as a command-line tool.
+
+Let's assume we have a cache called `countries` that contains a map of `Country` classes with the 2-letter country code
+being the key of each cache entry. The `Country` class will have some basic properties such as `name`, `capital` and `population`.
+
+The simplest CohQL query you could write is a query that will return all countries is:
+
+```sql
+select * from countries
+```
+
+As you can see, if you're familiar with SQL, you will feel right at home. And of course from here we can make the query
+more sophisticated.
+
+NOTE: For detailed information on how to use CohQL, please visit the chapter
+link:{commercial-docs-base-url}/develop-applications/using-coherence-query-language.html#GUID-C0D082B1-FA62-4899-A043-4345156E6641[Using Coherence Query Language]
+in the Coherence reference guide.
+
+In order to give you a way experiment with the cache using CohQL, we provide a simple sample app that pre-populates a Coherence
+cache `countries` wih countries and starts the CohQL Console. To get started, execute `com.oracle.coherence.guides.queries.StartCohQLConsole`.
+
+TIP: Typically, you would want to start the CohQL Console as a stand-alone application. Please see the
+https://github.com/oracle/coherence#cohql-console[following instructions] to learn more.
+
+Once the console application is started, let's execute:
+
+```sql
+select * from countries
+```
+
+The result should be a list of 5 countries:
+
+```java
+Results
+Country{name='Colombia', capital='Bogotá', population=50.4}
+Country{name='Australia', capital='Canberra', population=26.0}
+Country{name='Ukraine', capital='Kyiv', population=41.2}
+Country{name='France', capital='Paris', population=67.4}
+Country{name='Germany', capital='Berlin', population=83.2}
+```
+
+What if you would like to just retrieve the list of capitals? We can achieve that by selecting just the capital:
+
+```sql
+select capital from countries
+```
+
+which yields:
+
+```java
+Results
+"Bogotá"
+"Paris"
+"Canberra"
+"Kyiv"
+"Berlin"
+```
+
+Of course, you can also apply `where` clauses to further limit the results. For example, if you like to retrieve the
+countries with a population that is greater than 60 million you may add the following `where` clause:
+
+```sql
+select capital from countries c where population > 60.0
+```
+
+which results in:
+
+```java
+Results
+"Paris"
+"Berlin"
+```
+
+Another option is to aggregate results. For example, let's calculate the total population of countries with a population
+larger than 60 million:
+
+```sql
+select sum(population) from countries c where population > 60.0
+```
+
+which yields a value of `150.6`.
+
+NOTE: CohQL is not merely a tool for query caches. It can also be used to _create_ and _delete_ caches, to _insert_,
+_delete_ and _update_ cache value, to _create indices_ and more. For more information please see the official reference
+documentation.
+
+[#query-caches-programmatically]
+=== Query Caches Programmatically
+
+So how would we create queries programmatically to retrieve the same results? The key here is to understand the following
+concepts:
+
+- link:{javadoc-root}com/tangosol/util/Filter.html[Filter]
+- link:{javadoc-root}com/tangosol/util/ValueExtractor.html[ValueExtractor]
+- link:{javadoc-root}com/tangosol/util/aggregator/package-summary.html[Aggregator]
+
+[#create-the-test-class]
+=== Create the Test Class
+
+The first step is to create the test class that will show and test the various query operations,
+we'll call this class `QueryTests`. We will use Junit 5 for this test, so the class does not have to be public.
+
+[source,java,indent=0]
+----
+class QueryTests {
+}
+----
+
+[#bootstrap-coherence]
+==== Bootstrap Coherence
+
+The first thing the test class will do is start Coherence using the bootstrap API introduced in Coherence `20.12`. As this
+is a JUnit test class, we can do this in a static `@BeforeAll` annotated setup method. We will also populate the cache with
+several countries and thus let's create a small helper class `CoherenceHelper`:
+
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/queries/utils/CoherenceHelper.java[tag=bootstrap]
+----
+<1> Obtain a default storage enabled cluster member `Coherence` instance.
+<2> Start the `Coherence` instance, this wil start all the Coherence services.
+<3> Block until Coherence instance has fully started before proceeding with the tests
+<4> Obtain the default `Session`
+<5> Get the `countries` cache
+<6> Populate the `countries` cache with several new `Country` instances
+
+We are going to start a storage enabled cluster member using the most basic bootstrap API methods.
+For more details on the bootstrap API see the <<docs/core/02_bootstrap.adoc, corresponding guide>>.
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/queries/QueryTests.java[tag=bootstrap]
+----
+<1> Call `CoherenceHelper` and start the `Coherence` instance and populate the country data.
+
+Lastly, we create a static `@AfterAll` annotated tear-down method that will shut down Coherence at the end of the test.
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/queries/QueryTests.java[tag=cleanup]
+----
+<1> We only created a single default `Coherence` instance, so we can obtain that instance with the
+`Coherence.getInstance()` method, and then close it.
+
+Now the basic framework of the test is in place we can add methods to show different querying operations.
+
+[#filter]
+==== Filter
+
+To get started, we would like to retrieve all countries that have a population of more than 60 million people. For that
+we will use a `Filter`:
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/queries/QueryTests.java[tag=testGreaterEqualsFilter]
+----
+<1> Get the `countries` Map
+<2> We create a Filter that will select only countries with more than 60 million people using the `Filters` helper class via `Filters.greaterEqual`. 
+<3> Apply the `Filter` by invoking `entrySet(filter)` on the Map
+<4> The result should be 2 countries only
+<5> Assert that only France and Germany were selected
+
+NOTE: The best practice for ValueExtractors is to use the method reference, e.g. `Country::getPopulation`, to extract falues as this provides compile time type checking.
+
+[#value-extractor]
+==== ValueExtractor
+
+What if we don't want to return `Countries` but just the collection of country names for which the population is
+60 million people or higher? This is where we can use a `ValueExtractor` in combination with a `ReducerAggregator`.
+
+A value extractor is used to extract a property from a given object. In most instances developers would use the
+`ReflectionExtractor` as an implementation. The `ReducerAggregator` on the other hand, is used to run a `ValueExtractor`
+against cache entries, and it returns the extracted value. The result returned by the `ReducerAggregator` is a `Map`
+where the key is the key of the cache entry and the value is the extracted value.
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/queries/QueryTests.java[tag=testValueExtractor]
+----
+<1> Get the `countries` Map
+<2> We create the same filter as in the previous test (Select countries with more than 60 million people, only)
+<3> Create a `ReducerAggregator` instance and specify that we only want the name of the countries returned
+<4> Apply the `Filter` and `Aggregator`
+<5> Verify that only the two country names `France` and `Germany` are returned as filtered values
+
+[#aggregate-results]
+==== Aggregate Results
+
+What if we want to group queried data together? Let's query for countries, where the population is greater than 60
+million but instead of returning the countries, we will return the sum of the population of thsoe 2 countries instead.
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/queries/QueryTests.java[tag=testAggregator]
+----
+<1> Get the `countries` Map
+<2> We create the same filter as in the previous test (Select countries with more than 60 million people, only)
+<3> We will use a different `Aggregator`. `BigDecimalSum` will aggregate the population and return a `Bigecimal` value. This shows that you can use a method name (not recommended) as well as method reference
+<4> Apply the `Filter` and `Aggregator`
+<5> For assertion purposes we will convert the `BigDecimal` value to a `String`
+<6> The generated String shall not have any trailing zeros
+<7> Return the String
+<8> Verify that the returned value is `150.6`
+
+TIP: To learn much more about built-in Aggregators, please take a look at the
+link:../120-built-in-aggregators/README.adoc[respective guide].
+
+[#summary]
+=== Summary
+
+In this guide we showed how easy it is to query Coherence caches either using CohQL or programmatically using Filters,
+ValueExtractors and Aggregators. Please see the Coherence reference guide, specifically the chapter
+link:{commercial-docs-base-url}/develop-applications/querying-data-cache.html#GUID-A6A97011-A2FB-45A4-B9FC-AA0C8C49C057[Querying Data In a Cache]
+for more details.
+
+[#see-also]
+=== See Also
+
+* {commercial-docs-base-url}/develop-applications/using-coherence-query-language.html#GUID-C0D082B1-FA62-4899-A043-4345156E6641[Using Coherence Query Language]
+* {commercial-docs-base-url}/develop-applications/querying-data-cache.html#GUID-A6A97011-A2FB-45A4-B9FC-AA0C8C49C057[Querying Data In a Cache]

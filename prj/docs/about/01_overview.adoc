@@ -1,0 +1,89 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Overview
+:description: Oracle Coherence CE Documentation
+:keywords: coherence, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Overview
+
+[NOTE]
+====
+The documentation on this site covers new features and improvements that are currently only available in the open source https://github.com/oracle/coherence[Coherence Community Edition] (CE).
+
+For complete documentation covering all the features that are available both in the latest commercial editions (Enterprise and Grid Edition) and the Community Edition, please refer to the https://docs.oracle.com/en/middleware/standalone/coherence/{version-commercial-docs}/index.html[Official Documentation].
+====
+
+Coherence is scalable, fault-tolerant, cloud-ready, distributed platform for building grid-based applications and reliably storing data.
+The product is used at scale, for both compute and raw storage, in a vast array of industries such as critical financial trading systems, high performance telecommunication products, and eCommerce applications.
+
+Typically, these deployments do not tolerate any downtime and Coherence is chosen due its novel features in death detection, application data evolvability, and the robust, battle-hardened core of the product that enables it to be seamlessly deployed and adapted within any ecosystem.
+
+At a high level, Coherence provides an implementation of the familiar `Map<K,V>` interface but rather than storing the associated data in the local process, it is partitioned (or sharded) across a number of designated remote nodes.
+This partitioning enables applications to not only distribute (and therefore scale) their storage across multiple processes, machines, racks, and data centers, but also to perform grid-based processing to truly harness the CPU resources of the machines.
+
+The Coherence interface `NamedMap<K,V>` (an extension of `Map<K,V>` provides methods to query, aggregate (map/reduce style), and compute (send functions to storage nodes for locally executed mutations) the data set.
+These capabilities, in addition to numerous other features, enable Coherence to be used as a framework to write robust, distributed applications.
+
+IMPORTANT: **See <<docs/core/01_overview.adoc,Core Improvements>> to learn about new and improved functionality in this release.**
+
+NOTE: Please see https://github.com/oracle/coherence/releases[here] for the latest release notes on GitHub.
+
+== Get Going
+
+[PILLARS]
+====
+[CARD]
+.Coherence
+[icon=assistant,link=docs/about/02_introduction.adoc]
+--
+What is Oracle Coherence?
+--
+
+[CARD]
+.Important Changes
+[icon=fa-exclamation-circle,link=docs/about/04_important.adoc]
+--
+Important changes in this release of Coherence.
+--
+
+[CARD]
+.Quick Start
+[icon=fa-rocket,link=docs/about/03_quickstart.adoc]
+--
+A quick-start guide to using Coherence.
+--
+
+[CARD]
+.Guides & Tutorials
+[icon=fa-graduation-cap,link=examples/README.adoc]
+--
+Guides, examples and tutorial about Coherence features and best practice.
+--
+
+[CARD]
+.Docs
+[icon=import_contacts,link=https://docs.oracle.com/en/middleware/standalone/coherence/{version-commercial-docs}/index.html,link-type=url]
+--
+Oracle Coherence commercial edition product documentation.
+--
+
+[CARD]
+.API Docs
+[icon=library_books,link=../api/java/index.html,link-type=url]
+--
+Browse the Coherence CE API Docs.
+--
+
+[CARD]
+.Container Images
+[icon=fa-th,link=coherence-docker/README.adoc]
+--
+Example Coherence OCI container (Docker) images.
+--
+====

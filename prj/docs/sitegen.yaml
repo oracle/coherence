@@ -1,0 +1,168 @@
+# Copyright (c) 2020, 2024 Oracle and/or its affiliates. All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+engine:
+  asciidoctor:
+    imagesdir: "docs/images"
+    libraries:
+      - "asciidoctor-diagram"
+    attributes:
+      commercial-docs-base-url: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.2.0"
+      source-highlighter: "highlight.js"
+      highlightjs-theme: "idea"
+      plantumlconfig: "_plantuml-config.txt"
+      coherence-maven-group-id: "${coherence.group.id}"
+      javadoc-root: "https://coherence.community/${revision}/api/java/"
+      version-coherence-maven: "${revision}"
+      version-coherence: "${project.version.official}"
+      version-commercial-docs: "14.1.2.0"
+      version-helidon: "${helidon.version}"
+      github-source-root: "github.com/oracle/coherence/tree/master/prj"
+assets:
+  - target: "/"
+    includes:
+      - "docs/css/*.css"
+  - target: "/"
+    includes:
+      - "docs/images/**/*"
+header:
+  favicon:
+    path: "docs/images/logo.png"
+    type: "png"
+  stylesheets:
+    - path: "docs/css/styles.css"
+pages:
+    - includes:
+        - "**/*.adoc"
+      excludes:
+        - "examples/HOW_TO_WRITE_GUIDES.adoc"
+        - "examples/guides/README.adoc"
+        - "examples/guides/999-standalone/**/*.adoc"
+        - "examples/internal/**/*.adoc"
+        - "examples/tutorials/README.adoc"
+        - "examples/miscellaneous/README.adoc"
+backend:
+    name: "vuetify"
+    homePage: "docs/about/01_overview.adoc"
+    releases:
+        - "${revision}"
+    navigation:
+      title: "Oracle Coherence CE"
+      glyph:
+        type: "image"
+        value: "docs/images/logo.png"
+      items:
+        - title: "Documentation"
+          pathprefix: "/docs"
+          items:
+            - title: "Official Documentation"
+              pathprefix: "/docs"
+              glyph:
+                type: "icon"
+                value: "import_contacts"
+              href: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.2.0/"
+            - title: "About"
+              pathprefix: "/docs/about"
+              glyph:
+                type: "icon"
+                value: "assistant"
+              items:
+                - includes:
+                    - "docs/about/*.adoc"
+            - title: "Container Images"
+              pathprefix: "/coherence-docker"
+              glyph:
+                type: "icon"
+                value: "fa-th"
+              items:
+                - includes:
+                    - "coherence-docker/README.adoc"
+        - title: "Guides and Tutorials"
+          pathprefix: "/examples"
+          items:
+            - title: "Overview"
+              pathprefix: "/examples"
+              items:
+                - includes:
+                    - "examples/README.adoc"
+            - title: "Guides"
+              pathprefix: "/guides"
+              glyph:
+                type: "icon"
+                value: "explore"
+              items:
+                - includes:
+                    - "examples/guides/**/*.adoc"
+            - title: "Tutorials"
+              pathprefix: "/tutorials"
+              glyph:
+                type: "icon"
+                value: "fa-graduation-cap"
+              items:
+                - includes:
+                    - "examples/tutorials/**/*.adoc"
+            - title: "Miscellaneous"
+              pathprefix: "/miscellaneous"
+              glyph:
+                type: "icon"
+                value: "widgets"
+              items:
+                - includes:
+                    - "examples/miscellaneous/**/*.adoc"
+        - title: "API Documentation"
+          pathprefix: "/api-docs"
+          items:
+            - title: "Coherence CE Java API"
+              pathprefix: "/api-docs"
+              glyph:
+                type: "icon"
+                value: "library_books"
+              href: "https://oracle.github.io/coherence/${revision}/api/java/index.html"
+            - title: "Coherence .NET Client API"
+              glyph:
+                type: "icon"
+                value: "library_books"
+              href: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.2.0/net-reference/html"
+            - title: "Coherence C++ Client API"
+              glyph:
+                type: "icon"
+                value: "library_books"
+              href: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.2.0/cplus-reference/index.html"
+            - title: "Coherence Python Client API"
+              glyph:
+                type: "icon"
+                value: "library_books"
+              href: "https://oracle.github.io/coherence-py-client/api_reference.html"
+            - title: "Coherence Go Client API"
+              glyph:
+                type: "icon"
+                value: "library_books"
+              href: "https://pkg.go.dev/github.com/oracle/coherence-go-client/v2/coherence#pkg-index"
+            - title: "Coherence JavaScript Client API"
+              glyph:
+                type: "icon"
+                value: "library_books"
+              href: "https://oracle.github.io/coherence/20.06/api/js/index.html"
+        - title: "Additional Resources"
+          items:
+            - title: "Slack"
+              glyph:
+                type: "icon"
+                value: "fa-slack"
+              href: "https://join.slack.com/t/oraclecoherence/shared_invite/enQtNzcxNTQwMTAzNjE4LTJkZWI5ZDkzNGEzOTllZDgwZDU3NGM2YjY5YWYwMzM3ODdkNTU2NmNmNDFhOWIxMDZlNjg2MzE3NmMxZWMxMWE"
+            - title: "Blog"
+              glyph:
+                type: "icon"
+                value: "library_books"
+              href: "https://medium.com/oracle-coherence"
+            - title: "Web Site"
+              glyph:
+                type: "icon"
+                value: "fa-globe"
+              href: "https://coherence.community/"
+            - title: "GitHub"
+              glyph:
+                type: "icon"
+                value: "fa-github-square"
+              href: "https://github.com/oracle/coherence"

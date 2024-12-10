@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<schema xmlns="http://xmlns.oracle.com/coherence/schema"
+        xmlns:java="http://xmlns.oracle.com/coherence/schema/java"
+        external="true">
+
+    <type name="Color">
+        <java:type name="Color"/>
+    </type>
+
+</schema>

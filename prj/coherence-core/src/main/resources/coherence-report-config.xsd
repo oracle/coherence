@@ -1,0 +1,695 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://xmlns.oracle.com/coherence/coherence-report-config"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified"
+            version="1.2">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+            Licensed under the Universal Permissive License v 1.0 as shown at
+            http://oss.oracle.com/licenses/upl.
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:annotation>
+        <xsd:documentation>
+            This is the XML Schema Definition for the report-config.xml configuration
+            file.
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:element name="report-config">
+        <xsd:annotation>
+            <xsd:documentation>
+                The report-config element is the root element of the report
+                configuration
+                descriptor.
+
+                Used in: n/a
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="report" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="report">
+        <xsd:annotation>
+            <xsd:documentation>
+                The report element contains information necessary to generate a JMX
+                based
+                report.
+
+                Used in: report-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="description" minOccurs="0" />
+                <xsd:element ref="file-name" />
+                <xsd:element ref="delim" minOccurs="0" />
+                <xsd:element ref="hide-headers" minOccurs="0" />
+                <xsd:element ref="filters" minOccurs="0" />
+                <xsd:element ref="query" />
+                <xsd:element ref="row" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="description" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                The description element contains a descriptive heading for the associated report or column.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="file-name" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                The file-name element contains the file name for the generated report.
+                The file name could be either absolute or relative to a directory
+                specified in
+                the corresponding report-group descriptor.
+
+                If the specified file exists then the new report lines will be
+                appended to the
+                file; otherwise a new report file will be created.
+
+                The file name may contain any of the three special macros: {batch},
+                {node} and {date}.
+
+                The {batch} macro is replaced with an execution counter (a
+                sequential number), which is used to generate new files
+                for each report execution.
+
+                The {node} macro is replaced with the member id of the report executing
+                node. Use this macro to create different files for reports executed on
+                different cluster nodes.
+
+                The {date} macro is replaced with the current date (YYYYMMDD).
+
+                Note: a process running the reporter requires read/write/create access to
+                the location where the output files are created.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="delim" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                The delim element specifies a character that is used to separate column
+                or array values.
+
+                Valid values: "{tab}", "{space}", or any non-whitespace character.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="hide-headers" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                The hide-headers element specifies whether the description and the
+                column headers should be included in the report.
+
+                Used in: report
+
+                Valid values are true or false (default).
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="filters">
+        <xsd:annotation>
+            <xsd:documentation>
+                The filters element contains a group of filter elements.
+
+                Used in: report
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="filter" minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="filter">
+        <xsd:annotation>
+            <xsd:documentation>
+                The filter element defines a set of filters that can be used in the
+                report.
+
+                Used in: filters
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="type" minOccurs="0" />
+                <xsd:element ref="params" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="id" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="params">
+        <xsd:annotation>
+            <xsd:documentation>
+                The params element identifies an argument column or a filter reference.
+
+                Used in: filter, column
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:choice>
+                <xsd:element ref="filter-ref" maxOccurs="unbounded" />
+                <xsd:element ref="column-ref" maxOccurs="unbounded" />
+            </xsd:choice>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="query">
+        <xsd:annotation>
+            <xsd:documentation>
+                The query element contains information necessary to construct a JMX
+                query to find all MBeans contributing to the report or column.
+
+                Used in: report, column
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="pattern" />
+                <xsd:element ref="filter-ref" minOccurs="0" />
+                <xsd:element ref="params" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="pattern" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                The pattern element contains a JMX query or Object name to be
+                included in the report.
+
+                Example: include all Node MBeans in the report or column.
+                <query>
+                    <pattern>Coherence:type=Node,*</pattern>
+                </query>
+
+                Example: include only the Cluster MBean in the report or column
+                <query>
+                    <pattern>Coherence:type=Cluster</pattern>
+                </query>
+
+                The pattern string allows macro substitutions with runtime values
+                that come from report columns.
+
+                Example: to provide a cache name into the query pattern one can define a
+                system property called reporter.cacheName and use the following
+                construct:
+
+                <report>
+                    <query>
+                        <pattern>Coherence:type=Cache,name={CacheName},*</pattern>
+                    </query>
+
+                    <row>
+                        <column id="CacheName">
+                            <type>property</type>
+                            <name>reporter.cacheName</name>
+                        </column>
+                    </row>
+                </report>
+
+                Sometimes a query pattern is known to result in a list of MBean
+                names that have a well known key attribute. That key attribute
+                could be used to retrieve an attribute from a related (joined)
+                MBean.
+
+                Example: since "Coherence:type=Service,*" pattern is known to result in
+                MBeans in the following format: "Coherence:type=Service,nodeId=NNN",
+                the configuration below is used to print the MemberName attribute
+                from a corresponding NodeMBean along with the ServiceName attribute
+                for the ServiceMBean.
+
+                <report>
+                    <query>
+                        <pattern>Coherence:type=Service,*</pattern>
+                        <params>
+                            <column-ref>MemberName</column-ref>
+                            <column-ref>NodeId</column-ref>
+                            <column-ref>ServiceName</column-ref>
+                        </params>
+                    </query>
+
+                    <row>
+                        <column id="MemberName">
+                            <type>attribute</type>
+                            <name>MemberName</name>
+                            <query>
+                                <pattern>Coherence:type=Node,nodeId={NodeId}</pattern>
+                            </query>
+                        </column>
+
+                        <column id="NodeId">
+                            <type>key</type>
+                            <name>nodeId</name>
+                        </column>
+
+                        <column id="ServiceName">
+                            <type>key</type>
+                            <name>name</name>
+                        </column>
+                    </row>
+                </report>
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="row">
+        <xsd:annotation>
+            <xsd:documentation>
+                The row element contains a list of columns to be included in the
+                report.
+
+                Used in: report-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="column" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="column">
+        <xsd:annotation>
+            <xsd:documentation>
+                The column element contains information that the Reporter uses to
+                generate a report column.
+
+                Used in: row
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="type" minOccurs="0" />
+                <xsd:element ref="name" minOccurs="0" />
+                <xsd:element ref="header" minOccurs="0" />
+                <xsd:element ref="description" minOccurs="0" />
+                <xsd:element ref="delim" minOccurs="0" />
+                <xsd:element ref="query" minOccurs="0" />
+                <xsd:element ref="hidden" minOccurs="0" />
+                <xsd:element ref="column-ref" minOccurs="0" />
+                <xsd:element ref="function-name" minOccurs="0" />
+                <xsd:element ref="params" minOccurs="0" />
+                <xsd:element ref="data-type" minOccurs="0" />
+                <xsd:element ref="value" minOccurs="0" />
+                <xsd:element ref="group-by" minOccurs="0" />
+                <xsd:element ref="subquery" minOccurs="0" />
+                <xsd:element ref="return-neg" minOccurs="0" />
+                <xsd:element ref="init-params" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="id" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The type element identifies an XmlFilter or XmlColumn implementation.
+
+                The column/type element defines the type of the column in the
+                report.
+
+                Valid values:
+
+                    attribute A column which contains the data from a MBean
+                    attribute (default).
+
+                    key A column which contains the value from a MBean key
+                    attribute.
+
+                    method A column which contains the result of an MBean method
+                    invocation.
+
+                    function A column which contains the result of a function
+                    or aggregation. See function-name below.
+
+                    global A column that contains a value not related to any specific
+                    MBean. Global column names are {report-time},
+                    {report-count}, {node-id}.
+
+                    constant A column which contains a constant string of numeric
+                    value.
+
+                    property A column which contains a value of a Java system
+                    property.
+
+                The filter/type element defines the type of the filter in the
+                report.
+
+                Valid values:
+
+                    equals Filter which compares the result of two or more column
+                    references for a value equality.
+
+                    greater Filter which compares the results of two column references
+                    for "greater than" condition. If any of the values is
+                    resolved to null, the evaluation yields false. (This
+                    approach is equivalent to the way the NULL values are
+                    handled by SQL.)
+
+                    less Filter which compares the results of two column references
+                    for "less than" condition. If any of the values is resolved to
+                    null, the evaluation yields false.
+
+                    not Filter which returns the logical "not" of a filter reference.
+
+                    and Filter which returns the logical "and" of two filter references.
+
+                    or Filter which returns the logical "or" of two filter references.
+
+
+                Used in: filter, column
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="attribute" />
+                <xsd:enumeration value="key" />
+                <xsd:enumeration value="method" />
+                <xsd:enumeration value="function" />
+                <xsd:enumeration value="global" />
+                <xsd:enumeration value="constant" />
+                <xsd:enumeration value="property" />
+                <xsd:enumeration value="subquery" />
+                <xsd:enumeration value="correlated" />
+                <xsd:enumeration value="equals" />
+                <xsd:enumeration value="greater" />
+                <xsd:enumeration value="less" />
+                <xsd:enumeration value="not" />
+                <xsd:enumeration value="and" />
+                <xsd:enumeration value="or" />
+            </xsd:restriction>
+        </xsd:simpleType>
+    </xsd:element>
+
+    <xsd:element name="function-name">
+        <xsd:annotation>
+            <xsd:documentation>
+                The function-name is the name of the calculation to apply to the
+                associated MBean attribute values.
+
+                This element is only valid when the column type is "function".
+
+                Valid values:
+                    - sum - The sum of all retrieved attribute values.
+                    - avg - The average value for all retrieved attribute values.
+                    - min - The minimum numeric value for all retrieved attribute
+                    values.
+                    - max The maximum numeric value for all retrieved attribute
+                    values.
+                    - add The sum of values for two column references.
+                    - subtract The difference between values for two column
+                    references.
+                    - multiply The product of values for two column references.
+                    - divide The ratio between values for two column
+                    references.
+
+                Used in: column
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="sum" />
+                <xsd:enumeration value="avg" />
+                <xsd:enumeration value="min" />
+                <xsd:enumeration value="max" />
+                <xsd:enumeration value="add" />
+                <xsd:enumeration value="subtract" />
+                <xsd:enumeration value="multiply" />
+                <xsd:enumeration value="divide" />
+                <xsd:enumeration value="delta" />
+            </xsd:restriction>
+        </xsd:simpleType>
+    </xsd:element>
+
+    <xsd:element name="name" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                The name element represents an attribute or method name on the MBean.
+                For composite data types the name element can contain a forward
+                slash (/) delimited name sequence.
+
+                Used in: column
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="header" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                The header element contains the column header. If this item is
+                omitted, the value of the "name" element is used instead.
+
+                Used in: column
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="filter-ref" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                The filter-ref element contains a reference to a filter id.
+                The filter-ref is used to pass a filter as an argument to a
+                query or another filter.
+
+                Used in: params
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="column-ref" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                The column-ref element contains a reference to a column
+                identifier. The column-ref is used to pass a column value
+                as an argument to a filter or another column.
+
+                Used in: params
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="data-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The data-type element contains the data type of a column.
+
+                Valid values: double, string, boolean, character, byte,
+                short, integer, long, float.
+
+                Used in: column
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="double" />
+                <xsd:enumeration value="java.lang.Double" />
+                <xsd:enumeration value="string" />
+                <xsd:enumeration value="java.lang.String" />
+                <xsd:enumeration value="Boolean" />
+                <xsd:enumeration value="java.lang.Boolean" />
+                <xsd:enumeration value="Character" />
+                <xsd:enumeration value="java.lang.Character" />
+                <xsd:enumeration value="Byte" />
+                <xsd:enumeration value="java.lang.Byte" />
+                <xsd:enumeration value="Short" />
+                <xsd:enumeration value="java.lang.Short" />
+                <xsd:enumeration value="Integer" />
+                <xsd:enumeration value="java.lang.Integer" />
+                <xsd:enumeration value="Long" />
+                <xsd:enumeration value="java.lang.Long" />
+                <xsd:enumeration value="Float" />
+                <xsd:enumeration value="java.lang.Float" />
+            </xsd:restriction>
+        </xsd:simpleType>
+    </xsd:element>
+
+    <xsd:element name="value" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                The value element contains the value of a constant column.
+
+                Used in: column
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="hidden">
+        <xsd:annotation>
+            <xsd:documentation>
+                The hide element specifies whether or not the column value
+                should be hidden in the report.
+
+                Valid values: true, false, {non-MT}.
+
+                Used in: column
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="true" />
+                <xsd:enumeration value="false" />
+                <xsd:enumeration value="{non-MT}" />
+            </xsd:restriction>
+        </xsd:simpleType>
+    </xsd:element>
+
+    <xsd:element name="group-by" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                The group-by element specifies whether the column should
+                be included in the "group by" clause of the query.
+
+                Valid values are true or false (default).
+
+                Used in : column
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="subquery" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                The subquery element specifies whether the column is included
+                as part of a subquery
+
+                Valid values are true or false (default).
+
+                Used in : column
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="return-neg" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                The return-neg element specifies if a negative value should be
+                returned to the query. Negative values are considered "error"
+                or "not available" codes on Coherence MBeans. By default these
+                codes will be returned as zero to not impact and column calculations.
+
+                Valid values are true or false (default).
+
+                Used in : column
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="init-params">
+        <xsd:annotation>
+            <xsd:documentation>
+                The init-params element contains method invocation parameter
+                configuration info.
+
+                Used in: column
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="init-param" minOccurs="1" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:complexType name="init-param-type">
+        <xsd:sequence>
+            <xsd:element ref="param-type" minOccurs="0"/>
+            <xsd:element ref="param-value" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="init-param" type="init-param-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The init-param element contains a parameter configuration info.
+
+                Used in: init-params
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="param-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The param-type element specifies the Java type of the initialization
+                parameter.
+
+                Supported types are:
+                - string - indicates that the value is a java.lang.String
+                - int - indicates that the value is a java.lang.Integer
+                - long - indicates that the value is a java.lang.Long
+                - double -indicates that the value is a java.lang.Double
+                - boolean -indicates that the value is a java.lang.Boolean
+                - float -indicates that the value is a java.lang.Float
+                - date -indicates that the value is a java.util.Date
+
+                Used in: init-param
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="string" />
+                <xsd:enumeration value="String" />
+                <xsd:enumeration value="java.lang.String" />
+                <xsd:enumeration value="int" />
+                <xsd:enumeration value="Int" />
+                <xsd:enumeration value="java.lang.Integer" />
+                <xsd:enumeration value="long" />
+                <xsd:enumeration value="Long" />
+                <xsd:enumeration value="java.lang.Long" />
+                <xsd:enumeration value="boolean" />
+                <xsd:enumeration value="Boolean" />
+                <xsd:enumeration value="java.lang.Boolean" />
+                <xsd:enumeration value="double" />
+                <xsd:enumeration value="Double" />
+                <xsd:enumeration value="java.lang.Double" />
+                <xsd:enumeration value="float" />
+                <xsd:enumeration value="Float" />
+                <xsd:enumeration value="java.lang.Float" />
+                <xsd:enumeration value="date" />
+                <xsd:enumeration value="Date" />
+                <xsd:enumeration value="java.util.Date" />
+            </xsd:restriction>
+        </xsd:simpleType>
+    </xsd:element>
+
+    <xsd:element name="param-value" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                The param-value element specifies a value of the initialization
+                parameter.
+
+                The value is in a format specific to the type of the parameter.
+
+                Used in: init-param
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+</xsd:schema>
+

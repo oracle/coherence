@@ -1,0 +1,421 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://xmlns.oracle.com/coherence/coherence-pof-config"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
+            elementFormDefault="qualified" attributeFormDefault="unqualified"
+            version="1.3">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+            Licensed under the Universal Permissive License v 1.0 as shown at
+            https://oss.oracle.com/licenses/upl.
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:annotation>
+        <xsd:documentation>
+            This is the XML schema for the Coherence POF configuration file
+            (coherence-pof-config.xml).
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:element name="pof-config">
+        <xsd:annotation>
+            <xsd:documentation>
+                The pof-config element is the root element of the pof-config
+                descriptor.
+
+                Used in: n/a
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="user-type-list" />
+                <xsd:element ref="allow-interfaces" minOccurs="0" />
+                <xsd:element ref="allow-subclasses" minOccurs="0" />
+                <xsd:element ref="enable-references" minOccurs="0" />
+                <xsd:element ref="enable-type-discovery" minOccurs="0" />
+                <xsd:element ref="enable-config-discovery" minOccurs="0" />
+                <xsd:element ref="prefer-java-time" minOccurs="0" />
+                <xsd:element ref="default-serializer" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="user-type-list">
+        <xsd:annotation>
+            <xsd:documentation>
+                The user-type-list element contains zero or more user-type elements.
+                Each POF user type that will be used must be listed in the
+                user-type-list.
+
+                The user-type-list element may also contain zero or more include
+                elements. Each include element is used to add user-type elements
+                defined in another pof-config file.
+
+                Used in: pof-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                <xsd:element ref="user-type" />
+                <xsd:element ref="include" />
+            </xsd:choice>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="user-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The user-type element contains the declaration of a POF user type. A
+                POF user type is a uniquely identifiable, portable, versionable
+                object class that can be communicated among systems regardless of
+                language, OS, hardware and location.
+
+                Within the user-type element, the type-id element is mandatory.
+
+                Within the user-type element, the class-name element is required, and
+                specifies the fully qualified name of the Java class or interface
+                that all values of the user type are type-assignable to.
+
+                If the serializer element is omitted, then the user type is assumed to
+                implement the PortableObject interface, and the
+                PortableObjectSerializer implementation is used as the PofSerializer.
+
+                Used in: user-type-list
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="type-id" />
+                <xsd:element ref="class-name" />
+                <xsd:element ref="serializer" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="include" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                The include element specifies the location of a pof-config file to load
+                user-type elements from.
+
+                The value is a locator string (either a valid path or URL) that
+                identifies
+                the location of the target pof-config file.
+
+                Used in: user-type-list
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="type-id" type="xsd:nonNegativeInteger">
+        <xsd:annotation>
+            <xsd:documentation>
+                The type-id element specifies an integer value (n >= 0) that uniquely
+                identifies the user type.
+
+                Type IDs are mandatory in order to support schema versioning and evolution.
+
+                Used in: user-type
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="class-name" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                The class-name element specifies the name of a Java class or interface.
+
+                Within the user-type element, the class-name element is required,
+                and specifies the fully qualified name of the Java class or interface
+                that all values of the user type are type-assignable to.
+
+                Within the serializer element, the class-name element is required.
+
+                Used in: user-type, serializer
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="serializer-type">
+        <xsd:sequence>
+            <xsd:element ref="class-name" />
+            <xsd:element ref="init-params" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="serializer" type="serializer-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The serializer element specifies what PofSerializer to use to serialize
+                and deserialize a specific user type.
+
+                A PofSerializer is used to serialize and deserialize user type values
+                to and from a POF stream. Within the serializer element, the class-name
+                element is required, and zero or more constructor parameters can be
+                defined within an init-params element.
+
+                If the serializer element is omitted, then the user type is assumed to
+                implement the PortableObject interface, and the
+                PortableObjectSerializer
+                implementation is used as the PofSerializer.
+
+                If the init-params element is omitted from the serializer element,
+                then the
+                following four constructors are attempted on the specific PofSerializer
+                implementation, and in this order:
+
+                - (int nTypeId, Class clz, ClassLoader loader)
+                - (int nTypeId, Class clz)
+                - (int nTypeId)
+                - ()
+
+                Used in: user-type
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="default-serializer" type="serializer-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The default serializer element specifies what PofSerializer to use to
+                serialize and deserialize all user types defined in this config. If
+                a serializer is specified for a user type, then that serializer will
+                be used for that user type instead of the default serializer.
+
+                If the default serializer element is omitted, the serializer defined
+                for the specific user type will be used. If the serializer for the
+                user type is also omitted, then the user type is assumed to implement
+                the PortableObject interface, and the PortableObjectSerializer
+                implementation is used as the PofSerializer.
+
+                If the init-params element is omitted from the default serializer
+                element, then the following four constructors are attempted on the
+                specific PofSerializer implementation, and in this order:
+
+                - (int nTypeId, Class clz, ClassLoader loader)
+                - (int nTypeId, Class clz)
+                - (int nTypeId)
+                - ()
+
+                Used in: pof-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="init-params">
+        <xsd:annotation>
+            <xsd:documentation>
+                The init-params element contains zero or more arguments (each as an
+                init-param) that correspond to the parameters of a constructor of
+                the class that is being configured.
+
+                Used in: serializer
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="init-param" minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="init-param">
+        <xsd:annotation>
+            <xsd:documentation>
+                The init-param element provides a type for a configuration parameter
+                and a corresponding value to pass as an argument.
+
+                Used in: init-params
+             </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="param-type" />
+                <xsd:element ref="param-value" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="param-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The param-type element specifies the Java type of initialization
+                parameter.
+
+                Supported types are:
+                - string - indicates that the value is a java.lang.String
+                - boolean - indicates that the value is a java.lang.Boolean
+                - int - indicates that the value is a java.lang.Integer
+                - long - indicates that the value is a java.lang.Long
+                - double - indicates that the value is a java.lang.Double
+                - decimal - indicates that the value is a
+                java.math.BigDecimal
+                - file - indicates that the value is a
+                java.io.File
+                - date - indicates that the value is a java.sql.Date
+                - time - indicates that the value is a java.sql.Time
+                - datetime -indicates that the value is a
+                java.sql.Timestamp
+                - xml - indicates that the value is the entire init-param
+                XmlElement
+
+                The value is converted to the specified type, and the target
+                constructor or method must have a parameter of that type in
+                order for the instantiation to succeed.
+
+                Used in: init-param
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleType>
+            <xsd:restriction base="xsd:normalizedString">
+                <xsd:enumeration value="string" />
+                <xsd:enumeration value="java.lang.String" />
+                <xsd:enumeration value="int" />
+                <xsd:enumeration value="java.lang.Integer" />
+                <xsd:enumeration value="long" />
+                <xsd:enumeration value="java.lang.Long" />
+                <xsd:enumeration value="boolean" />
+                <xsd:enumeration value="java.lang.Boolean" />
+                <xsd:enumeration value="double" />
+                <xsd:enumeration value="java.lang.Double" />
+                <xsd:enumeration value="float" />
+                <xsd:enumeration value="java.lang.Float" />
+                <xsd:enumeration value="decimal" />
+                <xsd:enumeration value="java.math.BigDecimal" />
+                <xsd:enumeration value="file" />
+                <xsd:enumeration value="java.io.File" />
+                <xsd:enumeration value="date" />
+                <xsd:enumeration value="java.sql.Date" />
+                <xsd:enumeration value="time" />
+                <xsd:enumeration value="java.sql.Time" />
+                <xsd:enumeration value="datetime" />
+                <xsd:enumeration value="java.sql.Timestamp" />
+                <xsd:enumeration value="xml" />
+                <xsd:enumeration value="com.tangosol.run.xml.XmlElement" />
+                <xsd:enumeration value="java.lang.ClassLoader" />
+                <xsd:enumeration value="class" />
+                <xsd:enumeration value="java.lang.Class" />
+            </xsd:restriction>
+        </xsd:simpleType>
+    </xsd:element>
+
+    <xsd:element name="param-value" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                The param-value element specifies a value of the initialization
+                parameter.
+
+                The value is in a format specific to the type of the parameter.
+
+                There are four reserved values that can be specified. Each of these
+                values
+                is replaced at runtime with a specific runtime value before the
+                constructor
+                is invoked:
+                - "{type-id}" - replaced with the Type ID of the User Type;
+                - "{class-name}" - replaced with the name of the class for the User
+                Type;
+                - "{class}" - replaced with the Class for the User Type;
+                -
+                "{class-loader}" - replaced with the ConfigurablePofContext's
+                ContextClassLoader.
+
+                Used in: init-param
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="allow-interfaces" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                The allow-interfaces element indicates whether the user-type class-name
+                can specify Java interface types in addition to Java class types.
+
+                Valid values are "true" or "false". Default value is false.
+
+                Used in: pof-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="allow-subclasses" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                The allow-subclasses element indicates whether the user-type class-name
+                can specify a Java class type that is abstract, and whether sub-classes
+                of any specified user-type class-name will be permitted at runtime and
+                automatically mapped to the specified super-class for purposes of
+                obtaining a serializer.
+
+                Valid values are "true" or "false". Default value is false.
+
+                Used in: pof-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="enable-references" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                The enable-references element indicates whether Identity/Reference type
+                support is enabled.
+
+                Valid values are "true" or "false". Default value is false.
+
+                Used in: pof-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="enable-type-discovery" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                The enable-type-discovery element indicates whether classes
+                annotated with PortableType are added automatically when POF
+                serialization is used.
+
+                Valid values are "true" or "false". Default value is false.
+
+                Used in: pof-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="enable-config-discovery" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                The enable-config-discovery element indicates whether
+                additional POF configurations will be loaded from
+                discovered PofConfigProvider instances.
+
+                Valid values are "true" or "false". Default value is true.
+
+                Used in: pof-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="prefer-java-time" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                The prefer-java-time element indicates whether Java 8 date/time
+                types (java.time.*) should be preferred over legacy types.
+
+                Valid values are "true" or "false". Default value is false.
+
+                Used in: pof-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+</xsd:schema>

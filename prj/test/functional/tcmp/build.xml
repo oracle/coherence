@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
+  -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- ANT build script for the tcmp-ssl test project.                       -->
+<!--                                                                       -->
+<!-- Usage:                                                                -->
+<!--     prompt> ant help                                                  -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<project name="tcmp-ssl" default="help" basedir=".">
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Utility targets                                                     -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <property environment="env"/>
+
+  <condition property="keytool" value="${env.JAVA_HOME}/bin/keytool.exe" else="keytool" >
+    <os family="windows" />
+  </condition>
+
+  <target name="create.keystores"
+          description="Generate the various keystore files used by the SSL tests.">
+
+    <mkdir dir="target/classes/"/>
+
+    <!-- Create the server keystore -->
+    <exec executable="${keytool}">
+      <arg line="-genkey -keyalg RSA -keysize 4096 -storetype JKS -validity 3650 -dname 'CN=server, O=Oracle, L=Burlington, ST=MA, C=US' -alias server -keypass password -keystore target/classes/keystore.jks -storepass password"/>
+    </exec>
+    <exec executable="${keytool}">
+      <arg line="-genkey -keyalg RSA -keysize 4096 -storetype JKS -validity 3650 -dname 'CN=localhost, O=Oracle, L=Burlington, ST=MA, C=US' -alias server -keypass password -keystore target/classes/localhost.jks -storepass password"/>
+    </exec>
+  </target>
+</project>

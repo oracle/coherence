@@ -1,0 +1,223 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= CDI Response Caching
+:description: Coherence Guides
+:keywords: coherence, java, documentation, guides
+
+== CDI Response Caching
+
+CDI Response Caching allows you to cache the results of method invocations.
+Each time a target method is invoked, CDI interceptors check whether the method
+has already been invoked for the given arguments. If the method has been invoked,
+the cached result is returned without invoking the target method again.
+If there are no cached results because the method hasn't been invoked yet
+or because the result was removed from the cache, the target method is invoked,
+the result is cached, and then returned to the caller.
+
+=== What You Will Build
+
+The example code is written as a set of unit tests, showing you how to use
+CDI Caching Response annotations.
+
+// Do not change this part.
+=== What You Need
+:java_version: 11
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+// Do not change this part unless you have more complex build instructions.
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+=== Example Data Model
+
+The data model for this guide consists of a single class named `Message`. It
+represents a message for a user and has a single property: message.
+
+
+=== Create the Resource Class and JUnit Test Class
+
+The first step is to create root JAX-RS resource class that will be used to
+test the various response caching operations. Resource will be using `messages-cache`
+to store cached messages.
+
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/responsecaching/GreetResource.java[tag=resource]
+----
+
+and test class:
+
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/responsecaching/GreetResourceTest.java[tag=testclass]
+----
+<1> Inject cache so we can verify its content
+<2> Reset cache content and counters before each test
+
+
+=== Response Caching Operations
+
+Let's add resource method and test for each response caching operation:
+
+==== @CacheGet
+@CacheGet gets the value from the cache if present; invokes the target method
+and caches the result otherwise.
+
+Add resource method to the resource class:
+
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/responsecaching/GreetResource.java[tag=cacheget]
+----
+<1> We'll test @CacheGet annotation processing
+<2> Cache key will be `name` argument
+<3> We'll count number of method invocations
+<4> Result of the method invocation that will be cached
+
+Add test method for @CacheGet operation:
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/responsecaching/GreetResourceTest.java[tag=testget]
+----
+<1> Invoke caching resource method
+<2> Verify that response is the expected one
+<3> Verify that target method was invoked
+<4> Verify that response was cached
+<5> Verify that repeated invocation of the caching resource method won't result
+in the method execution as result will be returned from the cache
+
+
+==== @CacheAdd
+@CacheAdd always calls the target method and then caches the result.
+
+Add resource method to the resource class:
+
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/responsecaching/GreetResource.java[tag=cacheadd]
+----
+<1> We'll test @CacheAdd annotation processing
+<2> Cache key will be `name` argument
+<3> We'll count number of method invocations
+<4> Result of the method invocation that will be cached
+
+Test method for @CacheAdd operation:
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/responsecaching/GreetResourceTest.java[tag=testadd]
+----
+<1> Populate cache by invoking caching resource method
+<2> Invoke resource method annotated with @CacheAdd
+<3> Verify that the target method was invoked and its returning value was cached
+<4> Invoke @CacheAdd annotated method again
+<5> Verify that the target method was executed once again
+
+
+==== @CachePut
+@CachePut stores the value annotated with @CacheValue in the cache and calls the target method
+
+Add resource method to the resource class:
+
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/responsecaching/GreetResource.java[tag=cacheput]
+----
+<1> We'll test @CachePut annotation processing
+<2> Cache key will be `name` argument and `message` will be new cache value
+<3> We'll count number of method invocations
+<4> Result of the method invocation that won't be cached
+
+Test method for @CachePut operation:
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/responsecaching/GreetResourceTest.java[tag=testput]
+----
+<1> Pass new cache value to the caching resource method
+<2> Verify that passed value is stored in the cache
+<3> Invoke the same @CachePut annotated method again
+<4> Verify that the target method was executed once again
+
+
+==== @CacheRemove
+@CacheRemove removes the key from the cache and calls the target method
+
+Add resource method to the resource class:
+
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/responsecaching/GreetResource.java[tag=cacheremove]
+----
+<1> We'll test @CacheRemove annotation processing
+<2> Cache key to remove from the cache
+<3> We'll count number of method invocations
+<4> Result of the method invocation that will be returned
+
+Test method for @CacheRemove operation:
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/responsecaching/GreetResourceTest.java[tag=testremove]
+----
+<1> Store initial value in the cache
+<2> Verify that cache is populated
+<3> Remove key from the cache by invoking resource method marked with @CacheRemove
+<4> Verify that key was removed from the cache
+
+
+==== @CacheName
+The @CacheName annotation defines the cache that will be used for response caching. If both the class and methods are annotated with @CacheName, the value from the method annotation takes precedence.
+
+Add resource method to the resource class:
+
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/responsecaching/GreetResource.java[tag=cachename]
+----
+<1> Specify cache name that will override cache name defined on a class (message-cache)
+
+
+Test method for @CacheName annotation:
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/responsecaching/GreetResourceTest.java[tag=testname]
+----
+<1> Populate cache
+<2> Verify that cache specified by class @CacheName is not populated
+<3> Verify that cache specified by method @CacheName is populated
+
+
+==== Multiple arguments as a cache key
+Unless the @CacheKey annotation is applied to a parameter, all parameters except for one marked with @CacheValue
+will be used as a part of the cache key.
+
+Add resource method to the resource class:
+
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/responsecaching/GreetResource.java[tag=cacheparams]
+----
+<1> Cache key will be assembled from both `firstName` and `lastName` arguments.
+
+
+Test method:
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/responsecaching/GreetResourceTest.java[tag=testname]
+----
+<1> Store initial value in the cache
+<2> Verify that cache is populated correctly
+<3> Verify that value was fetched from the cache
+
+
+=== Summary
+
+You have seen how to use CDI Caching Response annotations.

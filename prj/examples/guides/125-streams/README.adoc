@@ -1,0 +1,299 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Streams
+:description: Coherence Guides Streams
+:keywords: coherence, java, documentation, streams
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Streams
+
+This guide walks you through how to use the Streams API with Coherence.
+
+The Java streams implementation provides an efficient way to query and process data
+sequentially or in parallel to take advantage of multi-core architectures.
+
+The processing occurs in steps:
+
+1. Data is aggregated from a source (such as collections or arrays) into a read-only stream.
+   The stream represents object references and does not actually store the data.
+
+2. Intermediate operations are then declared on the stream. Intermediate operations for filtering,
+   sorting, mapping, and so on are supported. Lambda expressions are often used when declaring
+   intermediate operations and provide a functional way to work on the data.
+   Intermediate operations are aggregated and can be chained together: each subsequent operation
+   is performed on a stream that contains the result of the previous operation. Intermediate operations are lazy and are not actually executed until a final terminal operation is performed.
+
+3. A final terminal operation is declared. Terminal operations for counting, adding, averaging,
+   and so on are supported. The terminal operation automatically iterates over the objects in the
+   stream returns an aggregated result.
+
+Java streams provide similar functionality as Coherence data grid aggregation.
+However, streams are not efficient when executed in a distributed environment.
+To leverage the stream programming model and also ensure that streams can be executed remotely
+across the cluster, Coherence has extended the streams API.
+
+For details see the {commercial-docs-base-url}/java-reference/com/tangosol/util/stream/package-summary.html[com.tangosol.util.stream]
+in the Java API Reference for Oracle Coherence.
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-will-need,What You Need>>
+* <<data-model, Example Data Model>>
+* <<example-code-1, Review the Example Code>>
+* <<run-example-1, Run the Example>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+In this example you will utilize streams methods on the `NamedMap` API to query and aggregate
+and group data from a contacts `NamedMap`.
+
+[#what-you-will-need]
+==== What You Need
+:java_version: 11
+:duration: 15
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+[#running]
+==== Running the Examples
+
+This example can be run direct from the IDE, or can be run via executing the tests.
+
+[source,bash]
+----
+./mvnw clean verify
+----
+
+or
+
+[source,bash]
+----
+./gradlew clean test
+----
+
+[#data-model]
+=== Example Data Model
+
+The data model consists of the following classes in two maps, `customers` and `orders`
+
+* `Contact` - Represents a contact
+* `Address` - Represents an address for a contact
+
+==== Contact
+
+Contacts have various attributes as described below including home and work addresses stored in the `Address` class.
+
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/streams/Contact.java[tag=class]
+----
+
+==== Address
+
+Address contains address details for a `Contact`.
+
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/streams/Address.java[tag=class]
+----
+
+[#example-code-1]
+=== Review the Example Code
+
+1. Example Details
++
+The `runExample()` method contains the code that exercises the streams API.
++
+NOTE: Refer to the inline
+code comments for explanations of what each operation is carrying out.
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/streams/StreamsExample.java[tag=runExample]
+----
++
+The following static extractors are referenced in the above example:
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/streams/StreamsExample.java[tag=extractors]
+----
+
+
+[#run-example-1]
+=== Run the Example
+
+Carry out the following to run this example:
+
+E.g. for Maven use:
+
+[source,bash]
+----
+./mvnw clean verify
+----
+
+or
+
+[source,bash]
+----
+./gradlew clean test
+----
+
+This will generate output similar to the following: (output is truncated)
+
+[source,bash]
+----
+Creating 100 customers
+Cache size is 100
+Distinct years the contacts were born in:
+[1984, 1985, 1986, 1987, 1989, 1950, 1951, 1952, 1953, 1954, 1955, 1956, 1957, 1958,
+1959, 1960, 1961, 1962, 1963, 1964, 1966, 1967, 1968, 1969, 1970, 1971, 1972, 1973,
+1974, 1975, 1976, 1977, 1979, 1980, 1981, 1983]
+
+Set of contact names where age > 60:
+[Lastname12 Firstname12 age=64, Lastname100 Firstname100 age=70, Lastname77 Firstname77 age=63, Lastname82 Firstname82 age=66,
+Lastname45 Firstname45 age=71, Lastname84 Firstname84 age=63, Lastname40 Firstname40 age=62, Lastname20 Firstname20 age=68,
+Lastname63 Firstname63 age=68, Lastname85 Firstname85 age=69,
+...
+truncated
+...
+Lastname96 Firstname96 age=61, Lastname7 Firstname7 age=71, Lastname73 Firstname73 age=61, Lastname14 Firstname14 age=69,
+Lastname35 Firstname35 age=61
+
+Distinct set of states for home addresses:
+[HI, TX, MA, TN, AK, WA, NY, AL, CA]
+
+The average age of all contacts is: 52.48
+
+The average age of all contacts using collect() is: 52.48
+
+The maximum age of all contacts is: 72
+
+The average age of contacts who work in MA is: 46.666666666666664
+
+Contacts born in each month:
+
+Month: JUNE, Contacts:
+    Firstname77 Lastname77
+    Firstname38 Lastname38
+    Firstname32 Lastname32
+    Firstname91 Lastname91
+    Firstname48 Lastname48
+    Firstname92 Lastname92
+    Firstname80 Lastname80
+    Firstname34 Lastname34
+
+Month: JANUARY, Contacts:
+    Firstname47 Lastname47
+    Firstname94 Lastname94
+    Firstname16 Lastname16
+    Firstname46 Lastname46
+    Firstname57 Lastname57
+    Firstname10 Lastname10
+    Firstname100 Lastname100
+    Firstname4 Lastname4
+
+Month: MAY, Contacts:
+    Firstname65 Lastname65
+    Firstname55 Lastname55
+    Firstname1 Lastname1
+    Firstname93 Lastname93
+    Firstname96 Lastname96
+    Firstname42 Lastname42
+    Firstname14 Lastname14
+    Firstname25 Lastname25
+    Firstname54 Lastname54
+
+...
+truncated
+...
+
+Month: APRIL, Contacts:
+    Firstname59 Lastname59
+    Firstname15 Lastname15
+    Firstname90 Lastname90
+    Firstname50 Lastname50
+    Firstname45 Lastname45
+    Firstname33 Lastname33
+    Firstname76 Lastname76
+    Firstname23 Lastname23
+
+Contacts with home addresses in each state:
+State HI has 6 Contacts
+    Firstname32 Lastname32
+    Firstname68 Lastname68
+    Firstname17 Lastname17
+    Firstname42 Lastname42
+    Firstname18 Lastname18
+    Firstname39 Lastname39
+
+State TX has 13 Contacts
+    Firstname71 Lastname71
+    Firstname30 Lastname30
+    Firstname82 Lastname82
+    Firstname62 Lastname62
+    Firstname40 Lastname40
+    Firstname43 Lastname43
+    Firstname93 Lastname93
+    Firstname11 Lastname11
+    Firstname92 Lastname92
+    Firstname96 Lastname96
+    Firstname7 Lastname7
+    Firstname58 Lastname58
+    Firstname76 Lastname76
+
+...
+truncated
+...
+
+State AL has 10 Contacts
+    Firstname47 Lastname47
+    Firstname46 Lastname46
+    Firstname22 Lastname22
+    Firstname66 Lastname66
+    Firstname81 Lastname81
+    Firstname15 Lastname15
+    Firstname25 Lastname25
+    Firstname35 Lastname35
+    Firstname34 Lastname34
+    Firstname89 Lastname89
+
+State CA has 14 Contacts
+    Firstname77 Lastname77
+    Firstname61 Lastname61
+    Firstname28 Lastname28
+    Firstname5 Lastname5
+    Firstname1 Lastname1
+    Firstname91 Lastname91
+    Firstname87 Lastname87
+    Firstname79 Lastname79
+    Firstname80 Lastname80
+    Firstname12 Lastname12
+    Firstname33 Lastname33
+    Firstname95 Lastname95
+    Firstname98 Lastname98
+    Firstname100 Lastname100
+----
+
+[#summary]
+=== Summary
+
+In this example you have seen how to utilized streams methods on the `NamedMap` API to query and aggregate
+and group data from a contacts `NamedMap`.
+
+[#see-also]
+=== See Also
+
+* <<examples/guides/120-built-in-aggregators/README.adoc,Built in Aggregators>>
+* <<examples/guides/121-custom-aggregators/README.adoc,Custom Aggregators>>

@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+
+<!--
+Configuration file for Coherence*Extend-REST POF types.
+-->
+
+<pof-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">
+
+  <user-type-list>
+
+    <!-- Coherence REST POF Types 800-819 -->
+
+    <user-type>
+      <type-id>800</type-id>
+      <class-name>com.tangosol.coherence.rest.util.JsonMap</class-name>
+      <serializer>
+        <class-name>com.tangosol.coherence.rest.util.JsonMap$Serializer</class-name>
+      </serializer>
+    </user-type>
+    <user-type>
+      <type-id>801</type-id>
+      <class-name>com.tangosol.coherence.rest.util.StaticContent</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>810</type-id>
+      <class-name>com.tangosol.coherence.rest.util.PropertySet</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>811</type-id>
+      <class-name>com.tangosol.coherence.rest.util.PropertySpec</class-name>
+    </user-type>
+
+    <!-- reserve removed type-id 812-814 -->
+  </user-type-list>
+</pof-config>

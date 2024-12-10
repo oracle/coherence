@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<coherence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+           xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd">
+  <cluster-config>
+
+    <!-- tag::unicast[] -->
+    <unicast-listener>
+      <socket-provider system-property="test.socket.provider">provider</socket-provider>
+      <well-known-addresses>
+        <address system-property="coherence.wka">127.0.0.1</address>
+      </well-known-addresses>
+    </unicast-listener>
+    <!-- end::unicast[] -->
+
+    <socket-providers>
+      <!--
+         A socket provider using Java key-store.
+      -->
+      <!-- tag::sslKeyStore[] -->
+      <socket-provider id="sslKeyStore">
+        <ssl>
+          <protocol>TLS</protocol>
+          <identity-manager>
+            <key-store>  <!--1-->
+              <url system-property="test.server.keystore">file:server.jks</url>
+              <password system-property="test.server.keystore.password">password</password>
+            </key-store>
+            <password system-property="test.server.key.password">private</password>
+          </identity-manager>
+
+          <trust-manager>
+            <algorithm>SunX509</algorithm>
+            <key-store>  <!--2-->
+              <url system-property="test.trust.keystore">file:trust.jks</url>
+              <password system-property="test.trust.keystore.password">password</password>
+            </key-store>
+          </trust-manager>
+          <socket-provider>tcp</socket-provider>
+        </ssl>
+      </socket-provider>
+      <!-- end::sslKeyStore[] -->
+
+      <!--
+         A socket provider using key and certificate files only
+      -->
+      <!-- tag::sslKeyAndCert[] -->
+      <socket-provider id="sslKeyAndCert">
+        <ssl>
+          <identity-manager>  <!--1-->
+            <key system-property="test.server.key"/>
+            <cert system-property="test.server.cert"/>
+          </identity-manager>
+          <trust-manager>  <!--2-->
+            <cert system-property="test.server.ca.cert"/>
+            <cert system-property="test.client.ca.cert"/>
+          </trust-manager>
+          <!--3-->
+          <!--
+              <refresh-period>24h</refresh-period>
+          -->
+        </ssl>
+      </socket-provider>
+      <!-- end::sslKeyAndCert[] -->
+
+      <!--
+         A socket provider using a custom private key and certificate loaders
+      -->
+      <!-- tag::sslCustomKeyAndCert[] -->
+      <socket-provider id="sslCustomKeyAndCert">
+        <ssl>
+          <identity-manager>
+            <key-loader>  <!--1-->
+              <class-name>com.oracle.coherence.guides.ssl.loaders.CustomPrivateKeyLoader</class-name>
+              <init-params>
+                <init-param>
+                  <param-type>string</param-type>
+                  <param-value system-property="test.server.key"/>
+                </init-param>
+              </init-params>
+            </key-loader>
+            <cert-loader>  <!--2-->
+              <class-name>com.oracle.coherence.guides.ssl.loaders.CustomCertificateLoader</class-name>
+              <init-params>
+                <init-param>
+                  <param-type>string</param-type>
+                  <param-value system-property="test.server.cert"/>
+                </init-param>
+              </init-params>
+            </cert-loader>
+          </identity-manager>
+          <trust-manager>
+            <cert-loader>  <!--3-->
+              <class-name>com.oracle.coherence.guides.ssl.loaders.CustomCertificateLoader</class-name>
+              <init-params>
+                <init-param>
+                  <param-type>string</param-type>
+                  <param-value system-property="test.server.ca.cert"/>
+                </init-param>
+              </init-params>
+            </cert-loader>
+          </trust-manager>
+        </ssl>
+      </socket-provider>
+      <!-- end::sslCustomKeyAndCert[] -->
+
+      <!--
+         A socket provider using a custom key store loader
+      -->
+      <!-- tag::sslCustomKeyStore[] -->
+      <socket-provider id="sslCustomKeyStore">
+        <ssl>
+          <identity-manager>
+            <key-store>
+              <key-store-loader>  <!--1-->
+                <class-name>com.oracle.coherence.guides.ssl.loaders.CustomKeyStoreLoader</class-name>
+                <init-params>
+                  <init-param>
+                    <param-type>string</param-type>
+                    <param-value system-property="test.server.keystore">file:client.jks</param-value>
+                  </init-param>
+                </init-params>
+              </key-store-loader>
+              <password system-property="test.server.keystore.password">password</password>
+            </key-store>
+            <password system-property="test.server.key.password">private</password>
+          </identity-manager>
+          <trust-manager>
+            <algorithm>SunX509</algorithm>
+            <key-store>
+              <key-store-loader>  <!--2-->
+                <class-name>com.oracle.coherence.guides.ssl.loaders.CustomKeyStoreLoader</class-name>
+                <init-params>
+                  <init-param>
+                    <param-type>string</param-type>
+                    <param-value system-property="test.trust.keystore">file:trust.jks</param-value>
+                  </init-param>
+                </init-params>
+              </key-store-loader>
+              <password system-property="test.trust.keystore.password">password</password>
+            </key-store>
+          </trust-manager>
+        </ssl>
+      </socket-provider>
+      <!-- end::sslCustomKeyStore[] -->
+    </socket-providers>
+  </cluster-config>
+</coherence>

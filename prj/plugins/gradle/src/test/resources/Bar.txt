@@ -1,0 +1,55 @@
+/*
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+import com.tangosol.io.pof.schema.annotation.PortableType;
+import com.tangosol.io.pof.schema.annotation.Portable;
+
+@PortableType(id=1001)
+public class Bar
+    {
+
+    @Portable
+    private String beer;
+
+    @Portable
+    private Color beerColor;
+
+    public Bar()
+        {
+        }
+
+    public Bar(String beer, String beerColor)
+        {
+        this.beer = beer;
+        this.beerColor = Color.valueOf(beerColor);
+        }
+
+    public String getBeer()
+        {
+        return this.beer;
+        }
+
+    public Color getColor()
+        {
+        return this.beerColor;
+        }
+
+    public void setBeer(String beer)
+        {
+        this.beer = beer;
+        }
+
+    public Color getBeerColor()
+        {
+        return beerColor;
+        }
+
+    public void setBeerColor(Color beerColor)
+        {
+        this.beerColor = beerColor;
+        }
+    }

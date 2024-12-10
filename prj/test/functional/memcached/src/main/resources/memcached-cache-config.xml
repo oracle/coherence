@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>*</cache-name>
+      <scheme-name>dist-cache-scheme</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+
+    <distributed-scheme>
+      <scheme-name>dist-cache-scheme</scheme-name>
+      <service-name>DistSvc</service-name>
+      <serializer>
+         <instance>
+         <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+         <init-params>
+            <init-param>
+               <param-type>String</param-type>
+               <param-value>memcached-pof-config.xml</param-value>
+            </init-param>
+         </init-params>
+         </instance>
+      </serializer>
+
+      <backing-map-scheme>
+        <local-scheme></local-scheme>
+      </backing-map-scheme>
+
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+  <proxy-scheme>
+     <service-name>MemcachedProxyService</service-name>
+     <acceptor-config>
+      <memcached-acceptor>
+         <cache-name>memcache</cache-name>
+         <address-provider>memcached1</address-provider>
+      </memcached-acceptor>
+   </acceptor-config>
+   <autostart>true</autostart>
+  </proxy-scheme>
+
+   <proxy-scheme>
+     <service-name>MemcachedPoFProxyService</service-name>
+     <acceptor-config>
+      <memcached-acceptor>
+         <cache-name>memcache</cache-name>
+         <interop-enabled>true</interop-enabled>
+         <address-provider>memcached2</address-provider>
+      </memcached-acceptor>
+   </acceptor-config>
+   <autostart>true</autostart>
+  </proxy-scheme>
+
+
+ </caching-schemes>
+</cache-config>

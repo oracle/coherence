@@ -1,0 +1,17 @@
+{
+  "@class": "common.data.PutAll",
+  "entries": [
+    {
+      "key": 2147483650,
+      "value": "smith"
+    },
+    {
+      "key": 2147483651,
+      "value": "jones"
+    },
+    {
+      "key": 1,
+      "value": "robinson"
+    }
+  ]
+}

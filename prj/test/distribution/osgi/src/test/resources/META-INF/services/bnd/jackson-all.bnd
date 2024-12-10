@@ -1,0 +1,6 @@
+Bundle-Version: 1.9.2
+Bundle-Name: Jackson
+Bundle-SymbolicName: Jackson
+Bundle-Vendor: Jackson
+Export-Package: com.fasterxml.jackson.*,com.fasterxml.jackson.databind.*,com.fasterxml.jackson.core.*
+Import-Package: *;resolution:=optional

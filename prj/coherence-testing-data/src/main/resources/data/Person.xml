@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<xml-bean>
+  <name>Person</name>
+
+  <property>
+    <name>Id</name>
+    <xml-name>ssn</xml-name>
+  </property>
+
+  <property>
+    <name>FirstName</name>
+    <xml-name>first-name</xml-name>
+  </property>
+
+  <property>
+    <name>LastName</name>
+    <xml-name>last-name</xml-name>
+  </property>
+
+  <property>
+    <name>BirthYear</name>
+    <xml-name>birth-year</xml-name>
+  </property>
+
+  <property>
+    <name>MotherId</name>
+    <xml-name>mother-ssn</xml-name>
+  </property>
+
+  <property>
+    <name>ChildrenIds</name>
+    <xml-name>children</xml-name>
+    <class>java.util.ArrayList</class>
+    <element>
+      <xml-name>ssn</xml-name>
+      <type>String</type>
+    </element>
+  </property>
+</xml-bean>

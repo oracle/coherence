@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<!--
+Cache Configuration used for the processor test suite.
+-->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+      
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>dist-*</cache-name>
+      <scheme-name>partitioned</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>repl-*</cache-name>
+      <scheme-name>replicated</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>local-*</cache-name>
+      <scheme-name>backing-map</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>partitioned</scheme-name>
+      <service-name>Partitioned</service-name>
+
+      <serializer>
+        <instance>
+        <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+          <init-params>
+            <init-param>
+              <param-type>string</param-type>
+              <param-value>extractor/extractor-pof-config.xml</param-value>
+            </init-param>
+          </init-params>
+        </instance>
+      </serializer>
+
+      <backing-map-scheme>
+        <local-scheme>
+          <scheme-ref>backing-map</scheme-ref>
+        </local-scheme>
+      </backing-map-scheme>
+
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <replicated-scheme>
+      <scheme-name>replicated</scheme-name>
+      <service-name>Replicated</service-name>
+
+      <backing-map-scheme>
+        <local-scheme>
+          <scheme-ref>backing-map</scheme-ref>
+        </local-scheme>
+      </backing-map-scheme>
+
+      <autostart>true</autostart>
+    </replicated-scheme>
+
+    <local-scheme>
+      <scheme-name>backing-map</scheme-name>
+
+      <eviction-policy>HYBRID</eviction-policy>
+      <high-units>{back-size-limit 0}</high-units>
+      <expiry-delay>{back-expiry 1h}</expiry-delay>
+    </local-scheme>
+
+  </caching-schemes>
+</cache-config>

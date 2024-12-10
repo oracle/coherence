@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>cache-*</cache-name>
+      <scheme-name>cache-scheme</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <topic-scheme-mapping>
+    <topic-mapping>
+      <topic-name>pof*</topic-name>
+      <scheme-name>pof-scheme</scheme-name>
+      <value-type>String</value-type>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>java*</topic-name>
+      <scheme-name>java-scheme</scheme-name>
+      <value-type>String</value-type>
+    </topic-mapping>
+  </topic-scheme-mapping>
+
+  <caching-scheme-mapping>
+    <remote-topic-scheme>
+      <scheme-name>pof-scheme</scheme-name>
+      <service-name>PofRemote</service-name>
+      <proxy-service-name>PofProxy</proxy-service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <name-service-addresses>
+            <socket-address>
+              <address system-property="coherence.localhost">127.0.0.1</address>
+              <port system-property="coherence.clusterport">9999</port>
+            </socket-address>
+          </name-service-addresses>
+        </tcp-initiator>
+        <serializer>pof</serializer>
+      </initiator-config>
+    </remote-topic-scheme>
+
+    <remote-topic-scheme>
+      <scheme-name>java-scheme</scheme-name>
+      <service-name>JavaRemote</service-name>
+      <proxy-service-name>JavaProxy</proxy-service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <name-service-addresses>
+            <socket-address>
+              <address system-property="coherence.localhost">127.0.0.1</address>
+              <port system-property="coherence.clusterport">9999</port>
+            </socket-address>
+          </name-service-addresses>
+        </tcp-initiator>
+        <serializer>java</serializer>
+      </initiator-config>
+    </remote-topic-scheme>
+
+    <remote-cache-scheme>
+      <scheme-name>cache-scheme</scheme-name>
+      <service-name>RemoteCache</service-name>
+      <proxy-service-name>PofProxy</proxy-service-name>
+      <initiator-config>
+          <tcp-initiator>
+            <name-service-addresses>
+              <socket-address>
+                <address system-property="coherence.localhost">127.0.0.1</address>
+                <port system-property="coherence.clusterport">9999</port>
+              </socket-address>
+            </name-service-addresses>
+          </tcp-initiator>
+          <serializer>pof</serializer>
+      </initiator-config>
+    </remote-cache-scheme>
+  </caching-scheme-mapping>
+</cache-config>

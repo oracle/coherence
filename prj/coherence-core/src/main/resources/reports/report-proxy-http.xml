@@ -1,0 +1,209 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<!-- The following are tested with the report:
+     Attribute - Simple
+     Attribute - Key
+     Constant Strings
+     Correlated Sub query
+-->
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+  <report>
+    <file-name>{date}-report-proxy-http.txt</file-name>
+    <delim>{tab}</delim>
+
+    <!-- Only include services where Protocol == 'http' -->
+    <filters>
+      <filter id="equals">
+        <type>equals</type>
+        <params>
+          <column-ref>Protocol</column-ref>
+          <column-ref>ConstHTTP</column-ref>
+        </params>
+      </filter>
+    </filters>
+
+    <query>
+      <pattern>Coherence:type=ConnectionManager,*</pattern>
+       <filter-ref>equals</filter-ref>
+    </query>
+
+    <row>
+      <column id="BatchCounter">
+        <type>global</type>
+        <name>{batch-counter}</name>
+        <header>Batch Counter</header>
+      </column>
+
+      <column id ="ReportTime">
+        <type>global</type>
+        <name>{report-time}</name>
+        <header>Report Time</header>
+      </column>
+
+      <column id="RefreshTime">
+        <name>RefreshTime</name>
+      </column>
+
+      <column id="Name">
+        <type>key</type>
+          <name>name</name>
+          <header>Service Name</header>
+        </column>
+
+      <column id ="HttpServerType">
+         <name>HttpServerType</name>
+      </column>
+
+      <column id ="HostIp">
+        <name>HostIP</name>
+      </column>
+
+      <column id ="NodeId">
+        <type>key</type>
+        <name>nodeId</name>
+        <header>NodeId</header>
+      </column>
+
+      <column id="AverageRequestSize">
+        <name>AverageRequestSize</name>
+      </column>
+
+      <column id="AverageResponseSize">
+        <name>AverageResponseSize</name>
+      </column>
+
+      <column id="AverageRequestTime">
+        <name>AverageRequestTime</name>
+      </column>
+
+      <column id="RequestsPerSecond">
+        <name>RequestsPerSecond</name>
+      </column>
+
+      <column id="TotalErrorCount">
+        <name>TotalErrorCount</name>
+      </column>
+
+      <column id="TotalRequestCount">
+        <name>TotalRequestCount</name>
+      </column>
+
+      <column id ="ResponseCount1xxDelta">
+        <type>function</type>
+        <header>Messages Sent</header>
+        <column-ref>ResponseCount1xx</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Name</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+        </params>
+      </column>
+
+      <column id ="ResponseCount2xxDelta">
+        <type>function</type>
+        <header>Messages Sent</header>
+        <column-ref>ResponseCount2xx</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Name</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+        </params>
+      </column>
+
+      <column id ="ResponseCount3xxDelta">
+        <type>function</type>
+        <header>Messages Sent</header>
+        <column-ref>ResponseCount3xx</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Name</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+        </params>
+      </column>
+
+      <column id ="ResponseCount4xxDelta">
+        <type>function</type>
+        <header>Messages Sent</header>
+        <column-ref>ResponseCount4xx</column-ref>
+        <function-name>delta</function-name>
+          <params>
+            <column-ref>Name</column-ref>
+            <column-ref>NodeId</column-ref>
+            <column-ref>NodeTS</column-ref>
+          </params>
+      </column>
+
+      <column id ="ResponseCount5xxDelta">
+        <type>function</type>
+        <header>Messages Sent</header>
+        <column-ref>ResponseCount5xx</column-ref>
+        <function-name>delta</function-name>
+          <params>
+            <column-ref>Name</column-ref>
+            <column-ref>NodeId</column-ref>
+            <column-ref>NodeTS</column-ref>
+          </params>
+      </column>
+
+      <!-- Raw Data -->
+      <column id ="NodeTS">
+        <name>Timestamp</name>
+        <header>Timestamp</header>
+        <query>
+          <pattern>Coherence:type=Node,nodeId={NodeId}</pattern>
+        </query>
+        <hidden>true</hidden>
+      </column>
+
+      <column id ="ResponseCount1xx">
+        <name>ResponseCount1xx</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id ="ResponseCount2xx">
+        <name>ResponseCount2xx</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id ="ResponseCount3xx">
+        <name>ResponseCount3xx</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id ="ResponseCount4xx">
+        <name>ResponseCount4xx</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id ="ResponseCount5xx">
+        <name>ResponseCount5xx</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="ConstHTTP">
+        <type>constant</type>
+        <name>ConstHTTP</name>
+        <hidden>true</hidden>
+        <data-type>string</data-type>
+        <value>http</value>
+      </column>
+
+      <column id="Protocol">
+        <name>Protocol</name>
+        <hidden>true</hidden>
+        </column>
+    </row>
+  </report>
+</report-config>

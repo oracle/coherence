@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">      
+
+  <caching-scheme-mapping> 
+    <cache-mapping>
+      <cache-name>one</cache-name>
+      <scheme-name>storage-scheme-one</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>two</cache-name>
+      <scheme-name>storage-scheme-two</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>three</cache-name>
+      <scheme-name>storage-scheme-three</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>four</cache-name>
+      <scheme-name>storage-scheme-four</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>five</cache-name>
+      <scheme-name>storage-scheme-five</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>six</cache-name>
+      <scheme-name>storage-scheme-six</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>seven</cache-name>
+      <scheme-name>storage-scheme-seven</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>eight</cache-name>
+      <scheme-name>storage-scheme-eight</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+  
+  <caching-schemes> 
+   <local-scheme>
+     <scheme-name>storage-scheme-one</scheme-name>
+     <service-name>StorageServiceOne</service-name>
+     <cachestore-scheme>
+       <class-scheme>
+         <resource id="test-store"/>
+       </class-scheme>
+     </cachestore-scheme>
+   </local-scheme>
+
+   <local-scheme>
+     <scheme-name>storage-scheme-two</scheme-name>
+     <service-name>StorageServiceTwo</service-name>
+     <cachestore-scheme>
+       <class-scheme>
+         <resource>test-store</resource>
+       </class-scheme>
+     </cachestore-scheme>
+   </local-scheme>
+
+   <local-scheme>
+     <scheme-name>storage-scheme-three</scheme-name>
+     <service-name>StorageServiceThree</service-name>
+     <cachestore-scheme>
+       <class-scheme>
+         <resource system-property="resource-name"/>
+       </class-scheme>
+     </cachestore-scheme>
+   </local-scheme>
+
+   <local-scheme>
+     <scheme-name>storage-scheme-four</scheme-name>
+     <service-name>StorageServiceFour</service-name>
+     <cachestore-scheme>
+       <class-scheme>
+         <resource id="test-store">
+         <init-params>
+           <init-param>
+             <param-name>Param</param-name>
+             <param-value>Four</param-value>
+           </init-param>
+         </init-params>
+         </resource>
+       </class-scheme>
+     </cachestore-scheme>
+   </local-scheme>
+
+    <local-scheme>
+      <scheme-name>storage-scheme-five</scheme-name>
+      <service-name>StorageServiceFive</service-name>
+      <cachestore-scheme>
+        <class-scheme>
+          <resource>test-store-factory</resource>
+        </class-scheme>
+      </cachestore-scheme>
+    </local-scheme>
+
+    <local-scheme>
+      <scheme-name>storage-scheme-six</scheme-name>
+      <service-name>StorageServiceSix</service-name>
+      <cachestore-scheme>
+        <class-scheme>
+          <resource id="test-store-factory">
+          <init-params>
+            <init-param>
+              <param-name>Param</param-name>
+              <param-value>Six</param-value>
+            </init-param>
+          </init-params>
+          </resource>
+        </class-scheme>
+      </cachestore-scheme>
+    </local-scheme>
+
+    <local-scheme>
+      <scheme-name>storage-scheme-seven</scheme-name>
+      <service-name>StorageServiceSeven</service-name>
+      <cachestore-scheme>
+        <class-scheme>
+          <resource id="test-store-param"/>
+        </class-scheme>
+      </cachestore-scheme>
+    </local-scheme>
+
+    <local-scheme>
+      <scheme-name>storage-scheme-eight</scheme-name>
+      <service-name>StorageServiceEight</service-name>
+      <cachestore-scheme>
+        <class-scheme>
+          <resource id="test-store-param">
+          <init-params>
+            <init-param>
+              <param-name>Param</param-name>
+              <param-value>Eight</param-value>
+            </init-param>
+          </init-params>
+          </resource>
+        </class-scheme>
+      </cachestore-scheme>
+    </local-scheme>
+  </caching-schemes>
+</cache-config>

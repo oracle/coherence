@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>local-*</cache-name>
+      <scheme-name>local-default</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-extend-direct*</cache-name>
+      <scheme-name>dist-java</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-*</cache-name>
+      <scheme-name>dist-default</scheme-name>
+      <interceptors>
+          <interceptor>
+              <instance>
+                  <class-name>events.common.MutatingInterceptor</class-name>
+              </instance>
+          </interceptor>
+      </interceptors>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>result</cache-name>
+      <scheme-name>dist-default</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>ExtendClientMemberListenerResultMap</cache-name>
+      <scheme-name>distributed-default</scheme-name>
+      <key-type>com.tangosol.util.UUID</key-type>
+      <value-type>java.util.List</value-type>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <local-scheme>
+      <scheme-name>local-default</scheme-name>
+    </local-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-default</scheme-name>
+      <service-name>DistributedDefaultResults</service-name>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>dist-default</scheme-name>
+      <service-name>PartitionedCache</service-name>
+      <lease-granularity>member</lease-granularity>
+      <member-listener>
+        <class-name>events.ExtendClientMemberEventTests$ClientMemberListener</class-name>
+      </member-listener>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>dist-java</scheme-name>
+      <service-name>DistributedCacheJava</service-name>
+      <member-listener>
+        <class-name>events.ExtendClientMemberEventTests$ExtendClientMemberListener</class-name>
+      </member-listener>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <proxy-scheme>
+      <service-name>ExtendTcpProxyService</service-name>
+      <thread-count-min>5</thread-count-min>
+      <acceptor-config>
+        <tcp-acceptor>
+          <local-address>
+            <address system-property="test.extend.address.local">127.0.0.1</address>
+            <port    system-property="test.extend.port">0</port>
+          </local-address>
+        </tcp-acceptor>
+        <outgoing-message-handler>
+          <heartbeat-interval>5s</heartbeat-interval>
+          <heartbeat-timeout>2s</heartbeat-timeout>
+          <request-timeout>5s</request-timeout>
+        </outgoing-message-handler>
+      </acceptor-config>
+      <proxy-config>
+        <cache-service-proxy>
+          <lock-enabled>true</lock-enabled>
+        </cache-service-proxy>
+      </proxy-config>
+      <autostart system-property="test.proxy.enabled">false</autostart>
+    </proxy-scheme>
+  </caching-schemes>
+</cache-config>

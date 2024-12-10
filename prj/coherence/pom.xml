@@ -1,0 +1,887 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce</groupId>
+    <artifactId>main</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>coherence</artifactId>
+  <name>Coherence</name>
+
+  <dependencies>
+    <!-- shaded dependencies -->
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-discovery</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!--
+      The order of the following two dependencies matters for testing.
+
+      Having the latest, version-specific Java code first ensures it is used
+      instead of legacy, version-agnostic code that's in the main JAR.
+      -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-core-21</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-core</artifactId>
+      <version>${project.version}</version>
+      <classifier>sources</classifier>
+      <!-- A slight hack - test scope so that this dependency does not appear in the flattened pom -->
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-core-components</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>opentracing</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>opentelemetry</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-analysis</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-commons</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-tree</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-util</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.sleepycat</groupId>
+      <artifactId>je</artifactId>
+    </dependency>
+
+    <!-- optional dependencies -->
+
+    <!-- Jakarta Activation API -->
+    <dependency>
+      <groupId>jakarta.activation</groupId>
+      <artifactId>jakarta.activation-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Jakarta Annotation API -->
+    <dependency>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Jakarta Inject API -->
+    <dependency>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JSON-B -->
+    <dependency>
+      <groupId>jakarta.json.bind</groupId>
+      <artifactId>jakarta.json.bind-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JSON-P -->
+    <dependency>
+      <groupId>jakarta.json</groupId>
+      <artifactId>jakarta.json-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JAXB -->
+    <dependency>
+      <groupId>jakarta.xml.bind</groupId>
+      <artifactId>jakarta.xml.bind-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JMS -->
+    <dependency>
+      <groupId>jakarta.jms</groupId>
+      <artifactId>jakarta.jms-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JCA -->
+    <dependency>
+      <groupId>jakarta.resource</groupId>
+      <artifactId>jakarta.resource-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JAX-RS -->
+    <dependency>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Jersey (optional dependency for http server) -->
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-server</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.inject</groupId>
+      <artifactId>jersey-hk2</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- GraalVM Polyglot support -->
+    <dependency>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>polyglot</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.graalvm.js</groupId>
+      <artifactId>js-language</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Log4J 2 -->
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- SLF4J -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- OpenTracing -->
+    <dependency>
+      <groupId>io.opentracing</groupId>
+      <artifactId>opentracing-util</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.opentracing.contrib</groupId>
+      <artifactId>opentracing-tracerresolver</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- OpenTelemetry -->
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-context</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Caffeine -->
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!--
+    Bedrock is temporarily here to force a download of snapshot dependencies,
+    which the two-step Coherence CI builds will not do.
+    Once Bedrock 6.0.0 is release, this can be removed.
+    -->
+    <dependency>
+      <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-runtime</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-testing-support</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-runtime-windows</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <properties>
+    <module.name>com.oracle.coherence</module.name>
+
+    <!--  this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
+
+    <!-- the path containing artifact classes and resources (to be packaged into the coherence.jar artifact) -->
+    <artifact.classes.path>${project.build.directory}/artifact-classes</artifact.classes.path>
+
+    <!-- the main class that will be set both within manifest and as module main class -->
+    <main.class>com.tangosol.net.Coherence</main.class>
+  </properties>
+
+  <build>
+    <resources>
+      <!-- include the coherence-core-21 build output in MR JAR format -->
+      <resource>
+        <directory>../coherence-core-21/target/classes</directory>
+        <targetPath>META-INF/versions/21</targetPath>
+      </resource>
+    </resources>
+
+    <plugins>
+      <!-- create the shaded JAR by combining existing dependencies and relocating some -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>shade</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <shadedArtifactAttached>false</shadedArtifactAttached>
+              <createDependencyReducedPom>true</createDependencyReducedPom>
+              <useDependencyReducedPomInJar>true</useDependencyReducedPomInJar>
+              <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
+              <artifactSet>
+                <includes>
+                  <include>org.ow2.asm:asm</include>
+                  <include>org.ow2.asm:asm-analysis</include>
+                  <include>org.ow2.asm:asm-commons</include>
+                  <include>org.ow2.asm:asm-tree</include>
+                  <include>org.ow2.asm:asm-util</include>
+                  <include>io.github.classgraph:classgraph</include>
+                  <include>com.sleepycat:je</include>
+                  <include>${coherence.group.id}:coherence-discovery</include>
+                  <include>${coherence.group.id}:coherence-core</include>
+                  <include>${coherence.group.id}:coherence-core-21</include>
+                  <include>${coherence.group.id}:coherence-core-components</include>
+                  <include>${coherence.group.id}:opentracing</include>
+                  <include>${coherence.group.id}:opentelemetry</include>
+                </includes>
+                <excludes>
+                  <exclude>${coherence.group.id}:coherence-core:*:sources</exclude>
+                </excludes>
+              </artifactSet>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>module-info*</exclude>
+                    <exclude>META-INF/versions/9/module-info.class</exclude>
+                    <exclude>META-INF/MANIFEST.MF</exclude>
+                    <exclude>META-INF/maven/**/*</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>${coherence.group.id}:coherence-core-21</artifact>
+                  <excludes>
+                    <exclude>**/*</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>com.sleepycat:je</artifact>
+                  <excludes>
+                    <exclude>com/sleepycat/persist/model/ClassEnhancerTask*</exclude>
+                    <!-- see COH-28458 -->
+                    <exclude>com/sleepycat/je/utilint/JVMSystemUtils*</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <relocations>
+                <relocation>
+                  <pattern>org.objectweb.asm</pattern>
+                  <shadedPattern>com.tangosol.internal.asm</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.objectweb.asm.commons</pattern>
+                  <shadedPattern>com.tangosol.internal.asm.commons</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.objectweb.asm.tree</pattern>
+                  <shadedPattern>com.tangosol.internal.asm.tree</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.objectweb.asm.util</pattern>
+                  <shadedPattern>com.tangosol.internal.asm.util</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>io.github.classgraph</pattern>
+                  <shadedPattern>com.tangosol.internal.classgraph</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>nonapi.io.github.classgraph</pattern>
+                  <shadedPattern>com.tangosol.internal.classgraph.nonapi</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.sleepycat</pattern>
+                  <shadedPattern>com.tangosol.internal.sleepycat</shadedPattern>
+                  <excludes>
+                    <exclude>com/tangosol/io/bdb/**/*</exclude>
+                  </excludes>
+                </relocation>
+              </relocations>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- flatten plugin MUST come after the shade plugin -->
+      <!-- flatten POM to remove build-specific content -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <executions>
+            <execution>
+                <id>flatten</id>
+                <phase>package</phase>
+                <goals>
+                    <goal>flatten</goal>
+                </goals>
+            </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.oracle.coherence.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-module-info</id>
+            <phase>package</phase>
+            <goals>
+              <goal>add-module-info</goal>
+            </goals>
+            <configuration>
+              <module>
+                <mainClass>${main.class}</mainClass>
+                <moduleInfo>
+                  <name>${module.name}</name>
+                  <open>true</open>
+                  <exports>
+                    !*.internal;
+                    !com.oracle.coherence.common.internal*;
+                    !com.tangosol.coherence.transaction.internal*;
+                    !com.tangosol.internal.*;
+                    !com.tangosol.coherence.component*;
+                    !com.tangosol.coherence;
+                    *;
+                  </exports>
+                  <addServiceUses>true</addServiceUses>
+                </moduleInfo>
+              </module>
+              <exclusions>
+                <exclusion>
+                  <groupId>${coherence.group.id}</groupId>
+                  <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>com.sleepycat</groupId>
+                  <artifactId>je</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.github.classgraph</groupId>
+                  <artifactId>classgraph</artifactId>
+                </exclusion>
+                <!-- can't exclude ASM, because it's required by org.graalvm.js -->
+              </exclusions>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+
+        <!-- our custom ant tasks need the dependencies on the class path -->
+        <dependencies>
+          <dependency>
+            <groupId>${coherence.group.id}</groupId>
+            <artifactId>coherence-core</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+              <exclusion>
+                <groupId>com.sleepycat</groupId>
+                <artifactId>je</artifactId>
+              </exclusion>
+            </exclusions>
+          </dependency>
+          <dependency>
+            <groupId>${coherence.group.id}</groupId>
+            <artifactId>coherence-core-components</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+              <exclusion>
+                <groupId>com.sleepycat</groupId>
+                <artifactId>je</artifactId>
+              </exclusion>
+            </exclusions>
+          </dependency>
+        </dependencies>
+
+        <executions>
+          <!-- prepare the artifact classes folder by cleaning it out -->
+          <!-- (this ensures all shaded packages and classes will be up-to-date) -->
+          <execution>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <delete failonerror="false" includeemptydirs="true">
+                  <fileset dir="${artifact.classes.path}"/>
+                  <fileset file="${project.build.directory}/${project.build.finalName}.jar"/>
+                </delete>
+
+                <mkdir dir="${artifact.classes.path}"/>
+              </target>
+            </configuration>
+          </execution>
+
+          <!-- unpack ${coherence.sans.manifest.jar} so we can prepare the osgi manifest -->
+          <!-- (preparing the osgi manifest requires unpacked classes) -->
+          <execution>
+            <id>unpack-coherence</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <unzip src="${project.build.directory}/${project.build.finalName}.jar"
+                       dest="${artifact.classes.path}"
+                       overwrite="true"/>
+              </target>
+            </configuration>
+          </execution>
+
+          <!-- Update Registry.java with MBeans documentation -->
+          <execution>
+            <id>javadoc-mbeans</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <skip>${skip.docs}</skip>
+              <target>
+                <!-- enable writing to the Registry.java source as we're going to change it -->
+                <chmod
+                    file="${project.build.directory}/sources/com/tangosol/net/management/Registry.java"
+                    perm="700"/>
+
+                <!-- introduce the custom mbeandoc and other ant tasks -->
+                <taskdef resource="ant-tangosol.properties">
+                  <classpath>
+                    <pathelement
+                        location="${tools.path}/ant-tangosol/lib/ant-tangosol.jar"/>
+                  </classpath>
+                </taskdef>
+
+                <mbeandoc
+                    file="${project.build.directory}/sources/com/tangosol/net/management/Registry.java"
+                    mbeans="ClusterMBean,ClusterNodeMBean,PointToPointMBean,ServiceMBean,CacheMBean,StorageManagerMBean,ConnectionMBean,ConnectionManagerMBean,ManagementMBean"
+                    token="@MBEAN_JAVADOC@"/>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Unpack coherence-core source JAR to ${project.build.directory}/sources in order to properly
+           create javadocs -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>${maven.dependency.plugin.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>${coherence.group.id}</groupId>
+            <artifactId>coherence-core</artifactId>
+            <version>${project.version}</version>
+            <classifier>sources</classifier>
+            <exclusions>
+              <exclusion>
+                <groupId>com.sleepycat</groupId>
+                <artifactId>je</artifactId>
+              </exclusion>
+            </exclusions>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>src-dependencies</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeGroupIds>com.oracle.coherence.ce</includeGroupIds>
+              <includeArtifactIds>coherence-core</includeArtifactIds>
+              <includeClassifiers>sources</includeClassifiers>
+              <includeScope>test</includeScope>
+              <failOnMissingClassifierArtifact>false</failOnMissingClassifierArtifact>
+              <outputDirectory>${project.build.directory}/sources</outputDirectory>
+              <includes>**/*.java</includes>
+              <overWriteReleases>true</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
+              <silent>false</silent>
+              <skip>${skip.sources}</skip>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- generate osgi manifest based on the existing classes -->
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>manifest</id>
+            <phase>package</phase>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+            <configuration>
+              <manifestLocation>${artifact.classes.path}/META-INF</manifestLocation>
+              <outputDirectory>${artifact.classes.path}</outputDirectory>
+              <instructions>
+                <Multi-Release>true</Multi-Release>
+                <Main-Class>${main.class}</Main-Class>
+                <Build-Timestamp>${project.timestamp}</Build-Timestamp>
+                <Bundle-SymbolicName>${coherence.group.id}.${project.artifactId}</Bundle-SymbolicName>
+                <Implementation-GroupId>${coherence.group.id}</Implementation-GroupId>
+                <Coherence-Version-Prefix>${project.version.prefix}</Coherence-Version-Prefix>
+                <Export-Package>
+                  !*.internal.*,com.oracle.coherence.common.*,com.oracle.common.*,com.tangosol.application.*,com.tangosol.coherence.config.*,com.tangosol.coherence.transaction.*,com.tangosol.config.*,com.tangosol.net.*,com.tangosol.io.*,com.tangosol.persistence.*,com.tangosol.util.*,com.tangosol.run.xml.*,com.tangosol.run.component.*
+                </Export-Package>
+                <Private-Package>
+                  com.tangosol.coherence.*,com.tangosol.dev.*,com.tangosol.injection.*,com.tangosol.internal.*,com.tangosol.java.*,com.tangosol.license.*,com.tangosol.run.*,*.internal.*,reports
+                </Private-Package>
+                <Import-Package>
+                  com.oracle.exalogic.ExaManager;resolution:=optional,com.oracle.common.net.infinibus.DirectNetworkBufferManager;resolution:=optional,com.oracle.net.Sdp;resolution:=optional,*;resolution:=optional
+                </Import-Package>
+              </instructions>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- create the final artifact by injecting the generated manifest.
+      We cannot use the maven jar plugin here because it has already been run and will fail if run twice.
+      -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>update-manifest</id>
+            <phase>package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${jar.executable}</executable>
+              <commandlineArgs>uMf ${project.build.directory}/${project.build.finalName}.jar -C ${artifact.classes.path} META-INF/MANIFEST.MF</commandlineArgs>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- this artifact is installable -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-install</id>
+            <phase>install</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>javadoc</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>javadoc</goal>
+            </goals>
+            <configuration>
+              <sourcepath>${project.build.directory}/sources</sourcepath>
+
+              <!-- the top-level javadoc will be used to replace others later -->
+              <outputDirectory>${project.build.directory}/apidocs</outputDirectory>
+              <reportOutputDirectory>${project.build.directory}/apidocs</reportOutputDirectory>
+
+              <detectOfflineLinks>false</detectOfflineLinks>
+
+              <skip>${skip.docs}</skip>
+
+              <additionalDependencies>
+                <additionalDependency>
+                  <groupId>org.graalvm.js</groupId>
+                  <artifactId>js-language</artifactId>
+                  <version>${graalvm.version}</version>
+                </additionalDependency>
+                <additionalDependency>
+                  <groupId>org.graalvm.polyglot</groupId>
+                  <artifactId>polyglot</artifactId>
+                  <version>${graalvm.version}</version>
+                </additionalDependency>
+                <additionalDependency>
+                  <groupId>jakarta.enterprise</groupId>
+                  <artifactId>jakarta.enterprise.cdi-api</artifactId>
+                  <version>${jakarta.enterprise.cdi.version}</version>
+                </additionalDependency>
+                <additionalDependency>
+                  <groupId>jakarta.inject</groupId>
+                  <artifactId>jakarta.inject-api</artifactId>
+                  <version>${jakarta.inject.version}</version>
+                </additionalDependency>
+                <additionalDependency>
+                  <groupId>jakarta.json.bind</groupId>
+                  <artifactId>jakarta.json.bind-api</artifactId>
+                  <version>${jakarta.json.bind.version}</version>
+                </additionalDependency>
+                <additionalDependency>
+                  <groupId>jakarta.json</groupId>
+                  <artifactId>jakarta.json-api</artifactId>
+                  <version>${jakarta.json.version}</version>
+                </additionalDependency>
+                <additionalDependency>
+                  <groupId>jakarta.ws.rs</groupId>
+                  <artifactId>jakarta.ws.rs-api</artifactId>
+                  <version>2.1.6</version>
+                </additionalDependency>
+                <additionalDependency>
+                  <groupId>org.glassfish.jersey.core</groupId>
+                  <artifactId>jersey-server</artifactId>
+                  <version>${jersey.version}</version>
+                </additionalDependency>
+                <additionalDependency>
+                  <groupId>org.glassfish.jersey.inject</groupId>
+                  <artifactId>jersey-hk2</artifactId>
+                  <version>${jersey.version}</version>
+                </additionalDependency>
+                <additionalDependency>
+                  <groupId>com.oracle.coherence.ce</groupId>
+                  <artifactId>coherence-core</artifactId>
+                  <version>${project.version}</version>
+                </additionalDependency>
+              </additionalDependencies>
+
+              <!-- changes here should be duplicated in coherence-javadoc/pom.xml -->
+              <sourceFileIncludes>
+                <include>com/oracle/coherence/common/base/*.java</include>
+
+                <include>com/tangosol/application/*.java</include>
+
+                <include>com/tangosol/coherence/config/*.java</include>
+                <include>com/tangosol/coherence/config/builder/*.java</include>
+                <include>com/tangosol/coherence/config/builder/storemanager/*.java</include>
+                <include>com/tangosol/coherence/config/scheme/*.java</include>
+                <include>com/tangosol/coherence/config/unit/*.java</include>
+                <include>com/tangosol/coherence/config/xml/*.java</include>
+                <include>com/tangosol/coherence/config/xml/preprocessor/*.java</include>
+                <include>com/tangosol/coherence/config/xml/processor/*.java</include>
+
+                <include>com/tangosol/coherence/dslquery/*.java</include>
+                <include>com/tangosol/coherence/dslquery/function/*.java</include>
+                <include>com/tangosol/coherence/dslquery/internal/*.java</include>
+                <include>com/tangosol/coherence/dslquery/operator/*.java</include>
+                <include>com/tangosol/coherence/dslquery/queryplus/*.java</include>
+                <include>com/tangosol/coherence/dslquery/statement/*.java</include>
+                <include>com/tangosol/coherence/dslquery/statement/persistence/*.java</include>
+                <include>com/tangosol/coherence/dslquery/token/*.java</include>
+                <include>com/tangosol/coherence/dslquery/token/persistence/*.java</include>
+
+                <include>com/tangosol/coherence/dsltools/*.java</include>
+                <include>com/tangosol/coherence/dsltools/base/*.java</include>
+                <include>com/tangosol/coherence/dsltools/precedence/*.java</include>
+                <include>com/tangosol/coherence/dsltools/termlanguage/*.java</include>
+                <include>com/tangosol/coherence/dsltools/termtrees/*.java</include>
+
+                <include>com/tangosol/config/*.java</include>
+                <include>com/tangosol/config/annotation/*.java</include>
+                <include>com/tangosol/config/expression*.java</include>
+                <include>com/tangosol/config/xml/*.java</include>
+
+                <include>com/tangosol/io/*.java</include>
+                <include>com/tangosol/io/bdb/*.java</include>
+                <include>com/tangosol/io/nio/*.java</include>
+                <include>com/tangosol/io/pof/*.java</include>
+                <include>com/tangosol/io/pof/annotation/*.java</include>
+                <include>com/tangosol/io/pof/reflect/*.java</include>
+
+                <include>com/tangosol/net/*.java</include>
+
+                <include>com/tangosol/net/cache/*.java</include>
+
+                <include>com/tangosol/net/events/*.java</include>
+                <include>com/tangosol/net/events/annotation/*.java</include>
+                <include>com/tangosol/net/events/application/*.java</include>
+                <include>com/tangosol/net/events/partition/*.java</include>
+                <include>com/tangosol/net/events/partition/cache/*.java</include>
+
+                <include>com/tangosol/net/management/*.java</include>
+                <include>com/tangosol/net/management/annotation/*.java</include>
+                <include>com/tangosol/net/partition/*.java</include>
+                <include>com/tangosol/net/proxy/*.java</include>
+                <include>com/tangosol/net/security/*.java</include>
+                <include>com/tangosol/net/topic/*.java</include>
+
+                <include>com/tangosol/persistence/*.java</include>
+
+                <include>com/tangosol/run/jca/*.java</include>
+
+                <include>com/tangosol/run/xml/*.java</include>
+
+                <include>com/tangosol/security/*.java</include>
+
+                <include>com/tangosol/util/*.java</include>
+                <include>com/tangosol/util/aggregator/*.java</include>
+                <include>com/tangosol/util/comparator/*.java</include>
+                <include>com/tangosol/util/expression/*.java</include>
+                <include>com/tangosol/util/extractor/*.java</include>
+                <include>com/tangosol/util/fsm/*.java</include>
+                <include>com/tangosol/util/filter/*.java</include>
+                <include>com/tangosol/util/function/*.java</include>
+                <include>com/tangosol/util/processor/*.java</include>
+                <include>com/tangosol/util/stream/*.java</include>
+                <include>com/tangosol/util/transformer/*.java</include>
+              </sourceFileIncludes>
+
+              <sourceFileExcludes>
+                <exclude>com/tangosol/net/DatagramTest.java</exclude>
+                <exclude>com/tangosol/net/MulticastTest.java</exclude>
+
+                <exclude>com/tangosol/net/events/application/EventDispatcher.java</exclude>
+
+                <exclude>com/tangosol/run/xml/Key.java</exclude>
+                <exclude>com/tangosol/run/xml/PackageResources.java</exclude>
+                <exclude>com/tangosol/run/xml/XmlScript.java</exclude>
+                <exclude>com/tangosol/run/xml/XmlToken.java</exclude>
+                <exclude>com/tangosol/run/xml/XmlTokenizer.java</exclude>
+
+                <exclude>com/tangosol/util/CheckedWrapperException.java</exclude>
+                <exclude>com/tangosol/util/CommandLine.java</exclude>
+                <exclude>com/tangosol/util/ErrorList.java</exclude>
+                <exclude>com/tangosol/util/ExternalizableLite.java</exclude>
+                <exclude>com/tangosol/util/IllegalStringException.java</exclude>
+                <exclude>com/tangosol/util/Resources.java</exclude>
+                <exclude>com/tangosol/util/SimpleResources.java</exclude>
+                <exclude>com/tangosol/util/StringMap.java</exclude>
+              </sourceFileExcludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>${maven.assembly.plugin.version}</version>
+
+        <executions>
+          <!-- creates the sources.jar artifact -->
+          <execution>
+            <id>create-sources-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <classifier>sources</classifier>
+              <descriptors>
+                <descriptor>src/assembly/sources.xml</descriptor>
+              </descriptors>
+              <attach>true</attach>
+              <skipAssembly>${skip.sources}</skipAssembly>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

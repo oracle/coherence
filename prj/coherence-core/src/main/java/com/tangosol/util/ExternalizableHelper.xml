@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<config>
+  <!-- if deploying Coherence in CLASSPATH and deploying application
+       classes within a hot-redeployable archive (e.g. ".ear"), set this to
+       true -->
+  <!-- *** WARNING *** all cluster nodes must use the same setting -->
+  <force-classloader-resolving>false</force-classloader-resolving>
+
+  <!-- to enable the XmlBean optimization, set this to true -->
+  <enable-xmlbean-class-cache>false</enable-xmlbean-class-cache>
+
+  <!-- ObjectStreamFactory  -->
+  <!-- *** WARNING *** this can significantly slow down standard serialization -->
+  <object-stream-factory>
+    <class-name system-property="coherence.io.streamfactory"></class-name>
+  </object-stream-factory>
+
+  <!-- the following section configures the XmlBean optimization -->
+  <xmlbean-class-cache-config>
+      <!-- if deploying Coherence in CLASSPATH and deploying application
+           classes within a hot-redeployable archive (e.g. ".ear"), set this
+           to true -->
+      <classloader-aware>false</classloader-aware>
+
+      <!-- if you are providing a custom XmlBean Class cache, the name
+           of the class that implements the XmlBeanClassCache interface
+           is specified here -->
+      <!-- *** WARNING *** all cluster nodes must use the same setting -->
+      <cache-class></cache-class>
+
+      <!-- list your XmlBean classes here; the following are examples
+           that you must replace with your own class names -->
+      <!-- *** WARNING *** all cluster nodes must use the same list -->
+      <xmlbean-list>
+          <xmlbean-class>com.tangosol.tests.xml.Address</xmlbean-class>
+          <xmlbean-class>com.tangosol.tests.xml.Contact</xmlbean-class>
+      </xmlbean-list>
+  </xmlbean-class-cache-config>
+
+  <!-- specifies the size limit of byte array buffers that could be used
+       for serialization; this threshold setting is intended to prevent an
+       OOME during serialization of large objects; 0 indicates no limit -->
+  <serialization-maxbuffer system-property="coherence.io.maxbuffer">0k</serialization-maxbuffer>
+
+  <!-- configures the default Serializer provided by the ExternalizableHelper
+       ensureSerializer() method to optionally use the POF format; the
+       default (false) configures a SimpleSerializer, which uses the format
+       provided by the ExternalizableHelper readObject() and writeObject()
+       methods -->
+  <!-- *** WARNING *** all cluster nodes must use the same setting -->
+  <enable-pof-serialization system-property="coherence.pof.enabled">false</enable-pof-serialization>
+
+  <!-- configure lambdas serialization mode to either "dynamic" or "static".
+       Default value is not specified since it is calculated based on
+       the value of coherence mode: "static" for production mode and
+       "dynamic" for eval/dev mode -->
+  <lambdas-serialization system-property="coherence.lambdas"></lambdas-serialization>
+</config>

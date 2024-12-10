@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<!--
+Note: This XML document is an example Coherence POF Configuration deployment
+descriptor that should be customized, replaced or extended for your
+particular application requirements.
+
+For detailed information on each of the elements that can be used in this
+descriptor please see the Coherence POF Configuration document type
+descriptor: pof-config.xsd.
+-->
+<pof-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">
+    <user-type-list>
+        <include>coherence-pof-config.xml</include>
+        <include>coherence-jcache-pof-config.xml</include>
+        <user-type>
+            <type-id>3014</type-id>
+            <class-name>domain.Identifier</class-name>
+            <serializer>
+                <class-name>com.tangosol.coherence.jcache.serialization.JcacheTCKSerializers$IdentifierSerializer</class-name>
+            </serializer>
+        </user-type>
+        <user-type>
+            <type-id>3015</type-id>
+            <class-name>domain.Identifier2</class-name>
+            <serializer>
+                <class-name>com.tangosol.coherence.jcache.serialization.JcacheTCKSerializers$Identifier2Serializer</class-name>
+            </serializer>
+        </user-type>
+        <user-type>
+            <type-id>3016</type-id>
+            <class-name>domain.Blog</class-name>
+            <serializer>
+                <class-name>com.tangosol.coherence.jcache.serialization.JcacheTCKSerializers$BlogSerializer</class-name>
+            </serializer>
+        </user-type>
+        <user-type>
+            <type-id>3020</type-id>
+            <class-name>domain.Sex</class-name>
+            <serializer>
+                <class-name>com.tangosol.io.pof.EnumPofSerializer</class-name>
+            </serializer>
+        </user-type>
+    </user-type-list>
+</pof-config>
+

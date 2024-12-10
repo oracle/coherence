@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+  <report>
+    <file-name>{date}-persistence-detail.txt</file-name>
+    <delim>{tab}</delim>
+
+    <!-- Only include services where PersistenceMode != 'n/a' -->
+    <filters>
+      <filter id="equals">
+        <type>equals</type>
+        <params>
+          <column-ref>PersistenceMode</column-ref>
+          <column-ref>NotApplicable</column-ref>
+        </params>
+      </filter>
+      <filter id="not">
+        <type>not</type>
+        <params>
+          <filter-ref>equals</filter-ref>
+        </params>
+      </filter>
+    </filters>
+
+    <query>
+      <pattern>Coherence:type=Service,*</pattern>
+      <filter-ref>not</filter-ref>
+    </query>
+
+    <row>
+      <column id="BatchCounter">
+        <type>global</type>
+        <name>{batch-counter}</name>
+        <header>Batch Counter</header>
+      </column>
+
+      <column id="ReportTime">
+        <type>global</type>
+        <name>{report-time}</name>
+        <header>ReportTime</header>
+      </column>
+
+      <column id="Service">
+        <type>key</type>
+        <name>name</name>
+        <header>Service</header>
+      </column>
+
+      <column id="DomainPartition">
+        <type>key</type>
+        <name>domainPartition</name>
+        <header>Domain Partition</header>
+        <hidden>{non-MT}</hidden>
+        <group-by>true</group-by>
+      </column>
+
+      <column id="PersistenceMode">
+        <name>PersistenceMode</name>
+      </column>
+
+      <column id="NodeId">
+        <type>key</type>
+        <name>nodeId</name>
+        <header>NodeId</header>
+      </column>
+
+      <column id="PersistenceLatencyAverage">
+        <name>PersistenceLatencyAverage</name>
+      </column>
+
+      <column id="PersistenceLatencyMax">
+        <name>PersistenceLatencyMax</name>
+      </column>
+
+      <column id="PersistenceActiveSpaceUsed">
+        <name>PersistenceActiveSpaceUsed</name>
+      </column>
+
+      <column id="PersistenceActiveSpaceTotal">
+        <name>PersistenceActiveSpaceTotal</name>
+      </column>
+
+      <column id="PersistenceActiveSpaceAvailable">
+        <name>PersistenceActiveSpaceAvailable</name>
+      </column>
+
+      <column id="PersistenceBackupSpaceUsed">
+        <name>PersistenceBackupSpaceUsed</name>
+      </column>
+
+      <column id="PersistenceBackupSpaceTotal">
+        <name>PersistenceBackupSpaceTotal</name>
+      </column>
+
+      <column id="PersistenceBackupSpaceAvailable">
+        <name>PersistenceBackupSpaceAvailable</name>
+      </column>
+
+      <column id="PersistenceSnapshotSpaceTotal">
+        <name>PersistenceSnapshotSpaceTotal</name>
+      </column>
+
+      <column id="PersistenceSnapshotSpaceAvailable">
+        <name>PersistenceSnapshotSpaceAvailable</name>
+      </column>
+
+      <column id="NotApplicable">
+        <type>constant</type>
+        <name>NotApplicable</name>
+        <hidden>true</hidden>
+        <data-type>string</data-type>
+        <value>n/a</value>
+      </column>
+
+    </row>
+  </report>
+</report-config>

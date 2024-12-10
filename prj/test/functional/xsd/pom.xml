@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce.tests</groupId>
+    <artifactId>coherence-functional-tests</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>xsd</artifactId>
+  <name>Coherence XSD Tests</name>
+
+  <profiles>
+    <profile>
+      <id>stage12</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+
+    <!-- XSD tests are not run with modules enabled -->
+    <profile>
+      <id>modular-tests</id>
+      <activation>
+        <file><exists>.</exists></file>
+      </activation>
+      <properties>
+        <useModulePath>false</useModulePath>
+        <bedrockUseModules>false</bedrockUseModules>
+      </properties>
+    </profile>
+  </profiles>
+
+  <properties>
+    <!-- the dependency on xerces causes all sorts of split packages -->
+    <moditect.skip>true</moditect.skip>
+    <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-support</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-concurrent</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/xerces/xercesImpl -->
+    <dependency>
+      <groupId>xerces</groupId>
+      <artifactId>xercesImpl</artifactId>
+      <version>2.12.2</version>
+    </dependency>
+
+    <!--dependency>
+      <groupId>org.apache.xerces</groupId>
+      <artifactId>com.springsource.org.apache.xerces</artifactId>
+      <version>2.9.1</version>
+    </dependency-->
+  </dependencies>
+
+</project>

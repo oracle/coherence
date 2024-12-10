@@ -1,0 +1,177 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Durable Events
+:description: Coherence Guides Durable Events
+:keywords: coherence, java, documentation, durable events
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Durable Events
+
+Coherence provides the `MapListener` interface as described in <<examples/guides/140-client-events/README.adoc, Client Events>>,
+where clients can sign up for events from any Coherence `NamedMap`.  With traditional client events, if a client disconnects for
+any reason and then reconnects and automatically re-registers a `MapListener`, it will miss any events that were sent during that disconnected time.
+
+Durable Events is a new (experimental) feature that allows clients to create a versioned listener which will allow
+a client, if disconnected, to receive events missed while they were in a disconnected state. As for standard `MapListener`s
+you are able to register for all events, events based upon a filter or events for a specific key.
+
+More advanced use cases for Durable Events include the ability to replay all events for a `NamedMap`.
+
+Please see {commercial-docs-base-url}/develop-applications/using-map-events.html#GUID-35236F52-2815-494F-9231-1363B8206AE4[Durable Events Documentation] for more information on Durable Events.
+
+NOTE: Durable events are an experimental feature only and should not be used in production environments.
+
+NOTE: Durable Events are not yet supported for Coherence*Extend clients.
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-will-need,What You Need>>
+* <<building, Building the Example Code>>
+* <<example-classes-1, Review the Classes>>
+* <<run-example-1, Run the Examples>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+In this example you will run a test that will demonstrate using Durable Events. The test does the following:
+
+* Starts 2 Cache Servers using https://github.com/coherence-community/oracle-bedrock[Oracle Bedrock]
+* Creates and registers a version aware `MapListener`
+* Inserts, updates and deletes cache entries
+* Simulates the client being disconnected
+* Issues cache mutations remotely while the client is disconnected
+* Reconnects the client and validate that events generated while the client was disconnected are received
+
+To enable Durable Events you must have the following system properties set for cache servers:
+
+* Enable active persistence by using `-Dcoherence.distributed.persistence.mode=active`
+* Set the directory to store Durable Events using `-Dcoherence.distributed.persistence.events.dir=/my/events/dir`
+* Optionally set the directory to store active persistence using `-Dcoherence.distributed.persistence.base.dir=/my/persistence/dir`
+* Register a versioned `MapListener` on a `NamedMap`
+
+NOTE: If you do not set the directory to store active persistence the default directory `coherence` off the users home directory will be chosen.
+
+
+[#what-you-will-need]
+==== What You Need
+:java_version: 11
+:duration: 15
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+[#building]
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+NOTE: You can include the `-DskipTests` for Maven or `-x test` for Gradle, to skip the tests for now.
+
+[#example-classes-1]
+=== Review the Classes
+
+1. Review the `Customer` class
++
+This example uses the `Customer` class which has the following fields:
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/durableevents/Customer.java[tag=vars]
+----
+
+2. Review how the 2 cache servers are started by Oracle Bedrock
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/durableevents/DurableEventsTest.java[tag=startup]
+----
+<1> Set the partition count to 23 to reduce the startup time
+<2> Set active persistence mode
+<3> Set the base directory to store persistence files
+<4> Set the base directory to store persistence events
+
+3. Review the `DurableEventsTest` class
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/durableevents/DurableEventsTest.java[tag=testDurableEvents]
+----
+<1> Set system properties for the client
+<2> Create a new `SimpleMapListener`
+<3> Add an event handler to output the events received
+<4> Add an event handler to increment the number of events received
+<5> Indicate that this `MapListener` is versioned
+<6> Add the `MapListener` to the `NamedMap`
+<7> Simulate the client being disconnected by stopping the service for the `NamedMap`
+<8> Generate 3 new events remotely on one of the members
+<9> Issue an operator that will cause the client to restart and re-register the listener
+<10> Assert that we now see the additional 3 events that were generated while the client was disconnected
+
+[#run-example-1]
+=== Run the Examples
+
+You can run the test in one of three ways:
+
+* Using your IDE to run `DurableEventsTest` class
+* Using Maven via `./mvnw clean verify`
+* Using Gradle via `./gradlew test`
+
+After initial cache server startup, you will see output similar to the following:
+
+NOTE: Timestamps have been removed and output has been formatted for easier reading.
+
+[source,bash]
+----
+<Info> (thread=main, member=3): Added Map Listener, generating 3 events <1>
+ConverterCollections$ConverterMapEvent{SafeNamedCache inserted: key=100, <2>
+    value=Customer{id=100, name='Customer 100', address='Address', customerType='GOLD', balance=5000}, partition=20, version=1}
+ConverterCollections$ConverterMapEvent{SafeNamedCache updated: key=100,
+    old value=Customer{id=100, name='Customer 100', address='Address', customerType='GOLD', balance=5000},
+    new value=Customer{id=100, name='Customer 100', address='New Address', customerType='GOLD', balance=5000}, partition=20, version=2}
+ConverterCollections$ConverterMapEvent{SafeNamedCache deleted: key=100,
+    value=Customer{id=100, name='Customer 100', address='New Address', customerType='GOLD', balance=5000}, partition=20, version=3}
+<Info> (thread=main, member=3): Disconnecting client <3>
+<Info> (thread=main, member=3): Remotely insert, update and delete a new customer
+<Info> (thread=DistributedCache:PartitionedCache, member=3): Service PartitionedCache left the cluster <4>
+<Info> (thread=main, member=3): Issuing size to reconnect client
+<Info> (thread=main, member=3): Restarting NamedCache: customers <5>
+<Info> (thread=main, member=3): Restarting Service: PartitionedCache
+<Info> (thread=DistributedCache:PartitionedCache, member=3): Service PartitionedCache joined the cluster with senior service member 1
+ConverterCollections$ConverterMapEvent{SafeNamedCache inserted: key=100, <6>
+    value=Customer{id=100, name='Customer 101', address='Customer address', customerType='SILVER', balance=100}, partition=20, version=4}
+ConverterCollections$ConverterMapEvent{SafeNamedCache updated: key=100,
+    old value=Customer{id=100, name='Customer 101', address='Customer address', customerType='SILVER', balance=100},
+    new value=Customer{id=100, name='Customer 101', address='New Address', customerType='SILVER', balance=100}, partition=20, version=5}
+ConverterCollections$ConverterMapEvent{SafeNamedCache deleted: key=100,
+    value=Customer{id=100, name='Customer 101', address='New Address', customerType='SILVER', balance=100}, partition=20, version=6}
+----
+<1> Adding the versioned `SimpleMapListener`
+<2> Output of three events while the client is connected
+<3> Message indicating we are disconnecting client
+<4> Service for the client leaving as it is disconnected
+<5> Restarting the cache and service due to `size()` request which will also automatically re-register the `MapListener`
+<6> Client now receives the events it missed during disconnect
+
+[#summary]
+=== Summary
+
+In this example you ran a test that demonstrated using Durable Events by:
+
+* Starting 2 Cache Servers using https://github.com/coherence-community/oracle-bedrock[Oracle Bedrock]
+* Creating and registering a version aware `MapListener`
+* Inserting, updating and deleting cache entries
+* Simulating the client being disconnected
+* Issuing cache mutations remotely while the client is disconnected
+* Reconnecting the client and validate that events generated while the client was disconnected are received
+
+[#see-also]
+=== See Also
+
+* {commercial-docs-base-url}/develop-applications/using-map-events.html#GUID-35236F52-2815-494F-9231-1363B8206AE4[Durable Events Documentation]
+* <<examples/guides/140-client-events/README.adoc, Client Events>>
+* {commercial-docs-base-url}/develop-applications/using-map-events.html[Develop Applications using Map Events]

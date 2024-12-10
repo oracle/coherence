@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2021 Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <!-- tag::config[] -->
+  <caching-scheme-mapping>
+    <cache-mapping>  <!--1-->
+      <cache-name>Customer</cache-name>
+      <scheme-name>hsqlb-cache-store</scheme-name>
+    </cache-mapping>
+    <!-- tag::refresh[] -->
+    <cache-mapping> <!--2-->
+      <cache-name>CustomerExpiring</cache-name>
+      <scheme-name>hsqlb-cache-store</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>back-expiry</param-name>   <!--3-->
+          <param-value>20s</param-value>
+        </init-param>
+        <init-param>
+          <param-name>refresh-ahead-factor</param-name>  <!--4-->
+          <param-value>0.5</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+    <!-- end::refresh[] -->
+    <!-- tag::writeBehind[] -->
+    <cache-mapping> <!--2-->
+      <cache-name>CustomerWriteBehind</cache-name>
+      <scheme-name>hsqlb-cache-store</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>write-delay</param-name>
+          <param-value>10s</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+    <!-- end::writeBehind[] -->
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>hsqlb-cache-store</scheme-name>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <!-- tag::local[] -->
+            <local-scheme>
+              <unit-calculator>BINARY</unit-calculator>
+              <expiry-delay>{back-expiry 0}</expiry-delay>
+            </local-scheme>
+            <!-- end::local[] -->
+          </internal-cache-scheme>
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>    <!--5-->
+                com.oracle.coherence.guides.cachestores.HSQLDbCacheStore
+              </class-name>
+              <init-params>
+                <init-param>
+                  <!-- Normally the assumption is the cache name will be the same as the table name
+                       but in this example we are hard coding the table name -->
+                  <param-type>java.lang.String</param-type> <!--6-->
+                  <param-value>Customer</param-value>
+                </init-param>
+              </init-params>
+            </class-scheme>
+          </cachestore-scheme>
+          <!-- tag::write-delay[] -->
+          <write-delay>{write-delay 0s}</write-delay>
+          <!-- end::write-delay[] -->
+          <write-batch-factor>0</write-batch-factor>
+          <write-requeue-threshold>0</write-requeue-threshold>
+          <!-- tag::refresh2[] -->
+          <refresh-ahead-factor>{refresh-ahead-factor 0.0}</refresh-ahead-factor>
+          <!-- end::refresh2[] -->
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+  </caching-schemes>
+  <!-- end::config[] -->
+</cache-config>

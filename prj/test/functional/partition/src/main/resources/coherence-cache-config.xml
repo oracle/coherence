@@ -1,0 +1,380 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<!-- Note: This XML document is an example Coherence Cache Configuration
+    deployment descriptor that should be customized (or replaced) for your particular
+    caching requirements. The cache mappings and schemes declared in this descriptor
+    are strictly for demonstration purposes and are not required. For detailed
+    information on each of the elements that can be used in this descriptor please
+    see the Coherence Cache Configuration deployment descriptor guide included
+    in the Coherence distribution or the "Cache Configuration Elements" page
+    on the Coherence Wiki (http://wiki.tangosol.com). -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+
+    <cache-mapping>
+      <cache-name>compressor-custom</cache-name>
+      <scheme-name>compressor-custom</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>compressor-standard</cache-name>
+      <scheme-name>compressor-standard</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>compressor-default</cache-name>
+      <scheme-name>compressor-default</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>compressor-standard-pof</cache-name>
+      <scheme-name>compressor-standard-pof</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>Coh3974</cache-name>
+      <scheme-name>Coh3974-distributed</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>back-size-limit</param-name>
+          <param-value>8MB</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-*</cache-name>
+      <scheme-name>example-distributed</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>back-size-limit</param-name>
+          <param-value>8MB</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>sched-*</cache-name>
+      <scheme-name>example-distributed</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>back-size-limit</param-name>
+          <param-value>8MB</param-value>
+        </init-param>
+        <init-param>
+          <param-name>async-backup</param-name>
+          <param-value>10s</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>single-listener</cache-name>
+      <scheme-name>single-listener-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>single-init-params-listener</cache-name>
+      <scheme-name>listener-instance-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>COH10397</cache-name>
+      <scheme-name>COH10397scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>program-listener</cache-name>
+      <scheme-name>program-listener-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>custom-backing-map</cache-name>
+      <scheme-name>custom-backing-map-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>simple-assignment</cache-name>
+      <scheme-name>sas-distributed</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>expiry-delay</cache-name>
+      <scheme-name>example-distributed</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>back-expiry</param-name>
+          <param-value>15m</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>no-expiry-delay</cache-name>
+      <scheme-name>example-distributed</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>back-expiry</param-name>
+          <param-value>0m</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>incoherent-reads</cache-name>
+      <scheme-name>distributed-tracking-backupmap</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>read-from-closest</param-name>
+          <param-value>closest</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>coherent-reads</cache-name>
+      <scheme-name>distributed-tracking-backupmap</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>COH10328*</cache-name>
+      <scheme-name>COH10328scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>coh7495*</cache-name>
+      <scheme-name>COH7495</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <local-scheme>
+      <scheme-name>example-binary-backing-map</scheme-name>
+
+      <eviction-policy>HYBRID</eviction-policy>
+      <high-units>{back-size-limit 0}</high-units>
+      <unit-calculator>BINARY</unit-calculator>
+      <expiry-delay>{back-expiry 1h}</expiry-delay>
+
+      <cachestore-scheme></cachestore-scheme>
+    </local-scheme>
+
+    <distributed-scheme>
+      <scheme-name>Coh3974-distributed</scheme-name>
+      <service-name>Coh3974DistributedCache</service-name>
+      <backup-count>1</backup-count>
+
+      <request-timeout>3s</request-timeout>
+
+      <backing-map-scheme>
+        <local-scheme>
+          <scheme-ref>example-binary-backing-map</scheme-ref>
+        </local-scheme>
+      </backing-map-scheme>
+
+      <partitioned-quorum-policy-scheme>
+        <class-name>partition.PartitionedCacheTests$Coh3974QuorumPolicy</class-name>
+      </partitioned-quorum-policy-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>example-distributed</scheme-name>
+      <service-name>DistributedCache</service-name>
+      <thread-count-min system-property="coherence.distributed.threads.min">3</thread-count-min>
+      <backup-count system-property="test.distributed.backupcount">1</backup-count>
+      <backing-map-scheme>
+        <local-scheme>
+          <scheme-ref>example-binary-backing-map</scheme-ref>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+      <async-backup system-property="coherence.distributed.custom.asyncbackup">{async-backup false}</async-backup>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-tracking-backupmap</scheme-name>
+      <service-name>DistTrackingBackupMap</service-name>
+      <thread-count-min system-property="coherence.distributed.threads.min">3</thread-count-min>
+      <backup-storage>
+        <type>scheme</type>
+        <scheme-name>tracking-map-scheme</scheme-name>
+      </backup-storage>
+      <backing-map-scheme>
+        <read-locator>{read-from-closest primary}</read-locator>
+        <class-scheme>
+          <class-name>partition.ReadLocatorTests$TrackingMap</class-name>
+          <init-params>
+            <init-param>
+              <param-type>boolean</param-type>
+              <param-value>true</param-value>
+            </init-param>
+          </init-params>
+        </class-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <class-scheme>
+      <scheme-name>tracking-map-scheme</scheme-name>
+      <class-name>partition.ReadLocatorTests$TrackingMap</class-name>
+    </class-scheme>
+
+    <distributed-scheme>
+      <scheme-name>sas-distributed</scheme-name>
+      <service-name>DistributedCacheSimpleAssignment</service-name>
+      <backup-count system-property="coherence.distributed.backupcount">1</backup-count>
+
+      <backing-map-scheme>
+        <local-scheme>
+          <scheme-ref>example-binary-backing-map</scheme-ref>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>single-listener-scheme</scheme-name>
+      <service-name>single-listener-scheme</service-name>
+      <partition-listener>
+        <class-name>partition.PartitionedCacheTests$TestPartitionListener
+        </class-name>
+      </partition-listener>
+      <backing-map-scheme>
+        <partitioned>true</partitioned>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>listener-instance-scheme</scheme-name>
+      <service-name>listener-instance-scheme</service-name>
+      <partition-listener>
+        <class-name>partition.PartitionedCacheTests$TestPartitionListenerWithInitParams</class-name>
+        <init-params>
+          <init-param>
+            <param-name>serviceName</param-name>
+            <param-value>{service-name}</param-value>
+          </init-param>
+          <init-param>
+            <param-type>java.lang.ClassLoader</param-type>
+            <param-value>{class-loader}</param-value>
+          </init-param>
+        </init-params>
+      </partition-listener>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>COH10397scheme</scheme-name>
+      <service-name>COH10397scheme</service-name>
+      <partition-listener>
+        <class-name>partition.PartitionedCacheTests$TestPartitionListener</class-name>
+      </partition-listener>
+      <backing-map-scheme>
+        <partitioned>true</partitioned>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>program-listener-scheme</scheme-name>
+      <service-name>program-listener-service</service-name>
+      <backing-map-scheme>
+        <partitioned>true</partitioned>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>compressor-default</scheme-name>
+      <service-name>distributed-compressor-default</service-name>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>compressor-standard</scheme-name>
+      <service-name>distributed-compressor-standard</service-name>
+      <compressor>standard</compressor>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>compressor-standard-pof</scheme-name>
+      <service-name>distributed-compressor-standard-pof</service-name>
+      <serializer>
+        <instance>
+          <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+        </instance>
+      </serializer>
+      <compressor>standard</compressor>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>compressor-custom</scheme-name>
+      <service-name>distributed-compressor-custom</service-name>
+      <compressor>
+        <instance>
+          <class-name>partition.MyCompressor</class-name>
+        </instance>
+      </compressor>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>custom-backing-map-scheme</scheme-name>
+      <service-name>distributed-custom-backing-map</service-name>
+      <backing-map-scheme>
+        <class-scheme>
+          <!-- a non-observable backing map -->
+          <class-name>com.tangosol.util.SafeHashMap</class-name>
+        </class-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>COH10328scheme</scheme-name>
+      <service-name>coh10328service</service-name>
+      <backing-map-scheme>
+        <class-scheme>
+          <class-name>partition.PartitionedCacheTests$CustomPABM</class-name>
+          <init-params>
+            <init-param>
+              <param-type>string</param-type>
+              <param-value>COH10328</param-value>
+            </init-param>
+            <init-param>
+              <param-type>com.tangosol.net.BackingMapManagerContext</param-type>
+              <param-value>{manager-context}</param-value>
+            </init-param>
+          </init-params>
+        </class-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>COH7495</scheme-name>
+      <service-name>coh7495-service</service-name>
+      <partition-count system-property="test.partition.count">4001</partition-count>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+  </caching-schemes>
+</cache-config>

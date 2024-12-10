@@ -1,0 +1,42 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Title
+:description: Coherence Guides
+:keywords: coherence, java, documentation, guides
+
+== Title
+
+// ToDo: Short introduction
+
+=== What You Will Build
+
+// ToDo: Describe what the source code builds, it might just be some simple unit tests to show an
+// API or something more complex.
+
+
+// Do not change this part.
+// If your example requires Java 11+ change the 1.8 below to 11
+=== What You Need
+:java_version: 11
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+// Do not change this part unless you have more complex build instructions.
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+// ToDo: Below here is where you write your guide or tutorial
+=== Sub-Heading
+
+// ToDo:
+
+=== Summary
+
+// ToDo:
+
+
+=== See Also
+// ToDo: Add links to other guides and docs.

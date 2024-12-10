@@ -1,0 +1,19 @@
+{
+  "@class": "com.oracle.coherence.io.json.JsonSerializerTest$Holder",
+  "values": [
+    {
+      "name": "smith",
+      "age": 22,
+      "hobbies": [
+        "bike",
+        "hike",
+        "code"
+      ]
+    },
+    {
+      "name": "jones",
+      "age": 44,
+      "hobbies": []
+    }
+  ]
+}

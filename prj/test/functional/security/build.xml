@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- ANT build script for the security test project.                       -->
+<!--                                                                       -->
+<!-- Usage:                                                                -->
+<!--     prompt> ant help                                                  -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<project name="security" default="help" basedir="../../../test/functional/security">
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Project imports                                                     -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Utility targets                                                     -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <target name="create.keystores"
+          description="Generate the various keystore files used by the SSL tests.">
+    <delete>
+      <fileset dir="../../../test/functional/security" includes="*.jks"/>
+      <fileset dir="../../../test/functional/security" includes="*.pem"/>
+    </delete>
+
+    <!-- Create the user keystores and certificates -->
+    <exec executable="keytool">
+      <arg line="-genkey -keyalg DSA -keysize 1024 -sigalg SHA1withDSA -validity 3650 -dname 'CN=Administrator, O=MyCompany, L=MyCity, ST=MyState' -alias admin -keypass private -keystore admin.jks -storepass password"/>
+    </exec>
+    <exec executable="keytool">
+      <arg line="-exportcert -alias admin -file admin.pem -keystore admin.jks -storepass password"/>
+    </exec>
+    <exec executable="keytool">
+      <arg line="-genkey -keyalg DSA -keysize 1024 -sigalg SHA1withDSA -validity 3650 -dname 'CN=Manager, OU=MyUnit' -alias manager -keypass private -keystore manager.jks -storepass password"/>
+    </exec>
+    <exec executable="keytool">
+      <arg line="-exportcert -alias manager -file manager.pem -keystore manager.jks -storepass password"/>
+    </exec>
+    <exec executable="keytool">
+      <arg line="-genkey -keyalg DSA -keysize 1024 -sigalg SHA1withDSA -validity 3650 -dname 'CN=Worker, OU=MyUnit' -alias worker -keypass private -keystore worker.jks -storepass password"/>
+    </exec>
+    <exec executable="keytool">
+      <arg line="-exportcert -alias worker -file worker.pem -keystore worker.jks -storepass password"/>
+    </exec>
+    <exec executable="keytool">
+      <arg line="-genkey -keyalg DSA -keysize 1024 -sigalg SHA1withDSA -validity 3650 -dname 'CN=rogue, O=Evil, L=Eviland, ST=EV, C=US' -alias rogue -keypass private -keystore rogue.jks -storepass password"/>
+    </exec>
+    <exec executable="keytool">
+      <arg line="-exportcert -alias rogue -file rogue.pem -keystore rogue.jks -storepass password"/>
+    </exec>
+
+    <!-- Create the full keystore -->
+    <exec executable="keytool">
+      <arg line="-importkeystore -srckeystore admin.jks -srcalias admin -srckeypass private -srcstorepass password -destkeystore keystore.jks -destalias admin -destkeypass private -deststorepass password"/>
+    </exec>
+    <exec executable="keytool">
+      <arg line="-importkeystore -srckeystore manager.jks -srcalias manager -srckeypass private -srcstorepass password -destkeystore keystore.jks -destalias manager -destkeypass private -deststorepass password"/>
+    </exec>
+    <exec executable="keytool">
+      <arg line="-importkeystore -srckeystore worker.jks -srcalias worker -srckeypass private -srcstorepass password -destkeystore keystore.jks -destalias worker -destkeypass private -deststorepass password"/>
+    </exec>
+
+    <!-- Create the server keystore and certificate -->
+    <exec executable="keytool">
+      <arg line="-genkey -keyalg DSA -keysize 1024 -sigalg SHA1withDSA -validity 3650 -dname 'CN=server, O=Oracle, L=Burlington, ST=MA, C=US' -alias server -keypass private -keystore server.jks -storepass password"/>
+    </exec>
+    <exec executable="keytool">
+      <arg line="-exportcert -alias server -file server.pem -keystore server.jks -storepass password"/>
+    </exec>
+
+    <!-- Create the trust keystore -->
+    <exec executable="keytool">
+      <arg line="-importcert -noprompt -alias admin -file admin.pem -keystore trust.jks -storepass password"/>
+    </exec>
+    <exec executable="keytool">
+      <arg line="-importcert -noprompt -alias manager -file manager.pem -keystore trust.jks -storepass password"/>
+    </exec>
+    <exec executable="keytool">
+      <arg line="-importcert -noprompt -alias worker -file worker.pem -keystore trust.jks -storepass password"/>
+    </exec>
+    <exec executable="keytool">
+      <arg line="-importcert -noprompt -alias server -file server.pem -keystore trust.jks -storepass password"/>
+    </exec>
+
+    <echo>NOTE: Remember to remove the password on the keystore.jks keystore (http://www.lazgosoftware.com/kse/index.html)!</echo>
+  </target>
+</project>

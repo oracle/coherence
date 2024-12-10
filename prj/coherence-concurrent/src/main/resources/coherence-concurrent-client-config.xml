@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <defaults>
+    <scope-name system-property="coherence.concurrent.client.scope">$SYS</scope-name>
+    <serializer>${coherence.concurrent.serializer ${coherence.serializer java}}</serializer>
+  </defaults>
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>*</cache-name>
+      <scheme-name>concurrent-${coherence.client remote}</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <remote-cache-scheme>
+      <scheme-name>concurrent-remote</scheme-name>
+      <service-name>RemoteConcurrentProxy</service-name>
+      <proxy-service-name>ConcurrentProxy</proxy-service-name>
+    </remote-cache-scheme>
+
+    <remote-cache-scheme>
+      <scheme-name>concurrent-remote-fixed</scheme-name>
+      <service-name>RemoteConcurrentProxy</service-name>
+      <proxy-service-name>ConcurrentProxy</proxy-service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <remote-addresses>
+            <socket-address>
+              <address system-property="coherence.concurrent.extend.address"/>
+              <port system-property="coherence.concurrent.extend.port"/>
+            </socket-address>
+          </remote-addresses>
+        </tcp-initiator>
+      </initiator-config>
+    </remote-cache-scheme>
+  </caching-schemes>
+</cache-config>

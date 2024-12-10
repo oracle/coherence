@@ -1,0 +1,264 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Custom Aggregators
+:description: Coherence Guides Aggregations
+:keywords: coherence, java, documentation, aggregation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Custom Aggregators
+
+This guide walks you through how to create custom aggregators that allow you to process data stored in Coherence in parallel.
+
+Coherence supports entry aggregators that perform operations against all, or a subset
+of entries to obtain a single result. This aggregation is carried out in parallel across the cluster
+and is a map-reduce type of operation which can be performed efficiently across large amounts of data.
+
+See the {commercial-docs-base-url}/develop-applications/processing-data-cache.html#GUID-DFB7AB0C-1CE6-4259-8854-9DA1F40B6F15[Coherence Documentation]
+for detailed information on Aggregations.
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-will-need,What You Need>>
+* <<data-model, Example Data Model>>
+* <<example-code-2, Review the Example Code>>
+* <<run-example-2, Run the Example>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+This example shows how to build a custom aggregator which we will
+use to count how many times a particular word occurs in documents stored in Coherence maps. The `Document`
+class is a standard POJO with an identifier, and a string for the document contents.
+
+[#what-you-will-need]
+==== What You Need
+:java_version: 11
+:duration: 30
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+[#running]
+==== Running the Examples
+
+This example can be run directly in your IDE, but to best demonstrate the functionality
+you should run 1 or more cache servers and then run the example class.
+
+1. Running Cache Servers
++
+[source,bash]
+----
+./mvnw exec:exec -P server
+----
++
+or
++
+[source,bash]
+----
+./gradlew runServer -x test
+----
+
+2. Running each example
++
+Each example can be run direct from the IDE, or can be run via executing the tests.
++
+[source,bash]
+----
+./mvnw clean verify
+----
++
+or
++
+[source,bash]
+----
+./gradlew clean test
+----
+
+[#data-model]
+=== Example Data Model
+
+The data model consists of the `Document` class which represents a document with text contents that we
+are going to search.
+
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/aggregations/model/Document.java[tag=class]
+----
+
+[#example-code-2]
+==== Review the Example Code
+
+The `WordCount` class implements the `InvocableMap.StreamingAggregator` as well as `Serializable` for serialization.
+
+When you implement `InvocableMap.StreamingAggregator`, you must implement the following methods:
+
+* `supply()` - creates an instance we can accumulate into in parallel
+* `accumulate()` - adds single entry to partial result when executing on storage members
+* `getPartialResult()` - returns the partial result
+* `combine()` - combines partial results on the client
+* `finalizeResult()` - applies finishing transformation to the final result and returns it
+
+See below for details of each of the `WordCount` class.
+
+1. Implementing interfaces
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/aggregations/WordCount.java[tag=class]
+----
++
+<1> Implement the `InvocableMap.StreamingAggregator` with key, value, partial result and final result
+<2> Implement serialization
+
+2. The following constructor is used to set the words to search for.
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/aggregations/WordCount.java[tag=constructor]
+----
+
+3. Creates an instance we can accumulate into in parallel when executing on the storage members
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/aggregations/WordCount.java[tag=supply]
+----
+
+4. Adds single entry to partial result when executing on storage members
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/aggregations/WordCount.java[tag=accumulate]
+----
++
+<1> Count the number of times the word occurs in the document
+<2> Add or update the count for the word in the results Map
+
+5. Return the partial result
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/aggregations/WordCount.java[tag=getPartialResult]
+----
+
+6. Combine all the partial results on the client
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/aggregations/WordCount.java[tag=combine]
+----
++
+NOTE: This method is called on the client to combine the results passed in with the current result. This is
+used to get the final set of results from all members.
+
+7. Take the final partial result and applies any finishing transformation
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/aggregations/WordCount.java[tag=finalizeResult]
+----
+
+8. Characteristics for the aggregator
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/aggregations/WordCount.java[tag=characteristics]
+----
++
+NOTE: We specifically set the PARALLEL and PRESENT_ONLY characteristics to indicate this can be run in parallel and
+to execute to only run on entries that are present.
+
+*CustomAggregationExample Class*
+
+The `runExample()` method contains the code that exercises the above custom aggregator.
+
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/aggregations/CustomAggregationExample.java[tag=runExample]
+----
+
+<1> Run the aggregator against 5 randomly chosen words
+
+[#run-example-2]
+==== Run the Example
+
+Carry out the following to run this example:
+
+1. Start 2 cache servers using the method described above:
++
+E.g. for Maven use:
++
+[source,bash]
+----
+./mvnw exec:exec -P server
+----
++
+or
++
+[source,bash]
+----
+./gradlew runServer -x test
+----
+
+2. Running the example
++
+The example can be run direct from the IDE by directly running the `CustomAggregationExample` class
+, or can be run via executing the tests.
++
+[source,bash]
+----
+./mvnw clean verify
+----
++
+or
++
+[source,bash]
+----
+./gradlew clean test
+----
+
++
+This will generate output similar to the following indicating the documents and times that a
+word exists in a document.
++
+[source,bash]
+----
+Documents added 2000
+Running against the following words: [fifteen, tv, trumpet, this, launch]
+<Info> (thread=PartitionedCacheWorker:0x0000:2, member=2): ***** getPartialResult: {fifteen=181, tv=350, trumpet=194, this=1155, launch=189}
+<Info> (thread=main, member=2): ***** combine: Received partial result {fifteen=177, tv=376, trumpet=210, this=1173, launch=193}
+<Info> (thread=main, member=2): ***** combine: Received partial result {fifteen=181, tv=350, trumpet=194, this=1155, launch=189}
+Word fifteen, number of occurrences: 358
+Word tv, number of occurrences: 726
+Word trumpet, number of occurrences: 404
+Word this, number of occurrences: 2328
+Word launch, number of occurrences: 382
+----
++
+NOTE: The messages above containing `combine` are when the client called the `combine()` method to
+aggregate the final results returned from the storage members. In this case we had 2 storage members including
+the test itself.
+
+[#summary]
+=== Summary
+
+In this guide we have shown you how to create custom aggregators that
+allow you to process data stored in Coherence in parallel.
+
+You have created a custom aggregator to count the number of
+times a word appears in documents stored in Coherence.
+
+[#see-also]
+=== See Also
+
+* {commercial-docs-base-url}/develop-applications/processing-data-cache.html#GUID-C9DF96E0-FAF2-4CD9-958E-4DC5CF06B18A[Performing Data Grid Operations]
+* <<examples/guides/125-streams/README.adoc,Streams>>

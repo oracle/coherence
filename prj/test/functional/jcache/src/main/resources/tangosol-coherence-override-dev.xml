@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<coherence>
+    <!-- copied all override values from ../common/tangosol-coherence-override.xml.
+         oracle-tools test ClusterTest and PartitionedCacheMultipleServersTest
+         failed to form a cluster when system property override variable where values from common
+         test override and started with "test.*"
+      -->
+    <cluster-config>
+        <unicast-listener>
+            <address system-property="coherence.localhost">127.0.0.1</address>
+        </unicast-listener>
+
+        <multicast-listener>
+          <!-- start with values other then the defaults to avoid intersecting with other "standard" clusters -->
+          <address system-property="coherence.clusteraddress">239.192.99.88</address>
+            <port system-property="coherence.clusterport">7675</port>
+            <time-to-live system-property="coherence.ttl">0</time-to-live>
+            <join-timeout-milliseconds system-property="coherence.join.timeout">1000</join-timeout-milliseconds>
+        </multicast-listener>
+    </cluster-config>
+    <management-config>
+        <default-domain-name></default-domain-name>
+        <managed-nodes system-property="coherence.management">all</managed-nodes>
+        <allow-remote-management>true</allow-remote-management>
+        <service-name>Management</service-name>
+    </management-config>
+    <logging-config>
+        <!-- currently jcache was depending on LOG_QUIET not being printed by default.
+             temporary fix to keep jcache log output at a reasonable logging level.
+          -->
+        <severity-level system-property="test.log.level">5</severity-level>
+    </logging-config>
+</coherence>

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2021 Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<!-- File contents copied from http://docs.jboss.org/hibernate/orm/4.2/manual/en-US/html/ch01.html
+     and adapted for functional testing of coherence-hibernate-cache-store -->
+<!-- tag::config[] -->
+<hibernate-mapping package="com.oracle.coherence.guides.cachestores">
+  <class name="Person" table="PERSON">
+    <id name="id" column="id">
+      <generator class="native"/>
+    </id>
+    <property name="age"/>
+    <property name="firstname"/>
+    <property name="lastname"/>
+  </class>
+</hibernate-mapping>
+<!-- end::config[] -->

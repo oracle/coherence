@@ -1,0 +1,173 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Views
+:description: Provides a guide for creating views using ContinuousQueryCache
+:keywords: coherence, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Views
+
+This guide walks you through the concepts of creating _Views_, also known as _Continuous Queries_. _Views_ allow you to
+execute queries against your Coherence data with the added benefit that _Views_ stay up-to-date, allowing you to retrieve
+the latest results of your query from the Coherence cache in real-time.
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-will-need,What You Need>>
+* <<building-the-example-code, Building The Example Code>>
+* <<data-model, Example Data Model>>
+* <<why-to-use-views, Why to use Views>>
+* <<using-a-continuous-query-cache, Using a ContinuousQueryCache>>
+* <<observing-continuous-query-caches, Observing Continuous Query Caches>>
+* <<continuous-aggregation, Continuous Aggregation>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+The example code is written as a set of unit tests, showing you how can create _Views_ against your
+Coherence data.
+
+[#what-you-will-need]
+==== What You Need
+:java_version: 11
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+[#building-the-example-code]
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+[#data-model]
+=== Example Data Model
+
+The data model for this guide consists of a single class named `Country`. This model class represents a country with the
+following properties:
+
+- name
+- capital
+- population
+
+The data is being stored in a Coherence cache named `countries` with the key being the two-letter
+https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2[ISO 3166 country code].
+
+[#why-to-use-views]
+=== Why to use Views
+
+With _Views_, also referred to as _Continuous Queries_, you can ensure that a query always retrieves the latest results
+from a cache in real-time. For instance, in the <<examples/guides/110-queries/README.adoc,queries guide>>, we used a
+`Filter` to query for a subset of data from a Coherence cache. However, what happens with the underlying cache if changes
+_DO_ happen, and you need the updates immediately? Queries, as used previously, will only retrieve a snapshot
+of the underlying data. They will not reflect future data changes. Thus, let's revisit a
+<<examples/guides/110-queries/README.adoc#filter,previous example>> that queries a cache containing `Countries` using a `Filter`. The
+`Filter`, as in the previous query example, will ensure that only countries with a population of 60 million or more people
+are returned.
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/queries/ViewTests.java[tag=testGreaterEqualsFilterWithChanges]
+----
+<1> Get the `countries` Map
+<2> We create a Filter that will select only countries with at least 60 million people using a `GreaterEqualsFilter`
+<3> Apply the `Filter` by invoking `entrySet(filter)` on the `NamedCache`
+<4> The result should be 2 countries only
+<5> We add a new country Mexico to the map
+<6> Assert that still only France and Germany were selected
+
+In this test we have added a new country Mexico to the `countries` Map but as you can see, the change will not be
+reflected in the already filtered results map. In order to get updates in real-time, we have to use a `ContinuousQueryCache`.
+
+_Views_ are extremely useful in all those situations where we need immediate access to any changes of the underlying data,
+such as trading systems or Complex Event Processing (CEP) systems. They can be used in both client-based and server-based
+applications and are reminiscent of SQL Views.
+
+[#using-a-continuous-query-cache]
+=== Using a ContinuousQueryCache
+
+The following test will look almost exactly the same as the previous test. However, instead of calling the `entrySet()`
+method on the `NamedCache`, we will create a new instance of `ContinuousQueryCache` and pass in the `Filter` and the Coherence
+map as constructor arguments.
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/queries/ViewTests.java[tag=testGreaterEqualsFilterWithContinuousQueryCache]
+----
+<1> Get the `countries` Map
+<2> We create a `Filter` that will select only countries with more than 60 million people using a `GreaterEqualsFilter`
+<3> Create a new instance of `ContinuousQueryCache`
+<4> The result should consist of 2 countries only
+<5> We add a new country Mexico to the original map
+<6> Assert that the `ContinuousQueryCache` now contains 3 countries
+
+Under the covers, the `ContinuousQueryCache` will use Coherence cache events on the map to react to changes in the
+Coherence `NamedCache`.
+
+NOTE: In order to create a `ContinuousQueryCache` without filtering, use the `AlwaysFilter`, e.g.
+`new ContinuousQueryCache(map, AlwaysFilter.instance)`.
+
+[#observing-continuous-query-caches]
+=== Observing Continuous Query Caches
+
+Proactively querying for updates is all fun and games but what if you need to execute logic as soon as data changes
+happen? The `ContinuousQueryCache` implements the `ObservableMap` interface to react to Coherence cache events. As such,
+you can subscribe to cache events by registering `MapListener` implementations.
+
+In the following test, we will add a `MapListener` to keep track of countries being added to the underlying `NamedCache`.
+But because this listener is added to the `ContinuousQueryCache`, the listener will only get invoked for countries
+that have a population of 60 million or more.
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/queries/ViewTests.java[tag=testContinuousQueryCacheWithListener]
+----
+<1> Create a counter to keep track of added countries
+<2> Instantiate a `MapListener` that will increment the counter for each new country being added
+<3> Add the `MapListener` to the `ContinuousQueryCache`
+<4> Assert that the `ContinuousQueryCache` contains 2 countries
+<5> Add a new country with a population larger than 60 million
+<6> Assert that the `ContinuousQueryCache` now contain 3 countries
+<7> The counter of the `MapListener` should have increased by 1
+
+[#continuous-aggregation]
+=== Continuous Aggregation
+
+What about aggregated results? In an earlier example for Queries, we had used a `Filter` and a `BigDecimalSum` aggregator
+to calculate the sum of the population for those countries whose population is at least 60 million.
+
+We can use a `MapListener` to achieve that, as the `ContinuousQueryCache` does not directly support aggregators.
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/queries/ViewTests.java[tag=testAggregate]
+----
+<1> Create a `BigDecimalSum` aggregator. The `IdentityExtractor` will use the actual value (does not actually extract
+    anything)
+<2> Create a holder for the aggregated population and trigger the initial aggregation explicitly
+<3> Instantiate a `MapListener` that will trigger the aggregation of the population for each new country being added
+<4> Add the `MapListener` to the `ContinuousQueryCache`
+<5> Assert that the aggregated population is initially 150.6 million
+<6> Add a new country with a population larger than 60 million
+<7> Assert that the `ContinuousQueryCache` now contain 3 countries
+<8> The aggregated population should now be 276.61 million
+
+[#summary]
+=== Summary
+
+In this guide we showed, how you can easily create _Views_ with a `ContinuousQueryCache` that reflects changes of the data
+in the underlying Coherence `NamedCache` in real-time. Please see the Coherence reference guide, specifically the chapter
+link:{commercial-docs-base-url}/develop-applications/using-continuous-query-caching.html#GUID-5FB6F1B5-F1C3-4049-B69D-CC07BDF88883[Using Continuous Query Caching]
+for more details.
+
+[#see-also]
+=== See Also
+
+* {commercial-docs-base-url}/develop-applications/using-continuous-query-caching.html#GUID-5FB6F1B5-F1C3-4049-B69D-CC07BDF88883[Using Continuous Query Caching]
+* {commercial-docs-base-url}/develop-applications/using-map-events.html#GUID-A91B66C9-F449-49A3-9165-073459BA1B3E[Using Map Events]
+* <<examples/guides/110-queries/README.adoc,Querying Caches>>
+* <<examples/guides/120-built-in-aggregators/README.adoc,Built-In Aggregators>>

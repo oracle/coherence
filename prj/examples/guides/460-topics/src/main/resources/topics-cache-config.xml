@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2021 Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <topic-scheme-mapping>
+    <!-- tag::mapping[] -->
+    <topic-mapping>
+      <topic-name>public-messages</topic-name>
+      <scheme-name>topic-server</scheme-name>
+      <value-type>com.oracle.coherence.guides.topics.ChatMessage</value-type>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>private-messages</topic-name>
+      <scheme-name>topic-server</scheme-name>
+      <value-type>com.oracle.coherence.guides.topics.ChatMessage</value-type>
+      <subscriber-groups>
+        <subscriber-group>
+          <name>admin</name>
+        </subscriber-group>
+      </subscriber-groups>
+    </topic-mapping>
+    <!-- end::mapping[] -->
+  </topic-scheme-mapping>
+
+  <caching-schemes>
+    <!-- tag::scheme[] -->
+    <!-- partitioned topic scheme for servers -->
+    <paged-topic-scheme>
+      <scheme-name>topic-server</scheme-name>
+      <service-name>${coherence.service.name Partitioned}Topic</service-name>
+      <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
+      <autostart system-property="coherence.topic.enabled">true</autostart>
+      <high-units>{topic-high-units-bytes 0B}</high-units>
+    </paged-topic-scheme>
+    <!-- end::scheme[] -->
+  </caching-schemes>
+</cache-config>

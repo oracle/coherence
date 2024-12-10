@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+              
+    <report>
+      <file-name>{date}-nodes.txt</file-name>
+      <delim>{tab}</delim>
+
+      <query>
+        <pattern>Coherence:type=Node,*</pattern>
+      </query>
+
+      <row>
+        <column id="BatchCounter">
+          <type>global</type>
+          <name>{batch-counter}</name>
+          <header>Batch Counter</header>
+        </column>
+
+        <column id ="ReportTime">
+          <type>global</type>
+          <name>{report-time}</name>
+          <header>Report Time</header>
+        </column>
+
+        <column id="RefreshTime">
+         <name>RefreshTime</name>
+        </column>
+
+        <column id ="NodeId">
+          <type>key</type>
+          <name>nodeId</name>
+          <header>Node Id</header>
+        </column>
+
+       <column id="Address">
+          <name>UnicastAddress</name>
+        </column>
+
+        <column id="MemberName">
+          <name>MemberName</name>
+        </column>
+
+        <column id="ProcessName">
+          <name>ProcessName</name>
+        </column>
+
+        <column id="RoleName">
+          <name>RoleName</name>
+        </column>
+
+        <column id="MachineName">
+          <name>MachineName</name>
+        </column>
+
+        <column id="RackName">
+          <name>RackName</name>
+        </column>
+
+        <column id="SiteName">
+          <name>SiteName</name>
+        </column>
+      </row>
+    </report>
+</report-config>

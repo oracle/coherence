@@ -1,0 +1,54 @@
+/*
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+plugins {
+    id 'java'
+}
+
+group = 'com.oracle.coherence.guides'
+version = '1.0.0'
+sourceCompatibility = '17'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+
+    implementation "${coherenceGroupId}:coherence"
+    implementation "${coherenceGroupId}:coherence-json"
+    implementation "${coherenceGroupId}:coherence-grpc-proxy"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+task copyDependencies(type: Copy) {
+    from configurations.runtimeClasspath
+    into "$buildDir/docker/app/libs"
+}
+
+task copyClasses(type: Copy) {
+    dependsOn classes
+    from "$buildDir/classes/java/main"
+    into "$buildDir/docker/app/classes"
+}
+
+task copyDocker(type: Copy) {
+    from "src/main/docker"
+    into "$buildDir/docker"
+}
+
+task buildImage(type: Exec) {
+    dependsOn 'copyDependencies', 'copyClasses', 'copyDocker'
+    workingDir "$buildDir/docker"
+    executable "docker"
+    args "build", "-t", "ghcr.io/coherence-community/$project.name:latest", "."
+}

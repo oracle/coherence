@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>dist*</cache-name>
+      <scheme-name>working-distributed-cache-scheme</scheme-name>
+    </cache-mapping>
+
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+
+  <distributed-scheme>
+    <scheme-name>working-distributed-cache-scheme</scheme-name>
+    <service-name>working-distributed-cache-service</service-name>
+    <thread-count-max>0</thread-count-max>
+    <backing-map-scheme>
+      <local-scheme/>
+    </backing-map-scheme>
+    <autostart>false</autostart>
+  </distributed-scheme>
+
+  <proxy-scheme>
+    <scheme-name>MyProxyScheme</scheme-name>
+    <service-name>MyProxyService</service-name>
+    <thread-count-max>0</thread-count-max>
+    <autostart>false</autostart>
+  </proxy-scheme>
+
+  <invocation-scheme>
+    <scheme-name>my-invovacation-scheme</scheme-name>
+    <service-name>my-invocation-service</service-name>
+    <thread-count-max>0</thread-count-max>
+    <autostart>false</autostart>
+  </invocation-scheme>
+  </caching-schemes>
+
+</cache-config>

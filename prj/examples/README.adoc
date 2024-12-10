@@ -1,0 +1,52 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Guides & Tutorials Overview
+:description: Coherence Guides
+:keywords: coherence, java, documentation, guides, tutorials
+
+== Overview
+
+These guides and tutorials are designed to help you be productive as quickly as possible in whatever use-case you
+are building with Coherence.
+Coherence has a long history and having been around for twenty years its APIs have evolved over that time.
+Occasionally there are multiple ways to implement a specific use-case, typically because to remain backwards compatible
+with older releases, features cannot be removed from the product. For that reason these guides use the latest Coherence
+versions and best practice and approaches recommended by the Coherence team for that version.
+
+[PILLARS]
+====
+[CARD]
+.Simple Guides
+[icon=explore,link=examples/guides/000-overview.adoc]
+--
+--
+
+[CARD]
+.Tutorials
+[icon=fa-graduation-cap,link=examples/tutorials/000-overview.adoc]
+--
+--
+//
+//[CARD]
+//.Miscellaneous
+//[icon=widgets,link=examples/miscellaneous/000-overview.adoc]
+//--
+//--
+====
+
+[#simple]
+include::guides/README.adoc[tag=text]
+
+[#tutorials]
+include::tutorials/README.adoc[tag=text]
+
+//[#miscellaneous]
+//== Miscellaneous Examples
+//
+//Simple, typically single class, examples.
+//
+//include::miscellaneous/README.adoc[tag=text]

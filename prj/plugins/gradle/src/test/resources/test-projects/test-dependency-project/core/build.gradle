@@ -1,0 +1,32 @@
+/*
+ * Copyright (c) 2024 Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+plugins {
+    id 'java'
+    id '%s' version '%s'
+    id 'com.github.vlsi.jandex' version '1.86'
+}
+repositories {
+    maven { url '%s' }
+    mavenLocal()
+    mavenCentral()
+}
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation '%s:coherence:%s'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}

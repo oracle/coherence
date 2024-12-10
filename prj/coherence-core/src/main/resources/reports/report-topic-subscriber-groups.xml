@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+  <report>
+    <file-name>{date}-topic-subscriber-groups.txt</file-name>
+    <delim>{tab}</delim>
+
+    <query>
+      <pattern>Coherence:type=PagedTopicSubscriberGroup,*</pattern>
+    </query>
+
+    <row>
+      <column id="BatchCounter">
+        <type>global</type>
+        <name>{batch-counter}</name>
+        <header>Batch Counter</header>
+      </column>
+
+      <column id="ReportTime">
+        <type>global</type>
+        <name>{report-time}</name>
+        <header>Report Time</header>
+      </column>
+
+      <column id="Service">
+        <type>key</type>
+        <name>service</name>
+        <header>Service</header>
+      </column>
+
+      <column id="Topic">
+        <type>key</type>
+        <name>topic</name>
+        <header>Topic</header>
+      </column>
+
+      <column id="Name">
+        <type>key</type>
+        <name>name</name>
+        <header>Name</header>
+      </column>
+
+      <column id="DomainPartition">
+        <type>key</type>
+        <name>domainPartition</name>
+        <header>Domain Partition</header>
+        <hidden>{non-MT}</hidden>
+        <group-by>true</group-by>
+      </column>
+
+      <column id="NodeId">
+        <type>key</type>
+        <name>nodeId</name>
+        <header>Node Id</header>
+      </column>
+
+      <column id="NodeTS">
+        <name>Timestamp</name>
+        <header>Timestamp</header>
+        <query>
+          <pattern>Coherence:type=Node,nodeId={NodeId}</pattern>
+        </query>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="ChannelCount">
+        <name>ChannelCount</name>
+        <header>Channel Count</header>
+      </column>
+
+      <column id="PolledCount">
+        <name>PolledCount</name>
+        <header>Polled Count</header>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="DeltaPolledCount">
+        <type>function</type>
+        <name>DeltaPolledCount</name>
+        <header>Polled Count</header>
+        <column-ref>PolledCount</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+          <column-ref>Name</column-ref>
+          <column-ref>Topic</column-ref>
+          <column-ref>Service</column-ref>
+        </params>
+      </column>
+
+      <column id="PolledFifteenMinuteRate">
+        <name>PolledFifteenMinuteRate</name>
+        <header>Polled Fifteen Minute Rate</header>
+      </column>
+
+      <column id="PolledFiveMinuteRate">
+        <name>PolledFiveMinuteRate</name>
+        <header>Polled Five Minute Rate</header>
+      </column>
+
+      <column id="PolledOneMinuteRate">
+        <name>PolledOneMinuteRate</name>
+        <header>Polled One Minute Rate</header>
+      </column>
+
+      <column id="PolledMeanRate">
+        <name>PolledMeanRate</name>
+        <header>Polled Mean Rate</header>
+      </column>
+    </row>
+  </report>
+</report-config>

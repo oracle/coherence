@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <defaults>
+    <serializer>
+      <instance>
+        <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+        <init-params>
+          <init-param>
+            <param-type>string</param-type>
+            <param-value>extend/test-pof-config.xml</param-value>
+          </init-param>
+        </init-params>
+      </instance>
+    </serializer>
+  </defaults>
+
+  <caching-schemes>
+    <remote-cache-scheme>
+      <service-name>ExtendTcpCacheService1</service-name>
+      <proxy-service-name>ExtendTcpProxyService</proxy-service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <name-service-addresses>
+            <socket-address>
+              <address system-property="test.unicast.address">127.0.0.1</address>
+              <port    system-property="test.multicast.port">9999</port>
+            </socket-address>
+          </name-service-addresses>
+        </tcp-initiator>
+      </initiator-config>
+    </remote-cache-scheme>
+
+    <remote-cache-scheme>
+      <service-name>ExtendTcpCacheService2</service-name>
+      <proxy-service-name>ExtendTcpProxyService</proxy-service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <name-service-addresses>
+            <socket-address>
+              <address system-property="test.unicast.address">127.0.0.1</address>
+              <port    system-property="test.multicast.port">9999</port>
+            </socket-address>
+          </name-service-addresses>
+        </tcp-initiator>
+      </initiator-config>
+    </remote-cache-scheme>
+
+    <remote-cache-scheme>
+      <service-name>ExtendTcpCacheService3</service-name>
+      <proxy-service-name>ExtendTcpProxyService</proxy-service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <name-service-addresses>
+            <socket-address>
+              <address system-property="test.unicast.address">127.0.0.1</address>
+              <port    system-property="test.multicast.port">9999</port>
+            </socket-address>
+          </name-service-addresses>
+        </tcp-initiator>
+      </initiator-config>
+    </remote-cache-scheme>
+
+    <remote-invocation-scheme>
+      <service-name>ExtendTcpCustomInvocationService</service-name>
+      <proxy-service-name>ExtendTcpProxyService</proxy-service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <name-service-addresses>
+            <socket-address>
+              <address system-property="test.unicast.address">127.0.0.1</address>
+              <port    system-property="test.multicast.port">9999</port>
+            </socket-address>
+          </name-service-addresses>
+        </tcp-initiator>
+      </initiator-config>
+    </remote-invocation-scheme>
+
+    <remote-invocation-scheme>
+      <service-name>ExtendTcpInvocationService</service-name>
+      <proxy-service-name>ExtendTcpInvocationProxyService</proxy-service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <name-service-addresses>
+            <socket-address>
+              <address system-property="test.unicast.address">127.0.0.1</address>
+              <port    system-property="test.multicast.port">9999</port>
+            </socket-address>
+          </name-service-addresses>
+        </tcp-initiator>
+      </initiator-config>
+    </remote-invocation-scheme>
+  </caching-schemes>
+</cache-config>

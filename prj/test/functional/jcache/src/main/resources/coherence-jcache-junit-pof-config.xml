@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<!--
+Note: This XML document is an example Coherence POF Configuration deployment
+descriptor that should be customized, replaced or extended for your
+particular application requirements.
+
+For detailed information on each of the elements that can be used in this
+descriptor please see the Coherence POF Configuration document type
+descriptor: pof-config.xsd.
+-->
+<pof-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
+    xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">
+   <user-type-list>
+       <include>coherence-pof-config.xml</include>
+       <include>coherence-jcache-pof-config.xml</include>
+       <user-type>
+           <type-id>2000</type-id>
+           <class-name>com.tangosol.coherence.jcachetesting.Point</class-name>
+       </user-type>
+       <user-type>
+           <type-id>2001</type-id>
+               <class-name>com.tangosol.coherence.jcachetesting.NonPofPoint</class-name>
+           <serializer>
+               <class-name>com.tangosol.coherence.jcachetesting.NonPofPointSerializer</class-name>
+           </serializer>
+       </user-type>
+       <user-type>
+               <type-id>2002</type-id>
+               <class-name>com.tangosol.coherence.jcachetesting.CacheExpiryTests$ParameterizedExpiryPolicy</class-name>
+               <serializer>
+                   <!-- simulate adding POF support to JSR 107 tck -->
+                   <class-name>com.tangosol.coherence.jcachetesting.io.ParameterizedExpiryPolicySerializer</class-name>
+               </serializer>
+       </user-type>
+       <user-type>
+           <type-id>2003</type-id>
+           <class-name>com.tangosol.coherence.jcachetesting.CacheListenerTests$SetEntryProcessor</class-name>
+       </user-type>
+       <user-type>
+           <type-id>2004</type-id>
+           <class-name>com.tangosol.coherence.jcachetesting.CacheListenerTests$MultiArgumentEntryProcessor</class-name>
+       </user-type>
+       <user-type>
+           <type-id>2005</type-id>
+           <class-name>com.tangosol.coherence.jcachetesting.CacheListenerTests$RemoveEntryProcessor</class-name>
+       </user-type>
+       <user-type>
+           <type-id>2006</type-id>
+           <class-name>com.tangosol.coherence.jcachetesting.AbstractCoherenceCacheTests$SimpleCacheLoader</class-name>
+           <serializer>
+               <class-name>com.tangosol.coherence.jcachetesting.SimpleCacheLoaderPofSerializer</class-name>
+           </serializer>
+       </user-type>
+       <user-type>
+            <type-id>2007</type-id>
+           <class-name>com.tangosol.coherence.jcachetesting.FailingEntryProcessor</class-name>
+           <serializer>
+               <class-name>
+               com.tangosol.coherence.jcachetesting.io.FailingEntryProcessorPofSerializer
+            </class-name>
+           </serializer>
+       </user-type>
+       <user-type>
+         <type-id>2008</type-id>
+         <class-name>com.tangosol.coherence.jcachetesting.CacheListenerTests$MyCacheEntryListener</class-name>
+       </user-type>
+     <user-type>
+       <type-id>2009</type-id>
+       <class-name>com.tangosol.coherence.jcachetesting.CacheListenerTests$MyCacheEntryEventFilter</class-name>
+     </user-type>
+     <user-type>
+       <type-id>2010</type-id>
+       <class-name>com.tangosol.coherence.jcachetesting.CacheWriterTests$CreateEntryProcessor</class-name>
+     </user-type>
+     <user-type>
+       <type-id>2011</type-id>
+       <class-name>com.tangosol.coherence.jcachetesting.CacheWriterTests$UpdateEntryProcessor</class-name>
+     </user-type>
+     <user-type>
+       <type-id>2012</type-id>
+       <class-name>com.tangosol.coherence.jcachetesting.CacheWriterTests$RemoveEntryProcessor</class-name>
+     </user-type>
+     <user-type>
+       <type-id>2013</type-id>
+       <class-name>com.tangosol.coherence.jcachetesting.CacheWriterTests$RecordingCacheWriter</class-name>
+     </user-type>
+     <user-type>
+         <type-id>2014</type-id>
+         <class-name>com.examples.MyEntryProcessor</class-name>
+     </user-type>
+     <user-type>
+         <type-id>2015</type-id>
+         <class-name>com.examples.Person</class-name>
+     </user-type>
+   </user-type-list>
+</pof-config>
+
+

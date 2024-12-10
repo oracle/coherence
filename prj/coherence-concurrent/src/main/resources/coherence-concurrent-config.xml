@@ -1,0 +1,154 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xmlns:executor="class://com.oracle.coherence.concurrent.config.NamespaceHandler"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd
+                                  class://com.oracle.coherence.concurrent.config.NamespaceHandler concurrent.xsd"
+              xml-override="{coherence.concurrent.cacheconfig.override}">
+
+  <executor:single>
+    <executor:name>coherence-concurrent-default-executor</executor:name>
+  </executor:single>
+
+  <defaults>
+    <scope-name system-property="coherence.concurrent.scope"/>
+    <serializer>${coherence.concurrent.serializer ${coherence.serializer java}}</serializer>
+  </defaults>
+
+  <interceptors>
+    <interceptor>
+      <instance>
+        <class-name>com.oracle.coherence.concurrent.executor.internal.LifecycleEventInterceptor</class-name>
+      </instance>
+    </interceptor>
+  </interceptors>
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>atomic-*</cache-name>
+      <scheme-name>concurrent</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>executor-tasks</cache-name>
+      <scheme-name>concurrent</scheme-name>
+      <interceptors>
+        <interceptor>
+          <name>task-interceptor</name>
+          <instance>
+            <class-name>com.oracle.coherence.concurrent.executor.internal.ClusteredTaskInterceptor</class-name>
+            <init-params>
+              <init-param>
+                <param-type>String</param-type>
+                <param-value>{service-name}</param-value>
+              </init-param>
+            </init-params>
+          </instance>
+        </interceptor>
+      </interceptors>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>executor-*</cache-name>
+      <scheme-name>concurrent</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>locks-*</cache-name>
+      <scheme-name>transient-concurrent</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>latches-*</cache-name>
+      <scheme-name>concurrent</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>semaphores</cache-name>
+      <scheme-name>transient-concurrent</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>Queue$*</cache-name>
+      <scheme-name>queue-concurrent</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>PagedQueue$*</cache-name>
+      <scheme-name>queue-concurrent</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>transient-concurrent</scheme-name>
+      <scheme-ref>concurrent</scheme-ref>
+      <backing-map-scheme>
+        <transient>true</transient>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>concurrent</scheme-name>
+      <service-name>Concurrent</service-name>
+      <thread-count-max>${coherence.concurrent.distributed.threads.max ${coherence.distributed.threads.max}}</thread-count-max>
+      <thread-count-min>${coherence.concurrent.distributed.threads.min ${coherence.distributed.threads.min}}</thread-count-min>
+      <member-listener>
+        <class-name>com.oracle.coherence.concurrent.internal.Cleaner</class-name>
+      </member-listener>
+      <backing-map-scheme>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+      <persistence>
+        <environment>${coherence.concurrent.persistence.environment ${coherence.persistence.environment default-on-demand}}</environment>
+      </persistence>
+      <autostart>true</autostart>
+      <interceptors>
+        <interceptor>
+          <name>live-object-interceptor</name>
+          <instance>
+            <class-name>com.oracle.coherence.concurrent.executor.internal.LiveObjectEventInterceptor</class-name>
+          </instance>
+        </interceptor>
+      </interceptors>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>queue-concurrent</scheme-name>
+      <service-name>ConcurrentQueue</service-name>
+      <backing-map-scheme>
+        <partitioned>true</partitioned>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <proxy-scheme>
+      <scheme-name>concurrent-proxy</scheme-name>
+      <service-name>ConcurrentProxy</service-name>
+      <acceptor-config>
+        <tcp-acceptor>
+          <local-address>
+            <address system-property="coherence.concurrent.extend.address"/>
+            <port system-property="coherence.concurrent.extend.port"/>
+          </local-address>
+        </tcp-acceptor>
+      </acceptor-config>
+      <autostart system-property="coherence.concurrent.extend.enabled">true</autostart>
+    </proxy-scheme>
+  </caching-schemes>
+</cache-config>

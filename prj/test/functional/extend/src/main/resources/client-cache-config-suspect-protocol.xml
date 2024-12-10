@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <defaults>
+    <serializer>
+       <instance>
+         <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+           <init-params>
+             <init-param>
+               <param-type>string</param-type>
+               <param-value>extend/test-pof-config.xml</param-value>
+             </init-param>
+           </init-params>
+       </instance>
+    </serializer>
+  </defaults>
+
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>trv-*</cache-name>
+      <scheme-name>trv-distributed</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <remote-cache-scheme>
+      <scheme-name>trv-distributed</scheme-name>
+      <service-name>ExtendTcpProxyService</service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <remote-addresses>
+            <address-provider>ap3</address-provider>
+          </remote-addresses>
+        </tcp-initiator>
+      </initiator-config>
+    </remote-cache-scheme>
+
+    <remote-invocation-scheme>
+      <scheme-name>trv-invocation</scheme-name>
+      <service-name>ExtendTcpInvocationService</service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <remote-addresses>
+            <address-provider>ap3</address-provider>
+          </remote-addresses>
+        </tcp-initiator>
+      </initiator-config>
+    </remote-invocation-scheme>
+
+  </caching-schemes>
+</cache-config>

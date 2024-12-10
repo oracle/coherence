@@ -1,0 +1,30 @@
+<?xml version='1.0'?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<license-document>
+  <license>
+    <software>Oracle Coherence: Grid Edition</software>
+    <licensee>n/a</licensee>
+    <type>production</type>
+    <id>0xF0A800CC0000011290D2E0B874855B8F</id>
+    <signature>302C0214400FDBBF6C025252C82637DDEA6C30FAE2892E8F0214712211DC5CFB2B3CD2B36831A73DCE2927EBD0F0</signature>
+  </license>
+  <license>
+    <software>Oracle Coherence: Real-Time Client</software>
+    <licensee>n/a</licensee>
+    <type>production</type>
+    <id>0x10A800CC0000011290D2E11674855B90</id>
+    <signature>302C021441D29A180EBD0B1C564A70CFDD89E1B1786E1E85021464A2089578C2BDC5E994DABD01467D42EEA8BC87</signature>
+  </license>
+  <license>
+    <software>Oracle Coherence: Data Client</software>
+    <licensee>n/a</licensee>
+    <type>production</type>
+    <id>0x00A800CC0000011295888F24BC6C730B</id>
+    <signature>302C02147D6367E681700189CAC66F92C6A77EB9E1255D2F021425026409450EEDFFCC926D13FF58546930321113</signature>
+  </license>
+</license-document>

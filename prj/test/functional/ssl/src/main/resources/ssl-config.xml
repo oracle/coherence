@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<ssl>
+  <protocol>TLS</protocol>
+  <provider>
+    <name>MyProvider</name>
+    <class-name>com.foo.bar.SSLProvider</class-name>
+    <class-factory-name>com.foo.bar.SSLProviderFactory</class-factory-name>
+    <method-name>createInstance</method-name>
+    <init-params>
+      <init-param>
+        <param-type>String</param-type>
+        <param-value>MyValue</param-value>
+      </init-param>
+    </init-params>
+  </provider>
+
+  <executor>
+    <class-name>com.foo.bar.Executor</class-name>
+    <class-factory-name>com.foo.bar.ExecutorFactory</class-factory-name>
+    <method-name>createInstance</method-name>
+    <init-params>
+      <init-param>
+        <param-type>String</param-type>
+        <param-value>MyValue</param-value>
+      </init-param>
+    </init-params>
+  </executor>
+
+  <identity-manager>
+    <algorithm>SunX509</algorithm>
+    <provider>
+      <name>MyProvider</name>
+      <class-name>com.foo.bar.SSLProvider</class-name>
+      <class-factory-name>com.foo.bar.SSLProviderFactory</class-factory-name>
+      <method-name>createInstance</method-name>
+      <init-params>
+        <init-param>
+          <param-type>String</param-type>
+          <param-value>MyValue</param-value>
+        </init-param>
+      </init-params>
+    </provider>
+    <key-store>
+      <url>file:identity.jks</url>
+      <password>password</password>
+      <type>JKS</type>
+    </key-store>
+    <password>password</password>
+  </identity-manager>
+
+  <trust-manager>
+    <algorithm>SunX509</algorithm>
+    <provider>
+      <name>MyProvider</name>
+      <class-name>com.foo.bar.SSLProvider</class-name>
+      <class-factory-name>com.foo.bar.SSLProviderFactory</class-factory-name>
+      <method-name>createInstance</method-name>
+      <init-params>
+        <init-param>
+          <param-type>String</param-type>
+          <param-value>MyValue</param-value>
+        </init-param>
+      </init-params>
+    </provider>
+    <key-store>
+      <url>file:trust.jks</url>
+      <password>password</password>
+      <type>JKS</type>
+    </key-store>
+  </trust-manager>
+
+  <hostname-verifier>
+    <class-name>com.foo.bar.HostnameVerifier</class-name>
+    <class-factory-name>com.foo.bar.HostnameVerifierFactory</class-factory-name>
+    <method-name>createInstance</method-name>
+    <init-params>
+      <init-param>
+        <param-type>String</param-type>
+        <param-value>MyValue</param-value>
+      </init-param>
+    </init-params>
+  </hostname-verifier>
+</ssl>

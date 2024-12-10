@@ -1,0 +1,119 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- ANT build script for Coherence REST test project.                     -->
+<!--                                                                       -->
+<!-- Usage:                                                                -->
+<!--     prompt> ant help                                                  -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<project name="rest" default="help" basedir=".">
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Project properties                                                  -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <property environment="env"/>
+
+  <condition property="keytool" value="${env.JAVA_HOME}/bin/keytool.exe" else="keytool" >
+    <os family="windows" />
+  </condition>
+
+  <property name="functional.resources"     value="rest/**/*.xml"/>
+  <property name="functional.source"        value="rest/**/*.java"/>
+  <property name="functional.tests"         value="rest/**/*Tests.class"/>
+  <property name="functional.tests.exclude" value="rest/**/Abstract*Tests.class,
+                                                   rest/GlassFishTests.class,
+                                                   rest/WebLogicTests.class"/>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Project paths                                                       -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <path id="test.classpath">
+    <fileset dir="${project.build.libDirectory}">
+      <include name="**/*.jar"/>
+    </fileset>
+  </path>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Project targets                                                     -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <target name="test.glassfish">
+    <antcall target="banner">
+      <param name="banner.message"
+             value="Running GlassFish tests for: ${project.artifactId}"/>
+    </antcall>
+    <property name="test.glassfish.address" value="127.0.0.1"/>
+    <property name="test.glassfish.port"    value="8080"/>
+    <property name="test.glassfish.context" value="/rest"/>
+
+    <property name="coherence.wka"      value="127.0.0.1"/>
+    <property name="coherence.wka.port" value="8888"/>
+    <property name="test.unicast.address"        value="127.0.0.1"/>
+    <property name="test.unicast.port"           value="8888"/>
+
+    <antcall target="junit">
+      <param name="junit.output.dir"    value="${functional.output.dir}"/>
+      <param name="junit.reports.dir"   value="${functional.reports.dir}"/>
+      <param name="junit.tests"         value="rest/GlassFishTests.class"/>
+    </antcall>
+  </target>
+
+  <target name="test.weblogic">
+    <antcall target="banner">
+      <param name="banner.message"
+             value="Running WebLogic tests for: ${project.artifactId}"/>
+    </antcall>
+    <property name="test.weblogic.address" value="127.0.0.1"/>
+    <property name="test.weblogic.port"    value="7001"/>
+    <property name="test.weblogic.context" value="/rest"/>
+
+    <property name="coherence.wka"      value="127.0.0.1"/>
+    <property name="coherence.wka.port" value="8888"/>
+    <property name="test.unicast.address"        value="127.0.0.1"/>
+    <property name="test.unicast.port"           value="8888"/>
+
+    <antcall target="junit">
+      <param name="junit.output.dir"    value="${functional.output.dir}"/>
+      <param name="junit.reports.dir"   value="${functional.reports.dir}"/>
+      <param name="junit.tests"         value="rest/WebLogicTests.class"/>
+    </antcall>
+  </target>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Utility targets                                                     -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <target name="create.keystores"
+          description="Generate the various keystore files used by the SSL tests.">
+
+    <mkdir dir="target/classes/"/>
+
+    <!-- Create the client, server keystores -->
+    <exec executable="${keytool}">
+      <arg line="-genkey -keyalg RSA -keysize 4096 -storetype JKS -validity 3650 -dname 'CN=client, O=Oracle, L=Burlington, ST=MA, C=US' -alias client -keypass private -keystore target/classes/client.jks -storepass password"/>
+    </exec>
+    <exec executable="${keytool}">
+      <arg line="-exportcert -alias client -file target/classes/client.pem -keystore target/classes/client.jks -storepass password"/>
+    </exec>
+    <exec executable="${keytool}">
+      <arg line="-genkey -keyalg RSA -keysize 4096 -storetype JKS -validity 3650 -dname 'CN=server, O=Oracle, L=Burlington, ST=MA, C=US' -alias server -keypass private -keystore target/classes/server.jks -storepass password"/>
+    </exec>
+    <exec executable="${keytool}">
+      <arg line="-exportcert -alias server -file target/classes/server.pem -keystore target/classes/server.jks -storepass password"/>
+    </exec>
+
+    <!-- Create the trust keystore -->
+    <exec executable="${keytool}">
+      <arg line="-importcert -noprompt -alias clientcert -file target/classes/client.pem -keystore target/classes/trust-server.jks -storepass password"/>
+    </exec>
+    <exec executable="${keytool}">
+      <arg line="-importcert -noprompt -alias servercert -file target/classes/server.pem -keystore target/classes/trust-client.jks -storepass password"/>
+    </exec>
+  </target>
+</project>

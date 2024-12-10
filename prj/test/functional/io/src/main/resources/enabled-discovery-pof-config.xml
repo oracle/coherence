@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<pof-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">
+  <user-type-list>
+    <user-type>
+      <type-id>1000</type-id>
+      <class-name>io.PofConfigDiscoveryTests$PofTypeOne</class-name>
+    </user-type>
+  </user-type-list>
+
+  <enable-config-discovery>true</enable-config-discovery>
+</pof-config>

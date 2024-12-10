@@ -1,0 +1,83 @@
+/*
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+plugins {
+    id "application"
+    id "org.kordamp.gradle.jandex" version "0.9.0"
+}
+apply plugin : "java"
+
+
+group = 'com.oracle.coherence.tutorials'
+version = '${coherenceVersion}'
+sourceCompatibility = '17'
+
+repositories {
+	mavenCentral()
+	mavenLocal()
+}
+
+dependencies {
+	implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+  	implementation platform("io.helidon:helidon-bom:${helidonVersion}")
+
+	implementation ("io.helidon.microprofile.cdi:helidon-microprofile-cdi")
+    implementation ("io.helidon.microprofile.metrics:helidon-microprofile-metrics")
+	implementation "${coherenceGroupId}:coherence"
+	implementation "${coherenceGroupId}:coherence-cdi-server"
+
+	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+   	testImplementation "io.helidon.microprofile.tests:helidon-microprofile-tests-junit5"
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+}
+
+// define a custom task to copy all dependencies in the runtime classpath
+// into build/libs/libs
+// uses built-in Copy
+task copyLibs(type: Copy) {
+  from configurations.runtimeClasspath
+  into 'build/libs/libs'
+}
+
+// add it as a dependency of built-in task 'assemble'
+copyLibs.dependsOn jar
+assemble.dependsOn copyLibs
+
+// default jar configuration
+// set the main classpath
+// add each jar under build/libs/libs into the classpath
+jar {
+  archiveFileName = "${project.name}.jar"
+  manifest {
+    attributes ('Main-Class': 'io.helidon.microprofile.cdi.Main',
+                'Class-Path': configurations.runtimeClasspath.files.collect { "libs/$it.name" }.join(' ')
+               )
+  }
+}
+
+task runApp(type: Exec) {
+    dependsOn jar
+    group = "Execution"
+    commandLine "java", "-jar", jar.archiveFile.get()
+ }
+
+test {
+	useJUnitPlatform()
+}
+
+// This is a work-around for running unit tests.
+// Gradle places resource files under ${buildDir}/resources. In order for
+// beans.xml to get picked up by CDI it must be co-located with the classes.
+// So we move it before running tests.
+// In either case it ends up AOK in the final jar artifact
+task moveBeansXML {
+    doLast {
+        ant.move file: "${buildDir}/resources/main/META-INF/beans.xml",
+                 todir: "${buildDir}/classes/java/main/META-INF"
+    }
+}
+test.dependsOn moveBeansXML

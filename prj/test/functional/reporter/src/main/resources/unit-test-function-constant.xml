@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+    <report>
+      <file-name>unit-test-function-constant.txt</file-name>
+      <delim>{tab}</delim>
+      <hide-headers>false</hide-headers>
+
+      <!-- Get a distinct list of services and the associated Status -->
+      <filters>
+      </filters>
+
+      <query>
+        <pattern>Coherence:type=Test,*</pattern>
+      </query>
+
+      <row>
+        <column id="node">
+          <type>key</type>
+          <name>nodeId</name>
+          <header>Node</header>
+        </column>
+
+        <column id="valueInt">
+          <name>Int</name>
+      	  <header>Integer</header>
+      	  <return-neg>true</return-neg>
+        </column>
+
+        <column id="valueLong">
+          <name>Long</name>
+	        <header>Long</header>
+	        <return-neg>true</return-neg>
+        </column>
+
+        <column id="valueZero">
+          <type>constant</type>
+          <name>Value0</name>
+          <data-type>double</data-type>
+          <value>0</value>
+        </column>
+
+        <column id="add">
+          <type>function</type>
+          <header>AddInt+Long</header>
+          <function-name>add</function-name>
+          <params>
+            <column-ref>valueInt</column-ref>
+            <column-ref>valueLong</column-ref>
+          </params>
+        </column>
+
+        <column id="sub">
+          <type>function</type>
+          <header>SubInt-Long</header>
+          <function-name>subtract</function-name>
+          <params>
+            <column-ref>valueInt</column-ref>
+            <column-ref>valueLong</column-ref>
+          </params>
+        </column>
+
+        <column id="multi">
+          <type>function</type>
+          <header>MultiplyInt*Long</header>
+          <function-name>multiply</function-name>
+          <params>
+            <column-ref>valueInt</column-ref>
+            <column-ref>valueLong</column-ref>
+          </params>
+        </column>
+
+        <column id ="div">
+          <type>function</type>
+          <header>DivideLong/Int</header>
+          <function-name>divide</function-name>
+          <params>
+            <column-ref>valueLong</column-ref>
+            <column-ref>valueInt</column-ref>
+          </params>
+        </column>
+
+        <column id ="div0">
+          <type>function</type>
+          <header>DivideByZero</header>
+          <function-name>divide</function-name>
+          <params>
+            <column-ref>valueLong</column-ref>
+            <column-ref>valueZero</column-ref>
+          </params>
+        </column>
+      </row>
+    </report>
+
+</report-config>

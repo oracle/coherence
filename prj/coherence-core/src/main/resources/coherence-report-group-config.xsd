@@ -1,0 +1,240 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://xmlns.oracle.com/coherence/coherence-report-group-config"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-report-group-config"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified"
+            version="1.1">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+            Licensed under the Universal Permissive License v 1.0 as shown at
+            http://oss.oracle.com/licenses/upl.
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:annotation>
+        <xsd:documentation>
+            This is the XML Schema Definition for the report-group.xml configuration
+            file.
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:element name="report-group">
+        <xsd:annotation>
+            <xsd:documentation>
+                The report-group element is the root element of the report-group
+                descriptor.
+
+                Used in: n/a
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="frequency" />
+                <xsd:element ref="output-directory" minOccurs="0" />
+                <xsd:element ref="report-list" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="frequency">
+        <xsd:annotation>
+            <xsd:documentation>
+                The frequency element is the duration between each execution of the
+                reports in
+                the report list.
+
+                Used in: report-group
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:simpleContent>
+                <xsd:extension base="reporter-time-root-type">
+                    <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+                    <xsd:anyAttribute namespace="##other" processContents="lax"/>
+                </xsd:extension>
+            </xsd:simpleContent>
+        </xsd:complexType>
+    </xsd:element>
+
+  <xsd:simpleType name="reporter-time-root-type">
+      <xsd:annotation>
+          <xsd:documentation>
+              Time string type. Values of elements of this type must be
+              in the following format:
+
+              (\d)+(\.\d+)?(MS|ms|S|s|M|m|H|h|D|d)?
+
+              where the first non-digits (from left to right) indicate the
+              unit of time duration:
+
+              -MS or ms (milliseconds)
+              -S or s (seconds)
+              -M or m
+              (minutes)
+              -H or h (hours)
+              -D or d (days)
+
+              If the value does not contain a unit, a unit of
+              seconds is assumed.
+          </xsd:documentation>
+      </xsd:annotation>
+      <xsd:restriction base="xsd:string">
+          <xsd:pattern value="(\d)+(\.\d+)?(MS|ms|S|s|M|m|H|h|D|d)?" />
+      </xsd:restriction>
+  </xsd:simpleType>
+
+    <xsd:element name="output-directory">
+        <xsd:annotation>
+            <xsd:documentation>
+                The output-directory element is the location for the output files.
+
+                Used in: report-group
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType mixed="true">
+            <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="report-list">
+        <xsd:annotation>
+            <xsd:documentation>
+                The report-list element contains a list of report configurations.
+
+                Used in: report-group
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="report-config" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="report-config">
+        <xsd:annotation>
+            <xsd:documentation>
+                The report-config element contains the report configuration location
+                and
+                corresponding initialization parameters.
+
+                Used in: report-group
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="location" />
+                <xsd:element ref="init-params" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="init-params">
+        <xsd:annotation>
+            <xsd:documentation>
+                The init-params element contains a list of initialization parameters.
+
+                Used in: report-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="init-param" minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="init-param">
+        <xsd:annotation>
+            <xsd:documentation>
+                The init-param element contains an initialization parameter for a
+                report.
+
+                Used in: init-params
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:choice>
+                    <xsd:element ref="param-name" />
+                    <xsd:element ref="param-type" />
+                </xsd:choice>
+                <xsd:element ref="param-value" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="param-name" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                The param-name element specifies the name of the initialization
+                parameter.
+
+                Used in: init-param
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="param-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The param-type element specifies the Java type of the initialization
+                parameter.
+
+                Supported types are:
+                - string - indicates that the value is a java.lang.String
+                - long - indicates that the value is a java.lang.Long
+                - double -
+                indicates that the value is a java.lang.Double
+
+                Used in: init-param
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="string" />
+                <xsd:enumeration value="java.lang.String" />
+                <xsd:enumeration value="long" />
+                <xsd:enumeration value="java.lang.Long" />
+                <xsd:enumeration value="double" />
+                <xsd:enumeration value="java.lang.Double" />
+            </xsd:restriction>
+        </xsd:simpleType>
+    </xsd:element>
+
+    <xsd:element name="param-value" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                The param-value element specifies a value of the initialization
+                parameter.
+
+                The value is in a format specific to the type of the parameter.
+
+                Used in: init-param
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="location" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                The location element contains a path to a report configuration
+                descriptor that
+                conforms to the coherence-report-config.xsd. This path could be either a file or a
+                URL.
+
+                Used in: report-list
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+</xsd:schema>

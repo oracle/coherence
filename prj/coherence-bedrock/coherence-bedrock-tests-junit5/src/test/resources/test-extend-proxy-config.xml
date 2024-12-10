@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config
+	xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+    <defaults>
+        <serializer>pof</serializer>
+        <socket-provider system-property="tangosol.coherence.socketprovider">system</socket-provider>
+    </defaults>
+
+    <caching-scheme-mapping>
+        <cache-mapping>
+            <cache-name>*</cache-name>
+            <scheme-name>distributed-scheme</scheme-name>
+        </cache-mapping>
+    </caching-scheme-mapping>
+
+    <caching-schemes>
+        <distributed-scheme>
+            <scheme-name>distributed-scheme</scheme-name>
+            <service-name>distributed-service</service-name>
+            <backing-map-scheme>
+                <local-scheme>
+                    <unit-calculator>BINARY</unit-calculator>
+                </local-scheme>
+            </backing-map-scheme>
+            <autostart>true</autostart>
+        </distributed-scheme>
+
+        <proxy-scheme>
+            <service-name>ExtendTcpProxyService</service-name>
+            <thread-count>5</thread-count>
+            <acceptor-config>
+                <tcp-acceptor>
+                    <local-address>
+                        <address system-property="extend.proxy.host">localhost</address>
+                        <port system-property="coherence.extend.port">10000</port>
+                    </local-address>
+                </tcp-acceptor>
+            </acceptor-config>
+            <autostart>true</autostart>
+        </proxy-scheme>
+
+    </caching-schemes>
+
+</cache-config>

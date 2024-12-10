@@ -1,0 +1,43 @@
+/*
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+plugins {
+	id 'java'
+}
+
+group = 'com.oracle.coherence.guides'
+version = '${coherenceVersion}'
+sourceCompatibility = '17'
+
+repositories {
+	mavenCentral()
+	mavenLocal()
+}
+
+dependencies {
+    implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+    implementation "${coherenceGroupId}:coherence"
+
+	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+}
+
+test {
+    testLogging {
+        events "PASSED", "SKIPPED", "FAILED", "STANDARD_OUT", "STANDARD_ERROR"
+    }
+    useJUnitPlatform()
+}
+
+task runServer(type: Exec) {
+    dependsOn build
+    group = "Execution"
+    description = "Run a Coherence Cache Server"
+    commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(), "com.tangosol.net.Coherence"
+}
+

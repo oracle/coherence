@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+<coherence  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd">
+
+  <cluster-config>
+    <unicast-listener>
+      <address system-property="test.unicast.address">127.0.0.1</address>
+      <port    system-property="test.unicast.port">8888</port>
+    </unicast-listener>
+
+    <multicast-listener>
+      <address system-property="test.multicast.address">224.255.255.255</address>
+      <port    system-property="test.multicast.port">7778</port>
+      <time-to-live system-property="test.multicast.ttl">0</time-to-live>
+      <join-timeout-milliseconds system-property="tangosol.coherence.join.timeout">3000</join-timeout-milliseconds>
+    </multicast-listener>
+  </cluster-config>
+
+  <logging-config>
+    <destination system-property="test.log">stdout</destination>
+    <severity-level system-property="test.log.level">8</severity-level>
+    <character-limit>0</character-limit>
+  </logging-config>
+</coherence>

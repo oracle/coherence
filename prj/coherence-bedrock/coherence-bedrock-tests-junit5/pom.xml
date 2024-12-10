@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce</groupId>
+    <artifactId>coherence-bedrock-parent</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>coherence-bedrock-tests-junit5</artifactId>
+
+  <name>Bedrock for Testing Coherence - JUnit 5 tests</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-bedrock-testing-support</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jacoco</groupId>
+      <artifactId>org.jacoco.agent</artifactId>
+      <version>${jacoco.version}</version>
+      <classifier>runtime</classifier>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <!-- Bedrock tests are not run with modules -->
+    <profile>
+      <id>modular-tests</id>
+      <activation>
+        <!-- This is a work-around for the fact that activeByDefault does not do what you'd think it should -->
+        <file><exists>.</exists></file>
+      </activation>
+      <properties>
+        <useModulePath>false</useModulePath>
+        <bedrockUseModules>false</bedrockUseModules>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>code-coverage</id>
+      <activation>
+        <property>
+          <name>code.coverage.enabled</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <!-- We skip tests when running code coverage -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-surefire-plugin</artifactId>
+              <version>${maven.surefire.plugin.version}</version>
+              <configuration>
+                <skip>true</skip>
+              </configuration>
+            </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-failsafe-plugin</artifactId>
+              <version>${maven.failsafe.plugin.version}</version>
+              <configuration>
+                <skip>true</skip>
+              </configuration>
+            </plugin>
+            <plugin>
+              <groupId>org.jacoco</groupId>
+              <artifactId>jacoco-maven-plugin</artifactId>
+              <version>${jacoco.version}</version>
+              <configuration>
+                <skip>true</skip>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+  </profiles>
+</project>

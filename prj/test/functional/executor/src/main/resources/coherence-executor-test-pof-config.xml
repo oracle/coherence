@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<pof-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">
+  <user-type-list>
+    <!-- by default, just include coherence POF user types -->
+    <include>coherence-concurrent-pof-config.xml</include>
+
+    <!-- Coherence ExecutorService Test POF Types 1501-1599 -->
+
+    <user-type>
+      <type-id>1501</type-id>
+      <class-name>executor.common.LongRunningTask</class-name>
+    </user-type>
+    <user-type>
+      <type-id>1502</type-id>
+      <class-name>executor.common.RepeatedTask</class-name>
+    </user-type>
+    <user-type>
+      <type-id>1503</type-id>
+      <class-name>executor.common.AbstractTaskExecutorServiceTests$CountingTask</class-name>
+    </user-type>
+    <user-type>
+      <type-id>1504</type-id>
+      <class-name>executor.common.AbstractTaskExecutorServiceTests$MyCompletion</class-name>
+    </user-type>
+    <user-type>
+      <type-id>1505</type-id>
+      <class-name>executor.common.AbstractTaskExecutorServiceTests$MyCallable</class-name>
+    </user-type>
+    <user-type>
+      <type-id>1506</type-id>
+      <class-name>executor.common.AbstractTaskExecutorServiceTests$MyRunnable</class-name>
+    </user-type>
+    <user-type>
+      <type-id>1507</type-id>
+      <class-name>executor.common.AbstractTaskExecutorServiceTests$SleeperTask</class-name>
+    </user-type>
+    <user-type>
+      <type-id>1508</type-id>
+      <class-name>executor.common.AbstractTaskExecutorServiceTests$GetExecutorIdTask</class-name>
+    </user-type>
+    <user-type>
+      <type-id>1509</type-id>
+      <class-name>executor.common.AbstractTaskExecutorServiceTests$MultipleResultsTask</class-name>
+    </user-type>
+    <user-type>
+      <type-id>1510</type-id>
+      <class-name>executor.common.AbstractTaskExecutorServiceTests$GetTaskIdTask</class-name>
+    </user-type>
+    <user-type>
+      <type-id>1511</type-id>
+      <class-name>executor.common.AbstractTaskExecutorServiceTests$UpdatePropertiesTask</class-name>
+    </user-type>
+    <user-type>
+      <type-id>1512</type-id>
+      <class-name>executor.common.ExceptionTask</class-name>
+    </user-type>
+    <user-type>
+      <type-id>1513</type-id>
+      <class-name>executor.common.YieldingTask</class-name>
+    </user-type>
+    <user-type>
+      <type-id>1514</type-id>
+      <class-name>executor.common.NullTask</class-name>
+    </user-type>
+    <user-type>
+      <type-id>1515</type-id>
+      <class-name>executor.common.RandomSleepTask</class-name>
+    </user-type>
+  </user-type-list>
+</pof-config>

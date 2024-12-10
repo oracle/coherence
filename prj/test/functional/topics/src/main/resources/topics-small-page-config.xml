@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <topic-scheme-mapping>
+    <topic-mapping>
+      <topic-name>binary-*</topic-name>
+      <scheme-name>binary-topic-scheme</scheme-name>
+    </topic-mapping>
+
+    <topic-mapping>
+      <topic-name>limited-binary-*</topic-name>
+      <scheme-name>limited-binary-topic-scheme</scheme-name>
+    </topic-mapping>
+
+    <topic-mapping>
+      <topic-name>fixed-*</topic-name>
+      <scheme-name>fixed-topic-scheme</scheme-name>
+    </topic-mapping>
+  </topic-scheme-mapping>
+
+  <caching-schemes>
+    <paged-topic-scheme>
+      <scheme-name>binary-topic-scheme</scheme-name>
+      <scheme-ref>common-topic-scheme</scheme-ref>
+      <page-size>1KB</page-size>
+    </paged-topic-scheme>
+
+    <paged-topic-scheme>
+      <scheme-name>limited-binary-topic-scheme</scheme-name>
+      <scheme-ref>common-topic-scheme</scheme-ref>
+      <page-size>1KB</page-size>
+      <high-units>10KB</high-units>
+    </paged-topic-scheme>
+
+    <paged-topic-scheme>
+      <scheme-name>fixed-topic-scheme</scheme-name>
+      <scheme-ref>common-topic-scheme</scheme-ref>
+      <page-size>100</page-size>
+    </paged-topic-scheme>
+
+    <paged-topic-scheme>
+      <scheme-name>common-topic-scheme</scheme-name>
+      <service-name>PartitionedTopic</service-name>
+      <thread-count-max>10</thread-count-max>
+      <thread-count-min>10</thread-count-min>
+      <autostart>true</autostart>
+    </paged-topic-scheme>
+  </caching-schemes>
+</cache-config>

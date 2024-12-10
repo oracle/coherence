@@ -1,0 +1,305 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Securing with SSL
+:description: Coherence Guides Securing With SSL
+:keywords: coherence, java, documentation, security, SSL, securing
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Securing with SSL
+
+This guide walks you through how to secure Coherence communication between cluster members as well as Coherence*Extend clients.
+
+Oracle Coherence supports Secure Sockets Layer (SSL) to secure TCMP communication between cluster nodes and to
+secure the TCP communication between Oracle Coherence*Extend clients and proxies. Oracle Coherence supports
+the Transport Layer Security (TLS) protocol, which superseded the SSL protocol; however, the term SSL is
+used in this documentation because it is the more widely recognized term.
+
+See the Coherence documentation links below for more detailed information on Coherence Security.
+
+* {commercial-docs-base-url}/secure/introduction-oracle-coherence-security.html[Introduction to Coherence Security]
+* {commercial-docs-base-url}/secure/using-ssl-secure-communication.html[Using SSL to Secure Communication]
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-will-need,What You Need>>
+* <<building, Building the Example Code>>
+* <<example-config, Review the Configuration>>
+* <<example-tests-1, Review the Test Classes>>
+* <<run-example-1, Run the Examples>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+In this example you will run tests that show a number of ways to configure secure communication via SSL by defining various SSL socket providers.
+
+The tests carry out the following, for a variety of socket providers:
+
+1. Generate keys and self-signed certificates to be used in the test
+2. Start 2 cache servers, one having a Proxy service enabled passing properties to point to the newly created keys and certificates
+3. Run a basic put/get test over SSL via Coherence*Extend passing properties to point to the newly created keys and certificates
+
+Each test showcases the different methods of configuring SSL:
+
+* Using Java key stores
+* Referring directly to keys and certificates on the file-system
+* Using custom loaders to load key stores, private keys and certificates
+
+NOTE: Custom loaders can also be configured to be refreshed based upon intervals.
+
+[#what-you-will-need]
+==== What You Need
+:java_version: 11
+:duration: 20
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+[#building]
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+[#example-config]
+=== Review the Configuration
+
+==== Socket Provider Definitions
+
+When configuring SSL, you define a `<socket-provider>` in the Coherence operational configuration and
+refer to this in your operational and cache configuration.  The socket providers for this test are explained further below.
+
+To enable SSL for cluster communication, add a reference to the socket provider in your `<unicast-listener>` element as
+shown below:
+
+[source,xml,indent=0]
+----
+include::src/test/resources/tangosol-coherence-ssl.xml[tag=unicast]
+----
+
+To enable SSL on a Proxy server, specify a `<socket-provider>` in the `<tcp-acceptor>` element of the proxy scheme as shown below:
+
+[source,xml,indent=0]
+----
+include::src/test/resources/server-cache-config.xml[tag=proxy]
+----
+
+Finally, to enable SSL on a Coherence*Extend client, specify a `<socket-provider>` in the `<tcp-initiator>` element of
+the `<remote-cache-scheme>` as shown below:
+
+[source,xml,indent=0]
+----
+include::src/test/resources/extend-cache-config.xml[tag=remote]
+----
+
+For this example, we define a number of socket providers in the operational configuration `src/test/resources/tangosol-coherence-ssl.xml`.
+Each test which is run sets the system property `test.socket.provider` to one of the following values to test the configuration:
+
+* `sslKeyStore` - configure using Java key store and trust store
+* `sslKeyAndCert` - configure using keys and certificates on the file system
+* `sslCustomKeyAndCert` - configure using custom private key a certificate loaders (This is especially useful in Kubernetes environments to load from secrets)
+* `sslCustomKeyStore` - configure using a custom key store loader
+
+NOTE: when specifying a trust store, you get two-way SSL.
+
+Each configuration option is outlined below:
+
+* `sslKeyStore` - configure SSL socket provider using Java key store and trust store
++
+[source,xml,indent=0]
+----
+include::src/test/resources/tangosol-coherence-ssl.xml[tag=sslKeyStore]
+----
+<1> Identity manager using Java key store
+<2> Trust manager using Java key store
+
+* `sslKeyAndCert` - configure SSL socket provider using key and certificate files only
++
+[source,xml,indent=0]
+----
+include::src/test/resources/tangosol-coherence-ssl.xml[tag=sslKeyAndCert]
+----
+<1> Identity manager using key and certificate directly
+<2> Trust manager using key and certificate directly
+<3> Optional refresh period for keys and certificates
+
+* `sslCustomKeyAndCert` - configure SSL socket provider using custom private key and certificate loaders
++
+[source,xml,indent=0]
+----
+include::src/test/resources/tangosol-coherence-ssl.xml[tag=sslCustomKeyAndCert]
+----
+<1> Identity manager using custom private key loader
+<2> Identity manager using custom certificate key loader
+<3> Trust manager using custom certificate key loader
+
+* `sslCustomKeyStore` - configure SSL socket provider using a custom key store loader
++
+[source,xml,indent=0]
+----
+include::src/test/resources/tangosol-coherence-ssl.xml[tag=sslCustomKeyStore]
+----
+<1> Identity manager using custom key store loader
+<2> Identity manager using custom key store loader
+
+[#example-tests-1]
+=== Review the Test Classes
+
+The example code comprises the following classes, which are explained below:
+
+* `AbstractSSLExampleTest` - abstract test implementation to create SSL configuration files and startup cluster using the required socket provider
+* `KeyStoreSSLExampleTest` -  test with socket provider using Java key-store
+* `KeyStoreAndCertSSLExampleTest` - test with socket provider using key and certificate files only
+* `CustomKeyStoreSSLExampleTest` - test with socket provider using a custom private key and certificate loaders
+* `CustomCertificateLoader` - a custom certificate loader class
+* `CustomKeyStoreLoader` - a custom key store loader class
+* `CustomPrivateKeyLoader` - a custom private key loader class
+
+
+NOTE: The tests use the Oracle Bedrock `KeyTool` utility to generate the require keys, stores and certificates.
+You should use your own generated artefacts and not use these for production usage.
+
+1. Review the `AbstractSSLExampleTest` class
++
+This abstract class contains various utilities used by all tests. A few snippets are included below:
++
+*Generate Test Certificates*
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/ssl/AbstractSSLExampleTest.java[tag=certs]
+----
++
+*Set Cache Server Options*
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/ssl/AbstractSSLExampleTest.java[tag=options]
+----
++
+*Run the Simple Test*
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/ssl/AbstractSSLExampleTest.java[tag=test]
+----
++
+
+2. Review the `KeyStoreSSLExampleTest` class which tests with a socket provider using Java key-store
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/ssl/KeyStoreSSLExampleTest.java[tag=test]
+----
+<1> Specify the SSL socket provider
+
+3. Review the `KeyStoreAndCertSSLExampleTest` class which tests with socket provider using key and certificate files only
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/ssl/KeyStoreAndCertSSLExampleTest.java[tag=test]
+----
+<1> Specify the SSL socket provider
+
+4. Review the `CustomKeyStoreSSLExampleTest` class which tests with socket provider using a custom private key and certificate loader
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/ssl/CustomKeyStoreSSLExampleTest.java[tag=test]
+----
+<1> Specify the SSL socket provider
+
+5. Review the `CustomKeyAndCertSSLExampleTest` class which tests with socket provider using a custom key store loader
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/ssl/CustomKeyAndCertSSLExampleTest.java[tag=test]
+----
+<1> Specify the SSL socket provider
+
+6. Review the `CustomCertificateLoader` 
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/ssl/loaders/CustomCertificateLoader.java[tag=test]
+----
+
+7. Review the `CustomKeyStoreLoader`
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/ssl/loaders/CustomKeyStoreLoader.java[tag=test]
+----
+
+8. Review the `CustomPrivateKeyLoader`
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/ssl/loaders/CustomPrivateKeyLoader.java[tag=test]
+----
+
+[#run-example-1]
+=== Run the Examples
+
+Run the examples using the test case below.
+
+1. Run directly from your IDE by running either of the following test classes in the `com.oracle.coherence.guides.ssl` package.
+
+2. Run using Maven or Gradle
++
+E.g. for Maven use:
++
+[source,bash]
+----
+./mvnw clean verify
+----
++
+or
++
+[source,bash]
+----
+./gradlew clean test
+----
+
+When the test has run you will see output from the various parts of the test code. See below for some
+key items to look out for.
+
+1. Messages indicating the cluster is using SSL socket provider
++
+[source,bash]
+----
+TCMP bound to /127.0.0.1:51684 using TCPDatagramSocketProvider[Delegate: SSLSocketProvider(SSLSocketProvider())]
+----
+
+2. Cluster members connecting using `tmbs` (TCP Message bus over SSL)
++
+[source,bash]
+----
+tmbs://127.0.0.1:52311.51395 opening connection with tmbs://127.0.0.1:52315.47215 using
+SSLSocket(null /127.0.0.1:866404240, buffered{clear=0 encrypted=0 out=0},
+handshake=NOT_HANDSHAKING, jobs=0
+----
+
+3. Cluster musing two way (key and trust stores) for communication
++
+[source,bash]
+----
+ instantiated SSLSocketProviderDependencies: SSLSocketProvider(auth=two-way, identity=SunX509/.../examples/guides/210-ssl/target/test-classes/certs/server.jks,
+trust=SunX509//.../examples/guides/210-ssl/target/test-classes/certs/server-ca-ca.jks)
+----
+
+
+[#summary]
+=== Summary
+
+In this guide you learned how to secure Coherence communication between cluster members as well as Coherence*Extend clients.
+
+
+[#see-also]
+=== See Also
+
+* {commercial-docs-base-url}/secure/introduction-oracle-coherence-security.html[Introduction to Coherence Security]
+* {commercial-docs-base-url}/secure/using-ssl-secure-communication.html[Using SSL to Secure Communication]

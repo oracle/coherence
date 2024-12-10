@@ -1,0 +1,193 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<rest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="http://xmlns.oracle.com/coherence/coherence-rest-config"
+      xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-rest-config coherence-rest-config.xsd">
+  <resources>
+    <resource>
+      <cache-name>dist-test1</cache-name>
+      <key-class>java.lang.Integer</key-class>
+      <value-class>data.pof.PortablePerson</value-class>
+    </resource>
+    <resource>
+      <cache-name>dist-test2</cache-name>
+      <key-class>java.lang.Double</key-class>
+      <value-class>data.pof.PortablePerson</value-class>
+    </resource>
+    <resource>
+      <cache-name>dist-test-map</cache-name>
+      <key-class>java.lang.Integer</key-class>
+      <value-class>java.util.HashMap</value-class>
+    </resource>
+    <resource>
+      <cache-name>dist-test-collection</cache-name>
+      <key-class>java.lang.Integer</key-class>
+      <value-class>java.util.List</value-class>
+    </resource>
+    <resource>
+      <cache-name>dist-test-proc</cache-name>
+      <key-class>java.lang.Integer</key-class>
+      <value-class>rest.data.Persona</value-class>
+    </resource>
+    <resource>
+      <cache-name>dist-test-basic</cache-name>
+      <key-class>java.lang.String</key-class>
+      <value-class>java.lang.Integer</value-class>
+    </resource>
+    <resource>
+      <cache-name>dist-test-named-query</cache-name>
+      <key-class>java.lang.Integer</key-class>
+      <value-class>rest.data.Persona</value-class>
+      <query engine="DEFAULT">
+        <name>name-query</name>
+        <expression>name is :name</expression>
+      </query>
+      <query engine="DEFAULT">
+        <name>age-37-query</name>
+        <expression>age = 37</expression>
+      </query>
+      <direct-query enabled="true" engine="DEFAULT"/>
+    </resource>
+    <resource>
+      <cache-name>dist-test-max-results</cache-name>
+      <key-class>java.lang.Integer</key-class>
+      <value-class>java.lang.Integer</value-class>
+      <query engine="DEFAULT">
+        <name>less-than-1000</name>
+        <expression>value() &lt; 1000</expression>
+      </query>
+      <query engine="DEFAULT" max-results="200">
+        <name>less-than-1000-limit</name>
+        <expression>value() &lt; 1000</expression>
+      </query>
+      <direct-query enabled="true" engine="DEFAULT"/>
+    </resource>
+    <resource>
+      <cache-name>dist-test-max-results2</cache-name>
+      <key-class>java.lang.Integer</key-class>
+      <value-class>java.lang.Double</value-class>
+      <query engine="DEFAULT">
+        <name>less-than-100.0</name>
+        <expression>value() &lt; 100.0</expression>
+      </query>
+      <direct-query enabled="true" engine="DEFAULT"/>
+    </resource>
+    <resource max-results="900">
+      <cache-name>dist-test-max-results-limit</cache-name>
+      <key-class>java.lang.Integer</key-class>
+      <value-class>java.lang.Integer</value-class>
+      <query engine="DEFAULT">
+        <name>less-than-1000</name>
+        <expression>value() &lt; 1000</expression>
+      </query>
+      <query engine="DEFAULT" max-results="200">
+        <name>less-than-1000-limit</name>
+        <expression>value() &lt; 1000</expression>
+      </query>
+      <direct-query enabled="true" engine="DEFAULT" max-results="100"/>
+    </resource>
+    <resource>
+      <cache-name>dist-test-getput</cache-name>
+      <key-class>java.lang.Integer</key-class>
+      <value-class>java.lang.String</value-class>
+    </resource>
+
+    <resource>
+      <cache-name>dist-binaryvalue</cache-name>
+      <key-class>java.lang.Integer</key-class>
+    </resource>
+    <resource>
+      <cache-name>dist-binary</cache-name>
+    </resource>
+    <resource>
+      <cache-name>dist-binary-named-query</cache-name>
+      <query engine="DEFAULT">
+        <name>name-query</name>
+        <expression>name is :name</expression>
+      </query>
+      <query engine="DEFAULT">
+        <name>age-37-query</name>
+        <expression>age = 37</expression>
+      </query>
+      <direct-query enabled="true" engine="DEFAULT"/>
+    </resource>
+     <!-- resources used for unit tests -->
+
+    <resource>
+      <cache-name>test-cache-named-query</cache-name>
+      <key-class>java.lang.String</key-class>
+      <value-class>java.lang.String</value-class>
+      <query max-results="100">
+            <name>query-no-engine</name>
+            <expression>query-no-engine-expression</expression>
+        </query>
+        <query engine="DEFAULT">
+            <name>query-default-engine</name>
+            <expression>query-default-engine-expression</expression>
+        </query>
+        <query engine="null-engine">
+            <name>query-custom-engine</name>
+            <expression>query-custom-engine-expression</expression>
+        </query>
+    </resource>
+    <resource name="test-name">
+        <cache-name>test-cache</cache-name>
+        <alias>test-alias</alias>
+        <key-class>java.lang.String</key-class>
+        <value-class>java.lang.String</value-class>
+    </resource>
+    <resource max-results="1000">
+        <cache-name>test-cache-direct-query1</cache-name>
+        <key-class>java.lang.String</key-class>
+        <value-class>java.lang.String</value-class>
+        <direct-query enabled="true" engine="null-engine" max-results="500"/>
+    </resource>
+    <resource>
+        <cache-name>test-cache-direct-query2</cache-name>
+        <key-class>java.lang.String</key-class>
+        <value-class>java.lang.String</value-class>
+        <direct-query enabled="true" />
+    </resource>
+    <resource>
+        <cache-name>test-cache-direct-query3</cache-name>
+        <key-class>java.lang.String</key-class>
+        <value-class>java.lang.String</value-class>
+        <direct-query/>
+    </resource>
+  </resources>
+
+  <aggregators>
+    <aggregator>
+      <name>custom-long-sum</name>
+      <class-name>rest.data.CustomLongSum</class-name>
+    </aggregator>
+    <aggregator>
+      <name>custom-long-sum-factory</name>
+      <class-name>rest.data.CustomLongSumFactory</class-name>
+    </aggregator>
+  </aggregators>
+
+  <processors>
+    <processor>
+      <name>custom-number-doubler</name>
+      <class-name>rest.data.CustomNumberDoubler</class-name>
+    </processor>
+    <processor>
+      <name>custom-number-doubler-factory</name>
+      <class-name>rest.data.CustomNumberDoublerFactory</class-name>
+    </processor>
+  </processors>
+
+  <query-engines>
+    <engine>
+      <name>null-engine</name>
+      <class-name>rest.NullQueryEngine</class-name>
+    </engine>
+  </query-engines>
+</rest>

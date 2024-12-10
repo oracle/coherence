@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>pof</cache-name>
+      <scheme-name>pof-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>java</cache-name>
+      <scheme-name>java-scheme</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>base-scheme</scheme-name>
+      <backing-map-scheme>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>pof-scheme</scheme-name>
+      <scheme-ref>base-scheme</scheme-ref>
+      <service-name>PofScheme</service-name>
+      <serializer>pof</serializer>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>java-scheme</scheme-name>
+      <scheme-ref>base-scheme</scheme-ref>
+      <service-name>JavaScheme</service-name>
+      <serializer>java</serializer>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <proxy-scheme>
+      <service-name>PofProxy</service-name>
+      <acceptor-config>
+        <serializer>pof</serializer>
+      </acceptor-config>
+      <autostart system-property="coherence.extend.enabled">false</autostart>
+    </proxy-scheme>
+
+    <proxy-scheme>
+      <service-name>JavaProxy</service-name>
+      <acceptor-config>
+        <serializer>java</serializer>
+      </acceptor-config>
+      <autostart system-property="coherence.extend.enabled">false</autostart>
+    </proxy-scheme>
+
+  </caching-schemes>
+</cache-config>

@@ -1,0 +1,356 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Federation
+:description: Coherence Tutorials
+:keywords: coherence, java, documentation, tutorials, federation
+
+== Federation
+
+This guide walks through the steps to use Coherence Federation by using Coherence Query Language (CohQL)
+to insert, update and remove data in Federated clusters.
+
+Federated caching federates cache data asynchronously across multiple geographically dispersed clusters.
+Cached data is federated across clusters to provide redundancy, off-site backup, and multiple points
+of access for application users in different geographical locations.
+
+Federated caching supports multiple federation topologies. These include: active-active, active-passive, hub-spoke,
+and central-federation. The topologies define common federation strategies between clusters and support a wide variety of use cases.
+Custom federation topologies can also be created as required.
+
+Federated caching provides applications with the ability to accept, reject, or modify cache entries being stored
+locally or remotely. Conflict resolution is application specific
+to allow the greatest amount of flexibility when defining federation rules.
+
+NOTE: Federation is only available when using Coherence Grid Edition (GE) 12.2.1.4.X and above, and is not available in the open-source
+Coherence Community Edition (CE).
+
+NOTE: As Coherence Grid Edition JAR's and not available in Maven central, to build and run
+this example you, must first install the Coherence JAR into your Maven Repository from your
+local Grid Edition Install. See <<building,here>> for instructions on how to complete this.
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-need,What You Need>>
+* <<building,Building the Example Code>>
+* <<review-the-initial-project, Review the Project>>
+** <<maven, Maven Configuration>>
+** <<cache-config, Federation Configuration>>
+* <<run-the-example, Build and Run the Example>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+You will review the operational and cache configuration required to set up Federated Coherence clusters and carry out the following:
+
+1. Start one or more cache servers for `PrimaryCluster`
+2. Start one or more cache servers for `SecondaryCluster`
+3. Start a `CohQL` session for `PrimaryCluster`
+4. Start a `CohQL` session for `SecondaryCluster`
+5. Carry out various data operations on each cluster and observe the data being replicated
+
+The default configuration for this example runs the following clusters:
+
+1. `PrimaryCluster` on 127.0.0.1:7574
+2. `SecondaryCluster` on 127.0.0.1:7575
+
+You can change these hosts/ports by changing the following in the `pom.xml`:
+
+[source,xml,indent=0]
+----
+include::pom.xml[tag=ports]
+----
+
+NOTE: If you wish to know more about Coherence Federation, please see the
+{commercial-docs-base-url}/administer/federating-caches-clusters.html[Coherence Documentation].
+
+// Do not change this part.
+// If your example requires Java 11+ change the 1.8 below to 11
+[#what-you-need]
+=== What You Need
+:java_version: 11
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+[#building]
+==== Building the Example Code
+
+**Important**
+
+Because Coherence Federation is only available in Grid Edition, you must carry out the following changes to the project before building and running:
+
+1. Update the `coherence.version` property in your `pom.xml` and `gradle.properties` to the Coherence Grid Edition version you are going to use.
+2. Change the `coherence.group.id` in the above files to `com.oracle.coherence`.
+3. Install Coherence Grid Edition into your local Maven repository by running the following:
++
+This example assumes you have Coherence 14.1.1. Please adjust for your Coherence version.
++
+[source,bas,indent=0]
+----
+mvn install:install-file -Dfile=$COHERENCE_HOME/lib/coherence.jar \
+    -DpomFile=$COHERENCE_HOME/plugins/maven/com/oracle/coherence/coherence/14.1.1/coherence.14.1.1.pom
+----
+
+Whenever you are asked to build the code, please refer to the instructions below.
+
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+[#review-the-initial-project]
+=== Review the Project
+
+[#maven]
+==== Maven Configuration
+
+The initial project is a Coherence project and imports the `coherence-bom` and `coherence-dependencies`
+POMs as shown below:
+
+[source,xml,indent=0]
+----
+include::pom.xml[tag=deps1]
+----
+
+The `coherence` library is also included:
+
+[source,xml,indent=0]
+----
+include::pom.xml[tag=deps2]
+----
+
+We also define a number of profiles to run the `DefaultCacheServer` for each cluster and `CohQL` for each cluster.
+
+* <<primary-storage,primary-storage - Runs a DefaultCacheServer for the PrimaryCluster>>
+* <<primary-cohql,primary-cohql - Runs a CohQL session for the PrimaryCluster>>
+* <<secondary-storage,secondary-storage - Runs a DefaultCacheServer for the SecondaryCluster>>
+* <<secondary-cohql,secondary-cohql - Runs a CohQL session for the SecondaryCluster>>
+
+[#primary-storage]
+*primary-storage* - Runs a `DefaultCacheServer` for the `PrimaryCluster`
+
+[source,xml,indent=0]
+----
+include::pom.xml[tag=primary-storage]
+----
+
+[#primary-cohql]
+*primary-cohql* - Runs a `CohQL` session for the `PrimaryCluster`
+
+[source,xml,indent=0]
+----
+include::pom.xml[tag=primary-cohql]
+----
+
+[#secondary-storage]
+*secondary-storage* - Runs a `DefaultCacheServer` for the `SecondaryCluster`
+
+[source,xml,indent=0]
+----
+include::pom.xml[tag=secondary-storage]
+----
+
+[#secondary-cohql]
+*primary-cohql* - Runs a `CohQL` session for the `SecondaryCluster`
+
+[source,xml,indent=0]
+----
+include::pom.xml[tag=secondary-cohql]
+----
+
+[#cache-config]
+==== Federation Configuration
+
+Federated caching is configured using Coherence configuration files and requires no changes to application code.
+
+There are two areas that require configuration for Federation:
+
+1. An operational override file is used to configure federation participants and the federation topology.
+2. A cache configuration file is used to create federated caches schemes.
+
+NOTE: A federated cache is a type of partitioned cache service and is managed by a federated cache service instance.
+
+1. The following cache configuration file is used to define the Federated service:
++
+[source,xml,indent=0]
+----
+include::src/main/resources/federation-cache-config.xml[tag=mapping]
+----
++
+<1> A cache-mapping for all caches (*) to map to a scheme called `federated`
+<2> The federated-scheme in a similar way to a distributed-scheme
+<3> A topology for the federated-scheme. The default topology is `active-active` so this element is not required and just included for completeness.
+
+
+2.  The following operational configuration file is used to define the participants and topology:
++
+[source,xml,indent=0]
+----
+include::src/main/resources/tangosol-coherence-override.xml[tag=mapping]
+----
++
+<1> `PrimaryCluster` participant with its host and port for the cluster Name Service
+<2> `SecondaryCluster` participant with its host and port for the cluster Name Service
+<3> Topology that defines an `active-active` configuration between clusters. This is the default and not strictly required.
+
+
+[#run-the-example]
+=== Run the Example
+
+After you have built the project as described earlier in this document you can run via Maven or Gradle.
+
+==== Maven
+
+1. Start a DefaultCache server for the primary and secondary clusters in separate terminals.
++
+[source,bash]
+----
+./mvnw exec:exec -P primary-storage
+----
++
+and
++
+[source,bash]
+----
+./mvnw exec:exec -P secondary-storage
+----
+
+2. Start a CohQL session for the primary and secondary clusters in separate terminals.
++
+[source,bash]
+----
+./mvnw exec:java -P primary-cohql
+----
++
+and
++
+[source,bash]
+----
+./mvnw exec:java -P secondary-cohql
+----
+
+==== Gradle
+
+1. Start a DefaultCache server for the primary and secondary clusters in separate terminals.
++
+[source,bash]
+----
+./gradlew runServerPrimary
+----
++
+and
++
+[source,bash]
+----
+./gradlew runServerSecondary
+----
+
+2. Start a CohQL session for the primary and secondary clusters in separate terminals.
++
+[source,bash]
+----
+./gradlew runCohQLPrimary --console=plain
+----
++
+and
++
+[source,bash]
+----
+./gradlew runCohQLSecondary --console=plain
+----
+
+==== Run the following commands to exercise Federation
+
+1. In each of the `CohQL` sessions, run the following command to verify the caches are empty in each cluster:
++
+[source,bash]
+----
+CohQL> select count() from test
+Results
+0
+----
+
+2. In the first (PrimaryCluster) `CohQL` session, add an entry to the cache `test`:
++
+[source,bash]
+----
+CohQL> insert into test key(1) value("Tim")
+
+CohQL> select key(), value() from test
+Results
+[1, "Tim"]
+----
+
+3. In the second (SecondaryCluster) `CohQL` session, verify the entry was sent from the PrimaryCluster and
+then update the name to `Timothy`. As the clusters are `active-active`, the changes will be sent back to the primary cluster.
++
+[source,bash]
+----
+CohQL> select key(), value() from test
+Results
+[1, "Tim"]
+
+CohQL> update 'test' set value() = "Timothy"
+Results
+1: true
+
+CohQL> select key(), value() from test
+Results
+[1, "Timothy"]
+----
+
+4. In the first (PrimaryCluster) `CohQL` session, verify the entry was changed via the change in the `SecondaryCluster`, then delete the entry and confirm it was deleted in the `SecondaryCluster`
++
+[source,bash]
+----
+CohQL> select key(), value() from test
+Results
+[1, "Timothy"]
+
+CohQL> update 'test' set value() = "Timothy"
+Results
+1: true
+
+CohQL> select key(), value() from test
+Results
+[1, "Timothy"]
+
+CohQL> delete from test
+Results
+
+CohQL> select key(), value() from test
+Results
+----
+
+5. Continue experimenting:
++
+You can continue to experiment by inserting, updating or removing data using various `CohQL` commands.
++
+For detailed information on how to use CohQL, please visit the chapter
+link:{commercial-docs-base-url}/develop-applications/using-coherence-query-language.html#GUID-C0D082B1-FA62-4899-A043-4345156E6641[Using Coherence Query Language]
+in the Coherence reference guide.
+
+6. Monitor Federation
++
+If you want to monitor Federation, you can do this via the Coherence VisualVM Plugin.
+See https://github.com/oracle/coherence-visualvm#install[here]
+for how to install the Plugin if you have `VisualVM` already, otherwise visit https://visualvm.github.io/[https://visualvm.github.io/] to download
+and install `VisualVM`.
++
+Once you have installed the plugin, you can click on one of the `DefaultCacheServer` process, and you will see the `Federation` tab as shown below:
++
+image::visualvm-federation.png[width=80%]
+
+[#summary]
+=== Summary
+
+In this guide you walked through the steps to use Coherence Federation by using Coherence Query Language (CohQL)
+to insert, update and remove data in Federated clusters.
+
+[#see-also]
+=== See Also
+
+* {commercial-docs-base-url}/administer/federating-caches-clusters.html[Federation Documentation]
+* {commercial-docs-base-url}/develop-applications/using-coherence-query-language.html#GUID-C0D082B1-FA62-4899-A043-4345156E6641[Using Coherence Query Language]

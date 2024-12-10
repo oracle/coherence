@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <defaults>
+    <!-- This name must match the value used in com.tangosol.net.grpc.GrpcDependencies.PROXY_SERVICE_SCOPE_NAME -->
+    <serializer>${coherence.serializer}</serializer>
+  </defaults>
+
+  <caching-schemes>
+    <!--
+    The gRPC proxy scheme will start a gRPC proxy server.
+    The proxy will service wil always start (if autostart is enabled)
+    but will only start a gRPC server if the coherence-grpc-proxy
+    module is present.
+    -->
+    <proxy-scheme>
+      <scheme-name>grpc-proxy</scheme-name>
+      <!-- This name must match the suffix used in com.tangosol.net.grpc.GrpcDependencies.SYSTEM_PROXY_NAME -->
+      <service-name>GrpcProxy</service-name>
+      <thread-count system-property="coherence.grpc.server.threads"/>
+      <thread-count-max system-property="coherence.grpc.server.threads.max"/>
+      <thread-count-min system-property="coherence.grpc.server.threads.min"/>
+      <acceptor-config>
+        <grpc-acceptor>
+          <local-address>
+            <address system-property="coherence.grpc.server.address"/>
+            <port system-property="coherence.grpc.server.port"/>
+          </local-address>
+          <socket-provider system-property="coherence.grpc.server.socketprovider"/>
+          <in-process-name system-property="coherence.grpc.inprocess.name"/>
+        </grpc-acceptor>
+      </acceptor-config>
+      <health>
+        <member-health-check system-property="coherence.grpc.health.enabled">true</member-health-check>
+      </health>
+      <autostart system-property="coherence.grpc.enabled">true</autostart>
+    </proxy-scheme>
+  </caching-schemes>
+</cache-config>

@@ -1,0 +1,949 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Distributed Concurrency
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Distributed Concurrency
+
+Coherence Concurrent module provides distributed implementations of the concurrency primitives from the `java.util.concurrent` package that you are already familiar with, such as executors, atomics, locks, semaphores and latches.
+
+This allows you to implement concurrent applications using the constructs you are already familiar with, but to expand the "scope" of concurrency from a single process to potentially hundreds of processes within a Coherence cluster. For example - you can use executors to submit tasks to be executed somewhere in the cluster; you can use locks, latches and semaphores to synchronize execution across many cluster members; you can use atomics to implement global counters across many processes, etc.
+
+Please keep in mind that while these features are extremely powerful and allow you to reuse the knowledge you already have, they may have detrimental effect on scalability and/or performance. Whenever you synchronize execution via locks, latches or semaphores, you are introducing a potential bottleneck into the architecture. Whenever you use a distributed atomic to implement a global counter, you are turning very simple operations that take mere nanoseconds locally, such as increment and decrement, into fairly expensive network calls that could take milliseconds (and potentially block even longer under heavy load).
+
+So, use these features sparingly. In many cases there is a better, faster and more scalable way to accomplish the same goal using Coherence primitives such as entry processors, aggregators and events, which were designed to perform and scale well in a distributed environment from the get-go.
+
+=== Factory Classes
+
+Each of the features above is backed by one or more Coherence caches, possibly with preconfigured interceptors, but for the most part you shouldn't care about that: all interaction with lower level Coherence primitives is hidden behind various factory classes that allow you to get the instances of the classes you need.
+
+For example, you will use factory methods within `Atomics` class to get instances of various atomic types, `Locks` to get lock instances, `Latches` and `Semaphores` to get, well, latches and semaphores.
+
+=== Local vs Remote
+
+In many cases the factory classes will allow you to get both the *local* and the *remote* instances of various constructs. For example, `Locks.localLock` will give you an instance of a standard `java.util.concurrent.locks.ReentrantLock`, while `Locks.remoteLock` will return an instance of a `RemoteLock`. In cases where JDK doesn't provide a standard interface, which is the case with atomics, latches and semaphores, we've extracted the interface from the existing JDK class, and created a thin wrapper around the corresponding JDK implementation. For example, Coherence Concurrent provides a `Semaphore` interface, and `LocalSemaphore` class that wraps `java.util.concurrent.Semaphore`. The same is true for the `CountDownLatch`, and all atomic types.
+
+The main advantage of using factory classes to construct both the local and remote instances is that it allows you to name local locks the same way you name remote locks.: calling `Locks.localLock("foo")` will always return the same `Lock` instance, as the `Locks` class internally caches both the local and the remote instances it created. Of course, in the case of remote locks, every locally cached remote lock instance is ultimately backed by a shared lock instance somewhere in the cluster, which is used to synchronize lock state across the processes.
+
+=== Serialization
+
+Coherence Concurrent supports both Java serialization and POF out-of-the-box, with Java serialization being the default.
+
+If you want to use POF instead, you will need to specify that by setting `coherence.concurrent.serializer` system property to `pof`. You will also need to include `coherence-concurrent-pof-config.xml` into your own POF configuration file, in order to register built-in Coherence Concurrent types.
+
+=== Persistence
+
+Coherence Concurrent supports both active and on-demand persistence, but just like in the rest of Coherence it is set to `on-demand` by default.
+
+In order to use active persistence you should set `coherence.concurrent.persistence.environment` system property to `default-active`, or another persistence environment that has active persistence enabled.
+
+== Usage
+
+In order to use Coherence Concurrent features, you need to declare it as a dependency in your `pom.xml`:
+
+[source,xml,subs="attributes+"]
+----
+    <dependency>
+        <groupId>{coherence-maven-group-id}</groupId>
+        <artifactId>coherence-concurrent</artifactId>
+        <version>{version-coherence-maven}</version>
+    </dependency>
+----
+
+Once the necessary dependency is in place, you can start using the features it provides, as the following sections describe.
+
+* <<executors,Executors>>
+** <<executors-overview, Executors Overview>>
+** <<executors-usage, Executors Usage>>
+*** <<executors-orchestration, Advanced Orchestration>>
+**** <<executors-orchestration-tasks, Tasks>>
+**** <<executors-orchestration-context, Task Context>>
+**** <<executors-orchestration-orchestration, Task Orchestration>>
+**** <<executors-orchestration-collect, Task Collector and Collectable>>
+**** <<executors-orchestration-coordinator, Task Coordinator>>
+**** <<executors-orchestration-subscriber, Task Subscriber>>
+*** <<executors-orchestration-examples, Advanced Orchestration Examples>>
+** <<executors-configuration, Executors Configuration>>
+*** <<executors-configuration, Executors Configuration Examples>>
+** <<executors-management, Executors Management>>
+** <<executors-management-rest, Executors Management over REST>>
+** <<cdi-executors,CDI Support for Executors>>
+* <<atomics,Atomics>>
+** <<atomics-async,Non-blocking Atomics>>
+** <<cdi-atomics,CDI Support for Atomics>>
+* <<locks,Locks>>
+** <<exclusive-locks,Exclusive Locks>>
+** <<read-write-locks,Read/Write Locks>>
+** <<cdi-locks,CDI Support for Locks>>
+* <<latches-semaphores,Latches and Semaphores>>
+** <<count-down-latch,Count Down Latch>>
+** <<semaphore,Semaphore>>
+** <<cdi-latches-semaphores,CDI Support for Latches and Semaphores>>
+
+[#executors]
+=== Executors
+[#executors-overview]
+=== Overview
+Coherence Concurrent provides a facility to dispatch tasks, either a `Runnable`, `Callable`, or `Task` to
+a Coherence cluster for execution.
+
+Executors that will actually  execute the submitted tasks are configured on each cluster
+member by defining one or more named executors within a cache configuration resource.
+
+[#executors-usage]
+=== Usage Examples
+By default, each Coherence cluster with the `coherence-concurrent` module on the classpath,
+will include a single-threaded executor that may be used to execute dispatched tasks.
+
+Given this, the simplest example would be:
+
+[source,java]
+----
+RemoteExecutor remoteExecutor = RemoteExecutor.getDefault();
+
+Future<Void> result = remoteExecutor.submit(() -> System.out.println("Executed"));
+
+result.get(); // block until completion
+----
+
+If for example, an executor was configured named `Fixed5`, the code would be:
+
+[source,java]
+----
+RemoteExecutor remoteExecutor = RemoteExecutor.get("Fixed5");
+----
+
+If no executor has been configured with the given name, the `RemoteExecutor`
+will throw `RejectedExecutionException`.
+
+Each `RemoteExecutor` instance may hold local resources that should be released
+when the `RemoteExecutor` is no longer needed.  Like an `ExecutorService`,
+a `RemoteExecutor` has similar methods to shut the executor down.
+When calling these methods, it will have no impact on the executors registered
+within the cluster.
+
+[#executors-orchestration]
+=== Orchestration
+While the `RemoteExecutor` does provide functionality similar to the standard `ExecutorService` included in the JDK, this may not be enough in the context of Coherence. A task might need to run across multiple Coherence members, produce intermediate results, and remain durable in case a cluster member executing the task fails. In such cases, task orchestration can be used. Before diving into the details of
+orchestration, the following concepts should be understood:
+
+|===
+|Interface |Description
+
+|Task
+|Tasks are like `Callable` and `Runnable` classes in that
+they are designed to be potentially executed by one or more threads.
+Unlike `Callable` and `Runnable` classes, the execution may occur in different Java Virtual Machines, fail and/or recover between different Java Virtual Machine processes.
+
+|Task.Context
+|Provides contextual information for a `Task` as it is executed, including
+the ability to access and update intermediate results for the `Executor`
+executing the said `Task`.
+
+|Task.Orchestration
+|Defines information concerning the orchestration of a `Task` across a
+set of executors defined across multiple Coherence members for a given
+`RemoteExecutor`.
+
+|Task.Coordinator
+|A publisher of collected `Task` results that additionally permits
+* coordination of the submitted `Task`.
+
+|Task.Subscriber
+|A receiver of items produced by a `Task.Coordinator`.
+
+|Task.Properties
+|State sharing mechanism for tasks.
+
+|Task.Collector
+|A mutable reduction operation that accumulates results into a mutable result
+container, optionally transforming the accumulated result into a final
+representation after all results have been processed.
+|===
+
+[#executors-orchestration-tasks]
+=== Tasks
+
+`Task` implementations define a single method called `execute(Context)`
+that performs the task, possibly yielding execution to some later point.
+Once the method has completed execution, by returning a result or throwing
+an exception (but not a `Yield` exception), the task is considered completed
+for the assigned `Executor`.
+
+A `Task` may yield execution for a given time by throwing a `Yield` exception.
+This exception type signals the execution of a `Task` by an `Executor` is to
+be suspended and resumed at some later point in time, typically by the same `Executor`.
+
+[#executors-orchestration-context]
+=== Task Context
+When a `Task` is executed a `Context` instance will be passed as an execution
+argument.
+The `Context` provides access to task properties allowing shared state between tasks running in multiple Java Virtual Machines.
+The `Context` provides details on overall execution status:
+
+|===
+|Execution State |Method| Description
+
+|Complete
+|`Context.isDone()`
+|Allows a `Task` to determine if the task is complete.
+Completion may be due to normal termination, an exception or cancellation.
+In all of these cases, this method will return `true`.
+
+|Cancelled
+|`Context.isCancelled()`
+|Allows a `Task` to determine if the task is effectively cancelled.
+
+|Resuming
+|`Context.isResuming()`
+|Determines if a `Task` execution by an `Executor` resuming
+after being recovered (i.e. fail-over) or due to resumption after a task
+had previously thrown a `Yield` exception.
+
+|===
+
+[#executors-orchestration-orchestration]
+=== Task Orchestration
+
+Orchestrations begin by calling `RemoteExecutor.orchestrate(Task)` which
+will return a `Task.Orchestration` instance for the given `Task`.
+With the `Task.Orchestration`, it's possible to configure the aspects
+of where the task will be run.
+
+|===
+|Method |Description
+
+|concurrently()
+|Tasks will be run, concurrently, across all Java Virtual Machines where
+the named executor is defined/configured.  This is the default.
+
+|sequentially()
+|Tasks will be run, in sequence, across all Java Virtual Machines where
+the named executor is defined/configured.
+
+|limit(int)
+|Limit the task to `n` executors.  Use this to limit the number of
+executors that will be considered for task execution.  If not set, the default behavior is to run the task on all Java Virtual Machine where
+the named executor is defined/configured.
+
+|filter(Predicate)
+|Filtering provides an additional way to constrain where a task may be run.
+The predicates will be applied against metadata associated with each executor on each Java Virtual Machine.  Some examples of metadata would be the member in which the executor is running, or the role of a member.
+Predicates may be chained to provide boolean logic in determining an appropriate executor.
+
+|define(String, <V>)
+|Define initial state that will be available to all tasks no matter which Java Virtual Machine that task is running on.
+
+|retrain(Duration)
+|When specified, the task will be retained allowing new subscribers to be notified of the final result of a task computation after it has completed.
+
+|collect(Collector)
+|This is the terminal of the orchestration builder returning a `Task.Collectable` which defines how results are to be collected and ultimately submits the task to the grid.
+
+|===
+
+[#executors-orchestration-collect]
+=== Task Collector and Collectable
+
+The `Task.Collector` passed to the orchestration will collect results from
+tasks and optionally transforms the collected results into a final format.
+Collectors are best illustrated by using examples of Collectors that are available in the `TaskCollector` class:
+
+|===
+|Method |Description
+
+|count()
+|The count of non-null results that have been collected from the executing task(s).
+
+|firstOf()
+|Collects and returns the first result provided by the executing task(s).
+
+|lastOf()
+|Collects and returns the last result returned by the executing task(s).
+
+|setOf()
+|Collects and returns all non-null results as a Set.
+
+|listOf()
+|Collects and returns all non-null results as a List.
+
+|===
+
+The `Task.Collectable` instance returned by calling `collect` on the orchestration allows, among other things, setting the condition under which
+no more results will be collected or published any registered subscribers.
+Calling `submit()` on the `Task.Collectable` will being the orchestration of the task.
+
+[#executors-orchestration-coordinator]
+=== Task Coordinator
+Upon calling `submit()` on the orchestration `Collectable`, a `Task.Coordinator` is returned.  Like the `Task.Collectable` the `Task.Coordinator` allows for the registration of subscribers.  Additionally,
+provides the ability to cancel or check the completion status of the orchestration.
+
+[#executors-orchestration-subscriber]
+=== Task Subscriber
+The `Task.Subscriber` receives various events pertaining to the execution status of the orchestration:
+
+|===
+|Method |Description
+
+|onComplete()
+|Signals the completion of the orchestration.
+
+|onError(Throwable)
+|Called when an unrecoverable error (given as the argument)
+has occurred.
+
+|onNext(<T>)
+|Called when the `Task.Coordinator` has produced a result.
+
+|onSubscribe(Task.Subscription)
+|Called prior to any calls to `onComplete()`, `onError(Throwable)`, or `onNext(<T>)` are called.  The `Task.Subscription` provided gives access to
+cancelling the subscription, or obtaining a reference to the `Task.Coordinator`.
+
+|===
+
+[#executors-orchestration-examples]
+=== Advanced Orchestration Examples
+
+To begin, consider the following code common to the orchestration examples:
+
+[source,java]
+----
+// demonstrate orchestration using the default RemoteExecutor
+RemoteExecutor executor = RemoteExecutor.getDefault();
+
+// WaitingSubscriber is an implementation of the
+// com.oracle.coherence.concurrent.executor.Task.Subscriber interface
+// that has a get() method that blocks until Subscriber.onComplete() is
+// called and will return the results received by onNext()
+WaitingSubscriber subscriber = new WaitingSubscriber();
+
+// ValueTask is an implementation of the
+// com.oracle.coherence.concurrent.executor.Task interface
+// that returns the value provided at construction time
+ValueTask task = new ValueTask("Hello World");
+----
+
+Given the above, the simplest example of an orchestration:
+
+[source,java]
+----
+// orchestrate the task, subscribe, and submit
+executor.orchestrate(task)
+        .subscribe(subscriber)
+        .submit();
+
+// wait for the task to complete
+// if this was run on four cluster members running the default executor service,
+// the returned Collection will have four results
+Collection<String> results = subscriber.get();
+----
+
+Building on the above, assume a cluster with two storage and two proxy members.
+The cluster members are configured with the roles of `storage` and `proxy`,
+respectively.  Let's say the task needs to run on `storage` members only, then
+the orchestration could look like:
+
+[source,java]
+----
+// orchestrate the task, filtering by a role, subscribe, and submit
+executor.orchestrate(task)
+        .filter(Predicates.role("storage"))
+        .subscribe(subscriber)
+        .submit();
+
+// wait for the task to complete
+// as there are only two storage members in this hypothetical, only two
+// results will be returned
+Collection<String> results = subscriber.get();
+----
+There are several predicates available for use in `com.oracle.coherence.concurrent.executor.function.Predicates`,
+however, in the case none apply to the target use case, simply implement the
+`Remote.Predicate` interface.
+
+Collection of results and how they are presented to the subscriber
+can be customized by using `collect(Collector)` and `until(Predicate)`:
+
+[source,java]
+----
+// orchestrate the task, collecting the first non-null result,
+// subscribe, and submit
+executor.orchestrate(new MayReturnNullTask())
+        .collect(TaskCollectors.firstOf())
+        .until(Predicates.nonNullValue())
+        .subscribe(subscriber)
+        .submit();
+
+// wait for the task to complete
+// the first non-result returned will be the one provided to the
+// subscriber
+Collection<String> results = subscriber.get();
+----
+Several collectors are provided in `com.oracle.coherence.concurrent.executor.TaskCollectors`,
+however, in the case none apply to the target use case, implement the
+`Task.Collector` interface.
+
+[#executors-configuration]
+=== Configuration
+
+Several executor types are available for configuration.
+
+|===
+|ExecutorService Type |Description
+
+|Single thread
+|Creates an ExecutorService with a single thread.
+
+|Fixed thread
+|Creates an ExecutorService with a fixed number of threads.
+
+|Cached
+|Create an ExecutorService that will create new threads as needed and reuse existing threads when possible.
+
+|Work stealing
+|Creates a work-stealing thread pool using the number of available processors as its target parallelism level.
+
+|Custom
+|Allows the creation of non-standard executors.
+
+|VirtualThread
+|Creates a VirtualThread-per-task ExecutorService.  Requires JDK 21 or newer.
+|===
+
+==== Configuration Elements
+
+|===
+|Element Name |Required |Expected Type |Description
+
+|single
+|no
+|N/A
+|Defines a single-thread executor
+
+|fixed
+|no
+|N/A
+|Defines a fixed-thread-pool executor
+
+|cached
+|no
+|N/A
+|Defines a cached-thread-pool executor
+
+|work-stealing
+|no
+|N/A
+|Defines a work-stealing-pool executor
+
+|custom-executor
+|no
+|java.util.concurrent.ExecutorService
+|Defines a custom executor
+
+|virtual-per-task
+|no
+|N/A
+|Defines a VirtualThread-per-task executor
+
+|name
+|yes
+|java.lang.String
+|Defines the logical `name` of the executor
+
+|thread-count
+|yes
+|java.lang.Integer
+|Defines the thread count for a `fixed` thread pool executor.
+
+|parallelism
+|no
+|java.lang.Integer
+|Defines the parallelism of a `work-stealing` thread pool executor.  If not defined, it will default to the number of processors available on the system.
+
+|thread-factory
+|no
+|N/A
+|Defines a java.util.concurrent.ThreadFactory.  Used by `single`, `fixed`, and `cached` executors.
+
+|instance
+|yes
+|Depending on the context, it will yield either a `java.util.concurrent.ExecutorService` or a `java.util.concurrent.ThreadFactory`
+|Defines how the ThreadFactory or the ExecutorService will be instantiated.  See the https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/cache-configuration-elements.html#GUID-D81B8574-CC8F-4AF1-BD0F-7068BC6432FD[docs] for details on the `instance` element.  This element must be a child of the `thread-factory` element.
+|===
+
+See the https://github.com/oracle/coherence/blob/master/prj/coherence-concurrent/src/main/resources/concurrent.xsd[schema] for full details.
+
+[#executors-configuration-examples]
+===== Configuration Examples
+
+To define executors, the `cache-config` root element needs to include the `coherence-concurrent` NamespaceHandler in order to recognize the configuration elements.
+
+[source,xml]
+----
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+               xmlns:c="class://com.oracle.coherence.concurrent.config.NamespaceHandler"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd class://com.oracle.coherence.concurrent.config.NamespaceHandler concurrent.xsd"> .
+.
+.
+</cache-config>
+----
+
+TIP: Executors defined by configuration must precede any other elements in the document.  Failing to do so, will prevent the document from validating.
+
+The following examples assume the xml namespace defined for the NamespaceHandler is `c`:
+
+[source,xml]
+----
+<!-- creates a single-threaded executor named 'Single' -->
+<c:single>
+  <c:name>Single</c:name>
+</c:single>
+----
+
+[source,xml]
+----
+<!-- creates a single-threaded executor named `SingleTF` with a thread factor -->
+<c:single>
+  <c:name>SingleTF</c:name>
+  <c:thread-factory>
+    <instance>
+      <class-name>my.custom.ThreadFactory</class-name>
+    </instance>
+  </c:thread-factory>
+</c:single>
+----
+
+[source,xml]
+----
+<!-- creates a fixed-thread executor named 'Fixed5' with a thread-count of 5 -->
+<c:fixed>
+  <c:name>Fixed5</c:name>
+  <c:thread-count>5</c:thread-count>
+</c:fixed>
+----
+
+[source,xml]
+----
+<!-- creates a custom executor named 'custom' by calling com.acme.CustomExecutorFactory.createExecutor() -->
+<c:custom-executor>
+  <c:name>custom</c:name>
+  <instance>
+    <class-factory-name>com.acme.CustomExecutorFactory</class-factory-name>
+    <method-name>createExecutor</method-name>
+  </instance>
+</c:custom-executor>
+----
+
+[#executors-management]
+==== Management
+
+The ExecutorMBean represents the operational state of a registered executor.
+
+The object name of the MBean is:
+
+[source]
+----
+type=Executor,name=<executor name>,nodeId=<cluster node>
+----
+
+===== ExecutorMBean Attributes
+
+|===
+|Attribute |Type |Access |Description
+
+|MemberId
+|java.lang.String
+|read-only
+|The member ID where the executor is running.
+
+|Name
+|java.lang.String
+|read-only
+|The logical name of the executor.
+
+|Id
+|java.lang.String
+|read-only
+|The ID of the registered executor.
+
+|Description
+|java.lang.String
+|read-only
+|The generated description of the executor.
+
+|Location
+|java.lang.String
+|read-only
+|The complete location details of the executor.
+
+|State
+|java.lang.String
+|read-only
+|The current state of the executor.  May be one of `JOINING`, `RUNNING`, `CLOSING_GRACEFULLY`, `CLOSING`, `CLOSED` or `REJECTING`.
+
+|TaskCompletedCount
+|java.lang.Long
+|read-only
+|The number of tasks completed by this executor.
+
+|TaskRejectedCount
+|java.lang.Long
+|read-only
+|The number of tasks rejected by this executor.
+
+|TaskInProgressCount
+|java.lang.Long
+|read-only
+|The number of tasks currently running or pending to be run by this executor.
+
+|TraceLogging
+|java.lang.Boolean
+|read-write
+|Enables executor trace logging (WARNING! VERBOSE).  Disabled by default.
+|===
+
+===== Operations
+The ExecutorMBean MBean includes a `resetStatistics` operation that resets the statistics
+for this executor.
+
+
+[#executors-management-rest]
+==== Management over REST
+Coherence Management over REST exposes endpoints to query and invoke actions against
+ExecutorMBean instances.
+
+
+|===
+|Description |Method |Path |Produces
+
+|View all Executors
+|GET
+|/management/coherence/cluster/executors
+| JSON
+
+|View all Executors with matching name
+|GET
+|/management/coherence/cluster/executors/+{name}+
+| JSON
+
+|Reset Executor statistics by name
+|POST
+|/management/coherence/cluster/executors/+{name}+/resetStatistics
+| JSON
+|===
+
+
+[#cdi-executors]
+==== CDI Support
+RemoteExecutors may be injected via CDI.
+For example:
+
+[source,java]
+----
+@Inject
+private RemoteExecutor single; // <1>
+
+@Inject
+@Name("Fixed5")
+private RemoteExecutor fixedPoolRemoteExecutor; // <2>
+----
+<1> injects a RemoteExecutor named `single`.
+<2> injects a `RemoteExecutor` named `Fixed5`.
+
+[#atomics]
+=== Atomics
+
+Coherence Concurrent provides distributed implementations of atomic types, such as `AtomicInteger`, `AtomicLong` and `AtomicReference`. It also provides local implementations of the same types. The local implementations are just thin wrappers around existing `java.util.concurrent.atomic` types, which implement the same interface as their distributed variants, in order to be interchangeable.
+
+To create instances of atomic types you need to call the appropriate factory method on the `Atomics` class:
+
+[source,java]
+----
+AtomicInteger localFoo  = Atomics.localAtomicInteger("foo");   // <1>
+AtomicInteger remoteFoo = Atomics.remoteAtomicInteger("foo");  // <2>
+AtomicLong    remoteBar = Atomics.remoteAtomicLong("bar", 5L); // <3>
+----
+<1> creates a local, in-process instance of named `AtomicInteger` with an implicit initial value of 0
+<2> creates a remote, distributed instance of named `AtomicInteger`, distinct from the local instance `foo`, with an implicit initial value of 0
+<3> creates a remote, distributed instance of named `AtomicLong`, with an initial value of 5
+
+Note that the `AtomicInteger` and `AtomicLong` types used above _are not_ types from the `java.util.concurrent.atomic` package that you are familiar with -- they are actually interfaces defined within `com.oracle.coherence.concurrent.atomic` package, that both `LocalAtomicXyz` and `RemoteAtomicXyz` classes implement, which are the instances that are actually returned by the methods above.
+
+That means that the above code could be rewritten as:
+
+[source,java]
+----
+LocalAtomicInteger  localFoo  = Atomics.localAtomicInteger("foo");
+RemoteAtomicInteger remoteFoo = Atomics.remoteAtomicInteger("foo");
+RemoteAtomicLong    remoteBar = Atomics.remoteAtomicLong("bar", 5L);
+----
+However, we strongly suggest that you use interfaces instead of concrete types, as they make it easy to switch between local and distributed implementations when necessary.
+
+Once created, these instances can be used the same way you would use any of the corresponding `java.util.concurrent.atomic` types:
+
+[source,java]
+----
+int  counter1 = remoteFoo.incrementAndGet();
+long counter5 = remoteBar.addAndGet(5L);
+----
+
+[#atomics-async]
+==== Asynchronous Implementations
+
+The instances of numeric atomic types, such as `AtomicInteger` and `AtomicLong`, are frequently used to represent various counters in the application, where a client may need to increment the value, but doesn't necessarily need to know what the new value is.
+
+When working with the local atomics, the same API shown above can be used, and the return value simply ignored. However, when using distributed atomics that would introduce unnecessary blocking on the client while waiting for the response from the server, which would then simply be discarded. Obviously, this would have negative impact on both performance and throughput of the atomics.
+
+To reduce the impact of remote calls in those situations, Coherence Concurrent also provides non-blocking, asynchronous implementations of all atomic types it supports.
+
+To obtain a non-blocking instance of any supported atomic type, simply call `async` method on the blocking instance of that type:
+
+[source,java]
+----
+AsyncAtomicInteger asyncFoo = Atomics.remoteAtomicInteger("foo").async();      // <1>
+AsyncAtomicLong    asyncBar = Atomics.remoteAtomicLong("bar", 5L).async();     // <2>
+
+----
+<1> creates a remote, distributed instance of named, non-blocking `AsyncAtomicInteger`, with an implicit initial value of 0
+<2> creates a remote, distributed instance of named, non-blocking `AsyncAtomicLong`, with an initial value of 5
+
+Once created, these instances can be used the same way you would use any of the corresponding blocking types. The only difference is that they will simply return a `CompletableFuture` for  the result, and will not block:
+
+[source,java]
+----
+CompletableFuture<Integer> futureCounter1 = asyncFoo.incrementAndGet();
+CompletableFuture<Long>    futureCounter5 = asyncBar.addAndGet(5L);
+----
+
+Both the blocking and the non-blocking instance of any distributed atomic type, with the same name, are backed by the same cluster-side atomic instance state, so they can be used interchangeably.
+
+[#cdi-atomics]
+==== CDI Support
+
+Atomic types from Coherence Concurrent can also be injected using CDI, which eliminates the need for explicit factory method calls on the `Atomics` class.
+
+[source,java]
+----
+@Inject
+@Name("foo")
+private AtomicInteger localFoo;   // <1>
+
+@Inject
+@Remote
+@Name("foo")
+private AtomicInteger remoteFoo;  // <2>
+
+@Inject
+@Remote
+private AsyncAtomicLong asyncBar;  // <3>
+
+----
+<1> injects a local, in-process instance of an `AtomicInteger` named `foo`, with an implicit initial value of 0
+<2> injects a remote, distributed instance of an `AtomicInteger` named `foo`, distinct from the local instance `foo`, with an implicit initial value of 0
+<3> injects a remote, distributed instance of non-blocking `AsyncAtomicLong`, with an implicit name of `asyncBar`
+
+Once an instance of an atomic type is obtained via CDI injection, it can be used the same way as an instance obtained directly from the `Atomics` factory class.
+
+[#locks]
+=== Locks
+
+Coherence Concurrent provides distributed implementations of `Lock` and `ReadWriteLock` interfaces from the `java.util.concurrent.locks` package, allowing you to implement lock-based concurrency control across cluster members when necessary.
+
+Unlike local JDK implementations, the classes in this package use cluster member/process ID and thread ID to identify lock owner, and store shared lock state within a Coherence `NamedMap`. However, that also implies that the calls to acquire and release locks are remote, network calls, as they need to update shared state that is likely stored on a different cluster member, which will have an impact on performance of `lock` and `unlock` operations.
+
+[#exclusive-locks]
+==== Exclusive Locks
+
+A `RemoteLock` class provides an implementation of a `Lock` interface and allows you to ensure that only one thread on one member is running critical section guarded by the lock at any given time.
+
+To obtain an instance of a `RemoteLock`, call `Locks.remoteLock` factory method:
+
+[source,java]
+----
+Lock foo = Locks.remoteLock("foo");
+----
+
+Just like with `Atomics`, you can also obtain a local `Lock` instance from the `Locks` class, with will simply return an instance of a standard `java.util.concurrent.locks.ReentrantLock`, by calling `localLock` factory method:
+
+[source,java]
+----
+Lock foo = Locks.localLock("foo");
+----
+
+Once you have a `Lock` instance, you can use it as you normally would:
+
+[source,java]
+----
+foo.lock();
+try {
+    // critical section guarded by the exclusive lock `foo`
+}
+finally {
+    foo.unlock();
+}
+----
+
+[#read-write-locks]
+==== Read/Write Locks
+
+A `RemoteReadWriteLock` class provides an implementation of a `ReadWriteLock` interface and allows you to ensure that only one thread on one member is running critical section guarded by the write lock at any given time, while allowing multiple concurrent readers.
+
+To obtain an instance of a `RemoteReadWriteLock`, call `Locks.remoteReadWriteLock` factory method:
+
+[source,java]
+----
+ReadWriteLock bar = Locks.remoteReadWriteLock("bar");
+----
+
+Just like with `Atomics`, you can also obtain a local `ReadWriteLock` instance from the `Locks` class, with will simply return an instance of a standard `java.util.concurrent.locks.ReentrantReadWriteLock`, by calling `localReadWriteLock` factory method:
+
+[source,java]
+----
+ReadWriteLock bar = Locks.localReadWriteLock("bar");
+----
+
+Once you have a `ReadWriteLock` instance, you can use it as you normally would:
+
+[source,java]
+----
+bar.writeLock().lock();
+try {
+    // critical section guarded by the exclusive write lock `bar`
+}
+finally {
+    bar.writeLock().unlock();
+}
+----
+
+Or:
+
+[source,java]
+----
+bar.readLock().lock();
+try {
+    // critical section guarded by the shared read lock `bar`
+}
+finally {
+    bar.readLock().unlock();
+}
+----
+
+[#cdi-locks]
+==== CDI Support
+
+You can also use CDI to inject both the exclusive and read/write lock instances into objects that need them:
+
+[source,java]
+----
+@Inject
+@Remote
+@Name("foo")
+private Lock lock;           // <1>
+
+@Inject
+@Remote
+private ReadWriteLock bar;   // <2>
+----
+<1> injects distributed exclusive lock named `foo` into `lock` field
+<2> injects distributed read/write lock named `bar` into `bar` field
+
+Once an instance of lock is obtained via CDI injection, it can be used the same way as an instance obtained directly from the `Locks` factory class.
+
+[#latches-semaphores]
+=== Latches and Semaphores
+
+Coherence Concurrent also provides distributed implementations of a `CountDownLatch` and `Semaphore` classes from `java.util.concurrent` package, allowing you to implement synchronization of execution across multiple Coherence cluster members as easily as you can implement it within a single process using those two JDK classes. It also provides interfaces for those two concurrency primitives, that both remote and local implementations conform to.
+
+Just like with atomics, the local implementations are nothing more than thin wrappers around corresponding JDK classes.
+
+[#count-down-latch]
+==== Count Down Latch
+
+The `RemoteCoundDownLatch` class provides a distributed implementation of a `CountDownLatch`, and allows you to ensure that the execution of the code on any cluster member that is waiting for the latch proceeds only when the latch reaches zero. Any cluster member can both wait for a latch, and count down.
+
+To obtain an instance of a `RemoteCountDownLatch`, call `Latches.remoteCountDownLatch` factory method:
+
+[source,java]
+----
+CoundDownLatch foo = Latches.remoteCountDownLatch("foo", 5);     // <1>
+----
+<1> create an instance of a `RemoteCountDownLatch` with the initial count of 5
+
+Just like with `Atomics` and `Locks`, you can also obtain a local `CountDownLatch` instance from the `Latches` class by calling `remoteCountDownLatch` factory method:
+
+[source,java]
+----
+CoundDownLatch foo = Latches.localCountDownLatch("foo", 10);     // <1>
+----
+<1> create an instance of a `LocalCountDownLatch` with the initial count of 10
+
+Once you have a `RemoteCountDownLatch` instance, you can use it as you normally would, by calling `countDown` and `await` methods on it.
+
+[#semaphore]
+==== Semaphore
+
+The `RemoteSemaphore` class provides a distributed implementation of a `Semaphore`, and allows any cluster member to acquire and release permits from the same semaphore instance.
+
+To obtain an instance of a `RemoteSemaphore`, call `Semaphores.remoteSemaphore` factory method:
+
+[source,java]
+----
+Semaphore foo = Semaphores.remoteSemaphore("foo", 5);            // <1>
+----
+<1> create an instance of a `RemoteSemaphore` with 5 permits
+
+Just like with `Atomics` and `Locks`, you can also obtain a local `Semaphore` instance from the `Semaphores` class by calling `localSemaphore` factory method:
+
+[source,java]
+----
+Semaphore foo = Semaphores.localSemaphore("foo");                // <1>
+----
+<1> create an instance of a `LocalSemaphore` with 0 permits
+
+Once you have a `Semaphore` instance, you can use it as you normally would, by calling `release` and `acquire` methods on it.
+
+[#cdi-latches-semaphores]
+==== CDI Support
+
+You can also use CDI to inject both the `CountDownLatch` and `Semaphore` instances into objects that need them:
+
+[source,java]
+----
+@Inject
+@Name("foo")
+@Count(5)
+private CountDownLatch localLatchFoo;           // <1>
+
+@Inject
+@Name("foo")
+@Remote
+@Count(10)
+private CountDownLatch remoteLatchFoo;          // <2>
+
+@Inject
+@Name("bar")
+@Remote
+private Semaphore localSemaphoreBar;            // <3>
+
+@Inject
+@Name("bar")
+@Remote
+@Permits(1)
+private Semaphore remoteSemaphoreBar;           // <4>
+----
+<1> inject an instance of a `LocalCountDownLatch` with the initial count of five
+<2> inject an instance of a `RemoteCountDownLatch` with the initial count of ten
+<3> inject an instance of a `LocalSemaphore` with zero permits available
+<4> inject an instance of a `RemoteSemaphore` with one permit available
+
+Once a latch or a semaphore instance is obtained via CDI injection, it can be used the same way as an instance obtained directly from the `Latches` or `Semaphores` factory classes.
+
+The `@Name` annotation is optional in both cases, as long as the member name (in the examples above, the field name) can be obtained from the injection point, but is required otherwise (such as when using constructor injection).
+
+The `@Count` annotation specifies the initial latch count, and if omitted will be defaulted to one. The `@Permits` annotation specifies the number of available permits for a semaphore, and if omitted will be defaulted to zero, which means that the first `acquire` call will block until another thread releases one or more permits.
+

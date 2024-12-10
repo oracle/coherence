@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>tracing</artifactId>
+    <groupId>com.oracle.coherence.ce.tests</groupId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>tracing-common</artifactId>
+  <name>Coherence Tracing Tests - Common</name>
+  <packaging>jar</packaging>
+
+  <properties>
+    <module.name>testing.tracing</module.name>
+  </properties>
+
+  <dependencies>
+    <!-- Coherence Dependencies -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-json</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-support</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- generate module-info.java -->
+      <plugin>
+        <groupId>com.oracle.coherence.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven.surefire.plugin.version}</version>
+        <configuration>
+          <!--
+            We never want to include these API deps on an execution classpath.
+          -->
+          <classpathDependencyExcludes>
+            <classpathDependencyExclude>io.opentracing:opentracing-api</classpathDependencyExclude>
+            <classpathDependencyExclude>io.opentracing:opentracing-noop</classpathDependencyExclude>
+            <classpathDependencyExclude>io.opentracing:opentracing-util</classpathDependencyExclude>
+            <classpathDependencyExclude>io.opentracing.contrib:opentracing-tracerresolver</classpathDependencyExclude>
+          </classpathDependencyExcludes>
+          <includes>
+            <include>**/*Tests.*</include>
+          </includes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

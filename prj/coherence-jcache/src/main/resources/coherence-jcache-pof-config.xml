@@ -1,0 +1,252 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
+
+<!--
+  Configuration file for Coherence JCache POF Types (610-699)
+-->
+<pof-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">
+  <user-type-list>
+    <!-- javax.cache package POF types with serializers (610-629) -->
+    <user-type>
+      <type-id>610</type-id>
+      <class-name>javax.cache.expiry.Duration</class-name>
+      <serializer>
+        <class-name>com.tangosol.coherence.jcache.serialization.DurationPofSerializer</class-name>
+      </serializer>
+    </user-type>
+
+    <user-type>
+      <type-id>611</type-id>
+      <class-name>javax.cache.expiry.AccessedExpiryPolicy</class-name>
+      <serializer>
+        <class-name>com.tangosol.coherence.jcache.serialization.ExpiryPolicyPofSerializer</class-name>
+      </serializer>
+    </user-type>
+
+    <user-type>
+      <type-id>612</type-id>
+      <class-name>javax.cache.expiry.ModifiedExpiryPolicy</class-name>
+      <serializer>
+        <class-name>com.tangosol.coherence.jcache.serialization.ExpiryPolicyPofSerializer</class-name>
+      </serializer>
+    </user-type>
+
+    <user-type>
+      <type-id>613</type-id>
+      <class-name>javax.cache.expiry.EternalExpiryPolicy</class-name>
+      <serializer>
+        <class-name>com.tangosol.coherence.jcache.serialization.ExpiryPolicyPofSerializer</class-name>
+      </serializer>
+    </user-type>
+
+    <user-type>
+      <type-id>614</type-id>
+      <class-name>javax.cache.expiry.TouchedExpiryPolicy</class-name>
+      <serializer>
+        <class-name>com.tangosol.coherence.jcache.serialization.ExpiryPolicyPofSerializer</class-name>
+      </serializer>
+    </user-type>
+
+    <user-type>
+      <type-id>615</type-id>
+      <class-name>javax.cache.configuration.FactoryBuilder$SingletonFactory</class-name>
+      <serializer>
+        <class-name>com.tangosol.coherence.jcache.serialization.SingletonFactoryPofSerializer</class-name>
+      </serializer>
+    </user-type>
+
+    <user-type>
+      <type-id>616</type-id>
+      <class-name>javax.cache.configuration.FactoryBuilder$ClassFactory</class-name>
+      <serializer>
+        <class-name>com.tangosol.coherence.jcache.serialization.ClassFactoryPofSerializer</class-name>
+      </serializer>
+    </user-type>
+
+    <user-type>
+      <type-id>617</type-id>
+      <class-name>javax.cache.configuration.MutableCacheEntryListenerConfiguration</class-name>
+      <serializer>
+        <class-name>com.tangosol.coherence.jcache.serialization.MutableCacheEntryListenerConfigurationSerializer</class-name>
+      </serializer>
+    </user-type>
+
+    <user-type>
+      <type-id>618</type-id>
+      <class-name>javax.cache.expiry.CreatedExpiryPolicy</class-name>
+      <serializer>
+        <class-name>com.tangosol.coherence.jcache.serialization.ExpiryPolicyPofSerializer</class-name>
+      </serializer>
+    </user-type>
+
+    <!-- Coherence JCache Common POF Types (630-639) -->
+    <user-type>
+      <type-id>630</type-id>
+      <class-name>com.tangosol.coherence.jcache.common.JCacheIdentifier</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>631</type-id>
+      <class-name>com.tangosol.coherence.jcache.common.CoherenceEntryProcessorResult</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>632</type-id>
+      <class-name>com.tangosol.coherence.jcache.common.JCacheEntryMetaInf</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>633</type-id>
+      <class-name>com.tangosol.coherence.jcache.common.ContextJCacheStatistics</class-name>
+    </user-type>
+
+    <!-- Coherence JCache Partitioned Cache POF Types (640-680) -->
+    <user-type>
+      <type-id>640</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.processors.CacheLoaderProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>641</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.processors.ClearProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>642</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.processors.ContainsKeyProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>643</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.processors.InvokeProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>644</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.processors.GetAndPutProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>645</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.processors.GetAndPutProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>646</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.processors.GetAndRemoveProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>647</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.processors.GetAndReplaceProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>648</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.processors.GetProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>649</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.processors.PutAllProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>650</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.processors.PutIfAbsentProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>651</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.processors.PutProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>652</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.processors.ConditionalRemoveProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>653</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.processors.ReplaceProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>654</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.processors.RemoveProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>655</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.processors.ConditionalReplaceProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>656</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.PartitionedCacheAsynchronousMapListener$NonSyntheticEntryFilter</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>657</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.processors.GetPartitionCountEP</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>658</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.PartitionedCacheSyntheticDeleteMapListener$JCacheExpiryEntryFilter</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>659</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.PartitionedCacheConfiguration</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>660</type-id>
+      <class-name>com.tangosol.coherence.jcache.passthroughcache.processors.InvokeProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>661</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.PartitionedJCacheStatistics$CacheStatisticsExtractor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>662</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.PartitionedJCacheStatistics$PartitionedCacheStatisticsAggregator</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>663</type-id>
+      <class-name>com.tangosol.coherence.jcache.partitionedcache.PartitionedJCacheStatistics$PartitionedCacheStatisticsClear</class-name>
+    </user-type>
+
+    <!-- Coherence JCache Pass-Through Cache POF Types (680-699) -->
+    <user-type>
+      <type-id>680</type-id>
+      <class-name>com.tangosol.coherence.jcache.passthroughcache.processors.ReplaceWithProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>681</type-id>
+      <class-name>com.tangosol.coherence.jcache.passthroughcache.processors.ReplaceIfExistsProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>682</type-id>
+      <class-name>com.tangosol.coherence.jcache.passthroughcache.processors.GetAndReplaceProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>683</type-id>
+      <class-name>com.tangosol.coherence.jcache.passthroughcache.processors.InvokeProcessor</class-name>
+    </user-type>
+  </user-type-list>
+</pof-config>

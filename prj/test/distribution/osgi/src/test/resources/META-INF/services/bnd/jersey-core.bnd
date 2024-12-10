@@ -1,0 +1,6 @@
+Bundle-Version: 1.16
+Bundle-Name: Jersey Core
+Bundle-SymbolicName: Jersey Core
+Bundle-Vendor: Oracle
+Export-Package: javax.ws.*,org.glassfish.jersey.*
+Import-Package: *;resolution:=optional

@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">      
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>custom-serialization-cache</cache-name>
+      <scheme-name>custom-serialization-cache</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>custom-serialization-map</cache-name>
+      <scheme-name>custom-serialization-map</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>custom-simple-serialization-map</cache-name>
+      <scheme-name>custom-simple-serialization-map</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>partition-backing-map-simple</cache-name>
+      <scheme-name>partition-backing-map-simple*</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>partition-backing-map-nio</cache-name>
+      <scheme-name>partition-backing-map-nio*</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <external-scheme>
+      <scheme-name>custom-serialization-cache</scheme-name>
+      <class-name>cache.SerializationCacheTests$CustomCache</class-name>
+      <init-params>
+        <init-param>
+          <param-name>class-name</param-name>
+          <param-value>SerializationCacheTests$CustomCache</param-value>
+        </init-param>
+      </init-params>
+      <nio-file-manager>
+        <initial-size>1</initial-size>
+        <maximum-size>2</maximum-size>
+      </nio-file-manager>
+      <high-units>1000</high-units>
+    </external-scheme>
+
+    <external-scheme>
+      <scheme-name>custom-serialization-map</scheme-name>
+      <class-name>cache.SerializationMapTests$CustomMap</class-name>
+      <init-params>
+        <init-param>
+          <param-name>class-name</param-name>
+          <param-value>SerializationMapTests$CustomMap</param-value>
+        </init-param>
+      </init-params>
+      <nio-file-manager>
+        <initial-size>1</initial-size>
+        <maximum-size>2</maximum-size>
+      </nio-file-manager>
+    </external-scheme>
+
+    <external-scheme>
+      <scheme-name>custom-simple-serialization-map</scheme-name>
+      <class-name>cache.SimpleSerializationMapTests$CustomMap</class-name>
+      <init-params>
+        <init-param>
+          <param-name>class-name</param-name>
+          <param-value>SimpleSerializationMapTests$CustomMap</param-value>
+        </init-param>
+      </init-params>
+      <nio-file-manager>
+        <initial-size>1</initial-size>
+        <maximum-size>2</maximum-size>
+      </nio-file-manager>
+    </external-scheme>
+
+    <distributed-scheme>
+      <scheme-name>partition-backing-map-simple</scheme-name>
+      <backup-storage>
+        <!-- as of Coherence 3.5 backup is partitioned by default -->
+        <type>off-heap</type>
+        <initial-size>1MB</initial-size>
+        <maximum-size>5MB</maximum-size>
+      </backup-storage>
+
+      <backing-map-scheme>
+        <partitioned>true</partitioned>
+        <local-scheme/>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>partition-backing-map-simple-nio</scheme-name>
+      <backup-storage>
+        <!-- as of Coherence 3.5 backup is partitioned by default -->
+        <type>off-heap</type>
+        <initial-size>1MB</initial-size>
+        <maximum-size>5MB</maximum-size>
+      </backup-storage>
+
+      <backing-map-scheme>
+        <partitioned>true</partitioned>
+        <external-scheme>
+          <nio-file-manager>
+            <initial-size>5MB</initial-size>
+            <maximum-size>10MB</maximum-size>
+          </nio-file-manager>
+        </external-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <invocation-scheme>
+      <scheme-name>workManager-invocation</scheme-name>
+      <service-name>Manager</service-name>
+      <thread-count-max>2</thread-count-max>
+      <thread-count-min>2</thread-count-min>
+    </invocation-scheme>
+  </caching-schemes>
+</cache-config>

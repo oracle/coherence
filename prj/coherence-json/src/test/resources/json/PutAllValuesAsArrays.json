@@ -1,0 +1,72 @@
+{
+  "@class" : "common.data.PutAll",
+  "entries" : [ {
+    "key" : {
+      "@class" : "common.data.Person",
+      "name" : "Smith",
+      "age" : 12,
+      "minor" : true
+    },
+    "values" : [ 1, 2, 3 ]
+  }, {
+    "key" : {
+      "@class" : "common.data.Person",
+      "name" : "Robinson",
+      "age" : 24,
+      "minor" : false
+    },
+    "values" : [ "foo", "bar" ]
+  }, {
+    "key" : {
+      "@class" : "common.data.Person",
+      "name" : "Jones_StringArrayList",
+      "age" : 27,
+      "minor" : false
+    },
+    "values" : [ "arraylist_foo", "arraylist_bar" ]
+  }, {
+    "key" : {
+      "@class" : "common.data.Person",
+      "name" : "Jones",
+      "age" : 26,
+      "minor" : false
+    },
+    "values" : [ {
+      "@class" : "common.data.Person",
+      "name" : "foo",
+      "age" : 1,
+      "minor" : true
+    }, {
+      "@class" : "common.data.Person",
+      "name" : "bar",
+      "age" : 2,
+      "minor" : false
+    } ]
+  }, {
+    "key" : {
+      "@class" : "common.data.Person",
+      "name" : "JonesAL",
+      "age" : 26,
+      "minor" : false
+    },
+    "values" : [ {
+      "@class" : "common.data.Person",
+      "name" : "al_foo",
+      "age" : 1,
+      "minor" : true
+    }, {
+      "@class" : "common.data.Person",
+      "name" : "al_bar",
+      "age" : 2,
+      "minor" : false
+    } ]
+  }, {
+    "key" : {
+      "@class" : "common.data.Person",
+      "name" : "BigMike",
+      "age" : 28,
+      "minor" : false
+    },
+    "values" : [ 1, 10, 987654321987654321987654321 ]
+  } ]
+}

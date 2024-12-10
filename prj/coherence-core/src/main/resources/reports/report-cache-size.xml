@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+    <report>
+      <file-name>{date}-cache-size.txt</file-name>
+      <delim>{tab}</delim>
+
+      <filters>
+      </filters>
+
+      <query>
+        <pattern>Coherence:type=Cache,tier=back,*</pattern>
+      </query>
+
+      <row>
+        <column id="BatchCounter">
+          <type>global</type>
+          <name>{batch-counter}</name>
+          <header>Batch Counter</header>
+        </column>
+
+        <column id="ReportTime">
+          <type>global</type>
+          <name>{report-time}</name>
+          <header>Report Time</header>
+          <group-by>true</group-by>
+        </column>
+
+        <column id ="Service">
+          <type>key</type>
+          <name>service</name>
+          <header>Service</header>
+          <group-by>true</group-by>
+        </column>
+
+        <column id="Name">
+          <type>key</type>
+          <name>name</name>
+          <header>Cache Name</header>
+          <group-by>true</group-by>
+        </column>
+
+        <column id="DomainPartition">
+          <type>key</type>
+          <name>domainPartition</name>
+          <header>Domain Partition</header>
+          <hidden>{non-MT}</hidden>
+          <group-by>true</group-by>
+        </column>
+
+        <column id ="Units">
+          <name>Units</name>
+          <hidden>true</hidden>
+        </column>
+
+        <column id ="Size">
+          <name>Size</name>
+          <hidden>true</hidden>
+        </column>
+
+        <column id ="CacheSize">
+          <type>function</type>
+          <header>CacheSize</header>
+          <column-ref>Size</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+        <column id ="MemoryBytes">
+          <type>function</type>
+          <header>MemoryBytes</header>
+          <column-ref>Units</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+        <column id="Const1MB">
+          <type>constant</type>
+          <name>const1MB</name>
+          <header>Constant</header>
+          <hidden>true</hidden>
+          <data-type>double</data-type>
+          <value>1048576.0</value>
+        </column>
+
+        <column id="MemoryMB">
+          <type>function</type>
+          <name>MemoryMB</name>
+          <header>MemoryMB</header>
+          <function-name>divide</function-name>
+          <params>
+            <column-ref>MemoryBytes</column-ref>
+            <column-ref>Const1MB</column-ref>
+          </params>
+        </column>
+
+        <column id="AvgSize">
+          <type>function</type>
+          <name>AvgSize</name>
+          <header>Avg Object Size</header>
+          <function-name>divide</function-name>
+          <params>
+            <column-ref>MemoryBytes</column-ref>
+            <column-ref>CacheSize</column-ref>
+          </params>
+        </column>
+
+      </row>
+    </report>
+</report-config>

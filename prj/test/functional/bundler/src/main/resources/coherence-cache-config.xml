@@ -1,0 +1,325 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<!--
+Cache Configuration used for the bundler test suite.
+-->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">    	
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>dist-test</cache-name>
+      <scheme-name>bundled-partitioned</scheme-name>
+    </cache-mapping>
+
+    <!-- with ReadWriteBackingMap/CacheStore -->
+    <cache-mapping>
+      <cache-name>dist-test-rwbm</cache-name>
+      <scheme-name>bundled-partitioned-rwbm</scheme-name>
+    </cache-mapping>
+
+    <!-- with ReadWriteBackingMap/BinaryEntryStore -->
+    <cache-mapping>
+      <cache-name>dist-test-rwbm-bin</cache-name>
+      <scheme-name>bundled-partitioned-rwbm</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>store</param-name>
+          <param-value>com.oracle.coherence.testing.TestBinaryCacheStore</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+
+    <!-- with ReadWriteBackingMap/NonBlockingEntryStore -->
+    <cache-mapping>
+      <cache-name>dist-test-rwbm-bin-nb</cache-name>
+      <scheme-name>bundled-partitioned-rwbm</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>store</param-name>
+          <param-value>com.oracle.coherence.testing.TestNonBlockingStore</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-test-bundled-config-disabled</cache-name>
+      <scheme-name>bundled-config-disabled</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-test-bundled-config-defaults</cache-name>
+      <scheme-name>bundled-config-defaults</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-test-bundled-config-customized</cache-name>
+      <scheme-name>bundled-config-customized</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-test-bundled-config-multiple</cache-name>
+      <scheme-name>bundled-config-multiple</scheme-name>
+    </cache-mapping>
+            
+     <cache-mapping>
+      <cache-name>dist-test-bundled-cachestore-config-disabled</cache-name>
+      <scheme-name>bundled-cachestore-config-disabled</scheme-name>
+    </cache-mapping>
+    
+     <cache-mapping>
+      <cache-name>dist-test-bundled-cachestore-config-defaults</cache-name>
+      <scheme-name>bundled-cachestore-config-defaults</scheme-name>
+    </cache-mapping>
+
+     <cache-mapping>
+      <cache-name>dist-test-bundled-cachestore-config-customized</cache-name>
+      <scheme-name>bundled-cachestore-config-customized</scheme-name>
+    </cache-mapping>
+
+     <cache-mapping>
+      <cache-name>dist-test-bundled-cachestore-config-multiple</cache-name>
+      <scheme-name>bundled-cachestore-config-multiple</scheme-name>
+    </cache-mapping>
+                    
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>bundled-partitioned</scheme-name>
+      <service-name>BundledPartitioned</service-name>
+
+      <operation-bundling>
+        <bundle-config>
+          <operation-name>all</operation-name>
+          <preferred-size>10</preferred-size>
+          <thread-threshold>15</thread-threshold>
+        </bundle-config>
+      </operation-bundling>
+
+      <backing-map-scheme>
+        <local-scheme>
+        </local-scheme>
+      </backing-map-scheme>
+
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>bundled-partitioned-rwbm</scheme-name>
+
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <class-name>com.oracle.coherence.testing.rwbm.EvictingRWBM</class-name>
+          <internal-cache-scheme>
+            <local-scheme>
+              <expiry-delay>{internal-cache-expiry 0}</expiry-delay>
+            </local-scheme>
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
+            </class-scheme>
+            <operation-bundling>
+              <bundle-config>
+                <operation-name>all</operation-name>
+                <preferred-size>10</preferred-size>
+                <thread-threshold>15</thread-threshold>
+              </bundle-config>
+            </operation-bundling>
+          </cachestore-scheme>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>bundled-config-disabled</scheme-name>
+      <service-name>BundledConfigDisabled</service-name>
+      <operation-bundling>
+        <bundle-config/>
+      </operation-bundling>
+      <backing-map-scheme>
+        <local-scheme>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>bundled-config-defaults</scheme-name>
+      <service-name>BundledConfigDefaults</service-name>
+      <operation-bundling>
+        <bundle-config>
+          <preferred-size>10</preferred-size>
+        </bundle-config>
+      </operation-bundling>
+      <backing-map-scheme>
+        <local-scheme>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>bundled-config-customized</scheme-name>
+      <service-name>BundledConfigSpecified</service-name>
+      <operation-bundling>
+        <bundle-config>
+          <operation-name>all</operation-name>
+          <preferred-size>10</preferred-size>
+          <delay-millis>100</delay-millis>
+          <thread-threshold>15</thread-threshold>
+          <auto-adjust>true</auto-adjust>
+        </bundle-config>
+      </operation-bundling>
+      <backing-map-scheme>
+        <local-scheme>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+    
+    <distributed-scheme>
+      <scheme-name>bundled-config-multiple</scheme-name>
+      <service-name>BundledConfigMultiple</service-name>
+        <operation-bundling>
+          <bundle-config>
+            <operation-name>get</operation-name>
+            <preferred-size>10</preferred-size>
+            <delay-millis>100</delay-millis>
+            <thread-threshold>15</thread-threshold>
+            <auto-adjust>true</auto-adjust>
+          </bundle-config>
+          <bundle-config>
+            <operation-name>put</operation-name>
+            <preferred-size>10</preferred-size>
+          </bundle-config>
+          <bundle-config>
+            <operation-name>remove</operation-name>
+          </bundle-config>
+        </operation-bundling>
+       <backing-map-scheme>
+        <local-scheme>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+    
+    <distributed-scheme>
+      <scheme-name>bundled-cachestore-config-disabled</scheme-name>
+      <service-name>BundledCacheStoreConfigDisabled</service-name>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+            <internal-cache-scheme>
+              <local-scheme/>
+            </internal-cache-scheme>
+            <cachestore-scheme>
+              <class-scheme>
+                <class-name>{store com.oracle.coherence.testing.TestBinaryCacheStore}</class-name>
+              </class-scheme>
+              <operation-bundling>
+                <bundle-config/>
+              </operation-bundling>
+            </cachestore-scheme>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+        
+    <distributed-scheme>
+      <scheme-name>bundled-cachestore-config-defaults</scheme-name>
+      <service-name>BundledCacheStoreConfigDefaults</service-name>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+            <internal-cache-scheme>
+              <local-scheme/>
+            </internal-cache-scheme>
+            <cachestore-scheme>
+              <class-scheme>
+                <class-name>{store com.oracle.coherence.testing.TestBinaryCacheStore}</class-name>
+              </class-scheme>
+              <operation-bundling>
+                <bundle-config>
+                  <preferred-size>10</preferred-size>
+                </bundle-config>
+              </operation-bundling>
+            </cachestore-scheme>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+    
+    <distributed-scheme>
+      <scheme-name>bundled-cachestore-config-customized</scheme-name>
+      <service-name>BundledCacheStoreConfigSpecified</service-name>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+            <internal-cache-scheme>
+              <local-scheme/>
+            </internal-cache-scheme>
+            <cachestore-scheme>
+              <class-scheme>
+                <class-name>{store com.oracle.coherence.testing.TestBinaryCacheStore}</class-name>
+              </class-scheme>
+              <operation-bundling>
+                <bundle-config>
+                  <operation-name>all</operation-name>
+                  <preferred-size>10</preferred-size>
+                  <delay-millis>100</delay-millis>
+                  <thread-threshold>15</thread-threshold>
+                  <auto-adjust>true</auto-adjust>
+                </bundle-config>
+              </operation-bundling>
+            </cachestore-scheme>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+        
+    <distributed-scheme>
+      <scheme-name>bundled-cachestore-config-multiple</scheme-name>
+      <service-name>BundledCacheStoreConfigMultiple</service-name>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+            <internal-cache-scheme>
+              <local-scheme/>
+            </internal-cache-scheme>
+            <cachestore-scheme>
+              <class-scheme>
+                <class-name>{store com.oracle.coherence.testing.TestBinaryCacheStore}</class-name>
+              </class-scheme>
+              <operation-bundling>
+                <bundle-config>
+                  <operation-name>load</operation-name>
+                  <preferred-size>10</preferred-size>
+                  <delay-millis>100</delay-millis>
+                  <thread-threshold>15</thread-threshold>
+                  <auto-adjust>true</auto-adjust>
+                </bundle-config>
+                <bundle-config>
+                  <operation-name>store</operation-name>
+                  <preferred-size>10</preferred-size>
+                </bundle-config>
+                <bundle-config>
+                  <operation-name>erase</operation-name>
+                </bundle-config>
+              </operation-bundling>
+            </cachestore-scheme>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+            
+  </caching-schemes>
+  
+</cache-config>

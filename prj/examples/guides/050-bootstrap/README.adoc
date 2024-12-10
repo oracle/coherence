@@ -1,0 +1,325 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Bootstrap Coherence
+:description: Coherence Guides
+:keywords: coherence, java, documentation, guides
+
+== Bootstrap Coherence
+
+Whether you are running a Coherence cluster member or client, you'll need to configure and bootstrap Coherence.
+Coherence does not actually need any configuring or bootstrapping, you could just do something like `CacheFactory.getCache("foo");`,
+but when there is an alternative, static method calls to get Coherence resources are poor coding practice (especially when it comes
+to unit testing with mocks and stubs).
+
+Coherence CE v20.12 introduced a new bootstrap API for Coherence, which this guide is going to cover.
+Not only does the bootstrap API make it simpler to start Coherence, it makes some other uses cases simpler,
+for example where a client application needs to connect to multiple clusters.
+
+A number of the integrations between Coherence and application frameworks, such as
+https://github.com/coherence-community/coherence-spring[Coherence Spring],
+https://github.com/micronaut-projects/micronaut-coherence[Coherence Micronaut],
+https://helidon.io[Coherence CDI and Helidon], use the bootstrap API under the covers
+to initialize Coherence when using those frameworks.
+When using these types of "DI" frameworks, Coherence and Session instances and other Coherence resources can just be
+injected into application code without even needing to directly access the bootstrap API.
+
+=== Contents
+
+* <<starting,Simply Starting Coherence>> - Running `Coherence` as the main class.
+* <<coherence-instance,The Coherence Instance>> - Accessing and using the bootstrapped Coherence instance
+** <<starting,Ensure Coherence is Started>> - Obtaining a fully running Coherence instance
+** <<session,Coherence Sessions>> - Obtaining Coherence Session instances and other Coherence resources
+* <<app-init,Application Initialization>> - Initializing application code without needing a custom main class
+* <<bootstrap-code,Bootstrap Coherence>> - Starting Coherence from Application Code
+** <<simple-cluster,Simple Cluster Member>> - Start a simple cluster member
+** <<configure-cluster,Configured Cluster Member>> - Configure and start a simple cluster member
+
+
+
+== What You Will Build
+
+This guide will look at some ways to bootstrap a Coherence application.
+
+// ToDo: Describe what the source code builds, it might just be some simple unit tests to show an
+// API or something more complex.
+
+
+// Do not change this part.
+// If your example requires Java 11+ change the 1.8 below to 11
+=== What You Need
+:java_version: 11
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+// Do not change this part unless you have more complex build instructions.
+=== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+== A Brief History
+
+A Coherence application is either a cluster member, or it is a client. Historically a client would be a Coherence*Extend client, but more recently Coherence has also introduced a gRPC client.
+Prior to CE v20.12, applications typically used Coherence in a couple of ways; either cluster members that started by running {javadoc-root}com/tangosol/net/DefaultCacheServer.html[DefaultCacheServer], or by running a custom main class and obtaining Coherence resources directly from a `Session` or `ConfigurableCacheFactory` instance - possibly using static methods on `com.tangosol.net.CacheFactory`. By far the majority of applications only had a single `ConfigurableCacheFactory` instance, but occasionally an application would add more (for example an Extend client connecting to multiple cluster). Adding of additional `ConfigurableCacheFactory` required custom start-up code and management code. In an effort to make it possible to build more modular applications with multiple `ConfigurableCacheFactory` or `Session` instances a new bootstrap API was added.
+
+[#starting]
+== Starting Coherence
+
+The {javadoc-root}com/tangosol/net/Coherence.html[Coherence] class is the main entry point into a Coherence application.
+A Coherence server can be started by simply running the `Coherence.main()` method.
+From Coherence CE v22.06, this is the default way that Coherence starts using `java -jar coherence.jar`.
+
+An important point when using the `Coherence` class to start Coherence is that this will automatically include starting some of
+the additional Coherence extensions if they are on the class path, or module path. For example, starting the Coherence health check http endpoints, or if the Coherence Concurrent module is on the class path, its services will automatically be started. The same applies to the Coherence gRPC server, Coherence metrics and Coherence REST management.
+
+[source,bash]
+----
+java -cp coherence.jar com.tangosol.net.Coherence
+----
+
+[source,bash]
+----
+java -jar coherence.jar
+----
+
+Or with Java modules
+
+[source,bash]
+----
+java -p coherence.jar -m com.oracle.coherence
+----
+
+Functionally this is almost identical to the old way of running `DefaultCacheServer`, but will now use the new bootstrap API to configure and start Coherence.
+When run in this way Coherence will use the default configuration file `coherence-cache-config.xml`, either from `coherence.jar` or elsewhere on the classpath. The name of this configuration file can be overridden as normal with the `coherence.cacheconfig` system property.
+Running the Coherence class, or using the bootstrap API, will also start various system services, such as the health check http endpoints.
+
+=== Running Coherence as an Extend Client
+
+By default, Coherence will run as a storage enabled cluster member, unless Coherence system properties or environment variables have been used to override this.
+
+For example, _when using the default `coherence-cache-config.xml` file from `coherence.jar`_ it is possible to run `Coherence` as an Extend client by setting the `coherence.client` system property (or `COHERENCE_CLIENT` environment variable) to a value of `remote`.
+
+[source,bash]
+----
+java -cp coherence.jar -Dcoherence.client=remote com.tangosol.net.Coherence
+----
+
+
+[#coherence-instance]
+== Using a Coherence Instance
+
+Once a `Coherence` instance has been started, using either the `Coherence.main()` method, or one of the other ways described below,
+application code can obtain the running Coherence instance and obtain a Coherence {javadoc-root}com/tangosol/net/Session.html[Session]
+which can then be used to access Coherence resources such as `NamedMap`, `NamedCache`, `NamedTopic` etc.
+
+More than one Coherence instance can be running simultaneously (but in the case of a cluster member, all these instances will be a
+single cluster member, they are not able to be parts of separate clusters). Each Coherence instance has a unique name and can be accessed by name.
+
+If Coherence has been started using `Coherence.main()` there will be a single instance of Coherence with the default name.
+The simplest way to access the default `Coherence` instance is using the static accessor.
+
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/bootstrap/Snippets.java[tag=getCoherence]
+----
+
+Coherence instances can also be obtained by name, the default instance's name can be accessed using the static field `Coherence.DEFAULT_NAME`:
+
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/bootstrap/Snippets.java[tag=getCoherenceByName]
+----
+
+[#ensure-started]
+=== Ensure Coherence is Started
+
+Sometimes, application code may need to ensure Coherence has fully started before running.
+A `Coherence` instance has a `whenStarted()` method that returns a `CompletableFuture` that will be completed when
+the Coherence instance has finished starting.
+
+The example below obtains the default Coherence instance and waits up to five minuts for the instance to be running.
+
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/bootstrap/Snippets.java[tag=ensureRunning]
+----
+
+[#session]
+=== Obtain a Coherence Session
+
+Each Coherence instance will be running one or more uniquely named `Session` instances, depending on how it was configured.
+By running `Coherence.main()` the default `Coherence` instance will be running the default `Session`.
+A `Session` can be obtained from a `Coherence` instance using a number of methods.
+
+The example below obtains the default Coherence Session from the default Coherence instance.
+This method would be used if Coherence has been started using the default `Coherence.main()` method.
+
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/bootstrap/Snippets.java[tag=getDefaultSession]
+----
+
+A `Session` can also be obtained using its name.
+The example below obtains the `Session` named "foo".
+
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/bootstrap/Snippets.java[tag=getNamedSession]
+----
+
+It is also possible to use the static `Coherence.findSession()` method to find a `Session` by name across all
+configured Coherence instances. This method returns an optional containing the `Session` or empty if no `Session`
+exists with the requested name.
+
+
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/bootstrap/Snippets.java[tag=findNamedSession]
+----
+
+
+[#app-init]
+== Initialize Application Code
+
+Sometimes an application needs to perform some initialization when it starts up.
+Before the new bootstrap API existed, this was a common reason for applications having to add a custom main class.
+The `Coherence` class has an inner interface {javadoc-root}com/tangosol/net/Coherence.LifecycleListener.html[LifecycleListener] that
+application code can implement to be notified of Coherence start-up and shutdown events.
+Instances of `LifecycleListener` are automatically discovered by Coherence at runtime using the Java `ServiceLoader`, which means that an
+applications can be initialised without needing a custom main class, but instead by just implementing a `LifecycleListener`.
+This is particularly useful where an application is made up of modules that may or may not be on the class path or module path at runtime.
+A module just needs to implement a Coherence `LifecycleListener` as a Java service and whenever it is on the class path it will be initialized.
+
+For example, an application that needs to start a web-server could implement `LifecycleListener` as shown below.
+The `STARTED` event type is fired after a Coherence instance is started, the `STOPPING` event type is fired before a Coherence instance is stopped.
+
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/bootstrap/WebServerController.java[tag=code]
+----
+
+The event also contains the `Coherence` instance that raised the event, so this could then be used to obtain a `Session`
+and other Coherence resources that are needed as part of the application initialisation.
+
+Adding the `WebServerController` class above to a `META-INF/services` file or module-info file will make it discoverable by Coherence.
+
+[source,java]
+.META_INF/services/com.tangosol.net.Coherence$LifecycleListener
+----
+com.oracle.coherence.guides.bootstrap.WebServerController;
+----
+
+[source,java]
+.module-info.java
+----
+open module com.oracle.coherence.guides.bootstrap {
+    requires com.oracle.coherence;
+
+    exports com.oracle.coherence.guides.bootstrap;
+
+    provides com.tangosol.net.Coherence.LifecycleListener
+        with com.oracle.coherence.guides.bootstrap.WebServerController;
+}
+----
+
+
+[#bootstrap-code]
+== Bootstrap Coherence in Application Code
+
+If your application needs to control start-up and shutdown of Coherence, then the bootstrap API can be called from application code.
+This is often useful in integration JUnit test code too, where a test class may need to configure and start Coherence for a set of tests.
+It is possible for application code to run multiple `Coherence` instances, which each manage one or more scoped Coherence sessions.
+Where multiple `Coherence` cluster member instances are created, they will still all be part of a single Coherence cluster member, they
+cannot be part of separate clusters.
+
+[#simple-cluster]
+=== Run a Simple Cluster Member
+
+The simplest way to start Coherence as a cluster member in application code is shown below:
+
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/bootstrap/Snippets.java[tag=simple]
+----
+
+The `start()` method returns a `CompletableFuture` so application code that needs to wit for start-up to complete can use the future for this purpose.
+The example below ensures `Coherence` is started as a cluster member (waiting a maximum of five minutes) before proceeding.
+
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/bootstrap/Snippets.java[tag=simpleWait]
+----
+
+Running Coherence in this way will create a single `Session` using the default cache configuration file
+(or another file specified using the `-Dcoherence.cacheconfig` system property).
+By default, this will be a storage enabled cluster member, unless Coherence system properties or environment variables have been used to override this.
+
+[#configure-cluster]
+=== Configure a Cluster Member
+
+The bootstrap API allows the `Coherence` instance to be configured before starting, for example adding one or more session configurations.
+
+In the example below, a `Coherence` cluster member instance is created using a configuration.
+The configuration in this case does not specify a name, so the default name will be used.
+The configuration contains two `Session` configurations. The first is named "foo" and uses the cache configuration loaded from
+`foo-cache-config.xml` with the scope name "Foo". The second `Session` will be the default session using the default cache configuration file.
+
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/bootstrap/Snippets.java[tag=configureClusterMember]
+----
+
+There are various other methods on the configuration builders, for example configuring parameters to pass into the cache configuration files, configuring interceptors, etc.
+
+[#run-extend]
+=== Run Coherence as an Extend Client
+
+If the application code will is an Extend client, then Coherence can be bootstrapped in client mode.
+
+The example below starts Coherence as an Extend client, which will use the Coherence NameService to locate the cluster and look up the Extend Proxy to connect to. This works by configuring the client to have the same cluster name and same well-known address list (or multicast settings) as the cluster being connected to, either using System properties or environment variables.
+
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/bootstrap/Snippets.java[tag=simpleClient]
+----
+
+Alternatively, instead of using the NameService a fixed address and port can be configured for the Extend client to use.
+If the System property `coherence.extend.address` is set to the IP address or host name of the Extend proxy,
+and `coherence.extend.port` is set to the port of the Extend proxy
+(or the corresponding environment variables `COHERENCE_EXTEND_ADDRESS` and `COHERENCE_EXTEND_PORT`)
+then Coherence can be bootstrapped as shown below.
+
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/bootstrap/Snippets.java[tag=simpleFixedClient]
+----
+
+Coherence will then be bootstrapped as an Extend client and connect to the proxy on the configured address and port.
+
+[NOTE]
+====
+The code snippets above work with the default cache configuration file.
+The default cache configuration file in the `coherence.jar` is configured with certain injectable property values,
+which are configured by the bootstrap API when running as a client. Using other cache configuration files that are not configured with these properties would mean "client" mode is effectively ignored. The Coherence instance will still be started and will run correctly, the client mode properties will just have no affect.
+====
+
+[#configure-extend]
+=== Configure an Extend Client
+
+Coherence can be configured in client mode in code.
+
+In the example below, a `Coherence` client instance is created using a configuration.
+The configuration in this case does not specify a name, so the default name will be used.
+The configuration contains two `Session` configurations. The first is named "foo" and uses the cache configuration loaded from
+`foo-cache-config.xml` with the scope name "Foo". The second `Session` will be the default session using the default cache configuration file.
+
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/bootstrap/Snippets.java[tag=configureClient]
+----
+
+Using Coherence Extend and application can configure in this way, with multiple `Session` instances,
+where each session will connect as an Extend client to a different Coherence cluster.
+Each configured session is given a different name and scope.
+The required sessions can then be obtained from the running `Coherence` instance by application code at runtime.

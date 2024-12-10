@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+	xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config
+	http://xmlns.oracle.com/coherence/coherence-cache-config/1.1/coherence-cache-config.xsd">
+
+	<caching-scheme-mapping>
+		<cache-mapping>
+			<cache-name>*</cache-name>
+			<scheme-name>test-scheme</scheme-name>
+		</cache-mapping>
+	</caching-scheme-mapping>
+
+	<caching-schemes>
+		<distributed-scheme>
+			<scheme-name>test-scheme</scheme-name>
+			<backing-map-scheme>
+				<local-scheme/>
+			</backing-map-scheme>
+			<autostart>true</autostart>
+		</distributed-scheme>
+	</caching-schemes>
+</cache-config>

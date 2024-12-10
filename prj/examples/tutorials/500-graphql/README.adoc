@@ -1,0 +1,1334 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= GraphQL
+:description: Coherence Tutorials
+:keywords: coherence, java, documentation, tutorials
+
+== GraphQL
+
+This tutorial walks through the steps to enable access to Coherence data from GraphQL using Helidon’s
+https://helidon.io/docs/v2/#/mp/graphql/01_mp_graphql[MicroProfile (MP) GraphQL support]
+and {commercial-docs-base-url}/develop-applications/using-contexts-and-dependency-injection.html[Coherence CDI].
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-need,What You Need>>
+* <<getting-started,Getting Started>>
+* <<follow-the-tutorial,Follow the Tutorial>>
+** <<review-the-initial-project, Review the Initial Project>>
+** <<configure-mp-graphql, Configure MicroProfile GraphQL>>
+** <<create-queries, Create Queries to Show Customer and Orders>>
+** <<inject-related-objects, Inject Related Objects>>
+** <<add-mutations, Add Mutations>>
+** <<add-a-dynamic-where-clause, Add a Dynamic Where Clause>>
+** <<access-metrics, Access Metrics>>
+* <<run-the-completed-tutorial, Run the Completed Tutorial>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+You will build on an existing `mock` sample Coherence data model and create
+an application that will expose a GraphQL endpoint to perform various queries and mutations
+against the data model.
+
+NOTE: If you wish to read more about GraphQL or Helidon's support in GraphQL, please see this
+https://medium.com/helidon/microprofile-graphql-support-now-available-in-helidon-mp-dbc7bc0b4af[Medium post].
+
+// Do not change this part.
+// If your example requires Java 11+ change the 1.8 below to 11
+[#what-you-need]
+=== What You Need
+:java_version: 11
+:duration: 30-45
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+==== Building the Example Code
+
+Whenever you are asked to build the code, please refer to the instructions below.
+
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+'''
+
+[#getting-started]
+=== Getting Started
+
+This tutorial contains both the completed codebase as well as the initial state
+from which you build the complete the tutorial on.
+
+NOTE: If you would like to run the completed example, please follow
+the instructions <<run-the-completed-tutorial,here>> otherwise continue below for the tutorial.
+
+// Do not change this part unless you have more complex build instructions.
+[#follow-the-tutorial]
+=== Follow the Tutorial
+
+Ensure you have the project in `tutorials/500-graphql/initial` imported into your IDE.
+
+[#review-the-initial-project]
+==== Review the Initial Project
+
+**Maven Configuration**
+
+The initial project is a Coherence-CDI and Helidon project and imports the `coherence-bom`, `helidon-bom` and `coherence-dependencies`
+POMs as shown below:
+
+[source,xml,indent=0]
+----
+include::initial/pom.xml[tag=deps1]
+----
+
+`helidon-microprofile-cdi`, `coherence-cdi-server` and `helidon-microprofile-metrics` are also included:
+
+[source,xml,indent=0]
+----
+include::initial/pom.xml[tag=deps2]
+----
+
+The POM also includes the `jandex-maven-plugin` to build an index, which is required by Helidon's implementation.
+
+[source,xml,indent=0]
+----
+include::initial/pom.xml[tag=jandex]
+----
+
+**Data Model**
+
+The data model consists of the following classes:
+
+* `Customer` - contains customer details and keyed by customer id
+* `Order` - contains orders for a customer and is keyed by order number
+* `Order Lines` - contains order line information which is included directly within `Order` object
+
+NOTE: The Objects to be used must conform to the naming conventions for fields and their getters and setters according to the Java Bean Spec to ensure
+full functionality works correctly in Helidon's MicroProfile GraphQL implementation.
+
+**Coherence Bootstrap**
+
+The `Bootstrap` class is used to initialize Coherence and includes the following `NamedMaps`:
+
+[source,java,indent=0]
+----
+include::initial/src/main/java/com/oracle/coherence/tutorials/graphql/api/Bootstrap.java[tag=namedMaps]
+----
+
+The class is `ApplicationScoped` and `init` method is called on application startup.
+
+[source,java,indent=0]
+----
+include::initial/src/main/java/com/oracle/coherence/tutorials/graphql/api/Bootstrap.java[tag=init]
+----
+
+**Build and Run the Initial State**
+
+Build and run using either of the following:
+
+.Commands to build and run for the rest of the tutorial
+[options="headers"]
+|=====
+|Build Tool | Build Command | Run Comments
+
+|Maven | `./mvnw clean package` | `./mvnw exec:exec`
+|Gradle | `./gradlew build` | `./gradlew runApp`
+|
+|=====
+
+Running the application will output, amongst other things, messages indicating
+Coherence has started and the following to show the data was loaded:
+
+[source,text]
+----
+===CUSTOMERS===
+Customer{customerId=1, name='Billy Joel', email='billy@billyjoel.com', address='Address 1', balance=0.0}
+Customer{customerId=4, name='Tom Jones', email='tom@jones.com', address='Address 4', balance=0.0}
+Customer{customerId=2, name='James Brown', email='soul@jamesbrown.net', address='Address 2', balance=100.0}
+Customer{customerId=3, name='John Williams', email='john@starwars.com', address='Address 3', balance=0.0}
+===ORDERS===
+....
+----
+
+[#configure-mp-graphql]
+==== Configure MicroProfile GraphQL
+
+**Add Helidon MP GraphQL**
+
+Add the following dependency to the project POM:
+[source,xml,indent=0]
+----
+include::complete/pom.xml[tag=mpGraphql]
+----
+
+or if you are using Gradle, then add the following to `build.gradle`:
+[source,properties,indent=0]
+----
+include::complete/build.gradle[tag=mpGraphql]
+----
+
+**Add MicroProfile Properties**
+
+Add the following to `src/main/resources/META-INF/microprofile-config.properties`:
+
+[source,java,indent=0]
+----
+include::complete/src/main/resources/META-INF/microprofile-config.properties[tag=props]
+----
+
+NOTE: The `server.static.classpath.context=/ui` defines the URL
+to serve the contents found in resources location `server.static.classpath.location=/web`. E.g. `src/main/resources/web`.
+The setting `graphql.cors=Access-Control-Allow-Origin` allows the GraphiQL UI to use CORS.
+We will explain the `mp.graphql.exceptionsWhiteList=java.lang.IllegalArgumentException` later.
+
+As the https://github.com/graphql/graphiql[GraphiQL UI] client used in this example is not included
+in this repository, you must copy the `index.html` file contents
+from https://github.com/graphql/graphiql/blob/main/packages/graphiql/README.md#cdn-bundle[https://github.com/graphql/graphiql/blob/main/packages/graphiql/README.md#cdn-bundle]
+into the file in `src/main/resources/web/index.html` before you continue.
+
+[#create-queries]
+=== Create Queries to Show Customer and Orders
+
+**Create the CustomerApi Class**
+
+Firstly we need to create a class to expose our GraphQL endpoint.
+
+1. Create a new Class called `CustomerApi` in the package `com.oracle.coherence.tutorials.graphql.api`.
+
+2. Add the `GraphQLApi` annotation to mark this class as a GraphQL Endpoint and make it application scoped.
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/api/CustomerApi.java[tag=annotations]
+----
+
+3. Inject the Coherence `NamedMap`s for customers and orders
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/api/CustomerApi.java[tag=namedMaps]
+----
+
+**Add a Query to return all customers**
+
+1. Add the following code to `CustomerApi` to create a query to return all customers:
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/api/CustomerApi.java[tag=getCustomers]
+----
+<1> Include the `@Counted` microprofile metrics annotation to count the number of invocations
++
+NOTE: Ensure you import the `Query` and `Description` annotations from `org.eclipse.microprofile.graphql`
+
+2. Build and run the project.
+
+3. Issue the following to display the automatically generated schema:
++
+[source,bash]
+----
+curl http://localhost:7001/graphql/schema.graphql
+
+type Customer {
+  address: String
+  balance: String!
+  customerId: Int!
+  email: String
+  name: String
+  orders: [Order]
+}
+type Query {
+  "Displays customers"
+  customers: [Customer]
+}
+----
+
+4. Open the URL http://localhost:7001/ui[http://localhost:7001/ui]. You should see the GraphiQL UI.
++
+Notice the `Documentation Explorer` on the right, which will allow you to explore the generated schema.
+
+5. Enter the following in the left-hand pane and click the `Play` button.
++
+[source,graphql]
+----
+query customers {
+  customers {
+    customerId
+    name
+    address
+    email
+    balance
+  }
+}
+----
+
+6. This will result in the following JSON output:
++
+[source,json]
+----
+{
+  "data": {
+    "customers": [
+      {
+        "customerId": 1,
+        "name": "Billy Joel",
+        "address": "Address 1",
+        "email": "billy@billyjoel.com",
+        "balance": 0
+      },
+      {
+        "customerId": 4,
+        "name": "Tom Jones",
+        "address": "Address 4",
+        "email": "tom@jones.com",
+        "balance": 0
+      },
+      {
+        "customerId": 2,
+        "name": "James Brown",
+        "address": "Address 2",
+        "email": "soul@jamesbrown.net",
+        "balance": 100
+      },
+      {
+        "customerId": 3,
+        "name": "John Williams",
+        "address": "Address 3",
+        "email": "john@starwars.com",
+        "balance": 0
+      }
+    ]
+  }
+}
+----
+
+**Add a Query to return all Orders**
+
+1. Add the following code to `CustomerApi` to create a query to return all orders:
++
+[source,java,indent=0]
+----
+@Query("displayOrders")
+@Timed // <1>
+public Collection<Order> getOrders() {
+    return orders.values();
+    }
+----
+<1> Include the `@Timed` microprofile metrics annotation to time the query
++
+NOTE: In this case we are overriding the default name for the query, which would be `orders`, with `displayOrders`.
++
+2. Stop the running project, rebuild and re-run.
+
+3. Refresh GraphiQL and enter the following in the left-hand pane and click the `Play` button and choose `orders`.
++
+[source,graphql]
+----
+query orders {
+  displayOrders {
+    orderId
+    customerId
+    orderDate
+    orderTotal
+    orderLines {
+      lineNumber
+      productDescription
+      itemCount
+      costPerItem
+      orderLineTotal
+    }
+  }
+}
+----
+
+4. This will result in the following JSON output. The output below has been shortened.
++
+Notice that because we included the `orderLines` field and it is an object, then we must specify the individual fields to return.
++
+[source,json]
+----
+{
+  "data": {
+    "displayOrders": [
+      {
+        "orderId": 104,
+        "customerId": 3,
+        "orderDate": "2021-01-28",
+        "orderTotal": 12163.024674447412,
+        "orderLines": [
+          {
+            "lineNumber": 1,
+            "productDescription": "Samsung TU8000 55 inch Crystal UHD 4K Smart TV [2020]",
+            "itemCount": 1,
+            "costPerItem": 1695.3084188228172,
+            "orderLineTotal": 1695.3084188228172
+          },
+          {
+            "lineNumber": 4,
+            "productDescription": "Sony X7000G 49 inch 4k Ultra HD HDR Smart TV",
+            "itemCount": 2,
+            "costPerItem": 2003.1246529714456,
+            "orderLineTotal": 4006.249305942891
+          },
+          {
+            "lineNumber": 3,
+            "productDescription": "TCL S615 40 inch Full HD Android TV",
+            "itemCount": 2,
+            "costPerItem": 1171.4274805289924,
+            "orderLineTotal": 2342.854961057985
+          },
+          {
+            "lineNumber": 2,
+            "productDescription": "Samsung Q80T 85 inch QLED Ultra HD 4K Smart TV [2020]",
+            "itemCount": 2,
+            "costPerItem": 2059.305994311859,
+            "orderLineTotal": 4118.611988623718
+          }
+        ]
+      },
+      {
+        "orderId": 102,
+        "customerId": 2,
+      ...
+----
+
+**Format currency fields**
+
+We can see from the above output that a number of the currency fields
+are not formatted correctly. We will use the GraphQL annotation `NumberFormat` to format this as currency.
+
+NOTE: You may also use the `JsonbNumberFormat` annotation as well.
+
+1. Add the `NumberFormat` to `getBalance` on the `Customer` class.
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/model/Customer.java[tag=numberFormat]
+----
++
+NOTE: By adding the `NumberFormat` to the get method, the format will be applied to the output type only. If we
+add the  `NumberFormat` to the set method it will be applied to the input type only. E.g. when Customer is used as a
+parameter. If it is added to the attribute it will apply to both input and output types.
+
+2. Add the `NumberFormat` to `getOrderTotal` on the `Order` class.
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/model/Order.java[tag=numberFormat]
+----
+
+3. Add the `NumberFormat` to `getCostPerItem` and `getOrderLineTotal` on the `OrderLine` class.
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/model/OrderLine.java[tag=numberFormat1]
+----
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/model/OrderLine.java[tag=numberFormat2]
+----
+
+4. Stop the running project, rebuild and re-run.
+
+5. Refresh GraphiQL and run the `customers` and `orders` queries and you will see the number values formatted as shown below:
++
+[source,json]
+----
+{
+    "customerId": 2,
+    "name": "James Brown",
+    "address": "Address 2",
+    "email": "soul@jamesbrown.net",
+    "balance": "$100.00"
+}
+----
++
+[source,json]
+----
+...
+    "orderTotal": "$13,029.54",
+...
+    "costPerItem": "$2,456.27",
+    "orderLineTotal": "$2,456.27"
+----
+
+[#inject-related-objects]
+=== Inject Related Objects
+
+From the above output for orders, we can see we have `customerId` field only. It would be useful to
+also be able to return any attributes for the customer customer. Conversely it would be useful to be able to show the
+order details for a customer.
+
+We can achieve this using Coherence by making the class implement `Injectable`. When the class is
+deserialized on the client, any `@Inject` statements are processed, and we will use this to inject the `NamedMap` for
+customer and use to retrieve the customer details if required.
+
+**Return the Customer for the Order**
+
+1. Make the `Order` class implement `com.oracle.coherence.inject.Injectable`.
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/model/Order.java[tag=injectable]
+----
+
+2. Inject the customer `NamedMap`.
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/model/Order.java[tag=namedMap]
+----
+
+3. Finally, add the `getCustomer` method.
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/model/Order.java[tag=getCustomer]
+----
+
+4. Stop the running project, rebuild and re-run.
+
+5. Refresh GraphiQL and run view the `Order` object in the `Documentation Explorer`.
+You will see a customer field that returns a `Customer` object.
++
+Change the `orders` query to the following and execute. You will notice the customers name and email returned.
++
+[source,graphql]
+----
+query orders {
+  displayOrders {
+    orderId
+    customerId
+    orderDate
+    orderTotal
+    customer {
+      name
+      email
+    }
+    orderLines {
+      lineNumber
+      productDescription
+      itemCount
+      costPerItem
+      orderLineTotal
+    }
+  }
+}
+----
++
+[source,json]
+----
+  "data": {
+    "displayOrders": [
+      {
+        "orderId": 104,
+        "customerId": 3,
+        "orderDate": "2021-01-28",
+        "orderTotal": "$7,946.81",
+        "customer": {
+          "name": "John Williams",
+          "email": "john@starwars.com"
+        },
+...
+----
+
+**Return the Orders for a Customer**
+
+1. Make the `Customer` class implement `com.oracle.coherence.inject.Injectable`.
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/model/Customer.java[tag=injectable]
+----
+
+2. Inject the orders `NamedMap`.
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/model/Customer.java[tag=namedMap]
+----
+
+3. Finally, add the `getOrders` method to get the orders for the current customer
+by specifying a Coherence filter.
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/model/Customer.java[tag=getOrders]
+----
+
+4. Stop the running project, rebuild and re-run.
+
+5. Refresh GraphiQL and run view the `Customer` object in the `Documentation Explorer`.
+You will see an orders field that returns an array of `Customer` objects.
+Change the `customers` query to add the orders for a customer and execute. You will notice
+the orders for the customers returned.
++
+[source,graphql]
+----
+query customers {
+  customers {
+    customerId
+    name
+    address
+    email
+    balance
+    orders {
+      orderId
+      orderDate
+      orderTotal
+    }
+  }
+}
+----
++
+[source,json]
+----
+{
+  "data": {
+    "customers": [
+      {
+        "customerId": 1,
+        "name": "Billy Joel",
+        "address": "Address 1",
+        "email": "billy@billyjoel.com",
+        "balance": "$0.00",
+        "orders": [
+          {
+            "orderId": 100,
+            "orderDate": "2021-01-28",
+            "orderTotal": "$1,572.23"
+          },
+          {
+            "orderId": 101,
+            "orderDate": "2021-01-28",
+            "orderTotal": "$2,201.91"
+          }
+        ]
+      },
+...
+----
+
+[#add-mutations]
+=== Add Mutations
+
+In this section we will add mutations to create or update data.
+
+**Create a Customer**
+
+1. Add the following to the `CustomerApi` class to create a customer:
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/api/CustomerApi.java[tag=createCustomer]
+----
+<1> Include the `@Timed` microprofile metrics annotation to time the mutation
++ 
+In the above code we throw an `IllegalArgumentException` if the customer already exists. By default in
+the MicroProfile GraphQL specification, messages from unchecked exceptions are hidden from
+the client and "Server Error" is returned. In this case we have overridden this behaviour
+in the `META-INF/microprofile-config.properties` as shown below:
++
+[source,java,indent=0]
+----
+include::complete/src/main/resources/META-INF/microprofile-config.properties[tag=exception]
+----
++
+Checked exceptions, which we will show below will return the message back to the client by default
+and the message can be hidden as well if required.
+
+2. Stop the running project, rebuild and re-run.
+
+3. Refresh GraphiQL and create a `fragment` to avoid having to repeat fields:
++
+[source,graphql]
+----
+fragment customer on Customer {
+    customerId
+    name
+    address
+    email
+    balance
+    orders {
+      orderId
+      orderTotal
+    }
+}
+----
++
+You can also update your existing `customers` query to use this fragment.
+
+4. Execute the following mutation:
++
+[source,graphql]
+----
+mutation createNewCustomer {
+  createCustomer(customer: { customerId: 12 name: "Tim" balance: 1000}) {
+     ...customer
+  }
+}
+----
++
+[source,json]
+----
+{
+  "data": {
+    "createCustomer": {
+      "customerId": 12,
+      "name": "Tim",
+      "address": null,
+      "email": null,
+      "balance": "$1,000.00",
+      "orders": []
+    }
+  }
+}
+----
+
+**Making Attributes Mandatory**
+
+1. If you execute the following query, you will notice that a customer is created with a null name.
+This is because in MP GraphQL any primitive is mandatory and all Objects are optional. Name is a String
+and therefore is optional.
++
+[source,graphql]
+----
+mutation createNewCustomer {
+  createCustomer(customer: { customerId: 11 balance: 1000}) {
+     ...customer
+  }
+}
+----
+
+2. View the `Documentation Explorer` and note that the `createCustomer` mutation has the following
+schema:
++
+[source,graphql]
+----
+createCustomer(customer: CustomerInput): Customer
+----
++
+`CustomerInput` has the following structure:
++
+[source,graphql]
+----
+input CustomerInput {
+  address: String
+  balance: Float!
+  customerId: Int!
+  email: String
+  name: String
+  orders: [OrderInput]
+}
+----
+
+3. Add the `NonNull` annotation to the name field in the `Customer` object:
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/model/Customer.java[tag=nonNull]
+----
++
+
+4. Stop the running project, rebuild and re-run.
+
+5. Refresh GraphiQL and try to execute the following mutation again. You will notice the UI will show an
+error indicating that `name` is now mandatory.
++
+[source,graphql]
+----
+createCustomer(customer: CustomerInput): Customer
+----
+
+**Create an Order**
+
+1. Add the following to the `CustomerApi` class to create an order:
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/api/CustomerApi.java[tag=createOrder]
+----
+<1> Include the `@Timed` microprofile metrics annotation to time the mutation
++
+NOTE: The validation ensures that we have a valid customer and the order id does not already exist.
+
+2. Create a new checked exception called `CustomerNotFoundException` in the api package. By default in MP GraphQL the messages
+from checked exceptions will be automatically returned to the client.
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/api/CustomerNotFoundException.java[tag=include]
+----
+
+3. Stop the running project, rebuild and re-run.
+
+4. Refresh GraphiQL and add the following `fragment` to avoid having to repeat fields:
++
+[source,graphql]
+----
+fragment order on Order {
+   orderId
+    customerId
+    customer {
+      name
+    }
+    orderDate
+    orderTotal
+    orderLines {
+      lineNumber
+      productDescription
+      itemCount
+      costPerItem
+      orderLineTotal
+    }
+}
+----
++
+NOTE: You can also update the `orders` query to use the new fragment:
++
+[source,graphql]
+----
+query orders {
+  displayOrders {
+   ...order
+  }
+}
+----
+
+5. Try to create an order with a non-existent customer number 12.
++
+[source,graphql]
+----
+mutation createOrderForCustomer {
+  createOrder(customerId: 12 orderId: 100) {
+      ...order
+  }
+}
+----
++
+This shows the following message from the `CustomerNotFoundException`:
++
+[source,json]
+----
+{
+  "data": {
+    "createOrder": null
+  },
+  "errors": [
+    {
+      "path": [
+        "createOrder"
+      ],
+      "locations": [
+        {
+          "column": 3,
+          "line": 58
+        }
+      ],
+      "message": "Customer id 12 was not found"
+    }
+  ]
+}
+----
+
+6. Try to create an order with an already existing order id 100.
++
+[source,graphql]
+----
+mutation createOrderForCustomer {
+  createOrder(customerId: 1 orderId: 100) {
+      ...order
+  }
+}
+----
++
+This shows the following message from the `IllegalArgumentException`:
++
+[source,json]
+----
+{
+  "data": {
+    "createOrder": null
+  },
+  "errors": [
+    {
+      "path": [
+        "createOrder"
+      ],
+      "locations": [
+        {
+          "column": 3,
+          "line": 58
+        }
+      ],
+      "message": "Order 100 already exists"
+    }
+  ]
+}
+----
+
+7. Create a new order with valid values:
++
+[source,graphql]
+----
+mutation createOrderForCustomer {
+  createOrder(customerId: 1 orderId: 200) {
+      ...order
+  }
+}
+----
++
+This shows the following message from the `IllegalArgumentException`:
++
+[source,json]
+----
+{
+  "data": {
+    "createOrder": {
+      "orderId": 200,
+      "customerId": 1,
+      "customer": {
+        "name": "Billy Joel"
+      },
+      "orderDate": "2021-01-29",
+      "orderTotal": "$0.00",
+      "orderLines": []
+    }
+  }
+}
+----
+
+**Add an OrderLine to an Order**
+
+1. Add the following to the `CustomerApi` class to add an OrderLine to an Order:
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/api/CustomerApi.java[tag=addOrderLineToOrder]
+----
+<1> Include the `@Timed` microprofile metrics annotation to time the mutation
+
+2. Create a new checked exception called `OrderNotFoundException` in the api package.
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/api/OrderNotFoundException.java[tag=include]
+----
+
+3. To make input easier, we can add `DefaultValue` annotations to the `setLineNumber` method and
+`setItemCount` methods in the OrderLine` class.
++
+NOTE: Ensure you import `DefaultValue` from the `org.eclipse.microprofile.graphql` package.
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/model/OrderLine.java[tag=defaultValue1]
+----
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/model/OrderLine.java[tag=defaultValue2]
+----
++
+NOTE: By placing the `DefaultValue` on the setter methods only, it applies to input types only. If we wanted the
+`DefaultValue` to apply to output type only we would apply to the getters. If we wish to appy to both input and
+output we can place on the field.
+
+4. Stop the running project, rebuild and re-run.
+
+5. Refresh GraphiQL and run view the `OrderLineInput` object in the `Documentation Explorer`.
+You will see the default values applied. They are also no longer mandatory as they have a default value.
++
+[source,graphql]
+----
+lineNumber: Int = 1
+itemCount: Int = 1
+----
+
+6. Create a new order 200 for customer 1 and then add a new order line.
++
+[source,graphql]
+----
+mutation createOrderForCustomer {
+  createOrder(customerId: 1 orderId: 200) {
+      ...order
+  }
+}
+
+mutation addOrderLineToOrder {
+  addOrderLineToOrder(orderId: 200 orderLine: {productDescription: "iPhone 12" costPerItem: 1500 }) {
+    ...order
+  }
+}
+----
++
+This shows the following output for the new order.
++
+[source,json]
+----
+{
+  "data": {
+    "createOrder": {
+      "orderId": 200,
+      "customerId": 1,
+      "customer": {
+        "name": "Billy Joel"
+      },
+      "orderDate": "2021-01-29",
+      "orderTotal": "$0.00",
+      "orderLines": []
+    }
+  }
+}
+----
++
+And the result of the new order line.
++
+[source,json]
+----
+{
+  "data": {
+    "addOrderLineToOrder": {
+      "orderId": 200,
+      "customerId": 1,
+      "customer": {
+        "name": "Billy Joel"
+      },
+      "orderDate": "2021-01-29",
+      "orderTotal": "$1,500.00",
+      "orderLines": [
+        {
+          "lineNumber": 1,
+          "productDescription": "iPhone 12",
+          "itemCount": 1,
+          "costPerItem": "$1,500.00",
+          "orderLineTotal": "$1,500.00"
+        }
+      ]
+    }
+  }
+}
+----
+
+7. Experiment with invalid order id and customer id as input.
+
+
+[#add-a-dynamic-where-clause]
+=== Add a Dynamic Where Clause
+
+Finally, we will enhance the orders query and add a dynamic where clause.
+
+1. Update the `getOrders` method in the `CustomerApi` to add the where clause and pass this to the `QuerHelper` to
+generate the Coherence `Filter`. The code will ask return an error message if the where clause is invalid.
++
+[source,java,indent=0]
+----
+include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/api/CustomerApi.java[tag=displayOrders]
+----
+
+2. Stop the running project, rebuild and re-run.
+
+3. Refresh GraphiQL and execute the following query to find all orders with a orderTotal greater than $4000.
++
+[source,graphql]
+----
+query ordersWithWhereClause {
+  displayOrders(whereClause: "orderTotal > 4000.0") {
+    orderId
+    orderTotal
+    customerId
+    customer {
+      name
+    }
+  }
+}
+----
++
+[source,json]
+----
+{
+  "data": {
+    "displayOrders": [
+      {
+        "orderId": 101,
+        "orderTotal": "$4,077.69",
+        "customerId": 1,
+        "customer": {
+          "name": "Billy Joel"
+        }
+      },
+      {
+        "orderId": 105,
+        "orderTotal": "$4,629.24",
+        "customerId": 3,
+        "customer": {
+          "name": "John Williams"
+        }
+      },
+      {
+        "orderId": 104,
+        "orderTotal": "$8,078.11",
+        "customerId": 3,
+        "customer": {
+          "name": "John Williams"
+        }
+      }
+    ]
+  }
+}
+----
+
+4. Use a more complex where clause:
++
+[source,graphql]
+----
+query ordersWithWhereClause2 {
+  displayOrders(whereClause: "orderTotal > 4000.0 and customerId = 1") {
+    orderId
+    orderTotal
+    customerId
+    customer {
+      name
+    }
+  }
+}
+----
++
+[source,json]
+----
+{
+  "data": {
+    "displayOrders": [
+      {
+        "orderId": 101,
+        "orderTotal": "$4,077.69",
+        "customerId": 1,
+        "customer": {
+          "name": "Billy Joel"
+        }
+      }
+    ]
+  }
+}
+----
+
+[#access-metrics]
+=== Access Metrics
+
+As we can see from the above examples, metrics can be easily enabled for queries and mutations by
+including the `@Counted` or `@Timed` annotations. After running a number of queries and mutations
+you can access the metrics end point using the following curl command:
+
+NOTE: The base metrics endpoint is `http://localhost:7001/metrics`, but we have added the `/application` path to restrict the metrics returned.
+
+[source,bash]
+----
+curl -H 'Accept: application/json' http://127.0.0.1:7001/metrics/application | jq
+
+{
+  "com.oracle.coherence.tutorials.graphql.api.CustomerApi.addOrderLineToOrder": {
+    "count": 1,
+    "meanRate": 0.020786416474669184,
+    "oneMinRate": 0.014712537947741825,
+    "fiveMinRate": 0.0032510706679223173,
+    "fifteenMinRate": 0.0011018917421948848,
+    "min": 63082260,
+    "max": 63082260,
+    "mean": 63082260,
+    "stddev": 0,
+    "p50": 63082260,
+    "p75": 63082260,
+    "p95": 63082260,
+    "p98": 63082260,
+    "p99": 63082260,
+    "p999": 63082260
+  },
+  "com.oracle.coherence.tutorials.graphql.api.CustomerApi.createCustomer": {
+    "count": 1,
+    "meanRate": 0.02078651489493201,
+    "oneMinRate": 0.013536188363841833,
+    "fiveMinRate": 0.0031973351962583784,
+    "fifteenMinRate": 0.001095787094460976,
+    "min": 4184923,
+    "max": 4184923,
+    "mean": 4184923,
+    "stddev": 0,
+    "p50": 4184923,
+    "p75": 4184923,
+    "p95": 4184923,
+    "p98": 4184923,
+    "p99": 4184923,
+    "p999": 4184923
+  },
+  "com.oracle.coherence.tutorials.graphql.api.CustomerApi.createOrder": {
+    "count": 1,
+    "meanRate": 0.020786437087696893,
+    "oneMinRate": 0.014712537947741825,
+    "fiveMinRate": 0.0032510706679223173,
+    "fifteenMinRate": 0.0011018917421948848,
+    "min": 5411268,
+    "max": 5411268,
+    "mean": 5411268,
+    "stddev": 0,
+    "p50": 5411268,
+    "p75": 5411268,
+    "p95": 5411268,
+    "p98": 5411268,
+    "p99": 5411268,
+    "p999": 5411268
+  },
+  "com.oracle.coherence.tutorials.graphql.api.CustomerApi.getCustomers": 1,
+  "com.oracle.coherence.tutorials.graphql.api.CustomerApi.getOrders": {
+    "count": 3,
+    "meanRate": 0.06235852925082789,
+    "oneMinRate": 0.04423984338571901,
+    "fiveMinRate": 0.009754115099857198,
+    "fifteenMinRate": 0.003305709235676515,
+    "min": 6507371,
+    "max": 47080043,
+    "mean": 20945553.135424484,
+    "stddev": 19245930.056725293,
+    "p50": 7014199,
+    "p75": 47080043,
+    "p95": 47080043,
+    "p98": 47080043,
+    "p99": 47080043,
+    "p999": 47080043
+  }
+}
+----
+
+NOTE:  `jq` has been used to format the JSON output. This can be downloaded from https://stedolan.github.io/jq/download/ or you can format the output with an alternate utility.
+
+
+[#run-the-completed-tutorial]
+=== Run the Completed Tutorial
+
+==== Building the Example Code
+
+NOTE: As the https://github.com/graphql/graphiql[GraphiQL UI] client used in this example is not included
+in this repository, before carrying out the build instructions below you must copy the `index.html` file contents
+from https://github.com/graphql/graphiql/blob/main/packages/graphiql/README.md#cdn-bundle[https://github.com/graphql/graphiql/blob/main/packages/graphiql/README.md#cdn-bundle]
+into the file in `src/main/resources/web/index.html`.
+
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+* Run with Maven
+
+[source,bash]
+----
+./mvnw exec:exec
+----
+
+* Run with Gradle
+
+[source,bash]
+----
+./gradlew runApp
+----
+
+==== Run the Example Code
+
+Open the GraphiQL UI at http://localhost:7001/ui and
+copy the sample GraphQL queries and mutations below into the editor
+and use the `Play` button at the top to try out GraphQL against your Coherence cluster.
+
+
+[source,graphql]
+----
+fragment customer on Customer {
+    customerId
+    name
+    address
+    email
+    balance
+    orders {
+      orderId
+      orderTotal
+    }
+}
+
+fragment order on Order {
+   orderId
+    customerId
+    customer {
+      name
+    }
+    orderDate
+    orderTotal
+    orderLines {
+      lineNumber
+      productDescription
+      itemCount
+      costPerItem
+      orderLineTotal
+    }
+}
+
+query customers {
+  customers {
+     ...customer
+  }
+}
+
+query orders {
+  displayOrders {
+     ...order
+  }
+}
+
+query ordersWithWhereClause {
+  displayOrders(whereClause: "orderTotal > 4000.0") {
+    orderId
+    orderTotal
+    customerId
+    customer {
+      name
+    }
+  }
+}
+
+query ordersWithWhereClause2 {
+  displayOrders(whereClause: "orderTotal > 4000.0 and customerId = 1") {
+    orderId
+    orderTotal
+    customerId
+    customer {
+      name
+    }
+  }
+}
+
+mutation createNewCustomer {
+  createCustomer(customer: { customerId: 12 name: "Tim" balance: 1000}) {
+     ...customer
+  }
+}
+
+mutation createOrderForCustomer {
+  createOrder(customerId: 12 orderId: 200) {
+      ...order
+  }
+}
+
+mutation addOrderLineToOrder {
+  addOrderLineToOrder(orderId: 200 orderLine: {productDescription: "iPhone 12" costPerItem: 1500 }) {
+    ...order
+  }
+}
+----
+
+[#summary]
+=== Summary
+
+In this tutorial you have seen how easy it is to expose Coherence Data using GraphQL.
+
+[#see-also]
+=== See Also
+
+* https://helidon.io/docs/v2/#/mp/introduction/01_introduction[Helidon MP Documentation]
+* https://github.com/eclipse/microprofile-graphql[Microprofile GraphQL Specification]

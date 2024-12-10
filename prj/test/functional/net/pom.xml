@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce.tests</groupId>
+    <artifactId>coherence-functional-tests</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>net</artifactId>
+  <name>Coherence Net Tests</name>
+
+  <profiles>
+    <profile>
+      <id>stage5</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+
+  <properties>
+    <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-support</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-data</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+          <groupId>com.oracle.coherence.moditect</groupId>
+          <artifactId>moditect-maven-plugin</artifactId>
+          <version>${maven.moditect.plugin.version}</version>
+          <executions>
+            <execution>
+              <id>add-module-info</id>
+              <phase>package</phase>
+              <goals>
+                <goal>add-module-info</goal>
+              </goals>
+              <configuration combine.self="append">
+                <module>
+                  <moduleInfo>
+                    <!--
+                     This dependency is optional, so that test Coherence servers
+                     can be run without it on the classpath.
+                     -->
+                    <requires>
+                      static com.oracle.coherence.testing.data;
+                    </requires>
+                  </moduleInfo>
+                </module>
+              </configuration>
+            </execution>
+          </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

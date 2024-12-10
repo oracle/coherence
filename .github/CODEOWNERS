@@ -1,0 +1,10 @@
+# This is the GitHub CODEOWNERS file that defines ownership of dofferent source files.
+# See: https://help.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
+#
+# We specifically use this to ensure that pull requests must be approved by a code owner
+#
+
+
+# This is a global pattern matching all files anw owned by members of the oracle/coherence-dev-team team
+
+*       @oracle/coherence-dev-team

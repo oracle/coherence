@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<socket-provider>
+  <ssl>
+    <identity-manager>
+      <key-loader>
+        <class-name>ssl.CustomPrivateKeyLoader</class-name>
+        <init-params>
+          <init-param>
+            <param-type>string</param-type>
+            <param-value system-property="coherence.security.client.key"/>
+          </init-param>
+        </init-params>
+      </key-loader>
+      <cert-loader>
+        <class-name>ssl.CustomCertificateLoader</class-name>
+        <init-params>
+          <init-param>
+            <param-type>string</param-type>
+            <param-value system-property="coherence.security.client.cert"/>
+          </init-param>
+        </init-params>
+      </cert-loader>
+    </identity-manager>
+    <trust-manager>
+      <cert-loader>
+        <class-name>ssl.CustomCertificateLoader</class-name>
+        <init-params>
+          <init-param>
+            <param-type>string</param-type>
+            <param-value system-property="coherence.security.server.ca.cert"/>
+          </init-param>
+        </init-params>
+      </cert-loader>
+    </trust-manager>
+  </ssl>
+</socket-provider>

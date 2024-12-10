@@ -1,0 +1,165 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Guides
+:description: Coherence Guides
+:keywords: coherence, java, documentation
+
+// # tag::text[]
+== Guides
+
+These simple guides are designed to be a quick hands-on introduction to a specific feature of Coherence.
+In most cases they require nothing more than a Coherence jar and an IDE (or a text editor if you're really old-school).
+Guides are typically built as a combination Maven and Gradle project including the corresponding wrappers for those tools
+making them simple to build as stand-alone projects without needing to build the whole Coherence source tree.
+
+[PILLARS]
+====
+[CARD]
+.Bootstrap Coherence
+[link=examples/guides/050-bootstrap/README.adoc]
+--
+This guide walks you through various methods to configure and
+bootstrap a Coherence instance.
+--
+
+[CARD]
+.Put Get and Remove
+[link=examples/guides/100-put-get-remove/README.adoc]
+--
+This guide walks you through basic CRUD `put`, `get`, and `remove` operations on a `NamedMap`.
+--
+
+[CARD]
+.Querying Caches
+[link=examples/guides/110-queries/README.adoc]
+--
+This guide walks you through the basic concepts of querying Coherence caches.
+--
+
+[CARD]
+.Built-in Aggregators
+[link=examples/guides/120-built-in-aggregators/README.adoc]
+--
+This guide walks you through how to use built-in aggregators within Coherence.
+--
+
+[CARD]
+.Custom Aggregators
+[link=examples/guides/121-custom-aggregators/README.adoc]
+--
+This guide walks you through how to create custom aggregators within Coherence.
+--
+
+[CARD]
+.Views
+[link=examples/guides/124-views/README.adoc]
+--
+Learn about the basic concepts of working with views using the `ContinuousQueryCache`.
+--
+
+[CARD]
+.Streams
+[link=examples/guides/125-streams/README.adoc]
+--
+This guide walks you through how to use the Streams API with Coherence.
+--
+
+[CARD]
+.Entry Processors
+[link=examples/guides/128-entry-processors/README.adoc]
+--
+This guide walks you through how to use Entry Processors with Coherence.
+--
+
+[CARD]
+.Federation
+[link=examples/guides/200-federation/README.adoc]
+--
+This guide walks you through how to use Federation within Coherence.
+--
+
+[CARD]
+.Topics
+[link=examples/guides/460-topics/README.adoc]
+--
+This guide walks you through how to use Topics within Coherence.
+--
+
+[CARD]
+.Near Caching
+[link=examples/guides/130-near-caching/README.adoc]
+--
+This guide walks you through how to use near caching within Coherence.
+--
+
+[CARD]
+.Client Events
+[link=examples/guides/140-client-events/README.adoc]
+--
+This guide walks you through how to use client events within Coherence.
+--
+
+[CARD]
+.Server-Side Events
+[link=examples/guides/142-server-events/README.adoc]
+--
+This guide walks you through how to use server-side events within Coherence.
+--
+
+[CARD]
+.Durable Events
+[link=examples/guides/145-durable-events/README.adoc]
+--
+This guide walks you through how to use durable events within Coherence.
+--
+
+[CARD]
+.Cache Stores
+[link=examples/guides/190-cache-stores/README.adoc]
+--
+This guide walks you through how to use and configure Cache Stores.
+--
+
+[CARD]
+.Securing with SSL
+[link=examples/guides/210-ssl/README.adoc]
+--
+This guide walks you through how to secure Coherence using SSL/TLS.
+--
+
+[CARD]
+.CDI Response Caching
+[link=examples/guides/600-response-caching/README.adoc]
+--
+This guide walks you through how to configure CDI Response Caching to cache the results of method invocations.
+--
+
+[CARD]
+.Executor Service
+[link=examples/guides/906-partition-level-transactions/README.adoc]
+--
+This guide explains how to use the Coherence Executor Service.
+--
+
+[CARD]
+.Key Association
+[link=examples/guides/905-key-association/README.adoc]
+--
+This guide walks you through a use case for key association in Coherence.
+--
+
+[CARD]
+.Multi-Cluster Client
+[link=examples/guides/910-multi-cluster-client/README.adoc]
+--
+An example of how to connect an Extend or gRPC client to multiple Coherence clusters.
+--
+
+====
+
+// DO NOT ADD CONTENT AFTER THIS LINE
+// # end::text[]

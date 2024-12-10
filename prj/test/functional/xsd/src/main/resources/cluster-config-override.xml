@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cluster-config>
+  <unicast-listener>
+    <well-known-addresses>
+      <address>localhost</address>
+      <address>london56923</address>
+      <address>london56920</address>
+    </well-known-addresses>
+    <port>8088</port>
+    <socket-provider>tcp</socket-provider>
+    <reliable-transport>tmb</reliable-transport>
+  </unicast-listener>
+  <multicast-listener>
+    <time-to-live>3</time-to-live>
+  </multicast-listener>
+  <member-identity>
+    <cluster-name>mytestCoherenceCluster</cluster-name>
+    <member-name>admin</member-name>
+  </member-identity>
+  <shutdown-listener>
+    <enabled>none</enabled>
+  </shutdown-listener>
+  <persistence-environments>
+    <persistence-environment id='default-active'/>
+    <persistence-environment id='default-on-demand'/>
+  </persistence-environments>
+</cluster-config>

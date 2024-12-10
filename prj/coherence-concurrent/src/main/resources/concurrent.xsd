@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns="class://com.oracle.coherence.concurrent.config.NamespaceHandler"
+            targetNamespace="class://com.oracle.coherence.concurrent.config.NamespaceHandler"
+            elementFormDefault="qualified"
+            version="1.3">
+
+  <xsd:annotation>
+    <xsd:documentation>
+      Copyright (c) 2021, Oracle and/or its affiliates.
+
+      Licensed under the Universal Permissive License v 1.0 as shown at
+      http://oss.oracle.com/licenses/upl.
+    </xsd:documentation>
+  </xsd:annotation>
+
+  <xsd:annotation>
+    <xsd:documentation>
+      Oracle Coherence Concurrent Schema definitions.
+    </xsd:documentation>
+  </xsd:annotation>
+
+  <!-- include the base configuration - we use the name and instance
+       elements from here -->
+  <xsd:include schemaLocation="coherence-config-base.xsd"/>
+
+  <xsd:element name="thread-factory">
+    <xsd:annotation>
+      <xsd:documentation>
+        The thread-factory element contains the configuration info to
+        create a custom java.util.concurrent.ThreadFactory implementation.
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="instance"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="custom-executor">
+    <xsd:annotation>
+      <xsd:documentation>
+        The custom-executor element contains the configuration info to
+        create a custom java.util.concurrent.ExecutorService that will
+        be registered with the executor service.
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="name"/>
+        <xsd:element ref="instance"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="single">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines a single-thread executor.
+
+        See: java.util.concurrent.Executors.newSingleThreadExecutor()
+             java.util.concurrent.Executors.newSingleThreadExecutor(ThreadFactory)
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="name"/>
+        <xsd:element minOccurs="0" ref="thread-factory"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="fixed">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines a fixed-thread-pool executor.
+
+        See: java.util.concurrent.Executors.newFixedThreadPool(int)
+             java.util.concurrent.Executors.newFixedThreadPool(int, ThreadFactory)
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="name"/>
+        <xsd:element name="thread-count" type="coherence-positiveInteger-type">
+          <xsd:annotation>
+            <xsd:documentation>
+              Specifies the number of threads this executor should use.
+            </xsd:documentation>
+          </xsd:annotation>
+
+        </xsd:element>
+        <xsd:element minOccurs="0" ref="thread-factory"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="cached">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines a cached-thread-pool executor.
+
+        See: java.util.concurrent.Executors.newCachedThreadPool()
+             java.util.concurrent.Executors.newCachedThreadPool(ThreadFactory)
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="name"/>
+        <xsd:element minOccurs="0" ref="thread-factory"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="virtual-per-task">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines a virtual-per-task executor.
+        This requires JDK 21 or later.
+
+        See: newVirtualThreadPerTaskExecutor()
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="name"/>
+        <xsd:element minOccurs="0" ref="thread-factory"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="work-stealing">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines a work-stealing-pool executor.
+
+        See: java.util.concurrent.Executors.newWorkStealingPool()
+             java.util.concurrent.Executors.newWorkStealingPool(int)
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="name"/>
+        <xsd:element name="parallelism" minOccurs="0" type="coherence-positiveInteger-type">
+          <xsd:annotation>
+            <xsd:documentation>
+              The desired parallelism for this work-stealing executor.
+
+              If not defined, it will default to value returned from
+              Runtime.getRuntime().availableProcessors().
+            </xsd:documentation>
+          </xsd:annotation>
+
+        </xsd:element>
+        <xsd:element minOccurs="0" ref="thread-factory"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+</xsd:schema>

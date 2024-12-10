@@ -1,0 +1,164 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<!--
+Cache configuration for system-level services.
+
+It will be loaded automatically when CDI integration is used.
+-->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <defaults>
+    <serializer>${coherence.system.serializer ${coherence.serializer}}</serializer>
+  </defaults>
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>sys$config*</cache-name>
+      <scheme-name>config-${coherence.client direct}</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>config-direct</scheme-name>
+      <service-name>Config</service-name>
+      <thread-count>0</thread-count>
+      <backup-count system-property="coherence.config.backupcount"/>
+      <backing-map-scheme>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+      <persistence>
+        <environment>${coherence.config.persistence.environment ${coherence.persistence.environment default-on-demand}}</environment>
+      </persistence>
+      <autostart>true</autostart>
+      <health>
+        <allow-endangered system-property="coherence.config.service.allow.endangered"/>
+      </health>
+    </distributed-scheme>
+
+    <!-- remote caching scheme for accessing the proxy from extend clients -->
+    <remote-cache-scheme>
+      <scheme-name>config-remote</scheme-name>
+      <scope-name>$SYS</scope-name>
+      <service-name>SystemRemote</service-name>
+      <proxy-service-name>SystemProxy</proxy-service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <name-service-addresses>
+            <socket-address>
+              <address system-property="coherence.system.cluster.address"/>
+              <port system-property="coherence.system.cluster.port"/>
+            </socket-address>
+          </name-service-addresses>
+        </tcp-initiator>
+      </initiator-config>
+    </remote-cache-scheme>
+
+    <!--
+    A remote caching scheme for accessing an Extend proxy.
+    The specified address(es) will be used to connect
+    directly to an Extend proxy.
+    -->
+    <remote-cache-scheme>
+      <scheme-name>config-remote-fixed</scheme-name>
+      <service-name>RemoteCache</service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <remote-addresses>
+            <socket-address>
+              <address system-property="coherence.system.extend.address"/>
+              <port system-property="coherence.system.extend.port"/>
+            </socket-address>
+          </remote-addresses>
+        </tcp-initiator>
+      </initiator-config>
+    </remote-cache-scheme>
+
+    <!--
+    A remote caching scheme for accessing a gRPC proxy.
+    The NameService will be used to look up the host
+    names and ports for the gRPC proxies.
+    -->
+    <remote-grpc-cache-scheme>
+      <scheme-name>config-grpc</scheme-name>
+      <remote-scope-name>$SYS</remote-scope-name>
+      <service-name>RemoteGrpcCache</service-name>
+      <cluster-name system-property="coherence.grpc.remote.cluster"/>
+      <grpc-channel>
+        <name-service-addresses>
+          <socket-address>
+            <address system-property="coherence.grpc.address"/>
+            <port system-property="coherence.grpc.port"/>
+          </socket-address>
+        </name-service-addresses>
+        <socket-provider system-property="coherence.grpc.socketprovider"/>
+      </grpc-channel>
+    </remote-grpc-cache-scheme>
+
+    <!--
+    A remote caching scheme for accessing a gRPC proxy.
+    The specified address(es) will be used to connect
+    directly to a gRPC proxy.
+    -->
+    <remote-grpc-cache-scheme>
+      <scheme-name>config-grpc-fixed</scheme-name>
+      <remote-scope-name>$SYS</remote-scope-name>
+      <service-name>RemoteGrpcCache</service-name>
+      <cluster-name system-property="coherence.grpc.remote.cluster"/>
+      <grpc-channel system-property="coherence.grpc.channel">
+        <remote-addresses>
+          <socket-address>
+            <address system-property="coherence.grpc.address"/>
+            <port system-property="coherence.grpc.port"/>
+          </socket-address>
+        </remote-addresses>
+        <socket-provider system-property="coherence.grpc.socketprovider"/>
+      </grpc-channel>
+    </remote-grpc-cache-scheme>
+
+    <proxy-scheme>
+      <service-name>HealthHttpProxy</service-name>
+      <acceptor-config>
+        <http-acceptor>
+          <class-name>com.tangosol.coherence.http.JavaHttpServer</class-name>
+          <socket-provider system-property="coherence.health.http.provider">tcp</socket-provider>
+          <local-address>
+            <address system-property="coherence.health.http.address"/>
+            <port    system-property="coherence.health.http.port">0</port>
+          </local-address>
+          <resource-config>
+            <context-path>/</context-path>
+            <instance>
+              <class-name>com.tangosol.internal.health.HealthHttpHandler</class-name>
+            </instance>
+          </resource-config>
+        </http-acceptor>
+      </acceptor-config>
+      <autostart>true</autostart>
+    </proxy-scheme>
+
+    <!-- A proxy scheme to allow Coherence*Extend clients to connect to the system session -->
+    <proxy-scheme>
+      <service-name>SystemProxy</service-name>
+      <acceptor-config>
+        <tcp-acceptor>
+          <local-address>
+            <address system-property="coherence.system.extend.address"/>
+            <port system-property="coherence.system.extend.port"/>
+          </local-address>
+        </tcp-acceptor>
+      </acceptor-config>
+      <autostart system-property="coherence.system.proxy.enabled">true</autostart>
+    </proxy-scheme>
+  </caching-schemes>
+
+</cache-config>

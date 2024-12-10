@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>dist-extend-*</cache-name>
+      <scheme-name>extend-direct</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <remote-cache-scheme>
+      <scheme-name>extend-direct</scheme-name>
+      <service-name>ExtendTcpCacheService</service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <remote-addresses>
+            <address-provider>ap3</address-provider>
+          </remote-addresses>
+        </tcp-initiator>
+        <incoming-message-handler>
+          <max-message-size>2k</max-message-size>
+        </incoming-message-handler>
+        <outgoing-message-handler>
+          <heartbeat-interval>5s</heartbeat-interval>
+          <heartbeat-timeout>2s</heartbeat-timeout>
+          <max-message-size>12k</max-message-size>
+          <request-timeout>5s</request-timeout>
+        </outgoing-message-handler>
+        <use-filters>
+          <filter-name>gzip</filter-name>
+        </use-filters>
+        <serializer>
+          <instance>
+            <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+            <init-params>
+              <init-param>
+                <param-type>string</param-type>
+                <param-value>extend/test-pof-config.xml</param-value>
+              </init-param>
+            </init-params>
+          </instance>
+        </serializer>
+        <connect-timeout>5s</connect-timeout>
+      </initiator-config>
+    </remote-cache-scheme>
+
+    <remote-invocation-scheme>
+      <scheme-name>extend-invocation</scheme-name>
+      <service-name>ExtendTcpInvocationService</service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <remote-addresses>
+            <address-provider>ap3</address-provider>
+          </remote-addresses>
+        </tcp-initiator>
+        <outgoing-message-handler>
+          <heartbeat-interval>5s</heartbeat-interval>
+          <heartbeat-timeout>2s</heartbeat-timeout>
+          <request-timeout>5s</request-timeout>
+        </outgoing-message-handler>
+        <use-filters>
+          <filter-name>gzip</filter-name>
+        </use-filters>
+        <serializer>
+          <instance>
+            <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+            <init-params>
+              <init-param>
+                <param-type>string</param-type>
+                <param-value>extend/test-pof-config.xml</param-value>
+              </init-param>
+            </init-params>
+          </instance>
+        </serializer>
+        <connect-timeout>5s</connect-timeout>
+      </initiator-config>
+    </remote-invocation-scheme>
+  </caching-schemes>
+</cache-config>

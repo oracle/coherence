@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">   
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>*</cache-name>
+      <scheme-name>remote-cache-scheme</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <!--
+    Remote cache scheme that connects to the cluster over TCP/IP.
+    -->
+    <remote-cache-scheme>
+      <scheme-name>remote-cache-scheme</scheme-name>
+      <!-- if the service name changes, change TestIdentityTransformer.java -->
+      <service-name>ExtendTcpCacheService</service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <remote-addresses>
+            <socket-address>
+              <address system-property="test.extend.address.remote">127.0.0.1</address>
+              <port    system-property="test.extend.port">9999</port>
+            </socket-address>
+          </remote-addresses>
+        </tcp-initiator>
+        <outgoing-message-handler>
+          <request-timeout>5s</request-timeout>
+        </outgoing-message-handler>
+        <serializer>
+          <instance>
+            <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+            <init-params>
+              <init-param>
+                <param-type>string</param-type>
+                <param-value>security/test-pof-config.xml</param-value>
+              </init-param>
+            </init-params>
+          </instance>     
+         </serializer>   
+      </initiator-config>
+    </remote-cache-scheme>
+
+    <!--
+    Remote invocation scheme that connects to the cluster over TCP/IP.
+    -->
+    <remote-invocation-scheme>
+      <scheme-name>remote-invocation-scheme</scheme-name>
+      <!-- if the service name changes, change TestIdentityTransformer.java -->
+      <service-name>ExtendTcpInvocationService</service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <remote-addresses>
+            <socket-address>
+              <address system-property="test.extend.address.remote">127.0.0.1</address>
+              <port    system-property="test.extend.port">9999</port>
+            </socket-address>
+          </remote-addresses>
+        </tcp-initiator>
+        <outgoing-message-handler>
+          <request-timeout>5s</request-timeout>
+        </outgoing-message-handler>
+        <serializer>
+         <instance>
+          <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+          <init-params>
+            <init-param>
+              <param-type>string</param-type>
+              <param-value>security/test-pof-config.xml</param-value>
+            </init-param>
+          </init-params>
+         </instance>
+        </serializer>
+      </initiator-config>
+    </remote-invocation-scheme>
+  </caching-schemes>
+</cache-config>

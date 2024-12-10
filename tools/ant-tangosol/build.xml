@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- ANT build file for building the custom Coherence Ant task library.    -->
+<!--                                                                       -->
+<!-- Usage:                                                                -->
+<!--     prompt> ant build                                                 -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+<project name="ant-tangosol" default="build" basedir=".">
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Global project properties                                           -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <!-- Source directory -->
+  <property name="src.dir"           value="${basedir}/src"/>
+
+  <!-- Artifact directories -->
+  <property name="build.dir"         value="${basedir}/build"/>
+  <property name="build.classes.dir" value="${build.dir}/classes"/>
+  <property name="build.lib.dir"     value="${build.dir}/lib"/>
+
+  <!-- Distribution directories -->
+  <property name="dist.dir"          value="${basedir}"/>
+  <property name="dist.lib.dir"      value="${dist.dir}/lib"/>
+
+  <!-- The name of the library produced by this project -->
+  <property name="project.library"   value="${ant.project.name}.jar"/>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Project targets                                                     -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <target name="build" description="Build the custom Ant task library.">
+    <mkdir dir="${build.classes.dir}"/>
+
+    <javac srcdir="${src.dir}" destdir="${build.classes.dir}"
+      classpath="../ant/lib/ant.jar"/>
+
+    <mkdir dir="${build.lib.dir}"/>
+
+    <jar file="${build.lib.dir}/${project.library}" basedir="build/classes"/>
+    <jar file="${build.lib.dir}/${project.library}" update="true"
+      basedir="${src.dir}">
+      <include name="ant-tangosol.properties"/> 
+    </jar>
+  </target>
+
+  <target name="clean" description="Remove all build artifacts.">
+    <delete failonerror="false" includeemptydirs="true">
+      <fileset dir="${build.dir}"/>
+    </delete>
+  </target>
+
+  <target name="dist" description="Create a distribution of the project.">
+    <mkdir dir="${dist.lib.dir}"/>
+    <copy todir="${dist.lib.dir}">
+      <fileset dir="${build.lib.dir}"/>
+    </copy>
+  </target>
+</project>

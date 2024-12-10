@@ -1,0 +1,249 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+    <defaults>
+        <serializer>
+            <instance>
+                <class-factory-name>config.RelaxConfigProcessingTests$SerializerFactory</class-factory-name>
+                <method-name>getSerializer</method-name>
+            </instance>
+        </serializer>
+    </defaults>
+    <caching-scheme-mapping>
+        <cache-mapping>
+            <cache-name>distributed-cache*</cache-name>
+            <scheme-name>working-distributed-cache-scheme</scheme-name>
+        </cache-mapping>
+        <cache-mapping>
+            <cache-name>broken-serializer-cache*</cache-name>
+            <scheme-name>broken-serializer-cache-scheme</scheme-name>
+        </cache-mapping>
+        <cache-mapping>
+            <cache-name>nonexistent-maplistener-cache*</cache-name>
+            <scheme-name>distributed-nonexistext-memberlistener-cache-scheme</scheme-name>
+        </cache-mapping>
+        <cache-mapping>
+            <cache-name>invalid-cnf-pas-cache*</cache-name>
+            <scheme-name>distributed-invalid-cnf-partition-assignment-scheme</scheme-name>
+        </cache-mapping>
+        <cache-mapping>
+            <cache-name>invalid-pas-cache*</cache-name>
+            <scheme-name>distributed-invalid-partition-assignment-scheme</scheme-name>
+        </cache-mapping>
+        <cache-mapping>
+            <cache-name>storage-authorizer-missing-cache</cache-name>
+            <scheme-name>distributed-reference-missing-storage-authorizer-scheme</scheme-name>
+        </cache-mapping>
+        <cache-mapping>
+         <cache-name>storage-authorizer-cnf-cache</cache-name>
+          <scheme-name>distributed-reference-cnf-storage-authorizer-scheme</scheme-name>
+       </cache-mapping>
+
+    </caching-scheme-mapping>
+    <caching-schemes>
+        <distributed-scheme>
+            <scheme-name>working-distributed-cache-scheme</scheme-name>
+            <service-name>working-distributed-cache-service</service-name>
+            <backing-map-scheme>
+                <local-scheme/>
+            </backing-map-scheme>
+        </distributed-scheme>
+        <distributed-scheme>
+            <scheme-name>broken-serializer-cache-scheme</scheme-name>
+            <service-name>broken-serializer-cache-service</service-name>
+            <serializer>
+                <instance>
+                    <class-factory-name>config.RelaxConfigProcessingTests$BrokenSerializerFactory</class-factory-name>
+                    <method-name>getSerializer</method-name>
+                </instance>
+            </serializer>
+            <backing-map-scheme>
+                <local-scheme/>
+            </backing-map-scheme>
+        </distributed-scheme>
+
+        <!-- classloading resolution should not occur until service is instantiated.
+             cache config file must load when a non-auto started service has missing classes.
+             This error is caught when service is instantiated.
+          -->
+        <distributed-scheme>
+            <scheme-name>distributed-invalid-cnf-partition-assignment-scheme</scheme-name>
+            <service-name>invalid-cnf-partition-asssignment-service</service-name>
+            <partition-assignment-strategy>
+                <instance>
+                    <class-name>package.NonExistentPAStrategy</class-name>
+                </instance>
+            </partition-assignment-strategy>
+            <autostart>false</autostart>
+        </distributed-scheme>
+
+        <distributed-scheme>
+            <scheme-name>distributed-invalid-partition-assignment-scheme</scheme-name>
+            <service-name>invalid-partition-asssignment-service</service-name>
+            <partition-assignment-strategy>nonexistentPartitionAssignmentStrategy</partition-assignment-strategy>
+            <autostart>false</autostart>
+        </distributed-scheme>
+
+
+        <distributed-scheme>
+            <scheme-name>distributed-nonexistext-memberlistener-cache-scheme</scheme-name>
+            <service-name>distributed-nonexistext-memberlistener-cache-service</service-name>
+            <member-listener>
+                <class-name>nonexistentpackage.nonExistentMemberListener</class-name>
+            </member-listener>
+            <backing-map-scheme>
+                <local-scheme/>
+            </backing-map-scheme>
+        </distributed-scheme>
+
+        <distributed-scheme>
+          <scheme-name>distributed-reference-missing-storage-authorizer-scheme</scheme-name>
+          <service-name>distributed-reference-missing-storage-authorizer-service</service-name>
+          <backing-map-scheme>
+            <storage-authorizer>storageAuthorizerMissingFromOperationalConfig</storage-authorizer>
+            <local-scheme>
+              <!-- each node will be limited to 32MB -->
+              <high-units>32M</high-units>
+              <unit-calculator>binary</unit-calculator>
+            </local-scheme>
+          </backing-map-scheme>
+        </distributed-scheme>
+
+      <distributed-scheme>
+        <scheme-name>distributed-reference-cnf-storage-authorizer-scheme</scheme-name>
+        <service-name>distributed-reference-cnf-storage-authorizer-service</service-name>
+        <backing-map-scheme>
+          <storage-authorizer>Auth</storage-authorizer>
+          <local-scheme>
+            <!-- each node will be limited to 32MB -->
+            <high-units>32M</high-units>
+            <unit-calculator>binary</unit-calculator>
+          </local-scheme>
+        </backing-map-scheme>
+      </distributed-scheme>
+
+        <!-- Proxy Service scheme that allows remote clients to connect to the cluster over TCP/IP. -->
+        <proxy-scheme>
+            <scheme-name>proxy</scheme-name>
+            <service-name>ProxyService</service-name>
+            <thread-count system-property="coherence.extend.threads">5</thread-count>
+            <acceptor-config>
+                <tcp-acceptor>
+                    <local-address>
+                        <address system-property="coherence.extend.address">localhost</address>
+                        <port system-property="coherence.extend.port">9099</port>
+                    </local-address>
+                </tcp-acceptor>
+            </acceptor-config>
+            <proxy-config>
+                <cache-service-proxy>
+                    <class-name>nonexistentclass.EntitledCacheService</class-name>
+                    <init-params>
+                        <init-param>
+                            <param-type>com.tangosol.net.CacheService</param-type>
+                            <param-value>{service}</param-value>
+                        </init-param>
+                    </init-params>
+                </cache-service-proxy>
+                <invocation-service-proxy>
+                    <class-name>nonexistentclass.EntitledInvocationService </class-name>
+                    <init-params>
+                        <init-param>
+                            <param-type>com.tangosol.net.InvocationService</param-type>
+                            <param-value>{service}</param-value>
+                        </init-param>
+                    </init-params>
+                </invocation-service-proxy>
+            </proxy-config>
+            <autostart system-property="coherence.extend.enabled">false</autostart>
+        </proxy-scheme>
+
+        <!-- Proxy Service scheme that allows remote clients to connect to the cluster over TCP/IP. -->
+        <proxy-scheme>
+            <scheme-name>invalidAuthorizedHostsProxyScheme</scheme-name>
+            <service-name>invalidAuthorizedHostsProxyService</service-name>
+            <thread-count system-property="coherence.extend.threads">5</thread-count>
+            <acceptor-config>
+                <tcp-acceptor>
+                    <local-address>
+                        <address system-property="coherence.extend.address">localhost</address>
+                        <port system-property="coherence.extend.port">9099</port>
+                    </local-address>
+                    <authorized-hosts>
+                        <host-filter><class-name>nonexistentFilterClass</class-name></host-filter>
+                    </authorized-hosts>
+                </tcp-acceptor>
+            </acceptor-config>
+            <autostart system-property="coherence.extend.enabled">false</autostart>
+        </proxy-scheme>
+
+        <proxy-scheme>
+            <scheme-name>invalidLoadBalancerProxyScheme</scheme-name>
+            <service-name>invalidLoadBalancerProxyService</service-name>
+            <thread-count system-property="coherence.extend.threads">5</thread-count>
+            <acceptor-config>
+                <tcp-acceptor>
+                    <local-address>
+                        <address system-property="coherence.extend.address">localhost</address>
+                        <port system-property="coherence.extend.port">9099</port>
+                    </local-address>
+                </tcp-acceptor>
+            </acceptor-config>
+            <load-balancer>
+                <instance>
+                    <class-name>nonexistentProxyServiceLoadBalancerClass</class-name>
+                </instance>
+            </load-balancer>
+            <autostart system-property="coherence.extend.enabled">false</autostart>
+        </proxy-scheme>
+
+        <proxy-scheme>
+            <scheme-name>invalidLocalAddressMissingHostProxyScheme</scheme-name>
+            <service-name>invalidLocalAddressMissingHostProxyService</service-name>
+            <thread-count system-property="coherence.extend.threads">5</thread-count>
+            <acceptor-config>
+                <tcp-acceptor>
+                    <local-address>
+                        <address system-property="coherence.extend.address">nonexistentHost</address>
+                        <port system-property="coherence.extend.port">9090</port>
+                    </local-address>
+                </tcp-acceptor>
+            </acceptor-config>
+            <autostart system-property="coherence.extend.enabled">false</autostart>
+        </proxy-scheme>
+        <!-- Proxy Service scheme that references a non-existent address provider. -->
+        <proxy-scheme>
+            <scheme-name>nonExistentAddressProviderRefProxyScheme</scheme-name>
+            <service-name>nonExistentAddressProviderRefProxyService</service-name>
+            <thread-count system-property="coherence.extend.threads">5</thread-count>
+            <acceptor-config>
+                <tcp-acceptor>
+                    <address-provider>nonexistentAddressProvider</address-provider>
+                </tcp-acceptor>
+            </acceptor-config>
+            <autostart system-property="coherence.extend.enabled">false</autostart>
+        </proxy-scheme>
+
+        <proxy-scheme>
+            <scheme-name>existentAddressProviderRefProxyScheme</scheme-name>
+            <service-name>existentAddressProviderRefProxyService</service-name>
+            <thread-count system-property="coherence.extend.threads">5</thread-count>
+            <acceptor-config>
+                <tcp-acceptor>
+                    <address-provider>ExistentAddressProvider</address-provider>
+                </tcp-acceptor>
+            </acceptor-config>
+            <autostart system-property="coherence.extend.enabled">false</autostart>
+        </proxy-scheme>
+
+    </caching-schemes>
+</cache-config>

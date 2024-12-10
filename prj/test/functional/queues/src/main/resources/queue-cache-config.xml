@@ -1,0 +1,298 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd"
+              xml-override="{coherence.cacheconfig.override}">
+    <defaults>
+        <scope-name>${coherence.scope}</scope-name>
+        <serializer>${coherence.serializer}</serializer>
+    </defaults>
+
+    <caching-scheme-mapping>
+        <cache-mapping>
+            <cache-name>java-*</cache-name>
+            <scheme-name>java-${coherence.profile near}-${coherence.client direct}</scheme-name>
+        </cache-mapping>
+
+        <cache-mapping>
+            <cache-name>pof-*</cache-name>
+            <scheme-name>pof-${coherence.profile near}-${coherence.client direct}</scheme-name>
+        </cache-mapping>
+
+        <cache-mapping>
+            <cache-name>*</cache-name>
+            <scheme-name>${coherence.profile near}-${coherence.client direct}</scheme-name>
+        </cache-mapping>
+    </caching-scheme-mapping>
+
+    <caching-schemes>
+        <near-scheme>
+            <scheme-name>near-direct</scheme-name>
+            <front-scheme>
+                <local-scheme>
+                    <high-units>{front-limit-entries 10000}</high-units>
+                </local-scheme>
+            </front-scheme>
+            <back-scheme>
+                <distributed-scheme>
+                    <scheme-ref>thin-direct</scheme-ref>
+                </distributed-scheme>
+            </back-scheme>
+        </near-scheme>
+
+        <near-scheme>
+            <scheme-name>java-near-direct</scheme-name>
+            <front-scheme>
+                <local-scheme>
+                    <high-units>{front-limit-entries 10000}</high-units>
+                </local-scheme>
+            </front-scheme>
+            <back-scheme>
+                <distributed-scheme>
+                    <scheme-ref>java-thin-direct</scheme-ref>
+                </distributed-scheme>
+            </back-scheme>
+        </near-scheme>
+
+        <near-scheme>
+            <scheme-name>pof-near-direct</scheme-name>
+            <front-scheme>
+                <local-scheme>
+                    <high-units>{front-limit-entries 10000}</high-units>
+                </local-scheme>
+            </front-scheme>
+            <back-scheme>
+                <distributed-scheme>
+                    <scheme-ref>pof-thin-direct</scheme-ref>
+                </distributed-scheme>
+            </back-scheme>
+        </near-scheme>
+
+        <near-scheme>
+            <scheme-name>near-remote</scheme-name>
+            <scheme-ref>near-direct</scheme-ref>
+            <back-scheme>
+                <remote-cache-scheme>
+                    <scheme-ref>thin-remote</scheme-ref>
+                </remote-cache-scheme>
+            </back-scheme>
+        </near-scheme>
+
+        <remote-cache-scheme>
+            <scheme-name>thin-remote</scheme-name>
+            <scope-name system-property="coherence.extend.scope"/>
+            <service-name>RemoteCache</service-name>
+            <proxy-service-name system-property="coherence.extend.proxy.service">Proxy</proxy-service-name>
+            <initiator-config>
+                <serializer>${coherence.extend.serializer ${coherence.serializer java}}</serializer>
+            </initiator-config>
+        </remote-cache-scheme>
+
+        <remote-cache-scheme>
+            <scheme-name>java-thin-remote</scheme-name>
+            <scope-name system-property="coherence.extend.scope"/>
+            <service-name>JavaRemoteCache</service-name>
+            <proxy-service-name>JavaProxy</proxy-service-name>
+            <initiator-config>
+                <serializer>java</serializer>
+            </initiator-config>
+        </remote-cache-scheme>
+
+        <remote-cache-scheme>
+            <scheme-name>pof-thin-remote</scheme-name>
+            <scope-name system-property="coherence.extend.scope"/>
+            <service-name>PofRemoteCache</service-name>
+            <proxy-service-name>PofProxy</proxy-service-name>
+            <initiator-config>
+                <serializer>pof</serializer>
+            </initiator-config>
+            <defer-key-association-check>true</defer-key-association-check>
+        </remote-cache-scheme>
+
+        <!-- near caching scheme for gRPC clients -->
+        <near-scheme>
+            <scheme-name>near-grpc</scheme-name>
+            <scheme-ref>near-direct</scheme-ref>
+            <back-scheme>
+                <remote-grpc-cache-scheme>
+                    <scheme-ref>thin-grpc</scheme-ref>
+                </remote-grpc-cache-scheme>
+            </back-scheme>
+        </near-scheme>
+
+        <remote-grpc-cache-scheme>
+            <scheme-name>java-thin-grpc</scheme-name>
+            <remote-scope-name system-property="coherence.grpc.remote.scope"/>
+            <service-name>JavaRemoteGrpcCache</service-name>
+            <cluster-name system-property="coherence.grpc.remote.cluster"/>
+            <proxy-service-name system-property="coherence.grpc.remote.proxy"/>
+            <grpc-channel system-property="coherence.grpc.channel">
+                <name-service-addresses>
+                    <socket-address>
+                        <address system-property="coherence.grpc.address"/>
+                        <port system-property="coherence.grpc.port"/>
+                    </socket-address>
+                </name-service-addresses>
+                <socket-provider system-property="coherence.grpc.socketprovider"/>
+            </grpc-channel>
+            <serializer>java</serializer>
+        </remote-grpc-cache-scheme>
+
+        <remote-grpc-cache-scheme>
+            <scheme-name>pof-thin-grpc</scheme-name>
+            <remote-scope-name system-property="coherence.grpc.remote.scope"/>
+            <service-name>PofRemoteGrpcCache</service-name>
+            <cluster-name system-property="coherence.grpc.remote.cluster"/>
+            <proxy-service-name system-property="coherence.grpc.remote.proxy"/>
+            <grpc-channel system-property="coherence.grpc.channel">
+                <name-service-addresses>
+                    <socket-address>
+                        <address system-property="coherence.grpc.address"/>
+                        <port system-property="coherence.grpc.port"/>
+                    </socket-address>
+                </name-service-addresses>
+                <socket-provider system-property="coherence.grpc.socketprovider"/>
+            </grpc-channel>
+            <serializer>pof</serializer>
+        </remote-grpc-cache-scheme>
+
+        <remote-grpc-cache-scheme>
+            <scheme-name>thin-grpc</scheme-name>
+            <remote-scope-name system-property="coherence.grpc.remote.scope"/>
+            <service-name>RemoteGrpcCache</service-name>
+            <cluster-name system-property="coherence.grpc.remote.cluster"/>
+            <proxy-service-name system-property="coherence.grpc.remote.proxy"/>
+            <grpc-channel system-property="coherence.grpc.channel">
+                <name-service-addresses>
+                    <socket-address>
+                        <address system-property="coherence.grpc.address"/>
+                        <port system-property="coherence.grpc.port"/>
+                    </socket-address>
+                </name-service-addresses>
+                <socket-provider system-property="coherence.grpc.socketprovider"/>
+            </grpc-channel>
+        </remote-grpc-cache-scheme>
+
+        <!-- near caching scheme for gRPC clients -->
+        <near-scheme>
+            <scheme-name>near-grpc-fixed</scheme-name>
+            <scheme-ref>near-direct</scheme-ref>
+            <back-scheme>
+                <remote-grpc-cache-scheme>
+                    <scheme-ref>thin-grpc-fixed</scheme-ref>
+                </remote-grpc-cache-scheme>
+            </back-scheme>
+        </near-scheme>
+
+        <remote-grpc-cache-scheme>
+            <scheme-name>thin-grpc-fixed</scheme-name>
+            <remote-scope-name system-property="coherence.grpc.remote.scope"/>
+            <service-name>RemoteGrpcCache</service-name>
+            <cluster-name system-property="coherence.grpc.remote.cluster"/>
+            <grpc-channel system-property="coherence.grpc.channel">
+                <remote-addresses>
+                    <socket-address>
+                        <address system-property="coherence.grpc.address"/>
+                        <port system-property="coherence.grpc.port"/>
+                    </socket-address>
+                </remote-addresses>
+                <socket-provider system-property="coherence.grpc.socketprovider"/>
+            </grpc-channel>
+        </remote-grpc-cache-scheme>
+
+        <distributed-scheme>
+            <scheme-name>thin-direct</scheme-name>
+            <scheme-ref>server</scheme-ref>
+            <local-storage system-property="coherence.distributed.localstorage">false</local-storage>
+            <autostart>false</autostart>
+        </distributed-scheme>
+
+        <distributed-scheme>
+            <scheme-name>java-thin-direct</scheme-name>
+            <scheme-ref>java-server</scheme-ref>
+            <local-storage system-property="coherence.distributed.localstorage">false</local-storage>
+            <autostart>false</autostart>
+        </distributed-scheme>
+
+        <distributed-scheme>
+            <scheme-name>pof-thin-direct</scheme-name>
+            <scheme-ref>pof-server</scheme-ref>
+            <local-storage system-property="coherence.distributed.localstorage">false</local-storage>
+            <autostart>false</autostart>
+        </distributed-scheme>
+
+        <distributed-scheme>
+            <scheme-name>server</scheme-name>
+            <service-name>PartitionedCache</service-name>
+            <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
+            <partition-count system-property="coherence.distributed.partitions">257</partition-count>
+            <backing-map-scheme>
+                <local-scheme>
+                    <high-units>{back-limit-bytes 0}</high-units>
+                    <unit-calculator>BINARY</unit-calculator>
+                </local-scheme>
+            </backing-map-scheme>
+            <autostart>true</autostart>
+        </distributed-scheme>
+
+        <distributed-scheme>
+            <scheme-name>java-server</scheme-name>
+            <service-name>JavaPartitionedCache</service-name>
+            <serializer>java</serializer>
+            <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
+            <partition-count system-property="coherence.distributed.partitions">257</partition-count>
+            <backing-map-scheme>
+                <local-scheme>
+                    <high-units>{back-limit-bytes 0}</high-units>
+                    <unit-calculator>BINARY</unit-calculator>
+                </local-scheme>
+            </backing-map-scheme>
+            <autostart>true</autostart>
+        </distributed-scheme>
+
+        <distributed-scheme>
+            <scheme-name>pof-server</scheme-name>
+            <service-name>PofPartitionedCache</service-name>
+            <serializer>pof</serializer>
+            <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
+            <partition-count system-property="coherence.distributed.partitions">257</partition-count>
+            <backing-map-scheme>
+                <local-scheme>
+                    <high-units>{back-limit-bytes 0}</high-units>
+                    <unit-calculator>BINARY</unit-calculator>
+                </local-scheme>
+            </backing-map-scheme>
+            <autostart>true</autostart>
+        </distributed-scheme>
+
+        <proxy-scheme>
+            <service-name>Proxy</service-name>
+            <acceptor-config>
+                <serializer>${coherence.extend.serializer ${coherence.serializer java}}</serializer>
+            </acceptor-config>
+            <autostart system-property="coherence.proxy.enabled">true</autostart>
+        </proxy-scheme>
+
+        <proxy-scheme>
+            <service-name>JavaProxy</service-name>
+            <acceptor-config>
+                <serializer>java</serializer>
+            </acceptor-config>
+            <autostart system-property="coherence.proxy.enabled">true</autostart>
+        </proxy-scheme>
+
+        <proxy-scheme>
+            <service-name>PofProxy</service-name>
+            <acceptor-config>
+                <serializer>pof</serializer>
+            </acceptor-config>
+            <autostart system-property="coherence.proxy.enabled">true</autostart>
+        </proxy-scheme>
+    </caching-schemes>
+</cache-config>

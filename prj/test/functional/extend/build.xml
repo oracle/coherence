@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- ANT build script for the extend test project.                         -->
+<!--                                                                       -->
+<!-- Usage:                                                                -->
+<!--     prompt> ant help                                                  -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<project name="extend" default="help" basedir=".">
+  <property environment="env"/>
+
+  <condition property="keytool" value="${env.JAVA_HOME}/bin/keytool.exe" else="keytool" >
+    <os family="windows" />
+  </condition>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Utility targets                                                     -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <target name="create.keystores"
+          description="Generate the various keystore files used by the SSL tests.">
+
+    <mkdir dir="target/classes/"/>
+
+    <!-- Create the testcert keystore -->
+    <exec executable="${keytool}">
+      <arg line="-genkey -keyalg RSA -alias testcert -validity 3650 -dname 'CN=TestCert, O=Oracle, OU=Coherence, C=US' -storetype jks -keystore target/classes/testcert.jks -keypass password -storepass password"/>
+    </exec>
+  </target>
+</project>

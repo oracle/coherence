@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<!--
+   Cache config for regression tests for Bug 23247908 -
+   Missing Injectable page-duration in PagedExternalScheme.
+-->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+    <caching-scheme-mapping>
+        <cache-mapping>
+            <cache-name>test</cache-name>
+            <scheme-name>test-scheme</scheme-name>
+        </cache-mapping>
+    </caching-scheme-mapping>
+
+    <caching-schemes>
+        <distributed-scheme>
+            <scheme-name>test-scheme</scheme-name>
+            <service-name>test-scheme-service</service-name>
+            <backing-map-scheme>
+                <overflow-scheme>
+                    <scheme-ref>Default_Backing_Overflow_Scheme</scheme-ref>
+                </overflow-scheme>
+            </backing-map-scheme>
+        </distributed-scheme>
+
+        <overflow-scheme>
+            <scheme-name>Default_Backing_Overflow_Scheme</scheme-name>
+            <front-scheme>
+                <local-scheme />
+            </front-scheme>
+            <back-scheme>
+                <paged-external-scheme>
+                    <scheme-name>my-paged</scheme-name>
+                    <nio-file-manager></nio-file-manager>
+                    <page-limit>{external-page-limit 12}</page-limit>
+                    <page-duration>{external-page-duration 300}</page-duration>
+                </paged-external-scheme>
+            </back-scheme>
+        </overflow-scheme>
+
+    </caching-schemes>
+
+</cache-config>

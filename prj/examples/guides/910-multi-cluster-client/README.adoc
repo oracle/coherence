@@ -1,0 +1,566 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Multi-Cluster Client
+:description: Coherence Guides
+:keywords: coherence, java, documentation, guides
+
+== Multi-Cluster Client
+
+A Coherence application JVM can only be a member of zero or one Coherence cluster at any point in time. It can however, connect to zero, one or many Coherence clusters as a client.
+When building a Coherence client application (either an Extend client or a gRPC client) the application may need to connect to more than one Coherence cluster. Exactly how this is achieved, and the relative simplicity, depends on the version of Coherence being used.
+
+This example uses the Bootstrap API introduced in Coherence CE 20.12, and enhancements made to it in 22.06.
+
+== Client Sessions
+
+Using the bootstrap API, access to Coherence resources is via an instance of `com.tangosol.net.Session` where either the default `Session` is used, or one or more sessions are configured at start-up. In a multi-tenant client, where all the tenants are known ahead of time, this pattern is still usable, a client `Session` can be configured at start-up for each tenant.
+In this example the tenant list can be dynamic, to make the example a little more interesting and to show how to create a new `Session` at runtime.
+
+The bootstrap API starts one or more `Coherence` instances, each of which manages one or more `Session` instances.
+For the multi-tenant use case there is no need to have multiple `Coherence` instances.
+The default instance can be used, then new tenant specific client sessions are created as required.
+
+Every `Session` must have a unique name (and for an Extend client session, either a unique cache configuration URI, or a unique scope name). This example uses the same cache configuration file for all tenants (which is how most multi-tenant applications would work)
+so the session's name and scope name are both set to the tenant name to ensure uniqueness.
+
+=== Create an Extend Client Session
+
+Creating an Extend client could be as simple as the example below.
+
+This example will create an Extend client using the default Coherence cache configuration (as the `withConfigUri` has not been used to specify a cache configuration file). Both the session name and scope name are set to the tenant name. A number of parameters are also set in the configuration, this is explained further below.
+
+[source,java]
+----
+public Session getSession(String tenant)
+    {
+    Coherence coherence = Coherence.getInstance();    // <1>
+    Optional<Session> optional = Coherence.findSession(tenant); // <2>
+    if (optional.isPresent())
+        {
+        return optional.get();  // <3>
+        }
+
+    coherence.addSessionIfAbsent(tenant, () ->     // <4>
+            SessionConfiguration.builder()
+                    .named(tenant)
+                    .withScopeName(tenant)
+                    .withParameter("coherence.client", "remote-fixed")
+                    .withParameter("coherence.serializer", "java")
+                    .withParameter("coherence.extend.address", "127.0.0.1")
+                    .withParameter("coherence.extend.port", 20000)
+                    .build());
+
+    return coherence.getSession(tenant);  // <5>
+    }
+----
+
+<1> Obtain the default `Coherence` instance
+<2> Find the `Session` with the tenant name
+<3> The `Session` has already been created, so use it
+<4> Use the `Coherence.addSessionIfAbsent()` method to add a `SessionConfiguration` for the tenant. The `addSessionIfAbsent` method is used to be slightly more thread safe.
+<5> Return the `Session` for the configuration name just added
+
+==== Session Configuration Parameters
+
+The `withParameter` method on the `SessionConfiguration.Builder` is used to pass parameters to the cache configuration.
+Cache configuration files can be parameterized using the `system-property` attribute on elements.
+Typically, the values used for these elements are taken from corresponding system properties or environment variables.
+By using the `withParameter` method on a `SessionConfiguration.Builder` values for these elements can also be provided.
+
+For example, the `<remote-cache-scheme>` below has the `<address>` and `<port>` elements parameterized.
+The `<address>` element's value will come from the `coherence.extend.address` System property (or `COHERENCE_EXTEND_ADDRESS` environment variable).
+The `<port>` element's value will come from the `coherence.extend.port` System property (or `COHERENCE_EXTEND_PORT` environment variable).
+There are a number of alternative ways to configures the address for a remote gRPC scheme, which are covered on the Coherence documentation.
+
+[source,xml]
+----
+<remote-cache-scheme>
+  <scheme-name>thin-remote-fixed</scheme-name>
+  <service-name>RemoteCache</service-name>
+  <initiator-config>
+    <tcp-initiator>
+      <remote-addresses>
+        <socket-address>
+          <address system-property="coherence.extend.address"/>
+          <port system-property="coherence.extend.port"/>
+        </socket-address>
+      </remote-addresses>
+    </tcp-initiator>
+  </initiator-config>
+</remote-cache-scheme>
+----
+
+When creating a `SessionConfiguration`, those values can also be specified as configuration parameters.
+
+[source,java]
+----
+SessionConfiguration.builder()
+        .withMode(Coherence.Mode.ClientFixed)
+        .withParameter("coherence.extend.address", "127.0.0.1")
+        .withParameter("coherence.extend.port", 20000)
+----
+
+=== Create a gRPC Client Session
+
+Since Coherence 22.06.2, creating a gRPC client session is a simple as creating an Extend client session. A `<remote-grpc-cache-scheme>` can be configured in a Coherence cache configuration file. The `<remote-grpc-cache-scheme>` can contain a `<grpc-channel>` element that configures the channel that the client will use to connect to the gRPC proxy in the Coherence cluster.
+There are a number of alternative ways to configure the `<remote-grpc-cache-scheme>` and `<grpc-channel>` elements, which are covered on the Coherence documentation.
+
+An example of a `<remote-grpc-cache-scheme>` is shown below. In this case the `<grpc-channel>` is configured with a single fixed address that the gRPC client connects to. The `<address>` and `<port>` elements below do not actually have values, the values of those elements will be supplied by the `coherence.grpc.address` and `coherence.grpc.port` system properties or by the `COHERENCE_GRPC_ADDRESS` and `COHERENCE_GRPC_PORT` environment variables, or by setting them in the Session configuration properties.
+
+[source,xml]
+----
+<remote-grpc-cache-scheme>
+  <scheme-name>thin-grpc-fixed</scheme-name>
+  <service-name>RemoteGrpcCache</service-name>
+  <grpc-channel>
+    <remote-addresses>
+      <socket-address>
+        <address system-property="coherence.grpc.address"/>
+        <port system-property="coherence.grpc.port"/>
+      </socket-address>
+    </remote-addresses>
+  </grpc-channel>
+</remote-grpc-cache-scheme>
+----
+
+When creating a `SessionConfiguration`, the `<address>` and `<port>` values can also be specified as configuration parameters.
+For example, the `SessionConfiguration` below will configure the gRPC channel to connect to loopback (`127.0.0.1`) and port `1408`.
+
+[source,java]
+----
+SessionConfiguration.builder()
+        .withMode(Coherence.Mode.GrpcFixed)
+        .withParameter("coherence.grpc.address", "127.0.0.1")
+        .withParameter("coherence.grpc.port", 1408)
+----
+
+
+== Building the Example
+
+The example application is a web-server that gets data to service requests from a specific Coherence cluster depending on a header value in the http request. This demonstrates a simple stateless multi-tenant web-server, where the tenant's data is segregated into different Coherence clusters. The information about a tenant's connection details are held in a meta-data cache in a separate admin cluster.
+
+=== What You Need
+:java_version: 11
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+// Do not change this part unless you have more complex build instructions.
+=== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+==== Build the Example Image
+
+The simplest way to run the example is to build the image and run the application web-server in a container.
+
+The example Maven and Gradle build files contain tasks to pull together all the dependencies and docker file into a directory. For Maven this will be `target/docker` and for Gradle this will be `build/docker`.
+The build then executes the Docker build command in that directory to build the image.
+
+Using Maven:
+
+[source,bash]
+----
+./mvnw clean package -DskipTests -P build-image
+----
+
+Using Gradle
+
+[source,bash]
+----
+./gradlew clean buildImage
+----
+
+Both of the commands above will create two images, one for the example server and one for the client
+
+* Server image `ghcr.io/coherence-community/multi-cluster-server:latest`
+* Client image `ghcr.io/coherence-community/multi-cluster-client:latest`
+
+
+== Running the Example
+
+The point of this example is to show a client connecting to multiple clusters, so running the examples requires also running a number of Coherence clusters.
+To make running simple, each clusters will just be a single member.
+
+=== Create a Docker Network
+
+So that the client can communicate with the cluster members, a Docker network is required.
+The command below will create a Docker network named `coherence-net`
+
+[source,bash]
+----
+docker network create --driver bridge coherence-net
+----
+
+=== Start the Coherence Clusters
+
+The example requires three clusters.
+The first is the tenant "admin" cluster that holds information about the tenants.
+Then there are two additional clusters for each tenant, in this case "Marvel" and "Star Wars"
+
+Start the admin cluster, this will hold tenant meta-data.
+
+[source,bash]
+----
+docker run -d --name tenants --network coherence-net \
+    -e COHERENCE_CLUSTER=tenants \
+    ghcr.io/coherence-community/multi-cluster-server:latest
+----
+
+Start the cluster for the Marvel tenant.
+
+[source,bash]
+----
+docker run -d --name marvel --network coherence-net \
+    -e COHERENCE_CLUSTER=marvel \
+    ghcr.io/coherence-community/multi-cluster-server:latest
+----
+
+Start the cluster for the Star Wars tenant.
+
+[source,bash]
+----
+docker run -d --name star-wars --network coherence-net \
+    -e COHERENCE_CLUSTER=star-wars \
+    ghcr.io/coherence-community/multi-cluster-server:latest
+----
+
+After starting all three clusters, the `docker ps` command can be used to check their status.
+Eventually the `STATUS` colum of each container should say `(healthy)`.
+
+[source]
+----
+CONTAINER ID   IMAGE                                                     COMMAND                  CREATED         STATUS                   PORTS                           NAMES
+4abdc735b7bd   ghcr.io/coherence-community/multi-cluster-server:latest   "java -cp /app/class…"   2 minutes ago   Up 2 minutes (healthy)   1408/tcp, 9612/tcp, 20000/tcp   star-wars
+5df54737eb6a   ghcr.io/coherence-community/multi-cluster-server:latest   "java -cp /app/class…"   2 minutes ago   Up 2 minutes (healthy)   1408/tcp, 9612/tcp, 20000/tcp   marvel
+87f9ee53dfc5   ghcr.io/coherence-community/multi-cluster-server:latest   "java -cp /app/class…"   3 minutes ago   Up 3 minutes (healthy)   1408/tcp, 9612/tcp, 20000/tcp   tenants
+----
+
+=== Start the Web-Server
+
+When all the clusters are running and healthy, the multi-tenant client can be started using the command below.
+This will start the webserver and expose the endpoints on `http://127.0.0.1:8080`.
+
+[source,bash]
+----
+docker run -d --name webserver --network coherence-net \
+    -e COHERENCE_EXTEND_ADDRESS=tenants \
+    -e COHERENCE_EXTEND_PORT=20000 \
+    -p 8080:8080 \
+    ghcr.io/coherence-community/multi-cluster-client:latest
+----
+
+Using `docker ps` the status of the `webserver` container should eventually be `(healthy)` too.
+
+=== Create the Tenant Meta-Data
+
+Once the `webserver` container is healthy the `/tenants` endpoint can be used to create the metadata for the two tenants.
+
+The curl command below will add the meta-data for the Marvel tenant. This will connect to the Marvel cluster using Coherence Extend on port 20000. The default extend proxy port in the server container is 20000.
+
+[source,bash]
+----
+curl -i -w '\n' -X POST http://127.0.0.1:8080/tenants \
+    -d '{"tenant":"marvel","type":"extend","hostName":"marvel","port":20000,"serializer":"java"}'
+----
+
+This should return a 200 response as show below:
+
+[source,bash]
+----
+HTTP/1.1 200 OK
+Date: Thu, 07 Jul 2022 15:15:26 GMT
+Transfer-encoding: chunked
+{
+  "@class":"com.oracle.coherence.guides.client.model.TenantMetaData",
+  "hostName":"marvel",
+  "port":20000,
+  "serializer":"java",
+  "tenant":"marvel",
+  "type":"extend"
+}
+----
+
+The curl command below will add the meta-data for the Star Wars tenant. This will connect to the Star Wars cluster using Coherence gRPC API on port 1408. The default gRPC port in the server container is 1408.
+
+[source,bash]
+----
+curl -i -w '\n' -X POST http://127.0.0.1:8080/tenants \
+    -d '{"tenant":"star-wars","type":"grpc","hostName":"star-wars","port":1408,"serializer":"java"}'
+----
+
+This should return a 200 response as show below:
+
+[source,bash]
+----
+HTTP/1.1 200 OK
+Date: Thu, 07 Jul 2022 15:17:49 GMT
+Transfer-encoding: chunked
+{
+  "@class":"com.oracle.coherence.guides.client.model.TenantMetaData",
+  "hostName":"star-wars",
+  "port":1408,
+  "serializer":"java",
+  "tenant":"star-wars",
+  "type":"grpc"
+}
+----
+
+=== Access the Multi-Tenant Endpoints
+
+First, try a simple GET request without a tenant header value.
+
+[source,bash]
+----
+curl -i -w '\n' -X GET http://127.0.0.1:8080/users/foo
+----
+
+This should return a 400 bad request response as shown below
+
+[source,bash]
+----
+HTTP/1.1 400 Bad Request
+Date: Thu, 07 Jul 2022 15:33:23 GMT
+Transfer-encoding: chunked
+
+{"Error":"Missing tenant identifier"}
+----
+
+Now try the same get, with a valid tenant identifier in the header.
+
+[source,bash]
+----
+curl -i -w '\n' -H 'tenant: marvel' -X GET http://127.0.0.1:8080/users/foo
+----
+
+This should return a 404, as no users have been created yet.
+
+[source,bash]
+----
+HTTP/1.1 404 Not Found
+Date: Thu, 07 Jul 2022 15:35:26 GMT
+Transfer-encoding: chunked
+
+{"Error":"Unknown user foo"}
+----
+
+
+Create a `User` in the Marvel cluster with the command below, using the `marvel` tenant identifier in the header:
+
+[source,bash]
+----
+curl -i -w '\n' -H 'tenant: marvel' -X POST http://127.0.0.1:8080/users \
+    -d '{"firstName":"Iron","lastName":"Man","email":"iron.man@marvel.com"}'
+----
+
+The response should be a 200 response, with the json of the user created. This will include the ID of the new user,
+in this case the ID is `Iron.Man`.
+
+[source,bash]
+----
+HTTP/1.1 200 OK
+Date: Thu, 07 Jul 2022 15:37:04 GMT
+Transfer-encoding: chunked
+
+{
+  "@class":"com.oracle.coherence.guides.client.model.User",
+  "email":"iron.man@marvel.com",
+  "firstName":"Iron",
+  "id":"Iron.Man",
+  "lastName":"Man"
+}
+----
+
+Now get the `Iron.Man` user from the Marvel cluster:
+
+[source,bash]
+----
+curl -i -w '\n' -H 'tenant: marvel' -X GET http://127.0.0.1:8080/users/Iron.Man
+----
+
+This should respond with a 200 response code and the same json as above.
+
+Next, try to get the `Iron.Man` user from the Star Wars cluster by using the `star-wars` tenant ID in the header
+
+[source,bash]
+----
+curl -i -w '\n' -H 'tenant: star-wars' -X GET http://127.0.0.1:8080/users/Iron.Man
+----
+
+The response should be a 404, not-found, as the `Iron.Man` user is not in the Star Wars tenant's cluster.
+
+==== Clean-Up
+
+The demo is complete so everything can be cleaned up.
+
+[source,bash]
+----
+docker rm -f webserver tenants marvel star-wars
+docker network rm coherence-net
+----
+
+
+
+== The Example Application
+
+The application is a very basic CRUD application to manage simple `User` entities in a Coherence cache.
+The application exposes a REST API with get, create (POST), update (PUT) and delete methods.
+The application is multi-tenanted, so each request has the relevant tenant identifier in a request header.
+Requests without a tenant identifier, or with an unknown tenant, are rejected.
+
+The web-server is a Coherence client application, and is hence storage disabled.
+The data for each tenant is held in a separate storage enabled Coherence cluster for each tenant.
+There is an admin cluster that holds the meta-data about tenants.
+This allows tenants and their cluster details to be added and maintained at runtime.
+The main reason for doing this in the example, is because it makes testing much simpler.
+
+A stateless web server that accesses data to service requests from different Coherence clusters has various pros and cons with its design, but the purpose of this example is to show connecting Coherence clients to different clusters, its purpose is not to produce the best, most efficient, web application.
+There is certainly no security built in to this example.
+
+The actual web-server implementation used in this example is unimportant and not really relevant to the example code.
+The code shown here could easily be ported to other web-application frameworks, such as Coherence CDI with http://helidon.io[Helidon],
+Coherence and https://github.com/coherence-community/coherence-spring[Spring], or Coherence and
+https://micronaut-projects.github.io/micronaut-coherence/latest/guide/[Micronaut], etc.
+
+=== The Data Model
+
+The data model used in this example is a simple `User` entity, with an id, a first name, a last name and an email address.
+
+A snippet of the source is shown below, the actual code includes serialization support for both Java and portable object format serialization.
+
+[source,java]
+.User.java
+----
+include::multi-cluster-client/src/main/java/com/oracle/coherence/guides/client/model/User.java[tag=src]
+    }
+----
+
+=== The Main Class
+
+The application does not have a main class with a main method.
+The `Application` class in the example code implements `Coherence.LifecycleListener` and will be discovered by `Coherence` using the Java `ServiceLoader`. The `Application` class then receives events when the Coherence bootstrap API starts and stops Coherence.
+Using these events, the `Application` class configures, starts and stops the web-server.
+The actual code is not discussed in detail here as it is not particularly relevant for the example.
+
+The application is started by running the `com.tangosol.net.Coherence` class; in this case `Coherence` is started as a client.
+
+=== The TenantController
+
+The `TenantController` class is one of two classes that expose REST endpoints in the web-server.
+The purpose of the `TenantController` is to perform CRUD operations on tenants, to allow runtime configuration of tenants,
+and which cluster a given tenant should connect to.
+
+Tenant meta-data is contained in a `TenantMetaData` class. This holds the tenant name, the host name and port of the Coherence cluster holding the tenants data and whether the client session should use Coherence Extend or Coherence gRPC to connect to the cluster.
+
+=== The UserController
+
+The `UserController` class is the main class in the example.
+This class exposes some REST endpoints to perform CRUD operations on `User` entities.
+There are four methods supported by the controller, `POST` to create a user, 'PUT' to update a user, `GET` to get a user and `DELETE` to delete a user. Every request much contain a `tenant` header with the name of the tenant as the header value.
+Any request without a tenant header is rejected.
+
+== Implementing Multi-Tenancy
+
+In this example, the tenants are dynamic and Coherence client sessions are created on-demand using meta-data held in a tenants cache.
+An alternative would have been to create all the tenant client sessions when the application started up using the Coherence Bootstrap API to configure them.
+This would have been a much simpler example, but then testing and demonstrating it would have been harder.
+A more dynamic multi-tenant system is probably closer to a real-world scenario.
+
+When the web-server starts it connects using Coherence Extend to the tenant meta-data cluster and obtains a reference to a Coherence `NamedMap` to hold tenant meta-data.
+
+=== Creating a Tenant's Session
+
+When a request comes to the `UserController` a Coherence `Session` must be obtained for the tenant.
+All the requests perform the same logic, the code below is from the get request handler.
+
+[source,java]
+.UserController.java
+----
+include::multi-cluster-client/src/main/java/com/oracle/coherence/guides/client/UserController.java[tag=get]
+----
+
+<1> The "tenant" header value is obtained from the request
+<2> If there is no tenant header a 400 response is returned
+<3> A `Session` is obtained for the tenant (this is covered in detail below)
+<4> If the `Session` is `null`, a 400 response is returned
+
+Once a valid `Session` has been obtained for the tenant, the rest of the request processing can continue.
+
+==== The ensureSession Method
+
+The work of obtaining or creating a `Session` for a tenant is in the `UserController.ensureSession` method.
+
+[source,java]
+.UserController.java
+----
+include::multi-cluster-client/src/main/java/com/oracle/coherence/guides/client/UserController.java[tag=ensure]
+----
+
+<1> The meta-data for the tenant is obtained from the tenants cache.
+<2> If there is no meta-data in the cache, the method returns `null`.
+<3> The default `Coherence` instance is obtained, as this will be the owner of all the client `Session` instances.
+<4> The `Coherence.getSessionIfPresent()` method is called, which will return an existing `Session` for a given tenant name if one exists.
+
+The `Coherence.getSessionIfPresent()` returns an `Optional<Session>` and if this is empty,
+the supplier in the `orElseGet()` method is called, which calles the `UserController.createSession()` method to actually create a `Session`.
+
+==== The createSession Method
+
+If a `Session` does not yet exist for a tenant, one must be created from the `TenantMetaData` for the tenant.
+The `UserController.createSession()` method is responsible for creating a `Session` for a tenant.
+
+[source,java]
+.UserController.java
+----
+include::multi-cluster-client/src/main/java/com/oracle/coherence/guides/client/UserController.java[tag=create]
+----
+
+The `createSession` method is very simple, it just delegates to another method, depending on whether the required `Session` is for an Extend client or a gRPC client.
+A `SessionConfiguration` is created, either for an Extend client, or gRPC client, and is passed to the `Coherence.addSessionIfAbsent()` method. The add if absent method is used in case multiple threads attempt to create the same tenant's session, it will only be added once.
+
+==== Creating an Extend Session
+
+A `Session` is simple to add to a running `Coherence` instance. It just requires creating a `SessionConfiguration` instance and adding it to the `Coherence` instance.
+An Extend client configuration can be created using the `SessionConfiguration` builder.
+
+[source,java]
+.UserController.java
+----
+include::multi-cluster-client/src/main/java/com/oracle/coherence/guides/client/UserController.java[tag=extend]
+----
+
+<1> The session configuration has a unique name, in this case the tenant name
+<2> A session configuration typically has a unique scope, in this case also the tenant name
+<3> The `coherence.client` parameter is set to `remote-fixed`. This is used by the default Coherence cache configuration file to make it use a fixed address Extend client configuration.
+<4> The name of the serializer is configured (in this example Java serialization is used, but "pof" would also be supported)
+<5> The `coherence.extend.address` property is passed through to the cache configuration file, in this case the address comes from the tenant meta-data.
+<6> The `coherence.extend.port` property is passed through to the cache configuration file, in this case the address comes from the tenant meta-data.
+<7> finally the configuration is built and returned.
+
+
+==== Creating a gRPC Session
+
+Creating a gRPC `Session` is as simple as creating an Extend `Session`.
+
+[source,java]
+.UserController.java
+----
+include::multi-cluster-client/src/main/java/com/oracle/coherence/guides/client/UserController.java[tag=grpc]
+----
+
+<1> The session configuration has a unique name, in this case the tenant name
+<2> A session configuration typically has a unique scope, in this case also the tenant name
+<3> The `coherence.client` parameter is set to `grpc-fixed`. This is used by the default Coherence cache configuration file to make it use a fixed address gRPC client configuration.
+<4> The name of the serializer is configured (in this example Java serialization is used, but "pof" would also be supported)
+<5> The `coherence.grpc.address` property is passed through to the cache configuration file, in this case the address comes from the tenant meta-data.
+<6> The `coherence.grpc.port` property is passed through to the cache configuration file, in this case the address comes from the tenant meta-data.
+<7> finally the configuration is built and returned.
+
+==== Summary
+
+The example code could be simplified if the application only ever used Extend or only ever used gRPC.
+There are also many alternative approaches to holding tenant metata data used to create the sessions.
+
+The important parts of the example are the methods in `UserController` to obtain a session from the `Coherence` instance, and create a new `Session` is one does not already exist.
+

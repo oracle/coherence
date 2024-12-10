@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce</groupId>
+    <artifactId>main</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>coherence-docker</artifactId>
+  <packaging>jar</packaging>
+  <name>Coherence Docker Distribution</name>
+
+  <properties>
+    <useModulePath>false</useModulePath>
+    <bedrockUseModules>false</bedrockUseModules>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-concurrent</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-grpc-proxy</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-json</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-java-client</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>jakarta.json</artifactId>
+    </dependency>
+
+    <!-- tracing dependencies -->
+    <dependency>
+      <groupId>io.jaegertracing</groupId>
+      <artifactId>jaeger-client</artifactId>
+    </dependency>
+
+    <!-- slf4j -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+    </dependency>
+
+    <!-- JMX MP for simpler JMX in containers -->
+    <dependency>
+      <groupId>org.glassfish.external</groupId>
+      <artifactId>opendmk_jmxremote_optional_jar</artifactId>
+    </dependency>
+
+     <!-- GraalVM Polyglot support -->
+   <dependency>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>polyglot</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>js</artifactId>
+      <type>pom</type>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-bedrock-testing-support</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>docker</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <property>
+          <name>project.docker</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <!-- The assembly plugin puts everything that will be copied to the image into the target/docker directory -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>docker</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <finalName>docker</finalName>
+                  <appendAssemblyId>false</appendAssemblyId>
+                  <descriptors>
+                    <descriptor>src/assembly/image-assembly.xml</descriptor>
+                  </descriptors>
+                  <attach>false</attach>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!--
+          The exec plugin runs Buildah in a container which will build the images
+          by running the build-images.sh shell script.
+          -->
+          <plugin>
+             <groupId>org.codehaus.mojo</groupId>
+             <artifactId>exec-maven-plugin</artifactId>
+             <executions>
+               <execution>
+                 <id>build-images</id>
+                 <goals>
+                   <goal>exec</goal>
+                 </goals>
+                 <phase>package</phase>
+                 <configuration>
+                   <executable>sh</executable>
+                   <arguments>
+                     <argument>${project.basedir}/run-buildah.sh</argument>
+                     <argument>BUILD</argument>
+                   </arguments>
+                   <environmentVariables>
+                     <JAVA_EA_BASE_URL>${java.ea.base.url}</JAVA_EA_BASE_URL>
+                     <COHERENCE_VERSION>${project.version}</COHERENCE_VERSION>
+                     <IMAGE_NAME>${docker.image.name}</IMAGE_NAME>
+                     <IMAGE_ARCH>${docker.image.arch}</IMAGE_ARCH>
+                     <AMD_BASE_IMAGE>${docker.base.image.name.amd}</AMD_BASE_IMAGE>
+                     <ARM_BASE_IMAGE>${docker.base.image.name.arm}</ARM_BASE_IMAGE>
+                     <AMD_BASE_IMAGE_17>${docker.base.image.name.amd.17}</AMD_BASE_IMAGE_17>
+                     <ARM_BASE_IMAGE_17>${docker.base.image.name.arm.17}</ARM_BASE_IMAGE_17>
+                     <GRAAL_AMD_BASE_IMAGE>${graalvm.base.image.name.amd}</GRAAL_AMD_BASE_IMAGE>
+                     <GRAAL_ARM_BASE_IMAGE>${graalvm.base.image.name.arm}</GRAAL_ARM_BASE_IMAGE>
+                     <NO_GRAAL>${graalvm.image.skip}</NO_GRAAL>
+                     <PORT_EXTEND>${docker.port.extend}</PORT_EXTEND>
+                     <PORT_CONCURRENT_EXTEND>${docker.port.concurrent.extend}</PORT_CONCURRENT_EXTEND>
+                     <PORT_GRPC>${docker.port.grpc}</PORT_GRPC>
+                     <PORT_MANAGEMENT>${docker.port.management}</PORT_MANAGEMENT>
+                     <PORT_METRICS>${docker.port.metrics}</PORT_METRICS>
+                     <PORT_HEALTH>${docker.port.health}</PORT_HEALTH>
+                     <MAIN_CLASS>com.tangosol.net.Coherence</MAIN_CLASS>
+                     <DOCKER_REGISTRY>${env.DOCKER_REGISTRY}</DOCKER_REGISTRY>
+                     <DOCKER_USERNAME>${env.DOCKER_USERNAME}</DOCKER_USERNAME>
+                     <DOCKER_PASSWORD>${env.DOCKER_PASSWORD}</DOCKER_PASSWORD>
+                     <DOCKER_HUB_USERNAME>${env.DOCKER_HUB_USERNAME}</DOCKER_HUB_USERNAME>
+                     <DOCKER_HUB_PASSWORD>${env.DOCKER_HUB_PASSWORD}</DOCKER_HUB_PASSWORD>
+                     <PROJECT_URL>${project.url}</PROJECT_URL>
+                     <PROJECT_VENDOR>${project.organization.name}</PROJECT_VENDOR>
+                     <PROJECT_DESCRIPTION>${project.description}</PROJECT_DESCRIPTION>
+                   </environmentVariables>
+                 </configuration>
+               </execution>
+             </executions>
+           </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>docker-test</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <property>
+          <name>project.docker</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <skip>false</skip>
+              <skipTests>false</skipTests>
+              <useModulePath>false</useModulePath>
+              <systemProperties>
+                <test.image.names>${docker.image.name},${docker.image.name}-java17,${docker.image.name}-graal</test.image.names>
+                <graal.image.names>${docker.image.name}-graal</graal.image.names>
+                <port.grpc>${docker.port.grpc}</port.grpc>
+                <port.extend>${docker.port.extend}</port.extend>
+                <port.concurrent.extend>${docker.port.concurrent.extend}</port.concurrent.extend>
+                <port.management>${docker.port.management}</port.management>
+                <port.metrics>${docker.port.metrics}</port.metrics>
+                <port.health>${docker.port.health}</port.health>
+              </systemProperties>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <useModulePath>false</useModulePath>
+              <systemProperties>
+                <skip>false</skip>
+                <skipTests>false</skipTests>
+                <test.image.names>${docker.image.name},${docker.image.name}-java17,${docker.image.name}-graal</test.image.names>
+                <graal.image.names>${docker.image.name}-graal</graal.image.names>
+                <port.grpc>${docker.port.grpc}</port.grpc>
+                <port.extend>${docker.port.extend}</port.extend>
+                <port.concurrent.extend>${docker.port.concurrent.extend}</port.concurrent.extend>
+                <port.management>${docker.port.management}</port.management>
+                <port.metrics>${docker.port.metrics}</port.metrics>
+                <port.health>${docker.port.health}</port.health>
+              </systemProperties>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>docker-push</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+             <groupId>org.codehaus.mojo</groupId>
+             <artifactId>exec-maven-plugin</artifactId>
+             <executions>
+               <execution>
+                 <id>push-image</id>
+                 <goals>
+                   <goal>exec</goal>
+                 </goals>
+                 <phase>install</phase>
+                 <configuration>
+                   <executable>sh</executable>
+                   <arguments>
+                     <argument>${project.basedir}/run-buildah.sh</argument>
+                     <argument>PUSH</argument>
+                   </arguments>
+                   <environmentVariables>
+                     <COHERENCE_VERSION>${project.version}</COHERENCE_VERSION>
+                     <IMAGE_NAME>${docker.image.name}</IMAGE_NAME>
+                     <NO_GRAAL>${graalvm.image.skip}</NO_GRAAL>
+                     <DOCKER_REGISTRY>${env.DOCKER_REGISTRY}</DOCKER_REGISTRY>
+                     <DOCKER_USERNAME>${env.DOCKER_USERNAME}</DOCKER_USERNAME>
+                     <DOCKER_PASSWORD>${env.DOCKER_PASSWORD}</DOCKER_PASSWORD>
+                   </environmentVariables>
+                 </configuration>
+               </execution>
+             </executions>
+           </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>buildah</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+             <groupId>org.codehaus.mojo</groupId>
+             <artifactId>exec-maven-plugin</artifactId>
+             <executions>
+               <execution>
+                 <id>run-buildah</id>
+                 <goals>
+                   <goal>exec</goal>
+                 </goals>
+                 <phase>install</phase>
+                 <configuration>
+                   <executable>sh</executable>
+                   <arguments>
+                     <argument>${project.basedir}/run-buildah.sh</argument>
+                     <argument>EXEC</argument>
+                   </arguments>
+                   <environmentVariables>
+                     <JAVA_EA_BASE_URL>${java.ea.base.url}</JAVA_EA_BASE_URL>
+                     <COHERENCE_VERSION>${project.version}</COHERENCE_VERSION>
+                     <IMAGE_NAME>${docker.image.name}</IMAGE_NAME>
+                     <IMAGE_ARCH>${docker.image.arch}</IMAGE_ARCH>
+                     <AMD_BASE_IMAGE>${docker.base.image.name.amd}</AMD_BASE_IMAGE>
+                     <ARM_BASE_IMAGE>${docker.base.image.name.arm}</ARM_BASE_IMAGE>
+                     <AMD_BASE_IMAGE_17>${docker.base.image.name.amd.17}</AMD_BASE_IMAGE_17>
+                     <ARM_BASE_IMAGE_17>${docker.base.image.name.arm.17}</ARM_BASE_IMAGE_17>
+                     <GRAAL_AMD_BASE_IMAGE>${graalvm.base.image.name.amd}</GRAAL_AMD_BASE_IMAGE>
+                     <GRAAL_ARM_BASE_IMAGE>${graalvm.base.image.name.arm}</GRAAL_ARM_BASE_IMAGE>
+                     <NO_GRAAL>${graalvm.image.skip}</NO_GRAAL>
+                     <PORT_EXTEND>${docker.port.extend}</PORT_EXTEND>
+                     <PORT_CONCURRENT_EXTEND>${docker.port.concurrent.extend}</PORT_CONCURRENT_EXTEND>
+                     <PORT_GRPC>${docker.port.grpc}</PORT_GRPC>
+                     <PORT_MANAGEMENT>${docker.port.management}</PORT_MANAGEMENT>
+                     <PORT_METRICS>${docker.port.metrics}</PORT_METRICS>
+                     <PORT_HEALTH>${docker.port.health}</PORT_HEALTH>
+                     <MAIN_CLASS>com.tangosol.net.Coherence</MAIN_CLASS>
+                     <DOCKER_REGISTRY>${env.DOCKER_REGISTRY}</DOCKER_REGISTRY>
+                     <DOCKER_USERNAME>${env.DOCKER_USERNAME}</DOCKER_USERNAME>
+                     <DOCKER_PASSWORD>${env.DOCKER_PASSWORD}</DOCKER_PASSWORD>
+                     <DOCKER_HUB_USERNAME>${env.DOCKER_HUB_USERNAME}</DOCKER_HUB_USERNAME>
+                     <DOCKER_HUB_PASSWORD>${env.DOCKER_HUB_PASSWORD}</DOCKER_HUB_PASSWORD>
+                     <PROJECT_URL>${project.url}</PROJECT_URL>
+                     <PROJECT_VENDOR>${project.organization.name}</PROJECT_VENDOR>
+                     <PROJECT_DESCRIPTION>${project.description}</PROJECT_DESCRIPTION>
+                   </environmentVariables>
+                 </configuration>
+               </execution>
+             </executions>
+           </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- This profile is enabled if this build is running on amd64 hardware -->
+    <profile>
+      <id>arch-amd64</id>
+      <activation>
+        <property>
+          <name>os.arch</name>
+          <value>x86_64</value>
+        </property>
+      </activation>
+      <properties>
+        <docker.image.arch>amd64</docker.image.arch>
+      </properties>
+    </profile>
+
+    <!-- This profile is enabled if this build is running on ARM 64 hardware -->
+    <profile>
+      <id>arch-arm64</id>
+      <activation>
+        <property>
+          <name>os.arch</name>
+          <value>aarch64</value>
+        </property>
+      </activation>
+      <properties>
+        <docker.image.arch>arm64</docker.image.arch>
+      </properties>
+    </profile>
+  </profiles>
+</project>

@@ -1,0 +1,6 @@
+nodeId	TestString	JoinString
+1	Ora	Cle
+2	Cle	Ora
+3	Ora	Cle
+4	Cle	Ora
+5	Ora	Cle

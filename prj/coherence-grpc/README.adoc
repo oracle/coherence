@@ -1,0 +1,622 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Coherence gRPC
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Coherence gRPC
+
+== Developing Remote Clients for Oracle Coherence
+
+[#getting-started]
+== Part V Getting Started with gRPC
+
+Learn how to use the Coherence gRPC library to interact with a Coherence data management services.
+
+This part contains the following chapters:
+
+<<intro,Introduction to gRPC>> +
+Coherence gRPC provides the protobuf definitions necessary to interact with a Coherence data management services over gRPC.
+
+<<server,Using the Coherence gRPC Server>> +
+The Coherence gRPC proxy is the server-side implementation of the services defined within the Coherence gRPC module. The gRPC proxy uses standard gRPC Java libraries to provide Coherence APIs over gRPC.
+
+<<client,Using the Coherence Java gRPC Client>> +
+The Coherence Java gRPC Client is a library that enables a Java application to connect to a Coherence gRPC proxy server.
+
+[#intro]
+=== 24 Introduction to gRPC
+
+Coherence gRPC for Java allows Java applications to access Coherence clustered services, including data, data events, and data processing from outside the Coherence cluster. Typical uses for Java gRPC clients include desktop and Web applications that require access to remote Coherence resources. This provides an alternative to using Coherence*Extend when writing client applications.
+
+[NOTE]
+====
+The Coherence gRPC client and Coherence Extend client feature sets do not match exactly, some functionality in gRPC is not available in Extend and vice-versa.
+====
+
+The Coherence gRPC for Java library connects to a Coherence clustered service instance running within the Coherence cluster using a high performance gRPC based communication layer. This library sends all client requests to the Coherence  clustered gRPC proxy service which, in turn, responds to client requests by delegating to an actual Coherence clustered service (for example, a partitioned cache service).
+
+Like cache clients that are members of the cluster, Java gRPC clients use the `Session` API call to retrieve a resources such as `NamedMap`, `NamedCache`, etc. After it is obtained, a client accesses these resources in the same way as it would if it were part of the Coherence cluster. The fact that operations on Coherence resources are being sent to a remote cluster node (over gRPC) is completely transparent to the client application.
+
+There are two parts to Coherence gRPC, the `coherence-grpc-proxy` module, that provides the server-side gRPC proxy, and the `coherence-java-client` module that provides the gRPC client. Other non-java Coherence clients are also available that use the Coherence gRPC protocol.
+
+[#server]
+=== 25 Using the Coherence gRPC Proxy Server
+
+The Coherence gRPC proxy is the server-side implementation of the gRPC services defined within the Coherence gRPC module. The gRPC proxy uses standard gRPC Java libraries to provide Coherence APIs over gRPC.
+
+This chapter includes the following sections:
+
+<<setting-up,Setting Up the Coherence gRPC Server>> +
+To set up and start using the Coherence gRPC Server, you should declare it as a dependency of your project.
+
+<<config-server,Configuring the Server>> +
+Configuring the gRPC Server includes setting the server port, specifying the in-process server name, and enabling TLS.
+
+<<disable-server,Disabling the gRPC Proxy Server>> +
+The Coherence gRPC server starts automatically based on the lifecycle events of `DefaultCacheServer`, but it can be disabled.
+
+<<helidon,Deploying the Proxy Service with Helidon Microprofile gRPC Server>> +
+If you use the Helidon Microprofile server with the microprofile gRPC server enabled, you can deploy the Coherence gRPC proxy into the Helidon gRPC server instead of the Coherence default gRPC server.
+
+
+[#setting-up]
+==== Setting Up the Coherence gRPC Proxy Server
+
+To set up and start using the Coherence gRPC Server, you should declare it as a dependency of your project.
+
+For example:
+
+If using Maven, declare the server as follows (where `coherence.groupId` is either the Coherence commercial group id, `com.oracle.coherence` or the CE group id `com.oracle.coherence.ce`, and the `coherence.version` property is the version of Coherence being used:
+
+[source,xml]
+.pom.xml
+----
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>${coherence.group.id}</groupId>
+            <artifactId>coherence-bom</artifactId>
+            <version>${coherence.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+
+<dependencies>
+    <dependency>
+        <groupId>${coherence.groupId}</groupId>
+        <artifactId>coherence</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>${coherence.groupId}</groupId>
+        <artifactId>coherence-grpc-proxy</artifactId>
+    </dependency>
+<dependencies>
+----
+
+Or with Gradle, declare the server as follows (where `coherenceGroupId` is either the Coherence commercial group id, `com.oracle.coherence` or the CE group id `com.oracle.coherence.ce`, and the `coherenceVersion` property is the version of Coherence being used:
+
+[source,groovy]
+.build.gradle
+----
+dependencies {
+    implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+
+    implementation "${coherenceGroupId}:coherence"
+    implementation "${coherenceGroupId}:coherence-grpc-proxy"
+}
+----
+
+
+==== Starting the Server
+
+The gRPC server starts automatically when you run `com.tangosol.coherence.net.Coherence` (or `com.tangosol.coherence.net.DefaultCacheServer`). Typically, `com.tangosol.coherence.net.Coherence` class should be used as the application’s main class. Alternatively, you can start an instance of `com.tangosol.coherence.net.Coherence` by using the Bootstrap API.
+
+By default, the gRPC server will listen on all local addresses using an ephemeral port. Just like with Coherence*Extend, the endpoints the gRPC server has bound to can be discovered by a client using the Coherence NameService, so using ephemeral ports allows the server to start without needing to be concerned with port clashes.
+
+When reviewing the log output, two log messages appear as shown below to indicate which ports the gRPC server has bound to.
+
+[source]
+----
+In-Process GrpcAcceptor is now listening for connections using name "default"
+GrpcAcceptor now listening for connections on 0.0.0.0:55550
+----
+
+The service is ready to process requests from one of the Coherence gRPC client implementations.
+
+
+[#config-server]
+==== Configuring the Server
+
+The Coherence gRPC proxy is configured using an internal default cache configuration file named `grpc-proxy-cache-config.xml` which only contains a single `<proxy-scheme>` configuration for the gRPC proxy. There is no reason to override this file as the server can be configured with System properties and environment variables.
+
+===== Configuring the gRPC Server Listen Address and Port
+
+The address and port that the gRPC server binds to when starting can be configured at runtime by setting system properties or environment variables.
+
+By default, the server binds to the address `0.0.0.0` which equates to all the local host's network interfaces.
+This can be changed by setting the `coherence.grpc.server.address` system property or `COHERENCE_GRPC_SERVER_ADDRESS` environment variable.
+
+For example, if the host had a local IP address `192.168.0.25` the server could be configured to bind to just this address as follows:
+
+Using System properties
+
+[source]
+----
+-Dcoherence.grpc.server.address=192.168.0.2
+----
+
+Using environment variables
+
+[source,bash]
+----
+export COHERENCE_GRPC_SERVER_ADDRESS=192.168.0.2
+----
+
+The port that the gRPC server binds to can be configured using the `coherence.grpc.server.port` system property or `COHERENCE_GRPC_SERVER_PORT` environment variable
+
+For example, to configure the server to listen on port 1408:
+
+Using System properties
+
+[source]
+----
+-Dcoherence.grpc.server.port=1408
+----
+
+Using environment variables
+
+[source,bash]
+----
+export COHERENCE_GRPC_SERVER_PORT=1408
+----
+
+===== Configuring SSL/TLS
+
+In common with the rest of Coherence, the Coherence gRPC server can be configured to use SSL by specifying the name of a socket provider. Named socket providers are configured in the Coherence operational configuration file (override file). There are various ways to configure an SSL socket provider, which are covered in the Coherence documentation section https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/secure/using-ssl-secure-communication.html[Using SSL to Secure Communication]
+
+Once a named socket provider has been configured, the gRPC server can be configured to use that provider by setting the `coherence.grpc.server.socketprovider` system property or `COHERENCE_GRPC_SERVER_SOCKETPROVIDER` environment variable.
+
+For example, if a socket provider named `tls` has been configured in the operational configuration file, the gRPC server can be configured to use it:
+
+[source,xml]
+.tangosol-coherence-override.xml
+----
+    <socket-providers>
+      <socket-provider id="tls">
+        <ssl>
+          <identity-manager>
+            <key system-property="coherence.security.key">server.key</key>
+            <cert system-property="coherence.security.cert">server.cert</cert>
+          </identity-manager>
+          <trust-manager>
+            <cert system-property="coherence.security.ca.cert">server-ca.cert</cert>
+          </trust-manager>
+        </ssl>
+      </socket-provider>
+    </socket-providers>
+----
+
+Using System properties
+
+[source]
+----
+-Dcoherence.grpc.server.socketprovider=tls
+----
+
+Using environment variables
+
+[source,bash]
+----
+export COHERENCE_GRPC_SERVER_SOCKETPROVIDER=tls
+----
+
+For more information on socket providers see
+https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/secure/using-ssl-secure-communication.html[Using SSL to Secure Communication]
+
+
+===== Configuring the gRPC Server Thread Pool
+
+Like other Coherence services, the gRPC server uses a dynamically sized thread pool to process requests.
+The thread pool size can be configured if the dynamic sizing algorithm provies to not be optimal.
+
+*Set the Minimum Thread Count*
+
+Adjusting the minimum number of threads can be useful when dealing with bursts in load.
+Sometimes it can take the dynamic pool some time to increase the thread count to a suitable number to quickly deal with an increase in load. Setting the minimum size will ensure there are always a certain number of threads to service load.
+The minimum number of threads in the pool can be set using the `coherence.grpc.server.threads.min` system property, or the `COHERENCE_GRPC_SERVER_THREADS_MIN` environment variable.
+
+For example, the minimum thread count can be set to 10 as shown below:
+
+Using System properties
+
+[source]
+----
+-Dcoherence.grpc.server.threads.min=10
+----
+
+Using environment variables
+
+[source,bash]
+----
+export COHERENCE_GRPC_SERVER_THREADS_MIN=10
+----
+
+*Set the Maximum Thread Count*
+
+Adjusting the maximum number of threads can be useful to stop the dynamic pool going too high and consuming too much CPU resource.
+The maximum number of threads in the pool can be set using the `coherence.grpc.server.threads.max` system property, or the `COHERENCE_GRPC_SERVER_THREADS_MAX` environment variable.
+If both maximum and minimum thread counts are specified, the maximum thread count should obviously be set to a value higher than the minimum thread count.
+
+For example, the maximum thread count can be set to 20 as shown below:
+
+Using System properties
+
+[source]
+----
+-Dcoherence.grpc.server.threads.max=20
+----
+
+Using environment variables
+
+[source,bash]
+----
+export COHERENCE_GRPC_SERVER_THREADS_MAX=20
+----
+
+
+[#disable-server]
+==== Disabling the gRPC Proxy Server
+
+If the `coherence-grpc-proxy` module is on the class path (or module path) then the gRPC server will be started automatically. This behaviour can be disabled by setting the `coherence.grpc.enabled` system property or `COHERENCE_GRPC_ENABLED` environment variable to `false`.
+
+
+[#client]
+=== 26 Using the Coherence Java gRPC Client
+
+The Coherence Java gRPC Client is a library that enables a Java application to connect to a Coherence gRPC proxy server.
+
+This chapter includes the following sections:
+
+
+<<client-setup,Setting Up the Coherence gRPC Client>> +
+To set up and start using the Coherence gRPC Client, you should declare it as an application dependency. There should also be a corresponding Coherence server running the gRPC proxy to which the client can connect.
+
+<<client-config,Configure the Coherence gRPC Client>> +
+Add the gRPC client configuration to the application's cache configuration file.
+
+<<client-resources,Accessing Coherence Resources>> +
+The simplest way to access the remote Coherence resources, such as a `NamedMap` when using the gRPC client is through a Coherence `Session`.
+
+[#client-setup]
+==== Setting Up the Coherence gRPC Client
+
+To set up and start using the Coherence gRPC Java client, you should declare it as a dependency of your project. The gRPC client is provided in the `coherence-java-client` module.
+
+For example:
+
+If using Maven, declare the server as follows (where `coherence.groupId` is either the Coherence commercial group id, `com.oracle.coherence` or the CE group id `com.oracle.coherence.ce`, and the `coherence.version` property is the version of Coherence being used:
+
+[source,xml]
+.pom.xml
+----
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>${coherence.group.id}</groupId>
+            <artifactId>coherence-bom</artifactId>
+            <version>${coherence.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+
+<dependencies>
+    <dependency>
+        <groupId>${coherence.groupId}</groupId>
+        <artifactId>coherence</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>${coherence.groupId}</groupId>
+        <artifactId>coherence-java-client</artifactId>
+    </dependency>
+<dependencies>
+----
+
+Or with Gradle, declare the server as follows (where `coherenceGroupId` is either the Coherence commercial group id, `com.oracle.coherence` or the CE group id `com.oracle.coherence.ce`, and the `coherenceVersion` property is the version of Coherence being used:
+
+[source,groovy]
+.build.gradle
+----
+dependencies {
+    implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+
+    implementation "${coherenceGroupId}:coherence"
+    implementation "${coherenceGroupId}:coherence-java-client"
+}
+----
+
+[#client-config]
+==== Configure the Coherence gRPC Client
+
+Just like Coherence*Extend, a Coherence gRPC client accesses remote clustered resources by configuring remote schemes in the applications cache configuration file.
+
+===== Defining a Remote gRPC Cache
+
+A remote gRPC cache is specialized cache service that routes cache operations to a cache on the Coherence cluster via the gRPC proxy. The remote cache and the cache on the cluster must have the same cache name. Coherence gRPC clients use the `NamedMap` or `NamedCache` interfaces as normal to get an instance of the cache. At runtime, the cache operations are not executed locally but instead are sent using gRPC to a gRPC proxy service on the cluster. The fact that the cache operations are delegated to a cache on the cluster is transparent to the client.
+
+A remote gRPC cache is defined within a `<caching-schemes>` section using the `<remote-grpc-cache-scheme>` element.
+There are two approaches to configure a gRPC client:
+
+* NameService - the gRPC client uses the Coherence NameService to discover the gRPC endpoints in the cluster. This is the simplest configuration. Coherence will discover all the endpoints in the cluster that the gRPC proxy is listening on and the gRPC Java library's standard client-side load balancer will load balance connections from the client to those proxy endpoints.
+* Fixed Endpoints - a fixed set of gRPC endpoints can be supplied, either hard coded or via a custom `AddressProvider` configuration. If multiple endpoints are provided, the gRPC Java library's standard client-side load balancer will load balance connections from the client to those proxy endpoints.
+
+Some approaches work in some types of deployment environment and not in others, for example the NameService configurations are not suitable where the cluster is inside a containerized environment, such as Kubernetes and the client is external to this. Choose the simplest configuration that works in your environment. If both clients and cluster are inside the same containerized environment the NameService will work. In containerized environments such as Kubernetes, this is typically configured with a single ingress point which load balances connections to the Coherence cluster Pods. The address of this ingress point is then used as a single fixed address in the `<remote-grpc-cache-scheme>` configuration.
+
+===== A Minimal NameService Configuration
+
+The simplest configuration for a gRPC client is to use the NameService to locate the gRPC proxy endpoints, but without adding any address or port information in the `<remote-grpc-cache-scheme>` in the configuration file. This configuration will use Coherence's default cluster discovery mechanism to locate the Coherence cluster's NameService and look up the gRPC endpoints. This requires the client to be configured with the same cluster name and well-known-address list (or multicast configuration) as the cluster being connected to.
+
+The example below shows a `<remote-grpc-cache-scheme>` configured with just `<scheme-name>` and `<service-name>` elements. This is the absolute minimum, required configuration.
+
+[source,xml]
+.coherence-cache-config.xml
+----
+<caching-scheme-mapping>
+   <cache-mapping>
+      <cache-name>*</cache-name>
+         <scheme-name>remote-grpc</scheme-name>
+   </cache-mapping>
+</caching-scheme-mapping>
+
+<caching-schemes>
+   <remote-grpc-cache-scheme>
+      <scheme-name>remote-grpc</scheme-name>
+      <service-name>RemoteGrpcCache</service-name>
+   </remote-grpc-cache-scheme>
+</caching-schemes>
+----
+
+===== A Minimal NameService Configuration with Different Cluster Name
+
+If the client is configured with a different cluster name to the cluster being connected to (for example the client is actually in a different Coherence cluster), then the `<remote-grpc-cache-scheme>` can be configured with a cluster name.
+
+For example, the `<remote-grpc-cache-scheme>` below is configured with `<cluster-name>test-cluster</cluster-name>` so Coherence will use the NameService to discover the gRPC endpoints in the Coherence cluster named `test-cluster`.
+
+[source,xml]
+.coherence-cache-config.xml
+----
+<caching-scheme-mapping>
+   <cache-mapping>
+      <cache-name>*</cache-name>
+         <scheme-name>remote-grpc</scheme-name>
+   </cache-mapping>
+</caching-scheme-mapping>
+
+<caching-schemes>
+   <remote-grpc-cache-scheme>
+      <scheme-name>remote-grpc</scheme-name>
+      <service-name>RemoteGrpcCache</service-name>
+      <cluster-name>test-cluster</cluster-name>
+   </remote-grpc-cache-scheme>
+</caching-schemes>
+----
+
+===== Configure the NameService Endpoints
+
+If the client cannot use the standard Coherence cluster discovery mechanism to look up the target cluster, the NameService endpoints can be supplied in the `<grpc-channel>` section of the `<remote-grpc-cache-scheme>` configuration.
+
+The example below creates a remote cache scheme that is named `RemoteGrpcCache`, which connects to the Coherence NameService on `198.168.1.5:7574`, which then redirects the request to the address of the gRPC proxy service.
+
+[source,xml]
+.coherence-cache-config.xml
+----
+<caching-scheme-mapping>
+   <cache-mapping>
+      <cache-name>*</cache-name>
+         <scheme-name>remote-grpc</scheme-name>
+   </cache-mapping>
+</caching-scheme-mapping>
+
+<caching-schemes>
+    <remote-grpc-cache-scheme>
+        <scheme-name>remote-grpc</scheme-name>
+        <service-name>RemoteGrpcCache</service-name>
+        <grpc-channel>
+            <name-service-addresses>
+               <socket-address>
+                  <address>198.168.1.5</address>
+                  <port>7574</port>
+               </socket-address>
+            </name-service-addresses>
+        </grpc-channel>
+    </remote-grpc-cache-scheme>
+</caching-schemes>
+----
+
+===== Configure Fixed Endpoints
+
+If the NameService cannot be used to discover the gRPC endpoints, a fixed set of addresses can be configured.
+In the `<grpc-channel>` section, configure a `<remote-addresses>` element containing one or more `<socket-address>` elements.
+
+For example, the client configured below will connect to a gRPC proxy listening on the endpoint `test-cluster.svc:1408`.
+
+[source,xml]
+.coherence-cache-config.xml
+----
+<caching-scheme-mapping>
+   <cache-mapping>
+      <cache-name>*</cache-name>
+         <scheme-name>remote-grpc</scheme-name>
+   </cache-mapping>
+</caching-scheme-mapping>
+
+<caching-schemes>
+    <remote-grpc-cache-scheme>
+        <scheme-name>remote-grpc</scheme-name>
+        <service-name>RemoteGrpcCache</service-name>
+        <grpc-channel>
+            <remote-addresses>
+               <socket-address>
+                  <address>test-cluster.svc</address>
+                  <port>1408</port>
+               </socket-address>
+            </remote-addresses>
+        </grpc-channel>
+    </remote-grpc-cache-scheme>
+</caching-schemes>
+----
+
+===== Configure SSL
+
+To configure the client to use SSL a socket provider can be configured in the `<grpc-channel>` section.
+Socket providers are configured exactly the same way as in other parts of Coherence.
+The `<socket-provider>` element can either contain the name of a socket provider configured in the Operational override file, or can be configured with an inline socket provider configuration.
+
+For example, the `<remote-grpc-cache-scheme>` is configured with a reference to the socket provider named `ssl` that is configured in the operational override file.
+
+[source,xml]
+.coherence-cache-config.xml
+----
+<remote-grpc-cache-scheme>
+    <scheme-name>remote-grpc</scheme-name>
+    <service-name>RemoteGrpcCache</service-name>
+    <grpc-channel>
+        <remote-addresses>
+           <socket-address>
+              <address>test-cluster.svc</address>
+              <port>1408</port>
+           </socket-address>
+        </remote-addresses>
+        <socket-provider>ssl</socket-provider>
+    </grpc-channel>
+</remote-grpc-cache-scheme>
+----
+
+The `<remote-grpc-cache-scheme>` below is configured with an inline socket provider.
+
+[source,xml]
+.coherence-cache-config.xml
+----
+<remote-grpc-cache-scheme>
+    <scheme-name>remote-grpc</scheme-name>
+    <service-name>RemoteGrpcCache</service-name>
+    <grpc-channel>
+        <remote-addresses>
+           <socket-address>
+              <address>test-cluster.svc</address>
+              <port>1408</port>
+           </socket-address>
+        </remote-addresses>
+        <socket-provider>
+            <ssl>
+                <identity-manager>
+                    <key>server.key</key>
+                    <cert>server.cert</cert>
+                </identity-manager>
+                <trust-manager>
+                    <cert>server-ca.cert</cert>
+                </trust-manager>
+            </ssl>
+        </socket-provider>
+    </grpc-channel>
+</remote-grpc-cache-scheme>
+----
+
+For more information on socket providers see
+https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/secure/using-ssl-secure-communication.html[Using SSL to Secure Communication]
+
+===== Configuring the Client Thread Pool
+
+Unlike an Extend client, the gRPC client is built on top of a gRPC asynchronous client.
+This is configured with a thread pool, to allow the client to process multiple parallel requests and responses.
+The thread pool used by the gRPC client is a standard Coherence dynamically sized thread pool, the number of threads will automatically be adjusted depending on load.
+Sometimes Coherence does not adjust the thread pool optimally for an application use-case, so it can be configured to set the pool size. Any of the thread count, minimum thread count and maximum thread count can be configured.
+Obviously the thread-count must be greater than or equal to the minimum count, and less than or equal the maximum count,
+and the maximum count must be greater than or equal to the minimum count.
+
+To configure a fixed size pool, just set the minimum and maximum to the same value.
+
+The example below configures all three thread counts. The pool will start with 10 threads and by automatically sized between 5 and 15 threads depending on load.
+
+[source,xml]
+.coherence-cache-config.xml
+----
+<remote-grpc-cache-scheme>
+    <scheme-name>remote-grpc</scheme-name>
+    <service-name>RemoteGrpcCache</service-name>
+    <grpc-channel>
+        <remote-addresses>
+           <socket-address>
+              <address>test-cluster.svc</address>
+              <port>1408</port>
+           </socket-address>
+        </remote-addresses>
+    </grpc-channel>
+    <thread-count>10</thread-count>
+    <thread-count-max>15</thread-count-max>
+    <thread-count-min>5</thread-count-min>
+</remote-grpc-cache-scheme>
+----
+
+
+
+[#client-resources]
+==== Accessing Coherence Resources
+
+As the gRPC client is configured as a remote scheme in the cache configuration file, Coherence resources can be accessed using the same Coherence APIs as used on cluster members or Extend clients.
+
+If the client has been started using the Coherence bootstrap API, running a `com.tangosol.net.Coherence` instance, a `Session` and `NamedMap` can be accessed as shown below:
+
+[source,java]
+----
+Session session = Coherence.getInstance().getSession();
+NamedMap<String, String> map = session.getMap("test-cache");
+----
+
+===== Using a Remote gRPC Cache as a Back Cache
+
+A remote gRPC cache can be used as the back cache of a near-cache or a view-cache in the same way as other types of caches.
+
+The example below shows a near scheme configured to use a `<remote-grpc-cache-scheme>` as the back scheme.
+
+[source,xml]
+.coherence-cache-config.xml
+----
+<caching-scheme-mapping>
+   <cache-mapping>
+      <cache-name>*</cache-name>
+         <scheme-name>near</scheme-name>
+   </cache-mapping>
+</caching-scheme-mapping>
+
+<caching-schemes>
+    <near-scheme>
+      <scheme-name>near</scheme-name>
+      <front-scheme>
+        <local-scheme>
+          <high-units>10000</high-units>
+        </local-scheme>
+      </front-scheme>
+      <back-scheme>
+        <remote-grpc-cache-scheme>
+          <scheme-ref>remote-grpc</scheme-ref>
+        </remote-grpc-cache-scheme>
+      </back-scheme>
+    </near-scheme>
+
+    <remote-grpc-cache-scheme>
+      <scheme-name>remote-grpc</scheme-name>
+      <service-name>RemoteGrpcCache</service-name>
+    </remote-grpc-cache-scheme>
+</caching-schemes>
+----
+
+

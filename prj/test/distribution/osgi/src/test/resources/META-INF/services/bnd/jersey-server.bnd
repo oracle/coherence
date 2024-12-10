@@ -1,0 +1,6 @@
+Bundle-Version: 1.16
+Bundle-Name: Jersey-Server
+Bundle-SymbolicName: Jersey-Server
+Bundle-Vendor: Oracle
+Export-Package: !org.glassfish.jersey.client.*,org.glassfish.jersey.server.*,org.glassfish.jersey.server.filter.*,org.glassfish.jersey.server.internal.*,org.glassfish.jersey.server.spi.*,org.glassfish.hk2.api.*,org.glassfish.hk2.utilities.*
+Import-Package: *;resolution:=optional

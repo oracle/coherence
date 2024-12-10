@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">      
+
+  <caching-scheme-mapping> 
+    <cache-mapping> 
+      <cache-name>local-1*</cache-name> 
+      <scheme-name>scheme-local-1</scheme-name> 
+    </cache-mapping> 
+    <cache-mapping> 
+      <cache-name>local-2*</cache-name> 
+      <scheme-name>scheme-local-2</scheme-name> 
+    </cache-mapping> 
+    <cache-mapping> 
+      <cache-name>local-3*</cache-name> 
+      <scheme-name>scheme-local-3</scheme-name> 
+    </cache-mapping> 
+    <cache-mapping> 
+      <cache-name>dist-1*</cache-name> 
+      <scheme-name>scheme-dist-1</scheme-name> 
+    </cache-mapping> 
+    <cache-mapping> 
+      <cache-name>dist-2*</cache-name> 
+      <scheme-name>scheme-dist-2</scheme-name> 
+    </cache-mapping> 
+  </caching-scheme-mapping> 
+  
+  <caching-schemes> 
+    
+     <local-scheme> 
+     </local-scheme> 
+     
+     <local-scheme> 
+       <scheme-name>scheme-local-1</scheme-name> 
+       <high-units>1000</high-units>
+     </local-scheme> 
+
+     <local-scheme> 
+       <scheme-name>scheme-local-2</scheme-name> 
+       <high-units>2000</high-units>
+     </local-scheme> 
+     
+     <local-scheme> 
+       <scheme-name>scheme-local-3</scheme-name> 
+       <high-units>3000</high-units>
+     </local-scheme> 
+     
+     <distributed-scheme> 
+       <scheme-name>scheme-dist-1</scheme-name> 
+       <service-name>service-dist</service-name> 
+       <backing-map-scheme>
+         <partitioned>false</partitioned>
+         <local-scheme>
+           <high-units>1000</high-units>
+         </local-scheme>
+       </backing-map-scheme>
+     </distributed-scheme> 
+
+     <distributed-scheme> 
+       <scheme-name>scheme-dist-2</scheme-name> 
+       <service-name>service-dist</service-name> 
+       <backing-map-scheme>
+         <partitioned>false</partitioned>
+         <local-scheme>
+           <high-units>2000</high-units>
+         </local-scheme>
+       </backing-map-scheme>
+     </distributed-scheme> 
+                               
+  </caching-schemes> 
+</cache-config>

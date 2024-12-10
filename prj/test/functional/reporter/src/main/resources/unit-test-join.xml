@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+    <report>
+      <file-name>unit-test-join.txt</file-name>
+      <delim>{tab}</delim>
+
+      <query>
+        <pattern>Coherence:type=Test,*</pattern>
+      </query>
+
+      <row>
+      	<column id="node">
+          <type>key</type>
+          <name>nodeId</name>
+        </column>
+
+        <column id ="testString">
+      	  <name>String</name>
+      	  <header>TestString</header>
+        </column>
+
+        <column id ="joinString">
+      	  <name>String</name>
+      	  <header>JoinString</header>
+          <query>
+            <pattern>Coherence:type=TestJoin,nodeId={node}</pattern>
+          </query>
+        </column>
+      </row>
+    </report>
+
+
+</report-config>

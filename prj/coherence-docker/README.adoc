@@ -1,0 +1,313 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Coherence OCI Image
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Coherence OCI Image
+
+This module builds an example Coherence OCI compatible image.
+
+NOTE: The image built in this module is a demo and example of how to build a Coherence image using
+the https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin/[JIB Maven Plugin].
+The image is not intended to be used in production deployments or as a base image, it is specifically
+for demos, experimentation and learning purposes.
+
+=== Image Contents
+
+The Coherence image uses a distroless base image containing OpenJDK.
+There are many advantages of a distroless image, security being the main one.
+Of course, you are free to use whatever base image or build mechanism you want for your own images.
+
+The image built by the `coherence-docker` module contains the following Coherence components:
+
+|===
+|Component |Description
+
+|Coherence
+|The core Coherence server
+
+|Coherence Extend
+|A Coherence*Extend proxy, exposed on port `20000`
+
+|Coherence gRPC Proxy
+|A Coherence gRPC proxy, exposed on port `1408`
+
+|Coherence Management
+|Coherence Management over REST, exposed on port `30000`
+
+|Coherence Metrics
+|Standard Coherence metrics is installed and exposed on port `9612`, but is disabled by default.
+Coherence metrics can be enabled with the System property `coherence.metrics.http.enabled=true`
+
+|Coherence Tracing
+|Coherence tracing is configured to use a Jaeger tracing server. See the <<tracing,Tracing>> section below.
+|===
+
+
+=== Building the Image
+
+Assuming you have first cloned the Coherence CE project the to build the Coherence image run the following command
+from the top-level Maven `prj/` folder:
+
+[source,bash]
+----
+mvn clean install -P docker -pl coherence-docker
+----
+
+The name of the image produced comes from properties in the `coherence-docker` module `pom.xml` file.
+
+`${docker.registry}/coherence-ce:<version>`
+
+Where `<version>`, is the version of the product from the `pom.xml` file.
+The `${docker.registry}` property is the name of the registry that the image will be published to, by default
+this is `oraclecoherence`.
+
+So, if the version in the `pom.xml` is `{version-coherence-maven}` the image produced will be
+`oraclecoherence/coherence-ce:{version-coherence-maven}`
+
+To change the registry name the image can be built by specifying the `docker.registry` property, for example:
+[source,bash]
+----
+mvn clean install -P docker -pl coherence-docker -Ddocker.registry=foo
+----
+
+The example above would build an image named `foo/coherence:{version-coherence-maven}`
+
+
+=== Run the image
+
+Run the image just like any other image. In Docker this command would be:
+[source,bash]
+----
+docker run -d -P oraclecoherence/coherence-ce:{version-coherence-maven}
+----
+
+The `-P` parameter will ensure that the Extend, gRPC, management and metrics ports will all be exposed.
+
+By default, when started the image will run `com.tangosol.net.DefaultCacheServer`.
+This may be changed by setting the `COH_MAIN_CLASS` environment variable to the name of another main class.
+
+[source,bash]
+----
+docker run -d -P \
+    -e COH_MAIN_CLASS=com.tangosol.net.DefaultCacheServer \
+    oraclecoherence/coherence-ce:{version-coherence-maven}
+----
+
+==== Run the Image in Kubernetes
+
+This image can be run in Kubernetes using the https://oracle.github.io/coherence-operator/docs/3.0.0[Coherence Operator].
+
+NOTE: The sections below on additional configurations do not apply when using the Coherence Operator to run the image
+in Kubernetes. The operator provides functionality to configure the container correctly.
+
+[#coherence-properties]
+=== Specifying Coherence System Properties
+
+Many options in Coherence can be set from System properties prefixed with `coherence.`.
+The issue here is that System properties are not very easy to pass into the JVM in the container, whereas environment
+variables are. To help with this the main class which runs in the container will convert any environment variable
+prefixed with `coherence.` into a System property before it starts Coherence.
+
+[source,bash]
+----
+docker run -d -P \
+    -e coherence.cluster=testing \
+    -e coherence.role=storage \
+    oraclecoherence/coherence-ce:{version-coherence-maven}
+----
+
+The example above sets two environment variables, `coherence.cluster=testing` and `coherence.role=storage`.
+These will be converted to System properties so Coherence will start the same as it would if the variables
+had been passed to the JVM command line as `-Dcoherence.cluster=testing -Dcoherence.role=storage`
+
+NOTE: This _only_ applies to environment variables prefixed with `coherence.` that have not already set as System
+properties some other way.
+
+
+=== Specifying JVM Options
+
+Images built with JIB have a fixed entrypoint configured to run the application. This is not very flexible if additional
+options need to be passed to the JVM. The Coherence image makes use of the JVM's ability to load options at start-up
+from a file by using a JVM option `@<file-name>`. The Coherence image entrypoint contains `@/args/jvm-args.txt`, so the
+JVM will load additional options on start-up from a file named `/args/jvm-args.txt`. This means that additional
+options can be provided by adding a volume mapping that adds this file to the container.
+
+For example, to set the heap to 5g, the Coherence cluster name to `test-cluster` and role name to `storage` then 
+additional JVM arguments will be required. Create a file named `jvm-args.txt` containing these properties:
+
+[source]
+.jvm-args.txt
+----
+-Xms5g
+-Xmx5g
+-Dcoherence.cluster=test-cluster
+-Dcoherence.role=storage
+----
+
+If the file has been created in a local directory named `/home/oracle/test-args` then the image can be run with the following
+command:
+
+[source,bash]
+----
+docker run -d -P -v /home/oracle/test-args:/args oraclecoherence/coherence-ce:{version-coherence-maven}
+----
+
+This will cause Docker to mount the local `/home/oracle/test-args` directory to the `/args` directory in the container
+where the JVM will find the `jvm-args.txt` file.
+
+
+=== Adding to the Classpath
+
+Images built with JIB have a fixed classpath configured, which is not very flexible if additional resources need to be
+added to the classpath. The Coherence image maps two additional directories to the classpath that are empty in the image
+and may be used to add items to the classpath by mapping external volumes to these directories.
+
+The additional classpath entries are:
+
+* `/coherence/ext/lib/*` - this will add all `.jar` files under the `/coherence/ext/lib/` directory to the classpath
+* `/coherence/ext/conf`  - this adds `/coherence/ext/conf` to the classpath so that any classes, packages or other
+resource files in this directory will be added to the classpath.
+
+For example:
+
+On the local Docker host there is a folder called `/dev/my-app/lib` that contains `.jar` files to be added to the
+container classpath.
+
+[source,bash]
+----
+docker run -d -P -v /dev/my-app/lib:/coherence/ext/lib oraclecoherence/coherence-ce:{version-coherence-maven}
+----
+
+The command above maps the local directory `/dev/my-app/lib` to the `/coherence/ext/lib` in the container so that any
+`.jar` files in the `/dev/my-app/lib` directory will now be on the Coherence JVM's classpath.
+
+On the local Docker host there is a folder called `/dev/my-app/classes` that contains `.class` files and other
+application resources to be added to the container classpath.
+
+[source,bash]
+----
+docker run -d -P -v /dev/my-app/classes:/coherence/ext/conf oraclecoherence/coherence-ce:{version-coherence-maven}
+----
+
+The command above maps the local directory `/dev/my-app/classes` to the `/coherence/ext/conf` in the container so that
+any classes and resource files in the `/dev/my-app/classes` directory will now be on the Coherence JVM's classpath.
+
+[#clustering]
+== Clustering
+
+Multiple containers can be started to form a cluster. By default, Coherence uses multi-cast for cluster discovery but
+in containers this either will not work, or is not reliable, so well-known-addressing can be used.
+
+This example is going to use basic Docker commands and links between containers.
+There are other ways to achieve the same sort of functionality depending on the network configurations you want to
+use in Docker.
+
+First, determine the name to be used for the first container, in this example it will be `storage-1`.
+
+Next, create a `
+Start the first container in the cluster:
+
+[source,bash]
+----
+docker run -d -P \
+    --name storage-1 \
+    --hostname storage-1 \
+    -e coherence.wka=storage-1 \
+    -e coherence.cluster=testing \
+    oraclecoherence/coherence-ce:{version-coherence-maven}
+----
+
+The first container has been started with a container name of `storage-1`, and the host name also set to `storage-1`.
+The container sets the WKA host name to `storage-1` using `-e coherence.wka=storage-1` (this will be converted to the
+System property `coherence.wka=storage-1` see <<coherence-properties,Specifying Coherence System Properties>> above).
+The container sets the Coherence cluster name to `testing` using `-e coherence.cluster=testing` (this will be converted
+to the System property `coherence.cluster=testing` see <<coherence-properties,Specifying Coherence System Properties>> above).
+
+NOTE: The important part here is that the container has a name, and the `--hostname` option has also been set.
+This will allow the subsequent cluster members to find this container.
+
+Now, subsequent containers can be started using the same cluster name and WKA host name, but with different container
+names and a link to the first container, all the containers will form a single Coherence cluster:
+
+[source,bash]
+----
+docker run -d -P \
+    --name storage-2 \
+    --link storage-1 \
+    -e coherence.wka=storage-1 \
+    -e coherence.cluster=testing \
+    oraclecoherence/coherence-ce:{version-coherence-maven}
+
+docker run -d -P \
+    --name storage-3 \
+    --link storage-1 \
+    -e coherence.wka=storage-1 \
+    -e coherence.cluster=testing \
+    oraclecoherence/coherence-ce:{version-coherence-maven}
+----
+
+Two more containers, `storage-2` and `storage-3` will now be part of the cluster.
+
+NOTE: All the members must have a `--link` option to the first container and have the same WKA and cluster name properties.
+
+
+[#tracing]
+== Tracing
+
+The Coherence image comes with tracing already configured, it just requires a suitable Jaeger server to send spans to.
+
+The simplest way to start is deploy the Jaeger all-in-one server, for example:
+
+[source,bash]
+----
+docker run -d --name jaeger \
+    -e COLLECTOR_ZIPKIN_HTTP_PORT=9411 \
+    -p 5775:5775/udp \
+    -p 6831:6831/udp \
+    -p 6832:6832/udp \
+    -p 5778:5778 \
+    -p 16686:16686 \
+    -p 14268:14268 \
+    -p 14250:14250 \
+    -p 9411:9411 \
+    jaegertracing/all-in-one:latest
+----
+
+The Jaeger UI will be available to browse to at http://127.0.0.1:16686
+
+Jaeger has been started with a container name of `jaeger`, so it will be discoverable using that host name by the Coherence
+containers. Start the Coherence container with a link to the Jaeger container and set the `JAEGER_AGENT_HOST`
+environment variable to `jaeger`:
+
+[source,bash]
+----
+docker run -d -P --link jaeger \
+    -e JAEGER_AGENT_HOST=jaeger \
+    oraclecoherence/coherence-ce:{version-coherence-maven}
+----
+
+Once the Coherence container is running perform some interactions with it using one of the exposed services, i.e Extend
+or gRPC, and spans will be sent to the Jaeger collector and will be visible in the UI by querying for the `coherence`
+service name. The service name used can be changed by setting the `JAEGER_SERVICE_NAME` environment variable when
+starting the container, for example:
+
+[source,bash]
+----
+docker run -d -P --link jaeger \
+    -e JAEGER_AGENT_HOST=jaeger \
+    -e JAEGER_SERVICE_NAME=coherence-test
+    oraclecoherence/coherence-ce:{version-coherence-maven}
+----
+
+Spans will now be sent to Jaeger with the service name `coherence-test`.
+
+Tracing is very useful to show what happens under the covers for a given Coherence API call. Traces are more interesting
+when they come from a Coherence cluster with multiple members, where the traces span different cluster members.
+This can easily be done by running multiple containers with tracing enabled and configuring <<clustering,Clustering>> as
+described above.

@@ -1,0 +1,477 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- ANT build file that contains common build properties, paths, task     -->
+<!-- definitions, and targets. This build file should be imported in *all* -->
+<!-- project build files immediately after any overridden project          -->
+<!-- properties. See the template project for an example.                  -->
+<!--                                                                       -->
+<!-- Usage:                                                                -->
+<!--     prompt> ant help                                                  -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+<project name="build-import" default="help" basedir=".">
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Global project properties                                           -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <property environment="env"/>
+
+  <!-- Global directories -->
+  <dirname  property="main.dir" file="${ant.file.build-import}/.."/>
+  <property name="bin.dir"      value="${main.dir}/bin"/>
+  <property name="doc.dir"      value="${main.dir}/doc"/>
+  <property name="ext.dir"      value="${main.dir}/ext"/>
+  <property name="prj.dir"      value="${main.dir}/prj"/>
+  <property name="src.dir"      value="${main.dir}/src"/>
+  <property name="tools.dir"    value="${main.dir}/tools"/>
+
+  <!-- Default compilation properties -->
+  <property name="jc.executable"  value="${env.JAVA_HOME}/bin/javac"/>
+  <property name="jc.memory.max"  value="256m"/>
+  <property name="jc.debug"       value="true"/>
+  <property name="jc.deprecation" value="false"/>
+  <property name="jc.nowarn"      value="false"/>
+  <property name="jc.optimize"    value="false"/>
+  <property name="jc.source"      value="6"/>
+  <property name="jc.target"      value="${jc.source}"/>
+  <property name="jc.verbose"     value="false"/>
+  <property name="jc.include"     value=""/>
+  <property name="jc.exclude"     value=""/>
+
+  <!-- Default project properties -->
+  <property name="project.organization.name" value="Oracle"/>
+  <property name="project.organization.url"  value="http://www.oracle.com"/>
+  <property name="project.groupId"           value="com.oracle.coherence"/>
+  <property name="project.artifactId"        value="${ant.project.name}"/>
+  <property name="project.version"           value="0.0.0-0-0"/>
+  <property name="project.version.next"      value="0.0.0-0-0"/>
+  <property name="project.packaging"         value="jar"/>
+  <property name="project.build.number"      value="0"/>
+  <property name="project.patch.aru.bug"     value="0"/>
+  <property name="project.impl.description"  value=""/>
+  <property name="project.resources"         value=""/>
+  <property name="project.source"            value=""/>
+  <property name="project.source.exclude"    value=""/>
+
+  <!-- Default project artifact properties -->
+  <property name="project.build.directory"       location="target"/>
+  <property name="project.build.outputDirectory" value="${project.build.directory}/classes"/>
+  <property name="project.build.libDirectory"    value="${project.build.directory}/lib"/>
+  <property name="project.build.finalName"       value="${project.artifactId}-${project.version}"/>
+  <property name="project.build.srcDirectory"    value="${project.build.directory}/generated-sources"/>
+  <property name="project.library"               value="${project.build.finalName}.${project.packaging}"/>
+  <property name="project.library.file"          value="${project.build.directory}/${project.library}"/>
+
+  <!-- Global artifact directories -->
+  <property name="dist.dir"               value="${main.dir}/dist"/>
+  <property name="dist.patches.dir"       value="${dist.dir}/patches"/>
+
+  <!-- Default Maven properties -->
+  <property name="maven.generate" value="true"/>
+  <property name="maven.group.id" value="com.oracle.coherence"/>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Properties shared between coherence-distribution (for opatch) and   -->
+  <!-- coherence-liberte                                                   -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <!-- ZDT (zero downtime patch deploy option) -->
+  <property name ="project.patch.deploy.default"
+            value="FMW_ROLLING_ORACLE_HOME"/>
+  <property name ="project.oracle.coherence.patch.deploy"
+            value="${project.patch.deploy.default}"/>
+  <property name ="project.oracle.coherence.discovery.patch.deploy"
+            value="${project.patch.deploy.default}"/>
+  <property name ="project.oracle.coherence.examples.patch.deploy"
+            value="${project.patch.deploy.default}"/>
+  <property name ="project.oracle.coherence.javadoc.patch.deploy"
+            value="${project.patch.deploy.default}"/>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!--Global project paths                                                 -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <path id="project.classpath" path=""/>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Global project task definitions                                     -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <taskdef resource="org/testlogic/toolkit/antutils/antlib.xml">
+    <classpath>
+      <pathelement
+        location="${tools.dir}/ant-contrib/lib/ant-contrib-1.0b3.jar"/>
+      <pathelement
+        location="${tools.dir}/tlt-antutils/lib/tlt-antutils-0.9.8.jar"/>
+    </classpath>
+  </taskdef>
+
+  <taskdef resource="ant-tangosol.properties">
+    <classpath>
+      <pathelement location="${tools.dir}/ant-tangosol/lib/ant-tangosol.jar"/>
+    </classpath>
+  </taskdef>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Global computed properties                                          -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <!-- Version properties -->
+  <propertyregex property="project.version.major"
+                 input="${project.version}"
+                 regexp="^([0-9]+)\.([0-9]+)\.([0-9]+)-([0-9]+)-([0-9]+).*"
+                 select="\1"/>
+  <propertyregex property="project.version.minor"
+                 input="${project.version}"
+                 regexp="^([0-9]+)\.([0-9]+)\.([0-9]+)-([0-9]+)-([0-9]+).*"
+                 select="\2"/>
+  <propertyregex property="project.version.service"
+                 input="${project.version}"
+                 regexp="^([0-9]+)\.([0-9]+)\.([0-9]+)-([0-9]+)-([0-9]+).*"
+                 select="\3"/>
+  <propertyregex property="project.version.patchset"
+                 input="${project.version}"
+                 regexp="^([0-9]+)\.([0-9]+)\.([0-9]+)-([0-9]+)-([0-9]+).*"
+                 select="\4"/>
+  <propertyregex property="project.version.patch"
+                 input="${project.version}"
+                 regexp="^([0-9]+)\.([0-9]+)\.([0-9]+)-([0-9]+)-([0-9]+).*"
+                 select="\5"/>
+  <propertyregex property="project.version.dist"
+                 input="${project.version}"
+                 regexp="^([0-9]+)\.([0-9]+)\.([0-9]+)-([0-9]+)-([0-9]+).*"
+                 replace="\1.\2.\3.\4.\5b${project.build.number}"/>
+  <propertyregex property="project.version.official"
+                 input="${project.version}"
+                 regexp="^([0-9]+)\.([0-9]+)\.([0-9]+)-([0-9]+)-([0-9]+).*"
+                 replace="\1.\2.\3.\4.\5"/>
+  <propertyregex property="project.version.release"
+                 input="${project.version}"
+                 regexp="^([0-9]+)\.([0-9]+)\.([0-9]+)-([0-9]+)-([0-9]+).*"
+                 replace="\1.\2.\3-\4-\5"/>
+  <propertyregex property="project.version.short"
+                 input="${project.version}"
+                 regexp="^([0-9]+)\.([0-9]+)\.([0-9]+)-([0-9]+)-([0-9]+).*"
+                 replace="\1.\2.\3"/>
+  <propertyregex property="project.version.next.short"
+                 input="${project.version.next}"
+                 regexp="^([0-9]+)\.([0-9]+)\.([0-9]+)-([0-9]+)-([0-9]+).*"
+                 replace="\1.\2.\3"/>
+
+  <propertyregex property="project.classes"
+                 input="${project.source}"
+                 regexp="\.java"
+                 replace="*.class"
+                 global="true"/>
+  <propertyregex property="project.classes"
+                 input="${project.classes}"
+                 regexp="\*\*.class"
+                 replace="*.class"
+                 global="true"
+                 override="true"/>
+  <propertyregex property="project.classes.exclude"
+                 input="${project.source.exclude}"
+                 regexp="\.java"
+                 replace="*.class"
+                 global="true"/>
+  <propertyregex property="project.classes.exclude"
+                 input="${project.classes.exclude}"
+                 regexp="\*\*.class"
+                 replace="*.class"
+                 global="true"
+                 override="true"/>
+
+  <propertyregex property="maven.group.id.dir"
+                 input="${maven.group.id}"
+                 regexp="\."
+                 replace="\/"
+                 global="true"/>
+
+  <property name="liberte.component.version"
+            value="${project.version.release}-${project.build.number}"/>
+
+  <property name="project.classes"         value=""/>
+  <property name="project.classes.exclude" value=""/>
+
+  <property name="dist.version.dir"       value="${dist.dir}/${project.version.dist}"/>
+  <property name="dist.coherence.dir"     value="${dist.version.dir}/coherence"/>
+  <property name="dist.coherence.bin.dir" value="${dist.coherence.dir}/bin"/>
+  <property name="dist.coherence.doc.dir" value="${dist.coherence.dir}/doc"/>
+  <property name="dist.coherence.lib.dir" value="${dist.coherence.dir}/lib"/>
+  <property name="dist.liberte.dir"       value="${dist.version.dir}/liberte"/>
+  <property name="dist.installer.dir"     value="${dist.version.dir}/installer"/>
+  <property name="dist.common.dir"        value="${dist.version.dir}/oracle_common"/>
+  <property name="dist.common.lib.dir"    value="${dist.common.dir}/modules"/>
+  <property name="dist.common.maven.dir"  value="${dist.coherence.dir}/plugins/maven"/>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Global project targets                                              -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <!-- Display project help -->
+  <target name="help" description="Display project help.">
+    <java classname="org.apache.tools.ant.Main" failonerror="true">
+      <arg line="-projecthelp"/>
+    </java>
+  </target>
+
+  <!-- Output a banner to the console -->
+  <target name="banner">
+    <echo/>
+    <echo>******************************************************************************</echo>
+    <echo>|</echo>
+    <echo>| ${banner.message}</echo>
+    <echo>|</echo>
+    <echo>******************************************************************************</echo>
+    <echo/>
+  </target>
+
+  <!-- Wrapper around the javac task -->
+  <target name="jc">
+    <javac fork="true"
+      executable="${jc.executable}"
+      memoryMaximumSize="${jc.memory.max}"
+      srcdir="${src.dir}"
+      sourcepath=""
+      destdir="${project.build.outputDirectory}"
+      classpathref="jc.classpath"
+      debug="${jc.debug}"
+      deprecation="${jc.deprecation}"
+      nowarn="${jc.nowarn}"
+      optimize="${jc.optimize}"
+      verbose="${jc.verbose}"
+      source="${jc.source}"
+      target="${jc.target}"
+      encoding="8859_1"
+      includeAntRuntime="false"
+      includes="${jc.include}"
+      excludes="${jc.exclude}"/>
+  </target>
+
+  <!-- Compile the Java source specified by the project.source property -->
+  <target name="compile" description="Compile project source.">
+    <mkdir dir="${project.build.outputDirectory}"/>
+
+    <if>
+      <not>
+        <equals arg1="${project.source}" arg2="" trim="true"/>
+      </not>
+      <then>
+        <antcall target="jc">
+          <param name="jc.include" value="${project.source}"/>
+          <param name="jc.exclude" value="${project.source.exclude}"/>
+          <reference refid="project.classpath" torefid="jc.classpath"/>
+        </antcall>
+      </then>
+    </if>
+
+    <if>
+      <not>
+        <equals arg1="${project.resources}" arg2="" trim="true"/>
+      </not>
+      <then>
+        <copy todir="${project.build.outputDirectory}">
+          <fileset dir="${src.dir}" includes="${project.resources}"/>
+        </copy>
+       </then>
+    </if>
+  </target>
+
+  <!-- Create a project library named using the project.library property that
+       contains the classes specified by the project.classes property and
+       resources specified by the project.resources property -->
+  <target name="package" description="Create the project library.">
+    <if>
+      <and>
+        <not>
+          <equals arg1="${project.library}" arg2="" trim="true"/>
+        </not>
+        <or>
+          <not>
+            <equals arg1="${project.classes}" arg2="" trim="true"/>
+          </not>
+          <not>
+            <equals arg1="${project.resources}" arg2="" trim="true"/>
+          </not>
+        </or>
+      </and>
+      <then>
+        <mkdir dir="${project.build.directory}"/>
+
+        <propertyregex property="project.lib.file"
+          input="${project.library}"
+          regexp="([^/]*)$"
+          select="\1"/>
+
+        <propertyregex property="project.lib.dir"
+          input="${project.library}"
+          regexp="(.*)${project.lib.file}"
+          select="\1"/>
+
+        <mkdir dir="${project.build.directory}/${project.lib.dir}"/>
+        <property name="build.lib.file"
+          value="${project.build.directory}/${project.lib.dir}/${project.lib.file}"/>
+
+        <if>
+          <not>
+            <equals arg1="${project.classes}" arg2="" trim="true"/>
+          </not>
+          <then>
+            <jar jarfile="${build.lib.file}"
+              basedir="${project.build.outputDirectory}"
+              filesonly="true"
+              update="true"
+              includes="${project.classes}"
+              excludes="${project.classes.exclude}"/>
+          </then>
+        </if>
+
+        <if>
+          <not>
+            <equals arg1="${project.resources}" arg2="" trim="true"/>
+          </not>
+          <then>
+            <jar jarfile="${build.lib.file}"
+              basedir="${project.build.outputDirectory}"
+              filesonly="true"
+              update="true"
+              includes="${project.resources}"/>
+           </then>
+        </if>
+      </then>
+    </if>
+
+    <antcall target="package.manifest"/>
+  </target>
+
+  <!-- Package the MANIFEST file in the project library -->
+  <target name="package.manifest">
+    <propertyregex property="project.lib.file"
+      input="${project.library}"
+      regexp="([^/]*)$"
+      select="\1"/>
+
+    <propertyregex property="project.lib.dir"
+      input="${project.library}"
+      regexp="(.*)${project.lib.file}"
+      select="\1"/>
+
+    <mkdir dir="${project.build.directory}/${project.lib.dir}"/>
+    <property name="build.lib.file"
+      value="${project.build.directory}/${project.lib.dir}/${project.lib.file}"/>
+
+    <if>
+      <available file="META-INF/MANIFEST.MF"/>
+      <then>
+        <jar jarfile="${build.lib.file}"
+          manifest="META-INF/MANIFEST.MF"
+          filesonly="true"
+          update="true"/>
+      </then>
+    </if>
+  </target>
+
+  <!-- Compile project source and create the project library. -->
+  <target name="build"
+    description="Compile project source and create the project library.">
+    <antcall target="banner">
+      <param name="banner.message" value="Building project: ${project.artifactId}"/>
+    </antcall>
+
+    <antcall target="compile"/>
+    <antcall target="package"/>
+  </target>
+
+  <!-- Remove the project classes and library -->
+  <target name="clean" description="Remove all project build artifacts.">
+    <antcall target="banner">
+      <param name="banner.message" value="Cleaning project: ${project.artifactId}"/>
+    </antcall>
+    <delete dir="${project.build.directory}" includeemptydirs="true"/>
+  </target>
+
+  <!-- Copy all project build artifacts to the distribution directory -->
+  <target name="dist" description="Create the project distribution.">
+    <antcall target="banner">
+      <param name="banner.message"
+        value="Creating distribution for project: ${project.artifactId}"/>
+    </antcall>
+
+    <if>
+      <not>
+        <equals arg1="${project.library}" arg2="" trim="true"/>
+      </not>
+      <then>
+        <propertyregex property="project.lib.file"
+          input="${project.library}"
+          regexp="([^/]*)$"
+          select="\1"/>
+
+        <propertyregex property="project.lib.dir"
+          input="${project.library}"
+          regexp="(.*)${project.lib.file}"
+          select="\1"/>
+
+        <mkdir dir="${dist.coherence.lib.dir}/${project.lib.dir}"/>
+
+        <copy preservelastmodified="true"
+          file="${project.library.file}"
+          todir="${dist.coherence.lib.dir}/${project.lib.dir}"/>
+
+        <if>
+          <and>
+            <available file="META-INF/pom.xml"/>
+            <istrue value="${maven.generate}"/>
+          </and>
+          <then>
+            <!-- Create Maven-related artifacts -->
+            <property name="dist.common.maven.component.dir"
+                      value="${dist.common.maven.dir}/${maven.group.id.dir}/${ant.project.name}/${project.version.short}"/>
+            <mkdir dir="${dist.common.maven.component.dir}"/>
+
+            <copy file="META-INF/pom.xml"
+                  tofile="${dist.common.maven.component.dir}/${ant.project.name}.${project.version.short}.pom">
+              <filterchain>
+                <expandproperties/>
+              </filterchain>
+            </copy>
+
+            <echo file="${dist.common.maven.component.dir}/${ant.project.name}.${project.version.short}.location"
+                  message="coherence/lib/${project.library}"/>
+
+            <if>
+              <isset property="project.official"/>
+              <then>
+                <!-- Create Liberte-related artifacts -->
+                <property name="dist.liberte.maven.component.dir"
+                          value="${dist.liberte.dir}/${maven.group.id.dir}/${ant.project.name}/${liberte.component.version}"/>
+                <mkdir dir="${dist.liberte.maven.component.dir}"/>
+
+                <copy file="META-INF/pom.xml"
+                      tofile="${dist.liberte.maven.component.dir}/${ant.project.name}-${liberte.component.version}.pom">
+                  <filterchain>
+                    <expandproperties/>
+                  </filterchain>
+                </copy>
+
+                <propertyregex property="lib.ext"
+                               input="${project.library}"
+                               regexp="(.*)\.(.*)"
+                               select="\2"/>
+
+                <copy file="${dist.coherence.lib.dir}/${project.library}"
+                      tofile="${dist.liberte.maven.component.dir}/${ant.project.name}-${liberte.component.version}.${lib.ext}"/>
+              </then>
+            </if>
+          </then>
+        </if>
+      </then>
+    </if>
+  </target>
+</project>

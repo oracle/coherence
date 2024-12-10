@@ -1,0 +1,174 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2023, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= The Coherence Executor Service
+:description: Coherence Guides
+:keywords: coherence, java, documentation, guides
+
+== The Coherence Executor Service
+
+The Coherence Executor service allows cluster members or *Extend clients to submit
+arbitrary tasks to the grid for execution.  Cluster members may define one or more
+custom Executors via configuration to support submission of tasks to different executors
+based on the required work load.
+
+The functionality offered by the Coherence Executor service is through the
+{javadoc-root}com/oracle/coherence/concurrent/executor/RemoteExecutor.html[RemoteExecutor] class,
+which, upon inspection, should look similar to `java.util.concurrent.Executors` in the JDK.
+Also notice that `RemoteExecutor` doesn't use `Runnable` or `Callable`, and instead
+uses `Remote.Runnable` and `Remote.Callable`.  The remote versions are functionally
+equivalent, but are `Serializable`.  Serialization is necessary as these tasks
+may be dispatched to a remote JVM for execution.  Additionally, internally, the tasks
+are stored within Coherence caches (which requires keys/values to be Serializable)
+to allow task re-execution of a member executing as task fails (for example, the member dies)
+- the task is still within the cache ready to be dispatched to another member for execution.
+
+=== What You Will Build
+
+The example code is written as a set of unit tests.  This guide will
+walk the reader through the code that obtains and uses a `RemoteExecutor`.
+
+
+// Do not change this part.
+=== What You Need
+:java_version: 17
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+// Do not change this part unless you have more complex build instructions.
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+// ToDo: Below here is where you write your guide or tutorial
+=== Executor Configuration
+
+While the Coherence Executor service offers a default executor, which will
+be demonstrated, this guide will also show how to configure and use a
+custom Executor.  Thus, we'll begin with the configuration of a fixed-size
+thread pool that the Executor service may submit tasks to.  Custom
+thread pool definitions are defined within a cache configuration resource.
+For the purpose of this guide, the resource will be called `custom-executors.xml`
+which will be placed in `src/test/resources`:
+
+[source,xml]
+----
+include::src/test/resources/custom-executors.xml[tag=config]
+----
+<1> Defines the `NamespaceHandler` which validates and configures the executor services
+<2> Defines a fixed thread pool (think `Executors.newFixedThreadPool(int)`)
+<3> Gives the thread pool a logical name of `fixed-5`.  This name will be used to obtain a reference to a `RemoteExecutor`
+<4> Defines the number of threads this pool should have
+
+Each Coherence member using this configuration will have a local executor service
+defined with the logical name of `fixed-5`.  If there are multiple executor services
+with the same logical identifier, tasks will be submitted to a random member's Executor
+Service managing the named pool.
+
+=== Create the Test Class
+The first step is to create the test class that will show and test the various NamedMap operations,
+we’ll call this class ExecutorBasicTests:
+
+[source,java]
+----
+class ExecutorBasicTests {
+}
+----
+
+=== Bootstrap Coherence
+
+The first thing the test class will do is start Coherence using the bootstrap API introduced in Coherence v20.12.
+As this is a JUnit test class, this can be accomplished in a static `@BeforeAll` annotated setup method.
+
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/executor/ExecutorBasicTests.java[tag=bootstrap]
+----
+<1> Pass in the cache configuration, `custom-executors.xml`, created previously in this guide.
+<2> Obtain a default storage enabled cluster member `Coherence` instance.
+<3> Start the `Coherence` instance, this wil start all the Coherence services.
+<4> Block until Coherence instance has fully started before proceeding with the tests
+
+Second, add a static `@AfterAll` annotated tear-down method that will shut down Coherence at the end of the test.
+
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/executor/ExecutorBasicTests.java[tag=cleanup]
+----
+<1> Since only a single default `Coherence` instance was created, obtain that instance with the
+`Coherence.getInstance()` method, and then close it.
+
+Now that the basic framework of the test is in place, tests may now be added to demonstrate some simple
+api usages of `RemoteExecutor`.
+
+=== Submitting a Runnable to the Grid
+
+The first test will demonstrate submitting a single `Remote.Runnable` task to the grid.
+This task will add an entry to a `NamedCache` which will allow the test to verify the task
+was properly run.
+
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/executor/ExecutorBasicTests.java[tag=basic-runnable]
+----
+<1> Obtain a local reference to the `NamedMap`, `data`.
+<2> Obtain a reference to the default `RemoteExecutor`.
+<3> Truncate the map to ensure no data is present.
+<4> Submit a `Remote.Runnable` to the grid which will obtain a reference to the `NamedMap`, `data`, and insert an entry.
+The `map` reference isn't used in the lambda as the `Remote.Runnable` may be executed in a remote JVM, therefore,
+a reference local to the executing JVM is obtained instead.
+<5> Wait for the `Future` to complete.
+<6> Get the value for `key-1` from the local `NamedMap` reference.
+<7> Assert the expected value was returned.
+
+=== Submitting a Callable to the Grid
+
+The next test will demonstrate submitting a single `Remote.Callable` task to the grid.
+The test will first add an entry to the cache.  Next, it will submit a `Remote.Callable`
+that will change the value for the previously added entry and return the previous value.
+Finally, the test will ensure the current cache value and the value returned by the
+`Remote.Callable` are the expected values.
+This task will add an entry to a `NamedCache` which will allow the test to verify the task
+was properly run.
+
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/executor/ExecutorBasicTests.java[tag=basic-callable]
+----
+<1> Obtain a local reference to the `NamedMap`, `data`.
+<2> Obtain a reference to the default `RemoteExecutor`.
+<3> Truncate the map to ensure no data is present.
+<4> Insert an entry that the task should change.
+<5> Submit a `Remote.Callable` to the grid which will obtain a reference to the `NamedMap`, `data`, update the existing entry, and return the previous value.
+<6> Wait for the `Future` to complete and obtain the returned value.
+<7> Get the value for `key-1` from the local `NamedMap` reference.
+<8> Assert the expected value was returned from the `Remote.Callable` execution.
+<9> Assert the cache has the value updated by the `Remote.Callable`.
+
+=== Submitting a Task to a Specific Thread Pool in the Grid
+
+The last test will use the thread pool `fixed-5` that was configured earlier within
+this guide.  As this thread pool has five threads, this test will submit several
+`Remote.Callable` instances that will, upon execution, wait for one second, then
+return the name of the executing thread.  The test will then obtain the results
+for the multiple `Remote.Callable` executions, and verify all five threads were
+used.
+
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/executor/ExecutorBasicTests.java[tag=fixed-executor]
+----
+<1> Obtain a reference to the `fixed-5` `RemoteExecutor`.
+<2> Create a list of ten `Remote.Callable` instances where each instance sleeps for one second and then returns the name of the executing thread.
+<3> Invoke all `Remote.Callable` instances within the list by calling `RemoteExecutor.invokeAll` which returns a List containing a `Future` for each `Remote.Callable`.
+<4> Create a `Set` of the execution thread names.  As this thread pool servicing these tasks has five threads, this `Set` should only have five entries.
+<5> Assert that all five threads of the pool were used.
+
+=== Summary
+
+These tests demonstrate the basic usage of the Coherence Executor service.
+Developers are encouraged to explore the other functionality defined by `RemoteExecutor`
+
+=== See Also
+The Javadoc for {javadoc-root}com/oracle/coherence/concurrent/executor/RemoteExecutor.html[RemoteExecutor]

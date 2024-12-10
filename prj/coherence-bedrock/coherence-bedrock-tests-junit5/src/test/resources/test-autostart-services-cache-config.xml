@@ -1,0 +1,229 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+    <defaults>
+        <serializer system-property="tangosol.coherence.serializer"/>
+        <socket-provider system-property="tangosol.coherence.socketprovider"/>
+    </defaults>
+
+    <caching-scheme-mapping>
+        <cache-mapping>
+            <cache-name>*</cache-name>
+            <scheme-name>distributed-scheme-auto-start</scheme-name>
+        </cache-mapping>
+    </caching-scheme-mapping>
+
+    <caching-schemes>
+        <!--
+          -  Distributed Schemes
+          -->
+        <distributed-scheme>
+            <scheme-name>distributed-scheme-auto-start</scheme-name>
+            <service-name>AutoStartDistributedService</service-name>
+
+            <backing-map-scheme>
+                <local-scheme/>
+            </backing-map-scheme>
+
+            <autostart>true</autostart>
+        </distributed-scheme>
+
+        <distributed-scheme>
+            <scheme-name>distributed-scheme-lazy-start</scheme-name>
+            <service-name>LazyStartDistributedService</service-name>
+
+            <backing-map-scheme>
+                <local-scheme/>
+            </backing-map-scheme>
+
+            <autostart>false</autostart>
+        </distributed-scheme>
+
+        <!--
+          -  Replicated Schemes
+          -->
+        <replicated-scheme>
+            <scheme-name>replicated-scheme-auto-start</scheme-name>
+            <service-name>AutoStartReplicatedService</service-name>
+
+            <backing-map-scheme>
+                <local-scheme/>
+            </backing-map-scheme>
+
+            <autostart>true</autostart>
+        </replicated-scheme>
+
+        <replicated-scheme>
+            <scheme-name>replicated-scheme-lazy-start</scheme-name>
+            <service-name>LazyStartReplicatedService</service-name>
+
+            <backing-map-scheme>
+                <local-scheme/>
+            </backing-map-scheme>
+
+            <autostart>false</autostart>
+        </replicated-scheme>
+
+        <!--
+          -  Local Scheme
+          -->
+        <local-scheme>
+            <scheme-name>local-scheme</scheme-name>
+            <service-name>LocalService</service-name>
+
+            <eviction-policy>HYBRID</eviction-policy>
+            <high-units>0</high-units>
+            <expiry-delay>1h</expiry-delay>
+        </local-scheme>
+
+        <!--
+          -  Near Schemes
+          -->
+        <near-scheme>
+            <scheme-name>near-scheme-auto-start</scheme-name>
+
+            <front-scheme>
+                <local-scheme>
+                    <eviction-policy>HYBRID</eviction-policy>
+                    <high-units>100</high-units>
+                    <expiry-delay>1m</expiry-delay>
+                </local-scheme>
+            </front-scheme>
+
+            <back-scheme>
+                <distributed-scheme>
+                    <scheme-ref>distributed-scheme-auto-start</scheme-ref>
+                </distributed-scheme>
+            </back-scheme>
+
+            <invalidation-strategy>present</invalidation-strategy>
+            <autostart>true</autostart>
+        </near-scheme>
+
+        <near-scheme>
+            <scheme-name>near-scheme-lazy-start</scheme-name>
+
+            <front-scheme>
+                <local-scheme>
+                    <eviction-policy>HYBRID</eviction-policy>
+                    <high-units>100</high-units>
+                    <expiry-delay>1m</expiry-delay>
+                </local-scheme>
+            </front-scheme>
+
+            <back-scheme>
+                <distributed-scheme>
+                    <scheme-ref>distributed-scheme-lazy-start</scheme-ref>
+                </distributed-scheme>
+            </back-scheme>
+
+            <invalidation-strategy>present</invalidation-strategy>
+            <autostart>false</autostart>
+        </near-scheme>
+
+        <!--
+          -  Overflow Schemes
+          -->
+        <overflow-scheme>
+            <scheme-name>overflow-external-scheme-auto-start</scheme-name>
+
+            <front-scheme>
+                <local-scheme/>
+            </front-scheme>
+
+            <back-scheme>
+                <external-scheme>
+                    <bdb-store-manager>
+                        <directory></directory>
+                    </bdb-store-manager>
+                </external-scheme>
+            </back-scheme>
+
+            <autostart>true</autostart>
+        </overflow-scheme>
+
+        <overflow-scheme>
+            <scheme-name>overflow-external-scheme-lazy-start</scheme-name>
+
+            <front-scheme>
+                <local-scheme/>
+            </front-scheme>
+
+            <back-scheme>
+                <external-scheme>
+                    <bdb-store-manager>
+                        <directory></directory>
+                    </bdb-store-manager>
+                </external-scheme>
+            </back-scheme>
+
+            <autostart>false</autostart>
+        </overflow-scheme>
+
+        <!--
+          -  Proxy Schemes
+          -->
+        <proxy-scheme>
+            <scheme-name>proxy-scheme-auto-start</scheme-name>
+            <service-name>AutoStartProxyService</service-name>
+
+            <acceptor-config>
+                <tcp-acceptor>
+                    <address-provider>
+                        <local-address>
+                            <address></address>
+                            <port></port>
+                            <port-auto-adjust>true</port-auto-adjust>
+                        </local-address>
+                    </address-provider>
+                </tcp-acceptor>
+            </acceptor-config>
+
+            <autostart>true</autostart>
+        </proxy-scheme>
+
+        <proxy-scheme>
+            <scheme-name>proxy-scheme-lazy-start</scheme-name>
+            <service-name>LazyStartProxyService</service-name>
+
+            <acceptor-config>
+                <tcp-acceptor>
+                    <address-provider>
+                        <local-address>
+                            <address></address>
+                            <port></port>
+                            <port-auto-adjust>true</port-auto-adjust>
+                        </local-address>
+                    </address-provider>
+                </tcp-acceptor>
+            </acceptor-config>
+
+            <autostart>false</autostart>
+        </proxy-scheme>
+
+        <!--
+          -  Invocation Schemes
+          -->
+        <invocation-scheme>
+            <scheme-name>invocation-scheme-auto-start</scheme-name>
+            <service-name>AutoStartInvocationService</service-name>
+
+            <autostart>true</autostart>
+        </invocation-scheme>
+
+        <invocation-scheme>
+            <scheme-name>invocation-scheme-lazy-start</scheme-name>
+            <service-name>LazyStartInvocationService</service-name>
+
+            <autostart>false</autostart>
+        </invocation-scheme>
+    </caching-schemes>
+</cache-config>

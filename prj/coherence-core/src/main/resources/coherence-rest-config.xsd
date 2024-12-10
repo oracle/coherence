@@ -1,0 +1,286 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://xmlns.oracle.com/coherence/coherence-rest-config"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-rest-config"
+            elementFormDefault="qualified" attributeFormDefault="unqualified"
+            version="1.2">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+            Licensed under the Universal Permissive License v 1.0 as shown at
+            http://oss.oracle.com/licenses/upl.
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:annotation>
+        <xsd:documentation>
+            This is the XML schema for the Coherence REST configuration file
+            (coherence-rest-config.xml).
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:element name="rest">
+        <xsd:annotation>
+            <xsd:documentation>
+                The rest element is the root element of the coherence-rest-config
+                descriptor.
+
+                Used in: n/a
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="defaults" minOccurs="0" />
+                <xsd:element ref="resources" minOccurs="0" />
+                <xsd:element ref="aggregators" minOccurs="0" />
+                <xsd:element ref="processors" minOccurs="0" />
+                <xsd:element ref="query-engines" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="defaults">
+        <xsd:annotation>
+            <xsd:documentation>
+                The defaults element defines HTTP server wide default settings.
+
+                Used in: rest.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="marshallers" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="marshallers">
+        <xsd:annotation>
+            <xsd:documentation>
+                The default-marshallers element contains bindings between media types
+                and marshaller classes.
+
+                Used in: defaults
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="marshaller" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="resources">
+        <xsd:annotation>
+            <xsd:documentation>
+                The resources element contains bindings between cache names
+                and cache entry key/value classes.
+
+                Used in: rest
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="resource" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="resource">
+        <xsd:annotation>
+            <xsd:documentation>
+                The resource element contains a single binding between a
+                cache name and cache entry key/value classes.
+
+                Note: The "alias" element is deprecated. Use the "name"
+                attribute of the resource element instead.
+
+                Used in: resources
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="cache-name" type="xsd:string" />
+                <xsd:element name="alias" type="xsd:string" minOccurs="0" />
+                <xsd:element name="key-class" type="xsd:string" minOccurs="0" />
+                <xsd:element name="value-class" type="xsd:string" minOccurs="0" />
+                <xsd:element name="key-converter" type="xsd:string" minOccurs="0" />
+                <xsd:element ref="marshaller" minOccurs="0" maxOccurs="unbounded"/>
+                <xsd:element ref="query" minOccurs="0" maxOccurs="unbounded"/>
+                <xsd:element ref="direct-query" minOccurs="0"/>
+            </xsd:sequence>
+            <xsd:attribute name="name" type="xsd:string" />
+            <xsd:attribute name="max-results" type="xsd:unsignedInt" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="marshaller">
+        <xsd:annotation>
+            <xsd:documentation>
+                The marshaller element contains bindings between cache entry
+                key/value classes and marshaller class used to marshall and
+                unmarshall instances of those classes.
+
+                Used in: resource
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="media-type" type="xsd:string" />
+                <xsd:element name="class-name" type="xsd:string" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+     <xsd:element name="query">
+        <xsd:annotation>
+            <xsd:documentation>
+                The query element contains a binding between a query name
+                and a query expression.
+
+                Used in: resource
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="name" type="xsd:string" />
+                <xsd:element name="expression" type="xsd:string" />
+            </xsd:sequence>
+            <xsd:attribute name="max-results" type="xsd:unsignedInt" />
+            <xsd:attribute name="engine" type="xsd:string" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="direct-query">
+        <xsd:annotation>
+            <xsd:documentation>
+                The direct-query element contains max results count
+                and query engine for direct querying.
+
+                Direct querying is term referring to executing queries
+                submitted as part of URL.
+
+                By defining this element direct querying is effectively
+                enabled.
+
+                Used in: resource
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:attribute name="max-results" type="xsd:unsignedInt" />
+            <xsd:attribute name="engine" type="xsd:string" />
+            <xsd:attribute name="enabled" type="xsd:boolean" default="false" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="aggregators">
+        <xsd:annotation>
+            <xsd:documentation>
+                The aggregators element contains bindings between aggregator
+                names and aggregator classes (or aggregator factory
+                classes).
+
+                Used in: rest
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="aggregator" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="aggregator">
+        <xsd:annotation>
+            <xsd:documentation>
+                The aggregator element contains a single binding between a
+                aggregator name and aggregator class (or aggregator factory
+                class).
+
+                Used in: aggregators
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="name" type="xsd:string" minOccurs="1" />
+                <xsd:element name="class-name" type="xsd:string" minOccurs="1" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="processors">
+        <xsd:annotation>
+            <xsd:documentation>
+                The processors element contains bindings between processor
+                names and processor classes (or processor factory classes).
+
+                Used in: rest
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="processor" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="processor">
+        <xsd:annotation>
+            <xsd:documentation>
+                The processor element contains a single binding between a
+                processor name and processor class (or processor factory
+                class).
+
+                Used in: processors
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="name" type="xsd:string" />
+                <xsd:element name="class-name" type="xsd:string" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="query-engines">
+        <xsd:annotation>
+            <xsd:documentation>
+                The query-engine element contains bindings between query engine
+                names and query engine classes.
+
+                Used in: rest
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="engine" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+     <xsd:element name="engine">
+        <xsd:annotation>
+            <xsd:documentation>
+                The engine element contains a single binding between a
+                query engine name and query engine class.
+
+                Used in: query-engines
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="name" type="xsd:string" />
+                <xsd:element name="class-name" type="xsd:string" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+</xsd:schema>

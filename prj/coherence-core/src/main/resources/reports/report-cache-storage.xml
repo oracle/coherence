@@ -1,0 +1,321 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2022, 2024 Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+  <report>                                                                
+    <file-name>{date}-report-cache-storage.txt</file-name>
+    <delim>{tab}</delim>
+
+    <query>
+      <pattern>Coherence:type=StorageManager,*</pattern>
+    </query>
+
+    <row>
+      <column id="BatchCounter">
+        <type>global</type>
+        <name>{batch-counter}</name>
+        <header>Batch Counter</header>
+        <group-by>true</group-by>
+      </column>
+
+      <column id ="ReportTime">
+        <type>global</type>
+        <name>{report-time}</name>
+        <header>Report Time</header>
+        <group-by>true</group-by>
+      </column>
+
+      <column id ="Service">
+        <type>key</type>
+        <name>service</name>
+        <header>Service</header>
+        <group-by>true</group-by>
+      </column>
+
+      <column id ="Cache">
+        <type>key</type>
+        <name>cache</name>
+        <header>Cache Name</header>
+        <group-by>true</group-by>
+      </column>
+
+      <column id="DomainPartition">
+        <type>key</type>
+        <name>domainPartition</name>
+        <header>Domain Partition</header>
+        <hidden>{non-MT}</hidden>
+        <group-by>true</group-by>
+      </column>
+
+      <column id="NodeId">
+        <type>key</type>
+        <name>nodeId</name>
+        <header>NodeID</header>
+        <group-by>true</group-by>
+      </column>
+
+      <column id="NodeTimestamp">
+        <type>attribute</type>
+        <name>timestamp</name>
+        <query>
+          <pattern>Coherence:type=Node,nodeId={NodeId}</pattern>
+        </query>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="TotalOptimizedQueryCount">
+          <name>OptimizedQueryCount</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="TotalOptimizedQueryTotalMillis">
+        <name>OptimizedQueryTotalMillis</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="TotalNonOptimizedQueryCount">
+        <name>NonOptimizedQueryCount</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="TotalNonOptimizedQueryTotalMillis">
+        <name>NonOptimizedQueryTotalMillis</name>
+        <hidden>true</hidden>
+      </column>
+      
+      <column id="IndexingTotalMillis">
+        <name>IndexingTotalMillis</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="TotalQueryContentionCount">
+        <name>QueryContentionCount</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="TotalEvictionCount">
+        <name>EvictionCount</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="TotalInsertCount">
+        <name>InsertCount</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="TotalInsertCount">
+        <name>InsertCount</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="TotalRemoveCount">
+        <name>RemoveCount</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="ListenerRegistrations">
+        <name>ListenerRegistrations</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="QueryContentionCount">
+        <type>function</type>
+        <name>deltaQueryContentionCount</name>
+        <header>Query Contention Count</header>
+        <column-ref>TotalQueryContentionCount</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Service</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>Cache</column-ref>
+          <column-ref>NodeTimestamp</column-ref>
+        </params>
+      </column>
+
+      <column id="EvictionCount">
+        <type>function</type>
+        <name>deltaEvictionCount</name>
+        <header>Eviction Count</header>
+        <column-ref>TotalEvictionCount</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Service</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>Cache</column-ref>
+          <column-ref>NodeTimestamp</column-ref>
+        </params>
+      </column>
+
+      <column id="InsertCount">
+        <type>function</type>
+        <name>deltaInsertCount</name>
+        <header>Insert Count</header>
+        <column-ref>TotalInsertCount</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Service</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>Cache</column-ref>
+          <column-ref>NodeTimestamp</column-ref>
+        </params>
+      </column>
+
+      <column id="RemoveCount">
+        <type>function</type>
+        <name>deltaRemoveCount</name>
+        <header>Remove Count</header>
+        <column-ref>TotalRemoveCount</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Service</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>Cache</column-ref>
+          <column-ref>NodeTimestamp</column-ref>
+        </params>
+      </column>
+
+      <column id="OptimizedQueryCount">
+        <type>function</type>
+        <name>deltaOptimizedQueryCount</name>
+        <header>Optimized Query Count</header>
+        <column-ref>TotalOptimizedQueryCount</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Service</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>Cache</column-ref>
+          <column-ref>NodeTimestamp</column-ref>
+        </params>
+      </column>
+
+      <column id="OptimizedQueryTotalMillis">
+        <type>function</type>
+        <name>deltaOptimizedQueryTotalMillis</name>
+        <header>Optimized Query Total Millis</header>
+        <column-ref>TotalOptimizedQueryTotalMillis</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Service</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>Cache</column-ref>
+          <column-ref>NodeTimestamp</column-ref>
+        </params>
+      </column>
+
+      <column id="NonOptimizedQueryCount">
+        <type>function</type>
+        <name>deltaNonOptimizedQueryCount</name>
+        <header>Non Optimized Query Count</header>
+        <column-ref>TotalNonOptimizedQueryCount</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Service</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>Cache</column-ref>
+          <column-ref>NodeTimestamp</column-ref>
+        </params>
+      </column>
+
+      <column id="NonOptimizedQueryTotalMillis">
+        <type>function</type>
+        <name>deltaNonOptimizedQueryTotalMillis</name>
+        <header>Non Optimized Query Total Millis</header>
+        <column-ref>TotalNonOptimizedQueryTotalMillis</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Service</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>Cache</column-ref>
+          <column-ref>NodeTimestamp</column-ref>
+        </params>
+      </column>
+
+      <column id="IndexingMillis">
+        <type>function</type>
+        <name>deltaIndexingTotalMillis</name>
+        <header>Indexing Total Millis</header>
+        <column-ref>IndexingTotalMillis</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Service</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>Cache</column-ref>
+          <column-ref>NodeTimestamp</column-ref>
+        </params>
+      </column>
+
+      <!-- instant values -->
+      <column id="IndexTotalUnits">
+        <name>IndexTotalUnits</name>
+        <header>Index Total Units</header>
+      </column>
+
+      <column id="MaxQueryThresholdMillis">
+        <name>MaxQueryThresholdMillis</name>
+        <header>Max Query Threshold Millis</header>
+      </column>
+
+      <column id="MaxQueryDurationMillis">
+        <name>MaxQueryDurationMillis</name>
+        <header>Max Query Duration Millis</header>
+      </column>
+
+      <column id="MaxQueryDescription">
+        <name>MaxQueryDescription</name>
+        <header>MaxQuery Description</header>
+      </column>
+
+      <column id="OptimizedQueryAverageMillis">
+        <name>OptimizedQueryAverageMillis</name>
+        <header>Optimized Query Average Millis</header>
+      </column>
+
+      <column id="NonOptimizedQueryAverageMillis">
+        <name>NonOptimizedQueryAverageMillis</name>
+        <header>Non Optimized Query Average Millis</header>
+      </column>
+
+      <column id="LocksGranted">
+        <name>LocksGranted</name>
+        <header>Locks Granted</header>
+      </column>
+
+      <column id="LocksPending">
+        <name>LocksPending</name>
+        <header>Locks Pending</header>
+      </column>
+      
+      <column id="ListenerKeyCount">
+        <name>ListenerKeyCount</name>
+        <header>Listener Key Count</header>
+      </column>
+
+      <column id="ListenerFilterCount">
+        <name>ListenerFilterCount</name>
+        <header>Listener Filter Count</header>
+      </column>
+
+      <column id="ListenerRegistrationsCount">
+        <type>function</type>
+        <name>deltaListenerRegistrationsCount</name>
+        <header>Listener Registration Count</header>
+        <column-ref>ListenerRegistrations</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Service</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>Cache</column-ref>
+          <column-ref>NodeTimestamp</column-ref>
+        </params>
+      </column>
+    </row>
+  </report>
+</report-config>

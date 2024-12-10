@@ -1,0 +1,291 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce</groupId>
+    <artifactId>maven</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>pof-maven-plugin</artifactId>
+  <packaging>maven-plugin</packaging>
+
+  <name>Coherence POF Maven Plugin</name>
+  <description>
+    Maven plugin that instruments classes at build time in order to implement
+    support for POF serialization
+  </description>
+
+  <properties>
+    <!-- The version to use for the liberte specific plugin.xml -->
+    <project.version.liberte>${project.version.release}-${project.build.number}</project.version.liberte>
+  </properties>
+
+  <dependencies>
+    <!-- Coherence dependency -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- Maven dependencies -->
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>maven-artifact-transfer</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.maven</groupId>
+          <artifactId>maven-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.maven.shared</groupId>
+          <artifactId>maven-shared-utils</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-model</artifactId>
+      <version>${maven.plugin.api.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- test dependencies -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.5.6</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <version>${maven.plugin.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>default-descriptor</id>
+            <phase>process-classes</phase>
+          </execution>
+          <execution>
+            <id>help-goal</id>
+            <goals>
+              <goal>helpmojo</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>replacer</artifactId>
+        <executions>
+          <!-- Replace the version numbers in the liberte specific plugin.xml -->
+          <execution>
+            <id>liberte-plugin</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+            <configuration>
+              <file>${project.build.outputDirectory}/META-INF/maven/plugin.xml</file>
+              <outputFile>${project.build.directory}/${project.artifactId}-${project.version}-liberte/META-INF/maven/plugin.xml</outputFile>
+              <replacements>
+                <!-- replace /plugin/version -->
+                <replacement>
+                  <xpath>/plugin/version/text()</xpath>
+                  <token>^.*$</token>
+                  <value>${project.version.liberte}</value>
+                </replacement>
+                <!-- replace version for Coherence dependency -->
+                <replacement>
+                  <xpath>/plugin/dependencies/dependency/artifactId[text() = 'coherence']/following-sibling::version/text()</xpath>
+                  <token>^.*$</token>
+                  <value>${project.version.liberte}</value>
+                </replacement>
+              </replacements>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+      </plugin>
+
+      <!-- create a directory for the liberte specific plugin files -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>liberte-dir</id>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <descriptors>
+                <descriptor>src/assemble/liberte.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- maven-bundle-pugin for generating manifest with metadata -->
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+      </plugin>
+
+      <!-- Overwrite configuration of jar plugin Build the standard plugin jar by default.
+           Build a second liberte specific plugin jar -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>liberte-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classifier>liberte</classifier>
+              <classesDirectory>${project.build.directory}/${project.artifactId}-${project.version}-liberte</classesDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Update jars with META-INF/MANIFEST.MF containing required version info -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>update-manifest</id>
+            <phase>package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${jar.executable}</executable>
+              <commandlineArgs>uMf ${project.build.directory}/${project.build.finalName}.jar -C ${project.build.directory}/classes META-INF/MANIFEST.MF</commandlineArgs>
+            </configuration>
+          </execution>
+          <execution>
+            <id>update-manifest-liberte</id>
+            <phase>package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${jar.executable}</executable>
+              <commandlineArgs>uMf ${project.build.directory}/${project.build.finalName}-liberte.jar -C ${project.build.directory}/classes META-INF/MANIFEST.MF</commandlineArgs>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- we deploy this module to a Maven repository -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration combine.self="override">
+          <skip>false</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>code-coverage</id>
+      <activation>
+        <property>
+          <name>code.coverage.enabled</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>${coherence.group.id}</groupId>
+            <artifactId>pof-maven-plugin</artifactId>
+            <version>${project.version}</version>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco.version}</version>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

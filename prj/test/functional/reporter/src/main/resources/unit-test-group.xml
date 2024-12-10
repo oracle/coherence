@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+    <report>
+      <file-name>unit-test-group.txt</file-name>
+      <delim>{tab}</delim>
+
+      <query>
+        <pattern>Coherence:type=Test,*</pattern>
+      </query>
+
+      <row>
+        <column id ="string">
+      	  <name>String</name>
+          <group-by>true</group-by>
+        </column>
+
+        <column id="sumInt">
+          <type>function</type>
+          <name>SumInteger</name>
+          <column-ref>intVal</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+        <column id ="intVal">
+      	  <name>Int</name>
+      	  <hidden>true</hidden>
+          <return-neg>true</return-neg>
+        </column>
+
+        <column id="sumLong">
+          <type>function</type>
+          <name>SumLong</name>
+          <column-ref>longVal</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+        <column id ="longVal">
+      	  <name>Long</name>
+      	  <hidden>true</hidden>
+          <return-neg>true</return-neg>
+        </column>
+
+        <column id ="doubleVal">
+      	  <name>Double</name>
+      	  <hidden>true</hidden>
+          <return-neg>true</return-neg>
+        </column>
+
+        <column id="sumDouble">
+          <type>function</type>
+          <name>SumDouble</name>
+          <column-ref>doubleVal</column-ref>
+          <function-name>sum</function-name>
+        </column>
+      </row>
+    </report>
+
+</report-config>

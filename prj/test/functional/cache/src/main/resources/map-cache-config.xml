@@ -1,0 +1,380 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">      
+
+  <caching-scheme-mapping> 
+    <cache-mapping> 
+      <cache-name>dist-default*</cache-name> 
+      <scheme-name>dist-default-scheme</scheme-name> 
+    </cache-mapping>     
+
+    <cache-mapping>
+      <cache-name>dist-caffeine-default*</cache-name>
+      <scheme-name>dist-caffeine-default-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-calculator-binary*</cache-name> 
+      <scheme-name>dist-calculator-binary-scheme</scheme-name> 
+    </cache-mapping> 
+    
+    <cache-mapping>
+      <cache-name>dist-caffeine-calculator-binary*</cache-name>
+      <scheme-name>dist-caffeine-calculator-binary-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-units-memorysize*</cache-name> 
+      <scheme-name>dist-units-memorysize-scheme</scheme-name> 
+    </cache-mapping> 
+
+    <cache-mapping>
+      <cache-name>dist-caffeine-units-memorysize*</cache-name>
+      <scheme-name>dist-caffeine-units-memorysize-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-ext-units-memorysize*</cache-name> 
+      <scheme-name>dist-ext-units-memorysize-scheme</scheme-name> 
+    </cache-mapping> 
+
+    <cache-mapping> 
+      <cache-name>dist-units-fixed*</cache-name> 
+      <scheme-name>dist-units-fixed-scheme</scheme-name> 
+    </cache-mapping> 
+
+    <cache-mapping>
+      <cache-name>dist-caffeine-units-fixed*</cache-name>
+      <scheme-name>dist-caffeine-units-fixed-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-ext-units-fixed*</cache-name> 
+      <scheme-name>dist-ext-units-fixed-scheme</scheme-name> 
+    </cache-mapping> 
+                                
+    <cache-mapping> 
+      <cache-name>dist-calculator-custom*</cache-name> 
+      <scheme-name>dist-calculator-custom-scheme</scheme-name> 
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-caffeine-calculator-custom*</cache-name>
+      <scheme-name>dist-caffeine-calculator-custom-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-calculator-large*</cache-name>
+      <scheme-name>dist-calculator-large-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping> 
+      <cache-name>dist-calculator-fixed*</cache-name> 
+      <scheme-name>dist-calculator-fixed-scheme</scheme-name> 
+    </cache-mapping>
+     
+    <cache-mapping>
+      <cache-name>dist-caffeine-calculator-fixed*</cache-name>
+      <scheme-name>dist-caffeine-calculator-fixed-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-eviction-custom*</cache-name> 
+      <scheme-name>dist-eviction-custom-scheme</scheme-name> 
+    </cache-mapping> 
+          
+    <cache-mapping> 
+      <cache-name>dist-eviction-hybrid*</cache-name> 
+      <scheme-name>dist-eviction-hybrid-scheme</scheme-name> 
+    </cache-mapping> 
+
+    <cache-mapping> 
+      <cache-name>dist-eviction-lfu*</cache-name> 
+      <scheme-name>dist-eviction-lfu-scheme</scheme-name> 
+    </cache-mapping>
+    
+    <cache-mapping> 
+      <cache-name>dist-eviction-lru*</cache-name> 
+      <scheme-name>dist-eviction-lru-scheme</scheme-name> 
+    </cache-mapping>
+    
+    <cache-mapping> 
+      <cache-name>local*</cache-name> 
+      <scheme-name>local-scheme</scheme-name> 
+    </cache-mapping> 
+            
+    <cache-mapping>
+      <cache-name>caffeine*</cache-name>
+      <scheme-name>caffeine-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>near-caffeine-*</cache-name>
+      <scheme-name>near-scheme-with-caffeine-front-map</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>near*</cache-name> 
+      <scheme-name>near-scheme</scheme-name> 
+    </cache-mapping> 
+           
+    <cache-mapping> 
+      <cache-name>repl*</cache-name> 
+      <scheme-name>repl-scheme</scheme-name> 
+    </cache-mapping> 
+  </caching-scheme-mapping> 
+  
+  <caching-schemes> 
+    <distributed-scheme> 
+      <scheme-name>dist-default-scheme</scheme-name> 
+      <backing-map-scheme> 
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart> 
+    </distributed-scheme> 
+
+    <distributed-scheme>
+      <scheme-name>dist-caffeine-default-scheme</scheme-name>
+      <backing-map-scheme>
+        <caffeine-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>dist-calculator-binary-scheme</scheme-name> 
+      <backing-map-scheme> 
+        <local-scheme> 
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme> 
+      </backing-map-scheme> 
+    </distributed-scheme> 
+
+    <distributed-scheme>
+      <scheme-name>dist-caffeine-calculator-binary-scheme</scheme-name>
+      <backing-map-scheme>
+        <caffeine-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </caffeine-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>dist-units-memorysize-scheme</scheme-name> 
+      <backing-map-scheme> 
+        <local-scheme> 
+          <high-units>20M</high-units>
+        </local-scheme> 
+      </backing-map-scheme> 
+    </distributed-scheme> 
+
+    <distributed-scheme>
+      <scheme-name>dist-caffeine-units-memorysize-scheme</scheme-name>
+      <backing-map-scheme>
+        <local-scheme>
+          <high-units>20M</high-units>
+        </local-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>dist-ext-units-memorysize-scheme</scheme-name> 
+      <backing-map-scheme> 
+        <external-scheme>
+          <nio-file-manager>
+            <initial-size>100KB</initial-size>
+            <maximum-size>100KB</maximum-size>
+          </nio-file-manager>
+          <high-units>20M</high-units>
+        </external-scheme>
+      </backing-map-scheme> 
+    </distributed-scheme> 
+        
+    <distributed-scheme> 
+      <scheme-name>dist-units-fixed-scheme</scheme-name> 
+      <backing-map-scheme> 
+        <local-scheme> 
+          <high-units>20000</high-units>
+        </local-scheme> 
+      </backing-map-scheme> 
+    </distributed-scheme> 
+            
+    <distributed-scheme>
+      <scheme-name>dist-caffeine-units-fixed-scheme</scheme-name>
+      <backing-map-scheme>
+        <local-scheme>
+          <high-units>20000</high-units>
+        </local-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>dist-ext-units-fixed-scheme</scheme-name> 
+      <backing-map-scheme> 
+        <external-scheme>
+          <nio-file-manager>
+            <initial-size>100KB</initial-size>
+            <maximum-size>100KB</maximum-size>
+          </nio-file-manager>
+          <high-units>20000</high-units>
+        </external-scheme>
+      </backing-map-scheme> 
+    </distributed-scheme> 
+    
+    <distributed-scheme> 
+      <scheme-name>dist-calculator-custom-scheme</scheme-name> 
+      <backing-map-scheme> 
+        <local-scheme> 
+          <unit-calculator>
+            <class-scheme>
+              <class-name>cache.MapConfigTests$CustomUnitCalculator</class-name>
+            </class-scheme>
+          </unit-calculator>
+        </local-scheme> 
+      </backing-map-scheme> 
+      <autostart>true</autostart> 
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>dist-caffeine-calculator-custom-scheme</scheme-name>
+      <backing-map-scheme>
+        <caffeine-scheme>
+          <unit-calculator>
+            <class-scheme>
+              <class-name>cache.MapConfigTests$CustomUnitCalculator</class-name>
+            </class-scheme>
+          </unit-calculator>
+        </caffeine-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>dist-calculator-large-scheme</scheme-name>
+      <service-name>DistributedCacheLarge</service-name>
+      <backing-map-scheme>
+        <local-scheme>
+          <unit-calculator>
+            <class-scheme>
+              <class-name>cache.MapConfigTests$LargeIntegerValueUnitCalculator</class-name>
+            </class-scheme>
+          </unit-calculator>
+          <unit-factor>10</unit-factor>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+    
+    <distributed-scheme> 
+      <scheme-name>dist-calculator-fixed-scheme</scheme-name> 
+      <backing-map-scheme> 
+        <local-scheme> 
+          <unit-calculator>FIXED</unit-calculator>
+        </local-scheme> 
+      </backing-map-scheme> 
+    </distributed-scheme> 
+
+    <distributed-scheme>
+      <scheme-name>dist-caffeine-calculator-fixed-scheme</scheme-name>
+      <backing-map-scheme>
+        <caffeine-scheme>
+          <unit-calculator>FIXED</unit-calculator>
+        </caffeine-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>dist-eviction-custom-scheme</scheme-name> 
+      <backing-map-scheme> 
+        <local-scheme> 
+          <eviction-policy>
+            <class-scheme>
+              <class-name>cache.MapConfigTests$CustomEvictionPolicy</class-name>
+            </class-scheme>
+          </eviction-policy>
+        </local-scheme> 
+      </backing-map-scheme> 
+      <autostart>true</autostart> 
+    </distributed-scheme> 
+    
+   <distributed-scheme> 
+      <scheme-name>dist-eviction-hybrid-scheme</scheme-name> 
+      <backing-map-scheme> 
+        <local-scheme> 
+          <eviction-policy>HYBRID</eviction-policy>
+        </local-scheme> 
+      </backing-map-scheme> 
+    </distributed-scheme> 
+    
+   <distributed-scheme> 
+      <scheme-name>dist-eviction-lfu-scheme</scheme-name> 
+      <backing-map-scheme> 
+        <local-scheme> 
+          <eviction-policy>LFU</eviction-policy>
+        </local-scheme> 
+      </backing-map-scheme> 
+    </distributed-scheme> 
+
+   <distributed-scheme> 
+      <scheme-name>dist-eviction-lru-scheme</scheme-name> 
+      <backing-map-scheme> 
+        <local-scheme> 
+          <eviction-policy>LRU</eviction-policy>
+        </local-scheme> 
+      </backing-map-scheme> 
+    </distributed-scheme> 
+        
+    <replicated-scheme> 
+      <scheme-name>repl-scheme</scheme-name> 
+      <backing-map-scheme> 
+        <local-scheme> 
+        </local-scheme> 
+      </backing-map-scheme> 
+      <autostart>true</autostart> 
+    </replicated-scheme> 
+    
+     <local-scheme> 
+        <scheme-name>local-scheme</scheme-name>      
+     </local-scheme> 
+        
+     <caffeine-scheme>
+        <scheme-name>caffeine-scheme</scheme-name>
+     </caffeine-scheme>
+
+     <near-scheme>
+        <scheme-name>near-scheme</scheme-name>      
+        <front-scheme>
+          <local-scheme> 
+             <scheme-ref>local-scheme</scheme-ref>      
+          </local-scheme>
+        </front-scheme>
+        <back-scheme>
+          <distributed-scheme> 
+             <scheme-ref>dist-default-scheme</scheme-ref>      
+          </distributed-scheme>
+        </back-scheme>            
+     </near-scheme>
+
+    <near-scheme>
+      <scheme-name>near-scheme-with-caffeine-front-map</scheme-name>
+      <front-scheme>
+        <caffeine-scheme/>
+      </front-scheme>
+      <back-scheme>
+        <distributed-scheme>
+          <scheme-ref>dist-default-scheme</scheme-ref>
+        </distributed-scheme>
+      </back-scheme>
+    </near-scheme>
+
+  </caching-schemes> 
+  
+</cache-config>

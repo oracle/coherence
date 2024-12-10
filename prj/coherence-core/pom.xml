@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce</groupId>
+    <artifactId>main</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>coherence-core</artifactId>
+  <name>Coherence Core</name>
+  <packaging>jar</packaging>
+
+  <properties>
+    <module.name>com.oracle.coherence.core</module.name>
+    <skip.sources>false</skip.sources>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-discovery</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- asm -->
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-commons</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- bdb -->
+    <dependency>
+      <groupId>com.sleepycat</groupId>
+      <artifactId>je</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+
+    <!-- classgraph -->
+    <dependency>
+      <groupId>io.github.classgraph</groupId>
+      <artifactId>classgraph</artifactId>
+    </dependency>
+
+    <!-- optional dependencies -->
+
+    <!-- GraalVM Polyglot support -->
+    <dependency>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>polyglot</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.graalvm.js</groupId>
+      <artifactId>js-language</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- hamcrest -->
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- CDI annotations -->
+    <dependency>
+      <groupId>jakarta.enterprise</groupId>
+      <artifactId>jakarta.enterprise.cdi-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Jakarta Inject API -->
+    <dependency>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JSON-B -->
+    <dependency>
+      <groupId>jakarta.json.bind</groupId>
+      <artifactId>jakarta.json.bind-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JSON-P -->
+    <dependency>
+      <groupId>jakarta.json</groupId>
+      <artifactId>jakarta.json-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JAXB -->
+    <dependency>
+      <groupId>jakarta.xml.bind</groupId>
+      <artifactId>jakarta.xml.bind-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JMS -->
+    <dependency>
+      <groupId>jakarta.jms</groupId>
+      <artifactId>jakarta.jms-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JCA -->
+    <dependency>
+      <groupId>jakarta.resource</groupId>
+      <artifactId>jakarta.resource-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JAX-RS -->
+    <dependency>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Caffeine -->
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Jersey (optional dependency for http server) -->
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-server</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.inject</groupId>
+      <artifactId>jersey-hk2</artifactId>
+      <optional>true</optional>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <resources>
+      <!-- include the standard maven resources directory -->
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+
+      <!-- include the licenses -->
+      <resource>
+        <directory>../../ext/license</directory>
+        <includes>
+          <include>coherence-client.xml</include>
+          <include>coherence-community.xml</include>
+          <include>coherence-enterprise.xml</include>
+          <include>coherence-grid.xml</include>
+          <include>coherence-rtc.xml</include>
+          <include>coherence-standard.xml</include>
+          <include>processor-dictionary.xml</include>
+        </includes>
+      </resource>
+
+      <!-- include the public license keys -->
+      <resource>
+        <directory>../../ext/license/keys</directory>
+        <includes>
+          <include>tangosol.cer</include>
+          <include>tangosol.dat</include>
+        </includes>
+      </resource>
+
+      <!-- include resources in the source tree not in the resources folder -->
+      <resource>
+        <directory>src/main/java</directory>
+        <includes>
+          <include>com/tangosol/net/security/*.xml</include>
+          <include>com/tangosol/util/*.xml</include>
+        </includes>
+      </resource>
+    </resources>
+
+    <plugins>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <executions>
+            <execution>
+                <id>flatten</id>
+                <phase>package</phase>
+                <goals>
+                    <goal>flatten</goal>
+                </goals>
+            </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.oracle.coherence.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-module-info</id>
+            <phase>package</phase>
+            <goals>
+              <goal>add-module-info</goal>
+            </goals>
+            <configuration>
+              <module>
+                <moduleInfo>
+                  <name>${module.name}</name>
+                  <open>true</open>
+                  <exports>
+                    com.tangosol.coherence.transaction.internal to com.oracle.coherence.transaction.core;
+                    com.tangosol.coherence.transaction.internal.* to com.oracle.coherence.transaction.core;
+                    !*.internal;
+                    !com.oracle.coherence.common.internal*;
+                    *;
+                  </exports>
+                  <addServiceUses>true</addServiceUses>
+                </moduleInfo>
+              </module>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

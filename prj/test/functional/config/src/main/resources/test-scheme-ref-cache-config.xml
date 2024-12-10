@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config
+        xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <defaults>
+    <serializer>pof</serializer>
+  </defaults>
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>test-*</cache-name>
+      <scheme-name>class-scheme-with-scheme-ref</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <class-scheme>
+      <scheme-name>class-scheme-with-scheme-ref</scheme-name>
+      <class-name>config.MyCache</class-name>
+      <init-params>
+        <init-param>
+          <param-type>java.lang.String</param-type>
+          <param-value>{cache-name}</param-value>
+        </init-param>
+        <init-param>
+          <param-type>{scheme-ref}</param-type>
+          <param-value>just-a-class-scheme</param-value>
+        </init-param>
+      </init-params>
+    </class-scheme>
+
+    <class-scheme>
+      <scheme-name>just-a-class-scheme</scheme-name>
+      <class-name>config.MyClass</class-name>
+    </class-scheme>
+  </caching-schemes>
+</cache-config>

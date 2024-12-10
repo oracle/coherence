@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<schema targetNamespace="http://xmlns.oracle.com/coherence/schema/pof"
+	xmlns="http://www.w3.org/2001/XMLSchema"
+  xmlns:pof="http://xmlns.oracle.com/coherence/schema/pof"
+	elementFormDefault="qualified"
+	attributeFormDefault="unqualified"
+	version="1.0">
+
+  <element name="type" type="pof:typeType"/>
+
+  <element name="property" type="pof:propertyType"/>
+  <element name="date" type="pof:dateType"/>
+  <element name="array" type="pof:arrayType"/>
+  <element name="collection" type="pof:collectionType"/>
+  <element name="list" type="pof:listType"/>
+  <element name="set" type="pof:setType"/>
+  <element name="map" type="pof:mapType"/>
+
+  <complexType name="typeType">
+    <attribute name="id" type="int" use="required"/>
+    <attribute name="version" type="int" use="optional"/>
+  </complexType>
+
+  <complexType name="propertyType">
+    <attribute name="since" type="int" use="optional"/>
+    <attribute name="order" type="int" use="optional"/>
+  </complexType>
+
+  <complexType name="dateType">
+    <complexContent>
+      <extension base="pof:propertyType">
+        <attribute name="mode" use="required">
+          <simpleType>
+            <restriction base="string">
+              <enumeration value="DATE"/>
+              <enumeration value="TIME"/>
+              <enumeration value="DATE_TIME"/>
+            </restriction>
+          </simpleType>
+        </attribute>
+        <attribute name="includeTimezone" type="boolean" use="optional"/>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <complexType name="arrayType">
+    <complexContent>
+      <extension base="pof:propertyType">
+        <attribute name="elementType" type="string" use="optional"/>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <complexType name="collectionType">
+    <complexContent>
+      <extension base="pof:propertyType">
+        <attribute name="elementType" type="string" use="optional"/>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <complexType name="listType">
+    <complexContent>
+      <extension base="pof:propertyType">
+        <attribute name="elementType" type="string" use="optional"/>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <complexType name="setType">
+    <complexContent>
+      <extension base="pof:propertyType">
+        <attribute name="elementType" type="string" use="optional"/>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <complexType name="mapType" xml:base="pof:propertyType">
+    <complexContent>
+      <extension base="pof:propertyType">
+        <attribute name="keyType" type="string" use="optional"/>
+        <attribute name="valueType" type="string" use="optional"/>
+      </extension>
+    </complexContent>
+  </complexType>
+
+</schema>

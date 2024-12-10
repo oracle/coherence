@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<socket-providers>
+  <socket-provider id="system"><system/></socket-provider>
+  <socket-provider id="tcp"> <tcp/></socket-provider>
+  <socket-provider id="sdp"><sdp/></socket-provider>
+  <socket-provider id="grpc-insecure"><grpc-insecure/></socket-provider>
+  <socket-provider id="ssl">
+    <ssl>
+      <identity-manager>
+        <key-store>
+          <url      system-property="coherence.security.keystore">file:keystore.jks</url>
+          <password system-property="coherence.security.password"/>
+        </key-store>
+        <password system-property="coherence.security.password"/>
+      </identity-manager>
+      <trust-manager>
+         <algorithm>PeerX509</algorithm>
+         <key-store>
+           <url      system-property="coherence.security.keystore">file:keystore.jks</url>
+           <password system-property="coherence.security.password"/>
+         </key-store>
+      </trust-manager>
+      <protocol-versions usage="black-list"><name>SSLv3</name></protocol-versions>
+      <socket-provider>tcp</socket-provider>
+    </ssl>
+  </socket-provider>
+</socket-providers>

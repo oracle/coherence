@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config
+   coherence-cache-config.xsd">
+    <caching-scheme-mapping>
+        <cache-mapping>
+            <cache-name>dist-extend</cache-name>
+            <scheme-name>remote</scheme-name>
+        </cache-mapping>
+    </caching-scheme-mapping>
+
+    <caching-schemes>
+        <remote-cache-scheme>
+            <scheme-name>remote</scheme-name>
+            <service-name>ExtendTcpProxyService</service-name>
+            <initiator-config>
+                <tcp-initiator>
+                    <remote-addresses>
+                        <socket-address>
+                            <address system-property="test.extend.address.remote">127.0.0.1</address>
+                            <port system-property="test.extend.port">9999</port>
+                        </socket-address>
+                        <socket-address>
+                            <address>127.0.0.1</address>
+                            <port>9998</port>
+                        </socket-address>
+                        <socket-address>
+                            <address>127.0.0.1</address>
+                            <port>9997</port>
+                        </socket-address>
+                    </remote-addresses>
+                </tcp-initiator>
+                <outgoing-message-handler>
+                    <request-timeout>5s</request-timeout>
+                </outgoing-message-handler>
+                <serializer>
+                    <instance>
+                        <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+                        <init-params>
+                            <init-param>
+                                <param-type>string</param-type>
+                                <param-value>extend/test-pof-config.xml</param-value>
+                            </init-param>
+                        </init-params>
+                    </instance>
+                </serializer>
+            </initiator-config>
+        </remote-cache-scheme>
+    </caching-schemes>
+</cache-config>

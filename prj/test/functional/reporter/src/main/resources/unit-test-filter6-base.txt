@@ -1,0 +1,5 @@
+nodeId	String	const	Int	Long
+1	Ora	Ora	-9466	-295867
+2	Cle	Ora	-8638	-979307
+3	Ora	Ora	-7810	-728155
+5	Ora	Ora	-9906	878233

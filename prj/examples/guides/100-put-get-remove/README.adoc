@@ -1,0 +1,264 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Put Get and Remove Operations
+:description: Coherence Guides Basic NamedMap put, get and remove operations
+:keywords: coherence, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Put Get and Remove Operations
+
+This guide walks you through the basic CRUD operations on a Coherence {javadoc-root}com/tangosol/net/NamedMap.html[NamedMap].
+
+=== What You Will Build
+
+The example code is written as a set of unit tests, as this is the simplest way to demonstrate something as
+basic as individual `NamedMap` operations.
+
+==== What You Need
+:java_version: 11
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+
+=== Coherence `NamedMap`
+
+The Coherence {javadoc-root}com/tangosol/net/NamedMap.html[NamedMap] is an extension of Java's `java.util.Map` interface
+and as such, it has all the `Map` methods that a Java developer is familiar with. Coherence also has a
+{javadoc-root}com/tangosol/net/NamedMap.html[NamedCache] which extends `NamedMap` and is form more transient data
+storage in caching use cases.
+
+The most basic operations on a `NamedMap` are the simple CRUD methods, `put`, `get` and `remove`, which this guide
+is all about.
+
+
+=== Create the Test Class
+
+The first step is to create the test class that will show and test the various `NamedMap` operations,
+we'll call this class `BasicCrudTest`. We will use Junit 5 for this test, so the class does not have to be public.
+
+[source,java]
+----
+class BasicCrudTest {
+}
+----
+
+
+==== Bootstrap Coherence
+
+The first thing the test class will do is start Coherence using the bootstrap API introduced in Coherence v20.12.
+As this is a JUnit test class, we can do this in a static `@BeforeAll` annotated setup method.
+We are going to start a storage enabled cluster member using the most basic bootstrap API methods.
+For more details on the bootstrap API see the corresponding guide
+// ToDo: Add a link to the bootstrap guide here
+
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/simple/BasicCrudTest.java[tag=bootstrap]
+----
+<1> Obtain a default storage enabled cluster member `Coherence` instance.
+<2> Start the `Coherence` instance, this wil start all the Coherence services.
+<3> Block until Coherence instance has fully started before proceeding with the tests
+
+Second, we create a static `@AfterAll` annotated tear-down method that will shut down Coherence at the end of the test.
+
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/simple/BasicCrudTest.java[tag=cleanup]
+----
+<1> We only created a single default `Coherence` instance, so we can obtain that instance with the
+`Coherence.getInstance()` method, and then close it.
+
+Now the basic framework of the test is in place we can add methods to show different `NamedMap` operations.
+
+
+==== Obtain a `NamedMap` Instance
+
+All the tests in this guide need to obtain a `NamedMap` instance,
+we will use a Coherence {javadoc-root}com/tangosol/net/Session.html[Session] for this.
+A `Session` is a means to access Coherence clustered resources.
+Creation of `Session` instances is part of the bootstrap API, which we can obtain named `Session` instances from.
+In this case we are using the bootstrap API's default, so we can simply obtain the default `Session`.
+To get a `NamedMap` from a `Session` we use the `Session.getMap()` method. This take a `String` value, which is
+the name of the map to obtain from the `Session`.
+
+There are a number of ways we could have encapsulated this common code in the test class.
+In this case we will create a simple utility method to get a `NamedMap` with a give name that the different test
+methods can call.
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/simple/BasicCrudTest.java[tag=get-map]
+----
+<1> We only created a single default `Coherence` instance, so we can obtain that instance with the
+`Coherence.getInstance()` method.
+<2> Obtain the default `Session` from the `Coherence` instance.
+<3> Obtain and return the `NamedMap` instance with the required name.
+
+
+=== A Quick Word About Serialization
+
+In almost every case a `NamedMap` is backed by a distributed, clustered, Coherence resource.
+For this reason all `Objects` used as keys and values *must* be serializable so that they can be transferred between
+cluster members and clients during requests.
+Coherence Serialization support is a topic that deserves a guide of its own
+// ToDo: Add link to serialization guide.
+The {javadoc-root}com/tangosol/io/Serializer.html[Serializer] implementation used by a `NamedMap` is configurable
+and Coherence comes with some out of the box `Serializer` implementations.
+The default is Java serialization, so all keys and values must be Java `Serializable` or implement Coherence
+{javadoc-root}com/tangosol/io/ExternalizableLite.html[ExternalizableLite] interface for more control of serialization.
+Alternatively Coherence can also be configured to use Portable Object Format for serialization and additionally
+there is a JSON Coherence module that provides a JSON serializer that may be used.
+
+To keep this guide simple we are going to stick with the default serializer, so all `NamedMap` operations will use
+classes that are `Serializable`.
+
+
+=== The Put Method
+
+The obvious place to start is to add data to a `NamedMap` using the `put` method.
+We will create a simple test method that uses `put` to add a new key and value to a `NamedMap`.
+
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/simple/BasicCrudTest.java[tag=put]
+----
+<1> We call the `getMap` utility method we wrote above to get a `NamedMap` with the name `data`.
+In this case the map's keys and values are both of type `String`.
+
+<2> We call the `put` method to map the key `"key-1"` to the value `"value-1"`.
+As `NamedMap` implements `java.util.Map`, the `put` contract says that the `put` method returns the previous valued
+mapped to the key.
+
+<3> In this case there was no previous value mapped to `"key-1"`, so the returned value must be `null`.
+
+To show that we do indeed get back the old value returned from a `put`, we can write a slightly different test method
+that puts a new key and value into a `NamedMap` then updates the mapping with a new value.
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/simple/BasicCrudTest.java[tag=put-existing]
+----
+
+
+=== The Get Method
+
+We have seen how we can add data to a `NamedMap` using the `put` method, so the obvious next step is to get the data
+back out using the `get` method.
+
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/simple/BasicCrudTest.java[tag=get]
+----
+<1> We call the `getMap` utility method we wrote above to get a `NamedMap` with the name `data`.
+In this case the map's keys and values are both of type `String`.
+
+<2> We add some data to the `NamedMap` mapping the key `"key-3"` to the value `"value-1"`;
+
+<3> We use the `get` method to get the value from the `NamedMap` that is mapped to the key `"key-3"`,
+which obviously must be `"value-1"`.
+
+=== Get Multiple Values
+
+The Coherence `NamedMap` contains a {javadoc-root}com/tangosol/net/NamedMap.html#getAll(java.util.Collection)[getAll(java.util.Collection)]
+method that takes a collection of keys as a parameter and returns a new `Map` that contains the requested mappings.
+
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/simple/BasicCrudTest.java[tag=get-all]
+----
+<1> We call the `getMap` utility method we wrote above to get a `NamedMap` with the name `data`.
+In this case the map's keys and values are both of type `String`.
+
+<2> We add some data to the map.
+
+<3> We call the `getAll` method requesting keys `"key-5"`, `"key-7"` and `"key-8"`.
+
+<4> The `result` map returned should only contain two keys, because although we requested the mappings for three keys,
+`"key-8"` was not added to the `NamedMap`.
+
+<5> The value mapped to `"key-5"` should be `"value-5"`.
+
+<6> The value mapped to `"key-7"` should be `"value-7"`.
+
+
+=== The Remove Method
+
+We've now seen adding data to and getting data from a `NamedMap`, we can also remove values mapped to a key with the
+`remove` method.
+
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/simple/BasicCrudTest.java[tag=remove]
+----
+<1> We call the `getMap` utility method we wrote above to get a `NamedMap` with the name `data`.
+In this case the map's keys and values are both of type `String`.
+
+<2> We add some data to the map.
+
+<3> Call the remove method to remove the value mapped to key `"key-9"`.
+
+<4> The contract of the remove method says that the value returned should be the value that was mapped to the key
+that was removed (or `null` if there was no mapping to the key). In this case the returned value must be `"value-9"`.
+
+
+=== The Remove Mapping Method
+
+An alternate version of the `remove` method is the two argument remove method that removes a mapping to a key if the
+key is mapped to a specific value.
+
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/simple/BasicCrudTest.java[tag=remove-mapping]
+----
+<1> We call the `getMap` utility method we wrote above to get a `NamedMap` with the name `data`.
+In this case the map's keys and values are both of type `String`.
+
+<2> We add some data to the map.
+
+<3> Call the remove method to remove the value mapped to key `"key-10"` with a value of `"Foo"`.
+This must return `false` as we mapped `"key-10"` to the value `"value-10"`, so nothing will be removed from the `NamedMap`.
+
+<4> Call the remove method to remove the value mapped to key `"key-10"` with a value of `"value-10"`.
+This must return `true` as we mapped `"key-10"` to the value `"value-10"`, so the mapping will be removed from the `NamedMap`.
+
+
+=== `NamedCache` Transient Data
+
+As already stated, a {javadoc-root}com/tangosol/net/NamedMap.html[NamedCache] is typically used to store transient data
+in caching use-cases.
+
+The `NamedCache` has an alternative {javadoc-root}com/tangosol/net/NamedCache.html#put(K,V,long)[put(K,V,long)] method
+that takes a key, value, and an expiry value. The expiry value is the number of milli-seconds that the key and value
+should remain in the cache. When the expiry time has passed the key and value will be removed from the cache.
+
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/simple/BasicCrudTest.java[tag=put-expiry]
+----
+<1> In the same way that we obtained a `NamedMap` from the default `Session`, we can obtain a `NamedCache`
+using the `getCache` method, in this case the cache named `test`.
+
+<2> Using the put with expiry method, we can add a key of `"key-1"` mapped to value `"value-1"` with an expiry of
+`2000` milli-seconds (or 2 seconds).
+
+<3> If we now do a `get` for `"key-1"` we should get back `"value-1"` because two seconds has not yet passed
+(unless you are running this test on a terribly slow machine).
+
+<4> Now we wait for three seconds to be sure the expiry time has passed.
+
+<5> This time when we get `"key-1"` the value returned must be `null` because the value has expired, and been removed
+from the cache.
+
+
+=== Summary
+
+You have seen how simple it is to use simple CRUD methods on `NamedMap` and `NamedCache` instances, as
+well as the simplest way to bootstrap a default Coherence storage enabled server instance.
+
+// === See Also
+// ToDo: Add links to other guides and docs.

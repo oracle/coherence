@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+       
+  <caching-scheme-mapping>
+
+    <cache-mapping>
+      <cache-name>distrwbm-cache</cache-name>
+      <scheme-name>distributed-rwbm-zerobackup</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-zerobackup</scheme-name>
+      <local-storage>false</local-storage>
+    </distributed-scheme>
+
+    <proxy-scheme>
+      <service-name>ExtendTcpProxyService</service-name>
+      <task-timeout>2</task-timeout>
+      <acceptor-config>
+        <tcp-acceptor>
+          <local-address>
+            <address system-property="test.extend.address.local">127.0.0.1</address>
+            <port    system-property="test.extend.port">9999</port>
+          </local-address>
+        </tcp-acceptor>
+        <outgoing-message-handler>
+          <heartbeat-interval>5s</heartbeat-interval>
+          <heartbeat-timeout>2s</heartbeat-timeout>
+          <request-timeout>5s</request-timeout>
+        </outgoing-message-handler>
+
+      </acceptor-config>
+
+      <autostart system-property="test.extend.enabled">true</autostart>
+    </proxy-scheme>
+  </caching-schemes>
+</cache-config>

@@ -1,0 +1,35 @@
+/*
+ * Copyright (c) 2023, 2024 Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+plugins {
+	id 'java'
+	id 'com.oracle.coherence' version "${coherenceVersion}"
+}
+
+group = 'com.oracle.coherence.guides'
+version = '${coherenceVersion}'
+sourceCompatibility = '17'
+
+repositories {
+	mavenCentral()
+	mavenLocal()
+}
+
+dependencies {
+	implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+
+	implementation "${coherenceGroupId}:coherence"
+
+	testImplementation "${coherenceGroupId}:coherence-bedrock-testing-support:${coherenceVersion}"
+	testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
+	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+}
+
+test {
+	useJUnitPlatform()
+}

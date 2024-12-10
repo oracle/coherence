@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce</groupId>
+    <artifactId>main</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <groupId>com.oracle.coherence.ce.examples</groupId>
+  <artifactId>guides-and-tutorials</artifactId>
+  <version>${revision}</version>
+
+  <name>Coherence Examples</name>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>guides/050-bootstrap</module>
+    <module>guides/090-health-checks</module>
+    <module>guides/100-put-get-remove</module>
+    <module>guides/110-queries</module>
+    <module>guides/120-built-in-aggregators</module>
+    <module>guides/121-custom-aggregators</module>
+    <module>guides/124-views</module>
+    <module>guides/125-streams</module>
+    <module>guides/128-entry-processors</module>
+    <module>guides/130-near-caching</module>
+    <module>guides/140-client-events</module>
+    <module>guides/142-server-events</module>
+    <module>guides/145-durable-events</module>
+    <module>guides/190-cache-stores</module>
+    <module>guides/200-federation</module>
+    <module>guides/210-ssl</module>
+    <module>guides/460-topics</module>
+    <module>guides/510-executor</module>
+    <module>guides/600-response-caching</module>
+    <module>guides/905-key-association</module>
+    <module>guides/910-multi-cluster-client</module>
+    <module>tutorials/200-persistence</module>
+    <module>tutorials/500-graphql/initial</module>
+    <module>tutorials/500-graphql/complete</module>
+  </modules>
+
+  <profiles>
+    <profile>
+      <id>code-coverage</id>
+      <activation>
+        <property>
+          <name>code.coverage.enabled</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <!-- We skip examples tests when running code coverage -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-surefire-plugin</artifactId>
+              <version>${maven.surefire.plugin.version}</version>
+              <configuration>
+                <skip>true</skip>
+              </configuration>
+            </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-failsafe-plugin</artifactId>
+              <version>${maven.failsafe.plugin.version}</version>
+              <configuration>
+                <skip>true</skip>
+              </configuration>
+            </plugin>
+            <plugin>
+              <groupId>org.jacoco</groupId>
+              <artifactId>jacoco-maven-plugin</artifactId>
+              <version>${jacoco.version}</version>
+              <configuration>
+                <skip>true</skip>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+  </profiles>
+</project>

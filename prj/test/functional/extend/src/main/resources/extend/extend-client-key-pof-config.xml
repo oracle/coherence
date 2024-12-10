@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<pof-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">        
+  <user-type-list>
+    <include>coherence-pof-config.xml</include>
+
+    <user-type>
+      <type-id>1000</type-id>
+      <class-name>com.oracle.coherence.testing.CaseInsensitiveComparator</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1001</type-id>
+      <class-name>data.Person</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1002</type-id>
+      <class-name>data.Person$Key</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1003</type-id>
+      <class-name>data.Trade</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1004</type-id>
+      <class-name>extend.InvocationExtendTests$TestInvocable</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1005</type-id>
+      <class-name>extend.InvocationExtendTests$TestInvocableTimeout</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1006</type-id>
+      <class-name>extend.JmxMBeanTests$MBeanInvocable</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1007</type-id>
+      <class-name>extend.AbstractLoadBalancerTests$GetClientInvocable</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1008</type-id>
+      <class-name>extend.AbstractLoadBalancerTests$GetServiceMemberCount</class-name>
+    </user-type>
+
+    <!-- Skip 1009. 1009 is CustomKeyClass in the Coherence cluster -->
+
+    <user-type>
+      <type-id>1010</type-id>
+      <class-name>extend.CustomKeyClass</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1011</type-id>
+      <class-name>extend.AbstractExtendTests$IntegerComparator</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1016</type-id>
+      <class-name>extend.AbstractExtendTests$TestEntryProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1017</type-id>
+      <class-name>extend.AbstractExtendTests$NonSyntheticEntryFilter</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1018</type-id>
+      <class-name>extend.DistExtendDeferKeyCheckTests$OrderId</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1019</type-id>
+      <class-name>extend.DistExtendDeferKeyCheckTests$ItemId</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1020</type-id>
+      <class-name>extend.AbstractExtendTests$MyObject</class-name>
+    </user-type>
+
+  </user-type-list>
+</pof-config>

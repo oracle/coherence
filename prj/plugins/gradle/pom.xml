@@ -1,0 +1,349 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce</groupId>
+    <artifactId>plugins</artifactId>
+    <version>${revision}</version>
+  </parent>
+
+  <artifactId>com.oracle.coherence.ce.gradle.plugin</artifactId>
+  <name>Coherence Gradle Plugin</name>
+  <description>Pof Gradle plugin</description>
+
+  <properties>
+    <gradle.executable>./gradlew</gradle.executable>
+    <gradle.proxy.arg1/>
+    <gradle.proxy.arg2/>
+    <gradle.proxy.arg3/>
+    <gradle.skip.test>true</gradle.skip.test>
+    <gradle.https.proxyPort/>
+    <project.version.liberte>${project.version.release}-${project.build.number}</project.version.liberte>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>javadoc</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>javadoc</goal>
+            </goals>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </execution>
+        </executions>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+          <configuration>
+            <filesets>
+              <fileset>
+                <directory>build</directory>
+                <directory>target</directory>
+              </fileset>
+            </filesets>
+          </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-compile</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <skipMain>true</skipMain>
+            </configuration>
+          </execution>
+          <execution>
+            <id>default-testCompile</id>
+            <phase>test-compile</phase>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <inherited>false</inherited>
+            <configuration>
+              <useBaseVersion>true</useBaseVersion>
+              <addParentPoms>true</addParentPoms>
+              <copyPom>true</copyPom>
+              <useRepositoryLayout>true</useRepositoryLayout>
+              <outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- maven-bundle-pugin for generating manifest with metadata -->
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-gradle-jars</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target</outputDirectory>
+              <!-- Important, as we will overwrite the existing (empty) main artifact jar -->
+              <overwrite>true</overwrite>
+              <resources>
+                <resource>
+                  <directory>build/libs/</directory>
+                  <includes>
+                    <include>${project.artifactId}-${project.version}.jar</include>
+                    <include>${project.artifactId}-${project.version}-javadoc.jar</include>
+                    <include>${project.artifactId}-${project.version}-sources.jar</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>gradle-build</id>
+            <phase>prepare-package</phase>
+            <configuration>
+              <executable>${gradle.executable}</executable>
+              <commandlineArgs>${gradle.proxy.arg1} ${gradle.proxy.arg2} ${gradle.proxy.arg3} -Pgroup=${project.groupId} -Pversion=${project.version} -PjavaVersion=${java.version.release} -DartifactId=${project.artifactId} clean build -x test -S</commandlineArgs>
+            </configuration>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>gradle-test</id>
+            <phase>verify</phase>
+            <configuration>
+              <skip>${gradle.skip.test}</skip>
+              <executable>${gradle.executable}</executable>
+              <commandlineArgs>${gradle.proxy.arg1} ${gradle.proxy.arg2} ${gradle.proxy.arg3} -Pgroup=${project.groupId} -Pversion=${project.version} -PjavaVersion=${java.version.release} -DartifactId=${project.artifactId} clean build -S</commandlineArgs>
+            </configuration>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+          <!-- Update jars with META-INF/MANIFEST.MF containing required version info -->
+          <execution>
+            <id>update-manifest</id>
+            <phase>package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${jar.executable}</executable>
+              <commandlineArgs>uMf ${project.build.directory}/${project.build.finalName}.jar -C ${project.build.directory}/classes META-INF/MANIFEST.MF</commandlineArgs>
+            </configuration>
+          </execution>
+          <execution>
+            <id>liberte-jar-classes-resources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>unzip</executable>
+              <commandlineArgs>-o ${project.build.directory}/${project.build.finalName}.jar -d ${project.build.directory}/${project.artifactId}-${project.version}-liberte</commandlineArgs>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>replacer</artifactId>
+        <executions>
+          <execution>
+            <id>liberte-plugin</id>
+            <phase>package</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+            <configuration>
+              <file>${basedir}/build/resources/main/coherence-gradle-plugin.properties</file>
+              <outputFile>${project.build.directory}/${project.artifactId}-${project.version}-liberte/coherence-gradle-plugin.properties</outputFile>
+              <replacements>
+                <replacement>
+                  <token>${project.version}</token>
+                  <value>${project.version.liberte}</value>
+                </replacement>
+              </replacements>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-artifacts</id>
+            <phase>package</phase>
+              <goals>
+                <goal>attach-artifact</goal>
+              </goals>
+              <configuration>
+                <artifacts>
+                  <artifact>
+                    <file>target/${project.artifactId}-${project.version}-javadoc.jar</file>
+                    <type>jar</type>
+                    <classifier>javadoc</classifier>
+                  </artifact>
+                  <artifact>
+                    <file>target/${project.artifactId}-${project.version}-sources.jar</file>
+                    <type>jar</type>
+                    <classifier>sources</classifier>
+                  </artifact>
+                  </artifacts>
+              </configuration>
+            </execution>
+        </executions>
+      </plugin>
+
+      <!-- Build a second liberte specific plugin jar -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>liberte-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classifier>liberte</classifier>
+              <archive>
+                <manifestFile>${project.build.directory}/${project.artifactId}-${project.version}-liberte/META-INF/MANIFEST.MF</manifestFile>
+              </archive>
+              <classesDirectory>${project.build.directory}/${project.artifactId}-${project.version}-liberte</classesDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- we deploy this module to a Maven repository -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration combine.self="override">
+          <skip>false</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>stage1</id>
+      <properties>
+        <skipTests>false</skipTests>
+        <gradle.skip.test>false</gradle.skip.test>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>windows</id>
+      <activation>
+        <os>
+          <family>windows</family>
+        </os>
+      </activation>
+      <properties>
+        <gradle.executable>gradlew.bat</gradle.executable>
+      </properties>
+    </profile>
+    <profile>
+      <id>skipGradleTests</id>
+      <activation>
+        <property>
+          <name>skipTests</name>
+        </property>
+      </activation>
+      <properties>
+        <gradle.skip.test>false</gradle.skip.test>
+      </properties>
+    </profile>
+    <profile>
+      <id>gradleProxy</id>
+      <activation>
+        <property>
+          <name>gradle.https.proxyHost</name>
+        </property>
+      </activation>
+      <properties>
+        <gradle.proxy.arg1>-Dhttps.keepAlive=true</gradle.proxy.arg1>
+        <gradle.proxy.arg2>-Dhttps.proxyHost=${gradle.https.proxyHost}</gradle.proxy.arg2>
+        <gradle.proxy.arg3>-Dhttps.proxyPort=${gradle.https.proxyPort}</gradle.proxy.arg3>
+      </properties>
+    </profile>
+  </profiles>
+</project>

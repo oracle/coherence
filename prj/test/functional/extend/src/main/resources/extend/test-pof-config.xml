@@ -1,0 +1,189 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<pof-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">
+  <user-type-list>
+    <include>coherence-pof-config.xml</include>
+
+    <user-type>
+      <type-id>1000</type-id>
+      <class-name>com.oracle.coherence.testing.CaseInsensitiveComparator</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1001</type-id>
+      <class-name>data.Person</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1002</type-id>
+      <class-name>data.Person$Key</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1003</type-id>
+      <class-name>data.Trade</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1004</type-id>
+      <class-name>extend.InvocationExtendTests$TestInvocable</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1005</type-id>
+      <class-name>extend.InvocationExtendTests$TestInvocableTimeout</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1006</type-id>
+      <class-name>extend.JmxMBeanTests$MBeanInvocable</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1007</type-id>
+      <class-name>extend.AbstractLoadBalancerTests$GetClientInvocable</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1008</type-id>
+      <class-name>extend.AbstractLoadBalancerTests$GetServiceMemberCount</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1009</type-id>
+      <class-name>extend.CustomKeyClass</class-name>
+    </user-type>
+
+    <!-- Skip 1010. 1010 is CustomKeyClass on the Coherence client -->
+
+    <user-type>
+      <type-id>1011</type-id>
+      <class-name>extend.AbstractExtendTests$IntegerComparator</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1012</type-id>
+      <class-name>extend.ProxyServiceDynamicThreadSizingTests$ThreadCountInvocable </class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1013</type-id>
+        <class-name>com.oracle.coherence.testing.AirDealComparator</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1014</type-id>
+        <class-name>com.oracle.coherence.testing.AirDealComparator$AirDeal</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1015</type-id>
+      <class-name>extend.AbstractLoadBalancerTests$GetSubjectInvocable</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1016</type-id>
+      <class-name>extend.AbstractExtendTests$TestEntryProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1017</type-id>
+      <class-name>extend.AbstractExtendTests$NonSyntheticEntryFilter</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1018</type-id>
+      <class-name>extend.DistExtendDeferKeyCheckTests$OrderId</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1019</type-id>
+      <class-name>extend.DistExtendDeferKeyCheckTests$ItemId</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1020</type-id>
+      <class-name>extend.AbstractExtendTests$MyObject</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1034</type-id>
+      <class-name>data.pof.PortablePerson</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1035</type-id>
+      <class-name>extend.CacheDestroyInvocable</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1036</type-id>
+      <class-name>extend.JmxMBeanTests$MBeanHostIPInvocable</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1037</type-id>
+      <class-name>extend.JmxMBeanTests$MessagingDebugInvocable</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>3004</type-id>
+      <class-name>com.oracle.coherence.testing.TestContact</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>3005</type-id>
+      <class-name>com.oracle.coherence.testing.FilterFetcher</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>3006</type-id>
+      <class-name>com.oracle.coherence.testing.ExampleAddress</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>3007</type-id>
+      <class-name>extend.SuspectProtocolTests$TestBulkInvocable</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>3008</type-id>
+      <class-name>extend.SuspectProtocolTests$DisableSendInvocable</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>3009</type-id>
+      <class-name>extend.TriggerListenerTests$PersonMapTrigger</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>3011</type-id>
+      <class-name>com.oracle.coherence.testing.TestObject</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>3012</type-id>
+      <class-name>extend.Coh20246Tests$Key</class-name>
+      <serializer>
+        <class-name>extend.Coh20246Tests$KeySerializer</class-name>
+      </serializer>
+    </user-type>
+
+    <user-type>
+      <type-id>3013</type-id>
+      <class-name>extend.Coh20246Tests$Value</class-name>
+      <serializer>
+        <class-name>extend.Coh20246Tests$ValueSerializer</class-name>
+      </serializer>
+    </user-type>
+
+  </user-type-list>
+</pof-config>

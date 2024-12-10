@@ -1,0 +1,302 @@
+:coherence-version: 14.1.2-0-0-SNAPSHOT
+:coherence-gradle-plugin-version: {coherence-version}
+
+= POF Gradle Plugin
+
+The POF Gradle Plugin provides automated instrumentation of classes with the `@PortableType` annotation to generate
+consistent (and correct) implementations of Evolvable POF serialization methods.
+
+It is a far from a trivial exercise to manually write serialization methods that support serializing inheritance
+hierarchies that support the Evolvable concept. However, with static type analysis these methods can be deterministically
+generated.
+
+This allows developers to focus on business logic rather than implementing boilerplate code for the above-mentioned
+methods.
+
+NOTE: Please see
+https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/develop-applications/using-portable-object-format.html#GUID-25206CEF-3271-494C-B43A-066A84E6B1BD[Portable Types documentation]
+for more information and detailed instructions on Portable Types creation and usage.
+
+== Usage
+
+In order to use the POF Gradle Plugin, you need to declare it as a plugin dependency in your `build.gradle` file:
+
+[source,groovy]
+----
+plugins {
+    id 'java'
+    id 'com.oracle.coherence'
+}
+----
+
+Without any further configuration, the plugin will add a task named `coherencePof` to your project and you will see the
+task listed under the task group `Coherence` when you execute:
+
+[source,bash]
+----
+gradle tasks
+----
+
+The `coherencePof` task is added as a `doLast` action to the `compileJava` task. Therefore, executing:
+
+[source,bash]
+----
+gradle compileJava
+----
+
+will automatically execute the `coherencePof` task. By *default*, the `coherencePof` task will instrument all Java
+classes excluding any test classes. The POF Gradle Plugin supports
+https://docs.gradle.org/current/userguide/incremental_build.html[incremental builds]. This means that only if Java classes
+have changed, the `coherencePof` task will execute.
+
+The `coherencePof` task will also become a dependency to all tasks that depend on the `compileJava`. Therefore, executing
+the `build` or `jar` task will invoke the `coherencePof` task in case of class changes.
+
+By just adding the plugin using the configuration above, the Coherence Gradle Plugin will discover and instrument all
+project classes annotated with the `@PortableType` annotation, excluding test classes. If you do need to instrument test
+classes, you can add the `coherencePof` closure and provide additional configuration properties.
+
+=== Custom Configuration
+
+The default behavior of the Coherence Gradle Plugin, can be customized using several optional properties. Simply provide
+a `coherencePof` closure to your `build.gradle` script containing any additional configuration properties, e.g.:
+
+.Build.gradle
+[source,groovy]
+----
+coherencePof {
+  debug=true // <1>
+}
+----
+<1> This will instruct Coherence to provide more logging output in regard to the instrumented classes
+
+=== Available Configuration Properties
+
+==== Enable Debugging
+
+Set the boolean `debug` property to `true` in order to instruct the underlying `PortableTypeGenerator` to generate debug
+code in regards the instrumented classes.
+
+If not specified, this property _defaults_ to `false`.
+
+
+==== Instrumentation of Test Classes
+
+Set the boolean `instrumentTestClasses` property to `true` in order to instrument test classes.
+If not specified, this property _defaults_ to `false`.
+
+=== What about classes without the @PortableType annotation?
+
+In some cases, it may be necessary to expand the type system with the types that are not annotated with the
+`@PortableType` annotation, and are not discovered automatically. This is typically the case when some of your portable
+types have `enum` values, or existing classes that implement the `PortableObject` interface explicitly as attributes.
+
+You can add those types to the schema by creating a `META-INF/schema.xml` file and specifying them explicitly. For example,
+if you assume that the `Color` class from the earlier code examples:
+
+.META-INF/schema.xml
+[source,xml]
+----
+<?xml version="1.0"?>
+
+<schema xmlns="http://xmlns.oracle.com/coherence/schema"
+        xmlns:java="http://xmlns.oracle.com/coherence/schema/java" external="true">
+
+  <type name="Color">
+    <java:type name="petstore.Color"/>
+  </type>
+
+</schema>
+----
+
+In order to use a `schema.xml` file, you need to set `usePofSchemaXml` to `true`. Also, you can customize the location of
+the `schema.xml` by setting `pofSchemaXmlPath` to a value other than `META-INF/schema.xml`. For example:
+
+.Build.gradle
+[source,groovy]
+----
+coherencePof {
+  usePofSchemaXml = true
+  pofSchemaXmlPath = 'META-INF/my-schema.xml'
+}
+----
+
+== Generating POF Index Files
+
+The portable type discovery feature of Coherence can use index files to speed up the discovery of `@PortableType` annotated
+classes. By default, the Gradle plugin will generate index files under `META-INF/pod.idx` that contain class names of
+`@PortableType` annotated classes. You can skip the generation of those index files by setting the `indexPofClasses`
+property in your Gradle plugin configuration to `false`.
+
+== Example
+
+An example `Person` class (below) when processed with the plugin, results in the bytecode shown below.
+
+.Person.java
+[source,java]
+----
+@PortableType(id=1000)
+public class Person
+    {
+    public Person()
+        {
+        }
+
+    public Person(int id, String name, Address address)
+        {
+        super();
+        this.id = id;
+        this.name = name;
+        this.address = address;
+        }
+
+    int id;
+    String name;
+    Address address;
+
+    // getters and setters omitted for brevity
+    }
+----
+
+Let's inspect the generated bytecode:
+
+[source,bash]
+----
+javap Person.class
+----
+
+This should yield the following output:
+
+[source,java]
+----
+public class demo.Person implements com.tangosol.io.pof.PortableObject,com.tangosol.io.pof.EvolvableObject {
+  int id;
+  java.lang.String name;
+  demo.Address address;
+  public demo.Person();
+  public demo.Person(int, java.lang.String, demo.Address);
+  public int getId();
+  public void setId(int);
+  public java.lang.String getName();
+  public void setName(java.lang.String);
+  public demo.Address getAddress();
+  public void setAddress(demo.Address);
+  public java.lang.String toString();
+  public int hashCode();
+  public boolean equals(java.lang.Object);
+
+  public void readExternal(com.tangosol.io.pof.PofReader) throws java.io.IOException; // <1>
+  public void writeExternal(com.tangosol.io.pof.PofWriter) throws java.io.IOException;
+  public com.tangosol.io.Evolvable getEvolvable(int);
+  public com.tangosol.io.pof.EvolvableHolder getEvolvableHolder();
+}
+----
+<1> Additional methods generated by Coherence POF plugin.
+
+Additionally, you will see that under the `META-INF` directory you will have a generated POF index file `pof.idx`. I will
+contain the package and class name of the `Person` class. This will later during the execution of your application speed
+up the POF type discovery process for your `@PortableType` annotated classes.
+
+=== Skip Execution
+
+You can skip the execution of the `coherencePof` task by running the Gradle build using the `-x` flag, e.g.:
+
+[source,bash]
+----
+gradle clean build -x coherencePof
+----
+
+== Development
+
+During development, it is extremely useful to rapidly test the plugin code against separate example projects. For this,
+we can use Gradle's https://docs.gradle.org/current/userguide/composite_builds.html[composite build] feature. Therefore,
+the Coherence POF Gradle Plugin module itself can be easily integrated into a separate `sample` project for rapid testing
+of code changes. From within the sample directory you can execute:
+
+[source,bash]
+----
+gradle clean compileJava --include-build path/to/plugin
+----
+
+This will not only build the sample but will also build the plugin and developers can make plugin code changes and see
+changes rapidly reflected in the execution of the sample module.
+
+Alternatively, you can build and install the Coherence Gradle plugin to your local Maven repository using:
+
+[source,bash]
+----
+gradle publishToMavenLocal
+----
+
+For projects to pick up the local changes ensure the following configuration:
+
+.build.gradle
+[source,groovy,subs="normal"]
+----
+plugins {
+  id 'java'
+  id 'com.oracle.coherence' version '{coherence-gradle-plugin-version}'
+}
+
+dependencies {
+  ...
+  implementation 'com.oracle.coherence:coherence:{coherence-version}'
+}
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+}
+
+----
+
+.settings.gradle
+[source,groovy,subs="normal"]
+----
+pluginManagement {
+  repositories {
+    mavenLocal()
+    gradlePluginPortal()
+  }
+}
+----
+
+=== Building using a Proxy Server
+
+When building the Coherence Gradle using a proxy server instead of accessing remote repositories directly, you must
+ensure that the proxy configuration is propagated all the way down to the Gradle integration tests as they use the
+https://docs.gradle.org/current/userguide/test_kit.html#sec:functional_testing_with_the_gradle_runner[GradleRunner]
+(Gradle TestKit).
+
+==== Using Gradle directly
+
+The easiest way to provide the proxy settings (when building the Coherence Gradle plugin by invoking Gradle directly), is
+to add the proxy settings to the `gradle.properties` file:
+
+[source,properties]
+----
+systemProp.http.proxyHost=your-proxy-host.com
+systemProp.http.proxyPort=80
+systemProp.https.proxyHost=your-proxy-host.com
+systemProp.https.proxyPort=80
+systemProp.https.nonProxyHosts=localhost|127.0.0.1
+----
+
+==== Building the Project using Maven
+
+When building the entire Coherence project using Maven, we configure the relevant proxy properties
+in `tools/maven/settings.xml`.
+
+[source,xml]
+----
+  <properties>
+    <gradle.https.proxyHost>your-proxy-host.com</gradle.https.proxyHost>
+    <gradle.https.proxyPort>80</gradle.https.proxyPort>
+  </properties>
+----
+
+In the `pom.xml` of the Coherence Gradle plugin module, the proxy properties are then populated using the `gradleProxy`
+Maven profile which is activated as soon as the property `gradle.https.proxyHost` is present.
+
+NOTE: The Gradle integration tests are activated once the Maven profile `stage1` is explicitly activated, and the build
+is executed with the Maven phase `verify` being triggered.

@@ -1,0 +1,73 @@
+<?xml version='1.0'?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<coherence  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd"
+            xml-override="common/tangosol-coherence-override.xml">
+  <cluster-config>
+    <authorized-hosts>
+      <host-filter>
+        <class-name>security.SysPropAuthorizedHostFilter</class-name>
+      </host-filter>
+    </authorized-hosts>
+  </cluster-config>
+  <security-config>
+    <enabled>true</enabled>
+    <login-module-name>Coherence</login-module-name>
+    <access-controller>
+      <class-name>com.tangosol.net.security.DefaultController</class-name>
+      <init-params>
+        <init-param id="1">
+          <param-type>java.io.File</param-type>
+          <param-value>keystoreRsa.p12</param-value>
+        </init-param>
+        <init-param id="2">
+          <param-type>java.io.File</param-type>
+          <param-value>permissions.xml</param-value>
+        </init-param>
+      </init-params>
+      <password-provider>
+        <class-name>com.oracle.coherence.testing.util.FileBasedPasswordProvider</class-name>
+        <init-params>
+          <init-param>
+            <param-type>String</param-type>
+            <param-value>storepass.txt</param-value>
+          </init-param>
+        </init-params>
+      </password-provider>
+    </access-controller>
+    <callback-handler>
+      <class-name>com.tangosol.net.security.SimpleHandler</class-name>
+      <init-params>
+        <init-param id="1">
+          <param-type>java.lang.String</param-type>
+          <param-value>admin</param-value>
+        </init-param>
+        <init-param id="2">
+          <param-type>java.lang.String</param-type>
+          <param-value>private</param-value>
+        </init-param>
+        <init-param id="3">
+          <param-type>java.lang.Boolean</param-type>
+          <param-value>false</param-value>
+        </init-param>
+      </init-params>
+    </callback-handler>
+    <identity-asserter>
+      <class-name>security.TestIdentityAsserter</class-name>
+    </identity-asserter>
+    <identity-transformer>
+      <class-name>security.TestIdentityTransformer</class-name>
+    </identity-transformer>
+    <subject-scope>true</subject-scope>
+    <authorizer>
+      <class-name>security.TestAuthorizer</class-name>
+    </authorizer>
+  </security-config>
+</coherence>

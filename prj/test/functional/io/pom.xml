@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce.tests</groupId>
+    <artifactId>coherence-functional-tests</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>io</artifactId>
+  <name>Coherence I/O Tests</name>
+
+  <properties>
+    <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+    <failsafe.modules.argline>
+      ${default.failsafe.modules.argline}
+    </failsafe.modules.argline>
+    <skip.pof.generation>false</skip.pof.generation>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-support</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.json</groupId>
+      <artifactId>jakarta.json-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.json.bind</groupId>
+      <artifactId>jakarta.json.bind-api</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- instrument PortableType annotated classes -->
+      <plugin>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>pof-maven-plugin</artifactId>
+        <version>${project.version}</version>
+        <executions>
+          <execution>
+            <id>instrument</id>
+            <configuration>
+              <classesDirectory>${testClassesDirectory}</classesDirectory>
+              <indexPofClasses>true</indexPofClasses>
+              <pofIndexFileName>META-INF/pof.idx</pofIndexFileName>
+              <skip>${skip.pof.generation}</skip>
+            </configuration>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>instrument</goal>
+            </goals>
+          </execution>
+
+          <!-- create a separate index containing just the Address class -->
+          <execution>
+            <id>make-index-address</id>
+            <configuration>
+              <classesDirectory>${testClassesDirectory}</classesDirectory>
+              <indexPofClasses>true</indexPofClasses>
+              <pofIndexFileName>META-INF/address-index/custom.idx</pofIndexFileName>
+              <pofIndexIncludes>
+                <first>.*Address$</first>
+              </pofIndexIncludes>
+              <skip>${skip.pof.generation}</skip>
+            </configuration>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>instrument</goal>
+            </goals>
+          </execution>
+
+          <!-- create a separate index containing just the Country class -->
+          <execution>
+            <id>make-index-country</id>
+            <configuration>
+              <classesDirectory>${testClassesDirectory}</classesDirectory>
+              <indexPofClasses>true</indexPofClasses>
+              <pofIndexFileName>META-INF/country-index/custom.idx</pofIndexFileName>
+              <pofIndexIncludes>
+                <first>.*Country$</first>
+              </pofIndexIncludes>
+              <skip>${skip.pof.generation}</skip>
+            </configuration>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>instrument</goal>
+            </goals>
+          </execution>
+<!-- <directory>${testClassesDirectory}/data/portabletype</directory> -->
+          <!-- create a separate index containing just the Person class -->
+          <execution>
+            <id>make-index-person</id>
+            <configuration>
+              <classesDirectory>${testClassesDirectory}</classesDirectory>
+              <indexPofClasses>true</indexPofClasses>
+              <pofIndexFileName>META-INF/person-index/custom.idx</pofIndexFileName>
+              <pofIndexIncludes>
+                <first>.*Person</first>
+              </pofIndexIncludes>
+              <skip>${skip.pof.generation}</skip>
+            </configuration>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>instrument</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <reuseForks>false</reuseForks>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <profiles>
+    <profile>
+      <id>stage5</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+</project>

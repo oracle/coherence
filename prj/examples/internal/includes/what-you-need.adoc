@@ -1,0 +1,22 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= What You Need
+// # tag::text[]
+:linkattrs:
+
+ifndef::java_version[:java_version: 11]
+ifndef::duration[:duration: 15]
+
+* About {duration} minutes
+* A favorite text editor or IDE
+* http://www.oracle.com/technetwork/java/javase/downloads/index.html[JDK {java_version}] or later
+* http://maven.apache.org/download.cgi[Maven 3.8+] or http://www.gradle.org/downloads[Gradle 4+]
+Although the source comes with the Maven and Gradle wrappers included so they can be built without first installing
+either build tool.
+* You can also import the code straight into your IDE:
+** <<examples/setup/intellij.adoc,IntelliJ IDEA>>
+// # end::text[]

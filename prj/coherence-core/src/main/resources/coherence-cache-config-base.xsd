@@ -1,0 +1,1052 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified"
+            version="1.3">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+            Licensed under the Universal Permissive License v 1.0 as shown at
+            http://oss.oracle.com/licenses/upl.
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Oracle Coherence Cache Config Base Schema definitions that is included
+            by the cache config schema definition files.
+        </xsd:documentation>
+    </xsd:annotation>
+
+
+    <!-- include the base types and elements -->
+    <xsd:include schemaLocation="coherence-config-base.xsd" />
+
+
+    <xsd:element name="pre-load" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The pre-load element specifies whether a cache
+                will pre-load data from its CacheLoader (or CacheStore)
+                object.
+
+                Valid values are true and false.
+
+                Default value is false.
+
+                Used in: local-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="serializer">
+        <xsd:annotation>
+            <xsd:documentation>
+                The serializer element contains the class configuration info for
+                a com.tangosol.io.Serializer implementation.
+
+                In addition to defining a serializer, it is also acceptable and in
+                fact preferred to provide the name of a serializer from the serializers
+                element of the operational configuration.
+
+                Note: The ability to directly define a custom serializer within this
+                element is deprecated as of Coherence 3.6. Starting with Coherence
+                3.6 either named serializers should be used, or the custom definition
+                should be moved into an inner instance element.
+
+                Used in: initiator-config,
+                acceptor-config, distributed-scheme,
+                transactional-scheme,
+                replicated-scheme, optimistic-scheme,
+                invocation-scheme,
+                defaults
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="serializer-type"/>
+            </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:complexType name="class-scheme-type">
+        <xsd:sequence>
+            <xsd:element ref="scheme-name" minOccurs="0" />
+            <xsd:choice>
+                <xsd:element ref="scheme-ref" />
+                <xsd:group ref="instance" />
+            </xsd:choice>
+        </xsd:sequence>
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
+    </xsd:complexType>
+
+    <xsd:element name="class-scheme" type="class-scheme-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The class-scheme element contains the class configuration info.
+
+                In most cases, the class-name element is used to specify
+                the name of the class to instantiate directly.
+                For example:
+
+                <class-scheme>
+                    <class-name>com.tangosol.util.SafeHashMap</class-name>
+                </class-scheme>
+
+                Starting with Coherence 3.2, it is possible to specify a static
+                factory method to call instead. To specify the factory approach,
+                provide both the class-factory-name and method-name elements
+                corresponding to the static factory method that returns the
+                new object instance. For example, to provide a Map that contains
+                no data whatsoever (and discards any data that is passed to it):
+
+                <class-scheme>
+                    <class-factory-name>com.tangosol.util.NullImplementation</class-factory-name>
+                    <method-name>getObservableMap</method-name>
+                </class-scheme>
+
+                Used in: standalone-caching-scheme, cachestore-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="listener">
+        <xsd:annotation>
+            <xsd:documentation>
+                The listener element contains the cache listener
+                configuration info.
+
+                Implementation classes should implement
+                com.tangosol.util.MapListener interface.
+
+                Used in: distributed-scheme,
+                external-scheme, local-scheme,
+                near-scheme, optimistic-scheme,
+                overflow-scheme, paged-external-scheme,
+                read-write-backing-map-scheme,
+                remote-cache-scheme, replicated-scheme,
+                view-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="class-scheme" />
+                <xsd:any namespace="##other" processContents="lax"
+                    minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="cache-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The cache-name element specifies the name of the
+                cache. The name is unique within a cache factory.
+
+                Used in: cache-mapping
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="cluster-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The cluster-name element contains the name of the
+                cluster to connect to.
+
+                Note that when using the name service the cluster
+                name of the client is used as the default value
+                for this element.
+
+                Used in: remote-cache-scheme, remote-invocation-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="topic-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The mapping-name element specifies the name of the
+                topic being mapped. The name is unique within
+                a cache factory.
+
+                Used in: topic
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="service-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The service-name element contains the service name
+                configuration info.
+
+                Used in: replicated-scheme, distributed-scheme,
+                transactional-scheme,
+                optimistic-scheme, local-scheme,
+                invocation-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="proxy-service-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The proxy-service-name element contains the service name of the
+                remote proxy service to which this remote service will connect.
+                This name must match the &lt;service name&gt; element value of
+                the remote proxy service.
+
+                Used in: remote-cache-scheme, remote-invocation-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="service-priority" type="coherence-priority-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The service-priority element specifies the priority for the
+                service thread.
+
+                Valid range: 1-10, default is Thread.MAX_PRIORITY
+
+                Used in: distributed-scheme, transactional-scheme,
+                invocation-scheme and proxy-scheme
+
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="scheme-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The scheme-name element contains the scheme name.
+                The name is unique within a configuration file.
+
+                Used in:
+                cache-mapping, local-scheme, replicated-scheme,
+                distributed-scheme, caffeine-scheme,
+                transactional-scheme, optimistic-scheme, invocation-scheme,
+                overflow-scheme, near-scheme,
+                read-write-backing-map-scheme,external-scheme,
+                paged-external-scheme,
+                remote-cache-scheme, remote-invocation-scheme,
+                proxy-scheme, view-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="key-type" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The key-type element defines the fully-qualified
+                name of the Java class for NamedCache.Entry keys.
+
+                Used in:
+                cache-mapping
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="value-type" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The value-type element defines the fully-qualified
+                name of the Java class for NamedCache.Entry and NamedTopic
+                values.
+
+                Used in:
+                cache-mapping, topic-mapping
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="scheme-ref" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The scheme-ref element contains the scheme name of
+                the scheme whose configuration should be used as
+                an overridable base.
+
+                Used in: local-scheme, replicated-scheme, distributed-scheme,
+                optimistic-scheme, invocation-scheme, overflow-scheme, near-scheme,
+                read-write-backing-map-scheme,external-scheme,
+                paged-external-scheme, remote-cache-scheme,
+                remote-invocation-scheme,
+                proxy-scheme, transactional-scheme, view-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="eviction-policy">
+        <xsd:annotation>
+            <xsd:documentation>
+                The eviction-policy element contains the eviction
+                policy configuration
+                info.
+
+                Valid values are "lru", "lfu" and "hybrid".
+
+                The hybrid eviction policy is a combination of lru (Least Recently
+                Used) and lfu (Least Frequently Used). It's a strategy based on
+                entries "priority". The higher the priority, the higher is the
+                probability of the entry being pruned out of the cache. The
+                priority is calculated as a sum of weighted logarithmic measures
+                of two different factors: the "recentness" and the "frequency". The
+                algorithm is structured in such a way that if cache entries are used
+                very rarely, the eviction strategy becomes equivalent to that of LRU
+                and if all entries are used quite often then the eviction strategy
+                becomes equivalent to that of LFU.
+
+                Alternatively, this element may contain a class-scheme element
+                that specifies a custom eviction policy class. The specified
+                class must implement the LocalCache.EvictionPolicy interface.
+
+                Used in: local-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType mixed="true">
+            <xsd:sequence>
+                <xsd:element ref="class-scheme" minOccurs="0" maxOccurs="unbounded" />
+                <xsd:any namespace="##other" processContents="lax"
+                    minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+            <xsd:anyAttribute namespace="##other" processContents="lax"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="high-units" type="coherence-integer-memorySize-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The high-units element contains the maximum amount
+                of cache data that a cache will hold before
+                pruning occurs.
+
+                The unit of measurement is determined by the
+                unit-calculator.
+
+                Valid values are positive integers and zero (for unlimited).
+                Values may include a standard byte oriented magnitude suffix such as
+                (B, KB, MB, GB, TB) in which case the BINARY unit-calculator is
+                implied.
+
+                Used in: local-scheme, external-scheme, paged-topic-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="low-units" type="coherence-integer-memorySize-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The low-units element contains the amount of cache
+                data to which the cache will be pruned when
+                cache pruning occurs.
+
+                The unit of measurement is determined by the
+                unit-calculator.
+
+                Valid values are positive integers and zero. Values may include a
+                standard byte oriented magnitude suffix such as (B, KB, MB, GB, TB).
+
+                Used in: local-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="unit-calculator">
+        <xsd:annotation>
+            <xsd:documentation>
+                The unit-calculator element contains the unit
+                calculator configuration
+                info.
+
+                Valid type values are "FIXED" and "BINARY".
+
+                A unit calculator is used to determine the cost (in
+                "units") of a given
+                object. The FIXED unit calculator assigns an equal
+                weight of 1 to all cached objects. The BINARY unit
+                calculator assigns an object a weight equal to the
+                number of bytes of memory required to cache the object.
+                See the JavaDoc for the BinaryMemoryCalculator class
+                for additional details.
+
+                Alternatively, this element may contain a class-scheme
+                element that specifies a custom unit calculator class.
+                The specified class must implement the
+                LocalCache.UnitCalculator interface.
+
+                Default value is FIXED, unless the the high-units is expressed
+                with a magnitude suffix in which case BINARY is used.
+
+                Used in: local-scheme, external-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType mixed="true">
+            <xsd:sequence>
+                <xsd:element ref="class-scheme" minOccurs="0" maxOccurs="unbounded" />
+                <xsd:any namespace="##other" processContents="lax"
+                    minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+            <xsd:anyAttribute namespace="##other" processContents="lax"/>
+        </xsd:complexType>
+    </xsd:element>
+
+  <xsd:complexType name="calculator-type" mixed="true">
+      <xsd:sequence>
+          <xsd:element ref="instance" minOccurs="0" maxOccurs="1" />
+          <xsd:any namespace="##other" processContents="lax"
+              minOccurs="0" maxOccurs="unbounded" />
+      </xsd:sequence>
+      <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+      <xsd:anyAttribute namespace="##other" processContents="lax"/>
+  </xsd:complexType>
+
+    <xsd:element name="unit-factor" type="coherence-positiveInteger-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                Note: as of 12.2.1 the unit-factor is calculated automatically
+                and isn't required to be explicitly specified.  When the value
+                is automatically calculated the high-units and low-units will
+                also be adjusted accordingly.
+
+                The unit-factor element specifies the factor by
+                which the units, low-units and
+                high-units properties are adjusted.
+                Using a BINARY unit calculator, for
+                example, the factor of 1048576 could be used
+                to count megabytes instead of
+                bytes.
+
+                Note: This element
+                was introduced only to avoid changing the type of the
+                units, low units and high units properties from 32-bit
+                values to 64-bit values.
+
+                Valid values are positive integer numbers.
+                Default value is automatically calculated.
+
+                Used in:
+                local-scheme, external-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="expiry-delay" type="coherence-time-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The expiry-delay element specifies the amount of
+                time from last update
+                that
+                entries/values will be kept by the cache/topic before
+                being discarded.
+
+                The value of this element must be in the following
+                format:
+
+                (\d)+((.)(\d)+)?(MS|ms|S|s|M|m|H|h|D|d)?
+
+                where the first
+                non-digits (from left to right) indicate the unit of time
+                duration:
+
+                -MS or ms (milliseconds)
+                -S or s (seconds)
+                -M or m (minutes)
+                -H or h
+                (hours)
+                -D or d (days)
+
+                If the value does not contain a unit, a unit of
+                seconds is assumed.
+
+                Used in: local-scheme, external-scheme,
+                overflow-scheme, paged-topic-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+
+    <xsd:simpleType name="invalidation-enum-type">
+        <xsd:restriction base="xsd:normalizedString">
+            <xsd:enumeration value="logical" />
+            <xsd:enumeration value="auto" />
+            <xsd:enumeration value="present" />
+            <xsd:enumeration value="all" />
+            <xsd:enumeration value="none" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="invalidation-strategy-base-type">
+        <xsd:union memberTypes="coherence-base-type invalidation-enum-type" />
+    </xsd:simpleType>
+
+    <xsd:complexType name="invalidation-strategy-type">
+        <xsd:simpleContent>
+            <xsd:extension base="invalidation-strategy-base-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString"
+                    use="optional" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="invalidation-strategy" type="invalidation-strategy-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The invalidation-strategy element specifies the
+                strategy used for a front map invalidation.
+                Please see the JavaDoc for
+                com.tangosol.net.cache.NearCache class.
+
+                Valid values are
+                - "none",
+                - "present",
+                - "all",
+                - "auto",
+                - "logical".
+
+                Default value is "auto".
+
+                Used in: near-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="connect-timeout" type="coherence-time-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The connect-timeout specifies the maximum amount
+                of time to wait while establishing a connection
+                with a connection acceptor.
+
+                The value of this element must be in the following format:
+
+                (\d)+((.)(\d)+)?[MS|ms|S|s|M|m|H|h|D|d]?
+
+                where the first non-digits
+                (from left to right) indicate the unit of time
+                duration:
+
+                -MS or ms
+                (milliseconds)
+                -S or s (seconds)
+                -M or m (minutes)
+                -H or h
+                (hours)
+                -D or
+                d (days)
+
+                If the value does not contain a unit, a unit of milliseconds
+                is assumed.
+
+                Default value is the request-timeout value.
+
+                Used in: initiator-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="linger-timeout" type="coherence-time-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The linger-timeout element enables SO_LINGER on a
+                TCP/IP socket with the specified linger time.
+
+                The value of this element
+                must be in the following format:
+
+                (\d)+((.)(\d)+)?[MS|ms|S|s|M|m|H|h|D|d]?
+
+                where the first non-digits
+                (from left to right) indicate the unit of time
+                duration:
+
+                -MS or ms
+                (milliseconds)
+                -S or s (seconds)
+                -M or m (minutes)
+                -H or h
+                (hours)
+                -D or
+                d (days)
+
+                If the value does not contain a unit, a unit of milliseconds
+                is assumed.
+
+                Linger is disabled by default.
+
+                Used in: tcp-initiator, tcp-acceptor
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="request-timeout" type="coherence-time-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The request-timeout specifies the maximum amount
+                of time a client will wait for a response before
+                abandoning the original request.
+
+                When used in a remote-grpc-cache-scheme this value is
+                used to set the default deadline on individual rpc calls.
+
+                The value of this element must be in the following
+                format:
+
+                (\d)+((.)(\d)+)?[MS|ms|S|s|M|m|H|h|D|d]?
+
+                where the first
+                non-digits (from left to right) indicate the unit of time
+                duration:
+
+                -MS or ms (milliseconds)
+                -S or s (seconds)
+                -M or m (minutes)
+                -H or h
+                (hours)
+                -D or d (days)
+
+                If the value does not contain a unit, a unit of
+                milliseconds is assumed.
+
+                Default value is an infinite timeout (0s) for
+                clustered client requests and 30 seconds (30s)
+                for extend or gRPC client requests.
+
+                Used in: outgoing-message-handler, replicated-scheme,
+                distributed-scheme,
+                transactional-scheme, optimistic-scheme,
+                invocation-scheme, proxy-scheme, remote-grpc-cache-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="incoming-message-handler">
+        <xsd:annotation>
+            <xsd:documentation>
+                The incoming-message-handler specifies the
+                configuration info used to regulate
+                client-to-cluster connection resource usage.
+                Connection initiators and acceptors
+                use this information proactively detect and
+                release connections that use excessive
+                resources.
+
+                Used in: initiator-config, acceptor-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="max-message-size" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="max-message-size" type="coherence-decimal-memorySize-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The value of the max-message-size element is used to
+                limit the size of messages being sent over Coherence*Extend
+                connections.
+
+                The value
+                of this element must be in the following format:
+
+                (\d)+((.)(\d)+)?[K|k|M|m|G|g|T|t]?[B|b]?
+
+                where the first non-digit
+                (from left to right) indicates the factor with
+                which the preceding
+                decimal value should be multiplied:
+
+                -K or k (kilo, 2^10)
+                -M or m
+                (mega, 2^20)
+                -G or g (giga, 2^30)
+                -T or t
+                (tera, 2^40)
+
+                If the value does not contain a factor, a factor of
+                one is assumed.
+
+                Default value of 0 means no limit.
+
+                Used in: incoming-message-handler, outgoing-message-handler
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="outgoing-message-handler">
+        <xsd:annotation>
+            <xsd:documentation>
+                The outgoing-message-handler specifies the
+                configuration info used to detect
+                dropped client-to-cluster connections. For
+                connection initiators and acceptors
+                that use connectionless protocols,
+                this information is necessary to proactively
+                detect and release resources allocated to dropped
+                connections. Connection-oriented initiators and
+                acceptors can also use this information as
+                an additional mechanism to detect dropped
+                connections.
+
+                Used in: initiator-config, acceptor-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="heartbeat-interval" minOccurs="0" />
+                <xsd:element ref="heartbeat-timeout" minOccurs="0" />
+                <xsd:element ref="max-message-size" minOccurs="0" />
+                <xsd:element ref="request-timeout" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="heartbeat-interval" type="coherence-time-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The heartbeat-interval specifies the interval
+                between ping requests. A ping request is used
+                to ensure the integrity of a connection.
+
+                The value of this element must be in the following
+                format:
+
+                (\d)+((.)(\d)+)?[MS|ms|S|s|M|m|H|h|D|d]?
+
+                where the first
+                non-digits (from left to right) indicate the unit of time
+                duration:
+
+                -MS or ms (milliseconds)
+                -S or s (seconds)
+                -M or m (minutes)
+                -H or h
+                (hours)
+                -D or d (days)
+
+                If the value does not contain a unit, a unit of
+                milliseconds is assumed.
+
+                Ping requests are disabled by default.
+
+                Used in: outgoing-message-handle
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="heartbeat-timeout" type="coherence-time-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The heartbeat-timeout specifies the maximum amount
+                of time to wait for a response to a ping request
+                before declaring the underlying connection
+                unusable.
+
+                The value of this element must be in
+                the following format:
+
+                (\d)+((.)(\d)+)?[MS|ms|S|s|M|m|H|h|D|d]?
+
+                where the first non-digits (from left to right)
+                indicate the unit of time duration:
+
+                -MS or ms (milliseconds)
+                -S or s (seconds)
+                -M or m (minutes)
+                -H or h
+                (hours)
+                -D or d (days)
+
+                If the value does not contain a unit, a
+                unit of milliseconds is assumed.
+
+                Ping requests are disabled by
+                default.
+
+                Used in: outgoing-message-handler
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="heartbeat-ack-required" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The heartbeat-ack-required setting requires the server
+                to send an ack response to a client heart beat message.
+
+                Used in: remote-grpc-cache-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="use-filters">
+        <xsd:annotation>
+            <xsd:documentation>
+                The use-filters element contains the list of
+                filter names to be used by a connection
+                initiator or acceptor.
+
+                Used in: initiator-config, acceptor-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="filter-name" minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="filter-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The filter-name element contains the canonical
+                name of the filter as specified
+                in the operational configuration file.
+                This name is unique within the cluster.
+
+                Used in: use-filters
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="expiry-enabled" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The expiry-enabled setting turns on support for
+                automatically-expiring data, as provided by the
+                CacheMap API.
+
+                Used in: overflow-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="keep-alive-enabled" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The value of the keep-alive-enabled element
+                indicates whether or not keep
+                alive (SO_KEEPALIVE) is enabled on a
+                TCP/IP socket.
+
+                Valid values are true and false.
+
+                Keep alive is enabled by default.
+
+                Used in: tcp-initiator and tcp-acceptor
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="tcp-delay-enabled" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The value of the tcp-delay-enabled element
+                indicates whether or not TCP delay
+                (Nagle's algorithm) is enabled on a TCP/IP
+                socket.
+
+                Valid values are true and false.
+
+                TCP delay is disabled by default.
+
+                Used in: tcp-initiator and tcp-acceptor
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="receive-buffer-size" type="coherence-decimal-memorySize-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The value of the receive-buffer-size element is
+                used to configure the size of the underlying
+                TCP/IP socket network receive buffer.
+
+                Increasing the receive buffer size can increase the
+                performance of network I/O for high-volume connections,
+                while decreasing it can help reduce the backlog of
+                incoming data.
+
+                The value
+                of this element must be in the following format:
+
+                (\d)+((.)(\d)+)?[K|k|M|m|G|g|T|t]?[B|b]?
+
+                where the first non-digit
+                (from left to right) indicates the factor with
+                which the preceding
+                decimal value should be multiplied:
+
+                -K or k (kilo, 2^10)
+                -M or m
+                (mega, 2^20)
+                -G or g (giga, 2^30)
+                -T or t
+                (tera, 2^40)
+
+                If the value does not contain a factor, a factor of
+                one is assumed.
+
+                Default value is O/S dependent.
+
+                Used in: tcp-initiator
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="send-buffer-size" type="coherence-decimal-memorySize-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The value of the send-buffer-size element is used
+                to configure the size of the underlying TCP/IP
+                socket network send buffer.
+
+                The value of this element must be in the following format:
+
+                (\d)+((.)(\d)+)?[K|k|M|m|G|g|T|t]?[B|b]?
+
+                where the first non-digit (from left to right)
+                indicates the factor with which the preceding
+                decimal value should be multiplied:
+
+                -K or k (kilo, 2^10)
+                -M or m
+                (mega, 2^20)
+                -G or g (giga, 2^30)
+                -T or t
+                (tera, 2^40)
+
+                If the value does not contain a factor, a factor
+                of one is assumed.
+
+                Default value is O/S dependent.
+
+                Used in: tcp-initiator, tcp-acceptor
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="view-filter">
+        <xsd:annotation>
+            <xsd:documentation>
+                The view-filter element specifies an implementation of a com.tangosol.util.Filter
+                which will be used by the associated view-scheme.
+
+                Used in: view-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="class-scheme" />
+                <xsd:any namespace="##other" processContents="lax"
+                         minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="reconnect-interval" type="coherence-time-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The reconnect-interval indicates the period in which
+                re-synchronization with the underlying cache will be
+                delayed in the case the connection is severed.  During
+                this time period, local content can be accessed without
+                triggering re-synchronization of the local content.
+
+                The value of this element must be in the following
+                format:
+
+                (\d)+((.)(\d)+)?[MS|ms|S|s|M|m|H|h|D|d]?
+
+                where the first
+                non-digits (from left to right) indicate the unit of time
+                duration:
+
+                -MS or ms (milliseconds)
+                -S or s (seconds)
+                -M or m (minutes)
+                -H or h
+                (hours)
+                -D or d (days)
+
+                If the value does not contain a unit, a unit of
+                milliseconds is assumed.
+
+                A value of zero means that the view cannot be used
+                when not connected.
+
+                If not configured, a value of zero is assumed.
+
+                Used in: view-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="transformer">
+        <xsd:annotation>
+            <xsd:documentation>
+                The transformer element specifies an implementation of a com.tangosol.util.ValueExtractor
+                which will be used by the associated view-scheme to transform values retrieved
+                from the underlying cache before storing them locally; if specified, this view will
+                become read-only.
+
+                Used in: view-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="class-scheme" />
+                <xsd:any namespace="##other" processContents="lax"
+                         minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax"/>
+        </xsd:complexType>
+    </xsd:element>
+
+  <xsd:element name="read-locator">
+      <xsd:annotation>
+          <xsd:documentation>
+              The read-locator specifies which member should service read requests.
+
+              Valid values are
+              - "primary",
+              - "closest",
+              - "random",
+              - "random-backup"
+              - implementation of BiFunction&lt;Ownership,PartitionedService,Member&gt;
+
+              Default is "primary".
+
+              Used in: backing-map-scheme
+          </xsd:documentation>
+      </xsd:annotation>
+      <xsd:complexType mixed="true">
+          <xsd:sequence>
+              <xsd:element ref="class-scheme" minOccurs="0" maxOccurs="unbounded" />
+              <xsd:any namespace="##other" processContents="lax"
+                  minOccurs="0" maxOccurs="unbounded" />
+          </xsd:sequence>
+          <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+          <xsd:anyAttribute namespace="##other" processContents="lax"/>
+      </xsd:complexType>
+  </xsd:element>
+
+</xsd:schema>

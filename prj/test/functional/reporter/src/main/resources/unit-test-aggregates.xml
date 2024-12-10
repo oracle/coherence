@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+    <report>
+      <file-name>unit-test-aggregates.txt</file-name>
+      <delim>{tab}</delim>
+
+      <query>
+        <pattern>Coherence:type=Test,*</pattern>
+      </query>
+
+      <row>
+        <column id ="sum">
+          <type>function</type>
+          <name>sum</name>
+          <header>Sum</header>
+          <column-ref>size</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+        <column id ="size">
+      	  <name>Int</name>
+          <hidden>true</hidden>
+          <return-neg>true</return-neg>
+        </column>
+
+        <column id ="avg">
+          <type>function</type>
+          <header>Avg</header>
+          <column-ref>size</column-ref>
+          <function-name>avg</function-name>
+        </column>
+
+        <column id="min">
+          <type>function</type>
+          <header>Min</header>
+          <column-ref>size</column-ref>
+          <function-name>min</function-name>
+        </column>
+
+        <column id ="max">
+          <type>function</type>
+          <header>Max</header>
+          <column-ref>size</column-ref>
+          <function-name>max</function-name>
+        </column>
+
+      </row>
+    </report>
+
+
+</report-config>

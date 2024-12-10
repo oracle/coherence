@@ -1,0 +1,341 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Near Caching
+:description: Coherence Guides Near Caching
+:keywords: coherence, java, documentation, near-cache, near cache
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Near Caching
+
+This guide walks you through how to use near caching within Coherence by providing
+various examples and configurations that showcase the different features available.
+
+A near cache is a hybrid cache; it typically fronts a distributed cache or a remote cache
+with a local cache. Near cache invalidates front cache entries, using a configured
+invalidation strategy, and provides excellent performance and synchronization.
+Near cache backed by a partitioned cache offers zero-millisecond local access for
+repeat data access, while enabling concurrency and ensuring coherency and fail over,
+effectively combining the best attributes of replicated and partitioned caches.
+
+See the {commercial-docs-base-url}/develop-applications/introduction-coherence-caches.html[Coherence Documentation]
+for detailed information on near caches.
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-will-need,What You Need>>
+* <<example-code-1, Review the Example Code>>
+* <<example-tests-1, Review the Tests>>
+* <<run-example-1, Run the Examples>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+In this example you will run a number of tests and that show the following features of near caches:
+
+* Configuring near caches
+* Setting near cache size limits
+* Changing the invalidation strategy
+* Configuring eviction policies
+* Exploring MBeans related to near caching
+
+[#what-you-will-need]
+==== What You Need
+:java_version: 11
+:duration: 15
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+[#running]
+==== Running the Examples
+
+This example can be run directly in your IDE, but you can also run
+1 or more cache servers and then run the example class.
+
+1. Running Cache Servers
++
+[source,bash]
+----
+./mvnw exec:exec -P server
+----
++
+or
++
+[source,bash]
+----
+./gradlew runServer -x test
+----
+
+2. Running each example
++
+Each example can be run direct from the IDE, or can be run via executing the tests.
++
+[source,bash]
+----
+./mvnw clean verify
+----
++
+or
++
+[source,bash]
+----
+./gradlew clean test
+----
+
+[#example-code-1]
+=== Review the Example Code
+
+The example code comprises the `SimpleNearCachingExample` class, which uses the `near-cache-config.xml`
+configuration to define a near cache. The front cache is configured with 100 entries as the `high-units`
+and the back cache is a distributed cache.
+
+When a near cache has reached it's `high-units` limit, it prunes itself back to the
+value of the `low-units` element (or not less than 80% of `high-units` if not set).  The entries
+chosen are done so according to the configured `eviction-policy`.
+
+There are a number of eviction policies that can be used including: Least Recently Used (LRU),
+Least Frequently Used (LFU), Hybrid or custom.
+
+The test class carries out the following steps:
+
+* Inserts 100 entries into the cache
+* Issues a get on each of the 100 entries and displays the time taken (populates the near cache's front cache)
+* Displays `CacheMBean` metrics for the front cache
+* Carries out a second get on the 100 entries and notes the difference in the time to retrieve the entries
+* Inserts an additional 10 entries then issue gets for those entries, which will cause cache pruning
+* Displays `CacheMBean` metrics for the front cache to show cache pruning happening
+* Displays `StorageManagerMBean` metrics to show listener registrations
+//-
+
+There are two tests that exercise the above `SimpleNearCachingExample` class and using different caches
+as well as different invalidation strategies set via a system property. They are described in more detail in the following sections.
+
+* com.oracle.coherence.guides.nearcaching.SimpleNearCachingExampleALLTest 
+* com.oracle.coherence.guides.nearcaching.SimpleNearCachingExamplePRESENTTest
+
+//-
+
+1. Review the Cache Config
++
+[source,java,indent=0]
+----
+include::src/main/resources/near-cache-config.xml[tag=config]
+----
++
+<1> Define cache mapping for caches matching `size-cache-*` to the `near-scheme` using macros to set the
+front limit to 100
+<2> Define an eviction policy to apply when `high-units` are reached
+<3> Define front scheme `high-units` using the macro and defaulting to 10 if not set
+<4> Define back scheme as standard distributed scheme
+<5> System property to set the invalidation strategy for each test
+
+2. Review the `SimpleNearCachingExample` class
++
+*Constructor*
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/nearcaching/SimpleNearCachingExample.java[tag=construct]
+----
++
+*Main Example*
++
+The `runExample()` method contains the code that exercises the near cache. A loop in the test runs twice to show the difference second time around with the near cache populated.
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/nearcaching/SimpleNearCachingExample.java[tag=runExample]
+----
++
+<1> Populate the cache with 100 entries
+<2> Issue a get for each of the 100 entries
+<3> Sleep for 3 seconds to ensure JMX stats are up to date
+<4> Display the Cache MBean front cache metrics
+<5> Issue 10 more puts and gets which will cause the front cache to be pruned
+<6> Display the Cache MBean front cache metrics and StorageManager metrics
+
+[#example-tests-1]
+=== Review the Tests
+
+The main `SimpleNearCachingExample` class is exercised by running the following tests :
+
+* SimpleNearCachingExampleALLTest - uses `all` invalidation strategy and high units of 100
+* SimpleNearCachingExamplePRESENTTest - uses `present` invalidation strategy and high units of 100
+
+//-
+There are a number of invalidation strategies, described {commercial-docs-base-url}/develop-applications/configuring-caches.html#GUID-78557F0D-1CCC-4A4B-B52C-61D6EBF88295[here],
+but we will utilize the following for the tests above:
+
+* `all` - This strategy instructs a near cache to listen to all back cache events. This strategy is optimal for read-heavy tiered access patterns where there is significant overlap between the different instances of front caches.
+* `present` - This strategy instructs a near cache to listen to the back cache events related only to the items currently present in the front cache. This strategy works best when each instance of a front cache contains distinct subset of data relative to the other front cache instances (for example, sticky data access patterns).
+
+NOTE: The default strategy is `auto`, which is identical to the `present` strategy.
+//-
+
+
+1. Review the `SimpleNearCachingExampleALLTest`
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/nearcaching/SimpleNearCachingExampleALLTest.java[tag=test]
+----
++
+NOTE: This test runs with a cache called `size-cache-all`, which matches the size limited near cache and
+invalidation strategy of `all`.
+
+2. Review the `SimpleNearCachingExamplePRESENTTest`
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/nearcaching/SimpleNearCachingExamplePRESENTTest.java[tag=test]
+----
++
+NOTE: This test runs with a cache called `size-cache-present`, which matches the size limited near cache and
+invalidation strategy of `present.
+
+[#run-example-1]
+=== Run the Examples
+
+Run the examples using one of the test classes below:
+
+1. Run directly from your IDE by running either of the following test classes:
++
+* com.oracle.coherence.guides.nearcaching.SimpleNearCachingExampleALLTest or
+* com.oracle.coherence.guides.nearcaching.SimpleNearCachingExamplePRESENTTest
++
+
+2. Run using Maven or Gradle
++
+E.g. for Maven use:
++
+[source,bash]
+----
+./mvnw clean verify
+----
++
+or
++
+[source,bash]
+----
+./gradlew clean test
+----
++
+NOTE: If you run one or more cache servers as described earlier, you will see additional StorageManager MBean output below.
+
+*SimpleNearCachingExampleALLTest Output*
+
+This test will generate output similar to the following: (timestamps have been removed from output)
+
+[source,bash]
+----
+<Info> (thread=main, member=1): Running test with cache size-cache-all
+<Info> (thread=main, member=1): Iteration #1 Total time for gets 38.094ms <1>
+<Info> (thread=main, member=1): Coherence:type=Cache,service=DistributedCache,name=size-cache-all,nodeId=1,tier=front,loader=414493378 <2>
+<Info> (thread=main, member=1): Name: TotalGets, value=100
+<Info> (thread=main, member=1): Name: TotalPuts, value=100
+<Info> (thread=main, member=1): Name: CacheHits, value=0
+<Info> (thread=main, member=1): Name: Size, value=100
+<Info> (thread=main, member=1): Name: HitProbability, value=0.0
+<Info> (thread=main, member=1): Name: AverageMissMillis, value=0.37
+<Info> (thread=main, member=1): Name: CachePrunes, value=0
+<Info> (thread=main, member=1): Iteration #2 Total time for gets 0.143ms <3>
+<Info> (thread=main, member=1): Coherence:type=Cache,service=DistributedCache,name=size-cache-all,nodeId=1,tier=front,loader=414493378
+<Info> (thread=main, member=1): Name: TotalGets, value=200
+<Info> (thread=main, member=1): Name: TotalPuts, value=100
+<Info> (thread=main, member=1): Name: CacheHits, value=100
+<Info> (thread=main, member=1): Name: Size, value=100
+<Info> (thread=main, member=1): Name: HitProbability, value=0.5 <4>
+<Info> (thread=main, member=1): Name: AverageMissMillis, value=0.37
+<Info> (thread=main, member=1): Name: CachePrunes, value=0
+<Info> (thread=main, member=1): After extra 10 values put and get
+<Info> (thread=main, member=1): Coherence:type=Cache,service=DistributedCache,name=size-cache-all,nodeId=1,tier=front,loader=414493378
+<Info> (thread=main, member=1): Name: TotalGets, value=210
+<Info> (thread=main, member=1): Name: TotalPuts, value=110
+<Info> (thread=main, member=1): Name: CacheHits, value=109
+<Info> (thread=main, member=1): Name: Size, value=90 <5>
+<Info> (thread=main, member=1): Name: HitProbability, value=0.5190476190476191
+<Info> (thread=main, member=1): Name: AverageMissMillis, value=0.36633663366336633
+<Info> (thread=main, member=1): Name: CachePrunes, value=1 <6>
+<Info> (thread=main, member=1): Coherence:type=StorageManager,service=DistributedCache,cache=size-cache-all,nodeId=1 <7>
+<Info> (thread=main, member=1): Name: ListenerRegistrations, value=1 
+<Info> (thread=main, member=1): Name: InsertCount, value=110
+----
+<1> Iteration #1 for gets takes 38.094ms which includes the time to populate the front cache
+<2> The Cache MBean object name for the front cache and various metrics
+<3> Iteration #2 for gets takes only 0.143ms which is considerably quicker due to the entries being in the front cache
+<4> The Hit Probability is 0.5 or 50% as 100 out of 200 entries were read from the front cache
+<5> After the extra puts and gets, we can see that the cache was pruned the size of the front cache is now 90
+<6> Number of prune operations
+<7> Because we are using the `all` invalidation strategy there is only 1 listener registered for all the entries
+
+*SimpleNearCachingExamplePRESENTTest Output*
+
+The output is similar to the above output, but you will notice that the number of listeners registered are higher as we are using the `Present` strategy
+that will register a listener for each entry in the front of the near cache.
+
+[source,bash]
+----
+<Info> (thread=main, member=1): Running test with cache size-cache-present
+<Info> (thread=main, member=1): Iteration #1 Total time for gets 38.474ms
+<Info> (thread=main, member=1): Coherence:type=Cache,service=DistributedCache,name=size-cache-present,nodeId=1,tier=front,loader=414493378
+<Info> (thread=main, member=1): Name: TotalGets, value=100
+<Info> (thread=main, member=1): Name: TotalPuts, value=100
+<Info> (thread=main, member=1): Name: CacheHits, value=0
+<Info> (thread=main, member=1): Name: Size, value=100
+<Info> (thread=main, member=1): Name: HitProbability, value=0.0
+<Info> (thread=main, member=1): Name: AverageMissMillis, value=0.39
+<Info> (thread=main, member=1): Name: CachePrunes, value=0
+<Info> (thread=main, member=1): Iteration #2 Total time for gets 0.236ms
+<Info> (thread=main, member=1): Coherence:type=Cache,service=DistributedCache,name=size-cache-present,nodeId=1,tier=front,loader=414493378
+<Info> (thread=main, member=1): Name: TotalGets, value=200
+<Info> (thread=main, member=1): Name: TotalPuts, value=100
+<Info> (thread=main, member=1): Name: CacheHits, value=100
+<Info> (thread=main, member=1): Name: Size, value=100
+<Info> (thread=main, member=1): Name: HitProbability, value=0.5
+<Info> (thread=main, member=1): Name: AverageMissMillis, value=0.39
+<Info> (thread=main, member=1): Name: CachePrunes, value=0
+<Info> (thread=main, member=1): After extra 10 values put and get
+<Info> (thread=main, member=1): Coherence:type=Cache,service=DistributedCache,name=size-cache-present,nodeId=1,tier=front,loader=414493378
+<Info> (thread=main, member=1): Name: TotalGets, value=210
+<Info> (thread=main, member=1): Name: TotalPuts, value=110
+<Info> (thread=main, member=1): Name: CacheHits, value=100
+<Info> (thread=main, member=1): Name: Size, value=89
+<Info> (thread=main, member=1): Name: HitProbability, value=0.47619047619047616
+<Info> (thread=main, member=1): Name: AverageMissMillis, value=0.4818181818181818
+<Info> (thread=main, member=1): Name: CachePrunes, value=1
+<Info> (thread=main, member=1): Coherence:type=StorageManager,service=DistributedCache,cache=size-cache-present,nodeId=1
+<Info> (thread=main, member=1): Name: ListenerRegistrations, value=110 <1>
+<Info> (thread=main, member=1): Name: InsertCount, value=110
+----
+<1> Number of listener registrations
+
+[#summary]
+=== Summary
+
+In this example you have seen how to use near caching within Coherence by covering the following:
+
+* Configured near caches
+* Set near cache size limits
+* Changed the invalidation strategy
+* Configured eviction policies
+* Explored MBeans related to near caching
+
+[#see-also]
+=== See Also
+
+* {commercial-docs-base-url}/develop-applications/introduction-coherence-caches.html#GUID-5C066CC9-575F-4D7D-9D53-7BB674D69FD1[Understanding Near Caches]
+* {commercial-docs-base-url}/develop-applications/configuring-caches.html#GUID-F91E64DD-2C46-4ED9-BD41-04D2922312F6[Defining Near Cache Schemes]
+* {commercial-docs-base-url}/develop-applications/configuring-caches.html#GUID-78557F0D-1CCC-4A4B-B52C-61D6EBF88295[Near Cache Invalidation Strategies]
+* {commercial-docs-base-url}/develop-applications/introduction-coherence-caches.html#GUID-9E6ABD8C-AD27-48C7-9C57-2A90133CEB3A[Understanding Local Caches]
+* {commercial-docs-base-url}/develop-applications/cache-configuration-elements.html#GUID-2DA5531C-4D2B-4582-9ED7-012120122BB9[Near Cache local-scheme Configuration]
+* {commercial-docs-base-url}/administer/performance-tuning.html#GUID-20600648-0C50-4275-9AE2-782CE32CAC2D[Near Cache and Cluster-node Affinity]
+* {commercial-docs-base-url}/administer/performance-tuning.html#GUID-068ABDF6-19A2-4C54-8B5B-8D1059EFFFC7[Concurrent Near Cache Misses on a Specific Hot Key]

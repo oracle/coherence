@@ -1,0 +1,44 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Coherence MicroProfile Health
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Coherence MicroProfile Health
+
+Coherence MicroProfile (MP) Health provides support for Eclipse MicroProfile Health within the Coherence cluster members.
+See the documentation on the
+https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/manage/using-health-check-api.html[Coherence Health Check API]
+and https://microprofile.io/project/eclipse/microprofile-health[MicroProfile Health].
+
+Coherence MP Health is a very simple module that enables you to publish Coherence health checks into the MicroProfile Health Check Registries available at runtime.
+
+
+=== Enabling the Use of Coherence MP Health
+
+To use Coherence MP Health, you should first declare it as a dependency in the project's pom.xml file.
+
+You can declare Coherence MP Health as follows:
+
+[source,xml]
+.pom.xml
+----
+<dependency>
+    <groupId>${coherence.groupId}</groupId>
+    <artifactId>coherence-mp-health</artifactId>
+    <version>${coherence.version}</version>
+</dependency>
+----
+
+Where `${coherence.groupId}` is the Maven groupId for the Coherence edition being used, `com.oracle.coherence`
+for the commercial edition or `com.oracle.coherence.ce` for the community edition.
+And `${coherence.version}` is the version of Coherence being used.
+
+After the module becomes available in the class path, the Coherence `HealthCheck` producer CDI bean will be automatically
+discovered and be registered as a Microprofile health check provider.
+The Coherence health checks will then be available via any health endpoints served by the application and included in started, readiness and liveness checks.
+

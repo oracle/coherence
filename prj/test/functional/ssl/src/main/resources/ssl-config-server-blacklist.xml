@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<ssl>
+  <identity-manager>
+    <key-store>
+      <url>file:client.jks</url>
+      <password>password</password>
+    </key-store>
+    <password>private</password>
+  </identity-manager>
+  <trust-manager>
+    <algorithm>PeerX509</algorithm>
+    <key-store>
+      <url>file:trust.jks</url>
+      <password>password</password>
+    </key-store>
+  </trust-manager>
+  <protocol-versions usage="black-list">
+    <name>SSLv3</name>
+  </protocol-versions>
+  <cipher-suites usage="black-list">
+    <name>TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256</name>
+  </cipher-suites>
+  <socket-provider>tcp</socket-provider>
+</ssl>

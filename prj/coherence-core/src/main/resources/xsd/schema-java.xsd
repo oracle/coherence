@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<schema targetNamespace="http://xmlns.oracle.com/coherence/schema/java"
+	xmlns="http://www.w3.org/2001/XMLSchema"
+  xmlns:java="http://xmlns.oracle.com/coherence/schema/java"
+	elementFormDefault="qualified"
+	attributeFormDefault="unqualified"
+	version="1.0">
+
+  <element name="type" type="java:typeType"/>
+  <element name="property" type="java:propertyType"/>
+  <element name="alias" type="java:aliasType"/>
+
+  <complexType name="aliasType">
+    <attribute name="name" type="string" use="required"/>
+  </complexType>
+
+  <complexType name="typeType">
+    <sequence>
+      <element ref="java:alias" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="name" type="string" use="required"/>
+    <attribute name="wrapper" type="string" use="optional"/>
+  </complexType>
+
+  <complexType name="propertyType">
+    <attribute name="type" type="string" use="required"/>
+  </complexType>
+
+</schema>

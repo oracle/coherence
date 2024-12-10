@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xmlns:jcache="class://com.tangosol.coherence.jcache.JCacheNamespace"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+<!--
+    <caching-scheme-mapping>
+
+        <cache-mapping>
+            <cache-name>jcache-partitioned-*</cache-name>
+            <scheme-name>jcache-partitioned-scheme</scheme-name>
+        </cache-mapping>
+
+    </caching-scheme-mapping>
+    -->
+    <caching-schemes>
+
+        <!-- inline to work around coherence system properties not working with generated configuration -->
+        <!-- tangosol.coherence.pof must be used to serialize jcache user provided listeners, expiry policy,
+          cacheloader and cachewriter occurring in partitionedcacheconfiguration. -->
+
+        <distributed-scheme>
+            <scheme-name>jcache-configurations-distributed-scheme</scheme-name>
+            <service-name>jcache-configurations-distributed-service</service-name>
+
+            <backing-map-scheme>
+                <local-scheme/>
+            </backing-map-scheme>
+
+            <autostart>true</autostart>
+        </distributed-scheme>
+
+        <!--
+          JCache Partitioned Cache Scheme.
+          (used by partitioned-cache-based JCaches)
+          -->
+
+        <distributed-scheme>
+            <scheme-name>jcache-partitioned-scheme</scheme-name>
+            <service-name>jcache-partitioned-service</service-name>
+
+            <backing-map-scheme>
+                <read-write-backing-map-scheme>
+                    <internal-cache-scheme>
+                        <local-scheme/>
+                    </internal-cache-scheme>
+                    <cachestore-scheme>
+                        <class-scheme>
+                            <class-name>com.tangosol.coherence.jcache.partitionedcache.PartitionedCacheBinaryEntryStore</class-name>
+                            <init-params>
+                                <init-param>
+                                    <param-name>sCacheName</param-name>
+                                    <param-value>{cache-name}</param-value>
+                                </init-param>
+                                <init-param>
+                                    <param-name>ctxBackingMap</param-name>
+                                    <param-value>{manager-context}</param-value>
+                                </init-param>
+                                <init-param>
+                                    <param-name>classLoader</param-name>
+                                    <param-value>{class-loader}</param-value>
+                                </init-param>
+                            </init-params>
+                        </class-scheme>
+                    </cachestore-scheme>
+                </read-write-backing-map-scheme>
+            </backing-map-scheme>
+
+            <autostart>true</autostart>
+        </distributed-scheme>
+
+
+    </caching-schemes>
+
+</cache-config>

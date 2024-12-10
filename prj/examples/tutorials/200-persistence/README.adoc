@@ -1,0 +1,536 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Persistence
+:description: Coherence Tutorials
+:keywords: coherence, java, documentation, tutorials, Persistence
+
+== Persistence
+
+This tutorial walks through Coherence Persistence by using Coherence Query Language (CohQL)
+to create, recover and manage snapshots, monitor snapshot operations via JMX MBean notifications and
+work with archived snapshots.
+
+Coherence Persistence is a set of tools and technologies that manage the persistence and
+recovery of Coherence distributed caches. Cached data is persisted so that it can be quickly recovered after
+a catastrophic failure or after a cluster restart due to planned maintenance.
+
+Persistence can operate in two modes:
+
+* On-Demand persistence mode – a cache service is manually persisted and recovered upon request using the
+persistence coordinator. The persistence coordinator is exposed as an MBean interface that provides
+operations for creating, archiving, and recovering snapshots of a cache service.
+
+* Active persistence mode – In this mode, cache contents are automatically persisted on all mutations and are
+automatically recovered on cluster/service startup. The persistence coordinator can still
+be used in active persistence mode to perform on-demand snapshots.
+
+For more information on Coherence Persistence, please see the
+{commercial-docs-base-url}/administer/persisting-caches.html[Coherence Documentation].
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-need,What You Need>>
+* <<building,Building the Example Code>>
+* <<review-the-initial-project, Review the Project>>
+** <<maven, Maven Configuration>>
+** <<cache-config, Persistence Configuration>>
+** <<listener, Listening to JMX Notifications>>
+* <<run-the-example, Build and Run the Example>>
+* <<active-persistence, Enable Active Persistence>>
+* <<archiver, Enable a Snapshot Archiver>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+
+You will review the requirements for running both `on-demand` and `active` persistence and carry out the following:
+
+1. Start one or more cache servers with `on-demand` persistence
+2. Start a `CohQL` session to insert data and create and manage snapshots
+3. Start a JMX MBean listener to monitor Persistence operations
+4. Change `on-demand` to `active` persistence and show this in action
+5. Work with archiving snapshots
+
+
+// Do not change this part.
+// If your example requires Java 11+ change the 1.8 below to 11
+[#what-you-need]
+=== What You Need
+:java_version: 11
+:duration: 20-30
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+[#building]
+==== Building the Example Code
+
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+[#review-the-initial-project]
+=== Review the Project
+
+[#maven]
+==== Maven Configuration
+
+The project is a Coherence project and imports the `coherence-bom` and `coherence-dependencies`
+POMs as shown below:
+
+[source,xml,indent=0]
+----
+include::pom.xml[tag=deps1]
+----
+
+The `coherence` library is also included:
+
+[source,xml,indent=0]
+----
+include::pom.xml[tag=deps2]
+----
+
+We also define a number of profiles to run the `DefaultCacheServer` for each cluster and `CohQL` for each cluster.
+
+* <<cache-server,cache-server - Runs a DefaultCacheServer>>
+* <<cohql,cohql - Runs a CohQL session>>
+* <<notifications,notifications - Runs a process to subscribe to JMX Notification events>>
+
+
+[#cache-server]
+*cache-server* - Runs a `DefaultCacheServer`
+
+[source,xml,indent=0]
+----
+include::pom.xml[tag=cache-server]
+----
+<1> Set on-demand mode, which is the default
+<2> Set the base directory for all persistence directories
+
+[#cohql]
+*cohql* - Runs a `CohQL` session
+
+[source,xml,indent=0]
+----
+include::pom.xml[tag=cohql]
+----
+
+[#notifications]
+*notifications* - Runs a process to subscribe to JMX Notification events
+
+[source,xml,indent=0]
+----
+include::pom.xml[tag=notifications]
+----
+
+[#cache-config]
+==== Persistence Configuration
+
+By default, any partitioned service, including Federated services, will default to `on-demand` mode. This mode allows you
+to create and manage snapshots to default directories without any setup. A `coherence` directory off the users home
+directory is used to store all persistence-related data.
+
+If you wish to enable `active` persistence mode you can use a system property `-Dcoherence.distributed.persistence.mode=active`
+and this will use the default directories as described above.
+
+In this example we are also defining the base persistence directory using a system property `-Dcoherence.distributed.persistence.base.dir=persistence-data`.
+All other persistence directories will be created below this directory.
+
+Please see {commercial-docs-base-url}/administer/persisting-caches.html#GUID-AA98D601-5CE9-4E33-BB16-487B417BA5A8[here] for more
+details on configuring your persistence locations.
+
+In this tutorial, Persistence is configured in two files:
+
+* An operational override file is used to configure non-default persistence environments and archive locations
+* A cache configuration with file the `<persistence>` element is used to associate services with persistence environments, if you are not using the defaults. (This is initially commented out.)
+
+**Cache Configuration File**
+
+[source,xml,indent=0]
+----
+include::src/main/resources/persistence-cache-config.xml[tag=mapping]
+----
+NOTE: The above cache configuration has the `<persistence>` element commented out for the first part of this tutorial.
+
+**Operational Override File**
+
+[source,xml,indent=0]
+----
+include::src/main/resources/tangosol-coherence-override.xml[tag=mapping]
+----
+<1> Defines a snapshot archiver to archive to a given directory
+
+[#listener]
+==== Listening to JMX Notifications
+
+Persistence operations generate JMX notifications. You can register for these notifications to monitor and
+understand how long these operations are taking.
+
+NOTE: You can use a tool such as VisualVM with the Coherence VisualVM plugin to monitor and manage persistence.
+See the VisualVM Plugin project on https://github.com/oracle/coherence-visualvm[GitHub].
+
+**Main entry point**
+
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/tutorials/persistence/NotificationWatcher.java[tag=main]
+----
+<1> Join the cluster and retrieve the `MBeanServer` and `Registry`
+<2> Loop through the services provided as arguments and get the MBean name for the Persistence MBean
+<3> Ensure the MBean is registered
+<4> Add a notification listener on the Persistence MBean
+
+**PersistenceNotificationListener implementation**
+
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/tutorials/persistence/NotificationWatcher.java[tag=listener1]
+----
+
+**Handle the notification**
+
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/tutorials/persistence/NotificationWatcher.java[tag=handleNotification]
+----
+<1> Store the details of the begin notification
+<2> Handle the end notification and determine the operation length
+
+[#run-the-example]
+=== Run the Example
+
+Once you have built the project as described earlier in this document, you can run it via Maven or Gradle.
+
+==== Maven
+
+1. Start one or more DefaultCache servers in separate terminals.
++
+[source,bash]
+----
+./mvnw exec:exec -P cache-server
+----
+
+2. Start a CohQL session.
++
+[source,bash]
+----
+./mvnw exec:java -P cohql
+----
+
+3. Start a JMX Listener.
++
+[source,bash]
+----
+./mvnw exec:exec -P notifications
+----
+
+==== Gradle
+
+1. Start one or more DefaultCache servers in separate terminals.
++
+[source,bash]
+----
+./gradlew runCacheServer
+----
+
+2. Start a CohQL session.
++
+[source,bash]
+----
+./gradlew runCohql --console=plain
+----
++
+and
++
+[source,bash]
+----
+./gradlew runNotifications --console=plain
+----
+
+==== Run the following commands to exercise `on-demand` Persistence
+
+1. In the `CohQL` session, run the following commands to add data:
++
+[source,bash]
+----
+CohQL> select count() from test
+Results
+0
+
+CohQL>
+CohQL> insert into test key(1) value("one")
+
+CohQL> insert into test key(2) value("two")
+
+CohQL> insert into test key(3) value("three")
+
+select count() from test
+Results
+3
+----
+
+2. Create a snapshot containing this data
++
+[source,bash]
+----
+CohQL> list snapshots
+Results
+"PartitionedCache": []
+
+CohQL> create snapshot "data" "PartitionedCache"
+Are you sure you want to create a snapshot called 'data' for service 'PartitionedCache'? (y/n): y
+Creating snapshot 'data' for service 'PartitionedCache'
+Results
+"Success"
+
+CohQL> list snapshots
+Results
+"PartitionedCache": ["data"]
+----
++
+NOTE: You should see messages similar to the following in the notifications window:
++
+[source,bash]
+----
+Tue Apr 26 10:57:03 AWST 2022 : PartitionedCache (create.snapshot.begin) Building snapshot "data"
+Tue Apr 26 10:57:06 AWST 2022 : PartitionedCache (create.snapshot.end)   Successfully created snapshot "data" (Duration=3445ms)
+----
+
+3. Clear the cache and recover the snapshot
++
+[source,bash]
+----
+CohQL> delete from test
+Results
+
+CohQL> select count() from test
+Results
+0
+
+CohQL> recover snapshot "data" "PartitionedCache"
+Are you sure you want to recover a snapshot called 'data' for service 'PartitionedCache'? (y/n): y
+Recovering snapshot 'data' for service 'PartitionedCache'
+2022-04-11 16:23:06.691/499.700 Oracle Coherence GE 14.1.1.0.0 <D5> (thread=DistributedCache:PartitionedCache, member=3): Service PartitionedCache has been suspended
+2022-04-11 16:23:09.247/502.256 Oracle Coherence GE 14.1.1.0.0 <D5> (thread=DistributedCache:PartitionedCache, member=3): Service PartitionedCache has been resumed
+Results
+"Success"
+
+select count() from test
+Results
+3
+----
++
+NOTE: You should see messages similar to the following in the notifications window:
++
+[source,bash]
+----
+Tue Apr 26 10:57:48 AWST 2022 : PartitionedCache (recover.snapshot.begin) Recovering Snapshot "data"
+Tue Apr 26 10:57:48 AWST 2022 : PartitionedCache (recover.begin) Recovering snapshot "data"
+Tue Apr 26 10:57:49 AWST 2022 : PartitionedCache (recover.end)   Recovery Completed (Duration=623ms)
+Tue Apr 26 10:57:49 AWST 2022 : PartitionedCache (recover.snapshot.end)   Successfully recovered snapshot "data" (Duration=631ms)
+----
+
+NOTE: You will be able to see the snapshots in the directory `persistence-data/snapshots`.
+
+[#active-persistence]
+=== Enable Active Persistence
+
+==== Run the following commands to exercise `active` Persistence
+
+After shutting down all running processes, in the file `pom.xml` change
+`on-demand` to `active` for the `cohql` and `cache-server` profiles to enable active persistence.
+
+Run the `cache-server`, `cohql` and `notifications` as described above.
+
+1. In the `CohQL` session, run the following commands to add data
++
+[source,bash]
+----
+CohQL> select count() from test
+Results
+0
+
+CohQL>
+CohQL> insert into test key(1) value("one")
+
+CohQL> insert into test key(2) value("two")
+
+CohQL> insert into test key(3) value("three")
+
+select count() from test
+Results
+3
+----
+
+2. Shutdown all three processes and restart the `cache-server` and `cohql` processes, then continue below.
+
+3. Re-query the `test` cache
++
+[source,bash]
+----
+CohQL> select * from test
+Results
+"two"
+"three"
+"one"
+----
++
+NOTE: You can see that the cache data has automatically been recovered from disk during cluster startup.
+This active persistence data is stored in the directory `persistence-data/active` below the persistence tutorial directory.
+
+[#archiver]
+=== Enable a Snapshot Archiver
+
+Snapshots can be archived to a central location and then later retrieved and restored. Archiving snapshots requires defining the directory where
+archives are stored and configuring cache services to use an archive directory.
+
+To enable a snapshot archiver in this example, you need to uncomment the `<persistence>` element in the
+cache config file `src/main/resources/persistence-cache-config.xml`, and rebuild the project using
+Maven or Gradle.
+
+[source,xml,indent=0]
+----
+include::src/main/resources/persistence-cache-config.xml[tag=mapping]
+----
+
+1. Archive the existing `data` snapshot.
++
+[source,bash]
+----
+CohQL> archive snapshot "data" "PartitionedCache"
+Are you sure you want to archive a snapshot called 'data' for service 'PartitionedCache'? (y/n): y
+Archiving snapshot 'data' for service 'PartitionedCache'
+Results
+"Success"
+----
+
+2. Inspect the archive directory contents to determine the cluster name
++
+[source,bash,indent=0]
+----
+$ cd persistence-data/archives/
+$ ls
+timmiddleton-s-cluster
+----
++
+NOTE: In the above the cluster name is `timmiddleton's cluster` but a sanitized directory of `timmiddleton-s-cluster` has been used.
+
+3. View the contents of the archived snapshot directory, substituting your cluster directory.
++
+[source,bash,indent=0]
+----
+$ cd timmiddleton-s-cluster/PartitionedCache/data/
+$ ls
+0-1-18063c8cc4c-1	12-1-18063c8cc4c-1	16-1-18063c8cc4c-1	2-1-18063c8cc4c-1	23-1-18063c8cc4c-1	27-1-18063c8cc4c-1	30-1-18063c8cc4c-1	7-1-18063c8cc4c-1
+1-1-18063c8cc4c-1	13-1-18063c8cc4c-1	17-1-18063c8cc4c-1	20-1-18063c8cc4c-1	24-1-18063c8cc4c-1	28-1-18063c8cc4c-1	4-1-18063c8cc4c-1	8-1-18063c8cc4c-1
+10-1-18063c8cc4c-1	14-1-18063c8cc4c-1	18-1-18063c8cc4c-1	21-1-18063c8cc4c-1	25-1-18063c8cc4c-1	29-1-18063c8cc4c-1	5-1-18063c8cc4c-1	9-1-18063c8cc4c-1
+11-1-18063c8cc4c-1	15-1-18063c8cc4c-1	19-1-18063c8cc4c-1	22-1-18063c8cc4c-1	26-1-18063c8cc4c-1	3-1-18063c8cc4c-1	6-1-18063c8cc4c-1	meta.properties
+----
++
+NOTE: The directory shows 31 different data files and a `meta.properties` file that contains some metadata.
+These files are binary files and can only be used by recovering an archived snapshot.
+
+4. Validate the archived snapshot
++
+The following command will ensure that the archived snapshot can be retrieved and is valid. You
+should always use this command to ensure the integrity of your archived snapshots.
++
+[source,bash,indent=0]
+----
+CohQL> validate archived snapshot "data" "PartitionedCache" verbose
+
+...
+various messages left out
+...
+
+Results
+Attribute                    Value
+---------------------------- -------------------------------------------------------------
+Partition Count              31
+Archived Snapshot            Name=data, Service=PartitionedCache
+Original Storage Format      BDB
+Storage Version              0
+Implementation Version       0
+Number of Partitions Present 31
+Is Complete?                 true
+Is Archived Snapshot?        true
+Persistence Version          14
+Statistics
+test                         Size=3, Bytes=41, Indexes=0, Triggers=0, Listeners=0, Locks=0
+----
+
+5. Remove the local snapshot
++
+In this tutorial, we remove the local snapshot so that we can then retrieve the archived snapshot.
++
+NOTE: A local snapshot of the same name cannot exist already if we want to retrieve an archived snapshot.
++
+[source,bash,indent=0]
+----
+CohQL> remove snapshot "data" "PartitionedCache"
+Are you sure you want to remove snapshot called 'data' for service 'PartitionedCache'? (y/n): y
+Removing snapshot 'data' for service 'PartitionedCache'
+Results
+"Success
+
+CohQL> list snapshots
+Results
+"PartitionedCache": []
+----
+
+6. Retrieve the archived snapshot
++
+[source,bash,indent=0]
+----
+CohQL> retrieve archived snapshot "data" "PartitionedCache"
+Are you sure you want to retrieve a snapshot called 'data' for service 'PartitionedCache'? (y/n): y
+Retrieving snapshot 'data' for service 'PartitionedCache'
+Results
+"Success"
+
+CohQL> list snapshots
+Results
+"PartitionedCache": ["data"]
+----
+
+7. Remove all data from the cache and recover the snapshot
++
+[source,bash,indent=0]
+----
+CohQL> select count() from test
+Results
+3
+CohQL> delete from test
+Results
+
+select count() from test
+Results
+0
+
+CohQL> recover snapshot "data" "PartitionedCache"
+Are you sure you want to recover a snapshot called 'data' for service 'PartitionedCache'? (y/n): y
+Recovering snapshot 'data' for service 'PartitionedCache'
+2022-04-26 12:53:26.866/1734.102 Oracle Coherence GE 14.1.2.0.0 <D5> (thread=DistributedCache:PartitionedCache, member=2): Service PartitionedCache has been suspended
+2022-04-26 12:53:28.709/1735.944 Oracle Coherence GE 14.1.2.0.0 <D5> (thread=DistributedCache:PartitionedCache, member=2): Service PartitionedCache has been resumed
+Results
+"Success"
+
+CohQL> select count() from test
+Results
+3
+----
+
+[#summary]
+=== Summary
+
+In this tutorial, you have learnt about Coherence Persistence and how you can use it with the Coherence Query Language (CohQL)
+to create, recover and managed snapshots, monitor snapshot operations via JMX MBean notifications as well
+as work with archived snapshots.
+
+[#see-also]
+=== See Also
+
+* {commercial-docs-base-url}/administer/persisting-caches.html#GUID-AA98D601-5CE9-4E33-BB16-487B417BA5A8[Persistence Configuration]

@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<schema targetNamespace="http://xmlns.oracle.com/coherence/schema"
+	xmlns="http://www.w3.org/2001/XMLSchema"
+	xmlns:schema="http://xmlns.oracle.com/coherence/schema"
+	elementFormDefault="qualified"
+	attributeFormDefault="unqualified"
+	version="1.0">
+
+  <element name="schema" type="schema:schemaType"/>
+  <element name="interface" type="schema:interfaceType"/>
+  <element name="type" type="schema:typeType"/>
+  <element name="property" type="schema:propertyType"/>
+
+  <complexType name="schemaType">
+    <sequence>
+      <element ref="schema:type" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="external" type="boolean" use="optional"/>
+  </complexType>
+
+  <complexType name="interfaceType">
+    <attribute name="name" type="string" use="required"/>
+  </complexType>
+
+  <complexType name="typeType">
+    <sequence>
+      <element ref="schema:interface" minOccurs="0" maxOccurs="unbounded"/>
+      <any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
+      <element ref="schema:property" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="name" type="string" use="required"/>
+    <attribute name="base" type="string" use="optional"/>
+  </complexType>
+
+  <complexType name="propertyType">
+    <sequence>
+        <any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="name" type="string" use="required"/>
+    <attribute name="type" type="string" use="required"/>
+  </complexType>
+
+</schema>

@@ -1,0 +1,54 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Coherence Micrometer Metrics
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Coherence Micrometer Metrics
+
+The `coherence-micrometer` module provides integration between Coherence metrics and Micrometer allowing Coherence
+metrics to be published via any of the Micrometer registries.
+
+== Usage
+
+In order to use Coherence Micrometer metrics, you need to declare the module as a dependency in your `pom.xml`
+and bind your Micrometer registry with the Coherence metrics adapter:
+
+[source,xml,subs="attributes+"]
+----
+    <dependency>
+        <groupId>{coherence-maven-group-id}</groupId>
+        <artifactId>coherence-micrometer</artifactId>
+        <version>{version-coherence-maven}</version>
+    </dependency>
+----
+
+The `coherence-micrometer` provides a Micrometer `MeterBinder` implementation class called `CoherenceMicrometerMetrics`.
+This class is a singleton and cannot be constructed, to access it use the `CoherenceMicrometerMetrics.INSTANCE` field.
+
+Micrometer provides many registry implementations to support different metrics applications and formats.
+For example, to bind Coherence metrics to the Micrometer `PrometheusMeterRegistry`, create the `PrometheusMeterRegistry`
+as documented in the https://micrometer.io/docs[Micrometer documentation], and call the `CoherenceMicrometerMetrics`
+class's `bindTo` method:
+
+[source,java]
+----
+PrometheusMeterRegistry prometheusRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+
+// complete registy configuration...
+
+CoherenceMicrometerMetrics.INSTANCE.bindTo(prometheusRegistry);
+----
+
+Micrometer registries can be bound to Coherence at any time, before or after Coherence starts. As Coherence creates
+or removed metrics they will be registered with or removed from the Micrometer registries.
+
+
+== Automatic Global Registry Binding
+
+Micrometer has a global registry available which Coherence will bind to automatically if the
+`coherence.micrometer.bind.to.global` system property has been set to `true` (this property is `false` by default).

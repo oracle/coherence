@@ -1,0 +1,157 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2022, 2023 Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Important Changes in Coherence Community Edition (CE)
+
+== Java Development Kit Requirements
+
+Coherence CE {version-coherence} requires a minimum of version
+17 of the Java Development Kit (JDK).
+
+=== Concerning Java Platform Module (JPMS) Options
+
+JPMS JDK command line options such as *--add-opens*, *--add-exports* and *--add-reads* of standard JDK modules to *com.oracle.coherence* module documented in Section *Using Java Modules to Build a Coherence Application* of Coherence commercial release 14.1.1.2206 are no longer required.
+
+A new JPMS requirement is an application module containing Coherence remote lambda(s) must open itself to module *com.oracle.coherence* so the remote lambda(s) can be resolved to the application's lambda(s) during deserialization.
+
+== Jakarta EE 9.1 Compatibility
+
+Coherence CE {version-coherence} has migrated to Jakarta EE 9.1 from Java EE 8, importing types in *jakarta* packages instead of *javax* packages.
+The following table describes the mapping of javax packages to jakarta packages and Maven artifacts in Coherence CE {version-coherence}.
+|===
+|'javax' Package |'jakarta' Package |Maven Group ID |Maven Artifact ID| Version
+
+|javax.activation
+|jakarta.activation
+|jakarta.activation
+|jakarta.activation-api
+|2.0.1
+
+|javax.annotation
+|jakarta.annotation
+|jakarta.annotation
+|jakarta.annotation-api
+|2.0.0
+
+|javax.enterprise
+|jakarta.enterprise
+|jakarta.enterprise
+|jakarta.enterprise.cdi-api
+|3.0.0
+
+|javax.inject
+|jakarta.inject
+|jakarta.inject
+|jakarta.inject-api
+|2.0.1
+
+|javax.interceptor
+|jakarta.interceptor
+|jakarta.interceptor
+|jakarta.interceptor-api
+|2.0.0
+
+|javax.jms
+|jakarta.jms
+|jakarta.jms
+|jakarta.jms-api
+|3.0.0
+
+|javax.json
+|jakarta.json
+|jakarta.json
+|jakarta.json-api
+|2.0.2
+
+|javax.json.bind
+|jakarta.json.bind
+|jakarta.json.bind
+|jakarta.json.bind-api
+|2.0.0
+
+|javax.resource
+|jakarta.resource
+|jakarta.resource
+|jakarta.resource-api
+|2.0.0
+
+|javax.ws.rs
+|jakarta.ws.rs
+|jakarta.ws.rs
+|jakarta.ws.rs-api
+|3.0.0
+
+|javax.xml.bind
+|jakarta.xml.bind
+|jakarta.xml.bind
+|jakarta.xml.bind-api
+|3.0.1
+|===
+
+We've updated our Coherence CE examples to use the jakarta packages where relevant.
+These examples still hold for older versions of Coherence CE; in these cases
+developers will need to change from *jakarta* to *javax*.
+
+In addition to these standard APIs being migrated, we've also updated
+some of our major dependent libraries that have undertaken this migration as well.
+Most notably:
+
+
+|===
+|Library |Version
+
+|Helidon
+|3.0.0
+
+|Jersey
+|3.0.5
+
+|Jackson
+|2.13.3
+
+|Jackson DataBind
+|2.13.3
+
+|Weld
+|4.0.3.Final
+
+|JAXB Core
+|3.0.2
+
+|JAXB Implementation
+|3.0.2
+
+|Eclipse MP Config
+|3.0.1
+
+|Eclipse MP Metrics
+|4.0
+|===
+
+[NOTE]
+====
+If using the older `jackson-rs-base` and `jackson-jaxrs-json-provider` libraries,
+it will be necessary to migrate to the 'jakarta' versions.  The Maven
+groupId for the 'jakarta' versions is `com.fasterxml.jackson.jakarta.rs`
+with the artifactIds being `jackson-jakarta-rs-base` and `jackson-jakarta-rs-json-provider`,
+respectively.
+====
+
+[NOTE]
+====
+If using the older `jackson-module-jaxb-annotations` library,
+it will be necessary to migrate to the `jakarta` versions.  The maven
+groupId for the 'jakarta' version remains the same (`com.fasterxml.jackson.module`),
+however the artifactId should now be `jackson-module-jakarta-xmlbind-annotations`
+====
+
+
+== Deprecated Code Removal
+The following deprecated packages have been removed from this release:
+
+* com.oracle.datagrid.persistence
+* com.tangosol.persistence
+* com.oracle.common.base (NOTE: these classes are now in com.oracle.coherence.common.base)

@@ -1,0 +1,23 @@
+<?xml version='1.0'?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<license-document>
+  <license>
+    <software>Oracle Coherence: Standard Edition</software>
+    <licensee>n/a</licensee>
+    <type>production</type>
+    <id>0xF0A800CC0000011290D1A22ED170B42C</id>
+    <signature>302C02143994C40B38455EB2CC8CA100298C247A6113CC1E02146D2C4C48266F95BB6F2D5DE36690EE54F21D33AD</signature>
+  </license>
+  <license>
+    <software>Oracle Coherence: Data Client</software>
+    <licensee>n/a</licensee>
+    <type>production</type>
+    <id>0x00A800CC0000011295888F24BC6C730B</id>
+    <signature>302C02145DADFAD73EB8A1042E425D9E349FFBBED973663A02147B34DA5EE1CB52E0262A7D7FFD47AA061AC6D7C7</signature>
+  </license>
+</license-document>

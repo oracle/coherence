@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce.tests</groupId>
+    <artifactId>coherence-distribution-tests</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>topics-compatibility</artifactId>
+  <name>Coherence Topics Backward Compatibility Tests</name>
+  <packaging>pom</packaging>
+
+  <modules>
+    <!-- commenting out since there is no Coherence rolling upgrade compatibility from 14.1.1.2206 to 14.1.2.0/15.1.1.0.0 -->
+    <!-- this module could be resurrected when new versions of this test are needed in future. -->
+    <!--module>topics-14.1.1.2206.3</module-->
+  </modules>
+
+  <properties>
+    <coherence.compatibility.version>${project.version}</coherence.compatibility.version>
+    <test.extend.jdk>${JAVA_HOME}</test.extend.jdk>
+  </properties>
+
+  <build>
+    <plugins>
+
+      <!--
+      The copy-dependencies plugin is used to copy the coherence.jar built by the
+      current project (i.e. the current version) into the target/lib folder for
+      each submodule. This coherence.jar is then used on the classpath of the
+      storage members started by the compatibility tests.
+       -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>get-current-version-of-coherence</id>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <phase>process-resources</phase>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>${coherence.group.id}</groupId>
+                  <artifactId>coherence</artifactId>
+                  <version>${project.version}</version>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${project.build.directory}/lib/current</outputDirectory>
+              <stripVersion>true</stripVersion>
+            </configuration>
+          </execution>
+          <execution>
+            <id>get-previous-version-of-coherence</id>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <phase>process-resources</phase>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>${coherence.group.id}</groupId>
+                  <artifactId>coherence</artifactId>
+                  <version>${coherence.compatibility.version}</version>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${project.build.directory}/lib/previous</outputDirectory>
+              <stripVersion>true</stripVersion>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- maven-failsafe-plugin runs integration tests with a different jdk -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${maven.failsafe.plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <forkMode>always</forkMode>
+          <jvm>${test.extend.jdk}/bin/java</jvm>
+          <systemProperties>
+            <server.java.home>${env.JAVA_HOME}</server.java.home>
+          </systemProperties>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-install</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>security-manager</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <property>
+          <name>test.security.enabled</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>test-jdk16</id>
+      <properties>
+        <surefire.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</surefire.argLine>
+        <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</failsafe.argLine>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>code-coverage</id>
+      <activation>
+        <property>
+          <name>code.coverage.enabled</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

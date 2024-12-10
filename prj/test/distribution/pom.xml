@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce</groupId>
+    <artifactId>main</artifactId>
+    <version>${revision}</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <groupId>com.oracle.coherence.ce.tests</groupId>
+  <artifactId>coherence-distribution-tests</artifactId>
+  <name>Coherence Distribution Tests Project</name>
+  <packaging>pom</packaging>
+
+  <modules>
+    <!--
+      !!! MODULES MUST NEVER BE DEFINED HERE !!!
+
+      ADVICE: Instead define them in the appropriate <profile>
+              section as part of the <profiles> section below.
+      -->
+  </modules>
+
+  <properties>
+    <dependency-check.skip>true</dependency-check.skip>
+
+    <useModulePath>false</useModulePath>
+    <bedrockUseModules>false</bedrockUseModules>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-install</id>
+            <phase>install</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-jar</id>
+            <phase>package</phase>
+            <configuration combine.self="override">
+              <archive>
+                <addMavenDescriptor>false</addMavenDescriptor>
+              </archive>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven.surefire.plugin.version}</version>
+      </plugin>
+    </plugins>
+  </build>
+
+  <!-- ================================================================== -->
+  <!--                             PROFILES                               -->
+  <!-- ================================================================== -->
+  <profiles>
+
+    <!--
+        The 'default' profile is shared by all other profiles.
+
+        It must be included with every build, regardless of the environment.
+      -->
+    <profile>
+      <id>default</id>
+
+      <activation>
+        <!-- This is a work-around for the fact that activeByDefault does not do what you'd think it should -->
+        <file><exists>.</exists></file>
+      </activation>
+
+      <!-- the following modules are buildable by this profile -->
+      <modules>
+        <!-- (none) -->
+      </modules>
+    </profile>
+
+    <!--
+        The 'modules' profile builds modules that depend on the main com.oracle.coherence.ce module.
+
+        It must be performed as a second stage of every build, regardless of the environment.
+      -->
+    <profile>
+      <id>modules</id>
+
+      <activation>
+        <property>
+          <!--
+              Automatically disabled when inside IntelliJ.
+              IntelliJ sets the idea.version property when importing Maven projects.
+              The IntelliJ profile will be enabled instead, which excluded modules
+              we do not want in the IDE.
+          -->
+          <name>!idea.version</name>
+        </property>
+      </activation>
+
+      <!-- the following additional modules are buildable by this profile -->
+      <modules>
+        <module>build-artifacts</module>
+        <module>grpc-compatibility</module>
+        <module>topics-compatibility</module>
+        <module>jcache-compliance</module>
+        <module>osgi</module>
+      </modules>
+    </profile>
+
+    <!-- disable tests in stage1 -->
+    <profile>
+      <id>stage1</id>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+
+    <!-- run all tests in stage13 -->
+    <profile>
+      <id>stage13</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+
+    <!-- Distribution tests are disabled until Helidon fixes are released -->
+    <profile>
+      <id>modular-tests</id>
+      <activation>
+        <!-- This is a work-around for the fact that activeByDefault does not do what you'd think it should -->
+        <file><exists>.</exists></file>
+      </activation>
+      <properties>
+        <useModulePath>false</useModulePath>
+        <bedrockUseModules>false</bedrockUseModules>
+      </properties>
+    </profile>
+  </profiles>
+</project>

@@ -1,0 +1,57 @@
+/*
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+plugins {
+    id "application"
+}
+apply plugin: "java"
+
+
+group = 'com.oracle.coherence.tutorials'
+version = '${coherenceVersion}'
+sourceCompatibility = '17'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+
+    implementation "${coherenceGroupId}:coherence"
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
+    testImplementation "${coherenceGroupId}:coherence-bedrock-testing-support"
+
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+}
+
+test {
+    useJUnitPlatform()
+}
+
+
+task runServer(type: Exec) {
+    dependsOn build
+    group = "Execution"
+    description = "Run a Coherence Cache Server"
+    commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(), "-Dcoherence.cacheconfig=topics-cache-config.xml",
+            "com.tangosol.net.DefaultCacheServer"
+}
+
+task runClient(type: Exec) {
+    standardInput = System.in
+    dependsOn build
+    group = "Execution"
+    description = "Run Chat Application"
+    def userId = findProperty('userId') ?: "default"
+    commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(), 
+            "-Dcoherence.cacheconfig=topics-cache-config.xml", "-Xms128m", "-Xmx128m",
+            "-Dcoherence.distributed.localstorage=false", "com.oracle.coherence.guides.topics.ChatApplication", userId
+}

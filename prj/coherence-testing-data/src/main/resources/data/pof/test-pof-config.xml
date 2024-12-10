@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<pof-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">        
+  <user-type-list>
+    <user-type>
+      <type-id>1</type-id>
+      <class-name>data.pof.Address</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>2</type-id>
+      <class-name>data.pof.PortablePerson</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>3</type-id>
+      <class-name>data.pof.TestValue</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>4</type-id>
+      <class-name>data.pof.ObjectWithAllTypes</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>5</type-id>
+      <class-name>data.pof.PortablePersonReference</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>6</type-id>
+      <class-name>com.tangosol.util.CompositeKey</class-name>
+    </user-type>
+  </user-type-list>
+
+  <enable-references>true</enable-references>
+</pof-config>

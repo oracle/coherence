@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>dist-extend-*</cache-name>
+      <scheme-name>extend-direct</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <remote-cache-scheme>
+      <scheme-name>extend-direct</scheme-name>
+      <service-name>ExtendTcpClientCacheService</service-name>
+      <!--proxy-service-name>ExtendTcpProxyService</proxy-service-name-->
+      <initiator-config>
+      <tcp-initiator>
+        <remote-addresses>
+          <socket-address>
+            <address>127.0.0.1</address>
+            <port system-property="test.extend.port">11005</port>
+          </socket-address>
+        </remote-addresses>
+      </tcp-initiator>
+      </initiator-config>
+    </remote-cache-scheme>
+
+    <remote-invocation-scheme>
+      <scheme-name>extend-invocation</scheme-name>
+      <service-name>ExtendTcpInvocationService</service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <remote-addresses>
+            <socket-address>
+              <address>127.0.0.1</address>
+              <port system-property="test.extend.port">11005</port>
+            </socket-address>
+          </remote-addresses>
+        </tcp-initiator>
+      </initiator-config>
+    </remote-invocation-scheme>
+  </caching-schemes>
+</cache-config>

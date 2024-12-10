@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+    <report>
+      <file-name>unit-test-filter3.txt</file-name>
+      <delim>{tab}</delim>
+
+      <filters>
+      	 <filter id = "greater">
+            <type>greater</type>
+            <params>
+              <column-ref>longVal</column-ref>
+              <column-ref>intVal</column-ref>
+            </params>
+      	 </filter>
+      </filters>
+
+      <query>
+        <pattern>Coherence:type=Test,*</pattern>
+      	<filter-ref>greater</filter-ref>
+	    </query>
+
+      <row>
+        <column id="node">
+          <type>key</type>
+          <name>nodeId</name>
+        </column>
+
+        <column id ="intVal">
+      	  <name>Int</name>
+          <return-neg>true</return-neg>
+        </column>
+
+        <column id ="longVal">
+      	  <name>Long</name>
+          <return-neg>true</return-neg>
+        </column>
+      </row>
+    </report>
+
+
+</report-config>

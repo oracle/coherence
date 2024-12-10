@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+
+<!--
+Note: This XML document is an example Coherence Cache Configuration deployment
+descriptor that should be customized (or replaced) for your particular caching
+requirements. The cache mappings and schemes declared in this descriptor are
+strictly for demonstration purposes and are not required.
+
+For detailed information on each of the elements that can be used in this
+descriptor please see the Coherence Cache Configuration deployment descriptor
+guide included in the Coherence distribution or the "Cache Configuration
+Elements" page on the Coherence Wiki (http://wiki.tangosol.com).
+-->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+
+  <caching-scheme-mapping>
+
+    <cache-mapping>
+      <cache-name>*</cache-name>
+      <scheme-name>example-distributed</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <!--
+    Distributed caching scheme.
+    -->
+    <distributed-scheme>
+      <scheme-name>example-distributed</scheme-name>
+      <service-name>DistributedCache</service-name>
+
+      <backing-map-scheme>
+        <local-scheme>
+          <scheme-ref>example-binary-backing-map</scheme-ref>
+        </local-scheme>
+      </backing-map-scheme>
+
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+
+    <!--
+     A scheme used by backing maps that store data in internal (binary) format
+     and employ size limitation and/or expiry eviction policies.
+    -->
+    <local-scheme>
+      <scheme-name>example-binary-backing-map</scheme-name>
+
+      <eviction-policy>HYBRID</eviction-policy>
+      <high-units>{back-size-limit 0}</high-units>
+      <unit-calculator>BINARY</unit-calculator>
+      <expiry-delay>{back-expiry 1h}</expiry-delay>
+
+      <cachestore-scheme></cachestore-scheme>
+    </local-scheme>
+
+  </caching-schemes>
+</cache-config>

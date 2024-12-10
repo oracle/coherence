@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <defaults>
+    <scope-name>${coherence.scope}</scope-name>
+    <serializer>${coherence.serializer}</serializer>
+  </defaults>
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>*</cache-name>
+      <scheme-name>${coherence.profile direct}-scheme</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <near-scheme>
+      <scheme-name>near-scheme</scheme-name>
+      <front-scheme>
+        <local-scheme>
+          <high-units>1000</high-units>
+        </local-scheme>
+      </front-scheme>
+      <back-scheme>
+        <distributed-scheme>
+          <scheme-ref>direct-scheme</scheme-ref>
+        </distributed-scheme>
+      </back-scheme>
+    </near-scheme>
+
+    <distributed-scheme>
+      <scheme-name>direct-scheme</scheme-name>
+      <service-name>TestCacheService</service-name>
+      <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
+      <partition-count system-property="coherence.partition.count">23</partition-count>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <persistence>
+        <environment system-property="coherence.persistence.environment">default-on-demand</environment>
+      </persistence>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+
+    <proxy-scheme>
+      <service-name>Proxy</service-name>
+      <acceptor-config>
+        <tcp-acceptor>
+          <local-address>
+            <address system-property="coherence.extend.address"/>
+            <port system-property="coherence.extend.port"/>
+          </local-address>
+        </tcp-acceptor>
+      </acceptor-config>
+      <autostart system-property="coherence.proxy.enabled">true</autostart>
+    </proxy-scheme>
+  </caching-schemes>
+</cache-config>

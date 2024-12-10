@@ -1,0 +1,25 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Simple Build
+// # tag::text[]
+
+The source code for the guides and tutorials can be found in the
+http://github.com/oracle/coherence/tree/master/prj/examples[Coherence CE GitHub repo]
+
+
+The example source code is structured as both a Maven and a Gradle project and can be easily built with either
+of those build tools. The examples are stand-alone projects so each example can be built from the
+specific project directory without needing to build the whole Coherence project.
+
+* Build with Maven
+
+Using the included Maven wrapper the example can be built with the command:
+[source,bash]
+----
+./mvnw clean package
+----
+// # end::text[]

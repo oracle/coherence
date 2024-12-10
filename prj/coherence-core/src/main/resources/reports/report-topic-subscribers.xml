@@ -1,0 +1,294 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+  <report>
+    <file-name>{date}-topic-subscribers.txt</file-name>
+    <delim>{tab}</delim>
+
+    <query>
+      <pattern>Coherence:type=PagedTopicSubscriber,*</pattern>
+    </query>
+
+    <row>
+      <column id="BatchCounter">
+        <type>global</type>
+        <name>{batch-counter}</name>
+        <header>Batch Counter</header>
+      </column>
+
+      <column id="ReportTime">
+        <type>global</type>
+        <name>{report-time}</name>
+        <header>Report Time</header>
+      </column>
+
+      <column id="Service">
+        <type>key</type>
+        <name>service</name>
+        <header>Service</header>
+      </column>
+
+      <column id="Topic">
+        <type>key</type>
+        <name>topic</name>
+        <header>Topic</header>
+      </column>
+
+      <column id="SubscriberGroup">
+        <name>SubscriberGroup</name>
+        <header>Subscriber Group</header>
+      </column>
+
+      <column id="Id">
+        <type>key</type>
+        <name>id</name>
+        <header>ID</header>
+      </column>
+
+      <column id="DomainPartition">
+        <type>key</type>
+        <name>domainPartition</name>
+        <header>Domain Partition</header>
+        <hidden>{non-MT}</hidden>
+        <group-by>true</group-by>
+      </column>
+
+      <column id="NodeId">
+        <type>key</type>
+        <name>nodeId</name>
+        <header>NodeID</header>
+      </column>
+
+      <column id="NodeTS">
+        <name>Timestamp</name>
+        <header>Timestamp</header>
+        <query>
+          <pattern>Coherence:type=Node,nodeId={NodeId}</pattern>
+        </query>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="Backlog">
+        <name>Backlog</name>
+        <header>Backlog</header>
+      </column>
+
+      <column id="ChannelAllocations">
+        <name>ChannelAllocations</name>
+        <header>Channel Allocations</header>
+      </column>
+
+      <column id="ChannelCount">
+        <name>ChannelCount</name>
+        <header>Channel Count</header>
+      </column>
+
+      <column id="Disconnections">
+        <name>Disconnections</name>
+        <header>Disconnections</header>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="DeltaDisconnections">
+        <type>function</type>
+        <name>DeltaDisconnections</name>
+        <header>Disconnections</header>
+        <column-ref>Disconnections</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+          <column-ref>Service</column-ref>
+          <column-ref>Topic</column-ref>
+          <column-ref>Id</column-ref>
+        </params>
+      </column>
+
+      <column id="Notifications">
+        <name>Notifications</name>
+        <header>Notifications</header>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="DeltaNotifications">
+        <type>function</type>
+        <name>DeltaNotifications</name>
+        <header>Notifications</header>
+        <column-ref>Notifications</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+          <column-ref>Service</column-ref>
+          <column-ref>Topic</column-ref>
+          <column-ref>Id</column-ref>
+        </params>
+      </column>
+
+      <column id="Polls">
+        <name>Polls</name>
+        <header>Polls</header>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="DeltaPolls">
+        <type>function</type>
+        <name>DeltaPolls</name>
+        <header>Polls</header>
+        <column-ref>Polls</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+          <column-ref>Service</column-ref>
+          <column-ref>Topic</column-ref>
+          <column-ref>Id</column-ref>
+        </params>
+      </column>
+
+      <column id="ReceiveCompletionsCount">
+        <name>ReceiveCompletionsCount</name>
+        <header>Receive Completions Count</header>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="DeltaReceiveCompletions">
+        <type>function</type>
+        <name>DeltaReceiveCompletions</name>
+        <header>Receive Completions</header>
+        <column-ref>ReceiveCompletionsCount</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+          <column-ref>Service</column-ref>
+          <column-ref>Topic</column-ref>
+          <column-ref>Id</column-ref>
+        </params>
+      </column>
+
+      <column id="ReceiveCompletionsFifteenMinuteRate">
+        <name>ReceiveCompletionsFifteenMinuteRate</name>
+        <header>Receive Completions Fifteen Minute Rate</header>
+      </column>
+
+      <column id="ReceiveCompletionsFiveMinuteRate">
+        <name>ReceiveCompletionsFiveMinuteRate</name>
+        <header>Receive Completions Five Minute Rate</header>
+      </column>
+
+      <column id="ReceiveCompletionsOneMinuteRate">
+        <name>ReceiveCompletionsOneMinuteRate</name>
+        <header>Receive Completions One Minute Rate</header>
+      </column>
+
+      <column id="ReceiveCompletionsMeanRate">
+        <name>ReceiveCompletionsMeanRate</name>
+        <header>Receive Completions Mean Rate</header>
+      </column>
+
+      <column id="ReceiveEmpty">
+        <name>ReceiveEmpty</name>
+        <header>Receive Empty</header>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="DeltaReceiveEmpty">
+        <type>function</type>
+        <name>DeltaReceiveEmpty</name>
+        <header>Receive Empty</header>
+        <column-ref>ReceiveEmpty</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+          <column-ref>Service</column-ref>
+          <column-ref>Topic</column-ref>
+          <column-ref>Id</column-ref>
+        </params>
+      </column>
+
+      <column id="ReceiveErrors">
+        <name>ReceiveErrors</name>
+        <header>Receive Errors</header>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="DeltaReceiveErrors">
+        <type>function</type>
+        <name>DeltaReceiveErrors</name>
+        <header>Receive Errors</header>
+        <column-ref>ReceiveErrors</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+          <column-ref>Service</column-ref>
+          <column-ref>Topic</column-ref>
+          <column-ref>Id</column-ref>
+        </params>
+      </column>
+
+      <column id="ReceivedCount">
+        <name>ReceivedCount</name>
+        <header>Received Count</header>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="DeltaReceivedCount">
+        <type>function</type>
+        <name>DeltaReceivedCount</name>
+        <header>Received Count</header>
+        <column-ref>ReceivedCount</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+          <column-ref>Service</column-ref>
+          <column-ref>Topic</column-ref>
+          <column-ref>Id</column-ref>
+        </params>
+      </column>
+
+      <column id="State">
+        <name>State</name>
+        <header>State</header>
+      </column>
+
+      <column id="StateName">
+        <name>StateName</name>
+        <header>State Name</header>
+      </column>
+
+      <column id="Waits">
+        <name>Waits</name>
+        <header>Waits</header>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="DeltaWaits">
+        <type>function</type>
+        <name>DeltaWaits</name>
+        <header>Waits</header>
+        <column-ref>Waits</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+          <column-ref>Service</column-ref>
+          <column-ref>Topic</column-ref>
+          <column-ref>Id</column-ref>
+        </params>
+      </column>
+    </row>
+  </report>
+</report-config>

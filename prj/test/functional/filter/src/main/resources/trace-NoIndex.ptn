@@ -1,0 +1,35 @@
+
+Trace
+Filter Name                                 Index   Effectiveness          Duration  
+======================================================================================
+AllFilter                                 \| ----  \| 100\|100\(0%\)          \| [0-9]+[\s]*
+  InFilter\(\.getKey\(\), \w+\[(\d+,?\s?)+\.\.\. \(0\) \| 0     \| 100\|100\(0%\)          \| [0-9]+[\s]*
+  LessEqualsFilter\(\.getAge\(\), 98\)         \| 1     \| 100\|100\(0%\)          \| [0-9]+[\s]*
+  AndFilter                               \| ----  \| 100\|100\(0%\)          \| [0-9]+[\s]*
+    BetweenFilter\(filter\.nestingle\.\.\. \(1\) \| 2     \| 100\|100\(0%\)          \| [0-9]+[\s]*
+    EqualsFilter\(\.getFirstName\(\), Hector\) \| 3     \| 100\|100\(0%\)          \| [0-9]+[\s]*
+AllFilter                                 \| ----  \| 100\|0\(100%\)          \| [0-9]+[\s]*
+  InFilter\(\.getKey\(\), \w+\[(\d+,?\s?)+\.\.\. \(0\) \| ----  \| 100\|0\(100%\)          \| [0-9]+[\s]*[0-9]*[\s]*
+
+
+Index Lookups
+Index Description                             Extractor                        Ordered
+======================================================================================
+0   \| No index found                        \| \.getKey\(\)                       \| false 
+1   \| No index found                        \| \.getAge\(\)                       \| false 
+2   \| No index found                        \| filter\.nestinglevel1\.nes\.\.\. \(2\) \| false 
+3   \| No index found                        \| \.getFirstName\(\)                 \| false 
+
+
+Complete filter and index descriptions
+N     Full Name
+======================================================================================
+0   \| InFilter\(\.getKey\(\), \w+\[(\d+,?\s?)+\]\)
+
+1   \| BetweenFilter\(filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.StringToIntegerZ
+    \| ipExtractor\( Person.Address.Zip \) >= 100 and filter\.nestinglevel1\.nestinglevel2
+    \| \.nestinglevel3\.StringToIntegerZipExtractor\( Person.Address.Zip \) <= 10000\)
+
+2   \| filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.StringToIntegerZipExtractor\( P
+    \| erson\.Address\.Zip \)
+

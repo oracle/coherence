@@ -1,0 +1,3346 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://xmlns.oracle.com/coherence/coherence-operational-config"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified"
+            version="1.3">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+            Licensed under the Universal Permissive License v 1.0 as shown at
+            http://oss.oracle.com/licenses/upl.
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:annotation>
+        <xsd:documentation>
+            This is the XML schema for the Coherence configuration file.
+        </xsd:documentation>
+    </xsd:annotation>
+
+
+    <xsd:include schemaLocation="coherence-operational-config-base.xsd" />
+
+
+    <xsd:element name="coherence">
+        <xsd:annotation>
+            <xsd:documentation>
+                The coherence element is the root element of the tangosol-coherence
+                descriptor.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="cluster-config" minOccurs="0" />
+                <xsd:element ref="logging-config" minOccurs="0" />
+                <xsd:element ref="tracing-config" minOccurs="0" />
+                <xsd:element ref="configurable-cache-factory-config"
+                    minOccurs="0" />
+                <xsd:element ref="cache-factory-builder-config"
+                    minOccurs="0" />
+                <xsd:element ref="management-config" minOccurs="0" />
+                <xsd:element ref="security-config" minOccurs="0" />
+                <xsd:element ref="license-config" minOccurs="0" />
+                <xsd:element ref="federation-config" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="cluster-config">
+        <xsd:annotation>
+            <xsd:documentation>
+                The cluster-config element contains the cluster configuration info.
+
+                Used in: coherence
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="member-identity" minOccurs="0" />
+                <xsd:element ref="unicast-listener" minOccurs="0" />
+                <xsd:element ref="multicast-listener" minOccurs="0" />
+                <xsd:element ref="tcp-ring-listener" minOccurs="0" />
+                <xsd:element ref="shutdown-listener" minOccurs="0" />
+                <xsd:element ref="service-guardian" minOccurs="0" />
+                <xsd:element ref="packet-speaker" minOccurs="0" />
+                <xsd:element ref="packet-publisher" minOccurs="0" />
+                <xsd:element ref="incoming-message-handler" minOccurs="0" />
+                <xsd:element ref="outgoing-message-handler" minOccurs="0" />
+                <xsd:element ref="authorized-hosts" minOccurs="0" />
+                <xsd:element ref="services" minOccurs="0" />
+                <xsd:element ref="filters" minOccurs="0" />
+                <xsd:element ref="serializers" minOccurs="0" />
+                <xsd:element ref="lambdas-serialization" minOccurs="0" />
+                <xsd:element ref="persistence-environments" minOccurs="0" />
+                <xsd:element ref="snapshot-archivers" minOccurs="0" />
+                <xsd:element ref="address-providers" minOccurs="0" />
+                <xsd:element ref="global-socket-provider" minOccurs="0"/>
+                <xsd:element ref="socket-providers" minOccurs="0" />
+                <xsd:element ref="cluster-quorum-policy" minOccurs="0" />
+                <xsd:element ref="journaling-config" minOccurs="0" />
+                <xsd:element ref="storage-authorizers" minOccurs="0" />
+                <xsd:element ref="password-providers" minOccurs="0" />
+                <xsd:element ref="resources" minOccurs="0" />
+                <xsd:element ref="secured-production" minOccurs="0" />
+                <xsd:element ref="common-daemon-pool" minOccurs="0" />
+                <xsd:element ref="virtual-threads-enabled" minOccurs="0"/>
+
+                <!-- Must remain last. Next 2 elements are appended to cluster-config
+                     child elements in Coherence.loadConfiguration method. -->
+                <xsd:element ref="edition-name" minOccurs="0" />
+                <xsd:element ref="license-mode" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="logging-config">
+        <xsd:annotation>
+            <xsd:documentation>
+                The logging-config element contains the configuration info
+                for the logging facility.
+
+                Used in: coherence
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="destination" minOccurs="0" />
+                <xsd:element ref="logger-name" minOccurs="0" />
+                <xsd:element ref="severity-level" minOccurs="0" />
+                <xsd:element ref="message-format" minOccurs="0" />
+                <xsd:element ref="character-limit" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="tracing-config">
+        <xsd:annotation>
+            <xsd:documentation>
+                The tracing-config element contains the configuration info
+                for the tracing facility.
+
+                Used in: coherence
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="sampling-ratio" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="cache-factory-builder-config">
+        <xsd:annotation>
+            <xsd:documentation>
+                The cache-factory-builder-config element contains the configuration
+                info for constructing an instance of
+                com.tangosol.net.CacheFactoryBuilder. CacheFactoryBuilder provides a
+                pluggable interface for building and managing multiple cache factory
+                configurations cross multiple class loaders.
+
+                Used in: coherence
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="class-name" minOccurs="0" />
+                <xsd:element ref="init-params" minOccurs="0" />
+                <xsd:element ref="scope-resolver" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="scope-resolver">
+        <xsd:annotation>
+            <xsd:documentation>
+                The scope-resolver element contains the
+                configuration info for a class that implements the
+                com.tangosol.net.ScopeResolver interface.
+
+                Used in: cache-factory-builder-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:group ref="instance" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="management-config">
+        <xsd:annotation>
+            <xsd:documentation>
+                The management-config element contains the configuration information
+                for the Coherence Management Framework.
+
+                Used in: coherence
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="managed-nodes" minOccurs="0" />
+                <xsd:element ref="http-managed-nodes" minOccurs="0" />
+                <xsd:element ref="allow-remote-management" minOccurs="0" />
+                <xsd:element ref="refresh-policy" minOccurs="0" />
+                <xsd:element ref="refresh-expiry" minOccurs="0" />
+                <xsd:element ref="refresh-timeout" minOccurs="0" />
+                <xsd:element ref="read-only" minOccurs="0" />
+                <xsd:element ref="default-domain-name" minOccurs="0" />
+                <xsd:element ref="domain-name-suffix" minOccurs="0" />
+                <xsd:element ref="service-name" minOccurs="0" />
+                <xsd:element ref="server-factory" minOccurs="0" />
+                <xsd:element ref="mbeans" minOccurs="0" />
+                <xsd:element ref="mbean-filter" minOccurs="0" />
+                <xsd:element ref="reporter" minOccurs="0" />
+                <xsd:element ref="extended-mbean-name" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="security-config">
+        <xsd:annotation>
+            <xsd:documentation>
+                The security-config element contains the configuration info
+                for the Coherence Security Framework.
+
+                For details please refer to the Coherence Security Framework guide at
+                http://www.tangosol.com/downloads/SecurityFramework.pdf
+
+                Used in: coherence
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="enabled" minOccurs="0" />
+                <xsd:element ref="login-module-name" minOccurs="0" />
+                <xsd:element ref="access-controller" minOccurs="0" />
+                <xsd:element ref="callback-handler" minOccurs="0" />
+                <xsd:element ref="identity-asserter" minOccurs="0" />
+                <xsd:element ref="identity-transformer" minOccurs="0" />
+                <xsd:element ref="subject-scope" minOccurs="0" />
+                <xsd:element ref="authorizer" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="license-config">
+        <xsd:annotation>
+            <xsd:documentation>
+                The license-config element contains the location of the license
+                repository and the details of the license that this member
+                will utilize.
+
+                Used in: coherence
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="edition-name" minOccurs="0" />
+                <xsd:element ref="license-mode" minOccurs="0" />
+                <xsd:element ref="build-number" minOccurs="0" />
+                <xsd:element ref="build-description" minOccurs="0" />
+                <xsd:element ref="version" minOccurs="0" />
+                <xsd:element ref="version-prefix" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="federation-config">
+        <xsd:annotation>
+            <xsd:documentation>
+                The federation-config element contains the federation configuration info.
+                It contains the details for the federation participants and the topology
+                definitions.
+
+                Used in: coherence
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="participants" minOccurs="0" maxOccurs="1" />
+                <xsd:element ref="topology-definitions" minOccurs="0" maxOccurs="1" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="member-identity">
+        <xsd:annotation>
+            <xsd:documentation>
+                The member-identity element contains detailed identity information that
+                is useful for defining the location and role of the cluster member.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="cluster-name" minOccurs="0" />
+                <xsd:element ref="site-name" minOccurs="0" />
+                <xsd:element ref="rack-name" minOccurs="0" />
+                <xsd:element ref="machine-name" minOccurs="0" />
+                <xsd:element ref="process-name" minOccurs="0" />
+                <xsd:element ref="member-name" minOccurs="0" />
+                <xsd:element ref="role-name" minOccurs="0" />
+                <xsd:element ref="priority" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="cluster-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The cluster-name element contains the name of the cluster. In order to
+                join the cluster all members must specify the same cluster name.
+
+                It is strongly suggested that cluster-name be specified for production
+                systems, thus preventing accidental clustering among unrelated
+                applications running on the same network.
+
+                Used in: member-identity
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="priority" type="coherence-priority-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The priority element specifies a priority of the corresponding member
+                or thread.
+
+                In the member-identity element, the priority is used as the basis for
+                determining tie-breakers between members. If a condition occurs in
+                which one of two members will be ejected from the cluster, and in the
+                rare case that it is not possible to objectively determine which of
+                the two is at fault and should be ejected, then the member with the
+                lower priority will be ejected.
+
+                For all other elements, the priority is a Java Thread priority.
+
+                Valid values are from 1 to 10.
+
+                Used in: unicast-listener, multicast-listener, packet-speaker,
+                packet-publisher, tcp-ring-listener, incoming-message-handler,
+                member-identity
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="unicast-listener">
+        <xsd:annotation>
+            <xsd:documentation>
+                The unicast-listener element contains the unicast listener
+                configuration info.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="socket-provider" minOccurs="0" />
+                <xsd:element ref="reliable-transport" minOccurs="0" />
+                <xsd:element ref="well-known-addresses" minOccurs="0" />
+                <xsd:element ref="machine-id" minOccurs="0" />
+                <xsd:element ref="discovery-address" minOccurs="0" />
+                <xsd:element ref="address" minOccurs="0" />
+                <xsd:element ref="port" minOccurs="0" />
+                <xsd:element ref="port-auto-adjust" minOccurs="0" />
+                <xsd:element ref="packet-buffer" minOccurs="0" />
+                <xsd:element ref="priority" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="well-known-addresses">
+        <xsd:annotation>
+            <xsd:documentation>
+                The well-known-addresses element contains a list of "well known"
+                addresses (WKA) that are used by the cluster discovery protocol in
+                place of multicast broadcast or an address provider (factory) that
+                would generate those addresses. If the well-known-addresses element
+                is specified, for a member to join the cluster it will either have
+                to be a WKA or there will have to be at least one WKA member running.
+                Additionally, all cluster communication will be performed using
+                unicast.
+
+                Note: The specification of "well known" ports for WKA is unnecessary
+                and thus deprecated as of 12.2.1. This includes the use of the socket-address
+                element within well-known-addresses, which is replaced by the address element.
+                Similarly the use of ports within WKA address providers is deprecated and the
+                specified port may be ignored in future releases.
+
+                Used in: unicast-listener
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:choice>
+                <xsd:element ref="address" minOccurs="0"
+                    maxOccurs="unbounded" />
+                <xsd:element ref="socket-address" minOccurs="0"
+                    maxOccurs="unbounded" />
+                <xsd:element ref="address-provider" minOccurs="0" />
+            </xsd:choice>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="machine-id">
+        <xsd:annotation>
+            <xsd:documentation>
+                The machine-id is an identifier that should uniquely identify each
+                server machine. If not specified, a default value is generated from
+                the machine-name, or lacking that, from the address of the default
+                network interface.
+
+                The machine id for each machine in the cluster can be used by cluster
+                services to plan for failover by making sure that each member is
+                backed up by a member running on a different machine.
+
+                As of Coherence 3.2, the machine-id setting is deprecated. It will
+                eventually become a read-only property, and will be automatically
+                configured as part of the discovery process. Instead of setting
+                machine-id, it is suggested that machine-name
+                (and rack-name and site-name) be specified.
+
+                Used in: unicast-listener
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType mixed="true">
+            <xsd:attribute name="system-property" type="xsd:normalizedString"
+                use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="multicast-listener">
+        <xsd:annotation>
+            <xsd:documentation>
+                The multicast-listener element contains the multicast related
+                configuration info.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="interface" minOccurs="0" />
+                <xsd:element ref="address" minOccurs="0" />
+                <xsd:element ref="port" minOccurs="0" />
+                <xsd:element ref="time-to-live" minOccurs="0" />
+                <xsd:element ref="packet-buffer" minOccurs="0" />
+                <xsd:element ref="priority" minOccurs="0" />
+                <xsd:element ref="join-timeout-milliseconds" minOccurs="0" />
+                <xsd:element ref="multicast-threshold-percent"
+                    minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="tcp-ring-listener">
+        <xsd:annotation>
+            <xsd:documentation>
+                The tcp-ring-listener element contains the tcp ring related
+                configuration info.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="enabled" minOccurs="0" />
+                <xsd:element ref="ip-timeout" minOccurs="0" />
+                <xsd:element ref="ip-attempts" minOccurs="0" />
+                <xsd:element ref="listen-backlog" minOccurs="0" />
+                <xsd:element ref="priority" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="ip-timeout" type="coherence-time-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The ip-timeout element specifies the timeout to use for determining
+                that a machine hosting cluster members has become unreachable, and
+                that those cluster members should be removed. The value should be
+                high enough to insulate against allowable temporary network outages.
+
+                Note: This feature relies upon the java.net.InetAddress.isReachable
+                mechanism, see
+                http://java.sun.com/j2se/1.5.0/docs/api/java/net/InetAddress.html#isReachable(int)
+                for a description of how it will identify reachability.
+
+                Legal values are strings representing time intervals. A timeout of 0 will
+                disable machine level monitoring and is not recommended.
+
+                Default value is "5s".
+
+                Used in: tcp-ring-listener
+             </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="ip-attempts" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The ip-attempts element specifies the number of connection attempts to
+                make before determining that a machine hosting cluster members has become
+                unreachable, and that those cluster members should be removed.
+
+                The values of the ip-timeout and ip-attempts elements should be high
+                enough to insulate against allowable temporary network outages.
+
+                Legal values are positive integers.
+
+                Default value is "3".
+
+                Used in: tcp-ring-listener
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="listen-backlog" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The value of the listen-backlog element is used to configure the size
+                of the TCP/IP server socket backlog queue.
+
+                Valid values are positive integers.
+
+                Default value is O/S dependent.
+
+                Used in: tcp-ring-listener
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="shutdown-listener">
+        <xsd:annotation>
+            <xsd:documentation>
+                The shutdown-listener element contains the JVM shutdown hook
+                configuration info.
+                Valid values of the "enabled" element are "none" (same as "false"),
+                "force"
+                (same as "true") and "graceful".
+                The "force" option causes the shutdown hook to perform a "hard-stop" of
+                cluster services by calling Cluster.stop(). The "graceful" option will
+                initiate a normal shutdown procedure by calling Cluster.shutdown().
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="enabled" type="coherence-string-type" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="service-guardian">
+        <xsd:annotation>
+            <xsd:documentation>
+                The service-guardian element contains service guardian related
+                configuration info.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="service-failure-policy" minOccurs="0" />
+                <xsd:element ref="timeout-milliseconds" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="service-failure-policy">
+        <xsd:annotation>
+            <xsd:documentation>
+                The service-failure-policy element contains the configuration info for
+                how to respond an abnormally behaving service.
+
+                Legal values are: "exit-cluster", "exit-process", "logging", or
+                configuration info for a class that implements the
+                com.tangosol.net.ServiceFailurePolicy interface.
+
+                The pre-defined policies are:
+                "exit-cluster"
+                This option will attempt to recover threads that appear be unresponsive,
+                and failing that, attempt to stop the associated service. If the
+                associated service cannot be stopped, this policy will cause the local
+                node to stop the cluster services
+
+                "exit-process"
+                This option will attempt to recover threads that appear be unresponsive,
+                and failing that, attempt to stop the associated service. If the
+                associated service cannot be stopped, this policy will cause the local
+                node to exit the JVM to terminate abruptly
+
+                "logging"
+                This option will cause any detected problems to be logged, but no
+                corrective action will be taken
+
+                Default value is "exit-cluster".
+
+                Used in: service-guardian
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType mixed="true">
+            <xsd:sequence>
+                <xsd:element minOccurs="0" maxOccurs="unbounded" ref="instance" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+            <xsd:attribute name="system-property" type="xsd:normalizedString"
+                use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="packet-speaker">
+        <xsd:annotation>
+            <xsd:documentation>
+                The packet-speaker element contains the packet speaker related
+                configuration info.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="enabled" minOccurs="0" />
+                <xsd:element ref="volume-threshold" minOccurs="0" />
+                <xsd:element ref="priority" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="packet-publisher">
+        <xsd:annotation>
+            <xsd:documentation>
+                The packet-publisher element contains the packet publisher related
+                configuration info.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="packet-size" minOccurs="0" />
+                <xsd:element ref="packet-delivery" minOccurs="0" />
+                <xsd:element ref="notification-queueing" minOccurs="0" />
+                <xsd:element ref="traffic-jam" minOccurs="0" />
+                <xsd:element ref="packet-buffer" minOccurs="0" />
+                <xsd:element ref="priority" minOccurs="0" />
+                <xsd:element ref="enabled" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="packet-size">
+        <xsd:annotation>
+            <xsd:documentation>
+                The packet-size element contains the packet size related
+                configuration info.
+
+                Used in: packet-publisher
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="maximum-length" minOccurs="0" />
+                <xsd:element ref="preferred-length" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="packet-delivery">
+        <xsd:annotation>
+            <xsd:documentation>
+                The packet-delivery element contains the packet delivery related
+                configuration info.
+
+                Used in: packet-publisher
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="resend-milliseconds" minOccurs="0" />
+                <xsd:element ref="timeout-milliseconds" minOccurs="0" />
+                <xsd:element ref="heartbeat-milliseconds" minOccurs="0" />
+                <xsd:element ref="flow-control" minOccurs="0" />
+                <xsd:element ref="packet-bundling" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="notification-queueing">
+        <xsd:annotation>
+            <xsd:documentation>
+                The notification-queueing element contains the notification queue
+                related configuration info.
+
+                Used in: packet-publisher
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="ack-delay-milliseconds" minOccurs="0" />
+                <xsd:element ref="nack-delay-milliseconds" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="packet-buffer">
+        <xsd:annotation>
+            <xsd:documentation>
+                The packet-buffer element contains information on how many packets the
+                OS will be requested to buffer for incoming (listeners) and outgoing
+                (publisher).
+
+                The value may be expressed either in terms of packets or bytes.
+
+                Used in: unicast-listener, multicast-listener, packet-publisher
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:choice>
+                <xsd:element ref="maximum-packets" />
+                <xsd:element ref="size" />
+            </xsd:choice>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="traffic-jam">
+        <xsd:annotation>
+            <xsd:documentation>
+                The traffic-jam element contains the configuration for how to deal with
+                client threads during a publisher-clogged condition.
+
+                Used in: packet-publisher
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="maximum-packets" minOccurs="0" />
+                <xsd:element ref="pause-milliseconds" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="volume-threshold">
+        <xsd:annotation>
+            <xsd:documentation>
+                The volume-threshold element specifies the minimum outgoing packet
+                volume which must exist for the speaker daemon to be activated. When
+                the volume is relatively low it may be more efficient for the
+                speaker's operations to be performed on the publisher's thread.
+
+                Used in: packet-speaker
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="minimum-packets" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="incoming-message-handler">
+        <xsd:annotation>
+            <xsd:documentation>
+                The incoming-message-handler element contains the incoming message
+                handler (also known as a receiver) related configuration info.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="maximum-time-variance" minOccurs="0" />
+                <xsd:element ref="use-nack-packets" minOccurs="0" />
+                <xsd:element ref="priority" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="outgoing-message-handler">
+        <xsd:annotation>
+            <xsd:documentation>
+                The outgoing-message-handler element contains the outgoing message
+                handler related configuration info.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="use-filters" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="authorized-hosts">
+        <xsd:annotation>
+            <xsd:documentation>
+                The authorized-hosts element contains the collection of IP addresses of
+                the unicast listeners for the cluster nodes that are allowed to join the
+                cluster. If this collection is empty no constraints are imposed.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+      <xsd:complexType>
+          <xsd:complexContent>
+              <xsd:extension base="authorized-hosts-type">
+                 <xsd:attribute name="xml-override" use="optional" />
+                 <xsd:attribute name="id" type="xsd:NMTOKEN" />
+              </xsd:extension>
+          </xsd:complexContent>
+      </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="services">
+        <xsd:annotation>
+            <xsd:documentation>
+                The services element contains the declarative data for each service.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="service" minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="service">
+        <xsd:annotation>
+            <xsd:documentation>
+                The service element contains the declarative data of a particular
+                service.
+
+                Used in: services
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="service-type" minOccurs="0" />
+                <xsd:element ref="service-component" minOccurs="0" />
+                <xsd:element ref="use-filters" minOccurs="0" />
+                <xsd:element ref="init-params" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+            <xsd:attribute name="id" type="xsd:NMTOKEN" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="use-filters">
+        <xsd:annotation>
+            <xsd:documentation>
+                The use-filters element contains the list of filter names to be used
+                by this service.
+
+                Used in: service, outgoing-message-handler
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="filter-name" minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="cluster-quorum-policy">
+        <xsd:annotation>
+            <xsd:documentation>
+                The cluster-quorum-policy configuration element contains the
+                configuration info for the quorum-based action policy for the
+                cluster service.
+
+                Used in: cluster-config
+             </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:choice>
+                <xsd:sequence>
+                    <xsd:element ref="timeout-site-quorum" minOccurs="0" maxOccurs="unbounded" />
+                    <xsd:element ref="timeout-machine-quorum" minOccurs="0" maxOccurs="unbounded" />
+                    <xsd:element ref="timeout-survivor-quorum" minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+                <xsd:group ref="instance" />
+            </xsd:choice>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="timeout-site-quorum">
+        <xsd:annotation>
+            <xsd:documentation>
+                The timeout-site-quorum configuration element specifies the
+                minimum number of sites with cluster members in a given role that must remain
+                in order to terminate one or more cluster members due to a detected network
+                timeout, irrespective of the root cause. Role-specific quorum values
+                can be specified using the "role" attribute, for example:
+
+                <timeout-site-quorum role="server">2</timeout-site-quorum>
+
+                Valid values are non-negative integers.
+
+                Used in: cluster-quorum-policy
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:complexContent>
+            <xsd:extension base="coherence-string-type">
+              <xsd:attribute name="role" />
+            </xsd:extension>
+          </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="timeout-machine-quorum">
+        <xsd:annotation>
+            <xsd:documentation>
+                The timeout-machine-quorum configuration element specifies the
+                minimum number of machines with cluster members in a given role that must remain
+                in order to terminate one or more cluster members due to a detected network
+                timeout, irrespective of the root cause. Role-specific quorum values
+                can be specified using the "role" attribute, for example:
+
+                <timeout-machine-quorum role="server">4</timeout-machine-quorum>
+
+                Valid values are non-negative integers.
+
+                Used in: cluster-quorum-policy
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:complexContent>
+            <xsd:extension base="coherence-string-type">
+              <xsd:attribute name="role" />
+            </xsd:extension>
+          </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="timeout-survivor-quorum">
+        <xsd:annotation>
+            <xsd:documentation>
+                The timeout-survivor-quorum configuration element specifies the
+                minimum number of cluster members in a given role that must remain
+                in order to terminate one or more cluster members due to a detected network
+                timeout, irrespective of the root cause. Role-specific quorum values
+                can be specified using the "role" attribute, for example:
+
+                <timeout-survivor-quorum role="server">50</timeout-survivor-quorum>
+
+                Valid values are non-negative integers.
+
+                Used in: cluster-quorum-policy
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:complexContent>
+            <xsd:extension base="coherence-string-type">
+              <xsd:attribute name="role" />
+            </xsd:extension>
+          </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="serializers">
+        <xsd:annotation>
+            <xsd:documentation>
+                The serializers element contains the declarative data for each
+                serializer.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="serializer" minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="serializer">
+        <xsd:annotation>
+            <xsd:documentation>
+                The serializer element contains the declarative data of a particular
+                serializer.
+
+                Used in: serializers
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:group ref="instance" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+            <xsd:attribute name="id" type="xsd:NMTOKEN" use="required" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="persistence-environments">
+        <xsd:annotation>
+            <xsd:documentation>
+                The persistence-environments element contains the declarative
+                data for each persistence environment.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="persistence-environment" minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="persistence-mode" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The persistence-mode element determines whether the enclosing
+                environment is used to continually persist cached data (active)
+                or only when requested (on-demand).
+
+                Legal values are: active, active-async and on-demand
+
+                Default value is "active".
+
+                Used in: persistence-environment
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="active-directory" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The active-directory element contains the path to a directory
+                under which cached data is actively persisted by a persistent
+                environment.
+
+                Default value is ${user.home}/coherence/active
+
+                Used in: persistence-environment
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="backup-directory" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+              The backup-directory element contains the path to a directory
+              under which backups of cached data is actively persisted by a
+              persistent environment.
+
+              Default value is ${user.home}/coherence/backup
+
+              Used in: persistence-environment
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+  <xsd:element name="events-directory" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The events-directory element contains the path to a directory
+                under which durable event's data is actively persisted by a persistent
+                environment.
+
+                Default value is ${user.home}/coherence/events
+
+                Used in: persistence-environment
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="snapshot-directory" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The snapshot-directory element contains the path to a directory
+                under which copies of cached data are persisted by a persistent
+                environment.
+
+                Default value is ${user.home}/coherence/snapshots
+
+                Used in: persistence-environment
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="trash-directory" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The trash-directory element contains the path to a directory
+                under which potentially corrupted persisted data is stored by
+                a persistent environment.
+
+                Default value is ${user.home}/coherence/trash
+
+                Used in: persistence-environment
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="archive-directory" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The archive-directory element contains the path to a directory
+                under which persistent snapshots can be archived to.
+
+                Used in: directory-archiver
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="persistence-environment">
+        <xsd:annotation>
+            <xsd:documentation>
+                The persistent-environment element contains configuration information
+                for a PersistenceEnvironment implementation.
+
+                Used in: persistence-environments
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="instance" minOccurs="0" maxOccurs="1" />
+                <xsd:element ref="persistence-mode" minOccurs="0" />
+                <xsd:element ref="active-directory" minOccurs="0" />
+                <xsd:element ref="backup-directory" minOccurs="0" />
+                <xsd:element ref="events-directory" minOccurs="0" />
+                <xsd:element ref="snapshot-directory" minOccurs="0" />
+                <xsd:element ref="trash-directory" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+            <xsd:attribute name="id" type="xsd:NMTOKEN" use="required" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="snapshot-archivers">
+        <xsd:annotation>
+            <xsd:documentation>
+                The snapshot-archivers element contains the declarative data
+                for each persistent snapshot archiver.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="directory-archiver" minOccurs="0" maxOccurs="unbounded" />
+                <xsd:element ref="custom-archiver" minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="custom-archiver">
+        <xsd:annotation>
+            <xsd:documentation>
+                The custom-archiver element contains configuration information
+                for a custom SnapshotArchiver implementation.
+
+                Used in: snapshot-archivers
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:group ref="instance" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+            <xsd:attribute name="id" type="xsd:NMTOKEN" use="required" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="directory-archiver">
+        <xsd:annotation>
+            <xsd:documentation>
+                The directory-archiver element contains configuration information
+                for a directory based SnapshotArchiver implementation.
+
+                Used in: snapshot-archivers
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="archive-directory" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+            <xsd:attribute name="id" type="xsd:NMTOKEN" use="required" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <!--  Note that <address-provider> has two different definitions.
+          In the case below (used as a sub-element in <address-providers>),
+          this is the actual definition of an address-provider, not a reference.
+          Therefore an id attribute is required and a reference name is not allowed.
+    -->
+    <xsd:complexType name="address-provider-id-type" mixed="true">
+        <xsd:complexContent>
+            <xsd:extension base="address-provider-type">
+                <xsd:attribute name="xml-override" use="optional" />
+                <xsd:attribute name="id" type="xsd:NMTOKEN" use="required" />
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="address-providers">
+        <xsd:annotation>
+            <xsd:documentation>
+                The address-providers element contains the declarative data for each
+                address-provider.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="address-provider" type="address-provider-id-type"
+                             minOccurs="0" maxOccurs="unbounded">
+                </xsd:element>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="server-factory">
+        <xsd:annotation>
+            <xsd:documentation>
+                The server-factory element contains the configuration info for the
+                MBeanServer factory that implements the
+                com.tangosol.net.management.MBeanServerFinder interface.
+
+                Used in: management-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="class-name" minOccurs="0" />
+                <xsd:element ref="init-params" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="reporter">
+        <xsd:annotation>
+            <xsd:documentation>
+                The reporter element contains the configuration parameters for the
+                reporter.
+
+                Used in:management-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="configuration" minOccurs="0" />
+                <xsd:element ref="autostart" minOccurs="0" />
+                <xsd:element ref="distributed" minOccurs="0" />
+                <xsd:element ref="timezone" minOccurs="0" />
+                <xsd:element ref="timeformat" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="extended-mbean-name" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The extended-mbean-name element specifies whether or not global
+                MBean names that are identified with a "nodeId" attribute are
+                additionally extended to also identify the corresponding member
+                name (if specified).  For example:
+
+                  Coherence:type=Service,name=DistributedCache,member=Client1,nodeId=7
+
+                Used in: management-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="configuration" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The configuration element contains the location for the Reporter Batch
+                XML.
+
+                Used in: reporter
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="distributed" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The distributed element specifies whether or not the reporter runs on
+                multiple management nodes.
+
+                Default value is false.
+
+                Used in: reporter
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="timezone" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The timezone element specifies the time zone that should be
+                used for date display.
+
+                Default value is null (which indicates local time zone).
+
+                Used in: reporter
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="timeformat" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The timeformat element indicates the format used for date display.
+                This should be a string that can be parsed by java.text.SimpleDateFormat.
+
+                Default value is "EEE MMM dd HH:mm:ss zzz yyyy".
+
+                Used in: reporter
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="mbeans">
+        <xsd:annotation>
+            <xsd:documentation>
+                The mbeans element contains a list of MBeans to be registered when a
+                node joins the cluster.
+
+                Used in: management-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="mbean" minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="mbean">
+        <xsd:annotation>
+            <xsd:documentation>
+                The mbean element contains the information required to register an
+                MBean.
+
+                Used in: mbeans
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:choice minOccurs="0">
+                    <xsd:element ref="mbean-class" />
+                    <xsd:element ref="mbean-factory" />
+                    <xsd:element ref="mbean-query" />
+                </xsd:choice>
+                <xsd:element ref="mbean-server-domain"  minOccurs="0" />
+                <xsd:element ref="mbean-accessor"       minOccurs="0" />
+                <xsd:element ref="mbean-name"           minOccurs="0" />
+                <xsd:element ref="local-only"           minOccurs="0" />
+                <xsd:element ref="enabled"              minOccurs="0" />
+                <xsd:element ref="extend-lifecycle"     minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="id" type="xsd:NMTOKEN" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="mbean-filter">
+        <xsd:annotation>
+            <xsd:documentation>
+                The mbean-filter element contains the declarative data for a class used
+                to reduce the number of MBeans registered with the Coherence JMX framework.
+                The specified class needs to implement the com.tangosol.util.Filter
+                interface and is passed MBean names (note that the names may not include
+                the domain name). Evaluation of "false" will prevent the corresponding MBean
+                registration.
+
+                Used in: management-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:group ref="instance" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="mbean-class" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The mbean-class element contains the name of a class to instantiate and
+                register with the Coherence Management Framework.
+
+                Used in: mbean
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="mbean-factory" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The mbean-factory element contains the name of a class factory used to
+                obtain MBeans to register with the Coherence Management Framework.
+
+                Used in: mbean
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="mbean-query" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The mbean-query element contains an MBean query string used to obtain
+                MBeans from a local MBean server to register with the Coherence Management
+                Framework.
+
+                Used in: mbean
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="mbean-server-domain" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The mbean-server-domain element contains the name of a default domain
+                for the source MBeanServer. This is used to locate the MBeanServer where the
+                mbean-query should be executed.
+
+                Used in: mbean
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="local-only" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The local-only element controls the MBean visibility across the
+                cluster. If set to true, the MBean is registered only with a
+                local MBeanServer and is not accessible by other cluster nodes;
+                otherwise the "nodeId=..." key attribute is added to its name and
+                the MBean will be visible from any of the "managing" nodes (the ones
+                that have the "managed-nodes" element set to values of "all" or
+                "remote-only").
+
+                Default value is false.
+
+                Used in: mbean
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="mbean-accessor" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The mbean-accessor element contains the method name on the factory
+                class used to obtain an MBean.
+
+                Used in: mbean
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="mbean-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The mbean-name element contains the name of the MBean as it will be
+                registered with the Coherence Management Framework.
+
+                Used in: mbean
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="extend-lifecycle" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The extend-lifecycle element contains a flag controlling the MBean life
+                cycle. If set to true, the MBean life cycle extends to the life cycle of
+                the JVM; Otherwise, it coincides with the the cluster node life cycle.
+
+                Default value is false.
+
+                Used in: mbean
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="access-controller">
+        <xsd:annotation>
+            <xsd:documentation>
+                The access-controller element contains the configuration info for the
+                class that implements the com.tangosol.net.security.AccessController
+                interface, which will be used by the Coherence Security Framework to
+                check access right and encrypt/decrypt node-to-node communications.
+
+                Used in: security-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="class-name" minOccurs="0" />
+                <xsd:element ref="init-params" minOccurs="0" />
+                <xsd:element ref="password-provider" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="callback-handler">
+        <xsd:annotation>
+            <xsd:documentation>
+                The callback-handler element contains the configuration info
+                for the class that implements the CallbackHandler interface
+                which will be called if an attempt is made to access a
+                protected clustered resource when there is no identity
+                associated with the caller.
+
+                Used in: security-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="class-name" minOccurs="0" />
+                <xsd:element ref="init-params" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:simpleType name="edition-name-enum-type">
+        <xsd:restriction base="xsd:normalizedString">
+            <xsd:enumeration value="GE" />
+            <xsd:enumeration value="grid" />
+            <xsd:enumeration value="EE" />
+            <xsd:enumeration value="enterprise" />
+            <xsd:enumeration value="CE" />
+            <xsd:enumeration value="community" />
+            <xsd:enumeration value="SE" />
+            <xsd:enumeration value="standard" />
+            <xsd:enumeration value="RTC" />
+            <xsd:enumeration value="realtime" />
+            <xsd:enumeration value="DC" />
+            <xsd:enumeration value="client" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="edition-name-base-type">
+        <xsd:union memberTypes="coherence-base-type edition-name-enum-type" />
+    </xsd:simpleType>
+
+    <xsd:complexType name="edition-name-type">
+        <xsd:simpleContent>
+            <xsd:extension base="edition-name-base-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="edition-name" type="edition-name-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The edition-name element specifies the product edition that the member
+                will utilize. This allows multiple product editions to be used within
+                the same cluster, with each member specifying the edition that it will
+                be using.
+
+                Valid values are:
+                - "GE" or "grid"       - Grid Edition
+                - "EE" or "enterprise" - Enterprise Edition
+                - "CE" or "community"  - Community Edition
+                - "SE" or "standard"   - Standard Edition
+                - "RTC" or "realtime"  - Real-Time Client
+                - "DC" or "client"     - Data Client
+
+                It is optional to provide a value for this element.
+
+                Used in: license-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:simpleType name="license-mode-enum-type">
+        <xsd:restriction base="xsd:normalizedString">
+            <xsd:enumeration value="prod" />
+            <xsd:enumeration value="dev" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="license-mode-base-type">
+        <xsd:union memberTypes="coherence-base-type license-mode-enum-type" />
+    </xsd:simpleType>
+
+    <xsd:complexType name="license-mode-type">
+        <xsd:simpleContent>
+            <xsd:extension base="license-mode-base-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="license-mode" type="license-mode-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The license-mode element specifies whether the product is being used in
+                a development or production mode. Note that this property may be
+                specified either in the base operational configuration file, or via
+                system-properties, but may not be configured via an override file,
+                as it is used is selecting the override file.
+
+                Valid values are "prod" (Production), and "dev" (Development).
+
+                It is optional to provide a value for this element.
+
+                Used in: license-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:simpleType name="lambdas-serialization-mode-enum-type">
+        <xsd:restriction base="xsd:normalizedString">
+            <xsd:enumeration value="static" />
+            <xsd:enumeration value="dynamic" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="lambdas-serialization-mode-base-type">
+        <xsd:union memberTypes="coherence-base-type lambdas-serialization-mode-enum-type" />
+    </xsd:simpleType>
+
+    <xsd:complexType name="lambdas-serialization-mode-type">
+        <xsd:simpleContent>
+            <xsd:extension base="lambdas-serialization-mode-base-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="lambdas-serialization" type="lambdas-serialization-mode-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The lambdas-serialization element specifies whether lambda serialization
+                is dynamic or static.
+
+                Valid values are "dynamic" and "static".
+
+                It is optional to provide a value for this element.
+                The default value is "dynamic".
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="build-number" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                Build number provides an internal identifier for the Coherence
+                development team to track the changes included in this version.
+
+                Note: for internal use only and can not be overridden.
+
+                DO NOT MODIFY
+
+                Used in: license-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="build-description" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                A friendly description of this Coherence version. This is
+                empty for official releases.
+
+                Note: for internal use only and can not be overridden.
+
+                DO NOT MODIFY                
+
+                Used in: license-config            
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="version" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The official Coherence version of this distribution.
+
+                Note: for internal use only and can not be overridden.
+
+                DO NOT MODIFY
+
+                Used in: license-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="version-prefix" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                A prefix used for internal version processing.
+
+                Note: for internal use only and can not be overridden.
+
+                DO NOT MODIFY
+
+                Used in: license-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="login-module-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The login-module-name element specifies the name of the JAAS
+                LoginModule that should be used to authenticate the caller. This
+                name should match a module in a configuration file will be used
+                by the JAAS (for example specified via the
+                "-Djava.security.auth.login.config" Java command line attribute).
+
+                For details please refer to the LoginModule Developer's Guide at
+                http://java.sun.com/j2se/1.4.2/docs/guide/security/jaas/JAASLMDevGuide.html
+
+                Used in: security-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="participants">
+        <xsd:annotation>
+            <xsd:documentation>
+                The participants element is a container for the definition of
+                many participant elements.
+
+                Used in: federation-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="participant" minOccurs="0" maxOccurs="unbounded" />
+                <xsd:any namespace="##other" processContents="lax"
+                    minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="participant">
+        <xsd:annotation>
+            <xsd:documentation>
+                The participant element specifies the remote coherence cluster that is
+                participating in the federation. The name of the participant should be
+                identical to the cluster-name of the participating cluster.
+
+                The use of "name-service-addresses" in "participant" has been deprecated.
+
+                "remote-addresses" can be used to specify both NameService addresses by
+                specifying the cluster port of the remote participant, and direct connect addresses
+                for environments which cannot use the NameService for address lookups.
+
+                Specifying the cluster port of the remote participant in remote-addresses is
+                recommended.
+
+                Used in: participants
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element minOccurs="1" name="name" type="coherence-string-type" />
+                <xsd:element minOccurs="0" ref="initial-action" />
+                <xsd:element minOccurs="0" ref="connect-timeout" />
+                <xsd:element minOccurs="0" ref="connect-retry-timeout" />
+                <xsd:element minOccurs="0" ref="send-timeout" />
+                <xsd:element minOccurs="0" ref="max-bandwidth" />
+                <xsd:element minOccurs="0" ref="send-old-value" />
+                <xsd:element minOccurs="0" ref="batch-size" />
+                <xsd:element minOccurs="0" ref="geo-ip" />
+                <xsd:element minOccurs="0" ref="participant-destinations" />
+                <xsd:element minOccurs="0" ref="participant-type" />
+                <xsd:element minOccurs="0" ref="interceptors" />
+                <xsd:choice minOccurs="0">
+                  <xsd:element ref="remote-addresses" />
+                  <xsd:element ref="name-service-addresses" />
+                </xsd:choice>
+                <xsd:any namespace="##other" processContents="lax"
+                    minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:simpleType name="initial-action-base-type">
+        <xsd:restriction base="xsd:normalizedString">
+            <xsd:enumeration value="start" />
+            <xsd:enumeration value="stop" />
+            <xsd:enumeration value="pause" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="initial-action-type">
+        <xsd:simpleContent>
+            <xsd:extension base="initial-action-base-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="initial-action" type="initial-action-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The initial-action element specifies the startup action for the remote participant. The action is taken
+                by the local participant when it starts up.
+
+                Used in: participant
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="connect-timeout" type="coherence-time-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The connect-timeout element specifies the timeout of
+                a connection to a destination participant.
+
+                Legal values are strings representing time intervals.
+
+                Default value is "1m".
+
+                Used in: participant
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="connect-retry-timeout" type="coherence-time-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The connect-retry-timeout element specifies the total
+                amount of time in retrying to connect to a destination
+                participant before giving up.
+
+                Legal values are strings representing time intervals.
+                e.g. "5m" for 5 minutes, "5h" for 5 hours,
+                     and "5s" or "5" for 5 seconds, the default unit.
+
+                Default value is "0", no timeout.
+
+                Used in: participant
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="send-timeout" type="coherence-time-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The send-timeout element specifies the ack timeout
+                for a federated replication message.
+
+                Legal values are strings representing time intervals.
+
+                Default value is "5m".
+
+                Used in: participant
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="max-bandwidth" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The max-bandwidth element specifies the maximum bandwidth, per member,
+                for sending federated data to a destination participant. This value is
+                loaded from the source member's configuration of the destination participant.
+
+                The legal values are decimal values with optional factor and unit descriptors.
+
+                Legal factor descriptor includes "K" or "k" (kilo, 2^10), "M" or "m" (kilo, 2^20),
+                "G" or "g" (kilo, 2^30) and "T" or "t" (kilo, 2^40) which indicates with which the
+                decimal value should be multiplied. If no factor is specified, a factor of one is
+                assumed.
+
+                Legal unit descriptor includes "bps" which indicates bits per second and "Bps"
+                which indicates bytes per second. The letters "ps" could be either in uppercase or
+                lowercase. If no unit is specified, a unit of bits per second is assumed.
+
+                Default value is unlimited.
+
+                Used in: participant
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="send-old-value" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The send-old-value flag indicates if the federation service should include the old
+                values when replicating updated cache entries to the remote participants.
+
+                The legal value is true or false.
+
+                Default value is true.
+
+                Used in: participant
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="batch-size" type="coherence-integer-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The batch-size element specifies the maximum number of journal
+                entries that can be selected for replication. Its primary use
+                is to keep the heap memory usage within limits when replicating.
+
+                Legal values are integers representing the number of entries.
+
+                Default value is 50.
+
+                Used in: participant
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="geo-ip" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The geo-ip element specifies the GeoIP metadata
+                for the participant. Its a free-form field with
+                no implicit structure. The users are free to define
+                their own delimiters for latitude/longitude/country-code etc.
+
+                Used in: participant
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="participant-destinations">
+        <xsd:annotation>
+            <xsd:documentation>
+                The participant-destinations element is a container for the
+                definition of one or more participant-destination elements.
+
+                Used in: participant
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element minOccurs="0" maxOccurs="unbounded" ref="participant-destination" />
+                <xsd:any namespace="##other" processContents="lax"
+                         minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="participant-destination">
+        <xsd:annotation>
+            <xsd:documentation>
+                The participant-destination element contains destination specific
+                information (e.g. for a specific federation service) for a given
+                participant.
+
+                Used in: participant-destinations
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element minOccurs="1" name="name" type="coherence-string-type" />
+                <xsd:element minOccurs="0" ref="remote-addresses" />
+                <xsd:any namespace="##other" processContents="lax"
+                         minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:simpleType name="participant-type-base-type">
+        <xsd:restriction base="xsd:normalizedString">
+            <xsd:enumeration value="cluster" />
+            <xsd:enumeration value="interceptor" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="participant-type-type">
+        <xsd:simpleContent>
+            <xsd:extension base="participant-type-base-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="participant-type" type="participant-type-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The participant-type element specifies the type of the participant. If not specified,
+                (remote) cluster is the default type.
+
+                Used in: participant
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="topology-definitions">
+        <xsd:annotation>
+            <xsd:documentation>
+                The topology-definitions element specifies the topology configuration
+                info.
+
+                Used in: federation-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element minOccurs="0" maxOccurs="unbounded" ref="active-active" />
+                <xsd:element minOccurs="0" maxOccurs="unbounded" ref="active-passive" />
+                <xsd:element minOccurs="0" maxOccurs="unbounded" ref="hub-spoke" />
+                <xsd:element minOccurs="0" maxOccurs="unbounded" ref="central-replication" />
+                <xsd:element minOccurs="0" maxOccurs="unbounded" ref="custom-topology" />
+                <xsd:any namespace="##other" processContents="lax"
+                    minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="active-active">
+        <xsd:annotation>
+            <xsd:documentation>
+                The active-active topology is a topology where there are one or more
+                active participants that send data to other active participants.
+
+                Used in: topology-definitions
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element minOccurs="1" name="name" type="coherence-string-type" />
+                <xsd:element minOccurs="1" maxOccurs="unbounded" name="active" type="coherence-string-type" />
+                <xsd:element minOccurs="0" maxOccurs="unbounded" name="interceptor" type="coherence-string-type" />
+                <xsd:any namespace="##other" processContents="lax"
+                         minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="active-passive">
+        <xsd:annotation>
+            <xsd:documentation>
+                The active-passive topology is a topology where there are one or more
+                active participants that send data to other active and passive participants.
+                The active participants never re-sends the data and the passive participants
+                only receive data.
+
+                Used in: topology-definitions
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element minOccurs="1" name="name" type="coherence-string-type" />
+                <xsd:element minOccurs="1" maxOccurs="unbounded" name="active" type="coherence-string-type" />
+                <xsd:element minOccurs="0" maxOccurs="unbounded" name="passive" type="coherence-string-type" />
+                <xsd:element minOccurs="0" maxOccurs="unbounded" name="interceptor" type="coherence-string-type" />
+                <xsd:any namespace="##other" processContents="lax"
+                    minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="hub-spoke">
+        <xsd:annotation>
+            <xsd:documentation>
+                The hub-spoke topology is a topology where the spoke participants only receive data.
+                The hub-participant sends data to all the spoke participants.
+
+                Used in: topology-definitions
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element minOccurs="1" name="name" type="coherence-string-type" />
+                <xsd:element minOccurs="1" maxOccurs="1" name="hub" type="coherence-string-type" />
+                <xsd:element minOccurs="1" maxOccurs="unbounded" name="spoke" type="coherence-string-type" />
+                <xsd:element minOccurs="0" maxOccurs="unbounded" name="interceptor" type="coherence-string-type" />
+                <xsd:any namespace="##other" processContents="lax"
+                    minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="central-replication">
+        <xsd:annotation>
+            <xsd:documentation>
+                The central-replication topology is a topology where the leaf participants
+                send data to the hub participant, and the hub participant re-sends (repeats)
+                the data to all the other leaf participants.  Any change that originate at the
+                hub-participant are sent to all the leaf participants.
+
+                Used in: topology-definitions
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element minOccurs="1" name="name" type="coherence-string-type" />
+                <xsd:element minOccurs="1" maxOccurs="1" name="hub"  type="coherence-string-type" />
+                <xsd:element minOccurs="1" maxOccurs="unbounded" name="leaf" type="coherence-string-type" />
+                <xsd:element minOccurs="0" maxOccurs="unbounded" name="interceptor" type="coherence-string-type" />
+                <xsd:any namespace="##other" processContents="lax"
+                    minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="custom-topology">
+        <xsd:annotation>
+            <xsd:documentation>
+                The custom-topology is a free-form topology that consists of a group list.
+                A group consist of participants with specific roles like sender, repeater or receiver.
+                Only sender and repeater can send/forward changes to other participants in the group.
+
+                Used in: topology-definitions
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element minOccurs="1" name="name" type="coherence-string-type" />
+                <xsd:element minOccurs="1" maxOccurs="1" ref="groups" />
+                <xsd:any namespace="##other" processContents="lax"
+                    minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="groups">
+        <xsd:annotation>
+            <xsd:documentation>
+                The groups element is a container for the definition of
+                many group elements.
+
+                Used in: custom-topology
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="group" minOccurs="1" maxOccurs="unbounded" />
+                <xsd:any namespace="##other" processContents="lax"
+                    minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="group">
+        <xsd:annotation>
+            <xsd:documentation>
+                The group element specifies a set of participants with a well-defined role. All the
+                participants can receive data irrespective of their roles.
+
+                A sender participant only sends data that originated in its local cluter.
+
+                A repeater participant can send data that originated locally as well as data that it received
+                from other participants.
+
+                A receiver participant never sends data.
+
+                Used in: groups
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element minOccurs="0" maxOccurs="unbounded" name="sender"   type="coherence-string-type" />
+                <xsd:element minOccurs="0" maxOccurs="unbounded" name="repeater" type="coherence-string-type" />
+                <xsd:element minOccurs="0" maxOccurs="unbounded" name="receiver" type="coherence-string-type" />
+                <xsd:any namespace="##other" processContents="lax"
+                    minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:simpleType name="managed-nodes-enum-type">
+        <xsd:restriction base="xsd:normalizedString">
+            <xsd:enumeration value="none" />
+            <xsd:enumeration value="local-only" />
+            <xsd:enumeration value="remote-only" />
+            <xsd:enumeration value="all" />
+            <xsd:enumeration value="dynamic" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="managed-nodes-base-type">
+        <xsd:union memberTypes="coherence-base-type managed-nodes-enum-type" />
+    </xsd:simpleType>
+
+    <xsd:complexType name="managed-nodes-type">
+        <xsd:simpleContent>
+            <xsd:extension base="managed-nodes-base-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString"
+                    use="optional" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="managed-nodes" type="managed-nodes-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The managed-nodes element specifies whether or not a cluster node's JVM
+                has an [in-process] MBeanServer and if so, whether or not this node allows
+                management of other nodes' managed objects.
+
+                Legal values are: "none", "local-only", "remote-only", "dynamic" or "all".
+
+                "none"
+                No MBean server is instantiated on this cluster node.
+
+                "local-only"
+                Manage only MBeans which are local to this cluster node (that is, within the same JVM).
+
+                "remote-only"
+                Manage MBeans on other remotely manageable cluster nodes.
+                See "allow-remote-management" subelement.
+
+                "all"
+                Manage both local and remotely manageable cluster nodes.
+                See "allow-remote-management" subelement.
+
+                "dynamic"
+                Allow this node to automatically host an MBean server and manage all MBeans.
+
+                Default value is "dynamic".
+
+                Used in: management-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:simpleType name="http-managed-nodes-enum-type">
+        <xsd:restriction base="xsd:normalizedString">
+            <xsd:enumeration value="all" />
+            <xsd:enumeration value="inherit" />
+            <xsd:enumeration value="none" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="http-managed-nodes-base-type">
+        <xsd:union memberTypes="coherence-base-type http-managed-nodes-enum-type" />
+    </xsd:simpleType>
+
+    <xsd:complexType name="http-managed-nodes-type">
+        <xsd:simpleContent>
+            <xsd:extension base="http-managed-nodes-base-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="http-managed-nodes" type="http-managed-nodes-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The http-managed-nodes element specifies whether or not a cluster node's JVM
+                has an [in-process] HTTP management server. When set to "inherit", if this
+                node is running an MBeanServer then it will also start an HTTP management
+                server. See the managed-nodes element for information on running an
+                MBeanServer.
+
+                Legal values are: all, inherit, or none.
+
+                Default value is "none".
+
+                Used in: management-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="allow-remote-management" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The allow-remote-management element specifies whether or not this
+                cluster node exposes its managed objects to remote MBeanServer(s).
+
+                Legal values are: true or false.
+
+                Used in: management-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:simpleType name="refresh-policy-enum-type">
+        <xsd:restriction base="xsd:normalizedString">
+            <xsd:enumeration value="refresh-ahead" />
+            <xsd:enumeration value="refresh-behind" />
+            <xsd:enumeration value="refresh-expired" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="refresh-policy-base-type">
+        <xsd:union memberTypes="coherence-base-type refresh-policy-enum-type" />
+    </xsd:simpleType>
+
+    <xsd:complexType name="refresh-policy-type">
+        <xsd:simpleContent>
+            <xsd:extension base="refresh-policy-base-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString"
+                    use="optional" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="refresh-policy" type="refresh-policy-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The refresh-policy element specifies the method which is used to
+                refresh remote management information.
+
+                Legal values are: refresh-ahead, refresh-behind and refresh-expired.
+
+                Default value is "refresh-expired".
+
+                Used in: management-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="refresh-expiry" type="coherence-time-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The refresh-expiry element specifies the time interval (in
+                milliseconds) after which a remote MBean information will
+                be invalidated on the management node.
+
+                Legal values are strings representing time intervals.
+
+                Default value is "1s".
+
+                Used in: management-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="refresh-timeout" type="coherence-time-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The refresh-timeout element specifies the duration which the management
+                node will wait for a response from a remote node when refreshing MBean
+                information. This value must be less than the refresh-expiry interval.
+
+                Legal values are strings representing time intervals.
+
+                Default value is "250ms".
+
+                Used in: management-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="read-only" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The read-only element specifies whether or not the managed objects
+                exposed by this cluster node allow operations that modify run-time
+                attributes.
+
+                Legal values are true or false.
+
+                Used in: management-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="default-domain-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The default-domain-name element specifies the default domain name for
+                the MBeanServer used to register MBeans exposed by the Coherence
+                management framework.
+
+                This value is only used by the cluster nodes that have in-process
+                MBeanServer and allow management of local or other node's managed
+                objects.
+
+                If this value is not specified, the first existing MBeanServer will be
+                used.
+
+                Used in: management-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+  <xsd:element name="domain-name-suffix" type="coherence-string-type">
+    <xsd:annotation>
+      <xsd:documentation>
+        The domain-name-suffix element enables configuring an application meaningful
+        domain name suffix to append to domain name. When this element's value is a
+        non-empty string, the domain name is "Coherence@" appended with the value.
+
+        This value is only used by the cluster nodes that have in-process
+        MBeanServer and allow management of local or other node's managed
+        objects.
+
+        Defaults to empty string.
+
+        Used in: management-config
+      </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+
+    <xsd:element name="service-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The service-name element specifies the name of the Invocation service
+                name used for remote management. This element is used only if
+                allow-remote-management is set to true.
+
+                Default value is "Management".
+
+                Used in: management-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="interface" type="coherence-ip-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The interface element specifies the IP or sub-net of the local network
+                interface (NIC) which is to be used for multicast traffic.
+
+                For configurations which use multicast only for discovery the default
+                value is calculated using the unicast-listener/discovery-address.
+
+                For configurations which use multicast for both discovery and data transmission
+                (i.e. multicast-threshold-percent is set to a value less then 100) the default
+                value is the interface of the unicast-listener.
+
+                WARNING: With rare exception, use of this particular option is strongly
+                discouraged when multicast is enabled for data transmissions, as it can
+                lead to a condition known as "partial failure". Partial failure occurs
+                when some portion of the cluster communication is working and other cluster
+                communication has failed. Partial failure can occur when using this option,
+                because the interface (and thus network) used for multicast traffic can be
+                different from the interface (and thus network) used for unicast (UDP/IP) and
+                TCP-ring (TCP/IP) traffic. If one interface (or network) fails, some communication
+                can continue to succeed, while other communication will fail, which may
+                cause failover to take longer to occur. Since clustering handles node
+                (and thus interface) failure, it is preferable to have all communication
+                fail together, and thus the use of this option is strongly discouraged.
+
+                Used in: multicast-listener
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:simpleType name="timetolive-limit-type">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:minInclusive value="0" />
+            <xsd:maxInclusive value="255" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="timetolive-union-type">
+        <xsd:union memberTypes="timetolive-limit-type coherence-empty-token" />
+    </xsd:simpleType>
+
+    <xsd:complexType name="timetolive-type">
+        <xsd:simpleContent>
+            <xsd:extension base="timetolive-union-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString"
+                    use="optional" />
+                <xsd:attribute name="param-name" type="xsd:normalizedString"
+                    use="optional" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="time-to-live" type="timetolive-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The time-to-live element specifies a time-to-live setting for the
+                multicast.
+
+                Valid values are from 0 to 255.
+
+                Used in: multicast-listener
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:simpleType name="jointimeout-limit-type">
+        <xsd:restriction base="xsd:positiveInteger">
+            <xsd:minInclusive value="1" />
+            <xsd:maxInclusive value="1000000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="jointimeout-union-type">
+        <xsd:union memberTypes="jointimeout-limit-type coherence-base-type" />
+    </xsd:simpleType>
+
+    <xsd:complexType name="jointimeout-type">
+        <xsd:simpleContent>
+            <xsd:extension base="jointimeout-union-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString"
+                    use="optional" />
+                <xsd:attribute name="param-name" type="xsd:normalizedString"
+                    use="optional" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="join-timeout-milliseconds" type="jointimeout-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The join-timeout-milliseconds element specifies the number of
+                milliseconds that a new member will wait without finding any
+                evidence of a cluster before starting its own cluster and
+                electing itself as the senior cluster member.
+
+                Valid values are from 1 to 1000000.
+
+                Used in: multicast-listener
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:simpleType name="multicastThreshold-limit-type">
+        <xsd:restriction base="xsd:positiveInteger">
+            <xsd:minInclusive value="1" />
+            <xsd:maxInclusive value="100" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="multicastThreshold-union-type">
+        <xsd:union memberTypes="multicastThreshold-limit-type coherence-empty-token" />
+    </xsd:simpleType>
+
+    <xsd:complexType name="multicastThreshold-type">
+        <xsd:simpleContent>
+            <xsd:extension base="multicastThreshold-union-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString"
+                    use="optional" />
+                <xsd:attribute name="param-name" type="xsd:normalizedString"
+                    use="optional" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="multicast-threshold-percent" type="multicastThreshold-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The group threshold is used to determine whether a packet will be sent
+                via unicast or multicast. It is a percentage value and is in the range
+                of 1% to 100%. In a cluster of "n" nodes, a particular node sending a
+                packet to a set of other (i.e. not counting self) destination nodes of
+                size "d" (in the range of 0 to n-1), the packet will be sent multicast
+                if and only if the following both hold true:
+
+                1) The packet is being sent over the network to more than one other
+                node: (d > 1)
+
+                2) The number of nodes is greater than the threshold:
+                (d > (n-1) * (threshold/100))
+
+                Setting this value to 1 will allow the implementation to use multicast for
+                for basically all multi-point traffic. Setting it to 100 will force
+                the implementation to use unicast for all multi-point traffic except for
+                explicit broadcast traffic (e.g. cluster heartbeat and discovery.)
+
+                Note: that a values less then 100 will also prevent this cluster from
+                sharing its cluster port with other clusters running on the same machine.
+
+                Valid values are from 1 to 100.
+
+                Used in: multicast-listener
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:simpleType name="min512-limit-type">
+        <xsd:restriction base="xsd:positiveInteger">
+            <xsd:minInclusive value="512" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="min512-union-type">
+        <xsd:union memberTypes="min512-limit-type coherence-empty-token" />
+    </xsd:simpleType>
+
+    <xsd:complexType name="min512-type">
+        <xsd:simpleContent>
+            <xsd:extension base="min512-union-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString"
+                    use="optional" />
+                <xsd:attribute name="param-name" type="xsd:normalizedString"
+                    use="optional" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="maximum-length" type="min512-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The maximum-length element specifies the packet size in bytes which all
+                cluster members can safely support.
+
+                This value must be the same for all members in the cluster. A low value
+                can artificially limit the maximum size of the cluster.
+
+                This value should be at least 512, and defaults to 64KB.
+
+                Used in: packet-size
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="preferred-length" type="min512-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The preferred-length element specifies the preferred size, in bytes,
+                of the DatagramPacket objects that will be sent and received on
+                the unicast and multicast sockets.
+
+                This value can be larger or smaller then the maximum-length value, and
+                need not be the same for all cluster members. The ideal value is one
+                which will fit within the network MTU, leaving enough space for either
+                the UDP or TCP packet headers, which are 32, and 52 bytes respectively.
+
+                This value should be at least 512, and default to a value based on the
+                local node's MTU. An MTU of 1500 is assumed if the MTU cannot be obtained.
+
+                Used in: packet-size
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="resend-milliseconds"
+        type="coherence-positiveInteger-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The resend-milliseconds element specifies the minimum amount of time,
+                in milliseconds, before a packet's data is resent across the network
+                if the packet has the ConfirmationRequired option set and the packet
+                has not been acknowledged by a Receipt packet.
+
+                Used in: packet-delivery
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="timeout-milliseconds" type="coherence-integer-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                For packet-delivery: The maximum amount of time, in milliseconds, that
+                a packet's data will be resent across the network if the packet has the
+                ConfirmationRequired option set and the packet has not been
+                acknowledged by a Receipt Packet.
+
+                For service-guardian: The timeout value used to guard against
+                deadlocked or unresponsive services. It is recommended that
+                service-guardian/timeout-milliseconds be set equal to or greater
+                than the packet-delivery/timeout-milliseconds value. A timeout of
+                zero will disable service guardians.
+
+                Used in: packet-delivery, service-guardian
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="heartbeat-milliseconds" type="coherence-positiveInteger-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The heartbeat-milliseconds element specifies the interval between
+                heartbeats. Each member issues a unicast heartbeat, and the most
+                senior member issues the cluster heartbeat, which is a broadcast
+                message.
+
+                Used in: packet-delivery
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="ack-delay-milliseconds" type="coherence-positiveInteger-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The ack-delay-milliseconds element specifies the number of milliseconds
+                that the packet publisher will delay before sending an Ack packet.
+
+                Used in: notification-queueing
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="nack-delay-milliseconds" type="coherence-positiveInteger-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The nack-delay-milliseconds element specifies the number of
+                milliseconds that the packet publisher will delay before sending
+                a Nack packet.
+
+                Used in: notification-queueing
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="flow-control">
+        <xsd:annotation>
+            <xsd:documentation>
+                The flow-control element contains configuration information related to
+                packet throttling and remote GC detection.
+
+                Used in: packet-delivery
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="enabled" minOccurs="0" />
+                <xsd:element ref="pause-detection" minOccurs="0" />
+                <xsd:element ref="outstanding-packets" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="packet-bundling">
+        <xsd:annotation>
+            <xsd:documentation>
+                The packet-bundling element contains configuration information related
+                to the bundling of multiple small packets into a single larger packet
+                in order to reduce the load on the network switching infrastructure.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="maximum-deferral-time" minOccurs="0" />
+                <xsd:element ref="aggression-factor" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="pause-detection">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines the maximum number of packets that will be resent to an
+                unresponsive cluster node before assuming that the node is paused,
+                for example due to a full GC. Once a node is marked as paused,
+                packets will be sent at a lower rate until the node resumes responding.
+                This is used as a form of remote GC detection to avoid flooding a node
+                while it is incapable of responding.
+
+                Used in: flow-control
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="maximum-packets" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="outstanding-packets">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines the number of unconfirmed packets that will be sent to a
+                cluster node before packets addressed to that node will be deferred. This
+                helps to prevent the sender from flooding the recipient's network
+                buffers. The value is specified as a range by using the maximum-packets and
+                minimum-packets elements, from which the runtime setting will be
+                dynamically adjusted based on network statistics.
+
+                Used in: flow-control
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="maximum-packets" minOccurs="0" />
+                <xsd:element ref="minimum-packets" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="maximum-packets" type="coherence-nonNegativeInteger-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                For traffic-jam: The maximum number of packets in the send plus resend
+                queues that the Publisher will tolerate before determining that it
+                is clogged and must slow down client requests (requests from local non-
+                system threads). Zero means no limit. This property prevents most
+                unexpected out-of-memory conditions by limiting the size of the
+                resend queue. Suggested default value is 8192.
+
+                For packet-buffer: The number of packets of maximum size that the
+                datagram socket will be asked to size itself to buffer.
+                See java.net.SocketOptions#SO_RCVBUF and
+                java.net.SocketOptions#SO_SNDBUF. Defaults are 32 for publishing,
+                64 for multicast listening, and 1428 for unicast listening. Actual
+                buffer sizes may be smaller if the underlying socket implementation
+                cannot support more than a certain size.
+
+                For pause-detection: The maximum number of packets that will be resent
+                to an unresponsive cluster node before assuming that the node is
+                paused. Specifying a value of 0 will disable pause detection.
+                Default is 16.
+
+                For outstanding-packets: The maximum number of unconfirmed packets that
+                will be sent to a cluster node before packets addressed to that node will
+                be deferred. It is recommended that this value not be set below 256.
+                Default is 4096.
+
+                Used in: packet-buffer, traffic-jam, outstanding-packets
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="size" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                For packet-buffer: The requested size of the underlying socket buffer
+                in bytes.
+                Default is selected based upon the preferred packet size.
+
+                Used in: packet-buffer
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="minimum-packets"
+        type="coherence-nonNegativeInteger-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                For volume-threshold: Specifies the minimum number of packets which
+                must be ready to be sent for the speaker daemon to be activated.
+                A value of 0 will force the speaker to always be used, while a very
+                high value will cause it to never be used. If unspecified Coherence
+                will auto adjust the threshold to find the maximum sustainable volume.
+
+                For outstanding-packets: The lower bound on the range for the number of
+                unconfirmed packets that will be sent to a cluster node before
+                packets addressed to that node will be deferred. Default is 64.
+
+                Used in: volume-threshold
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="pause-milliseconds"
+        type="coherence-positiveInteger-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                For traffic-jam: Number of milliseconds that the Publisher will pause a
+                client thread that is trying to send a message when the Publisher is
+                clogged. The Publisher will not allow the message to go through
+                until the clog is gone, and will repeatedly sleep the thread for the
+                duration specified by this property. Default value is 10.
+
+                Used in: traffic-jam
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="maximum-deferral-time">
+        <xsd:annotation>
+            <xsd:documentation>
+                The maximum amount of time to defer a packet while waiting for
+                additional packets to bundle. A value of zero will result in the
+                algorithm not waiting, and only bundling the readily accessible
+                packets. A value greater than zero will cause some transmission
+                deferral while waiting for additional packets to become available.
+                This value is typically set below 250 microseconds to avoid a
+                detrimental throughput impact. If the units are not specified,
+                nanoseconds are assumed. Default value is 1us (microsecond).
+
+                Used in: packet-bundling
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:simpleContent>
+                <xsd:restriction base="coherence-string-type">
+                    <xsd:pattern value="(\d)+(\.\d+)?(US|us)?" />
+                </xsd:restriction>
+            </xsd:simpleContent>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="aggression-factor" type="coherence-double-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies the aggressiveness of the packet deferral algorithm. Where as the
+                maximum-deferral-time element defines the upper limit on the
+                deferral time, the aggression-factor influences the average deferral time.
+                The higher the aggression value, the longer the Publisher may wait for
+                additional packets.
+
+                Default value is zero.
+
+                Used in: packet-bundling
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="maximum-time-variance" type="coherence-positiveInteger-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The maximum-time-variance element specifies the maximum time
+                variance between sending and receiving broadcast Messages when trying
+                to determine the difference between a new cluster Member's system time
+                and the cluster time.
+
+                The smaller the variance, the more certain one can be that the cluster
+                time will be closer between multiple systems running in the cluster;
+                however, the process of joining the cluster will be extended until
+                an exchange of Messages can occur within the specified variance.
+
+                Normally, a value as small as 20 milliseconds is sufficient,
+                but with heavily loaded clusters and multiple network hops
+                it is possible that a larger value would be necessary.
+
+                Used in: incoming-message-handler
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="use-nack-packets" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The use-nack-packets element specifies whether the packet receiver will
+                use negative acknowledgements (packet requests) to pro-actively respond
+                to known missing packets.
+
+                Valid values are "true" or "false".
+
+                Used in: incoming-message-handler
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+
+    <xsd:element name="service-type" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The service-type element contains the canonical name of the
+                service. This name is unique within the cluster.
+
+                Used in: service
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="service-component" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The service-component element contains either the fully qualified class
+                name of the service or the relocatable component name relative to the base
+                Service component.
+
+                Used in: service
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="logger-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The logger-name element allows to specify a logger name within chosen
+                logging system that should be used to log Coherence related messages.
+
+                This value is only used by the "jdk, "log4j2", and "slf4j" logging systems.
+
+                Default value is "Coherence".
+
+                Used in: logging-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="subject-scope" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The subject-scope element defines whether the remote cache or service
+                reference is shared by subject. The setting of "true" means that
+                remote references are not globally shared; each subject will get a
+                different reference.
+
+                Valid values are "true" or "false".
+
+                Default value is "false".
+
+                Used in: security-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <!--  Note that <socket-provider> has two different definitions.
+          In the case below (used as a sub-element in <socket-providers>),
+          this is the actual definition of a socket-provider, not a reference.
+          Therefore an id  attribute is required and a reference name is not allowed.
+    -->
+    <xsd:element name="socket-providers">
+        <xsd:annotation>
+            <xsd:documentation>
+                The socket-providers element contains the declarative data for each
+                socket-provider.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="socket-provider" minOccurs="0"
+                     maxOccurs="unbounded">
+                     <xsd:complexType>
+                        <xsd:complexContent>
+                            <xsd:extension base="coherence-system-property-type">
+                                <xsd:choice minOccurs="0">
+                                    <xsd:element ref="system" />
+                                    <xsd:element ref="ssl" />
+                                    <xsd:element ref="tcp" />
+                                    <xsd:element ref="sdp" />
+                                    <xsd:element ref="grpc-insecure" />
+                                </xsd:choice>
+                                <xsd:attribute name="id" type="xsd:NMTOKEN" use="required" />
+                            </xsd:extension>
+                        </xsd:complexContent>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="global-socket-provider" type="socket-provider-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The global-socket-provider element contains the configuration info for
+                a socket and channel factory that will be applied to all sockets and
+                channels that do not specify a specific provider.
+
+                In addition to defining a socket-provider, it is also acceptable
+                and in fact preferred to provide the name of a provider from the
+                socket-providers configuration within the operational configuration.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="journaling-config">
+        <xsd:annotation>
+            <xsd:documentation>
+                Provides configuration for the Journaling Subsystem
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="ramjournal-manager" minOccurs="0" />
+                <xsd:element ref="flashjournal-manager" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:complexType name="journal-manager-base">
+        <xsd:annotation>
+            <xsd:documentation>
+                Provides an abstract type with common elements in both
+                ramjournal-manager and flashjournal-manager
+
+                Used in: ramjournal-manager, flashjournal-manager
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="minimum-load-factor" minOccurs="0" />
+            <xsd:element ref="maximum-value-size" minOccurs="0" />
+            <xsd:element ref="maximum-file-size" minOccurs="0" />
+            <xsd:element ref="collector-timeout" minOccurs="0" />
+            <xsd:element ref="maximum-size" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+   <xsd:element name="ramjournal-manager">
+        <xsd:annotation>
+            <xsd:documentation>
+                Provides configuration for Ram Journaling
+
+                Used in: journaling-config
+            </xsd:documentation>
+        </xsd:annotation>
+       <xsd:complexType>
+           <xsd:complexContent>
+               <xsd:extension base="journal-manager-base">
+                   <xsd:sequence>
+                       <xsd:element ref="off-heap" minOccurs="0" />
+                   </xsd:sequence>
+               </xsd:extension>
+           </xsd:complexContent>
+       </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="flashjournal-manager">
+        <xsd:annotation>
+            <xsd:documentation>
+                Provides configuration for Flash Journaling
+
+                Used in: journaling-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="journal-manager-base">
+                    <xsd:sequence>
+                        <xsd:element ref="block-size" minOccurs="0" />
+                        <xsd:element ref="maximum-pool-size" minOccurs="0" />
+                        <xsd:element ref="directory" minOccurs="0" />
+                        <xsd:element ref="async-limit" minOccurs="0" />
+                        <xsd:element ref="tmp-purge-delay" minOccurs="0" />
+                        <xsd:element ref="high-journal-size" minOccurs="0" />
+                        <xsd:element ref="writer-timeout" minOccurs="0" />
+                    </xsd:sequence>
+                </xsd:extension>
+            </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="minimum-load-factor" type="coherence-decimal-01ex-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The factor of live data below which a Journal file is eligible
+                for compaction (garbage collection).
+
+                Used in: ramjournal-manager, flashjournal-manager
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="maximum-value-size" type="coherence-decimal-memorySize-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The maximum size for any serialized value in either journal.
+
+                Used in: ramjournal-manager, flashjournal-manager
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="maximum-file-size" type="coherence-integer-memorySize-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The maximum file size for any file.
+
+                Used in: ramjournal-manager, flashjournal-manager
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="collector-timeout" type="coherence-time-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The collector-timeout element specifies the amount of time the
+                Journal's Collector can remain unresponsive prior to considering
+                it timed out. The minimum timeout is 30s.
+
+                Legal values are strings representing time intervals.
+
+                Default value is "10m".
+
+                Used in: ramjournal-manager, flashjournal-manager
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="maximum-size" type="coherence-percentage-memory-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The maximum capacity for the Journal as a memory size. Only when
+                configuring ramjournal-manager can this value be a percentage of
+                the max heap.
+
+                Note: Either this element or maximum-file-size should be used
+
+                Note: When used with flashjournal-manager a value of 0 disables
+                      flash storage
+
+                Used in: ramjournal-manager, flashjournal-manager
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="off-heap" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                Boolean indicating whether to use in VM byte buffer or of-heap NIO buffers.
+
+                Used in: ramjournal-manager
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="block-size" type="coherence-integer-memorySize-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The desired block size for writes to the device.
+
+                Used in: flashjournal-manager
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="maximum-pool-size" type="coherence-decimal-memorySize-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The size of buffers being recycle (i.e. never released back).
+
+                Used in: flashjournal-manager
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="tmp-purge-delay" type="coherence-time-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The delay after last usage which a temporary file used by the Journaling subsystem
+                is eligible for removal.
+
+                Used in: flashjournal-manager
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="high-journal-size" type="coherence-percentage-memory-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The high journal size is a soft limit on the journal size either
+                expressed as a memory size or a percentage of the maximum-size.
+                This allows the GC thread to tune itself to try to avoid growing
+                the journal beyond the high journal size.
+
+                This is not a hard-limit and the journal could still grow beyond that
+                up to the max file count (511).
+
+                Used in: flashjournal-manager
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="writer-timeout" type="coherence-time-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The writer-timeout element specifies the amount of time the
+                Flash Journal's Writer can remain unresponsive prior to considering
+                it timed out. The minimum timeout is 30s.
+
+                Legal values are strings representing time intervals.
+
+                Default value is "8h".
+
+                Used in: flashjournal-manager
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="storage-authorizers">
+        <xsd:annotation>
+            <xsd:documentation>
+                The storage-authorizers element contains the declarative data
+                for each storage authorizer.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="storage-authorizer" minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="storage-authorizer">
+        <xsd:annotation>
+            <xsd:documentation>
+                The storage-authorizer element contains the declarative data for
+                a storage access authorizer, which must be an instance of the
+                com.tangosol.net.security.StorageAccessAuthorizer interface.
+
+                Used in: storage-authorizers
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:group ref="instance" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional" />
+            <xsd:attribute name="id" type="xsd:NMTOKEN" use="required" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="password-providers">
+        <xsd:annotation>
+            <xsd:documentation>
+                The password-providers element contains the definition of
+                many password-provider elements.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="password-provider" minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="common-daemon-pool">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configures the common daemon pool.
+
+                The common pool is a Coherence DaemonPool used internally by
+                Coherence for common tasks such as async future handling.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="thread-count" minOccurs="0" />
+                <xsd:element ref="thread-count-max" minOccurs="0" />
+                <xsd:element ref="thread-count-min" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="virtual-threads-enabled" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The virtual-threads-enabled element specifies whether virtual
+                threads are used by Coherence.
+
+                Legal values are true or false.
+
+                Default value is false.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+</xsd:schema>

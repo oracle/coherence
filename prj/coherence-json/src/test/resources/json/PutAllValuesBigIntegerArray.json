@@ -1,0 +1,20 @@
+{
+  "@class" : "common.data.PutAll",
+  "entries" : [ {
+    "key" : {
+      "@class" : "common.data.Person",
+      "name" : "BigDealWithArray",
+      "age" : 18,
+      "minor" : true
+    },
+    "values" : [ 1, 10, 987654321987654321987654321 ]
+  }, {
+    "key" : {
+      "@class" : "common.data.Person",
+      "name" : "BigMikeWithArrayList",
+      "age" : 28,
+      "minor" : false
+    },
+    "values" : [ 1, 10, 987654321987654321987654321 ]
+  } ]
+}

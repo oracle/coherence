@@ -1,0 +1,406 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Topics
+:description: Coherence Tutorials
+:keywords: coherence, java, documentation, tutorials
+
+== Topics
+
+This tutorial walks through the steps to use Coherence Topics using a simple Chat Application.
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-need,What You Need>>
+* <<review-the-initial-project, Review the Initial Project>>
+** <<maven, Maven Configuration>>
+** <<data-model, Data Model>>
+** <<cache-config, Topics Cache Configuration>>
+** <<chat-application, The Chat Application>>
+* <<run-the-example, Build and Run the Example>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+You will review, build and run a simple chat client which showcases using Coherence Topics.
+When running the chat client, the user can send a message in two ways:
+
+1. Send to all connected users using a publish/ subscribe model. For this functionality we
+create a topic called `public-messages` and all users are anonymous subscribers. Any messages to
+this topic will only be received by subscribers that are active.
+
+2. Send a private message to an individual user using a subscriber group. This uses a separate
+topic called `private-messages` and each subscriber to the topic specifies their userId as a
+subscriber group. Each value is only delivered to one of its subscriber group members, meaning the message will
+only be received by the individual user.
+
+NOTE: We do not cover all features in Coherence Topics, so if you wish to read more about Coherence Topics, please see the
+{commercial-docs-base-url}/develop-applications/using-topics.html[Coherence Documentation].
+
+// Do not change this part.
+// If your example requires Java 11+ change the 1.8 below to 11
+[#what-you-need]
+=== What You Need
+:java_version: 11
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+==== Building the Example Code
+
+Whenever you are asked to build the code, please refer to the instructions below.
+
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+[#review-the-initial-project]
+=== Review the Initial Project
+
+[#maven]
+==== Maven Configuration
+
+The initial project is a Coherence project and imports the `coherence-bom` and `coherence-dependencies`
+POMs as shown below:
+
+[source,xml,indent=0]
+----
+include::pom.xml[tag=deps1]
+----
+
+The `coherence` library is also included:
+
+[source,xml,indent=0]
+----
+include::pom.xml[tag=deps2]
+----
+
+We also define a `server` profile to run one or more DefaultCacheServer processes.
+
+[source,xml,indent=0]
+----
+include::pom.xml[tag=profile]
+----
+
+[#data-model]
+==== Data Model
+
+The data model consists of the `ChatMessage` client which contains chat messages sent either on the private or publish topics. The properties are shown below:
+
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/topics/ChatMessage.java[tag=properties]
+----
+
+[#cache-config]
+==== Topics Cache Configuration
+
+1. The following `topic-scheme-mapping` element is defined in `src/main/resources/topics-cache-config.xml`:
++
+[source,xml,indent=0]
+----
+include::src/main/resources/topics-cache-config.xml[tag=mapping]
+----
++
+The topics defined are described below:
++
+* **public-messages** - contains public messages
+* **private-messages** - contains private messages and contains an initial subscriber group named `admin` in configuration.
++
+NOTE: Because we have specifically add the `admin` subscriber group in the cache config, this means that
+it will be created on startup of the cache server and messages to `admin` will be durable. Messages
+for subscriber groups created on the fly, by specifying `Name.of("groupName")` when creating a subscriber,
+are only durable from the time the subscribe group is created.
+
+2. The following `caching-schemes` element is defined in `src/main/resources/topics-cache-config.xml`:
++
+[source,xml,indent=0]
+----
+include::src/main/resources/topics-cache-config.xml[tag=scheme]
+----
++
+The above `paged-topic-scheme` has no size limit and is automatically started.
+
+[#chat-application]
+==== The Chat Application
+
+The chat application is a simple text based client which does the following:
+
+* Starts up with an argument specifying the user id of the user
+
+* Displays a menu, shown below, where a user can send a message to all connected users or privately to an individual.
++
+[source,bash]
+----
+Commands:
+quit - Quit the chat
+help - Display help
+send - Send public message
+sendpm userId - Send private message
+----
+
+We will examine each of the components in detail below:
+
+1. Topics, Subscribers and Publishers
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[tag=properties]
+----
+
+2. System Properties
++
+As we are creating a shaded Jar, we are including the following system properties to set the cache configuration file, turn off local storage and reduce the log level.
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[tag=systemProperties]
+----
++
+
+3. Obtain a Coherence session
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[tag=sessionCreate]
+----
++
+
+4. Create the *public* Topic, Subscribers and Publishers
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[tag=public]
+----
++
+<1> Creates a publisher to publish messages to the topic
+<2> Creates a subscriber (anonymous) to receive all messages published to the topic
+
+5. Create the *private* Topic, Subscribers and Publishers
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[tag=private]
+----
++
+<1> Creates a publisher to publish messages to the topic
+<2> Creates a subscriber with a subscriber group of the user to receive private messages
+
+6. When the application starts, two subscriptions are initiated. One to receive messages from the public topic and one
+to receive messages from the private topic.
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[tag=subscribers]
+----
++
+NOTE: We are just using the default ForkJoin pool for this example but handleAsync can accept and `Executor` which would be better practice.
+
+7. Each of the above subscribers call the `receive` message which will resubscribe.
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[tag=receive]
+----
++
+<1> Retrieve the `ChatMessage`
+<2> Call a method to generate a string representation of the message and display it
+<3> Commit the element so that we do not receive the message again
+<4> Receive the next message
+
+8. Generate a join message on startup
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[tag=join]
+----
++
+
+9. Send a public message when the user uses the `sendpm` command:
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[tag=sendPublic]
+----
++
+<1> Asynchronously send the message and increment the messages sent when complete
+
+10. Send a private message when the user uses the `sendpm` command:
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[tag=sendPrivate]
+----
++
+<1> Asynchronously send the message and increment the messages sent when complete
+
+11. Generate a leave message on exit and cleanup
++
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[tag=cleanup]
+----
+
+[#run-the-example]
+=== Build and Run the Example
+
+Build the project using either of the following:
+
+[source,bash]
+----
+./mvnw clean package
+----
+
+or
+
+[source,bash]
+----
+./gradlew clean build
+----
+
+1. Start one or more Coherence Cache Servers using the following:
++
+[source,bash]
+----
+./mvnw exec:exec -P server
+----
++
+or
++
+[source,bash]
+----
+./gradlew runServer
+----
+
+2. Start the first chat client with the user `Tim`
++
+[source,bash]
+----
+java -jar target/topics-1.0.0-SNAPSHOT.jar Tim
+----
++
+or
++
+[source,bash]
+----
+./gradlew runClient -PuserId=Tim --console=plain
+----
++
+You will notice output similar to the following:
++
+[source,bash]
+----
+Oracle Coherence Version 20.12 Build demo
+ Grid Edition: Development mode
+Copyright (c) 2000, 2021, Oracle and/or its affiliates. All rights reserved.
+
+User: Tim
+Commands:
+quit - Quit the chat
+help - Display help
+send - Send public message
+sendpm userId - Send private message
+
+Chat (Tim)>
+----
+
+3. Start a second second client with the name `Helen`. You will see a message on `Tim's` chat application indicating `Helen` has joined the chat.
++
+[source,bash]
+----
+Chat (Tim)> 14:14:30 Helen joined the chat
+----
+
+4. Use `send hello` from `Helen's` chat and you will notice that the message is dispalyed on `Tim's` chat.
+
+5. To show how subscriber groups work, send a private message using the following from `Tim` to `JK`.
++
+[source,bash]
+----
+Chat (Tim)> sendpm JK Hello JK
+----
++
+Also send a private message to `admin`.
++
+[source,bash]
+----
+Chat (Tim)> sendpm admin Please ping me when you get in as i have an issue with my Laptop
+----
+
+6. Start a third chat application with `JK` as the user:
++
+[source,bash]
+----
+java -jar target/topics-1.0.0-SNAPSHOT.jar JK
+
+User: JK
+Commands:
+quit - Quit the chat
+help - Display help
+send - Send public message
+sendpm userId - Send private message
+
+Chat (JK)>
+----
++
+NOTE: You will notice that the private message for `JK` was not delivered as the subscriber group `JK` was
+only created when he joined and therefore messages send previously are not stored.
++
+NOTE: You will also see join messages on the other terminals.
+
+7. Type `quit` in `Helen's` terminal and restart the client as `admin`
++
+[source,bash]
+----
+java -jar target/topics-1.0.0-SNAPSHOT.jar admin
+
+User: admin
+Commands:
+quit - Quit the chat
+help - Display help
+send - Send public message
+sendpm userId - Send private message
+
+Chat (admin)> 14:18:29 Tim (Private) - Please ping me when you get in as i have an issue with my Laptop
+----
++
+NOTE: You will notice that the message sent before `admin` joined is now delivered as the `admin` subscriber group was
+created in configuration and add on server startup.
+
+8. Type a message `send Got to go, bye` on `JK's` chat application and then `quit`. The message
+along with the leave notification will be shown on the other terminals.
++
+[source,bash]
+----
+Chat (JK)> send Got to go, bye
+----
+
+9. Now that `JK` has quit the application, send a private message from `Tim` to `JK` using `sendpm JK please ping me`.
++
+[source,bash]
+----
+Chat (Tim)> sendpm JK please ping me
+----
+
+10. Start the client as `JK` and you will see the message displayed now as the subscriber group is created.
+
+11. Finally send a private messge from `Tim` to `admin` using `sendpm admin Are you free for lunch?`.
+You will notice this message is only displayed for `admin`.
++
+[source,bash]
+----
+Chat (Tim)> sendpm admin Are you free for lunch?
+----
+
+[#summary]
+=== Summary
+
+In this tutorial you have learned how use Coherence Topics.
+
+[#see-also]
+=== See Also
+
+* {commercial-docs-base-url}/develop-applications/using-topics.html[Topics Overview and Configuration]
+* {commercial-docs-base-url}/develop-applications/performing-basic-topic-publish-and-subscribe-operations.html#GUID-46CCE404-89D7-4396-854A-AF05227A04D6[Performing Topics Operations]

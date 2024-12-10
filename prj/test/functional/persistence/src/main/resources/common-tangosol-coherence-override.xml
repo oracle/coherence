@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<!-- see COH-9850 -->
+<!-- coherence  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd"
+            xml-override="../common/commomn-tangosol-coherence-override.xml"-->
+<!-- pick up the generic "tests" override -->
+<coherence  xml-override="common/tangosol-coherence-override.xml">
+
+  <cluster-config>
+    <persistence-environments>
+      <persistence-environment id="simple-bdb-environment">
+        <persistence-mode system-property="test.persistence.mode">active</persistence-mode>
+        <active-directory system-property="test.persistence.active.dir">target/store-bdb-active</active-directory>
+        <backup-directory system-property="test.persistence.backup.dir">target/store-bdb-backup</backup-directory>
+        <snapshot-directory system-property="test.persistence.snapshot.dir">target/store-bdb-snapshot</snapshot-directory>
+        <trash-directory system-property="test.persistence.trash.dir">target/store-bdb-trash</trash-directory>
+      </persistence-environment>
+      <persistence-environment id="simple-custom-environment">
+        <instance>
+          <class-name>persistence.AbstractConfigurationPersistenceTests$CustomEnvironment</class-name>
+          <init-params>
+            <init-param>
+              <param-value>{cluster-name}</param-value>
+            </init-param>
+            <init-param>
+              <param-value>{service-name}</param-value>
+            </init-param>
+            <init-param>
+              <param-value>{persistence-mode}</param-value>
+            </init-param>
+            <init-param>
+              <param-value>{active-directory}</param-value>
+            </init-param>
+            <init-param>
+              <param-value>{snapshot-directory}</param-value>
+            </init-param>
+            <init-param>
+              <param-value>{trash-directory}</param-value>
+            </init-param>
+          </init-params>
+        </instance>
+        <persistence-mode system-property="test.persistence.mode">active</persistence-mode>
+        <active-directory system-property="test.persistence.active.dir">target/store-custom-active</active-directory>
+        <snapshot-directory system-property="test.persistence.snapshot.dir">target/store-custom-snapshot</snapshot-directory>
+        <trash-directory system-property="test.persistence.trash.dir">target/store-custom-trash</trash-directory>
+      </persistence-environment>
+      <persistence-environment id="simple-recovery-environment">
+        <instance>
+          <class-name>persistence.SimpleRecoveryProtocolTests$Environment</class-name>
+        </instance>
+        <persistence-mode system-property="test.persistence.mode">active</persistence-mode>
+        <active-directory system-property="test.persistence.active.dir">target/store-recovery-active</active-directory>
+        <snapshot-directory system-property="test.persistence.snapshot.dir">target/store-recovery-snapshot</snapshot-directory>
+        <trash-directory system-property="test.persistence.trash.dir">target/store-recovery-trash</trash-directory>
+      </persistence-environment>
+      <persistence-environment id="slow-snapshot-environment">
+        <instance>
+          <class-name>persistence.SuspendTests$SlowBDBEnvironment</class-name>
+          <init-params>
+            <init-param>
+              <param-value>{active-directory}</param-value>
+            </init-param>
+            <init-param>
+              <param-value>{snapshot-directory}</param-value>
+            </init-param>
+            <init-param>
+              <param-value>{trash-directory}</param-value>
+            </init-param>
+          </init-params>
+        </instance>
+        <persistence-mode system-property="test.persistence.mode">active</persistence-mode>
+        <active-directory system-property="test.persistence.active.dir">target/slow-snap-recovery-active</active-directory>
+        <snapshot-directory system-property="test.persistence.snapshot.dir">target/slow-snap-recovery-snapshot</snapshot-directory>
+        <trash-directory system-property="test.persistence.trash.dir">target/slow-snap-recovery-trash</trash-directory>
+      </persistence-environment>
+    </persistence-environments>
+    <snapshot-archivers>
+      <directory-archiver id="simple-directory-archiver">
+         <archive-directory system-property="test.persistence.archive.dir">target/store-archive</archive-directory>
+      </directory-archiver>
+      <custom-archiver id="simple-custom-archiver">
+        <class-name>persistence.ConfigurableSnapshotArchiverFactoryTest$CustomArchiver</class-name>
+          <init-params>
+            <init-param>
+              <param-value>{cluster-name}</param-value>
+            </init-param>
+            <init-param>
+              <param-value>{service-name}</param-value>
+          </init-param>
+         </init-params>
+      </custom-archiver>
+    </snapshot-archivers>
+    <address-providers>
+      <address-provider id="persistence-host-list">
+        <address>127.0.0.1</address>
+      </address-provider>
+    </address-providers>
+  </cluster-config>
+</coherence>

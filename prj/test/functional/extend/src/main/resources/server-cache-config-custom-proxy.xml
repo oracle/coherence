@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <defaults>
+    <serializer>
+      <instance>
+        <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+        <init-params>
+          <init-param>
+            <param-type>string</param-type>
+            <param-value>extend/test-pof-config.xml</param-value>
+          </init-param>
+        </init-params>
+      </instance>
+    </serializer>
+  </defaults>
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>test-cache</cache-name>
+      <scheme-name>dist-1</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>dist-1</scheme-name>
+      <lease-granularity>member</lease-granularity>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <proxy-scheme>
+      <service-name>ExtendTcpCustomProxyService</service-name>
+      <thread-count>1</thread-count>
+      <acceptor-config>
+        <tcp-acceptor>
+          <address-provider>ap2</address-provider>
+        </tcp-acceptor>
+        <outgoing-message-handler>
+          <request-timeout>5s</request-timeout>
+        </outgoing-message-handler>
+        <serializer>
+          <instance>
+            <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+            <init-params>
+              <init-param>
+                <param-type>string</param-type>
+                <param-value>extend/test-pof-config.xml</param-value>
+              </init-param>
+            </init-params>
+          </instance>
+        </serializer>
+      </acceptor-config>
+      <proxy-config>
+        <cache-service-proxy>
+          <class-name>extend.CustomProxyService</class-name>
+          <init-params>
+             <init-param>
+                <param-type>com.tangosol.net.CacheService</param-type>
+                <param-value>{service}</param-value>
+             </init-param>
+          </init-params>
+          <lock-enabled>true</lock-enabled>
+        </cache-service-proxy>
+      </proxy-config>
+      <load-balancer>client</load-balancer>
+      <autostart system-property="test.extend.enabled">true</autostart>
+    </proxy-scheme>
+
+  </caching-schemes>
+</cache-config>

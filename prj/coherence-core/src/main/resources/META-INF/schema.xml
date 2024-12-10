@@ -1,0 +1,183 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<schema xmlns="http://xmlns.oracle.com/coherence/schema"
+       xmlns:java="http://xmlns.oracle.com/coherence/schema/java"
+       xmlns:dotnet="http://xmlns.oracle.com/coherence/schema/dotnet"
+       xmlns:cpp="http://xmlns.oracle.com/coherence/schema/cpp"
+       external="true">
+
+  <!-- Coherence types necessary for evolution-->
+
+  <type name="Evolvable">
+    <java:type name="com.oracle.common.io.Evolvable"/>
+    <dotnet:type name="Tangosol.IO.Evolvable"/>
+    <cpp:type name=""/>
+  </type>
+  <type name="EvolvableHolder">
+    <java:type name="com.oracle.io.pof.EvolvableHolder"/>
+    <dotnet:type name="Tangosol.IO.Pof.EvolvableHolder"/>
+    <cpp:type name=""/>
+  </type>
+
+  <!-- intrinsic primitive types -->
+
+  <type name="boolean">
+    <java:type name="boolean" wrapper="java.lang.Boolean"/>
+    <dotnet:type name="System.Boolean"/>
+    <cpp:type name=""/>
+  </type>
+  <type name="byte">
+    <java:type name="byte" wrapper="java.lang.Byte"/>
+    <dotnet:type name="System.Byte"/>
+    <cpp:type name=""/>
+  </type>
+  <type name="char">
+    <java:type name="char" wrapper="java.lang.Character"/>
+    <dotnet:type name="System.Char"/>
+    <cpp:type name=""/>
+  </type>
+  <type name="short">
+    <java:type name="short" wrapper="java.lang.Short"/>
+    <dotnet:type name="System.Int16"/>
+    <cpp:type name=""/>
+  </type>
+  <type name="int">
+    <java:type name="int" wrapper="java.lang.Integer"/>
+    <dotnet:type name="System.Int32"/>
+    <cpp:type name=""/>
+  </type>
+  <type name="long">
+    <java:type name="long" wrapper="java.lang.Long"/>
+    <dotnet:type name="System.Int64"/>
+    <cpp:type name=""/>
+  </type>
+  <type name="float">
+    <java:type name="float" wrapper="java.lang.Float"/>
+    <dotnet:type name="System.Single"/>
+    <cpp:type name=""/>
+  </type>
+  <type name="double">
+    <java:type name="double" wrapper="java.lang.Double"/>
+    <dotnet:type name="System.Double"/>
+    <cpp:type name=""/>
+  </type>
+
+  <!-- intrinsic reference types -->
+
+  <type name="Object">
+    <java:type name="java.lang.Object"/>
+    <dotnet:type name="System.Object"/>
+    <cpp:type name=""/>
+  </type>
+  <type name="String">
+    <java:type name="java.lang.String"/>
+    <dotnet:type name="System.String"/>
+    <cpp:type name=""/>
+  </type>
+  <type name="DateTime">
+    <java:type name="java.util.Date"/>
+    <dotnet:type name="System.DateTime"/>
+    <cpp:type name=""/>
+  </type>
+  <type name="LocalDate">
+    <java:type name="java.time.LocalDate"/>
+    <dotnet:type name=""/>
+    <cpp:type name=""/>
+  </type>
+  <type name="LocalDateTime">
+    <java:type name="java.time.LocalDateTime"/>
+    <dotnet:type name=""/>
+    <cpp:type name=""/>
+  </type>
+  <type name="LocalTime">
+    <java:type name="java.time.LocalTime"/>
+    <dotnet:type name=""/>
+    <cpp:type name=""/>
+  </type>
+  <type name="OffsetDateTime">
+    <java:type name="java.time.OffsetDateTime"/>
+    <dotnet:type name=""/>
+    <cpp:type name=""/>
+  </type>
+  <type name="OffsetTime">
+    <java:type name="java.time.OffsetTime"/>
+    <dotnet:type name=""/>
+    <cpp:type name=""/>
+  </type>
+  <type name="ZonedDateTime">
+    <java:type name="java.time.ZonedDateTime"/>
+    <dotnet:type name=""/>
+    <cpp:type name=""/>
+  </type>
+  <type name="BigDecimal">
+    <java:type name="java.math.BigDecimal"/>
+    <dotnet:type name="System.Decimal"/>
+    <cpp:type name=""/>
+  </type>
+  <type name="BigInteger">
+    <java:type name="java.math.BigInteger"/>
+    <dotnet:type name="System.Numerics.BigInteger"/>
+    <cpp:type name=""/>
+  </type>
+  <type name="Number">
+    <java:type name="java.lang.Number"/>
+    <dotnet:type name=""/>
+    <cpp:type name=""/>
+  </type>
+  <type name="Enum">
+    <java:type name="java.lang.Enum"/>
+    <dotnet:type name=""/>
+    <cpp:type name=""/>
+  </type>
+
+  <!-- intrinsic collection types -->
+
+  <type name="Set">
+    <java:type name="java.util.HashSet">
+        <java:alias name="java.util.Set"/>
+        <java:alias name="java.util.LinkedHashSet"/>
+    </java:type>
+    <dotnet:type name="System.Collections.Generic.HashSet">
+        <dotnet:alias name="System.Collections.Generic.ISet"/>
+    </dotnet:type>
+  </type>
+  <type name="SortedSet">
+    <java:type name="java.util.TreeSet">
+        <java:alias name="java.util.SortedSet"/>
+        <java:alias name="java.util.NavigableSet"/>
+    </java:type>
+    <dotnet:type name="System.Collections.Generic.SortedSet"/>
+  </type>
+  <type name="List">
+    <java:type name="java.util.ArrayList">
+        <java:alias name="java.util.List"/>
+        <java:alias name="java.util.LinkedList"/>
+    </java:type>
+    <dotnet:type name="System.Collections.Generic.List">
+        <dotnet:alias name="System.Collections.Generic.IList"/>
+        <dotnet:alias name="System.Collections.Generic.LinkedList"/>
+    </dotnet:type>
+  </type>
+  <type name="Map">
+    <java:type name="java.util.HashMap">
+        <java:alias name="java.util.Map"/>
+        <java:alias name="java.util.LinkedHashMap"/>
+    </java:type>
+    <dotnet:type name="System.Collections.Generic.Dictionary">
+        <dotnet:alias name="System.Collections.Generic.IDictionary"/>
+    </dotnet:type>
+  </type>
+  <type name="SortedMap">
+    <java:type name="java.util.TreeMap">
+        <java:alias name="java.util.SortedMap"/>
+        <java:alias name="java.util.NavigableMap"/>
+    </java:type>
+    <dotnet:type name="System.Collections.Generic.SortedDictionary"/>
+  </type>
+
+</schema>

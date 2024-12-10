@@ -1,0 +1,115 @@
+# Copyright 2020, 2024, Oracle Corporation and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+# ---------------------------------------------------------------------------
+# Coherence CE GitHub Actions CI build.
+# ---------------------------------------------------------------------------
+
+name: CI Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore:
+    - gh-pages
+    - p4-integ*
+    - last-p4-*
+  pull_request:
+    types:
+      - opened
+      - committed
+    branches:
+    - '*'
+
+env:
+  MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        stage:
+         - stage1
+         - stage2
+         - stage3
+         - stage4
+         - stage5
+         - stage6
+         - stage7
+         - stage8
+         - stage9
+         - stage10
+         - stage11
+         - stage12
+         - stage13
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up JDK
+      uses: oracle-actions/setup-java@v1
+      with:
+        website: oracle.com
+        release: 17
+
+    - name: Print Maven & Java version
+      run: mvn -version
+
+    - name: Cache Maven packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2-
+
+      # Run the Verify stages in parallel
+    - name: Verify
+      timeout-minutes: 180
+      shell: bash
+      env:
+        MAVEN_USER: ${{ secrets.MavenUser }}
+        MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
+      run: |
+        echo "Building and running tests in ${{ matrix.stage }}"
+        export DEV_ROOT=$(pwd)
+        export SETTINGS_XML=${DEV_ROOT}/.github/maven/settings.xml
+        mvn --file prj/pom.xml --batch-mode -U -e -s ${SETTINGS_XML} -P-modules,${{ matrix.stage }} -Doptional -Dcoherence.SkipLargeMemoryTests=true clean install
+        mvn --file prj/pom.xml --batch-mode -e -s ${SETTINGS_XML} -Pmodules,-coherence,${{ matrix.stage }} -nsu -Doptional -Dcoherence.SkipLargeMemoryTests=true -Dcoherence.compatability.settings=${SETTINGS_XML} clean install
+
+    # Upload build artifacts for diagnosing failures
+    - name: Build Artifacts test logs
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: test-output-${{ matrix.stage }}
+        path: prj/**/target/test-output/**/*
+        if-no-files-found: ignore
+
+    - name: Build Artifacts test reports
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: failsafe-surefire-test-reports-${{ matrix.stage }}
+        path: prj/**/target/*-reports/**/*
+        if-no-files-found: ignore
+
+    - name: Build Artifacts core dumps
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: core-dumps-${{ matrix.stage }}
+        path: prj/**/core.*
+        if-no-files-found: ignore
+
+    - name: Build Artifacts compiler replays
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: compiler-replay-logs-${{ matrix.stage }}
+        path: prj/**/replay_pid*.log
+        if-no-files-found: ignore

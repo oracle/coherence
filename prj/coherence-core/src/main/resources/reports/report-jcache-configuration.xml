@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+  <report>
+    <file-name>{date}-jcache-configuration.txt</file-name>
+    <delim>{tab}</delim>
+
+    <query>
+      <pattern>javax.cache:type=CacheConfiguration,*</pattern>
+    </query>
+
+    <row>
+      <column id="BatchCounter">
+        <type>global</type>
+        <name>{batch-counter}</name>
+        <header>Batch Counter</header>
+      </column>
+
+      <column id="ReportTime">
+        <type>global</type>
+        <name>{report-time}</name>
+        <header>ReportTime</header>
+      </column>
+
+      <column id="CacheManager">
+        <type>key</type>
+        <name>CacheManager</name>
+        <header>CacheManager</header>
+        <group-by>true</group-by>
+      </column>
+
+      <column id="Cache">
+        <type>key</type>
+        <name>Cache</name>
+        <header>Cache</header>
+        <group-by>true</group-by>
+      </column>
+
+      <column id="KeyType">
+        <name>KeyType</name>
+      </column>
+
+      <column id="ValueType">
+        <name>ValueType</name>
+      </column>
+
+      <column id="ManagementEnabled">
+        <name>ManagementEnabled</name>
+      </column>
+
+      <column id="StatisticsEnabled">
+        <name>StatisticsEnabled</name>
+      </column>
+
+      <column id="ReadThrough">
+        <name>ReadThrough</name>
+      </column>
+
+      <column id="WriteThrough">
+        <name>WriteThrough</name>
+      </column>
+
+      <column id="StoreByValue">
+        <name>StoreByValue</name>
+      </column>
+    </row>
+  </report>
+</report-config>

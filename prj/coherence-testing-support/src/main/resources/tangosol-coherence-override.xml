@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
+  -->
+<coherence  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd"
+            xml-override="common/tangosol-coherence-override.xml">
+
+    <cluster-config>
+        <multicast-listener>
+            <!-- start with values other than the defaults to avoid intersecting with other "standard" clusters -->
+            <address system-property="coherence.clusteraddress">239.192.99.88</address>
+            <port system-property="coherence.clusterport">7675</port>
+            <time-to-live system-property="coherence.ttl">0</time-to-live>
+        </multicast-listener>
+    </cluster-config>
+</coherence>

@@ -1,0 +1,30 @@
+/*
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+// NamedCacheService V2 service definition.
+
+syntax = "proto3";
+
+package coherence.proxy.v1;
+
+import "proxy_service_messages_v1.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option java_multiple_files = true;
+option java_package = "com.oracle.coherence.grpc.services.proxy.v1";
+
+// -----------------------------------------------------------------
+// The Coherence gRPC Proxy Service definition.
+// -----------------------------------------------------------------
+
+service ProxyService {
+    // Sets up a bidirectional channel for cache requests and responses.
+    rpc subChannel (stream ProxyRequest) returns (stream ProxyResponse) {
+    }
+}
+

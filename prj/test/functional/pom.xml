@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce</groupId>
+    <artifactId>main</artifactId>
+    <version>${revision}</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <groupId>com.oracle.coherence.ce.tests</groupId>
+  <artifactId>coherence-functional-tests</artifactId>
+  <name>Coherence Functional Tests Project</name>
+  <packaging>pom</packaging>
+
+  <modules>
+    <!--
+      !!! MODULES MUST NEVER BE DEFINED HERE !!!
+
+      ADVICE: Instead define them in the appropriate <profile>
+              section as part of the <profiles> section below.
+      -->
+  </modules>
+
+  <properties>
+    <dependency-check.skip>true</dependency-check.skip>
+    <skip.docs>true</skip.docs>
+    <skip.sources>true</skip.sources>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>com.oracle.coherence.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <version>${maven.moditect.plugin.version}</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-install</id>
+            <phase>install</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-jar</id>
+            <phase>package</phase>
+            <configuration combine.self="override">
+              <archive>
+                <addMavenDescriptor>false</addMavenDescriptor>
+              </archive>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven.surefire.plugin.version}</version>
+      </plugin>
+    </plugins>
+  </build>
+
+  <!-- ================================================================== -->
+  <!--                             PROFILES                               -->
+  <!-- ================================================================== -->
+  <profiles>
+    <!--
+        The 'default' profile is shared by all other profiles.
+
+        It must be included with every build, regardless of the environment.
+      -->
+    <profile>
+      <id>default</id>
+
+      <activation>
+        <!-- This is a work-around for the fact that activeByDefault does not do what you'd think it should -->
+        <file><exists>.</exists></file>
+      </activation>
+
+      <!-- the following modules are buildable by this profile -->
+      <modules>
+        <module>aggregator</module>
+        <module>bootstrap</module>
+        <module>bundler</module>
+        <module>cache</module>
+        <module>cdi</module>
+        <module>cdi-server</module>
+        <module>config</module>
+        <module>concurrent</module>
+        <module>concurrent-cdi</module>
+        <module>core</module>
+        <module>core21</module>
+        <module>dependencies</module>
+        <module>discovery</module>
+        <module>dslquery</module>
+        <module>events</module>
+        <module>examples</module>
+        <module>executor</module>
+        <module>extend</module>
+        <module>extractor</module>
+        <module>filter</module>
+        <module>graal</module>
+        <module>grpc</module>
+        <module>grpc-proxy-tck</module>
+        <module>grpc-proxy-netty</module>
+        <module>grpc-client-tck</module>
+        <module>grpc-client-netty</module>
+        <module>guardian</module>
+        <module>health</module>
+        <module>http</module>
+        <module>http-config</module>
+        <module>http-netty</module>
+        <module>io</module>
+        <module>jcache</module>
+        <module>jmx</module>
+        <module>lambda</module>
+        <module>logging</module>
+        <module>management</module>
+        <module>mp-config</module>
+        <module>mp-health</module>
+        <module>mp-metrics</module>
+        <module>protobuf</module>
+        <module>queues</module>
+        <module>wls-management</module>
+        <module>memcached</module>
+        <module>metrics</module>
+        <module>micrometer</module>
+        <module>near</module>
+        <module>net</module>
+        <module>partition</module>
+        <module>persistence</module>
+        <module>processor</module>
+        <module>quorum</module>
+        <module>reporter</module>
+        <module>repository</module>
+        <module>rest</module>
+        <module>rest-netty</module>
+        <module>rwbm</module>
+        <module>security</module>
+        <module>session</module>
+        <module>ssl</module>
+        <module>tcmp</module>
+        <module>topics</module>
+        <module>tracing</module>
+        <module>transformer</module>
+        <module>trigger</module>
+        <module>util</module>
+        <module>xsd</module>
+      </modules>
+    </profile>
+
+    <profile>
+      <id>modular-tests</id>
+      <activation>
+        <!-- This is a work-around for the fact that activeByDefault does not do what you'd think it should -->
+        <file><exists>.</exists></file>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <!-- All tests are run with failsafe when testing with modules -->
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>integration-test</goal>
+                  <goal>verify</goal>
+                </goals>
+                <configuration>
+                  <!-- All tests are run with failsafe when testing with modules -->
+                  <includes>
+                    <include>**/*Test.java</include>
+                    <include>**/*Tests.java</include>
+                    <include>**/*IT.java</include>
+                  </includes>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- disable tests in stage1 -->
+    <profile>
+      <id>stage1</id>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+
+    <!-- stages 3 and 4 use a group configuration to split the federation tests into two stages -->
+    <profile>
+      <id>stage3</id>
+      <build>
+          <plugins>
+              <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-failsafe-plugin</artifactId>
+              <configuration>
+                  <groups>com.oracle.coherence.ce.testing.util.GroupOne</groups>
+              </configuration>
+            </plugin>
+          </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>stage4</id>
+      <build>
+          <plugins>
+              <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-failsafe-plugin</artifactId>
+              <configuration>
+                  <excludedGroups>com.oracle.coherence.ce.testing.util.GroupOne</excludedGroups>
+              </configuration>
+            </plugin>
+          </plugins>
+      </build>
+    </profile>
+
+    <!-- runs executor single cluster tests -->
+    <profile>
+      <id>stage6</id>
+    </profile>
+
+    <!-- profile>
+      <id>stage7</id>
+      <modules>
+        <module>persistence</module>
+      </modules>
+    </profile -->
+
+    <!-- profile>
+      <id>stage8</id>
+      <modules>
+        <module>processor</module>
+        <module>quorum</module>
+        <module>reporter</module>
+      </modules>
+    </profile -->
+
+    <!-- profile>
+      <id>stage9</id>
+      <modules>
+        <module>http</module>
+        <module>http-config</module>
+        <module>http-netty</module>
+        <module>management</module>
+        <module>management-web</module>
+        <module>wls-management</module>
+        <module>metrics</module>
+        <module>micrometer</module>
+        <module>rest</module>
+        <module>rest-netty</module>
+        <module>rwbm</module>
+        <module>security</module>
+      </modules>
+    </profile -->
+
+    <!-- profile>
+      <id>stage10</id>
+      <modules>
+        <module>cdi</module>
+        <module>cdi-server</module>
+        <module>concurrent</module>
+        <module>concurrent-cdi</module>
+        <module>grpc</module>
+        <module>grpc-proxy</module>
+        <module>grpc-proxy-gar</module>
+        <module>grpc-client</module>
+        <module>health</module>
+        <module>session</module>
+        <module>ssl</module>
+        <module>tcmp</module>
+      </modules>
+    </profile -->
+
+    <!-- profile>
+      <id>stage11</id>
+      <modules>
+        <module>topics</module>
+        <module>toplink</module>
+        <module>transaction</module>
+      </modules>
+    </profile -->
+
+    <!-- runs executor cluster-per-test tests -->
+    <profile>
+      <id>stage12</id>
+    </profile>
+  </profiles>
+</project>

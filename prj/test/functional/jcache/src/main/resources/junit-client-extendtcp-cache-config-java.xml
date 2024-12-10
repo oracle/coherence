@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xmlns:jcache="class://com.tangosol.coherence.jcache.JCacheNamespace"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config
+                                  coherence-cache-config.xsd">
+    <defaults>
+        <serializer>
+            java
+        </serializer>
+    </defaults>
+    <caching-scheme-mapping>
+        <cache-mapping>
+            <cache-name>*</cache-name>
+            <scheme-name>extend-tcp</scheme-name>
+        </cache-mapping>
+    </caching-scheme-mapping>
+    <caching-schemes>
+        <!--
+         A scheme used by backing maps that store data in internal (binary) format
+         and employ size limitation and/or expiry eviction policies.
+        -->
+
+        <remote-cache-scheme>
+            <scheme-name>extend-tcp</scheme-name>
+            <service-name>ExtendTcpCacheService</service-name>
+            <initiator-config>
+                <tcp-initiator>
+                    <remote-addresses>
+                        <socket-address>
+                            <address>localhost</address>
+                            <port system-property="coherence.extend.port">9099</port>
+                        </socket-address>
+                    </remote-addresses>
+                </tcp-initiator>
+                <outgoing-message-handler>
+                    <request-timeout>30s</request-timeout>
+                </outgoing-message-handler>
+            </initiator-config>
+        </remote-cache-scheme>
+    </caching-schemes>
+</cache-config>

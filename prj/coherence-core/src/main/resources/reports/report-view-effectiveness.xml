@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2022, 2024 Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+    <report>
+      <file-name>{date}-view-usage.txt</file-name>
+      <delim>{tab}</delim>
+
+      <query>
+        <pattern>Coherence:type=View,*</pattern>
+      </query>
+
+      <row>
+        <column id="BatchCounter">
+          <type>global</type>
+          <name>{batch-counter}</name>
+          <header>Batch Counter</header>
+          <group-by>true</group-by>
+        </column>
+
+        <column id ="ReportTime">
+          <type>global</type>
+          <name>{report-time}</name>
+          <header>Report Time</header>
+          <group-by>true</group-by>
+        </column>
+
+        <column id ="Service">
+          <type>key</type>
+          <name>service</name>
+          <header>Service</header>
+          <group-by>true</group-by>
+        </column>
+
+        <column id ="Name">
+          <type>key</type>
+          <name>name</name>
+          <header>View Name</header>
+          <group-by>true</group-by>
+        </column>
+
+        <column id ="NodeId">
+          <type>key</type>
+          <name>nodeId</name>
+          <header>NodeID</header>
+          <hidden>false</hidden>
+        </column>
+
+        <column id ="NodeTS">
+          <name>Timestamp</name>
+          <header>Timestamp</header>
+          <query>
+            <pattern>Coherence:type=Node,nodeId={NodeId}</pattern>
+          </query>
+          <hidden>true</hidden>
+        </column>
+
+        <column id="Size">
+          <name>Size</name>
+          <header>Size</header>
+        </column>
+      </row>
+    </report>
+  </report-config>

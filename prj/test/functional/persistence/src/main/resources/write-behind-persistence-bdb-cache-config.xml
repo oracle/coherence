@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>simple-persistent*</cache-name>
+      <scheme-name>simple-persistence</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>simple-persistence</scheme-name>
+      <service-name>DistributedCachePersistence</service-name>
+      <partition-count>13</partition-count>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme/>
+          </internal-cache-scheme>
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>persistence.BerkeleyDBWriteBehindPersistenceTests$FileCacheStore</class-name>
+              <init-params>
+                <init-param>
+                  <param-type>java.lang.String</param-type>
+                  <param-value system-property="test.write-behind.dir">/tmp/</param-value>
+                </init-param>
+              </init-params>
+            </class-scheme>
+          </cachestore-scheme>
+          <write-delay system-property="test.write.delay">0s</write-delay>
+          <write-batch-factor>0</write-batch-factor>
+          <write-requeue-threshold>0</write-requeue-threshold>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <persistence>
+          <environment system-property="test.persistent-environment">simple-bdb-environment</environment>
+          <active-failure-mode system-property="test.persistence.failure.mode">stop-service</active-failure-mode>
+      </persistence>
+      <autostart>true</autostart>
+      <async-backup system-property="test.asyncbackup">false</async-backup>
+    </distributed-scheme>
+  </caching-schemes>
+</cache-config>

@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<socket-provider>
+  <ssl>
+    <identity-manager>
+      <key-store>
+        <url>file:client.jks</url>
+        <password-provider>
+          <class-name>com.oracle.coherence.testing.util.FileBasedPasswordProvider</class-name>
+          <init-params>
+            <init-param>
+              <param-name>sFile</param-name>
+              <param-value>storepass.txt</param-value>
+            </init-param>
+          </init-params>
+        </password-provider>
+      </key-store>
+      <password-provider>
+        <class-name>com.oracle.coherence.testing.util.FileBasedPasswordProvider</class-name>
+        <init-params>
+          <init-param>
+            <param-name>sFile</param-name>
+            <param-value>keypass.txt</param-value>
+          </init-param>
+        </init-params>
+      </password-provider>
+    </identity-manager>
+
+    <trust-manager>
+      <algorithm>PeerX509</algorithm>
+      <provider>
+        <name>CoherenceSecurityProvider</name>
+      </provider>
+      <key-store>
+        <url>file:peer.jks</url>
+        <password-provider>
+          <class-name>com.oracle.coherence.testing.util.FileBasedPasswordProvider</class-name>
+          <init-params>
+            <init-param>
+              <param-name>sFile</param-name>
+              <param-value>storepass.txt</param-value>
+            </init-param>
+          </init-params>
+        </password-provider>
+      </key-store>
+    </trust-manager>
+  </ssl>
+</socket-provider>

@@ -1,0 +1,353 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+
+<!--
+Note: This XML document is an example Coherence Cache Configuration deployment
+descriptor that should be customized (or replaced) for your particular caching
+requirements. The cache mappings and schemes declared in this descriptor are
+strictly for demonstration purposes and are not required.
+
+For detailed information on each of the elements that can be used in this
+descriptor please see the Coherence Cache Configuration deployment descriptor
+guide included in the Coherence distribution or the "Cache Configuration
+Elements" page on the Coherence Wiki (http://wiki.tangosol.com).
+-->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+  <!--
+  The defaults element defines factory-wide default settings.
+  -->
+  <defaults>
+    <!--
+    Note: This element defines the default serializer for all services
+    defined within this cache configuration descriptor.
+
+    Valid values include full serializer definitions, as well as named
+    references to serializers defined within the "serializers" element of the
+    operational configuration.
+
+    Example values include: java, pof. Default value is java.
+    -->
+    <serializer system-property="coherence.serializer"/>
+
+    <!--
+    Note: This element defines the default socket-provider for all Coherence
+    Extend services defined within this cache configuration descriptor.
+
+    Valid values include full socket-provider definitions, as well as named
+    references to providers defined within the "socket-providers" element of the
+    operational configuration.
+
+    This setting only specifies the default socket-provider for Coherence
+    Extend services; TCMP's socket-provider is specified within the
+    "unicast-listener" of the operational configuration.
+
+    Example values include: system, ssl. Default value is system.
+    -->
+    <socket-provider system-property="coherence.socketprovider"/>
+  </defaults>
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name system-property="coherence.cachename">dist-*</cache-name>
+      <scheme-name system-property="coherence.schemename">example-distributed</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name system-property="coherence.paramname">back-size-limit</param-name>
+          <param-value system-property="coherence.paramvalue">8MB</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>near-*</cache-name>
+      <scheme-name>example-near</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>back-size-limit</param-name>
+          <param-value>8MB</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>repl-*</cache-name>
+      <scheme-name>example-replicated</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>opt-*</cache-name>
+      <scheme-name>example-optimistic</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>back-size-limit</param-name>
+          <param-value>5000</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>local-*</cache-name>
+      <scheme-name>example-object-backing-map</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>tx-*</cache-name>
+      <scheme-name>example-transactional</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>flash-*</cache-name>
+      <scheme-name>example-flash</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>ram-*</cache-name>
+      <scheme-name>example-ram</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>*</cache-name>
+      <scheme-name>example-distributed</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <!--
+    Distributed caching scheme.
+    -->
+    <distributed-scheme>
+      <scheme-name system-property="coherence.schemename">example-distributed</scheme-name>
+      <service-name system-property="coherence.servicename">DistributedCache</service-name>
+
+      <backing-map-scheme>
+        <local-scheme>
+          <scheme-ref system-property="coherence.schemeref">example-binary-backing-map</scheme-ref>
+        </local-scheme>
+      </backing-map-scheme>
+
+      <autostart system-property="coherence.autostart">true</autostart>
+    </distributed-scheme>
+
+    <!--
+    Near caching (two-tier) scheme with size limited local cache
+    in the front-tier and a distributed cache in the back-tier.
+    -->
+    <near-scheme>
+      <scheme-name>example-near</scheme-name>
+
+      <front-scheme>
+        <local-scheme>
+          <eviction-policy system-property="coherence.evictionpolicy">HYBRID</eviction-policy>
+          <high-units system-property="coherence.highunits">100</high-units>
+          <expiry-delay system-property="coherence.expirydelay">1m</expiry-delay>
+        </local-scheme>
+      </front-scheme>
+
+      <back-scheme>
+        <distributed-scheme>
+          <scheme-ref>example-distributed</scheme-ref>
+        </distributed-scheme>
+      </back-scheme>
+
+      <invalidation-strategy system-property="coherence.invalidationstrategy">present</invalidation-strategy>
+      <autostart system-property="coherence.true">true</autostart>
+    </near-scheme>
+
+    <!--
+    Replicated caching scheme.
+    -->
+    <replicated-scheme>
+      <scheme-name>example-replicated</scheme-name>
+      <service-name>ReplicatedCache</service-name>
+
+      <backing-map-scheme>
+        <local-scheme>
+          <scheme-ref>unlimited-backing-map</scheme-ref>
+        </local-scheme>
+      </backing-map-scheme>
+
+      <autostart>true</autostart>
+    </replicated-scheme>
+
+    <!--
+    Optimistic caching scheme.
+    -->
+    <optimistic-scheme>
+      <scheme-name>example-optimistic</scheme-name>
+      <service-name>OptimisticCache</service-name>
+
+      <backing-map-scheme>
+        <local-scheme>
+          <scheme-ref>example-object-backing-map</scheme-ref>
+        </local-scheme>
+      </backing-map-scheme>
+
+      <autostart>true</autostart>
+    </optimistic-scheme>
+
+    <!--
+     A scheme used by backing maps that may store data in object format and
+     employ size limitation and/or expiry eviction policies.
+    -->
+    <local-scheme>
+      <scheme-name>example-object-backing-map</scheme-name>
+
+      <eviction-policy system-property="coherence.evictionpolicy">HYBRID</eviction-policy>
+      <high-units system-property="coherence.highunits">{back-size-limit 0}</high-units>
+      <expiry-delay system-property="coherence.expirydelay">{back-expiry 1h}</expiry-delay>
+
+      <cachestore-scheme></cachestore-scheme>
+    </local-scheme>
+
+    <!--
+     A scheme used by backing maps that store data in internal (binary) format
+     and employ size limitation and/or expiry eviction policies.
+    -->
+    <local-scheme>
+      <scheme-name>example-binary-backing-map</scheme-name>
+
+      <eviction-policy>HYBRID</eviction-policy>
+      <high-units>{back-size-limit 0}</high-units>
+      <unit-calculator system-property="coherence.unitcalc">BINARY</unit-calculator>
+      <expiry-delay system-property="coherence.expirydelay">{back-expiry 1h}</expiry-delay>
+
+      <cachestore-scheme></cachestore-scheme>
+    </local-scheme>
+
+    <!--
+    Backing map scheme definition used by all the caches that do
+    not require any eviction policies
+    -->
+    <local-scheme>
+      <scheme-name system-property="coherence.schemename">unlimited-backing-map</scheme-name>
+    </local-scheme>
+
+   <!--
+    ReadWriteBackingMap caching scheme.
+    -->
+    <read-write-backing-map-scheme>
+      <scheme-name>example-read-write</scheme-name>
+
+      <internal-cache-scheme>
+        <local-scheme>
+          <scheme-ref>example-binary-backing-map</scheme-ref>
+        </local-scheme>
+      </internal-cache-scheme>
+
+      <cachestore-scheme></cachestore-scheme>
+
+      <read-only system-property="coherence.readonly">true</read-only>
+      <write-delay system-property="coherence.writedelays">0s</write-delay>
+      <write-behind-remove system-property="coherence.writebehind.remove">true</write-behind-remove>
+    </read-write-backing-map-scheme>
+
+    <!--
+    Overflow caching scheme with example eviction local cache
+    in the front-tier and the example LH-based cache in the back-tier.
+    -->
+    <overflow-scheme>
+      <scheme-name>example-overflow</scheme-name>
+
+      <front-scheme>
+        <local-scheme>
+          <scheme-ref>example-binary-backing-map</scheme-ref>
+        </local-scheme>
+      </front-scheme>
+
+      <back-scheme>
+        <external-scheme>
+          <scheme-ref>example-bdb</scheme-ref>
+        </external-scheme>
+      </back-scheme>
+    </overflow-scheme>
+
+    <!--
+    External caching scheme using Berkley DB.
+    -->
+    <external-scheme>
+      <scheme-name>example-bdb</scheme-name>
+
+      <bdb-store-manager>
+        <directory system-property="coherence.directory"></directory>
+      </bdb-store-manager>
+
+      <high-units system-property="coherence.highunits">0</high-units>
+    </external-scheme>
+
+    <!--
+    Scheme that is using a RAM journal.
+    -->
+    <distributed-scheme>
+      <scheme-name>example-ram</scheme-name>
+      <service-name>DistributedCache</service-name>
+
+      <backing-map-scheme>
+         <ramjournal-scheme/>
+      </backing-map-scheme>
+
+      <autostart system-property="coherence.autostart">true</autostart>
+    </distributed-scheme>
+
+    <!--
+    Scheme that is using a flash (SSD) journal.
+    -->
+     <distributed-scheme>
+      <scheme-name>example-flash</scheme-name>
+      <service-name>DistributedCache</service-name>
+
+      <backing-map-scheme>
+         <flashjournal-scheme/>
+      </backing-map-scheme>
+
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <!--
+    Invocation Service scheme.
+    -->
+    <invocation-scheme>
+      <scheme-name>example-invocation</scheme-name>
+      <service-name>InvocationService</service-name>
+
+      <autostart system-property="coherence.invocation.autostart">true</autostart>
+    </invocation-scheme>
+
+    <!--
+    Proxy Service scheme that allows remote clients to connect to the
+    cluster over TCP/IP.
+    -->
+    <proxy-scheme>
+      <scheme-name>example-proxy</scheme-name>
+      <service-name>TcpProxyService</service-name>
+
+      <acceptor-config>
+        <tcp-acceptor>
+          <local-address>
+            <address system-property="coherence.extend.address">localhost</address>
+            <port system-property="coherence.extend.port">9099</port>
+          </local-address>
+        </tcp-acceptor>
+      </acceptor-config>
+
+      <autostart system-property="coherence.extend.enabled">false</autostart>
+    </proxy-scheme>
+
+    <!--
+    Transactional caching scheme.
+    -->
+    <transactional-scheme>
+      <scheme-name>example-transactional</scheme-name>
+      <service-name>TransactionalCache</service-name>
+    </transactional-scheme>
+
+  </caching-schemes>
+</cache-config>

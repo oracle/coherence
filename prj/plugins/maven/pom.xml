@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2020, 2024 Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce</groupId>
+    <artifactId>plugins</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>maven</artifactId>
+  <packaging>pom</packaging>
+
+  <name>Coherence Maven Plugins</name>
+  <description>Parent project for Maven plugins</description>
+
+  <modules>
+    <module>pof-maven-plugin</module>
+    <module>pof-maven-plugin-tests</module>
+  </modules>
+
+  <properties>
+    <project.version.pom>${project.version.release}</project.version.pom>
+    <project.version.liberte>${project.version.release}-${project.build.number}</project.version.liberte>
+
+    <!-- maven plugin versions -->
+    <maven.artifact.transfer.version>0.12.0</maven.artifact.transfer.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-plugin-api</artifactId>
+        <version>${maven.plugin.api.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-core</artifactId>
+        <version>${maven.plugin.api.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven.shared</groupId>
+        <artifactId>maven-artifact-transfer</artifactId>
+        <version>${maven.artifact.transfer.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven.plugin-tools</groupId>
+        <artifactId>maven-plugin-annotations</artifactId>
+        <version>${maven.plugin.plugin.version}</version>
+        <scope>provided</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+</project>

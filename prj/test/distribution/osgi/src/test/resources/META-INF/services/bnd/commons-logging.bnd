@@ -1,0 +1,6 @@
+Bundle-Version: 1.1.1
+Bundle-Name: Apache Commons Logging
+Bundle-SymbolicName: org.apache.commons.logging
+Bundle-Vendor: Apache
+Export-Package: org.apache.commons.logging.*
+Import-Package: *;resolution:=optional

@@ -1,0 +1,265 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<!--
+This XML document is a default Coherence Cache Configuration deployment descriptor that should be
+customized (or replaced) for your particular caching and deployment requirements.
+
+This configuration is usable in servers, proxies, clustered clients, and non-clustered extend clients.
+
+When used from within a server such a DefaultCacheServer, the server will automatically host a storage enabled cache
+service as well as a proxy service to allow extend clients to access the caches.  Clients using the configuration are
+storage disabled by default.
+
+This configuration defines a number of inter-related cache schemes:
+
+ - server            - this scheme defines the storage tier for all caches
+ - thin-direct       - this scheme is for use by cluster members to access the caches hosted by the "server" scheme
+ - near-direct       - this scheme adds near caching to "thin-direct"
+ - thin-remote       - conceptually similar to "thin-direct" but for use by extend clients that use the name service to locate the proxy
+ - near-remote       - conceptually similar to "near-direct" but for use by extend clients that use the name service to locate the proxy
+ - thin-remote-fixed - conceptually similar to "thin-direct" but for use by extend clients that use a fixed proxy service address
+ - near-remote-fixed - conceptually similar to "near-direct" but for use by extend clients that use a fixed proxy service address
+ - thin-grpc         - conceptually similar to "thin-direct" but for use by gRPC clients that use the name service to locate the proxy
+ - near-grpc         - conceptually similar to "near-direct" but for use by gRPC clients that use the name service to locate the proxy
+ - thin-grpc-fixed   - conceptually similar to "thin-direct" but for use by gRPC clients that use a fixed proxy service address
+ - near-grpc-fixed   - conceptually similar to "near-direct" but for use by gRPC clients that use a fixed proxy service address
+ - topic-server - this scheme defines the storage tier for all topics
+
+
+The default scheme for caches is "near-direct".  This default can be overridden via two system properties.  The
+"coherence.profile" system property controls the first portion of the scheme name and defines the approach used for
+in-process caching, i.e. "near" (on-demand) or "thin" (none).  The "coherence.client" system property controls how a
+client connects to the cluster, i.e. "direct" (cluster member) or "remote" (extend client).
+
+Note: System properties defined within this cache configuration are specific to this configuration and are not
+meaningful to other cache configurations unless similarly defined there.
+
+Note: Use of the grpc coherence.client values requires the Coherence Java gRPC module to be on the
+class path, or module path, of the JVM.
+-->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd"
+              xml-override="{coherence.cacheconfig.override}">
+  <defaults>
+    <scope-name>${coherence.scope}</scope-name>
+    <serializer>${coherence.serializer}</serializer>
+  </defaults>
+  
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>*</cache-name>
+      <scheme-name>${coherence.profile near}-${coherence.client direct}</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <topic-scheme-mapping>
+    <topic-mapping>
+      <topic-name>*</topic-name>
+      <scheme-name>topic-server</scheme-name>
+    </topic-mapping>
+  </topic-scheme-mapping>
+
+  <caching-schemes>
+    <!-- near caching scheme for clustered clients -->
+    <near-scheme>
+      <scheme-name>near-direct</scheme-name>
+      <front-scheme>
+        <local-scheme>
+          <high-units>{front-limit-entries 10000}</high-units>
+        </local-scheme>
+      </front-scheme>
+      <back-scheme>
+        <distributed-scheme>
+          <scheme-ref>thin-direct</scheme-ref>
+        </distributed-scheme>
+      </back-scheme>
+    </near-scheme>
+
+    <!-- near caching scheme for extend clients -->
+    <near-scheme>
+      <scheme-name>near-remote</scheme-name>
+      <scheme-ref>near-direct</scheme-ref>
+      <back-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>thin-remote</scheme-ref>
+        </remote-cache-scheme>
+      </back-scheme>
+    </near-scheme>
+
+    <!-- remote caching scheme for accessing the proxy from extend clients -->
+    <remote-cache-scheme>
+      <scheme-name>thin-remote</scheme-name>
+      <service-name>RemoteCache</service-name>
+      <proxy-service-name system-property="coherence.extend.proxy.service">Proxy</proxy-service-name>
+      <initiator-config>
+        <serializer>${coherence.extend.serializer ${coherence.serializer}}</serializer>
+      </initiator-config>
+      <defer-key-association-check system-property="coherence.extend.defer.key.association"/>
+    </remote-cache-scheme>
+
+    <!-- near caching scheme for fixed extend clients -->
+    <near-scheme>
+      <scheme-name>near-remote-fixed</scheme-name>
+      <scheme-ref>near-direct</scheme-ref>
+      <back-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>thin-remote-fixed</scheme-ref>
+        </remote-cache-scheme>
+      </back-scheme>
+    </near-scheme>
+
+    <!-- remote caching scheme for accessing the proxy from extend clients -->
+    <remote-cache-scheme>
+      <scheme-name>thin-remote-fixed</scheme-name>
+      <service-name>RemoteCache</service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <remote-addresses>
+            <socket-address>
+              <address system-property="coherence.extend.address"/>
+              <port system-property="coherence.extend.port"/>
+            </socket-address>
+          </remote-addresses>
+        </tcp-initiator>
+      </initiator-config>
+      <defer-key-association-check system-property="coherence.extend.defer.key.association"/>
+    </remote-cache-scheme>
+
+    <!-- near caching scheme for gRPC clients -->
+    <near-scheme>
+      <scheme-name>near-grpc</scheme-name>
+      <scheme-ref>near-direct</scheme-ref>
+      <back-scheme>
+        <remote-grpc-cache-scheme>
+          <scheme-ref>thin-grpc</scheme-ref>
+        </remote-grpc-cache-scheme>
+      </back-scheme>
+    </near-scheme>
+
+    <!--
+    A remote caching scheme for accessing a gRPC proxy.
+    The NameService will be used to look up the host
+    names and ports for the gRPC proxies.
+    -->
+    <remote-grpc-cache-scheme>
+      <scheme-name>thin-grpc</scheme-name>
+      <remote-scope-name system-property="coherence.grpc.remote.scope"/>
+      <service-name>RemoteGrpcCache</service-name>
+      <cluster-name system-property="coherence.grpc.remote.cluster"/>
+      <proxy-service-name system-property="coherence.grpc.remote.proxy"/>
+      <grpc-channel system-property="coherence.grpc.channel">
+        <name-service-addresses>
+          <socket-address>
+            <address system-property="coherence.grpc.address"/>
+            <port system-property="coherence.grpc.port"/>
+          </socket-address>
+        </name-service-addresses>
+        <socket-provider system-property="coherence.grpc.socketprovider"/>
+      </grpc-channel>
+      <request-timeout system-property="coherence.grpc.request.timeout"/>
+      <defer-key-association-check system-property="coherence.grpc.defer.key.association"/>
+      <heartbeat-interval system-property="coherence.grpc.heartbeat.interval"/>
+      <heartbeat-ack-required system-property="coherence.grpc.heartbeat.ack"/>
+    </remote-grpc-cache-scheme>
+
+    <!-- near caching scheme for gRPC clients -->
+    <near-scheme>
+      <scheme-name>near-grpc-fixed</scheme-name>
+      <scheme-ref>near-direct</scheme-ref>
+      <back-scheme>
+        <remote-grpc-cache-scheme>
+          <scheme-ref>thin-grpc-fixed</scheme-ref>
+        </remote-grpc-cache-scheme>
+      </back-scheme>
+    </near-scheme>
+
+    <!--
+    A remote caching scheme for accessing a gRPC proxy.
+    The specified address(es) will be used to connect
+    directly to a gRPC proxy.
+    -->
+    <remote-grpc-cache-scheme>
+      <scheme-name>thin-grpc-fixed</scheme-name>
+      <remote-scope-name system-property="coherence.grpc.remote.scope"/>
+      <service-name>RemoteGrpcCache</service-name>
+      <cluster-name system-property="coherence.grpc.remote.cluster"/>
+      <grpc-channel system-property="coherence.grpc.channel">
+        <remote-addresses>
+          <socket-address>
+            <address system-property="coherence.grpc.address"/>
+            <port system-property="coherence.grpc.port"/>
+          </socket-address>
+        </remote-addresses>
+        <socket-provider system-property="coherence.grpc.socketprovider"/>
+      </grpc-channel>
+      <request-timeout system-property="coherence.grpc.request.timeout"/>
+      <defer-key-association-check system-property="coherence.grpc.defer.key.association"/>
+      <heartbeat-interval system-property="coherence.grpc.heartbeat.interval"/>
+      <heartbeat-ack-required system-property="coherence.grpc.heartbeat.ack"/>
+    </remote-grpc-cache-scheme>
+
+    <!-- partitioned caching scheme for clustered clients -->
+    <distributed-scheme>
+      <scheme-name>thin-direct</scheme-name>
+      <scheme-ref>server</scheme-ref>
+      <local-storage system-property="coherence.distributed.localstorage">false</local-storage>
+      <autostart>false</autostart>
+    </distributed-scheme>
+
+    <!-- partitioned caching scheme for servers -->
+    <distributed-scheme>
+      <scheme-name>server</scheme-name>
+      <service-name>${coherence.service.name PartitionedCache}</service-name>
+      <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
+      <partition-count system-property="coherence.distributed.partitions">${coherence.distributed.partitioncount 257}</partition-count>
+      <backing-map-scheme>
+        <local-scheme>
+          <high-units>{back-limit-bytes 0B}</high-units>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <!-- partitioned topic scheme for servers -->
+    <paged-topic-scheme>
+      <scheme-name>topic-server</scheme-name>
+      <service-name>${coherence.service.name Partitioned}Topic</service-name>
+      <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
+      <partition-count system-property="coherence.distributed.partitions">${coherence.distributed.partitioncount 257}</partition-count>
+      <autostart system-property="coherence.topic.enabled">true</autostart>
+      <channel-count system-property="coherence.topic.channel.count"/>
+      <high-units>{topic-high-units-bytes 0B}</high-units>
+      <reconnect-wait system-property="coherence.topic.reconnect.wait"/>
+      <reconnect-timeout system-property="coherence.topic.reconnect.timeout"/>
+      <reconnect-retry system-property="coherence.topic.reconnect.retry"/>
+    </paged-topic-scheme>
+
+    <!--
+    A proxy scheme that allows Extend clients to connect to the cluster over TCP/IP.
+    The configuration below will bind to all local network interfaces on an ephemeral port.
+    A fixed address can be configured by setting the coherence.extend.address system property,
+    or the COHERENCE_EXTEND_ADDRESS environment variable.
+    A fixed port can be configured by setting the coherence.extend.port system property
+    or the COHERENCE_EXTEND_PORT environment variable.
+    -->
+    <proxy-scheme>
+      <service-name>Proxy</service-name>
+      <acceptor-config>
+        <tcp-acceptor>
+          <local-address>
+            <address system-property="coherence.extend.address"/>
+            <port system-property="coherence.extend.port"/>
+          </local-address>
+        </tcp-acceptor>
+        <serializer>${coherence.extend.serializer ${coherence.serializer}}</serializer>
+      </acceptor-config>
+      <autostart system-property="coherence.proxy.enabled">true</autostart>
+    </proxy-scheme>
+  </caching-schemes>
+</cache-config>

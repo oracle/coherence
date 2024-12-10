@@ -1,0 +1,422 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            elementFormDefault="qualified"
+            version="1.2">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+            Licensed under the Universal Permissive License v 1.0 as shown at
+            http://oss.oracle.com/licenses/upl.
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Oracle Coherence Operational Base Schema definitions that is included by
+            the coherence schema definition files.
+        </xsd:documentation>
+    </xsd:annotation>
+
+     <!-- include the base types and elements -->
+    <xsd:include schemaLocation="coherence-config-base.xsd" />
+
+    <xsd:element name="site-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The site-name element contains the name of the geographic site that the
+                member is hosted at. For WAN clustering, this value identifies the
+                datacenter within which the member is located, and can be used as the
+                basis for intelligent routing, load balancing and disaster recovery
+                planning (i.e. the explicit backing up of data on separate geographic
+                sites). The name is also useful for displaying management information
+                (e.g. JMX) and interpreting log entries. Coherence currently does not
+                make use of this element in making decisions about data backup location.
+
+                It is optional to provide a value for this element. Deployments that
+                spread across more than one geographic site should specify a site-name
+                value.
+
+                Used in: member-identity
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="rack-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The rack-name element contains the name of the location within a
+                geographic site that the member is hosted at. This is often a cage,
+                rack or bladeframe identifier, and can be used as the basis for
+                intelligent routing, load balancing and disaster recovery planning
+                (i.e. the explicit backing up of data on separate bladeframes).
+                The name is also useful for displaying management information
+                (e.g. JMX) and interpreting log entries. Coherence currently does
+                not make use of this element in making decisions about data
+                backup location.
+
+                It is optional to provide a value for this element. Large scale
+                deployments should always specify a rack-name value.
+
+                Used in: member-identity
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="machine-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The machine-name element contains the name of the physical server that
+                the member is hosted on. This is often the same name as the server
+                identifies itself as (e.g. its HOSTNAME, or its name as it appears
+                in a DNS entry).
+
+                The name is also useful for displaying management information (e.g.
+                JMX) and interpreting log entries.
+
+                It is optional to provide a value for this element. However, it is
+                strongly encouraged that a name always be provided.
+
+                Used in: member-identity
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="process-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The process-name element contains the name of the process (JVM) that
+                the member is hosted on. This name makes it possible to easily
+                differentiate among multiple JVMs running on the same machine. The
+                name is also useful for displaying management information
+                (e.g. JMX) and interpreting log entries.
+
+                It is optional to provide a value for this element. Often, a single
+                member will exist per JVM, and in that situation this name would
+                be redundant.
+
+                Used in: member-identity
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="member-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The member-name element contains the name of the member itself. This
+                name makes it possible to easily differentiate among members, such
+                as when multiple members run on the same machine (or even within the
+                same JVM).
+                The name is also useful for displaying management information (e.g.
+                JMX) and interpreting log entries.
+
+                It is optional to provide a value for this element. However, it is
+                strongly encouraged that a name always be provided.
+
+                Used in: member-identity
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="role-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The role-name element contains the name of the member role. This name
+                allows an application to organize members into specialized roles,
+                such as cache servers and cache clients.
+
+                The name is also useful for displaying management information (e.g.
+                JMX) and interpreting log entries.
+
+                It is optional to provide a value for this element. However, it is
+                strongly encouraged that a name always be provided.
+
+                Used in: member-identity
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="filters">
+        <xsd:annotation>
+            <xsd:documentation>
+                The filters element contains the declarative data for each filter.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="filter" minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="filter">
+        <xsd:annotation>
+            <xsd:documentation>
+                The filter element contains the declarative data of a particular
+                filter.
+
+                Used in: filters
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="filter-name" minOccurs="0" />
+                <xsd:element ref="filter-class" minOccurs="0"/>
+                <xsd:element ref="init-params" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="id" type="xsd:NMTOKEN" use="optional"/>
+            <xsd:attribute name="xml-override" use="optional"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="filter-name">
+        <xsd:annotation>
+            <xsd:documentation>
+                The filter-name element contains the canonical name of the
+                filter. This name is unique within the cluster.
+
+                Used in: filter
+            </xsd:documentation>
+        </xsd:annotation>
+            <xsd:complexType>
+                <xsd:simpleContent>
+                    <xsd:extension base="coherence-string-type">
+                        <xsd:attribute name="id" type="xsd:NMTOKEN" use="optional" />
+                    </xsd:extension>
+                </xsd:simpleContent>
+            </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="filter-class" type="coherence-className-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The filter-class element contains the class name of the filter
+                implementation.
+
+                This class must have a public default constructor and must implement the
+                com.tangosol.util.WrapperStreamFactory interface; optionally it may
+                implement the com.tangosol.run.xml.XmlConfigurable interface.
+
+                Used in: filter
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="destination" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The destination element specifies the output device used by the logging
+                system.
+
+                Valid values are "stdout", "stderr", "jdk", "log4j2", "slf4j",
+                or a file name; the default is "stderr".
+
+                If "log4j2" or "slf4j" is specified, the corresponding logging
+                libraries must be in the classpath. In all cases, the appropriate
+                logging configuration mechanism (system properties, property files, etc.)
+                should be used to configure the logging libraries.
+
+                Used in: logging-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+
+    <xsd:simpleType name="severityLevel-limit-type">
+        <xsd:restriction base="xsd:integer">
+            <xsd:minInclusive value="-1" />
+            <xsd:maxInclusive value="9" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="severityLevel-union-type">
+        <xsd:union memberTypes="severityLevel-limit-type coherence-empty-token" />
+    </xsd:simpleType>
+
+    <xsd:complexType name="severityLevel-type">
+        <xsd:simpleContent>
+            <xsd:extension base="severityLevel-union-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+                <xsd:attribute name="param-name" type="xsd:normalizedString" use="optional" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="severity-level" type="severityLevel-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The severity-level element specifies which logged messages will be
+                output to the
+                log destination.
+
+                Valid values are:
+                - 0 only output without a logging severity level specified
+                will be logged
+                 1 all the above plus errors
+                 2 all the above plus warnings
+                 3 all the above plus informational messages
+                 4..9 all the above plus internal debugging messages
+                (the higher the number, the more the messages)
+                -1 no messages
+
+                Used in: logging-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="message-format" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The message-format element specifies how messages that have a logging
+                level specified
+                will be formatted before passing them to the log destination.
+
+                The value of the message-format element is static text with the
+                following
+                replaceable parameters:
+                {date} the date/time format (to a millisecond) at which
+                the message was logged
+                {version} the Oracle Coherence exact version
+                and build details
+                {level} the logging severity level of the message
+                {thread} the thread name that logged the message
+                {member} the cluster
+                member id (if the cluster is currently running)
+                {text} the text of
+                the message
+
+                Used in: logging-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="character-limit" type="coherence-nonNegativeInteger-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The character-limit element specifies the maximum number of characters
+                that the logger daemon will process from the message queue before
+                discarding all remaining messages in the queue. Note that the
+                message that caused the total number of characters to exceed the
+                maximum will NOT be truncated, and all messages that are
+                discarded will be summarized by the logging system with a single
+                log entry detailing the number of messages that were discarded
+                and their total size. The truncation of the logging
+                is only temporary, since once the queue is processed (emptied),
+                the logger is reset so that subsequent messages will be logged.
+
+                The purpose of this setting is to avoid a situation where logging can
+                itself prevent recovery from a failing condition. For example, with
+                tight timings, logging can actually change the timings, causing more
+                failures and probably more logging, which becomes a vicious cycle. A
+                limit on the logging being done at any one point in time
+                is a "pressure valve" that prevents such a vicious cycle from
+                occurring. Note that logging occurs on a dedicated low-priority
+                thread to even further reduce its impact on the critical portions
+                of the system.
+
+                The value is a positive integer or zero. Zero implies no limit.
+
+                Used in: logging-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="sampling-ratio" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The sampling-ratio element controls the likelihood of a tracing span being collected.
+
+                For instance, a value of 1.0 will result in all tracing spans being collected, while a value of 0.1
+                will result in roughly 1 out of every 10 tracing spans being collected.
+
+                A value of 0 indicates that tracing spans should only be collected if they are already in the context
+                of another tracing span.  With such a configuration, Coherence will not initiate tracing on its own,
+                and it is up to the application to start an outer tracing span, from which Coherence will then collect
+                inner tracing spans.
+
+                A value of -1 disables tracing completely.
+
+                This element defaults to -1 if not overridden. For values other than -1, numbers between 0 and 1 are
+                acceptable.
+
+                Used in: tracing-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="identity-asserter">
+        <xsd:annotation>
+            <xsd:documentation>
+                The identity-asserter element contains the configuration info for the
+                class that implements the com.tangosol.net.security.IdentityAsserter
+                interface which will be called to validate an identity token in order
+                to establish a user's identity.
+
+                Used in: security-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:group ref="instance" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="identity-transformer">
+        <xsd:annotation>
+            <xsd:documentation>
+                The identity-transformer element contains the configuration info for
+                the class that implements the com.tangosol.net.security.IdentityTransformer
+                interface which will be called to transforms a Subject to a token
+                that asserts identity.
+
+                Used in: security-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:group ref="instance" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="authorizer">
+        <xsd:annotation>
+            <xsd:documentation>
+                The authorizer element contains the configuration info for
+                the class that implements the com.tangosol.net.security.Authorizer
+                interface which represents an environment-specific facility for authorizing
+                callers to perform actions described by the corresponding permission objects.
+
+                Used in: security-config
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:group ref="instance" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="configurable-cache-factory-config">
+        <xsd:annotation>
+            <xsd:documentation>
+                The configurable-cache-factory-config element contains the
+                configuration info for the configurable cache factory.
+
+                Used in: coherence
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="class-name" minOccurs="0"/>
+                <xsd:element ref="init-params" minOccurs="0" />
+            </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional"/>
+        </xsd:complexType>
+    </xsd:element>
+
+</xsd:schema>

@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>dist-*</cache-name>
+      <scheme-name>extend-direct</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <remote-cache-scheme>
+      <scheme-name>extend-direct</scheme-name>
+      <service-name>ExtendTcpCacheService</service-name>
+      <operation-bundling>
+        <bundle-config>
+          <operation-name>all</operation-name>
+          <preferred-size>10</preferred-size>
+          <thread-threshold>5</thread-threshold>
+        </bundle-config>
+      </operation-bundling>
+      <initiator-config>
+        <tcp-initiator>
+          <remote-addresses>
+            <address-provider>ap3</address-provider>
+          </remote-addresses>
+        </tcp-initiator>
+        <outgoing-message-handler>
+          <heartbeat-interval>5s</heartbeat-interval>
+          <heartbeat-timeout>2s</heartbeat-timeout>
+          <request-timeout>5s</request-timeout>
+        </outgoing-message-handler>
+        <serializer>
+          <instance>
+            <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+            <init-params>
+              <init-param>
+                <param-type>string</param-type>
+                <param-value>extend/test-pof-config.xml</param-value>
+              </init-param>
+            </init-params>
+          </instance>
+        </serializer>
+        <connect-timeout>5s</connect-timeout>
+      </initiator-config>
+    </remote-cache-scheme>
+  </caching-schemes>
+</cache-config>

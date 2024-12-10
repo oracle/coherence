@@ -1,0 +1,572 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+    <report>
+      <file-name>{date}-cache-usage.txt</file-name>
+      <delim>{tab}</delim>
+
+      <query>
+        <pattern>Coherence:type=Cache,*</pattern>
+      </query>
+
+      <row>
+        <column id="BatchCounter">
+          <type>global</type>
+          <name>{batch-counter}</name>
+          <header>Batch Counter</header>
+          <group-by>true</group-by>
+        </column>
+
+        <column id ="ReportTime">
+          <type>global</type>
+          <name>{report-time}</name>
+          <header>Report Time</header>
+          <group-by>true</group-by>
+        </column>
+
+        <column id ="Service">
+          <type>key</type>
+          <name>service</name>
+          <header>Service</header>
+          <group-by>true</group-by>
+        </column>
+
+        <column id ="Name">
+          <type>key</type>
+          <name>name</name>
+          <header>Cache Name</header>
+          <group-by>true</group-by>
+        </column>
+
+        <column id ="Tier">
+          <type>key</type>
+          <name>tier</name>
+          <header>Tier</header>
+          <group-by>true</group-by>
+        </column>
+
+        <column id="DomainPartition">
+          <type>key</type>
+          <name>domainPartition</name>
+          <header>Domain Partition</header>
+          <hidden>{non-MT}</hidden>
+          <group-by>true</group-by>
+        </column>
+
+        <column id ="NodeId">
+          <type>key</type>
+          <name>nodeId</name>
+          <header>NodeID</header>
+          <hidden>true</hidden>
+        </column>
+
+        <column id ="NodeTS">
+          <name>Timestamp</name>
+          <header>Timestamp</header>
+          <query>
+            <pattern>Coherence:type=Node,nodeId={NodeId}</pattern>
+          </query>
+          <hidden>true</hidden>
+        </column>
+
+        <column id="TotalPuts">
+          <name>TotalPuts</name>
+          <header>Puts</header>
+          <hidden>true</hidden>
+        </column>
+
+        <column id="DeltaPuts">
+          <type>function</type>
+          <name>DeltaPuts</name>
+          <header>Delta Puts</header>
+          <hidden>true</hidden>
+          <column-ref>TotalPuts</column-ref>
+          <function-name>delta</function-name>
+          <params>
+             <column-ref>Service</column-ref>
+             <column-ref>Name</column-ref>
+             <column-ref>Tier</column-ref>
+             <column-ref>NodeId</column-ref>
+             <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id="GridPuts">
+          <type>function</type>
+          <name>TotalPuts</name>
+          <header>Total Puts</header>
+          <column-ref>DeltaPuts</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+        <column id="TotalPutsMillis">
+          <name>TotalPutsMillis</name>
+          <header>PutsMillis</header>
+          <hidden>true</hidden>
+        </column>
+
+        <column id="DeltaPutsMillis">
+          <type>function</type>
+          <name>DeltaPutsMillis</name>
+          <header>Delta Puts</header>
+          <hidden>true</hidden>
+          <column-ref>TotalPutsMillis</column-ref>
+          <function-name>delta</function-name>
+          <params>
+             <column-ref>Service</column-ref>
+             <column-ref>Name</column-ref>
+             <column-ref>Tier</column-ref>
+             <column-ref>NodeId</column-ref>
+             <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id="GridPutsMillis">
+          <type>function</type>
+          <name>TotalPutsMillis</name>
+          <header>Total PutsMillis</header>
+          <column-ref>DeltaPutsMillis</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+        <column id="TotalGets">
+          <name>TotalGets</name>
+          <header>Gets</header>
+          <hidden>true</hidden>
+        </column>
+
+        <column id="DeltaGets">
+          <type>function</type>
+          <name>DeltaGets</name>
+          <header>Delta Gets</header>
+          <hidden>true</hidden>
+          <column-ref>TotalGets</column-ref>
+          <function-name>delta</function-name>
+          <params>
+             <column-ref>Service</column-ref>
+             <column-ref>Name</column-ref>
+             <column-ref>Tier</column-ref>
+             <column-ref>NodeId</column-ref>
+             <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id="GridGets">
+          <type>function</type>
+          <name>TotalGets</name>
+          <header>Total Gets</header>
+          <column-ref>DeltaGets</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+        <column id="TotalGetsMillis">
+          <name>TotalGetsMillis</name>
+          <header>GetsMillis</header>
+          <hidden>true</hidden>
+        </column>
+
+        <column id="DeltaGetsMillis">
+          <type>function</type>
+          <name>DeltaGetsMillis</name>
+          <header>Delta Gets Millis</header>
+          <hidden>true</hidden>
+          <column-ref>TotalGetsMillis</column-ref>
+          <function-name>delta</function-name>
+          <params>
+             <column-ref>Service</column-ref>
+             <column-ref>Name</column-ref>
+             <column-ref>Tier</column-ref>
+             <column-ref>NodeId</column-ref>
+             <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id="GridGetsMillis">
+          <type>function</type>
+          <name>TotalGetsMillis</name>
+          <header>Total Gets Millis</header>
+          <column-ref>DeltaGetsMillis</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+         <column id="TotalHits">
+          <name>CacheHits</name>
+          <header>Hits</header>
+          <hidden>true</hidden>
+        </column>
+
+        <column id="DeltaHits">
+          <type>function</type>
+          <name>DeltaHits</name>
+          <header>Delta Hits</header>
+          <hidden>true</hidden>
+          <column-ref>TotalHits</column-ref>
+          <function-name>delta</function-name>
+          <params>
+             <column-ref>Service</column-ref>
+             <column-ref>Name</column-ref>
+             <column-ref>Tier</column-ref>
+             <column-ref>NodeId</column-ref>
+             <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id="GridHits">
+          <type>function</type>
+          <name>TotalHits</name>
+          <header>Total Hits</header>
+          <column-ref>DeltaHits</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+         <column id="TotalHitsMillis">
+          <name>CacheHitsMillis</name>
+          <header>HitsMillis</header>
+          <hidden>true</hidden>
+        </column>
+
+        <column id="DeltaHitsMillis">
+          <type>function</type>
+          <name>DeltaHitsMillis</name>
+          <header>Delta Hits Millis</header>
+          <hidden>true</hidden>
+          <column-ref>TotalHitsMillis</column-ref>
+          <function-name>delta</function-name>
+          <params>
+             <column-ref>Service</column-ref>
+             <column-ref>Name</column-ref>
+             <column-ref>Tier</column-ref>
+             <column-ref>NodeId</column-ref>
+             <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id="GridHitsMillis">
+          <type>function</type>
+          <name>TotalHitsMillis</name>
+          <header>Total Hits Millis</header>
+          <column-ref>DeltaHitsMillis</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+        <column id="TotalMisses">
+          <name>CacheMisses</name>
+          <header>Misses</header>
+          <hidden>true</hidden>
+        </column>
+
+        <column id="DeltaMisses">
+          <type>function</type>
+          <name>DeltaMisses</name>
+          <header>Delta Misses</header>
+          <hidden>true</hidden>
+          <column-ref>TotalMisses</column-ref>
+          <function-name>delta</function-name>
+          <params>
+             <column-ref>Service</column-ref>
+             <column-ref>Name</column-ref>
+             <column-ref>Tier</column-ref>
+             <column-ref>NodeId</column-ref>
+             <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id="GridMisses">
+          <type>function</type>
+          <name>TotalMisses</name>
+          <header>Total Misses</header>
+          <column-ref>DeltaMisses</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+         <column id="TotalMissesMillis">
+          <name>CacheMissesMillis</name>
+          <header>MissesMillis</header>
+          <hidden>true</hidden>
+        </column>
+
+        <column id="DeltaMissesMillis">
+          <type>function</type>
+          <name>DeltaMissesMillis</name>
+          <header>Delta Misses Millis</header>
+          <hidden>true</hidden>
+          <column-ref>TotalMissesMillis</column-ref>
+          <function-name>delta</function-name>
+          <params>
+             <column-ref>Service</column-ref>
+             <column-ref>Name</column-ref>
+             <column-ref>Tier</column-ref>
+             <column-ref>NodeId</column-ref>
+             <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id="GridMissesMillis">
+          <type>function</type>
+          <name>TotalMissesMillis</name>
+          <header>Total Misses Millis</header>
+          <column-ref>DeltaMissesMillis</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+        <!-- Store Stats -->
+         <column id="StoreWrites">
+          <name>StoreWrites</name>
+          <header>Writes</header>
+          <hidden>true</hidden>
+        </column>
+
+        <column id="DeltaWrites">
+          <type>function</type>
+          <name>DeltaWrites</name>
+          <header>Delta Writes</header>
+          <hidden>true</hidden>
+          <column-ref>StoreWrites</column-ref>
+          <function-name>delta</function-name>
+          <params>
+             <column-ref>Service</column-ref>
+             <column-ref>Name</column-ref>
+             <column-ref>Tier</column-ref>
+             <column-ref>NodeId</column-ref>
+             <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id="GridWrites">
+          <type>function</type>
+          <name>TotalWrites</name>
+          <header>Total Writes</header>
+          <column-ref>DeltaWrites</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+         <column id="StoreWriteMillis">
+          <name>StoreWriteMillis</name>
+          <header>Store Writes Millis</header>
+          <hidden>true</hidden>
+        </column>
+
+        <column id="DeltaWriteMillis">
+          <type>function</type>
+          <name>DeltaWriteMillis</name>
+          <header>Delta Store Millis</header>
+          <hidden>true</hidden>
+          <column-ref>StoreWriteMillis</column-ref>
+          <function-name>delta</function-name>
+          <params>
+             <column-ref>Service</column-ref>
+             <column-ref>Name</column-ref>
+             <column-ref>Tier</column-ref>
+             <column-ref>NodeId</column-ref>
+             <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id="GridWriteMillis">
+          <type>function</type>
+          <name>TotalWriteMillis</name>
+          <header>Total Write Millis</header>
+          <column-ref>DeltaWriteMillis</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+        <column id="StoreReads">
+          <name>StoreReads</name>
+          <header>Reads</header>
+          <hidden>true</hidden>
+        </column>
+
+        <column id="DeltaReads">
+          <type>function</type>
+          <name>DeltaReads</name>
+          <header>Delta Reads</header>
+          <hidden>true</hidden>
+          <column-ref>StoreReads</column-ref>
+          <function-name>delta</function-name>
+          <params>
+             <column-ref>Service</column-ref>
+             <column-ref>Name</column-ref>
+             <column-ref>Tier</column-ref>
+             <column-ref>NodeId</column-ref>
+             <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id="GridReads">
+          <type>function</type>
+          <name>TotalReads</name>
+          <header>Total Reads</header>
+          <column-ref>DeltaReads</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+         <column id="StoreReadMillis">
+          <name>StoreReadMillis</name>
+          <header>Store Reads Millis</header>
+          <hidden>true</hidden>
+        </column>
+
+        <column id="DeltaReadMillis">
+          <type>function</type>
+          <name>DeltaReadMillis</name>
+          <header>Delta Read Millis</header>
+          <hidden>true</hidden>
+          <column-ref>StoreReadMillis</column-ref>
+          <function-name>delta</function-name>
+          <params>
+             <column-ref>Service</column-ref>
+             <column-ref>Name</column-ref>
+             <column-ref>Tier</column-ref>
+             <column-ref>NodeId</column-ref>
+             <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id="GridReadMillis">
+          <type>function</type>
+          <name>TotalReadMillis</name>
+          <header>Total Read Millis</header>
+          <column-ref>DeltaReadMillis</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+        <column id="StoreFailures">
+          <name>StoreFailures</name>
+          <header>Failures</header>
+          <hidden>true</hidden>
+        </column>
+
+        <column id="DeltaFailures">
+          <type>function</type>
+          <name>DeltaFailures</name>
+          <header>Delta Failures</header>
+          <hidden>true</hidden>
+          <column-ref>StoreFailures</column-ref>
+          <function-name>delta</function-name>
+          <params>
+             <column-ref>Service</column-ref>
+             <column-ref>Name</column-ref>
+             <column-ref>Tier</column-ref>
+             <column-ref>NodeId</column-ref>
+             <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id="GridFailures">
+          <type>function</type>
+          <name>TotalFailures</name>
+          <header>Total Failures</header>
+          <column-ref>DeltaFailures</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+        <column id="Queue">
+          <name>QueueSize</name>
+          <header>QueueSize</header>
+          <hidden>true</hidden>
+        </column>
+
+        <column id="GridQueue">
+          <type>function</type>
+          <name>TotalQueue</name>
+          <header>Total Queue</header>
+          <column-ref>Queue</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+        <column id = "evictions-total">
+          <name>EvictionCount</name>
+          <header>Eviction Count</header>
+          <query>
+            <pattern>Coherence:type=StorageManager,service={Service},cache={Name},nodeId={NodeId},*</pattern>
+          </query>
+          <hidden>true</hidden>
+        </column>
+
+        <column id = "DeltaEvictionsTotal">
+          <type>function</type>
+          <header>Delta Evictions</header>
+          <hidden>true</hidden>
+          <column-ref>evictions-total</column-ref>
+          <function-name>delta</function-name>
+          <params>
+            <column-ref>Service</column-ref>
+            <column-ref>Name</column-ref>
+            <column-ref>NodeId</column-ref>
+            <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id = "evictions">
+          <type>function</type>
+          <header>Evictions</header>
+          <column-ref>DeltaEvictionsTotal</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+        <column id = "prunes-total">
+          <name>CachePrunes</name>
+          <hidden>true</hidden>
+        </column>
+
+        <column id = "DeltaPrunesTotal">
+          <type>function</type>
+          <header>Delta Prunes</header>
+          <hidden>true</hidden>
+          <column-ref>prunes-total</column-ref>
+          <function-name>delta</function-name>
+          <params>
+            <column-ref>Service</column-ref>
+            <column-ref>Name</column-ref>
+            <column-ref>Tier</column-ref>
+            <column-ref>NodeId</column-ref>
+            <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id = "prunes">
+          <type>function</type>
+          <header>Cache Prunes</header>
+          <column-ref>DeltaPrunesTotal</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+        <column id = "prunes-millis-total">
+          <name>CachePrunesMillis</name>
+          <hidden>true</hidden>
+        </column>
+
+        <column id = "DeltaPrunesMillisTotal">
+          <type>function</type>
+          <header>Delta Prunes Millis</header>
+          <hidden>true</hidden>
+          <column-ref>prunes-millis-total</column-ref>
+          <function-name>delta</function-name>
+          <params>
+            <column-ref>Service</column-ref>
+            <column-ref>Name</column-ref>
+            <column-ref>Tier</column-ref>
+            <column-ref>NodeId</column-ref>
+            <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id = "prunes-millis">
+          <type>function</type>
+          <header>Cache Prunes Millis</header>
+          <column-ref>DeltaPrunesMillisTotal</column-ref>
+          <function-name>sum</function-name>
+        </column>
+
+      </row>
+    </report>
+  </report-config>
