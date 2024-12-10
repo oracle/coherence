@@ -183,17 +183,7 @@ public abstract class ShutdownHook
     public void unregister()
         {
         // import com.tangosol.net.security.DoAsAction;
-        // import java.security.AccessController;
-        
-        if (System.getSecurityManager() == null)
-            {
             unregisterInternal();
-            }
-        else
-            {
-            AccessController.doPrivileged(
-                new DoAsAction((ShutdownHook.UnregisterAction) _newChild("UnregisterAction")));
-            }
         }
     
     /**

@@ -81,12 +81,6 @@ public class Registry
      */
     public synchronized void unregisterEventInterceptor(String sIdentifier)
         {
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(
-                new LocalPermission("Service.registerEventInterceptor"));
-            }
 
         EventInterceptor interceptor = m_mapInterceptors.remove(sIdentifier);
         if (interceptor != null)

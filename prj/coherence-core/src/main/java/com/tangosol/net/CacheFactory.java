@@ -67,10 +67,7 @@ public abstract class CacheFactory
     */
     public static CacheFactoryBuilder getCacheFactoryBuilder()
         {
-        return System.getSecurityManager() == null
-                ? getCacheFactoryBuilderInternal()
-                : AccessController.doPrivileged((PrivilegedAction<CacheFactoryBuilder>)
-                    CacheFactory::getCacheFactoryBuilderInternal);
+        return getCacheFactoryBuilderInternal();
         }
 
     /**
@@ -118,12 +115,6 @@ public abstract class CacheFactory
     */
     public static synchronized void setCacheFactoryBuilder(CacheFactoryBuilder cfb)
         {
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(
-                new LocalPermission("CacheFactory.setCacheFactoryBuilder"));
-            }
 
         s_builder = cfb;
         checkConsistentCCFUsage();

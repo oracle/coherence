@@ -381,18 +381,7 @@ public class SafeCluster
         return ((com.tangosol.net.Cluster) getRunningCluster()).unregisterResource(sName);
         }
     //-- com.tangosol.net.Cluster integration
-    
-    private void checkInternalAccess()
-        {
-        // import com.tangosol.net.security.LocalPermission;
         
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(LocalPermission.INTERNAL_SERVICE);
-            }
-        }
-    
     protected void cleanup()
         {
         setInternalCluster(null);
@@ -588,9 +577,7 @@ public class SafeCluster
         // import Component.Net.Cluster;
         // import Component.Net.Management.Gateway;
         // import com.tangosol.net.management.Registry;
-        
-        checkInternalAccess();
-        
+                
         Cluster cluster = getInternalCluster();
         if (cluster == null || !cluster.isRunning())
             {
@@ -722,9 +709,7 @@ public class SafeCluster
         action.setServiceName(sName);
         action.setServiceType(sType);
         
-        return (Service) (System.getSecurityManager() == null
-                 ? action.run()
-                 : AccessController.doPrivileged(new DoAsAction(action)));
+        return (Service)  action.run();
         }
     
     // From interface: com.oracle.coherence.common.base.Lockable
@@ -755,7 +740,6 @@ public class SafeCluster
      */
     public com.tangosol.coherence.component.net.Cluster getCluster()
         {
-        checkInternalAccess();
         
         return getInternalCluster();
         }
@@ -955,15 +939,8 @@ public class SafeCluster
         {
         // import Component.Net.Cluster;
         // import com.tangosol.net.security.DoAsAction;
-        // import java.security.AccessController;
         
-        if (System.getSecurityManager() == null)
-            {
             return ensureRunningCluster();
-            }
-        
-        return (Cluster) AccessController.doPrivileged(
-            new DoAsAction(getEnsureClusterAction()));
         }
     
     // Accessor for the property "ScopedServiceStore"

@@ -8,7 +8,6 @@ package com.tangosol.coherence.config.builder;
 
 import com.oracle.coherence.common.base.Disposable;
 
-import com.tangosol.net.security.LocalPermission;
 
 import com.tangosol.util.Base;
 
@@ -118,12 +117,7 @@ public class SimpleParameterizedBuilderRegistry
                                       ParameterizedBuilder<? extends T> builder)
             throws IllegalArgumentException
         {
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(new LocalPermission("Service.registerResource"));
-            }
-
+       
         synchronized (clzInstance)
             {
             // attempt to get an existing registration for the key

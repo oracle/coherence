@@ -620,20 +620,6 @@ public class Cluster
             (List) config.getServiceFilterMap().get(sServiceType));
         }
     
-    /**
-     * Security check.
-     */
-    protected void checkShutdownPermission()
-        {
-        // import com.tangosol.net.security.LocalPermission;
-        
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(
-                new LocalPermission("Cluster.shutdown"));
-            }
-        }
     
     // From interface: com.tangosol.net.Cluster
     /**
@@ -3357,7 +3343,6 @@ public class Cluster
             case STATE_RUNNING:
                 try
                     {
-                    checkShutdownPermission();
         
                     // shutdown services in reverse order (i.e. shut down system services last)
                     setState(STATE_LEAVING);
@@ -3567,7 +3552,6 @@ public class Cluster
         
         if (getState() != STATE_EXITED)
             {
-            checkShutdownPermission();
         
             setState(STATE_STOPPING);
             try
