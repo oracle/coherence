@@ -55,7 +55,7 @@ jobs:
       uses: oracle-actions/setup-java@v1
       with:
         website: oracle.com
-        release: 17
+        release: 21
 
     - name: Print Maven & Java version
       run: mvn -version
