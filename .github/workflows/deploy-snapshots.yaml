@@ -34,14 +34,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
     - name: Set up JDK
       uses: oracle-actions/setup-java@v1
       with:
         website: oracle.com
-        release: 17
+        release: 21
 
     - name: Cache Maven packages
       uses: actions/cache@v4
