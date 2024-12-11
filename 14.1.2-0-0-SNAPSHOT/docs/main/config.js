@@ -725,7 +725,7 @@ function createNav(){
                         {
                             title: 'Coherence JavaScript Client API',
                             action: 'library_books',
-                            href: 'https://oracle.github.io/coherence/20.06/api/js/index.html',
+                            href: 'https://oracle.github.io/coherence-js-client/',
                             target: '_blank'
                         }
                     ]
