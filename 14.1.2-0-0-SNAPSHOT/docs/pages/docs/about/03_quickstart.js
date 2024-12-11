@@ -7,7 +7,7 @@
 <div class="section">
 <ol style="margin-left: 15px;">
 <li>
-Java - JDK 11 or higher
+Java - JDK 17 or higher
 
 </li>
 <li>

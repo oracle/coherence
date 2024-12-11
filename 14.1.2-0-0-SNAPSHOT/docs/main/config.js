@@ -701,13 +701,13 @@ function createNav(){
                         {
                             title: 'Coherence .NET Client API',
                             action: 'library_books',
-                            href: 'https://docs.oracle.com/en/middleware/standalone/coherence/14.1.2.0/net-reference/html',
+                            href: 'https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/net-reference/html',
                             target: '_blank'
                         },
                         {
                             title: 'Coherence C++ Client API',
                             action: 'library_books',
-                            href: 'https://docs.oracle.com/en/middleware/standalone/coherence/14.1.2.0/cplus-reference/index.html',
+                            href: 'https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/cplus-reference/index.html',
                             target: '_blank'
                         },
                         {

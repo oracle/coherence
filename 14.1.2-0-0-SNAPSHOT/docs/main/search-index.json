@@ -1902,7 +1902,7 @@
         },
         {
             "location": "/docs/about/03_quickstart",
-            "text": " Java - JDK 11 or higher Maven - 3.8.5 or higher ",
+            "text": " Java - JDK 17 or higher Maven - 3.8.5 or higher ",
             "title": "Prerequisites"
         },
         {
@@ -1912,7 +1912,7 @@
         },
         {
             "location": "/docs/about/03_quickstart",
-            "text": " Prerequisites Java - JDK 11 or higher Maven - 3.8.5 or higher How to Get Coherence Community Edition As Coherence is generally embedded into an application by using Coherence APIs, the natural place to consume this dependency is from Maven: <markup lang=\"xml\" title=\"pom.xml\" >&lt;dependencies&gt; &lt;dependency&gt; &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt; &lt;artifactId&gt;coherence&lt;/artifactId&gt; &lt;version&gt;14.1.2-0-0-SNAPSHOT&lt;/version&gt; &lt;/dependency&gt; &lt;/dependencies&gt; You can also get Coherence from the official Docker image . For other language clients, use ( C&#43;&#43; and .NET ), and for the non-community edition, see Oracle Technology Network . ",
+            "text": " Prerequisites Java - JDK 17 or higher Maven - 3.8.5 or higher How to Get Coherence Community Edition As Coherence is generally embedded into an application by using Coherence APIs, the natural place to consume this dependency is from Maven: <markup lang=\"xml\" title=\"pom.xml\" >&lt;dependencies&gt; &lt;dependency&gt; &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt; &lt;artifactId&gt;coherence&lt;/artifactId&gt; &lt;version&gt;14.1.2-0-0-SNAPSHOT&lt;/version&gt; &lt;/dependency&gt; &lt;/dependencies&gt; You can also get Coherence from the official Docker image . For other language clients, use ( C&#43;&#43; and .NET ), and for the non-community edition, see Oracle Technology Network . ",
             "title": "Quick Start"
         },
         {
