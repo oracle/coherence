@@ -61,7 +61,7 @@ backend:
               glyph:
                 type: "icon"
                 value: "import_contacts"
-              href: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.2.0/"
+              href: "https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0"
             - title: "About"
               pathprefix: "/docs/about"
               glyph:
