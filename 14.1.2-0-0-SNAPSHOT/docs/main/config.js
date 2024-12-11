@@ -604,7 +604,7 @@ function createNav(){
                         {
                             title: 'Official Documentation',
                             action: 'import_contacts',
-                            href: 'https://docs.oracle.com/en/middleware/standalone/coherence/14.1.2.0/',
+                            href: 'https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0',
                             target: '_blank'
                         },
                         {

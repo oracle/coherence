@@ -6,7 +6,7 @@
 <p class="admonition-textlabel">Note</p>
 <p ><p>The documentation on this site covers new features and improvements that are currently only available in the open source <a id="" title="" target="_blank" href="https://github.com/oracle/coherence">Coherence Community Edition</a> (CE).</p>
 
-<p>For complete documentation covering all the features that are available both in the latest commercial editions (Enterprise and Grid Edition) and the Community Edition, please refer to the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.2.0/index.html">Official Documentation</a>.</p>
+<p>For complete documentation covering all the features that are available both in the latest commercial editions (Enterprise and Grid Edition) and the Community Edition, please refer to the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/index.html">Official Documentation</a>.</p>
 </p>
 </div>
 <p>Coherence is scalable, fault-tolerant, cloud-ready, distributed platform for building grid-based applications and reliably storing data.
