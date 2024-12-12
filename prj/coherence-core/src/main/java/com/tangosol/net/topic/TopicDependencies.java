@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,7 +18,7 @@ public interface TopicDependencies
     {
     /**
      * Returns the number of channels configured for the topic, or
-     * {@link com.tangosol.internal.net.topic.impl.paged.PagedTopic#DEFAULT_CHANNEL_COUNT}
+     * {@link NamedTopic#DEFAULT_CHANNEL_COUNT}
      * to indicate that the topic uses the default number of channels.
      * <p>
      * This number may be less than the actual number of channels, which is controlled by

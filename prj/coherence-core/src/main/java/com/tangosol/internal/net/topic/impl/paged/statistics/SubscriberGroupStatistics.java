@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,8 +18,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * The class holding statistics for a subscriber group in a
- * {@link com.tangosol.internal.net.topic.impl.paged.PagedTopic}.
+ * The class holding statistics for a subscriber group in a topic.
  * <p>
  * Statistics are only for the local member.
  *

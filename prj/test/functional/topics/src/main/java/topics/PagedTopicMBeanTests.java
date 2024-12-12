@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,7 +18,7 @@ import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
+import com.tangosol.internal.net.topic.NamedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.Member;
@@ -52,7 +52,6 @@ import static org.mockito.Mockito.when;
 public class PagedTopicMBeanTests
     {
     @BeforeClass
-    @SuppressWarnings("resource")
     public static void setup() throws Exception
         {
         System.setProperty("coherence.cluster", CLUSTER_NAME);
@@ -247,9 +246,9 @@ public class PagedTopicMBeanTests
         String sNameThree;
 
         try (NamedTopic<String>           topic           = s_session.getTopic(sTopicName);
-             PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber();
-             PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber();
-             PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber())
+             NamedTopicSubscriber<String> subscriberOne   = (NamedTopicSubscriber<String>) topic.createSubscriber();
+             NamedTopicSubscriber<String> subscriberTwo   = (NamedTopicSubscriber<String>) topic.createSubscriber();
+             NamedTopicSubscriber<String> subscriberThree = (NamedTopicSubscriber<String>) topic.createSubscriber())
             {
             sNameOne   = MBeanHelper.getSubscriberMBeanName(subscriberOne);
             sNameTwo   = MBeanHelper.getSubscriberMBeanName(subscriberTwo);
@@ -282,7 +281,7 @@ public class PagedTopicMBeanTests
         try (NamedTopic<String> topic = s_session.getTopic(sTopicName))
             {
             TopicService service = topic.getTopicService();
-            try (PagedTopicSubscriber<String> ignored = (PagedTopicSubscriber<String>) topic.createSubscriber())
+            try (NamedTopicSubscriber<String> ignored = (NamedTopicSubscriber<String>) topic.createSubscriber())
                 {
                 String sPattern = s_registry.ensureGlobalName(MBeanHelper.getSubscriberGroupMBeanName(null, sTopicName, service));
                 Eventually.assertDeferred(() -> s_mBeanProxy.queryNames(sPattern, Filters.always()).isEmpty(), is(true));
@@ -296,9 +295,9 @@ public class PagedTopicMBeanTests
         String sTopicName = m_testWatcher.getMethodName();
 
         try (NamedTopic<String>           topic           = s_session.getTopic(sTopicName);
-             PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("one"));
-             PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("one"));
-             PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("two")))
+             NamedTopicSubscriber<String> subscriberOne   = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup("one"));
+             NamedTopicSubscriber<String> subscriberTwo   = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup("one"));
+             NamedTopicSubscriber<String> subscriberThree = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup("two")))
             {
             String sNameOne   = MBeanHelper.getSubscriberMBeanName(subscriberOne);
             String sNameTwo   = MBeanHelper.getSubscriberMBeanName(subscriberTwo);
@@ -344,9 +343,9 @@ public class PagedTopicMBeanTests
             TopicService service       = topic.getTopicService();
             String       sGroupPattern = sDomain + ":" + MBeanHelper.getSubscriberGroupMBeanName(null, sTopicName, service) + ",*";
 
-            try (PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("one"));
-                 PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("one"));
-                 PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("two")))
+            try (NamedTopicSubscriber<String> subscriberOne   = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup("one"));
+                 NamedTopicSubscriber<String> subscriberTwo   = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup("one"));
+                 NamedTopicSubscriber<String> subscriberThree = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup("two")))
                 {
                 // Group Mbeans should be on each storage member
                 Eventually.assertDeferred(() -> s_mBeanProxy.queryNames(sGroupPattern, Filters.always()).size(), is(STORAGE_ENABLED_COUNT * 2));

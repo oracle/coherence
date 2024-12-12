@@ -16,8 +16,7 @@ import com.tangosol.util.Base;
 import java.util.Objects;
 
 /**
- * The class holding statistics for a channel in a subscriber group in a
- * {@link com.tangosol.internal.net.topic.impl.paged.PagedTopic}.
+ * The class holding statistics for a channel in a subscriber group in a topic.
  * <p>
  * Statistics are only for the local member.
  *

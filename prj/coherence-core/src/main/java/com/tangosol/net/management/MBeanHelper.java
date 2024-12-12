@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,7 +14,7 @@ import com.tangosol.internal.net.management.DefaultGatewayDependencies;
 import com.tangosol.internal.net.management.GatewayDependencies;
 import com.tangosol.internal.net.management.LegacyXmlGatewayHelper;
 
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
+import com.tangosol.internal.net.topic.SubscriberStatistics;
 import com.tangosol.internal.net.topic.impl.paged.management.PagedTopicModel;
 import com.tangosol.internal.net.topic.impl.paged.management.SubscriberGroupModel;
 import com.tangosol.internal.net.topic.impl.paged.management.SubscriberModel;
@@ -725,11 +725,11 @@ public abstract class MBeanHelper
         }
 
     /**
-    * Register the specified PagedTopic subscriber with the cluster registry.
+    * Register the specified {@link SubscriberStatistics} with the cluster registry.
     *
-    * @param subscriber  the topic subscriber
+    * @param subscriber  the topic subscriber statistics
     */
-    public static void registerSubscriberMBean(PagedTopicSubscriber<?> subscriber)
+    public static void registerSubscriberMBean(SubscriberStatistics subscriber)
         {
         NamedTopic<?> topic = subscriber.getNamedTopic();
         try
@@ -756,11 +756,11 @@ public abstract class MBeanHelper
 
     /**
     * Unregister all managed objects related to the given topic subscriber
-    * from the cluster registry.
+    * statistics from the cluster registry.
     *
     * @param subscriber  the topic subscriber
     */
-    public static void unregisterSubscriberMBean(PagedTopicSubscriber<?> subscriber)
+    public static void unregisterSubscriberMBean(SubscriberStatistics subscriber)
         {
         try
             {
@@ -774,13 +774,13 @@ public abstract class MBeanHelper
         }
 
     /**
-     * Return the MBean name for a {@link PagedTopicSubscriber}.
+     * Return the MBean name for a {@link SubscriberStatistics}.
      *
-     * @param subscriber  the {@link PagedTopicSubscriber}
+     * @param subscriber  the {@link SubscriberStatistics}
      *
-     * @return the MBean name for a {@link PagedTopicSubscriber}
+     * @return the MBean name for a {@link SubscriberStatistics}
      */
-    public static String getSubscriberMBeanName(PagedTopicSubscriber subscriber)
+    public static String getSubscriberMBeanName(SubscriberStatistics subscriber)
         {
         NamedTopic<?> topic      = subscriber.getNamedTopic();
         Service       service    = topic.getService();

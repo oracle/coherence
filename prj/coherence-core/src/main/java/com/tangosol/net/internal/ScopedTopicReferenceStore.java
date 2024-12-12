@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,6 +12,7 @@ import com.oracle.coherence.common.base.IdentityHolder;
 
 import com.tangosol.io.ClassLoaderAware;
 
+import com.tangosol.net.TopicService;
 import com.tangosol.net.security.Security;
 import com.tangosol.net.topic.NamedTopic;
 
@@ -19,10 +20,13 @@ import com.tangosol.util.ConcurrentMap;
 import com.tangosol.util.SegmentedConcurrentMap;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * {@link ScopedTopicReferenceStore} holds scoped {@link NamedTopic} references.
@@ -37,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author vp 2022.05.17.
  * @since 22.06
  */
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ScopedTopicReferenceStore
         extends ScopedReferenceStore<NamedTopic>
     {
@@ -139,6 +143,41 @@ public class ScopedTopicReferenceStore
         return null;
         }
 
+
+    /**
+     * Retrieve all topic references in the store.
+     *
+     * @return all topic references
+     */
+    public Collection getAllTopics()
+        {
+        Set setRef = new HashSet();
+
+        for (Map mapByLoader : (Collection<Map>) m_mapByName.values())
+            {
+            synchronized (mapByLoader)
+                {
+                for (Object oHolder : mapByLoader.values())
+                    {
+                    if (oHolder instanceof SubjectScopedReference)
+                        {
+                        setRef.addAll(((SubjectScopedReference) oHolder).values());
+                        }
+                    else if (oHolder instanceof NamedTopic<?>)
+                        {
+                        setRef.add(oHolder);
+                        }
+                    else
+                        {
+                        throw new UnsupportedOperationException();
+                        }
+                    }
+                }
+            }
+
+        return setRef;
+        }
+
     /**
      * Store a topic reference with the supplied ClassLoader.
      *
@@ -147,38 +186,70 @@ public class ScopedTopicReferenceStore
      */
     public void putTopic(NamedTopic topic, ClassLoader loader)
         {
-        if (topic.isReleased())
-            {
-            throw new IllegalArgumentException("Storing a released topic is not allowed: " + topic.getName());
-            }
+        putTopicIfAbsent(topic.getName(), () -> topic, topic.getTopicService(), loader);
+        }
 
+    /**
+     * Store a topic reference with the supplied ClassLoader.
+     *
+     * @param supplier  A {@link Supplier} to return the topic reference
+     * @param loader    the ClassLoader
+     */
+    public NamedTopic putTopicIfAbsent(String sTopicName, Supplier<NamedTopic> supplier, TopicService service, ClassLoader loader)
+        {
         ConcurrentMap mapByName = m_mapByName;
-        String sTopicName = topic.getName();
-        Map mapByLoader = (Map) mapByName.get(sTopicName);
 
-        if (mapByLoader == null)
-            {
-            mapByLoader = new WeakHashMap();
-            mapByName.put(sTopicName, mapByLoader);
-            }
-
-        if (ScopedServiceReferenceStore.isRemoteServiceType(topic.getService().getInfo().getServiceType())
-            && Security.SUBJECT_SCOPED)
-            {
-            SubjectScopedReference scopedRef = (SubjectScopedReference) mapByLoader.get(loader);
-
-            if (scopedRef == null)
+        mapByName.compute(sTopicName, (k, v) ->
                 {
-                scopedRef = new SubjectScopedReference();
-                mapByLoader.put(loader, scopedRef);
-                }
+                Map mapByLoader = (Map) v;
+                if (mapByLoader == null)
+                    {
+                    mapByLoader = new WeakHashMap();
+                    }
 
-            scopedRef.set(topic);
-            }
-        else
-            {
-            mapByLoader.put(loader, topic);
-            }
+                synchronized (mapByLoader)
+                    {
+                    if (ScopedServiceReferenceStore.isRemoteServiceType(service.getInfo().getServiceType())
+                            && Security.SUBJECT_SCOPED)
+                        {
+                        mapByLoader.compute(loader, (k1, v1)  ->
+                            {
+                            SubjectScopedReference ref = (SubjectScopedReference) v1;
+                            if (ref == null)
+                                {
+                                ref = new SubjectScopedReference();
+                                }
+                            if (ref.isEmpty())
+                                {
+                                NamedTopic<?> topic = supplier.get();
+                                if (topic.isReleased())
+                                    {
+                                    throw new IllegalArgumentException("Storing a released topic is not allowed: " + sTopicName);
+                                    }
+
+                                ref.set(topic);
+                                }
+                            return ref;
+                            });
+                        }
+                    else
+                        {
+                        mapByLoader.computeIfAbsent(loader, k3 ->
+                            {
+                            NamedTopic<?> topic = supplier.get();
+                            if (topic.isReleased())
+                                {
+                                throw new IllegalArgumentException("Storing a released topic is not allowed: " + sTopicName);
+                                }
+                            return topic;
+                            });
+                        }
+                    }
+
+                return mapByLoader;
+                });
+
+        return get(sTopicName, loader);
         }
 
     /**

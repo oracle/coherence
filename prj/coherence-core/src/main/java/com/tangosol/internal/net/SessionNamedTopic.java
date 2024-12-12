@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.tangosol.net.Session;
 import com.tangosol.net.ValueTypeAssertion;
 
 import com.tangosol.net.topic.NamedTopic;
+import com.tangosol.net.topic.NamedTopicListener;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 
@@ -232,6 +233,18 @@ public class SessionNamedTopic<V>
     public int getRemainingMessages(String sSubscriberGroup, int... anChannel)
         {
         return f_topic.getRemainingMessages(sSubscriberGroup, anChannel);
+        }
+
+    @Override
+    public void addListener(NamedTopicListener listener)
+        {
+        f_topic.addListener(listener);
+        }
+
+    @Override
+    public void removeListener(NamedTopicListener listener)
+        {
+        f_topic.removeListener(listener);
         }
 
     // ----- object methods -------------------------------------------------

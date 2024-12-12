@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.agent;
 
+import com.tangosol.internal.net.topic.SeekResult;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
@@ -13,6 +14,7 @@ import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 
 import com.tangosol.io.AbstractEvolvable;
 
+import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.pof.EvolvablePortableObject;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -20,8 +22,11 @@ import com.tangosol.io.pof.PofWriter;
 import com.tangosol.net.topic.Position;
 
 import com.tangosol.util.BinaryEntry;
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import java.util.Comparator;
@@ -34,7 +39,7 @@ import java.util.function.Function;
  * @since 21.06
  */
 public class SeekProcessor
-        extends AbstractPagedTopicProcessor<Subscription.Key, Subscription, SeekProcessor.Result>
+        extends AbstractPagedTopicProcessor<Subscription.Key, Subscription, SeekResult>
         implements EvolvablePortableObject
     {
     /**
@@ -73,7 +78,7 @@ public class SeekProcessor
     // ----- AbstractProcessor methods --------------------------------------
 
     @Override
-    public Result process(InvocableMap.Entry<Subscription.Key, Subscription> entry)
+    public SeekResult process(InvocableMap.Entry<Subscription.Key, Subscription> entry)
         {
         return ensureTopic(entry).seekPosition((BinaryEntry<Subscription.Key, Subscription>) entry,
                                                m_position, m_subscriberId);
@@ -116,7 +121,7 @@ public class SeekProcessor
      */
     public static class Result
             extends AbstractEvolvable
-            implements EvolvablePortableObject, Comparable<Result>
+            implements SeekResult, EvolvablePortableObject, ExternalizableLite
         {
         // ----- constructors -----------------------------------------------
 
@@ -133,7 +138,7 @@ public class SeekProcessor
          * @param positionHead  the new head {@link Position} for the subscriber
          * @param positionSeek  the new head {@link Position} actually seeked to
          */
-        public Result(PagedPosition positionHead, PagedPosition positionSeek)
+        public Result(Position positionHead, Position positionSeek)
             {
             m_positionHead = positionHead;
             m_positionSeek = positionSeek;
@@ -141,12 +146,14 @@ public class SeekProcessor
 
         // ----- accessors --------------------------------------------------
 
-        public PagedPosition getHead()
+        @Override
+        public Position getHead()
             {
             return m_positionHead;
             }
 
-        public PagedPosition getSeekPosition()
+        @Override
+        public Position getSeekPosition()
             {
             return m_positionSeek;
             }
@@ -154,10 +161,10 @@ public class SeekProcessor
         // ----- Comparable methods -----------------------------------------
 
         @Override
-        public int compareTo(Result o)
+        public int compareTo(SeekResult o)
             {
-            int n = COMPARATOR.compare(m_positionHead, o.m_positionHead);
-            return n == 0 ? COMPARATOR.compare(m_positionSeek, o.m_positionSeek) : n;
+            int n = COMPARATOR.compare(m_positionHead, o.getHead());
+            return n == 0 ? COMPARATOR.compare(m_positionSeek, o.getSeekPosition()) : n;
             }
 
         // ----- EvolvablePortableObject methods ----------------------------
@@ -182,6 +189,20 @@ public class SeekProcessor
             out.writeObject(1, m_positionSeek);
             }
 
+        @Override
+        public void readExternal(DataInput in) throws IOException
+            {
+            m_positionHead = ExternalizableHelper.readObject(in);
+            m_positionSeek = ExternalizableHelper.readObject(in);
+            }
+
+        @Override
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            ExternalizableHelper.writeObject(out, m_positionHead);
+            ExternalizableHelper.writeObject(out, m_positionSeek);
+            }
+
         // ----- constants ------------------------------------------------------
 
         /**
@@ -192,19 +213,19 @@ public class SeekProcessor
         /**
          * A comparator to safely order {@link Result} instance by {@link Position}.
          */
-        private static final Comparator<PagedPosition> COMPARATOR = Comparator.nullsLast(Comparator.naturalOrder());
+        private static final Comparator<Position> COMPARATOR = Comparator.nullsLast(Comparator.naturalOrder());
 
         // ----- data members ---------------------------------------------------
 
         /**
          * The new head position of the subscriber.
          */
-        private PagedPosition m_positionHead;
+        private Position m_positionHead;
 
         /**
          * The position actually seeked to.
          */
-        private PagedPosition m_positionSeek;
+        private Position m_positionSeek;
         }
 
     // ----- constants ------------------------------------------------------

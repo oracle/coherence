@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -42,13 +42,17 @@ public class SimpleChannelAllocationStrategy
             SubscriberId subscriberId = entry.getValue();
             UUID         uuid         = subscriberId.getUID();
             int          nMemberId    = subscriberId.getMemberId();
-            if (uuid == null && !setMemberID.contains(nMemberId))
+
+            if (nMemberId != 0) // zero member id is an Extend client so we cannot do anything here
                 {
-                mapRemoved.compute(nMemberId, (key, set) -> ensureSet(nMemberId, subscriberId, set));
-                }
-            else if (!setMemberUID.contains(uuid))
-                {
-                mapRemoved.compute(nMemberId, (key, set) -> ensureSet(nMemberId, subscriberId, set));
+                if (uuid == null && !setMemberID.contains(nMemberId))
+                    {
+                    mapRemoved.compute(nMemberId, (key, set) -> ensureSet(nMemberId, subscriberId, set));
+                    }
+                else if (!setMemberUID.contains(uuid))
+                    {
+                    mapRemoved.compute(nMemberId, (key, set) -> ensureSet(nMemberId, subscriberId, set));
+                    }
                 }
             }
 

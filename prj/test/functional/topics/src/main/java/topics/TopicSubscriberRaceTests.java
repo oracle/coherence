@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,8 +20,8 @@ import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
+import com.tangosol.internal.net.topic.NamedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.agent.CloseSubscriptionProcessor;
 import com.tangosol.internal.net.topic.impl.paged.model.Page;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
@@ -50,12 +50,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber.withIdentifyingName;
-import static com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber.withNotificationId;
+import static com.tangosol.internal.net.topic.NamedTopicSubscriber.withIdentifyingName;
+import static com.tangosol.internal.net.topic.NamedTopicSubscriber.withNotificationId;
 import static com.tangosol.net.topic.Subscriber.completeOnEmpty;
 import static com.tangosol.net.topic.Subscriber.inGroup;
 import static org.hamcrest.CoreMatchers.is;
@@ -113,15 +112,15 @@ public class TopicSubscriberRaceTests
         ChannelListener channelAllocationListener = new ChannelListener();
 
         // Create the first five subscribers
-        try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>)
+        try (NamedTopicSubscriber<String> subscriberOne = (NamedTopicSubscriber<String>)
                 topic.createSubscriber(withIdentifyingName("one"), inGroup(sGroup), completeOnEmpty(), withNotificationId(anChannel[1]));
-             PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>)
+             NamedTopicSubscriber<String> subscriberTwo = (NamedTopicSubscriber<String>)
                              topic.createSubscriber(withIdentifyingName("two"), inGroup(sGroup), completeOnEmpty(), withNotificationId(anChannel[2]));
-             PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>)
+             NamedTopicSubscriber<String> subscriberThree = (NamedTopicSubscriber<String>)
                              topic.createSubscriber(withIdentifyingName("three"), inGroup(sGroup), completeOnEmpty(), withNotificationId(anChannel[3]));
-             PagedTopicSubscriber<String> subscriberFour = (PagedTopicSubscriber<String>)
+             NamedTopicSubscriber<String> subscriberFour = (NamedTopicSubscriber<String>)
                              topic.createSubscriber(Subscriber.withListener(channelAllocationListener), withIdentifyingName("four"), inGroup(sGroup), completeOnEmpty(), withNotificationId(anChannel[4]));
-             PagedTopicSubscriber<String> subscriberFive = (PagedTopicSubscriber<String>)
+             NamedTopicSubscriber<String> subscriberFive = (NamedTopicSubscriber<String>)
                              topic.createSubscriber(withIdentifyingName("five"), inGroup(sGroup), completeOnEmpty(), withNotificationId(anChannel[5])))
             {
             List<Subscriber.Element<String>> listElement = new ArrayList<>();
@@ -158,7 +157,7 @@ public class TopicSubscriberRaceTests
             channelFuture = channelAllocationListener.reset();
 
             // create a new subscriber, which will cause channel re-allocation
-            try (PagedTopicSubscriber<String> subscriberSix = (PagedTopicSubscriber<String>)
+            try (NamedTopicSubscriber<String> subscriberSix = (NamedTopicSubscriber<String>)
                     topic.createSubscriber(withIdentifyingName("six"), inGroup(sGroup), completeOnEmpty(), withNotificationId(anChannel[7])))
                 {
                 // wait for subscriber four to be notified of channel re-allocation
@@ -203,7 +202,7 @@ public class TopicSubscriberRaceTests
                 channelFuture = channelAllocationListener.reset();
 
                 // create a new subscriber, which will cause channel re-allocation
-                try (PagedTopicSubscriber<String> subscriberSeven = (PagedTopicSubscriber<String>)
+                try (NamedTopicSubscriber<String> subscriberSeven = (NamedTopicSubscriber<String>)
                                      topic.createSubscriber(withIdentifyingName("seven"), inGroup(sGroup), completeOnEmpty(), withNotificationId(anChannel[6])))
                     {
                     // wait for subscriber four to be notified of channel re-allocation

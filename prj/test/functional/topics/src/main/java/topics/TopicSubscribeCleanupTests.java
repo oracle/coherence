@@ -23,9 +23,9 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 
+import com.tangosol.internal.net.topic.NamedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.PagedTopicService;
@@ -92,7 +92,7 @@ public class TopicSubscribeCleanupTests
 
         assertThat(caches.Subscribers.isEmpty(), is(true));
 
-        try (PagedTopicSubscriber<String> subscriber = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("group-one")))
+        try (NamedTopicSubscriber<String> subscriber = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup("group-one")))
             {
             SubscriberInfo info = caches.Subscribers.get(subscriber.getKey());
             assertThat(info, is(notNullValue()));
