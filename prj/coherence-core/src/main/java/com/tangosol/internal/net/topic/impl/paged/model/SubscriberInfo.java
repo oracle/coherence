@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.io.AbstractEvolvable;
 
 import com.tangosol.io.pof.EvolvablePortableObject;
@@ -307,7 +306,7 @@ public class SubscriberInfo
             return "SubscriberInfo.Key(" +
                     "groupId=" + m_groupId +
                     ", subscriberId=" + m_subscriberId +
-                    ", memberId=" + PagedTopicSubscriber.memberIdFromId(m_subscriberId) +
+                    ", memberId=" + SubscriberId.memberIdFromId(m_subscriberId) +
                     ')';
             }
 
@@ -360,7 +359,7 @@ public class SubscriberInfo
         @SuppressWarnings("rawtypes")
         public Object extractFromEntry(Map.Entry entry)
             {
-            return PagedTopicSubscriber.memberIdFromId(((Key) entry.getKey()).m_subscriberId);
+            return SubscriberId.memberIdFromId(((Key) entry.getKey()).m_subscriberId);
             }
 
         /**

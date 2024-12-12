@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,9 +23,9 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 
+import com.tangosol.internal.net.topic.NamedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.PagedTopicService;
@@ -40,6 +40,8 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
+
+import java.util.concurrent.TimeUnit;
 
 import static com.tangosol.net.topic.Subscriber.Name.inGroup;
 
@@ -58,7 +60,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TopicSubscribeCleanupTests
     {
     @BeforeClass
-    public static void setup()
+    public static void setup() throws Exception
         {
         System.setProperty(LocalStorage.PROPERTY, "true");
         System.setProperty(Logging.PROPERTY_LEVEL, "9");
@@ -68,7 +70,7 @@ public class TopicSubscribeCleanupTests
         System.setProperty("coherence.cluster", "TopicSubscribeCleanupTests");
 
         s_coherence = Coherence.clusterMember();
-        s_coherence.start().join();
+        s_coherence.start().get(5, TimeUnit.MINUTES);
         s_session = s_coherence.getSession();
         }
 
@@ -90,7 +92,7 @@ public class TopicSubscribeCleanupTests
 
         assertThat(caches.Subscribers.isEmpty(), is(true));
 
-        try (PagedTopicSubscriber<String> subscriber = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("group-one")))
+        try (NamedTopicSubscriber<String> subscriber = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup("group-one")))
             {
             SubscriberInfo info = caches.Subscribers.get(subscriber.getKey());
             assertThat(info, is(notNullValue()));
@@ -126,6 +128,9 @@ public class TopicSubscribeCleanupTests
             int cChannel = topic.getChannelCount();
             try (Subscriber<String> subscriberOne = topic.createSubscriber(inGroup("group-one")))
                 {
+                // call receive so we reconnect if disconnected
+                subscriberOne.receive();
+                
                 // there is currently one subscribe that should have all channels
                 Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(cChannel));
                 Eventually.assertDeferred(() -> caches.Subscribers.size(), is(1));

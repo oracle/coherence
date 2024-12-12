@@ -1,12 +1,16 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.topic;
 
+import com.oracle.coherence.common.base.Converter;
 import com.oracle.coherence.common.util.Options;
+
+import com.tangosol.internal.net.topic.NamedTopicPublisher;
+import com.tangosol.internal.net.topic.PublisherConnector;
 
 import com.tangosol.io.ExternalizableLite;
 
@@ -17,6 +21,7 @@ import com.tangosol.io.pof.PortableObject;
 import com.tangosol.net.FlowControl;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 
 import com.tangosol.util.function.Remote;
@@ -25,6 +30,9 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import java.util.Iterator;
+import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -77,9 +85,9 @@ public interface Publisher<V>
     /**
      * Asynchronously publish the specified value to the topic.
      * <p>
-     * {@link CompletableFuture#cancel(boolean) Cancellation} of the returned future is best
-     * effort and is not guaranteed to stop the corresponding publication of the value, for example
-     * example the request may already be on the wire and being processed on a storage member.
+     * {@link CompletableFuture#cancel(boolean) Cancellation} of the returned future is best-effort
+     * and is not guaranteed to stop the corresponding publication of the value, for example
+     * the request may already be on the wire and being processed on a storage member.
      *
      * @param value  the value to add to the topic
      *
@@ -100,11 +108,11 @@ public interface Publisher<V>
     /**
      * Asynchronously publish the specified value to the topic.
      * <p>
-     * {@link CompletableFuture#cancel(boolean) Cancellation} of the returned future is best
-     * effort and is not guaranteed to stop the corresponding publication of the value, for example
-     * example the request may already be on the wire and being processed on a storage member.
+     * {@link CompletableFuture#cancel(boolean) Cancellation} of the returned future is best-effort
+     * and is not guaranteed to stop the corresponding publication of the value, for example
+     * the request may already be on the wire and being processed on a storage member.
      * <p>
-     * Published messages will be recieved by subscribers in order determined by the {@link OrderBy} option used to
+     * Published messages will be received by subscribers in order determined by the {@link OrderBy} option used to
      * create this {@link Publisher}.
      * Message ordering can also be controlled by publishing values that implement the {@link Orderable} interface,
      * in which case the order identifier provided by the {@link Orderable} value will override any ordering
@@ -130,13 +138,13 @@ public interface Publisher<V>
 
     /**
      * Obtain a {@link CompletableFuture} that will be complete when
-     * all of the currently outstanding publish operations complete.
+     * all the currently outstanding publish operations complete.
      * <p>
      * The returned {@link CompletableFuture} will always complete
      * normally, even if the outstanding operations complete exceptionally.
      *
      * @return a {@link CompletableFuture} that will be completed when
-     *         all of the currently outstanding publish operations are complete
+     *         all the currently outstanding publish operations are complete
      */
     public CompletableFuture<Void> flush();
 
@@ -172,11 +180,18 @@ public interface Publisher<V>
     public NamedTopic<V> getNamedTopic();
 
     /**
-     * Specifies whether or not the {@link Publisher} is active.
+     * Specifies whether the {@link Publisher} is active.
      *
      * @return true if the NamedCache is active; false otherwise
      */
     public boolean isActive();
+
+    /**
+     * Returns the identifier for this publisher.
+     *
+     * @return the identifier for this publisher
+     */
+    public long getId();
 
     // ----- inner interface: ElementMetadata -------------------------------
 
@@ -253,6 +268,114 @@ public interface Publisher<V>
      */
     public interface Option<V>
         {
+        }
+
+    // ----- inner class OptionSet ------------------------------------------
+
+    /**
+     * A holder of publisher options.
+     *
+     * @param <V>  the type of value in the underlying topic
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    class OptionSet<V>
+            extends Options<Option>
+        {
+        /**
+         * Create an option set.
+         *
+         * @param clsType  the type of the options
+         * @param aOptions the array of options
+         */
+        private OptionSet(Class<Option> clsType, Option<V>[] aOptions)
+            {
+            super(clsType, aOptions);
+            }
+
+        /**
+         * Return the {@link OrderBy} option.
+         *
+         * @return the {@link OrderBy} option
+         */
+        public OrderBy getOrderBy()
+            {
+            Iterator<OrderBy> iter = getInstancesOf(OrderBy.class).iterator();
+            return iter.hasNext() ? iter.next() : OrderBy.thread();
+            }
+
+        /**
+         * Return the value to use for the notification identifier.
+         *
+         * @param connector  the {@link PublisherConnector} the identifier is for
+         *
+         * @return the notification identifier
+         */
+        public int getNotifyPostFull(PublisherConnector<V> connector)
+            {
+            return contains(FailOnFull.class) ? 0 : System.identityHashCode(connector);
+            }
+
+        /**
+         * Return the optional converter to use to serialize values.
+         *
+         * @return the optional converter to use to serialize values
+         */
+        public Optional<Converter<V, Binary>> getConverter()
+            {
+            NamedTopicPublisher.WithConverter<V> withConverter = get(NamedTopicPublisher.WithConverter.class);
+            if (withConverter == null)
+                {
+                return Optional.empty();
+                }
+            return Optional.ofNullable(withConverter.getConverter());
+            }
+
+        /**
+         * Return the on-failure action.
+         *
+         * @return the on-failure action
+         */
+        public OnFailure getOnFailure()
+            {
+            return get(OnFailure.class);
+            }
+
+        /**
+         * Return the optional publisher identifier.
+         *
+         * @return the optional publisher identifier
+         */
+        public OptionalLong getId()
+            {
+            NamedTopicPublisher.WithIdentifier withId = get(NamedTopicPublisher.WithIdentifier.class);
+            return withId == null ? OptionalLong.empty() : OptionalLong.of(withId.getId());
+            }
+
+        /**
+         * Return the channel count the publisher should use.
+         *
+         * @param nDefault  the default channel count
+         *
+         * @return the channel count the publisher should use
+         */
+        public int getChannelCount(int nDefault)
+            {
+            NamedTopicPublisher.ChannelCount channelCount =
+                    get(NamedTopicPublisher.ChannelCount.class, NamedTopicPublisher.ChannelCount.USE_CONFIGURED);
+
+            if (channelCount.isUseConfigured())
+                {
+                return nDefault;
+                }
+            return channelCount.getChannelCount();
+            }
+        }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    static <V> OptionSet<V> optionsFrom(Option<? super V>[] options)
+        {
+        Class<?> clsType = Option.class;
+        return new OptionSet(clsType, options);
         }
 
     // ----- inner class: OnFailure -----------------------------------------
@@ -419,7 +542,7 @@ public interface Publisher<V>
          * <p>
          * This option effectively publishes all messages to a single channel, the exact channel
          * used is the specified {@code nOrderId} modulo the number of channels in the topic.
-         * Therefore a channel number can be used as the {@code nOrderId} parameter to ensure
+         * Therefore, a channel number can be used as the {@code nOrderId} parameter to ensure
          * publishing to a specific channel.
          *
          * @param nOrderId  the unit-of-order
@@ -436,7 +559,7 @@ public interface Publisher<V>
          * Return an OrderBy which will compute the unit-of-order based on the {@link #publish sent value}.
          *
          * @param supplierOrderId  the function that should be used to determine
-         *                         order id from the sent value.
+         *                         order id from the published value.
          *
          * @return the order which will use specified function to provide
          *         unit-of-order for each async operation
@@ -450,7 +573,7 @@ public interface Publisher<V>
          * Return an OrderBy which will compute the unit-of-order based on the {@link #publish sent value}.
          *
          * @param supplierOrderId  the function that should be used to determine
-         *                         order id from the sent value.
+         *                         order id from the published value.
          *
          * @return the order which will use specified function to provide
          *         unit-of-order for each async operation
@@ -462,10 +585,10 @@ public interface Publisher<V>
 
         /**
          * Return an OrderBy which will compute the unit-of-order such that each message
-         * is published to the next channel in a round robin order.
+         * is published to the next channel in a round-robin order.
          *
          * @return an OrderBy which will compute the unit-of-order such that each message
-         *         is published to the next channel in a round robin order.
+         *         is published to the next channel in a round-robin order.
          */
         public static <V> OrderBy<V> roundRobin()
             {

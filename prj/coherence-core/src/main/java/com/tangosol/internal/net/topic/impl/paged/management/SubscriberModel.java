@@ -14,10 +14,8 @@ import com.tangosol.internal.net.management.model.ModelOperation;
 import com.tangosol.internal.net.management.model.SimpleModelAttribute;
 import com.tangosol.internal.net.management.model.SimpleModelOperation;
 
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
+import com.tangosol.internal.net.topic.SubscriberStatistics;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
-
-import com.tangosol.io.Serializer;
 
 import com.tangosol.net.Cluster;
 
@@ -49,9 +47,9 @@ public class SubscriberModel
     /**
      * Create a {@link SubscriberModel}.
      *
-     * @param subscriber  the {@link PagedTopicSubscriber} the model represents
+     * @param subscriber  the {@link SubscriberStatistics} the model represents
      */
-    public SubscriberModel(PagedTopicSubscriber<?> subscriber)
+    public SubscriberModel(SubscriberStatistics subscriber)
         {
         super(MBEAN_DESCRIPTION);
         f_subscriber = subscriber;
@@ -84,7 +82,6 @@ public class SubscriberModel
         addAttribute(ATTRIBUTE_RECEIVE_ERRORS);
         addAttribute(ATTRIBUTE_RECEIVE_QUEUE);
         addAttribute(ATTRIBUTE_RECEIVE_REQUESTS);
-        addAttribute(ATTRIBUTE_SERIALIZER);
         addAttribute(ATTRIBUTE_STATE);
         addAttribute(ATTRIBUTE_STATE_NAME);
         addAttribute(ATTRIBUTE_SUBSCRIBER_GROUP);
@@ -108,7 +105,7 @@ public class SubscriberModel
      */
     protected String getSubscriberType()
         {
-        return f_subscriber.getClass().getSimpleName();
+        return f_subscriber.getTypeName();
         }
 
     /**
@@ -310,16 +307,6 @@ public class SubscriberModel
         {
         ValueExtractor<?, ?> extractor = f_subscriber.getConverter();
         return valueOrNotApplicable(extractor);
-        }
-
-    /**
-     * Return the subscriber {@link Serializer}.
-     *
-     * @return the subscriber {@link Serializer}
-     */
-    protected String getSerializer()
-        {
-        return String.valueOf(f_subscriber.getSerializer());
         }
 
     /**
@@ -558,7 +545,7 @@ public class SubscriberModel
     /**
      * The MBean's description.
      */
-    protected static final String MBEAN_DESCRIPTION = "A Coherence PagedTopic Subscriber.";
+    protected static final String MBEAN_DESCRIPTION = "A Coherence Topic Subscriber.";
                                                  
     /**
      * The channel count attribute.
@@ -831,15 +818,6 @@ public class SubscriberModel
                             .build();
 
     /**
-     * The serializer the subscriber is using.
-     */
-    protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_SERIALIZER =
-                    SimpleModelAttribute.stringBuilder("Serializer", SubscriberModel.class)
-                            .withDescription("The serializer used to deserialize messages.")
-                            .withFunction(SubscriberModel::getSerializer)
-                            .build();
-
-    /**
      * The complete-on-empty flag.
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_COMPLETE_ON_EMPTY =
@@ -938,7 +916,7 @@ public class SubscriberModel
     // ----- data members ---------------------------------------------------
 
     /**
-     * The {@link PagedTopicSubscriber} this MBean represents.
+     * The {@link SubscriberStatistics} this MBean represents.
      */
-    private final PagedTopicSubscriber<?> f_subscriber;
+    private final SubscriberStatistics f_subscriber;
     }

@@ -1,14 +1,13 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
-import com.tangosol.net.CacheService;
+import com.tangosol.internal.net.topic.NamedTopicView;
 import com.tangosol.net.PagedTopicService;
-import com.tangosol.net.TopicService;
 import com.tangosol.net.topic.NamedTopic;
 
 import org.junit.Test;
@@ -26,6 +25,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author jk 2015.06.22
  */
+@SuppressWarnings("resource")
 public class NamedTopicImplTest
     {
     @Test
@@ -35,7 +35,7 @@ public class NamedTopicImplTest
 
         when(caches.isActive()).thenReturn(false);
 
-        NamedTopic<String> topic = new PagedTopic<>(caches);
+        NamedTopic<String> topic = new NamedTopicView<>(new PagedTopicConnector<>(caches));
 
         assertThrows(IllegalStateException.class, topic::createPublisher);
         }
@@ -47,7 +47,7 @@ public class NamedTopicImplTest
 
         when(caches.isActive()).thenReturn(true);
 
-        PagedTopic<String> topic = new PagedTopic<>(caches);
+        NamedTopic<String> topic = new NamedTopicView<>(new PagedTopicConnector<>(caches));
 
         topic.destroy();
         verify(caches).destroy();
@@ -60,7 +60,7 @@ public class NamedTopicImplTest
 
         when(caches.isActive()).thenReturn(true);
 
-        PagedTopic<String> topic = new PagedTopic<>(caches);
+        NamedTopic<String> topic = new NamedTopicView<>(new PagedTopicConnector<>(caches));
 
         topic.close();
         verify(caches).release();
@@ -73,7 +73,7 @@ public class NamedTopicImplTest
 
         when(caches.isActive()).thenReturn(false);
 
-        PagedTopic<String> topic = new PagedTopic<>(caches);
+        NamedTopic<String> topic = new NamedTopicView<>(new PagedTopicConnector<>(caches));
 
         topic.close();
         verify(caches, never()).release();
@@ -86,7 +86,7 @@ public class NamedTopicImplTest
 
         when(caches.isActive()).thenReturn(true);
 
-        PagedTopic<String> topic = new PagedTopic<>(caches);
+        NamedTopic<String> topic = new NamedTopicView<>(new PagedTopicConnector<>(caches));
 
         topic.release();
         verify(caches).release();
@@ -101,7 +101,7 @@ public class NamedTopicImplTest
         when(caches.isActive()).thenReturn(true);
         when(caches.getService()).thenReturn(service);
 
-        PagedTopic<String> topic = new PagedTopic<>(caches);
+        NamedTopic<String> topic = new NamedTopicView<>(new PagedTopicConnector<>(caches));
 
         assertThat(topic.getService(), is(sameInstance(service)));
         assertThat(topic.getService(), is(sameInstance(service)));
@@ -110,12 +110,12 @@ public class NamedTopicImplTest
     @Test
     public void shouldReturnQueueName()
         {
-        PagedTopicCaches topic = mock(PagedTopicCaches.class);
+        PagedTopicCaches caches = mock(PagedTopicCaches.class);
 
-        when(topic.isActive()).thenReturn(true);
-        when(topic.getTopicName()).thenReturn("Foo");
+        when(caches.isActive()).thenReturn(true);
+        when(caches.getTopicName()).thenReturn("Foo");
 
-        PagedTopic<String> queue = new PagedTopic<>(topic);
+        NamedTopic<String> queue = new NamedTopicView<>(new PagedTopicConnector<>(caches));
 
         assertThat(queue.getName(), is("Foo"));
         }
@@ -123,11 +123,11 @@ public class NamedTopicImplTest
     @Test
     public void shouldBeActive()
         {
-        PagedTopicCaches topic = mock(PagedTopicCaches.class);
+        PagedTopicCaches caches = mock(PagedTopicCaches.class);
 
-        when(topic.isActive()).thenReturn(true);
+        when(caches.isActive()).thenReturn(true);
 
-        PagedTopic<String> queue = new PagedTopic<>(topic);
+        NamedTopic<String> queue = new NamedTopicView<>(new PagedTopicConnector<>(caches));
 
         assertThat(queue.isActive(), is(true));
         }
@@ -135,11 +135,11 @@ public class NamedTopicImplTest
     @Test
     public void shouldBeInactive()
         {
-        PagedTopicCaches topic = mock(PagedTopicCaches.class);
+        PagedTopicCaches caches = mock(PagedTopicCaches.class);
 
-        when(topic.isActive()).thenReturn(false);
+        when(caches.isActive()).thenReturn(false);
 
-        PagedTopic<String> queue = new PagedTopic<>(topic);
+        NamedTopic<String> queue = new NamedTopicView<>(new PagedTopicConnector<>(caches));
 
         assertThat(queue.isActive(), is(false));
         }

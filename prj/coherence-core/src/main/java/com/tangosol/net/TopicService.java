@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,8 +7,14 @@
 
 package com.tangosol.net;
 
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.net.topic.NamedTopic;
+import com.tangosol.net.topic.Publisher;
+import com.tangosol.net.topic.Subscriber;
 import com.tangosol.net.topic.TopicBackingMapManager;
+import com.tangosol.util.Filter;
+import com.tangosol.util.ValueExtractor;
 
 import java.util.Set;
 
@@ -60,7 +66,7 @@ public interface TopicService
      * @see NamedTopic#release()
      */
     @SuppressWarnings("rawtypes")
-    void releaseTopic(NamedTopic topic);
+    void releaseTopic(NamedTopic<?> topic);
 
     /**
      * Release and destroy the specified topic.
@@ -75,7 +81,7 @@ public interface TopicService
      * @see NamedTopic#destroy()
      */
     @SuppressWarnings("rawtypes")
-    void destroyTopic(NamedTopic topic);
+    void destroyTopic(NamedTopic<?> topic);
 
     /**
      * Return the {@link TopicBackingMapManager}.
@@ -84,6 +90,18 @@ public interface TopicService
      */
     @SuppressWarnings("rawtypes")
     TopicBackingMapManager getTopicBackingMapManager();
+
+    /**
+     * Set a {@link TopicBackingMapManager} to be used by this {@link TopicService}
+     * to create underlying stores for the topic data. Some topic services may choose to
+     * ignore this setting.
+     *
+     * @param manager  a {@link TopicBackingMapManager}
+     *
+     * @exception IllegalStateException thrown if the service is already running
+     */
+    @SuppressWarnings("rawtypes")
+    void setTopicBackingMapManager(TopicBackingMapManager manager);
 
     /**
      * Return the number of channels the topic has.
@@ -124,4 +142,44 @@ public interface TopicService
      * @return  the names of the topics known to this service
      */
     Set<String> getTopicNames();
+
+    /**
+     * Returns the {@link SubscriberGroupId subscriber groups} for a topic
+     * known to this service.
+     *
+     * @return the {@link SubscriberGroupId subscriber groups} for a topic
+     *         known to this service
+     */
+    Set<SubscriberGroupId> getSubscriberGroups(String sTopicName);
+
+    /**
+     * PagedTopic service type constant.
+     * <p>
+     * DistributedTopic service provides the means for handling a collection
+     * of paged topics across a cluster with concurrent access control.
+     *
+     * @see Cluster#ensureService(String, String)
+     */
+    String TYPE_PAGED_TOPIC = "PagedTopic";
+
+    /**
+     * RemoteTopic service type constant.
+     * <p>
+     * RemoteTopic service provides the means for handling a collection
+     * of topics managed by a remote JVM with concurrent access control.
+     *
+     * @see Cluster#ensureService(String, String)
+     */
+    String TYPE_REMOTE = "RemoteTopic";
+
+    /**
+     * RemoteGrpcTopic service type constant.
+     * <p>
+     * RemoteGrpcTopic service provides the means for handling a collection
+     * of topic resources managed by a remote JVM with concurrent access
+     * control connecting over gRPC.
+     *
+     * @see Cluster#ensureService(String, String)
+     */
+    String TYPE_REMOTE_GRPC = "RemoteGrpcTopic";
     }

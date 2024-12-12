@@ -52,6 +52,12 @@ public class PagedPosition
         m_nOffset = nOffset;
         }
 
+    @Override
+    public boolean isEmpty()
+        {
+        return m_nPage == Page.EMPTY;
+        }
+
     // ----- accessors ------------------------------------------------------
 
     /**

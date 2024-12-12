@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.agent;
 
+import com.tangosol.internal.net.topic.ReceiveResult;
+import com.tangosol.internal.net.topic.SimpleReceiveResult;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
 
 import com.tangosol.internal.net.topic.impl.paged.model.Page;
@@ -17,6 +19,7 @@ import com.tangosol.io.pof.EvolvablePortableObject;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 
+import com.tangosol.net.topic.Position;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.InvocableMap;
@@ -34,7 +37,7 @@ import java.util.Queue;
  * @since Coherence 14.1.1
  */
 public class PollProcessor
-        extends AbstractPagedTopicProcessor<Subscription.Key, Subscription, PollProcessor.Result>
+        extends AbstractPagedTopicProcessor<Subscription.Key, Subscription, ReceiveResult>
         implements EvolvablePortableObject
     {
     // ----- constructors ---------------------------------------------------
@@ -49,7 +52,7 @@ public class PollProcessor
 
     /**
      * Create a {@link PollProcessor} that will perform a poll from the
-     * head {@link com.tangosol.internal.net.topic.impl.paged.model.Page} of a {@link com.tangosol.internal.net.topic.impl.paged.PagedTopic}.
+     * head {@link com.tangosol.internal.net.topic.impl.paged.model.Page} of a paged topic.
      *
      * @param lPage             the page to poll from
      * @param cElements         the desired number of elements to poll
@@ -73,7 +76,6 @@ public class PollProcessor
         // Note: the PollProcessor and OfferProcessor both target the page, this ensures
         // that they cannot run concurrently on the same page.  Simply sharing the same association does not ensure
         // this.
-
         return ensureTopic(entry).pollFromPageHead((BinaryEntry<Subscription.Key, Subscription>) entry, m_lPage,
                 m_cElements, m_nNotifyPostEmpty, m_subscriberId);
         }
@@ -129,7 +131,7 @@ public class PollProcessor
      */
     public static class Result
             extends AbstractEvolvable
-            implements EvolvablePortableObject
+            implements ReceiveResult, EvolvablePortableObject
         {
         // ----- constructors ---------------------------------------------------
 
@@ -158,15 +160,26 @@ public class PollProcessor
 
         // ----- accessor methods -----------------------------------------------
 
-        /**
-         * Return the number of remaining elements, or {@link #EXHAUSTED} if there are none and the
-         * page will be accepting no new elements.
-         *
-         * @return the number of remaining elements
-         */
+        @Override
         public int getRemainingElementCount()
             {
             return m_cElementsRemaining;
+            }
+
+        @Override
+        public Status getStatus()
+            {
+            //noinspection EnhancedSwitchMigration
+            switch (m_cElementsRemaining)
+                {
+                case UNKNOWN_SUBSCRIBER:
+                    return Status.UnknownSubscriber;
+                case EXHAUSTED:
+                    return Status.Exhausted;
+                case NOT_ALLOCATED_CHANNEL:
+                    return Status.NotAllocatedChannel;
+                }
+            return Status.Success;
             }
 
         /**
@@ -184,6 +197,7 @@ public class PollProcessor
          *
          * @return  the elements polled from the topic in this result
          */
+        @Override
         public Queue<Binary> getElements()
             {
             return m_queueElements == null ? new LinkedList<>() : m_queueElements;
@@ -197,6 +211,28 @@ public class PollProcessor
         public long getSubscriptionHead()
             {
             return m_lSubscriptionHead;
+            }
+
+        /**
+         * Convert this result into a {@link SimpleReceiveResult}.
+         *
+         * @return this result converted to a {@link SimpleReceiveResult}
+         */
+        public ReceiveResult toSimpleResult()
+            {
+            return new SimpleReceiveResult(m_queueElements, m_cElementsRemaining, getStatus());
+            }
+
+        /**
+         * Convert this result into a {@link SimpleReceiveResult}.
+         *
+         * @param head  the channel head position to add to the result
+         *
+         * @return this result converted to a {@link SimpleReceiveResult}
+         */
+        public ReceiveResult toSimpleResult(Position head)
+            {
+            return new SimpleReceiveResult(m_queueElements, m_cElementsRemaining, getStatus(), head);
             }
 
         // ----- helper methods ---------------------------------------------

@@ -1,25 +1,31 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.agent;
 
+import com.tangosol.internal.net.topic.PublishResult;
+import com.tangosol.internal.net.topic.SimplePublishResult;
+import com.tangosol.internal.net.topic.SimplePublisherStatus;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
 import com.tangosol.internal.net.topic.impl.paged.model.Page;
 
+import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.io.AbstractEvolvable;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.EvolvablePortableObject;
 
+import com.tangosol.net.topic.Publisher;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.LongArray;
 
+import com.tangosol.util.SparseArray;
 import com.tangosol.util.processor.AbstractProcessor;
 
 import java.io.IOException;
@@ -268,6 +274,36 @@ public class OfferProcessor
             return m_nOffset;
             }
 
+        /**
+         * Convert this result to a {@link PublishResult}.
+         *
+         * @param oCookie  the retry cookie
+         *
+         * @return a {@link PublishResult}
+         */
+        public PublishResult toPublishResult(int nChannel, Object oCookie)
+            {
+            PublishResult.Status status = switch (m_status)
+                {
+                case Success -> PublishResult.Status.Success;
+                case PageSealed -> PublishResult.Status.Retry;
+                case TopicFull ->PublishResult.Status.TopicFull;
+                };
+
+            LongArray<Publisher.Status> aPubStatus = new SparseArray<>();
+            int                         nOffset    = m_nOffset;
+            long                        lPage      = (Long) oCookie;
+            for (long i = 0; i < m_cAccepted; i++)
+                {
+                if (m_aErrors == null || m_aErrors.get(i) == null)
+                    {
+                    aPubStatus.set(i, new SimplePublisherStatus(nChannel, new PagedPosition(lPage, nOffset++)));
+                    }
+                }
+
+            return new SimplePublishResult(nChannel, m_cAccepted, aPubStatus, m_aErrors, m_cbPageFree, oCookie, status);
+            }
+
         // ----- EvolvablePortableObject interface --------------------------
 
        @Override
@@ -300,6 +336,7 @@ public class OfferProcessor
             out.writeObject(3, m_aErrors);
             out.writeInt(4, m_nOffset);
             }
+
 
         @Override
         public String toString()

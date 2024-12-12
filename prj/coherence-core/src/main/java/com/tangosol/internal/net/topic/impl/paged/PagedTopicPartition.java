@@ -16,6 +16,7 @@ import com.oracle.coherence.common.util.Duration;
 import com.oracle.coherence.common.util.SafeClock;
 import com.tangosol.coherence.config.Config;
 
+import com.tangosol.internal.net.topic.SeekResult;
 import com.tangosol.internal.net.topic.impl.paged.agent.EnsureSubscriptionProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.OfferProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.PollProcessor;
@@ -1279,7 +1280,7 @@ public class PagedTopicPartition
             {
             Logger.finest("Removed the following subscribers from topic '" + sTopic
                         + "' owningMember=" + entry.getKey() + " [Group='" + sGroup
-                        + "' Subscribers=" + PagedTopicSubscriber.subscriberIdToString(entry.getValue()) + "]");
+                        + "' Subscribers=" + SubscriberId.subscriberIdToString(entry.getValue()) + "]");
             }
         }
 
@@ -1889,8 +1890,8 @@ public class PagedTopicPartition
      *
      * @return the result of the seek request
      */
-    public SeekProcessor.Result seekPosition(BinaryEntry<Subscription.Key, Subscription> entrySubscription,
-                                             PagedPosition position, SubscriberId subscriberId)
+    public SeekResult seekPosition(BinaryEntry<Subscription.Key, Subscription> entrySubscription,
+                                   PagedPosition position, SubscriberId subscriberId)
         {
         Subscription  subscription = entrySubscription.getValue();
         int           nChannel     = entrySubscription.getKey().getChannelId();
@@ -2109,8 +2110,8 @@ public class PagedTopicPartition
      *
      * @return the result of the seek request
      */
-    public SeekProcessor.Result seekTimestamp(BinaryEntry<Subscription.Key, Subscription> entrySubscription,
-                                              long lTimestamp, long nSubscriberId)
+    public SeekResult seekTimestamp(BinaryEntry<Subscription.Key, Subscription> entrySubscription,
+            long lTimestamp, long nSubscriberId)
         {
         Subscription  subscription = entrySubscription.getValue();
         int           nChannel     = entrySubscription.getKey().getChannelId();

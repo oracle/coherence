@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,7 +7,6 @@
 package com.tangosol.internal.net.topic.impl.paged.model;
 
 import com.tangosol.internal.net.topic.SimpleChannelAllocationStrategy;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 
 import com.tangosol.io.AbstractEvolvable;
 
@@ -456,7 +455,7 @@ public class Subscription
             }
 
         return map.entrySet().stream()
-                .map(e -> e.getValue() + "=" + e.getKey() + "/" + PagedTopicSubscriber.memberIdFromId(e.getKey()))
+                .map(e -> e.getValue() + "=" + e.getKey() + "/" + SubscriberId.memberIdFromId(e.getKey()))
                 .collect(Collectors.joining(", "));
         }
 
