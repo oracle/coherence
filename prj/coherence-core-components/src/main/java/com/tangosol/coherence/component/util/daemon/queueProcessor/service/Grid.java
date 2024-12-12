@@ -2782,21 +2782,24 @@ public abstract class Grid
     public void onConfigIOException(java.io.IOException e, com.tangosol.coherence.component.net.Member member)
         {
         StringBuffer sb = new StringBuffer();
-        
+
         if (getServiceId() == 0)
             {
             sb.append("Failed to deserialize the config Message received from member ")
               .append(member.getId())
               .append(". This member is configured with the following serializer: ")
               .append(getSerializer())
-              .append(", which may be incompatible with the serializer configured by the sender.");
+              .append(", which may be incompatible with the serializer \"")
+              .append("")
+              .append("\" by the sender.");
             }
         else
             {
             sb.append("The service \"" + getServiceName() + '"');
-        
+
             String sSerializerThat = (String) getServiceMemberSet().
                     getMemberConfigMap(member.getId()).get("Serializer");
+
             sb.append(" is configured to use serializer ")
               .append(getSerializer())
               .append(", which appears to be different from ")
