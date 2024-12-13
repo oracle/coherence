@@ -61,8 +61,8 @@ jobs:
       run: |
         echo "Building and Running - Examples"
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml --batch-mode -U -e -s .github/maven/settings.xml -P-modules -DskipTests clean install
-        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -Pmodules,-coherence -nsu -DskipTests clean install
+        mvn --file prj/pom.xml --batch-mode -U -e -s .github/maven/settings.xml -P-modules -Dproject.official -DskipTests clean install
+        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -Pmodules,-coherence -nsu -Dproject.official -DskipTests clean install
         mvn --file prj/pom.xml --batch-mode -U -e -s .github/maven/settings.xml -Pexamples -nsu clean install
 
     # Upload build artifacts for diagnosing failures

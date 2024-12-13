@@ -51,6 +51,13 @@ A quick-start guide to using Coherence.
 --
 
 [CARD]
+.What's New in this Release
+[icon=fa-exclamation-circle,link=https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/release-notes/whats-new-this-release.html,link-type=url]
+--
+New Functionality & Improvements 
+--
+
+[CARD]
 .Guides & Tutorials
 [icon=fa-graduation-cap,link=examples/README.adoc]
 --
