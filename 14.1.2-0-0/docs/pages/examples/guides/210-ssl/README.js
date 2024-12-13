@@ -13,11 +13,11 @@ used in this documentation because it is the more widely recognized term.</p>
 
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/secure/introduction-oracle-coherence-security.html">Introduction to Coherence Security</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/secure/introduction-oracle-coherence-security.html">Introduction to Coherence Security</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/secure/using-ssl-secure-communication.html">Using SSL to Secure Communication</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/secure/using-ssl-secure-communication.html">Using SSL to Secure Communication</a></p>
 
 </li>
 </ul>
@@ -824,11 +824,11 @@ trust=SunX509//.../examples/guides/210-ssl/target/test-classes/certs/server-ca-c
 <div class="section">
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/secure/introduction-oracle-coherence-security.html">Introduction to Coherence Security</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/secure/introduction-oracle-coherence-security.html">Introduction to Coherence Security</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/secure/using-ssl-secure-communication.html">Using SSL to Secure Communication</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/secure/using-ssl-secure-communication.html">Using SSL to Secure Communication</a></p>
 
 </li>
 </ul>

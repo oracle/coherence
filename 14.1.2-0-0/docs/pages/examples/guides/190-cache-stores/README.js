@@ -17,7 +17,7 @@ the <a id="" title="" target="_blank" href="https://coherence.community/14.1.2-0
 which, besides providing access to entries in their <a id="" title="" target="_blank" href="https://coherence.community/14.1.2-0-0/api/java//com/tangosol/util/BinaryEntry.html">BinaryEntry</a> form,
 integrates with data sources with non-blocking APIs such as R2DBC or Kafka.</p>
 
-<p>See the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/caching-data-sources.html#GUID-9FAD1BFB-5063-4995-B0A7-3C6F9C64F600">Coherence Documentation</a>
+<p>See the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/caching-data-sources.html#GUID-9FAD1BFB-5063-4995-B0A7-3C6F9C64F600">Coherence Documentation</a>
 for detailed information on Cache Stores.</p>
 
 
@@ -1773,7 +1773,7 @@ assertNull(person4);</markup>
 <div class="section">
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/caching-data-sources.html#GUID-9FAD1BFB-5063-4995-B0A7-3C6F9C64F600">Caching Data Stores</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/caching-data-sources.html#GUID-9FAD1BFB-5063-4995-B0A7-3C6F9C64F600">Caching Data Stores</a></p>
 
 </li>
 <li>

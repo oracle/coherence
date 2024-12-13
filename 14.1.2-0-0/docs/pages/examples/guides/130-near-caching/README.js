@@ -12,7 +12,7 @@ Near cache backed by a partitioned cache offers zero-millisecond local access fo
 repeat data access, while enabling concurrency and ensuring coherency and fail over,
 effectively combining the best attributes of replicated and partitioned caches.</p>
 
-<p>See the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/introduction-coherence-caches.html">Coherence Documentation</a>
+<p>See the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/introduction-coherence-caches.html">Coherence Documentation</a>
 for detailed information on near caches.</p>
 
 
@@ -408,7 +408,7 @@ public void runExample() throws Exception {
 
 </li>
 </ul>
-<p>There are a number of invalidation strategies, described <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/configuring-caches.html#GUID-78557F0D-1CCC-4A4B-B52C-61D6EBF88295">here</a>,
+<p>There are a number of invalidation strategies, described <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/configuring-caches.html#GUID-78557F0D-1CCC-4A4B-B52C-61D6EBF88295">here</a>,
 but we will utilize the following for the tests above:</p>
 
 <ul class="ulist">
@@ -642,31 +642,31 @@ lang="bash"
 <div class="section">
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/introduction-coherence-caches.html#GUID-5C066CC9-575F-4D7D-9D53-7BB674D69FD1">Understanding Near Caches</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/introduction-coherence-caches.html#GUID-5C066CC9-575F-4D7D-9D53-7BB674D69FD1">Understanding Near Caches</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/configuring-caches.html#GUID-F91E64DD-2C46-4ED9-BD41-04D2922312F6">Defining Near Cache Schemes</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/configuring-caches.html#GUID-F91E64DD-2C46-4ED9-BD41-04D2922312F6">Defining Near Cache Schemes</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/configuring-caches.html#GUID-78557F0D-1CCC-4A4B-B52C-61D6EBF88295">Near Cache Invalidation Strategies</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/configuring-caches.html#GUID-78557F0D-1CCC-4A4B-B52C-61D6EBF88295">Near Cache Invalidation Strategies</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/introduction-coherence-caches.html#GUID-9E6ABD8C-AD27-48C7-9C57-2A90133CEB3A">Understanding Local Caches</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/introduction-coherence-caches.html#GUID-9E6ABD8C-AD27-48C7-9C57-2A90133CEB3A">Understanding Local Caches</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/cache-configuration-elements.html#GUID-2DA5531C-4D2B-4582-9ED7-012120122BB9">Near Cache local-scheme Configuration</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/cache-configuration-elements.html#GUID-2DA5531C-4D2B-4582-9ED7-012120122BB9">Near Cache local-scheme Configuration</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/administer/performance-tuning.html#GUID-20600648-0C50-4275-9AE2-782CE32CAC2D">Near Cache and Cluster-node Affinity</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/administer/performance-tuning.html#GUID-20600648-0C50-4275-9AE2-782CE32CAC2D">Near Cache and Cluster-node Affinity</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/administer/performance-tuning.html#GUID-068ABDF6-19A2-4C54-8B5B-8D1059EFFFC7">Concurrent Near Cache Misses on a Specific Hot Key</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/administer/performance-tuning.html#GUID-068ABDF6-19A2-4C54-8B5B-8D1059EFFFC7">Concurrent Near Cache Misses on a Specific Hot Key</a></p>
 
 </li>
 </ul>

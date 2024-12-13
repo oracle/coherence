@@ -604,7 +604,7 @@ function createNav(){
                         {
                             title: 'Official Documentation',
                             action: 'import_contacts',
-                            href: 'https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0',
+                            href: 'https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2',
                             target: '_blank'
                         },
                         {
@@ -614,8 +614,7 @@ function createNav(){
                             items: [
                                 { href: '/docs/about/01_overview', title: 'Overview' },
                                 { href: '/docs/about/02_introduction', title: 'Introduction' },
-                                { href: '/docs/about/03_quickstart', title: 'Quick Start' },
-                                { href: '/docs/about/04_api', title: 'API Docs' }
+                                { href: '/docs/about/03_quickstart', title: 'Quick Start' }
                             ]
                         },
                         {
@@ -701,13 +700,13 @@ function createNav(){
                         {
                             title: 'Coherence .NET Client API',
                             action: 'library_books',
-                            href: 'https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/net-reference/html',
+                            href: 'https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/net-reference/html',
                             target: '_blank'
                         },
                         {
                             title: 'Coherence C++ Client API',
                             action: 'library_books',
-                            href: 'https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/cplus-reference/index.html',
+                            href: 'https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/cplus-reference/index.html',
                             target: '_blank'
                         },
                         {

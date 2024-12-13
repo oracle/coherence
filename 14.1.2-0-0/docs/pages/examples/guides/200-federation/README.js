@@ -120,7 +120,7 @@ lang="xml"
 
 <div class="admonition note">
 <p class="admonition-inline">If you wish to know more about Coherence Federation, please see the
-<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/administer/federating-caches-clusters.html">Coherence Documentation</a>.</p>
+<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/administer/federating-caches-clusters.html">Coherence Documentation</a>.</p>
 </div>
 </div>
 
@@ -719,7 +719,7 @@ Continue experimenting:
 <p>You can continue to experiment by inserting, updating or removing data using various <code>CohQL</code> commands.</p>
 
 <p>For detailed information on how to use CohQL, please visit the chapter
-<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-coherence-query-language.html#GUID-C0D082B1-FA62-4899-A043-4345156E6641">Using Coherence Query Language</a>
+<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-coherence-query-language.html#GUID-C0D082B1-FA62-4899-A043-4345156E6641">Using Coherence Query Language</a>
 in the Coherence reference guide.</p>
 
 </li>
@@ -756,11 +756,11 @@ to insert, update and remove data in Federated clusters.</p>
 <div class="section">
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/administer/federating-caches-clusters.html">Federation Documentation</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/administer/federating-caches-clusters.html">Federation Documentation</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-coherence-query-language.html#GUID-C0D082B1-FA62-4899-A043-4345156E6641">Using Coherence Query Language</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-coherence-query-language.html#GUID-C0D082B1-FA62-4899-A043-4345156E6641">Using Coherence Query Language</a></p>
 
 </li>
 </ul>

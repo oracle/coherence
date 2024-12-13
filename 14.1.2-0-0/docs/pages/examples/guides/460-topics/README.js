@@ -74,7 +74,7 @@ only be received by the individual user.
 </ol>
 <div class="admonition note">
 <p class="admonition-inline">We do not cover all features in Coherence Topics, so if you wish to read more about Coherence Topics, please see the
-<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-topics.html">Coherence Documentation</a>.</p>
+<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-topics.html">Coherence Documentation</a>.</p>
 </div>
 </div>
 
@@ -731,11 +731,11 @@ lang="bash"
 <div class="section">
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-topics.html">Topics Overview and Configuration</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-topics.html">Topics Overview and Configuration</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/performing-basic-topic-publish-and-subscribe-operations.html#GUID-46CCE404-89D7-4396-854A-AF05227A04D6">Performing Topics Operations</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/performing-basic-topic-publish-and-subscribe-operations.html#GUID-46CCE404-89D7-4396-854A-AF05227A04D6">Performing Topics Operations</a></p>
 
 </li>
 </ul>

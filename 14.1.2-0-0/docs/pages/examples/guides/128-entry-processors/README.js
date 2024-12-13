@@ -221,7 +221,7 @@ collection of cache entries (map-reduce functionality).</p>
 
 <div class="admonition note">
 <p class="admonition-inline">For a more in-depth introduction to Entry Processors, please refer to the respective chapter
-<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/processing-data-cache.html#GUID-1CF26403-2922-4514-9395-84BCFF81849B">Processing Data In a Cache</a>
+<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/processing-data-cache.html#GUID-1CF26403-2922-4514-9395-84BCFF81849B">Processing Data In a Cache</a>
 in the Oracle Coherence reference guide.</p>
 </div>
 </div>
@@ -435,7 +435,7 @@ void testIncreasePopulationForAllCountries() {
 <div class="section">
 <p>In this guide we showed how you can easily create <em>Entry Processors</em> to perform data grid processing across a cluster.
 Please see the Coherence reference guide, specifically the chapter
-<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/processing-data-cache.html#GUID-1CF26403-2922-4514-9395-84BCFF81849B">Processing Data In a Cache</a>
+<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/processing-data-cache.html#GUID-1CF26403-2922-4514-9395-84BCFF81849B">Processing Data In a Cache</a>
 for more details.</p>
 
 </div>
@@ -444,7 +444,7 @@ for more details.</p>
 <div class="section">
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/processing-data-cache.html#GUID-1CF26403-2922-4514-9395-84BCFF81849B">Processing Data In a Cache</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/processing-data-cache.html#GUID-1CF26403-2922-4514-9395-84BCFF81849B">Processing Data In a Cache</a></p>
 
 </li>
 <li>

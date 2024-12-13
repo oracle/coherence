@@ -35,7 +35,7 @@ However, streams are not efficient when executed in a distributed environment.
 To leverage the stream programming model and also ensure that streams can be executed remotely
 across the cluster, Coherence has extended the streams API.</p>
 
-<p>For details see the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/java-reference/com/tangosol/util/stream/package-summary.html">com.tangosol.util.stream</a>
+<p>For details see the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/java-reference/com/tangosol/util/stream/package-summary.html">com.tangosol.util.stream</a>
 in the Java API Reference for Oracle Coherence.</p>
 
 
