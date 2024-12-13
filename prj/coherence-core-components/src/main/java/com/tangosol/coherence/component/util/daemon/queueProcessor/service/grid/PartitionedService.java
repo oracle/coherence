@@ -118,6 +118,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -5249,7 +5250,7 @@ public abstract class PartitionedService
                    {
                    int               iPartition = ((Integer) iter.next()).intValue();
                    PartitionedService.PartitionControl control    = getPartitionControl(iPartition);
-        
+
                    control.unlock();
                    }
                 }
@@ -8382,7 +8383,7 @@ public abstract class PartitionedService
             }
         
         com.tangosol.persistence.CachePersistenceHelper.seal(storeTo, this, /*oToken*/ null);
-        
+
         ctrl.setRecovered(true);
 
         return true;
@@ -21109,7 +21110,7 @@ public abstract class PartitionedService
          * transitively by partition transfer, but have not been ensured with
          * this PartitionControl's PersistentBackupStore.
          */
-        private com.tangosol.net.internal.CopyOnWriteLongList __m_PersistentBackupExtents;
+        private CopyOnWriteArraySet<Long> __m_PersistentBackupExtents;
         
         /**
          * Property PersistentBackupStore
@@ -21133,7 +21134,7 @@ public abstract class PartitionedService
          * transitively by partition transfer, but have not been ensured with
          * this PartitionControl's PersistentStore.
          */
-        private com.tangosol.net.internal.CopyOnWriteLongList __m_PersistentExtents;
+        private CopyOnWriteArraySet<Long> __m_PersistentExtents;
         
         /**
          * Property PersistentStore
@@ -22248,7 +22249,7 @@ public abstract class PartitionedService
         * transitively by partition transfer, but have not been ensured with
         * this PartitionControl's PersistentBackupStore.
          */
-        public com.tangosol.net.internal.CopyOnWriteLongList getPersistentBackupExtents()
+        public CopyOnWriteArraySet<Long> getPersistentBackupExtents()
             {
             return __m_PersistentBackupExtents;
             }
@@ -22281,7 +22282,7 @@ public abstract class PartitionedService
         * transitively by partition transfer, but have not been ensured with
         * this PartitionControl's PersistentStore.
          */
-        public com.tangosol.net.internal.CopyOnWriteLongList getPersistentExtents()
+        public CopyOnWriteArraySet<Long> getPersistentExtents()
             {
             return __m_PersistentExtents;
             }
@@ -22957,9 +22958,9 @@ public abstract class PartitionedService
         * transitively by partition transfer, but have not been ensured with
         * this PartitionControl's PersistentBackupStore.
          */
-        public void setPersistentBackupExtents(com.tangosol.net.internal.CopyOnWriteLongList listExtents)
+        public void setPersistentBackupExtents(CopyOnWriteArraySet<Long> setExtents)
             {
-            __m_PersistentBackupExtents = listExtents;
+            __m_PersistentBackupExtents = setExtents;
             }
         
         // Accessor for the property "PersistentBackupStore"
@@ -22990,9 +22991,9 @@ public abstract class PartitionedService
         * transitively by partition transfer, but have not been ensured with
         * this PartitionControl's PersistentStore.
          */
-        public void setPersistentExtents(com.tangosol.net.internal.CopyOnWriteLongList listExtents)
+        public void setPersistentExtents(CopyOnWriteArraySet<Long> setExtents)
             {
-            __m_PersistentExtents = listExtents;
+            __m_PersistentExtents = setExtents;
             }
         
         // Accessor for the property "PersistentStore"
@@ -26694,6 +26695,11 @@ public abstract class PartitionedService
                 {
                 PartitionedService           service    = (PartitionedService) get_Module();
                 PersistentStore   store      = e.getPersistentStore();
+                if (store == null)
+                    {
+                    throw e;
+                    }
+
                 int               nPartition = GUIDHelper.getPartition(store.getId());
                 PartitionedService.PartitionControl ctrl       = service.getPartitionControl(nPartition);
                 int               nLockState = ctrl.getLockType();

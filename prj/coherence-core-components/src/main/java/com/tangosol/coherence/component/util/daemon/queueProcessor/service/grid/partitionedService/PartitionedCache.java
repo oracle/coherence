@@ -77,7 +77,6 @@ import com.tangosol.net.events.EventDispatcherRegistry;
 import com.tangosol.net.events.internal.InterceptorManager;
 import com.tangosol.net.events.internal.ServiceDispatcher;
 import com.tangosol.net.events.internal.StorageDispatcher;
-import com.tangosol.net.internal.CopyOnWriteLongList;
 import com.tangosol.net.internal.EntryInfo;
 import com.tangosol.net.internal.MemberInfo;
 import com.tangosol.net.internal.PartitionInfo;
@@ -150,6 +149,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReferenceArray;
@@ -3777,7 +3777,7 @@ public class PartitionedCache
                 }
         
             if (iBackupTo == 0)
-                {        
+                {
                 ctrl.preparePersistentExtents();
                 }
             else
@@ -8453,7 +8453,7 @@ public class PartitionedCache
             Collection        colPartStatus = (Collection) entry.getValue();
             PartitionedCache.PartitionControl ctrlPartition = (PartitionedCache.PartitionControl) getPartitionControl(nPartition);
             PersistentStore   store         = ctrlPartition.ensureOpenPersistentStore(/*storeFrom*/ null, /*fSeal*/ true);
-        
+
             // commit changes to the persisted partition atomically
             Object oToken = store.begin(collector, ctrlPartition);
             try
@@ -8468,9 +8468,9 @@ public class PartitionedCache
                         long       lExtentId = storage.getCacheId();
                         ReadBuffer bufKey    = status.getKey();
                         ReadBuffer bufValue  = status.getMergedNewValue();
-        
+
                         ctrlPartition.ensurePersistentExtent(lExtentId);
-        
+
                         if (bufValue == null)
                             {
                             // remove
@@ -8535,7 +8535,7 @@ public class PartitionedCache
             boolean fPersistEvents = storeEvents != null && status.getMapEventsRaw() != null;
         
             ctrl.ensurePersistentExtent(lExtentId);
-        
+
             Object oToken = store.begin(fPersistEvents ? null : collector, ctrl);
             try
                 {
@@ -31335,8 +31335,8 @@ public class PartitionedCache
             try
                 {
                 setDeferredBackups(new com.tangosol.util.CircularArrayList());
-                setPersistentBackupExtents(new com.tangosol.net.internal.CopyOnWriteLongList());
-                setPersistentExtents(new com.tangosol.net.internal.CopyOnWriteLongList());
+                setPersistentBackupExtents(new CopyOnWriteArraySet());
+                setPersistentExtents(new CopyOnWriteArraySet());
                 setVersionCounter(new java.util.concurrent.atomic.AtomicLong());
                 }
             catch (java.lang.Exception e)
@@ -31460,9 +31460,9 @@ public class PartitionedCache
             // import com.tangosol.persistence.CachePersistenceHelper as com.tangosol.persistence.CachePersistenceHelper;
             // import com.tangosol.util.LongArray;
             // import java.util.Map;
-            
-            CopyOnWriteLongList listExtents  = getPersistentBackupExtents();
-            Map                 mapGraveyard = ((PartitionedCache) get_Module()).getStorageGraveyard();
+
+            CopyOnWriteArraySet<Long> setExtents   = getPersistentBackupExtents();
+            Map                       mapGraveyard = ((PartitionedCache) get_Module()).getStorageGraveyard();
             
             if (mapGraveyard.containsKey(Long.valueOf(lExtentId)))
                 {
@@ -31470,12 +31470,12 @@ public class PartitionedCache
                 }
             
             // backup partition recovery not relevant
-            if (listExtents.contains(lExtentId))
+            if (setExtents.contains(lExtentId))
                 {
                 boolean         fCreatedExtent = false;
                 synchronized (this)
                     {
-                    if (fCreatedExtent = listExtents.contains(lExtentId))
+                    if (fCreatedExtent = setExtents.contains(lExtentId))
                         {
                         LongArray         laCaches = null;
             
@@ -31490,7 +31490,7 @@ public class PartitionedCache
                             com.tangosol.persistence.CachePersistenceHelper.storeCacheNames(store, laCaches);
                             }
             
-                        listExtents.remove(lExtentId);
+                        setExtents.remove(lExtentId);
                         }
                     }
             
@@ -31526,22 +31526,22 @@ public class PartitionedCache
             // import com.tangosol.persistence.CachePersistenceHelper as com.tangosol.persistence.CachePersistenceHelper;
             // import com.tangosol.util.LongArray;
             // import java.util.Map;
-            
-            CopyOnWriteLongList listExtents  = getPersistentExtents();
-            Map                 mapGraveyard = ((PartitionedCache) get_Module()).getStorageGraveyard();
-            
+
+            CopyOnWriteArraySet<Long> setExtents   = getPersistentExtents();
+            Map                       mapGraveyard = ((PartitionedCache) get_Module()).getStorageGraveyard();
+
             if (mapGraveyard.containsKey(Long.valueOf(lExtentId)))
                 {
                 return false;
                 }
-            
-            if (listExtents.contains(lExtentId) && !isRecovering())
+
+            if (setExtents.contains(lExtentId) && !isRecovering())
                 {
                 PersistentStore storeEvents    = getPersistentEventsStore();
                 boolean         fCreatedExtent = false;
                 synchronized (this)
                     {
-                    if (fCreatedExtent = listExtents.contains(lExtentId))
+                    if (fCreatedExtent = setExtents.contains(lExtentId))
                         {
                         LongArray         laCaches = null;
                         PersistentStore[] aStore   = new PersistentStore[] {ensureOpenPersistentStore(), storeEvents};
@@ -31560,7 +31560,7 @@ public class PartitionedCache
                                 }
                             }
             
-                        listExtents.remove(lExtentId);
+                        setExtents.remove(lExtentId);
                         }
                     }
             
@@ -31610,8 +31610,8 @@ public class PartitionedCache
             // import com.tangosol.util.LongArray;
             // import com.tangosol.util.LongArray$Iterator as com.tangosol.util.LongArray.Iterator;
 
-            LongArray           laCaches    = ((PartitionedCache) get_Module()).getPersistentCacheIds();
-            CopyOnWriteLongList listExtents = getPersistentBackupExtents();
+            LongArray                 laCaches   = ((PartitionedCache) get_Module()).getPersistentCacheIds();
+            CopyOnWriteArraySet<Long> setExtents = getPersistentBackupExtents();
             
             // need to "ensure" all of the cache-ids
             for (com.tangosol.util.LongArray.Iterator iter = laCaches.iterator(); iter.hasNext(); )
@@ -31620,7 +31620,7 @@ public class PartitionedCache
             
                 long lCacheId = iter.getIndex();
 
-                listExtents.add(lCacheId);
+                setExtents.add(lCacheId);
                 }
             }
         
@@ -31678,9 +31678,9 @@ public class PartitionedCache
             // import com.tangosol.util.LongArray;
             // import com.tangosol.util.LongArray$Iterator as com.tangosol.util.LongArray.Iterator;
             
-            LongArray           laCaches    = ((PartitionedCache) get_Module()).getPersistentCacheIds();
-            CopyOnWriteLongList listExtents = getPersistentExtents();
-            
+            LongArray                 laCaches   = ((PartitionedCache) get_Module()).getPersistentCacheIds();
+            CopyOnWriteArraySet<Long> setExtents = getPersistentExtents();
+
             // need to "ensure" all of the cache-ids outside of the excludes
             for (com.tangosol.util.LongArray.Iterator iter = laCaches.iterator(); iter.hasNext(); )
                 {
@@ -31691,7 +31691,7 @@ public class PartitionedCache
                 if (laExtentsExclude == null ||
                     !laExtentsExclude.exists(lCacheId))
                     {
-                    listExtents.add(lCacheId);
+                    setExtents.add(lCacheId);
                     }
                 }
             }
