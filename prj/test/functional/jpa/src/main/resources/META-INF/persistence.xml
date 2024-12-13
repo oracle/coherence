@@ -1,0 +1,38 @@
+<!--
+  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
+             version="3.0">
+
+  <persistence-unit name="TestUnit" transaction-type="RESOURCE_LOCAL">
+    <class>data.persistence.Person</class>
+    <class>data.persistence.CompoundPerson1</class>
+    <class>data.persistence.CompoundPerson2</class>
+
+    <properties>
+
+      <property name="eclipselink.orm.throw.exceptions" value="true"/>
+      <property name="eclipselink.logging.level" value="FINEST"/>
+      <property name="eclipselink.logging.timestamp" value="false"/>
+      <property name="eclipselink.logging.thread" value="false"/>
+      <property name="eclipselink.logging.session" value="false"/>
+      <property name="eclipselink.ddl-generation"
+                value="drop-and-create-tables"/>
+
+      <property name="eclipselink.target-database" value="HSQL"/>
+      <property name="eclipselink.jdbc.driver" value="org.hsqldb.jdbcDriver"/>
+      <property name="eclipselink.jdbc.url" value="jdbc:hsqldb:mem:localdb"/>
+      <property name="eclipselink.jdbc.user" value="sa"/>
+      <property name="eclipselink.jdbc.password" value=""/>
+
+      <property name="eclipselink.session-name" value="TestSession"/>
+
+    </properties>
+  </persistence-unit>
+
+</persistence>

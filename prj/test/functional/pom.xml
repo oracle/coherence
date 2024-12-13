@@ -155,6 +155,7 @@
         <module>io</module>
         <module>jcache</module>
         <module>jmx</module>
+        <module>jpa</module>
         <module>lambda</module>
         <module>logging</module>
         <module>management</module>

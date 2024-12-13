@@ -152,6 +152,7 @@
     <eclipse.mp.config.version>3.1</eclipse.mp.config.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
     <eclipse.mp.health.version>4.0.1</eclipse.mp.health.version>
+    <eclipselink.version>3.0.4</eclipselink.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
     <eclipse.mp.metrics.version>5.1.1</eclipse.mp.metrics.version>
     <fastutil.version>8.5.14</fastutil.version>
@@ -214,6 +215,7 @@
     <!-- Helidon version.lib.jakarta.jsonb-api -->
     <jakarta.json.bind.version>3.0.1</jakarta.json.bind.version>
     <jakarta.json.impl.version>2.0.1</jakarta.json.impl.version>
+    <jakarta.persistence.version>3.2.0</jakarta.persistence.version>
     <jakarta.resource.version>2.1.0</jakarta.resource.version>
     <jakarta.servlet.version>4.0.4</jakarta.servlet.version>
     <jakarta.servlet.jsp.version>2.3.6</jakarta.servlet.jsp.version>
@@ -387,6 +389,20 @@
         <version>${jhdf.version}</version>
       </dependency>
 
+      <!-- EclipseLink -->
+      <dependency>
+        <groupId>org.eclipse.persistence</groupId>
+        <artifactId>eclipselink</artifactId>
+        <version>${eclipselink.version}</version>
+      </dependency>
+
+      <!-- EclipseLink jakarta.persistence -->
+      <dependency>
+        <groupId>jakarta.persistence</groupId>
+        <artifactId>jakarta.persistence-api</artifactId>
+        <version>${jakarta.persistence.version}</version>
+      </dependency>
+
       <!-- Eclipse MicroProfile -->
       <dependency>
         <groupId>org.eclipse.microprofile.config</groupId>
@@ -442,6 +458,13 @@
         <version>${helidon.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+
+      <!-- hsqldb -->
+      <dependency>
+        <groupId>org.hsqldb</groupId>
+        <artifactId>hsqldb</artifactId>
+        <version>${hsqldb.version}</version>
       </dependency>
 
       <!-- jackson -->
@@ -811,6 +834,11 @@
       <dependency>
         <groupId>com.sun.xml.bind</groupId>
         <artifactId>jaxb-impl</artifactId>
+        <version>${jaxb-impl.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.xml.bind</groupId>
+        <artifactId>jaxb-xjc</artifactId>
         <version>${jaxb-impl.version}</version>
       </dependency>
       <dependency>

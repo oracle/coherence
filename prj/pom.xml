@@ -393,6 +393,7 @@
         <module>coherence-docker</module>
         <module>coherence-javadoc</module>
         <module>coherence-jcache</module>
+        <module>coherence-jpa</module>
         <module>coherence-json</module>
         <module>coherence-login</module>
         <module>coherence-management</module>
@@ -461,6 +462,7 @@
         <module>coherence-bom</module>
         <module>coherence-docker</module>
         <module>coherence-jcache</module>
+        <module>coherence-jpa</module>
         <module>coherence-json</module>
         <module>coherence-login</module>
         <module>coherence-management</module>

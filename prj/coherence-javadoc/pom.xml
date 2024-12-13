@@ -103,6 +103,12 @@
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-jpa</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-discovery</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -480,7 +486,10 @@
                     <resource>
                       <directory>../coherence-java-client/src/main/java</directory>
                     </resource>
-                  <resource>
+                                      <resource>
+                      <directory>../coherence-jpa/src/main/java</directory>
+                    </resource>
+                    <resource>
                       <directory>../coherence-discovery/src/main/java</directory>
                     </resource>
                   </resources>
@@ -536,6 +545,8 @@
                     <include>com/oracle/coherence/repository/**/*.java</include>
 
                     <include>com/oracle/coherence/concurrent/**/*.java</include>
+
+                    <include>com/oracle/coherence/jpa/**/*.java</include>
 
                     <include>com/oracle/coherence/mp/**/*.java</include>
 
@@ -793,6 +804,10 @@
                     <group>
                       <title>gRPC</title>
                       <packages>com.oracle.coherence.grpc*</packages>
+                    </group>
+                    <group>
+                      <title>JPA Integration</title>
+                      <packages>com.oracle.coherence.jpa*</packages>
                     </group>
                     <group>
                       <title>Repository API</title>
