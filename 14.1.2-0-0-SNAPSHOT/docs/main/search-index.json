@@ -357,7 +357,7 @@
         },
         {
             "location": "/docs/about/01_overview",
-            "text": " assistant Coherence What is Oracle Coherence? fa-rocket Quick Start A quick-start guide to using Coherence. fa-graduation-cap Guides & Tutorials Guides, examples and tutorial about Coherence features and best practice. import_contacts Docs Oracle Coherence commercial edition product documentation. library_books API Docs Browse the Coherence CE API Docs. fa-th Container Images Example Coherence OCI container (Docker) images. ",
+            "text": " assistant Coherence What is Oracle Coherence? fa-rocket Quick Start A quick-start guide to using Coherence. fa-exclamation-circle What's New in this Release New Functionality &amp; Improvements fa-graduation-cap Guides & Tutorials Guides, examples and tutorial about Coherence features and best practice. import_contacts Docs Oracle Coherence commercial edition product documentation. library_books API Docs Browse the Coherence CE API Docs. fa-th Container Images Example Coherence OCI container (Docker) images. ",
             "title": "Get Going"
         },
         {

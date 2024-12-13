@@ -75,6 +75,27 @@ These capabilities, in addition to numerous other features, enable Coherence to 
 </v-flex>
 <v-flex xs12 sm4 lg3>
 <v-card>
+<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/release-notes/whats-new-this-release.html"><div class="card__link-hover"/>
+</a>
+<v-layout align-center justify-center class="">
+<v-avatar size="150px">
+<v-icon class="xxx-large">fa-exclamation-circle</v-icon>
+</v-avatar>
+</v-layout>
+<div class="px-3">
+<v-divider class="indigo lighten-4"/>
+</div>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">What's New in this Release</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>New Functionality &amp; Improvements</p>
+</v-card-text>
+</v-card>
+</v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
 <router-link to="/examples/README"><div class="card__link-hover"/>
 </router-link>
 <v-layout align-center justify-center class="">
