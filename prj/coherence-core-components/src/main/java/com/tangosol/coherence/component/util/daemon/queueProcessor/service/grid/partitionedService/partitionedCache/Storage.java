@@ -9025,6 +9025,7 @@ public class Storage
         getStatsOptimizedQueryCount().set(0);
         getStatsQueryContentionCount().set(0L);
         getStatsClears().set(0L);
+        getStatsRemoves().set(0L);
 
         getStatsIndexingTotalMillis().set(0L);
 
