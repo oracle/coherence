@@ -1371,16 +1371,6 @@
           <version>${maven.dependency.plugin.version}</version>
         </plugin>
 
-        <!-- maven-deploy-plugin -->
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-deploy-plugin</artifactId>
-          <version>${maven.deploy.plugin.version}</version>
-          <configuration>
-            <skip>true</skip>
-          </configuration>
-        </plugin>
-
         <!-- maven-gpg-plugin -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -1851,15 +1841,6 @@
         <version>${maven.install.plugin.version}</version>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <version>${maven.deploy.plugin.version}</version>
-        <inherited>false</inherited>
-        <configuration combine.self="override">
-          <skip>false</skip>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
 </project>

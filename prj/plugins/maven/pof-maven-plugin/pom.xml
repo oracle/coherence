@@ -29,6 +29,9 @@
   <properties>
     <!-- The version to use for the liberte specific plugin.xml -->
     <project.version.liberte>${project.version.release}-${project.build.number}</project.version.liberte>
+
+    <!--  this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
 
   <dependencies>
@@ -223,15 +226,6 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
-
-      <!-- we deploy this module to a Maven repository -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <configuration combine.self="override">
-          <skip>false</skip>
-        </configuration>
       </plugin>
     </plugins>
 

@@ -21,6 +21,9 @@
 
   <properties>
     <module.name>com.oracle.coherence.rest</module.name>
+
+    <!--  this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
 
   <dependencies>
@@ -264,16 +267,6 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
-
-      <!-- we deploy this module to a repository -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <version>${maven.deploy.plugin.version}</version>
-        <configuration combine.self="override">
-          <skip>false</skip>
-        </configuration>
       </plugin>
 
       <!-- produce the source for this module so it can be included in the javadoc -->

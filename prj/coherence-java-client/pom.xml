@@ -22,8 +22,12 @@
 
   <properties>
     <module.name>com.oracle.coherence.client</module.name>
+
     <!-- override dependent version -->
     <jakarta.inject.version>1.0</jakarta.inject.version>
+
+    <!--  this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
 
   <dependencies>
@@ -98,16 +102,6 @@
               ${project.build.outputDirectory}/META-INF/MANIFEST.MF
             </manifestFile>
           </archive>
-        </configuration>
-      </plugin>
-
-      <!-- we deploy this module to a Maven repository -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <version>${maven.deploy.plugin.version}</version>
-        <configuration combine.self="override">
-          <skip>false</skip>
         </configuration>
       </plugin>
 
