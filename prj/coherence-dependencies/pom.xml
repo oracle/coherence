@@ -153,7 +153,7 @@
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
     <eclipse.mp.health.version>4.0.1</eclipse.mp.health.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
-    <eclipse.mp.metrics.version>5.1.1</eclipse.mp.metrics.version>
+    <eclipse.mp.metrics.version>5.1.2</eclipse.mp.metrics.version>
     <fastutil.version>8.5.14</fastutil.version>
     <felix.version>6.0.4</felix.version>
     <glassfish.el.version>4.0.2</glassfish.el.version>
@@ -170,7 +170,7 @@
     typically matching the patch component of the GraalVM image tag above (ie. 21.0.4 => 23.1.4)
     -->
     <graalvm.version>23.1.4</graalvm.version>
-    <grpc.version>1.66.0</grpc.version>
+    <grpc.version>1.65.1</grpc.version>
     <!--
     This is a workaround for the fact that newer versions of the gRPC ProtoBuf compiler do not work on
     Oracle Linux 7 so the builds fail in RQ and Jenkins.
@@ -189,9 +189,9 @@
     This is not always possible if we need to bump versions for CVE's
     -->
     <!-- When running tests with Java 21 we will use Helidon 4 -->
-    <helidon.version.4>4.1.2</helidon.version.4>
+    <helidon.version.4>4.1.5</helidon.version.4>
     <!-- When running tests with Java 17 we will use Helidon 3 (this will be set using the helidon3 profile) -->
-    <helidon.version.3>3.2.10</helidon.version.3>
+    <helidon.version.3>3.2.11</helidon.version.3>
     <!-- This is the property that sets the version used by other modules (we default to Helidon 4) -->
     <helidon.version>${helidon.version.4}</helidon.version>
 
@@ -228,7 +228,7 @@
     <jaxb-impl.version>4.0.3</jaxb-impl.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
-    <jersey.version>3.1.8</jersey.version>
+    <jersey.version>3.1.9</jersey.version>
     <jettison.version>1.5.4</jettison.version>
     <jhdf.version>0.7.0-alpha</jhdf.version>
     <jline.version>3.25.0</jline.version>
@@ -237,7 +237,7 @@
     <micrometer.version>1.11.3</micrometer.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
-    <netty.version>4.1.111.Final</netty.version>
+    <netty.version>4.1.115.Final</netty.version>
     <opentelemetry.version>1.29.0</opentelemetry.version>
     <opentelemetry.proto.version>1.0.0-alpha</opentelemetry.proto.version>
     <opentracing.grpc.version>0.2.3</opentracing.grpc.version>
