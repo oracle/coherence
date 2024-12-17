@@ -119,7 +119,7 @@ to execute processing logic for the appropriate entries with exclusive access.
 associating data (thus being on the same partition) and manipulating other entries
 on the same partition, potentially across different maps.
 * **Non-blocking / async NamedMap API**
-* **Polyglot clients** - Access the same NamedMap API from C{pp}, Go, Java, JavaScript, .NET, or Python.
+* **Polyglot clients** - Access the same NamedMap API from C++, Go, Java, JavaScript, .NET, or Python.
 * **Portable Object Format** - Optimized serialization format, with the ability to
 navigate the serialized form for optimized queries, aggregations, or data processing.
 * **Integration with Databases** - Database and third party data integration with
@@ -127,12 +127,12 @@ CacheStores, including both synchronous or asynchronous writes.
 * **CohQL** - Ansi-style query language with a console for adhoc queries.
 * **Topics** - Distributed topics implementation that offers pub/sub messaging with
 the storage capacity, the cluster, and parallelizable subscribers.
-* *Repository API* - a framework implementing the Repository pattern from Domain-Driven Design,
+* **Repository API** - a framework implementing the Repository pattern from Domain-Driven Design,
 abstracting persistent storage implementation from application code, with advanced features like
 support for pagination, projections, streaming, and updating in-place
-* *Microservices integration* - broad and close integration with Helidon, Micronaut, and Spring for
+* **Microservices integration** - broad and close integration with Helidon, Micronaut, and Spring for
 developing microservices applications using Coherence as a data source or cache
-* *coherence-concurrent* - Coherence-backed implementations of types from the `java.util.concurrent`
+* **coherence-concurrent** - Coherence-backed implementations of types from the `java.util.concurrent`
 package enabling distributed process coordination through the grid
 
 Coherence also provides a number of non-functional features:
@@ -158,7 +158,7 @@ JMX server that provides a view of all members of the cluster.
 * **Management over REST** - All JMX data and operations can be performed over REST,
 including cluster wide thread dumps and heapdumps.
 * **Non-cluster Access** - Provides access to the cluster from the outside via proxies,
-for distant (high latency) clients and for non-Java languages such as C{pp}, Go, JavaScript,
+for distant (high latency) clients and for non-Java languages such as C++, Go, JavaScript,
 .NET, and Python.
 * **Kubernetes friendly** - Enables seamless and safe deployment of applications to k8s with
 our own [operator](https://github.com/oracle/coherence-operator).
