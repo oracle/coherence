@@ -6,20 +6,20 @@
 common denominator / building block for all other Coherence services.
 This service, referred to as 'service 0' internally, ensures the mesh of members is maintained and responsive,
 taking action to collaboratively evict, shun, or in some cases voluntarily depart the cluster when deemed necessary.
-As members join and leave the cluster, other Coherence services are notified thus allowing those services to react accordingly.</p>
+As members join and leave the cluster, other Coherence services are notified thus allows those services to react accordingly.</p>
 
 <div class="admonition note">
-<p class="admonition-inline">This part of the Coherence product has been in production for 20+ years, and has been the subject of some extensive and
+<p class="admonition-inline">This part of the Coherence product has been in production for 10+ years, being the subject of some extensive and
 imaginative testing.
 While it has been discussed here it certainly is not something that customers, generally, interact with directly but is
 valuable to be aware of.</p>
 </div>
-<p>Coherence services build on top of the clustering service, with the key implementations to be aware of being
+<p>Coherence services build on top of the clustering service, with the key implementations to be aware of are
 PartitionedService, InvocationService, and ProxyService.</p>
 
 <p>In the majority of cases customers will deal with caches;
 a cache will be represented by an implementation of <code>NamedCache&lt;K,V&gt;</code>.
-Cache is an unfortunate name, as many customers use Coherence as a system-of-record rather than a lossy store of data.
+Cache is an unfortunate name, as many Coherence customers use Coherence as a system-of-record rather than a lossy store of data.
 A cache is hosted by a service, generally the PartitionedService, and is the entry point to storing, retrieving,
 aggregating, querying, and streaming data.
 There are a number of features that caches provide:</p>
@@ -71,7 +71,7 @@ There are a number of features that caches provide:</p>
 
 </li>
 <li>
-<p><strong>Polyglot clients</strong> - access the same NamedCache API from C&#43;&#43;, Go, Java, JavaScript, .NET, or Python</p>
+<p><strong>C&#43;&#43; and .NET clients</strong> - access the same NamedCache API from either C&#43;&#43; or .NET</p>
 
 </li>
 <li>
@@ -88,18 +88,6 @@ There are a number of features that caches provide:</p>
 </li>
 <li>
 <p><strong>Topics</strong> - distributed topics implementation offering pub/sub messaging with the storage capacity the cluster and parallelizable subscribers</p>
-
-</li>
-<li>
-<p><strong>Repository API</strong> - a framework implementing the Repository pattern from Domain-Driven Design, abstracting persistent storage implementation from application code, with advanced features like support for pagination, projections, streaming, and updating in-place</p>
-
-</li>
-<li>
-<p><strong>Microservices integration</strong> - broad and close integration with Helidon, Micronaut, and Spring for developing microservices applications using Coherence as a data source or cache</p>
-
-</li>
-<li>
-<p><strong>coherence-concurrent</strong> - Coherence-backed implementations of types from the <code>java.util.concurrent</code> package enabling distributed process coordination through the grid</p>
 
 </li>
 </ul>
@@ -144,7 +132,7 @@ There are a number of features that caches provide:</p>
 
 </li>
 <li>
-<p><strong>Non-cluster Access</strong> - access to the cluster from the outside via proxies, for distant (high latency) clients and for non-Java languages such as C&#43;&#43;, Go, JavaScript, .NET, and Python</p>
+<p><strong>Non-cluster Access</strong> - access to the cluster from the outside via proxies, for distant (high latency) clients and for non-java languages such as C&#43;&#43; and .NET</p>
 
 </li>
 <li>
