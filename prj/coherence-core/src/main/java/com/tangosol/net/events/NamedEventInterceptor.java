@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.events;
 
@@ -436,19 +436,6 @@ public class NamedEventInterceptor<E extends Event<?>>
             {
             sName = m_sName = sName == null ? anno.identifier() : sName;
             order = anno.order();
-
-            if (setEventTypes.isEmpty())
-                {
-                setEventTypes.addAll(Arrays.asList(anno.entryEvents()));
-                setEventTypes.addAll(Arrays.asList(anno.entryProcessorEvents()));
-                setEventTypes.addAll(Arrays.asList(anno.federatedChangeEvents()));
-                setEventTypes.addAll(Arrays.asList(anno.federatedConnectionEvents()));
-                setEventTypes.addAll(Arrays.asList(anno.federatedPartitionEvents()));
-                setEventTypes.addAll(Arrays.asList(anno.transactionEvents()));
-                setEventTypes.addAll(Arrays.asList(anno.transferEvents()));
-                setEventTypes.addAll(Arrays.asList(anno.unsolicitedEvents()));
-                setEventTypes.addAll(Arrays.asList(anno.cacheLifecycleEvents()));
-                }
             }
 
         // process @Events annotations

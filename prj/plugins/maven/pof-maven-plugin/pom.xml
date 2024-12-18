@@ -27,9 +27,6 @@
   </description>
 
   <properties>
-    <!-- The version to use for the liberte specific plugin.xml -->
-    <project.version.liberte>${project.version.release}-${project.build.number}</project.version.liberte>
-
     <!--  this module should be published -->
     <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
@@ -115,87 +112,14 @@
       </plugin>
 
       <plugin>
-        <groupId>com.google.code.maven-replacer-plugin</groupId>
-        <artifactId>replacer</artifactId>
-        <executions>
-          <!-- Replace the version numbers in the liberte specific plugin.xml -->
-          <execution>
-            <id>liberte-plugin</id>
-            <phase>process-classes</phase>
-            <goals>
-              <goal>replace</goal>
-            </goals>
-            <configuration>
-              <file>${project.build.outputDirectory}/META-INF/maven/plugin.xml</file>
-              <outputFile>${project.build.directory}/${project.artifactId}-${project.version}-liberte/META-INF/maven/plugin.xml</outputFile>
-              <replacements>
-                <!-- replace /plugin/version -->
-                <replacement>
-                  <xpath>/plugin/version/text()</xpath>
-                  <token>^.*$</token>
-                  <value>${project.version.liberte}</value>
-                </replacement>
-                <!-- replace version for Coherence dependency -->
-                <replacement>
-                  <xpath>/plugin/dependencies/dependency/artifactId[text() = 'coherence']/following-sibling::version/text()</xpath>
-                  <token>^.*$</token>
-                  <value>${project.version.liberte}</value>
-                </replacement>
-              </replacements>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-      </plugin>
-
-      <!-- create a directory for the liberte specific plugin files -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>liberte-dir</id>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <phase>prepare-package</phase>
-            <configuration>
-              <descriptors>
-                <descriptor>src/assemble/liberte.xml</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
 
       <!-- maven-bundle-pugin for generating manifest with metadata -->
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-      </plugin>
-
-      <!-- Overwrite configuration of jar plugin Build the standard plugin jar by default.
-           Build a second liberte specific plugin jar -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>liberte-jar</id>
-            <phase>package</phase>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-            <configuration>
-              <classifier>liberte</classifier>
-              <classesDirectory>${project.build.directory}/${project.artifactId}-${project.version}-liberte</classesDirectory>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
 
       <!-- Update jars with META-INF/MANIFEST.MF containing required version info -->
@@ -212,17 +136,6 @@
             <configuration>
               <executable>${jar.executable}</executable>
               <commandlineArgs>uMf ${project.build.directory}/${project.build.finalName}.jar -C ${project.build.directory}/classes META-INF/MANIFEST.MF</commandlineArgs>
-            </configuration>
-          </execution>
-          <execution>
-            <id>update-manifest-liberte</id>
-            <phase>package</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>${jar.executable}</executable>
-              <commandlineArgs>uMf ${project.build.directory}/${project.build.finalName}-liberte.jar -C ${project.build.directory}/classes META-INF/MANIFEST.MF</commandlineArgs>
             </configuration>
           </execution>
         </executions>

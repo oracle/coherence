@@ -27,7 +27,6 @@
     <gradle.proxy.arg3/>
     <gradle.skip.test>true</gradle.skip.test>
     <gradle.https.proxyPort/>
-    <project.version.liberte>${project.version.release}-${project.build.number}</project.version.liberte>
 
     <!--  this module should be published -->
     <maven.deploy.skip>false</maven.deploy.skip>
@@ -205,41 +204,6 @@
               <commandlineArgs>uMf ${project.build.directory}/${project.build.finalName}.jar -C ${project.build.directory}/classes META-INF/MANIFEST.MF</commandlineArgs>
             </configuration>
           </execution>
-          <execution>
-            <id>liberte-jar-classes-resources</id>
-            <phase>package</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>unzip</executable>
-              <commandlineArgs>-o ${project.build.directory}/${project.build.finalName}.jar -d ${project.build.directory}/${project.artifactId}-${project.version}-liberte</commandlineArgs>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>com.google.code.maven-replacer-plugin</groupId>
-        <artifactId>replacer</artifactId>
-        <executions>
-          <execution>
-            <id>liberte-plugin</id>
-            <phase>package</phase>
-            <goals>
-              <goal>replace</goal>
-            </goals>
-            <configuration>
-              <file>${basedir}/build/resources/main/coherence-gradle-plugin.properties</file>
-              <outputFile>${project.build.directory}/${project.artifactId}-${project.version}-liberte/coherence-gradle-plugin.properties</outputFile>
-              <replacements>
-                <replacement>
-                  <token>${project.version}</token>
-                  <value>${project.version.liberte}</value>
-                </replacement>
-              </replacements>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
 
@@ -268,28 +232,6 @@
                   </artifacts>
               </configuration>
             </execution>
-        </executions>
-      </plugin>
-
-      <!-- Build a second liberte specific plugin jar -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>liberte-jar</id>
-            <phase>package</phase>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-            <configuration>
-              <classifier>liberte</classifier>
-              <archive>
-                <manifestFile>${project.build.directory}/${project.artifactId}-${project.version}-liberte/META-INF/MANIFEST.MF</manifestFile>
-              </archive>
-              <classesDirectory>${project.build.directory}/${project.artifactId}-${project.version}-liberte</classesDirectory>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
     </plugins>

@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2022, Oracle and/or its affiliates.
+    Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
@@ -63,7 +63,7 @@ You will review the requirements for running both `on-demand` and `active` persi
 // If your example requires Java 11+ change the 1.8 below to 11
 [#what-you-need]
 === What You Need
-:java_version: 11
+:java_version: 17
 :duration: 20-30
 include::../../internal/includes/what-you-need.adoc[tag=text]
 

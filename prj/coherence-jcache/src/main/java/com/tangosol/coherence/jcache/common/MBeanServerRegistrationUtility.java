@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.jcache.common;
 
@@ -191,14 +191,6 @@ public final class MBeanServerRegistrationUtility
             sb.append("javax.cache:type=Cache").append(objectNameType).append(",CacheManager=").append(mbeanSafe(
                 cache.getCacheManager().getURI().toString())).append(",Cache=").append(mbeanSafe(cache.getName()));
 
-            String domainPartition =
-                cache.getCacheManager().unwrap(CoherenceBasedCacheManager.class).getDomainPartition();
-
-            if (domainPartition != null)
-                {
-                sb.append(",domainPartition=").append(mbeanSafe(domainPartition));
-                }
-
             return new ObjectName(sb.toString());
             }
         catch (MalformedObjectNameException e)
@@ -229,14 +221,6 @@ public final class MBeanServerRegistrationUtility
             {
             sb.append("javax.cache:type=Cache").append(objectNameType).append(",CacheManager=").append(mbeanSafe(
                     id.getCacheManagerURI())).append(",Cache=").append(mbeanSafe(id.getName()));
-
-            String domainPartition =
-                    mgr.unwrap(CoherenceBasedCacheManager.class).getDomainPartition();
-
-            if (domainPartition != null)
-                {
-                sb.append(",domainPartition=").append(mbeanSafe(domainPartition));
-                }
 
             return new ObjectName(sb.toString());
             }

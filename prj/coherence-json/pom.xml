@@ -166,19 +166,19 @@
               <relocations>
                 <relocation>
                   <pattern>org.objectweb.asm</pattern>
-                  <shadedPattern>com.oracle.coherence.ce.json.internal.asm</shadedPattern>
+                  <shadedPattern>com.oracle.coherence.json.internal.asm</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.objectweb.asm.commons</pattern>
-                  <shadedPattern>com.oracle.coherence.ce.json.internal.asm.commons</shadedPattern>
+                  <shadedPattern>com.oracle.coherence.json.internal.asm.commons</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.objectweb.asm.tree</pattern>
-                  <shadedPattern>com.oracle.coherence.ce.json.internal.asm.tree</shadedPattern>
+                  <shadedPattern>com.oracle.coherence.json.internal.asm.tree</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.objectweb.asm.util</pattern>
-                  <shadedPattern>com.oracle.coherence.ce.json.internal.asm.util</shadedPattern>
+                  <shadedPattern>com.oracle.coherence.json.internal.asm.util</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>
@@ -203,8 +203,8 @@
                   <open>true</open>
                   <exports>
                     !*.internal.*;
-                    !com.oracle.coherence.ce.io.json.internal;
-                    !com.oracle.coherence.ce.io.json.genson.reflect;
+                    !com.oracle.coherence.io.json.internal;
+                    !com.oracle.coherence.io.json.genson.reflect;
                     *;
                   </exports>
                   <addServiceUses>true</addServiceUses>

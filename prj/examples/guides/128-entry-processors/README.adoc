@@ -1,8 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2022, Oracle and/or its affiliates.
+    Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
-    http://oss.oracle.com/licenses/upl.
+    https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Entry Processors
 :description: Provides a guide for creating Entry Processors
@@ -37,7 +37,7 @@ The example code is written as a set of unit tests, showing how you can use Entr
 
 [#what-you-will-need]
 ==== What You Need
-:java_version: 11
+:java_version: 17
 :duration: 20
 include::../../internal/includes/what-you-need.adoc[tag=text]
 

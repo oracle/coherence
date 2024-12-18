@@ -1,8 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2024, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
-    http://oss.oracle.com/licenses/upl.
+    https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Bootstrap Coherence
 :description: Coherence Guides
@@ -51,7 +51,7 @@ This guide will look at some ways to bootstrap a Coherence application.
 // Do not change this part.
 // If your example requires Java 11+ change the 1.8 below to 11
 === What You Need
-:java_version: 11
+:java_version: 17
 include::../../internal/includes/what-you-need.adoc[tag=text]
 
 // Do not change this part unless you have more complex build instructions.
