@@ -134,7 +134,7 @@ The classes are annotated to identify what types of events they will receive.</p
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">JDK 11</a> or later</p>
+<p><a id="" title="" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">JDK 17</a> or later</p>
 
 </li>
 <li>

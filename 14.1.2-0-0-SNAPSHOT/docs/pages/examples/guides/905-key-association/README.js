@@ -35,7 +35,7 @@ Using key association, notifications for a customer will be co-located in the sa
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">JDK 11</a> or later</p>
+<p><a id="" title="" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">JDK 17</a> or later</p>
 
 </li>
 <li>
