@@ -5,7 +5,6 @@
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
   -->
-
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -24,7 +23,7 @@
 
   <properties>
     <!-- configuration for our custom ant tasks -->
-    <tools.dir>${project.basedir}/../../tools</tools.dir>
+    <tools.dir>${root.path}/tools</tools.dir>
 
     <!-- the location of the source to javadoc -->
     <javadoc.src>${project.build.directory}/src</javadoc.src>
@@ -32,24 +31,9 @@
     <!-- javadoc configuration -->
     <doclint.check>-html</doclint.check>
 
-    <copyright>
-      Copyright &amp;copy; 2000, 2024, Oracle and/or its affiliates.
-      All rights reserved.
-    </copyright>
+    <!-- ignore default javadoc execution -->
+    <skip.docs>true</skip.docs>
 
-    <copyright.header>
-      &lt;b&gt;Oracle&amp;reg; Java API
-      Reference for Oracle Coherence&lt;br&gt;14c
-      (${project.version.official})&lt;/b&gt;&lt;br&gt;F79658-01
-    </copyright.header>
-
-    <copyright.bottom>&lt;center&gt;${copyright}&lt;/center&gt;</copyright.bottom>
-
-    <locale>en_US</locale>
-
-    <window.title>Oracle&#174; Coherence Java API Reference</window.title>
-
-    <doc.title>Coherence JavaDoc ${project.version.official} API</doc.title>
   </properties>
 
   <dependencies>
@@ -112,13 +96,13 @@
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-rest</artifactId>
+      <artifactId>coherence-discovery</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-discovery</artifactId>
+      <artifactId>coherence-rest</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -169,6 +153,11 @@
     <!-- grpc -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-grpc-proxy-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-grpc-proxy</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -179,22 +168,21 @@
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-grpc-client-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-java-client</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <!-- Helidon -->
     <dependency>
-      <groupId>io.helidon.microprofile.grpc</groupId>
-      <artifactId>helidon-microprofile-grpc-server</artifactId>
+      <groupId>io.helidon.microprofile.bundles</groupId>
+      <artifactId>helidon-microprofile</artifactId>
       <scope>provided</scope>
       <optional>true</optional>
-      <exclusions>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-http2</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <!-- Jackson -->
@@ -349,6 +337,7 @@
       <scope>provided</scope>
     </dependency>
 
+
     <!-- Caffeine -->
     <dependency>
       <groupId>com.github.ben-manes.caffeine</groupId>
@@ -413,7 +402,6 @@
                   <outputDirectory>${javadoc.src}</outputDirectory>
 
                   <resources>
-
                     <resource>
                        <directory>../coherence-core/src/main/java</directory>
                     </resource>
@@ -459,13 +447,17 @@
                     </resource>
 
                     <resource>
+                      <directory>../coherence-grpc-proxy-common/src/main/java</directory>
+                    </resource>
+
+                    <resource>
                       <directory>../coherence-grpc-proxy/src/main/java</directory>
                     </resource>
 
                     <resource>
                       <directory>../coherence-java-client/src/main/java</directory>
                     </resource>
-                    <resource>
+                  <resource>
                       <directory>../coherence-discovery/src/main/java</directory>
                     </resource>
                   </resources>
@@ -483,43 +475,9 @@
 
             <!-- shared javadoc configuration -->
             <configuration>
-              <minmemory>512m</minmemory>
-              <maxmemory>512m</maxmemory>
-              <verbose>false</verbose>
-
-              <overview>src/main/javadoc/overview.html</overview>
-              <docfilessubdirs>true</docfilessubdirs>
-              <show>protected</show>
-              <locale>${locale}</locale>
-              <doctitle>${doc.title}</doctitle>
-              <windowtitle>${window.title}</windowtitle>
-              <header>${copyright.header}</header>
-              <bottom>${copyright.bottom}</bottom>
-              <nodeprecatedlist>true</nodeprecatedlist>
-              <author>true</author>
-              <version>true</version>
-              <breakiterator>true</breakiterator>
-              <source>${java.version}</source>
-              <notimestamp>true</notimestamp>
-
               <sourcepath>${javadoc.src}</sourcepath>
-              <tags>
-                <tag>
-                  <name>apiNote</name>
-                  <placement>a</placement>
-                  <head>API Note:</head>
-                </tag>
-                <tag>
-                  <name>implNote</name>
-                  <placement>a</placement>
-                  <head>Implementation Note:</head>
-                </tag>
-                <tag>
-                  <name>implSpec</name>
-                  <placement>a</placement>
-                  <head>Implementation Requirements:</head>
-                </tag>
-              </tags>
+              <doclint>${doclint.check}</doclint>
+              <notimestamp>true</notimestamp>
             </configuration>
 
             <executions>
@@ -532,8 +490,6 @@
                 <configuration>
                   <outputDirectory>${project.build.directory}/javadoc</outputDirectory>
                   <reportOutputDirectory>${project.build.directory}/javadoc</reportOutputDirectory>
-
-                  <doclint>${doclint.check}</doclint>
 
                   <!--
                      The following is required to work around JDK Bug (JDK-8215291) to ensure "/undefined" is
@@ -550,23 +506,19 @@
                   </bottom>
                   <additionalJOption>--allow-script-in-comments</additionalJOption>
 
+                  <skip>false</skip>
                   <sourceFileIncludes>
-                    <include>com.oracle.coherence.ce/common/base/*.java</include>
+                    <include>com/oracle/coherence/common/base/*.java</include>
+                    <include>com/oracle/coherence/cdi/**/*.java</include>
+                    <include>com/oracle/coherence/repository/**/*.java</include>
 
-                    <include>com.oracle.coherence.ce/cdi/**/*.java</include>
-                    <include>com.oracle.coherence.ce/repository/**/*.java</include>
+                    <include>com/oracle/coherence/concurrent/**/*.java</include>
 
-                    <include>com.oracle.coherence.ce/concurrent/**/*.java</include>
+                    <include>com/oracle/coherence/mp/**/*.java</include>
 
-                    <include>com.oracle.coherence.ce/mp/**/*.java</include>
+                    <include>com/oracle/coherence/grpc/proxy/*.java</include>
 
-                    <include>com.oracle.coherence.ce/grpc/**/*.java</include>
-
-                    <include>com.oracle.coherence.ce/caffeine/**/*.java</include>
-
-                    <include>com/tangosol/application/*.java</include>
-                    <include>com/tangosol/application/server/*.java</include>
-                    <include>com/tangosol/discovery/*.java</include>
+                    <include>com/oracle/coherence/caffeine/**/*.java</include>
 
                     <include>com/tangosol/coherence/commonj/*.java</include>
 
@@ -579,18 +531,19 @@
                     <include>com/tangosol/coherence/config/xml/preprocessor/*.java</include>
                     <include>com/tangosol/coherence/config/xml/processor/*.java</include>
 
-                    <include>com.oracle.coherence.ce/concurrent/atomic/*.java</include>
-                    <include>com.oracle.coherence.ce/concurrent/cdi/*.java</include>
-                    <include>com.oracle.coherence.ce/concurrent/executor/RemoteExecutor.java</include>
-                    <include>com.oracle.coherence.ce/concurrent/executor/Result.java</include>
-                    <include>com.oracle.coherence.ce/concurrent/executor/Task.java</include>
-                    <include>com.oracle.coherence.ce/concurrent/executor/TaskCollectors.java</include>
-                    <include>com.oracle.coherence.ce/concurrent/executor/function/Predicates.java</include>
-                    <include>com.oracle.coherence.ce/concurrent/executor/function/PortablePredicate.java</include>
-                    <include>com.oracle.coherence.ce/concurrent/executor/tasks/*.java</include>
-                    <include>com.oracle.coherence.ce/concurrent/executor/options/*.java</include>
-                    <include>com.oracle.coherence.ce/concurrent/executor/subscribers/*.java</include>
-                    <include>com.oracle.coherence.ce/concurrent/locks/*.java</include>
+<include>com/tangosol/discovery/*.java</include>
+                    <include>com/oracle/coherence/concurrent/atomic/*.java</include>
+                    <include>com/oracle/coherence/concurrent/cdi/*.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/RemoteExecutor.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/Result.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/Task.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/TaskCollectors.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/function/Predicates.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/function/PortablePredicate.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/tasks/*.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/options/*.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/subscribers/*.java</include>
+                    <include>com/oracle/coherence/concurrent/locks/*.java</include>
 
                     <include>com/tangosol/coherence/dslquery/*.java</include>
                     <include>com/tangosol/coherence/dslquery/function/*.java</include>
@@ -607,9 +560,6 @@
                     <include>com/tangosol/coherence/dsltools/precedence/*.java</include>
                     <include>com/tangosol/coherence/dsltools/termlanguage/*.java</include>
                     <include>com/tangosol/coherence/dsltools/termtrees/*.java</include>
-
-                    <include>com/tangosol/coherence/federation/*.java</include>
-                    <include>com/tangosol/coherence/federation/events/*.java</include>
 
                     <include>com/tangosol/coherence/jcache/*.java</include>
                     <include>com/tangosol/coherence/jcache/common/*.java</include>
@@ -645,7 +595,6 @@
 
                     <include>com/tangosol/io/*.java</include>
                     <include>com/tangosol/io/bdb/*.java</include>
-                    <include>com/tangosol/io/journal/*.java</include>
                     <include>com/tangosol/io/nio/*.java</include>
                     <include>com/tangosol/io/pof/*.java</include>
                     <include>com/tangosol/io/pof/annotation/*.java</include>
@@ -658,12 +607,12 @@
                     <include>com/tangosol/net/events/*.java</include>
                     <include>com/tangosol/net/events/annotation/*.java</include>
                     <include>com/tangosol/net/events/application/*.java</include>
-                    <include>com/tangosol/net/events/federation/*.java</include>
                     <include>com/tangosol/net/events/partition/*.java</include>
                     <include>com/tangosol/net/events/partition/cache/*.java</include>
 
                     <include>com/tangosol/net/management/*.java</include>
                     <include>com/tangosol/net/management/annotation/*.java</include>
+                    <include>com/tangosol/net/messaging/*Exception.java</include>
                     <include>com/tangosol/net/partition/*.java</include>
                     <include>com/tangosol/net/proxy/*.java</include>
                     <include>com/tangosol/net/security/*.java</include>
@@ -703,50 +652,52 @@
                     <exclude>com/tangosol/run/xml/XmlToken.java</exclude>
                     <exclude>com/tangosol/run/xml/XmlTokenizer.java</exclude>
 
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/AbstractCollectable.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/AbstractCollector.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/AbstractOrchestration.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/AbstractTaskCoordinator.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/ClusteredAssignment.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/ClusteredCollectable.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/ClusteredExecutorInfo.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/ClusteredExecutorService.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/ClusteredExecutorService.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/ClusteredOrchestration.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/ClusteredProperties.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/ClusteredRegistration.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/ClusteredTaskCoordinator.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/ClusteredTaskManager.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/ComposableContinuation.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/ConditionalCollector.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/ContinuationService.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/ExecutionPlan.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/ExecutionStrategy.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/ExecutionStrategyBuilder.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/MutableExecutionPlan.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/NamedClusteredExecutorService.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/PortableAbstractProcessor.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/PortableCollector.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/RecoveringTask.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/StandardExecutionStrategy.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/TaskExecutorService.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/TaskProperties.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/function/BiPredicates.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/options/CloseExecutor.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/AbstractCollectable.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/AbstractCollector.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/AbstractOrchestration.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/AbstractTaskCoordinator.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredAssignment.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredCollectable.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredExecutorInfo.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredExecutorService.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredExecutorService.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredOrchestration.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredProperties.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredRegistration.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredTaskCoordinator.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredTaskManager.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ComposableContinuation.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ConditionalCollector.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ContinuationService.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ExecutionPlan.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ExecutionStrategy.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ExecutionStrategyBuilder.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/MutableExecutionPlan.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/NamedClusteredExecutorService.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/PortableAbstractProcessor.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/PortableCollector.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/RecoveringTask.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/StandardExecutionStrategy.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/TaskExecutorService.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/TaskProperties.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/function/BiPredicates.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/options/CloseExecutor.java</exclude>
 
-                    <exclude>com.oracle.coherence.ce/concurrent/config/*.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/config/builders/*.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/config/processors/*.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/atomic/*.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/internal/*.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/internal/cdi/*.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/processors/*.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/subscribers/internal/*.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/tasks/internal/*.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/executor/util/*.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/internal/*.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/internal/cdi/*.java</exclude>
-                    <exclude>com.oracle.coherence.ce/concurrent/locks/internal/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/config/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/config/builders/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/config/processors/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/atomic/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/internal/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/internal/cdi/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/processors/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/subscribers/internal/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/tasks/internal/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/util/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/internal/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/internal/cdi/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/locks/internal/*.java</exclude>
+
+                    <exclude>com/oracle/coherence/grpc/internal/*.java</exclude>
 
                     <exclude>com/tangosol/util/CheckedWrapperException.java</exclude>
                     <exclude>com/tangosol/util/CommandLine.java</exclude>
@@ -758,30 +709,26 @@
                     <exclude>com/tangosol/util/StringMap.java</exclude>
                   </sourceFileExcludes>
 
-                  <excludePackageNames>com.oracle.coherence.ce.concurrent.atomic.internal.cdi,com.oracle.coherence.ce.concurrent.locks.internal.cdi,com.tangosol.coherence.dslquery.internal</excludePackageNames>
+                  <excludePackageNames>com.oracle.coherence.concurrent.atomic.internal.cdi,com.oracle.coherence.concurrent.locks.internal.cdi,com.tangosol.coherence.dslquery.internal</excludePackageNames>
 
                   <groups>
                     <group>
                       <title>Core</title>
                       <packages>
-                        com.tangosol.injection*:com.tangosol.io*:com.tangosol.net*:com.tangosol.run*:com.tangosol.util*:com.oracle.coherence.ce.common.base*:com.tangosol.coherence.federation*
+                        com.tangosol.injection*:com.tangosol.io*:com.tangosol.net*:com.tangosol.run*:com.tangosol.util*:com.oracle.coherence.common.base*
                       </packages>
                     </group>
                     <group>
                       <title>Concurrent</title>
-                      <packages>com.oracle.coherence.ce.concurrent:com.oracle.coherence.ce.concurrent.atomic:com.oracle.coherence.ce.concurrent.cdi:com.oracle.coherence.ce.concurrent.executor:com.oracle.coherence.ce.concurrent.executor.management:com.oracle.coherence.ce.concurrent.locks</packages>
+                      <packages>com.oracle.coherence.concurrent:com.oracle.coherence.concurrent.atomic:com.oracle.coherence.concurrent.cdi:com.oracle.coherence.concurrent.executor:com.oracle.coherence.concurrent.executor.management:com.oracle.coherence.concurrent.locks</packages>
                     </group>
                     <group>
                       <title>Configuration</title>
                       <packages>com.tangosol.config*:com.tangosol.coherence.config*</packages>
                     </group>
                     <group>
-                      <title>Container Integration</title>
-                      <packages>com.tangosol.application*</packages>
-                    </group>
-                    <group>
                       <title>Persistence</title>
-                      <packages>com.oracle.coherence.ce.persistence*:com.tangosol.persistence*</packages>
+                      <packages>com.oracle.coherence.persistence*:com.tangosol.persistence*</packages>
                     </group>
                     <group>
                       <title>CohQL</title>
@@ -789,19 +736,11 @@
                           com.tangosol.coherence.dsl*
                       </packages>
                     </group>
-                    <group>
-                      <title>Coherence*Web</title>
-                      <packages>com.tangosol.coherence.servlet*</packages>
-                    </group>
-                    <group>
-                      <title>Discovery</title>
-                      <packages>com.tangosol.discovery*</packages>
-                    </group>
-                    <group>
-                      <title>Cache Providers</title>
-                      <packages>com.tangosol.coherence.toplink*</packages>
-                    </group>
-                    <group>
+
+                        <group>
+                          <title>Discovery</title>
+                          <packages>com.tangosol.discovery*</packages>
+</group>                    <group>
                       <title>JCache</title>
                       <packages>com.tangosol.coherence.jcache*</packages>
                     </group>
@@ -812,28 +751,20 @@
                       </packages>
                     </group>
                     <group>
-                      <title>TX Framework</title>
-                      <packages>com.tangosol.coherence.transaction*</packages>
-                    </group>
-                    <group>
-                      <title>Work Manager</title>
-                      <packages>com.tangosol.coherence.commonj*</packages>
-                    </group>
-                    <group>
                       <title>CDI</title>
-                      <packages>com.oracle.coherence.ce.cdi*</packages>
+                      <packages>com.oracle.coherence.cdi*</packages>
                     </group>
                     <group>
                       <title>MicroProfile</title>
-                      <packages>com.oracle.coherence.ce.mp*</packages>
+                      <packages>com.oracle.coherence.mp*</packages>
                     </group>
                     <group>
                       <title>gRPC</title>
-                      <packages>com.oracle.coherence.ce.grpc*</packages>
+                      <packages>com.oracle.coherence.grpc*</packages>
                     </group>
                     <group>
                       <title>Repository API</title>
-                      <packages>com.oracle.coherence.ce.repository*</packages>
+                      <packages>com.oracle.coherence.repository*</packages>
                     </group>
                   </groups>
                 </configuration>
@@ -851,11 +782,23 @@
                 <groupId>${coherence.group.id}</groupId>
                 <artifactId>coherence-core</artifactId>
                 <version>${project.version}</version>
+                <exclusions>
+                  <exclusion>
+                    <groupId>com.sleepycat</groupId>
+                    <artifactId>je</artifactId>
+                  </exclusion>
+                </exclusions>
               </dependency>
               <dependency>
                 <groupId>${coherence.group.id}</groupId>
                 <artifactId>coherence-core-components</artifactId>
                 <version>${project.version}</version>
+                <exclusions>
+                  <exclusion>
+                    <groupId>com.sleepycat</groupId>
+                    <artifactId>je</artifactId>
+                  </exclusion>
+                </exclusions>
               </dependency>
             </dependencies>
 
