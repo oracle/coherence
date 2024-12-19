@@ -1,0 +1,26 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= API Docs
+:description: Oracle Coherence CE Documentation
+:keywords: coherence, API, Java, .NET, C++, Python, Go, JavaScript documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== API Docs
+
+
+- https://oracle.github.io/coherence/{version-coherence-maven}/api/java/index.html[Coherence CE Java API]
+
+- https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/net-reference/html[Coherence .NET Client API]
+
+- https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/cplus-reference/index.html[Coherence C++ Client API]
+
+- https://oracle.github.io/coherence-py-client/api_reference.html[Coherence Python Client API]
+
+- https://pkg.go.dev/github.com/oracle/coherence-go-client/v2/coherence#pkg-index[Coherence Go Client API]
+
+- https://oracle.github.io/coherence-js-client/[Coherence JavaScript Client API]
