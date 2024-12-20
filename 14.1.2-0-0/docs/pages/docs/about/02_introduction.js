@@ -121,7 +121,7 @@ aggregating, querying, and streaming data.</p>
 </ul>
 </li>
 <li>
-<p><strong>Microservices integration</strong> - broad and close integration with <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.2/integrate/index.html">Helidon</a>, <a id="" title="" target="_blank" href="https://micronaut-projects.github.io/micronaut-coherence/latest/guide/">Micronaut</a>, and <a id="" title="" target="_blank" href="https://spring.coherence.community/4.3.0/#/about/01_overview">Spring</a> for developing microservices applications using Coherence as a data source or cache</p>
+<p><strong>Microservices integration</strong> - broad and close integration with <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/integrate/index.html">Helidon</a>, <a id="" title="" target="_blank" href="https://micronaut-projects.github.io/micronaut-coherence/latest/guide/">Micronaut</a>, and <a id="" title="" target="_blank" href="https://spring.coherence.community/4.3.0/#/about/01_overview">Spring</a> for developing microservices applications using Coherence as a data source or cache</p>
 
 </li>
 </ul>
