@@ -4,7 +4,7 @@
 <div class="section">
 <p>This tutorial walks through the steps to enable access to Coherence data from GraphQL using Helidon’s
 <a id="" title="" target="_blank" href="https://helidon.io/docs/v2/#/mp/graphql/01_mp_graphql">MicroProfile (MP) GraphQL support</a>
-and <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-contexts-and-dependency-injection.html">Coherence CDI</a>.</p>
+and <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-contexts-and-dependency-injection.html">Coherence CDI</a>.</p>
 
 
 <h3 id="_table_of_contents">Table of Contents</h3>

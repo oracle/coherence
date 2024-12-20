@@ -27,7 +27,7 @@ be used in active persistence mode to perform on-demand snapshots.</p>
 </li>
 </ul>
 <p>For more information on Coherence Persistence, please see the
-<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/administer/persisting-caches.html">Coherence Documentation</a>.</p>
+<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/administer/persisting-caches.html">Coherence Documentation</a>.</p>
 
 
 <h3 id="_table_of_contents">Table of Contents</h3>
@@ -372,7 +372,7 @@ and this will use the default directories as described above.</p>
 <p>In this example we are also defining the base persistence directory using a system property <code>-Dcoherence.distributed.persistence.base.dir=persistence-data</code>.
 All other persistence directories will be created below this directory.</p>
 
-<p>Please see <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/administer/persisting-caches.html#GUID-AA98D601-5CE9-4E33-BB16-487B417BA5A8">here</a> for more
+<p>Please see <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/administer/persisting-caches.html#GUID-AA98D601-5CE9-4E33-BB16-487B417BA5A8">here</a> for more
 details on configuring your persistence locations.</p>
 
 <p>In this tutorial, Persistence is configured in two files:</p>
@@ -992,7 +992,7 @@ as work with archived snapshots.</p>
 <div class="section">
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/administer/persisting-caches.html#GUID-AA98D601-5CE9-4E33-BB16-487B417BA5A8">Persistence Configuration</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/administer/persisting-caches.html#GUID-AA98D601-5CE9-4E33-BB16-487B417BA5A8">Persistence Configuration</a></p>
 
 </li>
 </ul>

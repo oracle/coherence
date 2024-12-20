@@ -75,7 +75,7 @@ These capabilities, in addition to numerous other features, enable Coherence to 
 </v-flex>
 <v-flex xs12 sm4 lg3>
 <v-card>
-<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/release-notes/whats-new-this-release.html"><div class="card__link-hover"/>
+<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/release-notes/whats-new-this-release.html"><div class="card__link-hover"/>
 </a>
 <v-layout align-center justify-center class="">
 <v-avatar size="150px">

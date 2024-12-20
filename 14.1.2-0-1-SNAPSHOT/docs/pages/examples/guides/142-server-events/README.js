@@ -46,10 +46,10 @@ participants and federated change events are related to cache updates.</p>
 <p>Events are registered in the cache configuration against either a cache service or individual caches via cache mappings.
 The classes are annotated to identify what types of events they will receive.</p>
 
-<p>For more information on server-side events, see the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-live-events.html#">Coherence</a> documentation.</p>
+<p>For more information on server-side events, see the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-live-events.html#">Coherence</a> documentation.</p>
 
 <div class="admonition note">
-<p class="admonition-inline">Please see <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-map-events.html">the Coherence documentation</a> for more information on client events.</p>
+<p class="admonition-inline">Please see <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-map-events.html">the Coherence documentation</a> for more information on client events.</p>
 </div>
 
 <h3 id="_table_of_contents">Table of Contents</h3>
@@ -339,7 +339,7 @@ private long   eventTime;</markup>
 <li>
 Review the <code>AuditingInterceptor</code> which audits any mutations to caches using post-commit events.
 <div class="admonition note">
-<p class="admonition-inline">See <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-live-events.html#GUID-7CC4EAFB-7A82-4B6F-A7FD-A776D33F36CD">here</a> for details of all Partitioned Cache events.</p>
+<p class="admonition-inline">See <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-live-events.html#GUID-7CC4EAFB-7A82-4B6F-A7FD-A776D33F36CD">here</a> for details of all Partitioned Cache events.</p>
 </div>
 <markup
 lang="java"
@@ -1052,11 +1052,11 @@ for various events on a Coherence <code>NamedMap</code> or <code>NamedCache</cod
 <div class="section">
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-live-events.html#">Develop Applications using Server Side Events</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-live-events.html#">Develop Applications using Server Side Events</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-map-events.html">Client Side Events</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-map-events.html">Client Side Events</a></p>
 
 </li>
 </ul>

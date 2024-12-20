@@ -25,15 +25,15 @@ and Continuous Query Caches (CQC).</p>
 
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-map-events.html">Develop Applications using Map Events</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-map-events.html">Develop Applications using Map Events</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/introduction-coherence-caches.html">Understanding Near Caches</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/introduction-coherence-caches.html">Understanding Near Caches</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-continuous-query-caching.html">Using Continuous Query Caches</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-continuous-query-caching.html">Using Continuous Query Caches</a></p>
 
 </li>
 </ul>
@@ -774,15 +774,15 @@ lang="bash"
 <div class="section">
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-map-events.html">Develop Applications using Map Events</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-map-events.html">Develop Applications using Map Events</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/introduction-coherence-caches.html">Understanding Near Caches</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/introduction-coherence-caches.html">Understanding Near Caches</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-continuous-query-caching.html">Using Continuous Query Caches</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-continuous-query-caching.html">Using Continuous Query Caches</a></p>
 
 </li>
 </ul>

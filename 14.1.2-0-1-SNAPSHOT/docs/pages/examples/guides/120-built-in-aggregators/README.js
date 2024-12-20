@@ -9,7 +9,7 @@ min, average and top which allow you to process data stored in Coherence in para
 of entries to obtain a single result. This aggregation is carried out in parallel across the cluster
 and is a map-reduce type of operation which can be performed efficiently across large amounts of data.</p>
 
-<p>See the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/processing-data-cache.html#GUID-DFB7AB0C-1CE6-4259-8854-9DA1F40B6F15">Coherence Documentation</a>
+<p>See the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/processing-data-cache.html#GUID-DFB7AB0C-1CE6-4259-8854-9DA1F40B6F15">Coherence Documentation</a>
 for detailed information on Aggregations.</p>
 
 
@@ -384,7 +384,7 @@ lang="bash"
 <div class="section">
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/processing-data-cache.html#GUID-C9DF96E0-FAF2-4CD9-958E-4DC5CF06B18A">Performing Data Grid Operations</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/processing-data-cache.html#GUID-C9DF96E0-FAF2-4CD9-958E-4DC5CF06B18A">Performing Data Grid Operations</a></p>
 
 </li>
 <li>

@@ -348,7 +348,7 @@ anything)</li>
 <div class="section">
 <p>In this guide we showed, how you can easily create <em>Views</em> with a <code>ContinuousQueryCache</code> that reflects changes of the data
 in the underlying Coherence <code>NamedCache</code> in real-time. Please see the Coherence reference guide, specifically the chapter
-<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-continuous-query-caching.html#GUID-5FB6F1B5-F1C3-4049-B69D-CC07BDF88883">Using Continuous Query Caching</a>
+<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-continuous-query-caching.html#GUID-5FB6F1B5-F1C3-4049-B69D-CC07BDF88883">Using Continuous Query Caching</a>
 for more details.</p>
 
 </div>
@@ -357,11 +357,11 @@ for more details.</p>
 <div class="section">
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-continuous-query-caching.html#GUID-5FB6F1B5-F1C3-4049-B69D-CC07BDF88883">Using Continuous Query Caching</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-continuous-query-caching.html#GUID-5FB6F1B5-F1C3-4049-B69D-CC07BDF88883">Using Continuous Query Caching</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-map-events.html#GUID-A91B66C9-F449-49A3-9165-073459BA1B3E">Using Map Events</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-map-events.html#GUID-A91B66C9-F449-49A3-9165-073459BA1B3E">Using Map Events</a></p>
 
 </li>
 <li>

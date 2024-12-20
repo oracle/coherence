@@ -12,7 +12,7 @@ you are able to register for all events, events based upon a filter or events fo
 
 <p>More advanced use cases for Durable Events include the ability to replay all events for a <code>NamedMap</code>.</p>
 
-<p>Please see <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-map-events.html#GUID-35236F52-2815-494F-9231-1363B8206AE4">Durable Events Documentation</a> for more information on Durable Events.</p>
+<p>Please see <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-map-events.html#GUID-35236F52-2815-494F-9231-1363B8206AE4">Durable Events Documentation</a> for more information on Durable Events.</p>
 
 <div class="admonition note">
 <p class="admonition-inline">Durable events are an experimental feature only and should not be used in production environments.</p>
@@ -441,7 +441,7 @@ ConverterCollections$ConverterMapEvent{SafeNamedCache deleted: key=100,
 <div class="section">
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-map-events.html#GUID-35236F52-2815-494F-9231-1363B8206AE4">Durable Events Documentation</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-map-events.html#GUID-35236F52-2815-494F-9231-1363B8206AE4">Durable Events Documentation</a></p>
 
 </li>
 <li>
@@ -449,7 +449,7 @@ ConverterCollections$ConverterMapEvent{SafeNamedCache deleted: key=100,
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/develop-applications/using-map-events.html">Develop Applications using Map Events</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-applications/using-map-events.html">Develop Applications using Map Events</a></p>
 
 </li>
 </ul>
