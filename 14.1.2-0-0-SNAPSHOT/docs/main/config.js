@@ -65,6 +65,19 @@ function createRoutes(){
             component: loadPage('docs-about-03_quickstart', '/docs/about/03_quickstart', {})
         },
         {
+            path: '/docs/about/04_api',
+            meta: {
+                h1: 'API Docs',
+                title: 'API Docs',
+                h1Prefix: null,
+                description: 'Oracle Coherence CE Documentation',
+                keywords: 'coherence, API, Java, .NET, C++, Python, Go, JavaScript documentation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-about-04_api', '/docs/about/04_api', {})
+        },
+        {
             path: '/coherence-docker/README',
             meta: {
                 h1: 'Coherence OCI Image',
@@ -601,7 +614,8 @@ function createNav(){
                             items: [
                                 { href: '/docs/about/01_overview', title: 'Overview' },
                                 { href: '/docs/about/02_introduction', title: 'Introduction' },
-                                { href: '/docs/about/03_quickstart', title: 'Quick Start' }
+                                { href: '/docs/about/03_quickstart', title: 'Quick Start' },
+                                { href: '/docs/about/04_api', title: 'API Docs' }
                             ]
                         },
                         {

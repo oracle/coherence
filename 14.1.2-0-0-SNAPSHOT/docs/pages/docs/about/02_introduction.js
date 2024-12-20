@@ -21,8 +21,9 @@ PartitionedService, InvocationService, and ProxyService.</p>
 a cache will be represented by an implementation of <code>NamedCache&lt;K,V&gt;</code>.
 Cache is an unfortunate name, as many customers use Coherence as a system-of-record rather than a lossy store of data.
 A cache is hosted by a service, generally the PartitionedService, and is the entry point to storing, retrieving,
-aggregating, querying, and streaming data.
-There are a number of features that caches provide:</p>
+aggregating, querying, and streaming data.</p>
+
+<p>There are a number of features that caches provide:</p>
 
 <ul class="ulist">
 <li>
@@ -71,7 +72,7 @@ There are a number of features that caches provide:</p>
 
 </li>
 <li>
-<p><strong>Polyglot clients</strong> - access the same NamedCache API from C&#43;&#43;, Go, Java, JavaScript, .NET, or Python</p>
+<p><strong>Polyglot clients</strong> - access the same NamedCache API from <a id="" title="" target="_blank" href="https://github.com/oracle/coherence-cpp-extend-client">C++</a>, <a id="" title="" target="_blank" href="https://github.com/oracle/coherence-go-client">Go</a>, Java, <a id="" title="" target="_blank" href="https://github.com/oracle/coherence-js-client">JavaScript</a>, <a id="" title="" target="_blank" href="https://github.com/oracle/coherence-dotnet-extend-client">.NET</a>, or <a id="" title="" target="_blank" href="https://github.com/oracle/coherence-py-client">Python</a></p>
 
 </li>
 <li>
@@ -95,11 +96,32 @@ There are a number of features that caches provide:</p>
 
 </li>
 <li>
-<p><strong>Microservices integration</strong> - broad and close integration with Helidon, Micronaut, and Spring for developing microservices applications using Coherence as a data source or cache</p>
+<p><strong>coherence-concurrent</strong> - Coherence-backed implementations of types from the <code>java.util.concurrent</code> package enabling distributed process coordination through the grid</p>
+<ul class="ulist">
+<li>
+<p><strong>Atomics</strong> - for implementing e.g. atomic counters shared between cluster, with an optional asynchronous API</p>
 
 </li>
 <li>
-<p><strong>coherence-concurrent</strong> - Coherence-backed implementations of types from the <code>java.util.concurrent</code> package enabling distributed process coordination through the grid</p>
+<p><strong>Executors</strong> - for submitting tasks to be executed in the cluster</p>
+
+</li>
+<li>
+<p><strong>Locks</strong> - for implementing lock-based concurrency control across multiple cluster members</p>
+
+</li>
+<li>
+<p><strong>Queues</strong> - for implementing blocking queue / dequeue behavior across multiple cluster members</p>
+
+</li>
+<li>
+<p><strong>Semaphores</strong> - for implementing synchronization of execution across multiple cluster members</p>
+
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Microservices integration</strong> - broad and close integration with <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.2/integrate/index.html">Helidon</a>, <a id="" title="" target="_blank" href="https://micronaut-projects.github.io/micronaut-coherence/latest/guide/">Micronaut</a>, and <a id="" title="" target="_blank" href="https://spring.coherence.community/4.3.0/#/about/01_overview">Spring</a> for developing microservices applications using Coherence as a data source or cache</p>
 
 </li>
 </ul>
@@ -144,7 +166,7 @@ There are a number of features that caches provide:</p>
 
 </li>
 <li>
-<p><strong>Non-cluster Access</strong> - access to the cluster from the outside via proxies, for distant (high latency) clients and for non-Java languages such as C&#43;&#43;, Go, JavaScript, .NET, and Python</p>
+<p><strong>Non-cluster Access</strong> - access to the cluster from the outside via proxies, for distant (high latency) clients and for non-Java languages such as <a id="" title="" target="_blank" href="https://github.com/oracle/coherence-cpp-extend-client">C++</a>, <a id="" title="" target="_blank" href="https://github.com/oracle/coherence-go-client">Go</a>, <a id="" title="" target="_blank" href="https://github.com/oracle/coherence-js-client">JavaScript</a>, <a id="" title="" target="_blank" href="https://github.com/oracle/coherence-dotnet-extend-client">.NET</a>, or <a id="" title="" target="_blank" href="https://github.com/oracle/coherence-py-client">Python</a></p>
 
 </li>
 <li>
