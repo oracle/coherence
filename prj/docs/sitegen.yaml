@@ -8,7 +8,7 @@ engine:
     libraries:
       - "asciidoctor-diagram"
     attributes:
-      commercial-docs-base-url: "https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0"
+      commercial-docs-base-url: "https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2"
       source-highlighter: "highlight.js"
       highlightjs-theme: "idea"
       plantumlconfig: "_plantuml-config.txt"
@@ -61,7 +61,7 @@ backend:
               glyph:
                 type: "icon"
                 value: "import_contacts"
-              href: "https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0"
+              href: "https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2"
             - title: "About"
               pathprefix: "/docs/about"
               glyph:
@@ -123,12 +123,12 @@ backend:
               glyph:
                 type: "icon"
                 value: "library_books"
-              href: "https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/net-reference/html"
+              href: "https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/net-reference/html"
             - title: "Coherence C++ Client API"
               glyph:
                 type: "icon"
                 value: "library_books"
-              href: "https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2.0/cplus-reference/index.html"
+              href: "https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/cplus-reference/index.html"
             - title: "Coherence Python Client API"
               glyph:
                 type: "icon"
