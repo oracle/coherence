@@ -3467,6 +3467,108 @@
         }
       }
     },
+    "/management/coherence/cluster/services/{serviceName}/persistence/snapshots/{snapshotName}/status": {
+      "get": {
+        "tags": [
+          "Persistence"
+        ],
+        "summary": "View Snapshot Status",
+        "description": "Use this endpoint to view a snapshot status.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/persistence/snapshots/{snapshotName}/status GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/snapshotName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A snapshot status",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/persistence/snapshots/{snapshotName}/recover/status": {
+      "get": {
+        "tags": [
+          "Persistence"
+        ],
+        "summary": "View Snapshot Recovery Status",
+        "description": "Use this endpoint to view a snapshot recovery status.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/persistence/snapshots/{snapshotName}/recover/status GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/snapshotName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A snapshot recovery status",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/persistence/failedSnapshots": {
+      "get": {
+        "tags": [
+          "Persistence"
+        ],
+        "summary": "View Failed Snapshots",
+        "description": "Use this endpoint to view a list of identifiers of failed snapshots.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/persistence/failedSnapshots GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns a list of failed snapshots",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "snapshots": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/services/{serviceName}/persistence/snapshots/{snapshotName}": {
       "post": {
         "tags": [
@@ -6588,7 +6690,7 @@
         "member": {
           "type": "string",
           "description": "Name of the cluster member"
-        },                
+        },
         "autoStart": {
           "type": "boolean",
           "description": "True when the Reporter starts automatically with the node.",
