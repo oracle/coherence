@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -792,7 +792,7 @@
     <javadoc.doclet.class>com.xtangosol.tools.javadoc.RemoveInheritedDoclet</javadoc.doclet.class>
     <javadoc.doclet.path>${tools.path}/doclet/lib/doclet.jar</javadoc.doclet.path>
     <javadoc.copyright>
-      Copyright &amp;copy; 2000, 2024, Oracle and/or its affiliates.
+      Copyright &amp;copy; 2000, 2025, Oracle and/or its affiliates.
 
       Licensed under the Universal Permissive License v 1.0 as shown at
       https://oss.oracle.com/licenses/upl.
@@ -2195,7 +2195,7 @@
       <url>https://oss.oracle.com/licenses/upl</url>
       <distribution>repo</distribution>
       <comments>
-        Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+        Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
         Licensed under the Universal Permissive License v 1.0 as shown at
         https://oss.oracle.com/licenses/upl.
