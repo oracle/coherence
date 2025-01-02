@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.persistence;
-
-import com.tangosol.net.management.Registry;
 
 import com.tangosol.net.management.annotation.Description;
 import com.tangosol.net.management.annotation.Notification;
@@ -76,6 +74,14 @@ public interface PersistenceManagerMBean
     @Description("The list of snapshot identifiers that are available to recover from.")
     public String[] getSnapshots();
 
+    /**
+     * Return a list of failed snapshots.
+     *
+     * @return a list of failed snapshots
+     */
+    @Description("The list of failed snapshot identifiers.")
+    public String[] listFailedSnapshots();
+
     // ----- snapshot operations --------------------------------------------
 
     /**
@@ -107,6 +113,22 @@ public interface PersistenceManagerMBean
     @Description("Asynchronously remove the snapshot of the service with the specified name. " +
                  "Subscribe to JMX notifications to see the status of the operation.")
     public void removeSnapshot(@Description("sName") String sName);
+
+    /**
+     * Return the status of the specific snapshot.
+     *
+     * @return the status of the specific snapshot
+     */
+    @Description("The status of the specific snapshot.")
+    public String getSnapshotStatus(@Description("sName") String sName);
+
+    /**
+     * Return the recovery status of the specific snapshot.
+     *
+     * @return the recovery status of the specific snapshot
+     */
+    @Description("The recovery status of the specific snapshot.")
+    public String getSnapshotRecoveryStatus(@Description("sName") String sName);
 
     // ----- archive operations ---------------------------------------------
 
