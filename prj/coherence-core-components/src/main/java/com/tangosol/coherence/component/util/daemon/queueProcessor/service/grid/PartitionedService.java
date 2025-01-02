@@ -28252,19 +28252,6 @@ public abstract class PartitionedService
             private volatile long __m_SnapshotNamesExpire;
             
             /**
-             * A cache of failed snapshot names held for at most SNAPSHOT_NAMES_EXPIRE
-             * millis after a SnapshotListRequest.
-             */
-            private String[] __m_SnapshotFailures;
-
-            /**
-             * An absolute time when SnapshotFailures should no longer be used.
-             *
-             * @volatile
-             */
-            private volatile long  __m_SnapshotFailuresExpire;
-
-            /**
              * Property State
              *
              * The current state of the SnapshotController.  The controller can
@@ -28862,26 +28849,6 @@ public abstract class PartitionedService
                 return __m_SnapshotNamesExpire;
                 }
             
-            /**
-             * Getter for property SnapshotFailures.<p>
-             * A cache of snapshot names held for at most SNAPSHOT_NAMES_EXPIRE
-             * millis after a SnapshotListRequest.
-             */
-            protected String[] getSnapshotFailures()
-                {
-                return __m_SnapshotFailures;
-                }
-            
-            /**
-             * An absolute time when SnapshotFailures should no longer be used.
-             *
-             * @volatile
-             */
-            protected long getSnapshotFailuresExpire()
-                {
-                return __m_SnapshotFailuresExpire;
-                }
-
             // From interface: com.tangosol.persistence.PersistenceManagerMBean
             /**
              * Return a list of snapshots that are available for recovery.
@@ -28921,41 +28888,6 @@ public abstract class PartitionedService
                 return asNames;
                 }
             
-            /**
-             * Return the list of failed snapshots.
-             *
-             * @return the list of failed snapshots
-             */
-            public String[] listFailedSnapshots()
-                {
-                PartitionedService service = getService();
-                if (service == null || !service.isRunning()) 
-                   {
-                   return null; 
-                   }
-
-                if (Base.getSafeTimeMillis() < getSnapshotFailuresExpire() ||
-                    Thread.currentThread() == service.getThread())
-                    {
-                    // use the cached value if within the allowed staleness or if being asked
-                    // on the service thread, as it requires a poll to all storage-enabled members.
-                    // This question could only be asked meaningfully on the Management thread
-                    // but could be called during serialization of the model for initial
-                    // registration - see Registry.registerLocalModel()
-                    return getSnapshotFailures();
-                    }
-
-                PartitionedService.SnapshotListRequest msgRequest = (PartitionedService.SnapshotListRequest)
-                        service.instantiateMessage("SnapshotListRequest");
-                msgRequest.setToMemberSet(service.getOwnershipMemberSet());
-                msgRequest.setSnapshotName(null);
-                msgRequest.setFailed(true);    // this ensures we get list of failed snapshots
-
-                String[] asNames = (String[]) service.poll(msgRequest);
-                setSnapshotFailures(asNames);
-                return asNames;
-                }
-
             /**
              * Return a Map<Integer, String[]> where the key is the member id
             * and the value is the list of stores that are known by all members
@@ -29238,21 +29170,17 @@ public abstract class PartitionedService
                 
                 String sMessage, sUserData;
                 
-                PersistenceEnvironment env = SafePersistenceWrappers.unwrap(
-                        getService().getPersistenceControl().getPersistenceEnvironment());
                 if (partsFailed == null || partsFailed.isEmpty())
                     {
                     sMessage = "Successfully recovered snapshot \"" + sSnapshot + '"';
                     sUserData = "";
                     _trace(sMessage, 3);
-                    CachePersistenceHelper.recordRecoveryStatus(env, sSnapshot, true, null);
                     }
                 else
                     {
                     sMessage  = "Failed to recover snapshot \"" + sSnapshot + '"';
                     sUserData = "failed partitions " + partsFailed;
                     _trace(sMessage + " because of " + sUserData, 2);
-                    CachePersistenceHelper.recordRecoveryStatus(env, sSnapshot, false, sUserData);
                     }
                 
                 // resume the service if it was previously suspended
@@ -29506,48 +29434,6 @@ public abstract class PartitionedService
                 }
             
             /**
-             * Return snapshot status.
-             *
-             * @param sName  the snapshot name
-             *
-             * @return the snapshot status, or null if it is not possible
-             * to obtain the status.
-             */
-            public synchronized String getSnapshotStatus(String sName)
-                {
-                String currentSnapshotName = getSnapshotName();
-                if (sName.equals(currentSnapshotName))
-                    {
-                    return getOperationStatus();
-                    }
-
-                return CachePersistenceHelper.getSnapshotStatus(
-                        SafePersistenceWrappers.unwrap(getService().getPersistenceControl().getPersistenceEnvironment()), 
-                        sName);
-                }
-
-            /**
-             * Return snapshot recovery status.
-             *
-             * @param sName  the snapshot name
-             *
-             * @return the snapshot recovery status, or null if it is not
-             * possible to obtain the status.
-             */
-            public synchronized String getSnapshotRecoveryStatus(String sName)
-                {
-                String currentSnapshotName = getSnapshotName();
-                if (sName.equals(currentSnapshotName))
-                    {
-                    return getOperationStatus();
-                    }
-
-                return CachePersistenceHelper.getSnapshotRecoveryStatus(
-                        SafePersistenceWrappers.unwrap(getService().getPersistenceControl().getPersistenceEnvironment()), 
-                        sName);
-                }
-
-            /**
              * Reset the state of the SnapshotController after an operation has
             * completed.
              */
@@ -29741,32 +29627,6 @@ public abstract class PartitionedService
             protected void setSnapshotNamesExpire(long ldtExpire)
                 {
                 __m_SnapshotNamesExpire = ldtExpire;
-                }
-
-            // Accessor for the property "SnapshotFailures"
-            /**
-             * Setter for property SnapshotFailures.<p>
-             * A cache of snapshot names held for at most SNAPSHOT_NAMES_EXPIRE
-             * millis after a SnapshotListRequest.
-             */
-            public void setSnapshotFailures(String[] asNames)
-                {
-                // import com.tangosol.util.Base;
-
-                __m_SnapshotFailures = asNames;
-
-                setSnapshotFailuresExpire(asNames == null
-                                          ? 0L : Base.getSafeTimeMillis() + SNAPSHOT_NAMES_EXPIRE);
-                }
-
-            /**
-            * An absolute time when SnapshotFailures should no longer be used.
-            * 
-            * @volatile
-             */
-            protected void setSnapshotFailuresExpire(long ldtExpire)
-                {
-                __m_SnapshotFailuresExpire = ldtExpire;
                 }
             
             // Accessor for the property "State"
@@ -30961,25 +30821,14 @@ public abstract class PartitionedService
         public static final String RESPONSE_STORES = "2";
         
         /**
-         * This value indicates the response was for a list of failed snapshots.
-         */
-        public static final String RESPONSE_FAILED_SNAPSHOTS = "3";
-
-        /**
          * Property SnapshotName
          *
          * If Snapshot is null this means that SnapshotListRequest should
-         * retrieve the snapshots for the service (or failed snapshots if
-         * __m_failed is set to true) otherwise the stores for the
+         * retrieve the snapshots for the service otherwise the stores for the
          * snapshot specified by SnapshotName should be returned.
          */
         private String __m_SnapshotName;
         private static com.tangosol.util.ListMap __mapChildren;
-
-        /**
-         * If true request should retrieve list of failed snapshots.
-         */
-        private boolean __m_failed;
         
         // Static initializer
         static
@@ -31110,15 +30959,6 @@ public abstract class PartitionedService
             return __m_SnapshotName;
             }
         
-        /**
-         * Returns true if SnapshotListRequest should retrieve list
-         * of failed snapshots.
-         */
-        public boolean getFailed()
-            {
-            return __m_failed;
-            }
-
         // Declared at the super level
         protected com.tangosol.coherence.component.net.Poll instantiatePoll()
             {
@@ -31170,16 +31010,8 @@ public abstract class PartitionedService
                 
                 if (sSnapshotName == null)
                     {
-                    if (getFailed())
-                        {
-                        String[] asFailedSnapshots = CachePersistenceHelper.getFailedSnapshots(env);
-                        msgResponse.setValue (new Object[] {RESPONSE_FAILED_SNAPSHOTS, asFailedSnapshots});
-                        }
-                    else
-                        {
-                        // respond with list of snapshots
-                        msgResponse.setValue (new Object[] {RESPONSE_SNAPSHOTS, env.listSnapshots()});
-                        }
+                    // respond with list of snapshots
+                    msgResponse.setValue (new Object[] {RESPONSE_SNAPSHOTS, env.listSnapshots()});
                     }
                 else
                     {
@@ -31220,7 +31052,6 @@ public abstract class PartitionedService
             
             boolean fNull = input.readBoolean();
             setSnapshotName(fNull ? null : input.readUTF());
-            setFailed(fNull && input.readBoolean());
             }
         
         // Accessor for the property "SnapshotName"
@@ -31235,15 +31066,6 @@ public abstract class PartitionedService
             __m_SnapshotName = sSnapshotName;
             }
         
-        /**
-         * Set to true if SnapshotListRequest should retrieve list
-         * of failed snapshots.
-         */
-        public void setFailed(boolean bFailed)
-            {
-            __m_failed = bFailed;
-            }
-
         // Declared at the super level
         public void write(com.tangosol.io.WriteBuffer.BufferOutput output)
                 throws java.io.IOException
@@ -31255,10 +31077,6 @@ public abstract class PartitionedService
             if (!fNull)
                 {
                 output.writeUTF(getSnapshotName());
-                }
-            if (fNull)
-                {
-                output.writeBoolean(getFailed());
                 }
             }
 
@@ -31288,10 +31106,6 @@ public abstract class PartitionedService
              */
             private transient java.util.Set __m_Snapshots;
             
-            /**
-             * The set of failed snapshot names returned by the SnapshotListRequests.
-             */
-            private transient java.util.Set __m_FailedSnapshots;
             /**
              * Property Stores
              *
@@ -31391,15 +31205,6 @@ public abstract class PartitionedService
                 return __m_Snapshots;
                 }
             
-            /**
-             * The set of names of failed snapshots
-             * returned by the SnapshotListRequests.
-             */
-            public java.util.Set getFailedSnapshots()
-                {
-                return __m_FailedSnapshots;
-                }
-
             // Accessor for the property "Stores"
             /**
              * Getter for property Stores.<p>
@@ -31424,17 +31229,12 @@ public abstract class PartitionedService
                 // import java.util.Map;
                 // import java.util.Set;
                 
-                Set setSnapshots       = getSnapshots();
-                Set setFailedSnapshots = getFailedSnapshots();
-                Map mapStores          = getStores();
+                Set setSnapshots = getSnapshots();
+                Map mapStores    = getStores();
                 
                 if (setSnapshots != null)
                     {
                     setResult(setSnapshots.toArray(new String[setSnapshots.size()]));
-                    }
-                else if (setFailedSnapshots != null)
-                    {
-                    setResult(setFailedSnapshots.toArray(new String[setFailedSnapshots.size()]));
                     }
                 else
                     {
@@ -31480,25 +31280,6 @@ public abstract class PartitionedService
                                 setSnapshots.add(asSnapshots[i]);
                                 }
                             }
-                        else if (PartitionedService.SnapshotListRequest.RESPONSE_FAILED_SNAPSHOTS.equals(oResult[0]))
-                            {
-                            // list of snapshots was asked for
-                            Set setFailedSnapshots = getFailedSnapshots();
-                            if (setFailedSnapshots == null)
-                                {
-                                setFailedSnapshots = new TreeSet();
-                                setFailedSnapshots(setFailedSnapshots);
-                                }
-
-                            Object[] asFailedSnapshots  = (Object[]) oResult[1];  // logically String[] but POF widens it
-                            if (asFailedSnapshots != null)
-                                {
-                                for (int i = 0, c = asFailedSnapshots.length; i < c; i++)
-                                    {
-                                    setFailedSnapshots.add(asFailedSnapshots[i]);
-                                    }
-                                }
-                            }
                         else
                             {
                             // list of stores per snapshot was asked for from each member.
@@ -31535,14 +31316,6 @@ public abstract class PartitionedService
             public void setSnapshots(java.util.Set setSnapshots)
                 {
                 __m_Snapshots = setSnapshots;
-                }
-
-            /**
-             * Set the names of failed snapshots returned by the SnapshotListRequests.
-             */
-            public void setFailedSnapshots(java.util.Set setFailedSnapshots)
-                {
-                __m_FailedSnapshots = setFailedSnapshots;
                 }
             
             // Accessor for the property "Stores"
