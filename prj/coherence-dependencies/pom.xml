@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -1225,6 +1225,13 @@
                             props.setProperty("project.timestamp", timestamp)
                             desc = "(dev-" + System.getProperty("user.name") + ")"
                             }
+                        props.setProperty("skip.docs", "true")
+                        props.setProperty("skip.sources", "true")
+                        }
+                    else
+                        {
+                        props.setProperty("skip.docs", "false")
+                        props.setProperty("skip.sources", "false")
                         }
                     props.setProperty("project.impl.description", desc)
 
