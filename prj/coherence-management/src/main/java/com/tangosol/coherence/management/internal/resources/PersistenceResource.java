@@ -79,53 +79,6 @@ public class PersistenceResource
         }
 
     /**
-     * Return the status of the specific snapshot.
-     *
-     * @return the response object
-     */
-    @GET
-    @Produces(MEDIA_TYPES)
-    @Path("snapshots/{" + SNAPSHOT_NAME + "}/status")
-    public Response getSnapshotStatus(@PathParam(SNAPSHOT_NAME) String sSnapshotName)
-        {
-        String[] asSignature = {String.class.getName()};
-        Object[] aoArguments = {sSnapshotName};
-
-        return response(getResponseFromMBeanOperation(getQuery(),
-                                                      "status", "getSnapshotStatus", aoArguments, asSignature));
-        }
-
-    /**
-     * Return the recovery status of the specific snapshot.
-     *
-     * @return the response object
-     */
-    @GET
-    @Produces(MEDIA_TYPES)
-    @Path("snapshots/{" + SNAPSHOT_NAME + "}/recover/status")
-    public Response getSnapshotRecoveryStatus(@PathParam(SNAPSHOT_NAME) String sSnapshotName)
-        {
-        String[] asSignature = {String.class.getName()};
-        Object[] aoArguments = {sSnapshotName};
-
-        return response(getResponseFromMBeanOperation(getQuery(),
-                                                      "status", "getSnapshotRecoveryStatus", aoArguments, asSignature));
-        }
-
-    /**
-     * Return list of failed snapshots for a service.
-     *
-     * @return the response object
-     */
-    @GET
-    @Produces(MEDIA_TYPES)
-    @Path("failedSnapshots")
-    public Response getFailedSnapshots()
-        {
-        return response(getResponseFromMBeanOperation( getQuery(),
-                                                      "items", "listFailedSnapshots", null, null));
-        }
-    /**
      * Return list of archived snapshots of a service.
      *
      * @return the response object
