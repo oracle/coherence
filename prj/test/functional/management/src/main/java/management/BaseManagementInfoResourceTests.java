@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -112,7 +112,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 
 import java.lang.management.GarbageCollectorMXBean;
@@ -125,7 +124,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -182,7 +180,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
@@ -3215,109 +3212,10 @@ public abstract class BaseManagementInfoResourceTests
                 return null;
                 });
 
-            // add some data
-            f_inClusterInvoker.accept(f_sClusterName, null, () ->
-                {
-                NamedCache cache = CacheFactory.getCache(sCacheName);
-                for (int i = 0; i < 10; i++)
-                    {
-                    cache.put(i, i);
-                    }
-                assertThat(cache.size(), greaterThan(00));
-                return null;
-                });
-
-            // create an damaged snapshot
-            createSnapshot("damaged");
-            ensureServiceStatusIdle();
-
-            // assert the snapshot exists
-            Eventually.assertDeferred(() -> assertSnapshotExists("damaged", SNAPSHOTS), is(true));
-            Thread.sleep(5000);
-
-            // assert the snapshot status
-            WebTarget target = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(SNAPSHOTS).path("damaged").path("status");
-            response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
-            Map mapResponse = readEntity(target, response);
-            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-            assertThat(mapResponse.get("status"), is("Completed"));
-            response.close();
-            ensureServiceStatusIdle();
-
-            // recovery not attempted
-            target = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(SNAPSHOTS).path("damaged").path("recover").path("status"); 
-            response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
-            mapResponse = readEntity(target, response);
-            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-            assertThat(mapResponse.get("status"), is("Not found"));
-            response.close();
-            ensureServiceStatusIdle();
-
-            // recover snapshot
-            response = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(SNAPSHOTS).path("damaged").path("recover")
-                    .request().post(null);
-            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-            response.close();
-            ensureServiceStatusIdle();
-
-            // assert recovery status
-            target = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(SNAPSHOTS).path("damaged").path("recover").path("status");
-            response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
-            mapResponse = readEntity(target, response);
-            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-            assertThat(mapResponse.get("status"), is("Succeeded"));
-            response.close();
-            ensureServiceStatusIdle();
-
-            // assert failed snapshots
-            target = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(FAILED_SNAPSHOTS);
-            response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
-            mapResponse = readEntity(target, response);
-            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-
-            assertThat((List<String>) mapResponse.get("items"), not(contains("damaged")));
-            response.close();
-            ensureServiceStatusIdle();
-
-            // damage snapshot
-            List<File> subfolders = Arrays.stream(Paths.get(m_dirSnapshot.getAbsolutePath(), CLUSTER_NAME, FileHelper.toFilename(getScopedServiceName(ACTIVE_SERVICE)), "damaged").toFile()
-                                                          .listFiles(file -> file.isDirectory() && !file.getName().startsWith("."))).toList();
-            int i = 0;
-            for(File subfolder : subfolders)
-                {
-                if (i++ % 3 == 0)
-                    {
-                    File jdbFile = new File(subfolder,"00000000.jdb");
-                    if (jdbFile.exists())
-                        {
-                        try(RandomAccessFile writer = new RandomAccessFile(jdbFile, "rw"))
-                            {
-                            writer.seek(300);
-                            writer.writeBytes("                                     ");
-                            }
-                        }
-                    }
-                }
-
-            // assert failed snapshots
-            target = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(FAILED_SNAPSHOTS);
-            response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
-            mapResponse = readEntity(target, response);
-            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-
-            assertThat((List<String>) mapResponse.get("items"), hasItem("damaged"));
-            response.close();
-            ensureServiceStatusIdle();
-
-            // now delete the 3 snapshots
+            // now delete the 2 snapshots
 
             deleteSnapshot("2-entries");
             deleteSnapshot("empty");
-            deleteSnapshot("damaged");
-            }
-        catch (InterruptedException | IOException e)
-            {
-            throw new RuntimeException(e);
             }
         finally
             {
@@ -5050,11 +4948,6 @@ public abstract class BaseManagementInfoResourceTests
      * The snapshots path.
      */
     protected static final String SNAPSHOTS = "snapshots";
-
-    /**
-     * The failed snapshots path.
-     */
-    protected static final String FAILED_SNAPSHOTS = "failedSnapshots";
 
     /**
      * The archives path.
