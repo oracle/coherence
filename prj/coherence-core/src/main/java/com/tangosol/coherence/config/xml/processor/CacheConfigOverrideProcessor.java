@@ -11,6 +11,7 @@ import static com.tangosol.coherence.config.CacheConfig.TOP_LEVEL_ELEMENT_NAME;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.config.xml.OverrideProcessor;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
@@ -75,9 +76,9 @@ public class CacheConfigOverrideProcessor
     private void processSchemeMappings(XmlElement xmlBase,
             XmlElement xmlOverrideSchemeMappings, String sMappingSubElementName)
         {
-        List<XmlElement> listElements      = new ArrayList<>();
-        XmlElement       xmlCurrentElement = xmlBase.getElement(xmlOverrideSchemeMappings.getName());
+        List<XmlElement> listElements = new ArrayList<>();
 
+        XmlElement xmlCurrentElement = xmlBase.getElement(xmlOverrideSchemeMappings.getName());
         if (xmlCurrentElement == null)
             {
             listElements.add(xmlOverrideSchemeMappings);
@@ -199,8 +200,7 @@ public class CacheConfigOverrideProcessor
      */
     private void processCachingSchemes(XmlElement xmlBase, XmlElement xmlOverrideCachingSchemes)
         {
-        List<XmlElement> listElements      = new ArrayList<XmlElement>();
-        XmlElement       xmlCurrentElement = xmlBase.getElement(xmlOverrideCachingSchemes.getName());
+        List<XmlElement> listElements = new ArrayList<XmlElement>();
 
         for (Object subElements : xmlOverrideCachingSchemes.getElementList())
             {
@@ -229,20 +229,30 @@ public class CacheConfigOverrideProcessor
 
                         if (sSchemeName.equals(sOverrideSchemeName))
                             {
+                            XmlElement xmlElementRemove = null;
+
+                            for (XmlElement xmlEl : listElements)
+                                {
+                                XmlElement xmlElSchemeName = xmlEl.getElement("scheme-name");
+                                if (xmlElSchemeName != null
+                                            && sOverrideSchemeName.equals(xmlElSchemeName.getValue().toString()))
+                                    {
+                                    xmlElementRemove = xmlEl;
+                                    break;
+                                    }
+                                }
+
+                            if (xmlElementRemove != null)
+                                {
+                                listElements.remove(xmlElementRemove);
+                                }
+
                             if (!xmlElementName.equals(sSubElementName))
                                 {
                                 xmlElementBase.setName(sSubElementName);
                                 }
 
-                            xmlElementBase.getElementList().clear();
-                            xmlElementBase.getElementList().addAll(xmlOverride.getElementList());
-
-                            if (listElements.contains(xmlOverride))
-                                {
-                                listElements.remove(xmlOverride);
-                                }
-
-                            break;
+                            XmlHelper.overrideElement(xmlElementBase, xmlOverride);
                             }
                         else if (!listElements.contains(xmlOverride))
                             {
@@ -267,7 +277,7 @@ public class CacheConfigOverrideProcessor
 
         if (!listElements.isEmpty())
             {
-            XmlHelper.addElements(xmlCurrentElement, listElements.iterator());
+            XmlHelper.addElements(xmlBase.getElement(xmlOverrideCachingSchemes.getName()), listElements.iterator());
             listElements.clear();
             }
         }
