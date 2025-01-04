@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -2050,7 +2050,7 @@ public class ExtensibleConfigurableCacheFactory
             DistributedScheme schemeDist = findDistributedScheme(sName);
             ParameterResolver resolver   = getResolver(sName);
 
-            return !schemeDist.getBackingMapScheme().isTransient(resolver);
+            return schemeDist != null && !schemeDist.getBackingMapScheme().isTransient(resolver);
             }
 
         /**
