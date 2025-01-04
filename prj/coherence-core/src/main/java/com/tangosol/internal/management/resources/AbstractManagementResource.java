@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -2312,6 +2312,8 @@ public abstract class AbstractManagementResource
     public static final String PARTITION          = "partition";
     public static final String FEDERATION         = "federation";
     public static final String RESET_STATS        = "resetStatistics";
+    public static final String RUN_REPORT         = "runReport";
+    public static final String REPORT_NAME        = "reportName";
     public static final String PARTITION_STATS    = "reportPartitionStats";
     public static final String CHILDREN           = "children";
     public static final String NAME               = "name";

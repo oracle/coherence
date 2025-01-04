@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1920,6 +1920,22 @@ public abstract class BaseManagementInfoResourceTests
                 // ignore
                 }
             }
+        }
+
+    @Test
+    public void testMembersRunReport()
+            throws IOException
+        {
+        WebTarget target   = getBaseTarget().path(REPORTERS).path("1").path("runReport").path("report-node");
+        Response response  = target.request(MediaType.APPLICATION_JSON_TYPE).get();
+        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+
+        Map    mapEntity = new LinkedHashMap();
+        Entity entity    = Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE);
+
+        Map mapResponse = readEntity(target, response, entity);
+        assertThat(mapResponse.size(), is(1));
+        assertThat(mapResponse.containsKey("items"), is(true));
         }
 
     @Test
