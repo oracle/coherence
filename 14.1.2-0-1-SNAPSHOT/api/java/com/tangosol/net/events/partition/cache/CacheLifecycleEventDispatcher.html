@@ -134,14 +134,19 @@ extends <a href="../../EventDispatcher.html" title="interface in com.tangosol.ne
 <div class="block">Return the name of the <a href="../../../NamedCache.html" title="interface in com.tangosol.net"><code>cache</code></a>
  that this dispatcher is associated with.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getScopeName()" class="member-name-link">getScopeName</a>()</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="../../../CacheService.html" title="interface in com.tangosol.net">CacheService</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getCacheService()" class="member-name-link">getCacheService</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
-<div class="block">Return the optional scope name that this dispatcher is associated with.</div>
+<div class="block">Return the <a href="../../../CacheService.html" title="interface in com.tangosol.net"><code>CacheService</code></a> associated with this dispatcher.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getServiceName()" class="member-name-link">getServiceName</a>()</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getScopeName()" class="member-name-link">getScopeName</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Return the optional scope name that this dispatcher is associated with.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getServiceName()" class="member-name-link">getServiceName</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Return the optional name of the <a href="../../../CacheService.html" title="interface in com.tangosol.net"><code>service</code></a>
  that this dispatcher is associated with.</div>
 </div>
@@ -184,6 +189,17 @@ extends <a href="../../EventDispatcher.html" title="interface in com.tangosol.ne
 <dt>Returns:</dt>
 <dd>the service name that this dispatcher is associated with or <code>null</code>
           if this dispatcher is not associated with a cache service.</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getCacheService()">
+<h3>getCacheService</h3>
+<div class="member-signature"><span class="return-type"><a href="../../../CacheService.html" title="interface in com.tangosol.net">CacheService</a></span>&nbsp;<span class="element-name">getCacheService</span>()</div>
+<div class="block">Return the <a href="../../../CacheService.html" title="interface in com.tangosol.net"><code>CacheService</code></a> associated with this dispatcher.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>the <a href="../../../CacheService.html" title="interface in com.tangosol.net"><code>CacheService</code></a></dd>
 </dl>
 </section>
 </li>
