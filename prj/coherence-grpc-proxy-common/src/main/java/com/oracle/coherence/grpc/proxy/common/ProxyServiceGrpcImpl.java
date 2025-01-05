@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,15 +7,22 @@
 
 package com.oracle.coherence.grpc.proxy.common;
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.grpc.messages.proxy.v1.ProxyRequest;
 import com.oracle.coherence.grpc.messages.proxy.v1.ProxyResponse;
 import com.oracle.coherence.grpc.services.proxy.v1.ProxyServiceGrpc;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.net.grpc.GrpcDependencies;
 
 import io.grpc.ServerServiceDefinition;
 
 import io.grpc.stub.StreamObserver;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * The implementation of the generated {@link ProxyServiceGrpc.AsyncService}.
@@ -44,6 +51,12 @@ public class ProxyServiceGrpcImpl
         return ProxyServiceGrpc.bindService(this);
         }
 
+    @Override
+    public boolean isEnabled()
+        {
+        return Config.getBoolean(ProxyServiceGrpc.class.getName() + ".enabled", true);
+        }
+
     // ----- NamedCacheChannelGrpc.NamedCacheChannelImplBase methods --------
     
     @Override
@@ -51,11 +64,28 @@ public class ProxyServiceGrpcImpl
         {
         ProxyServiceChannel         channel = new ProxyServiceChannel(this, observer);
         GrpcDependencies.ServerType type    = getDependencies().getServerType();
+        f_channels.add(channel);
         if (type == GrpcDependencies.ServerType.Asynchronous)
             {
             return channel.async(f_executor);
             }
         return channel;
+        }
+
+    @Override
+    public void close()
+        {
+        f_listCloseable.forEach(closeable ->
+            {
+            try
+                {
+                closeable.close();
+                }
+            catch (Exception e)
+                {
+                Logger.err(e);
+                }
+            });
         }
 
     // ----- inner interface: Dependencies ----------------------------------
@@ -99,4 +129,9 @@ public class ProxyServiceGrpcImpl
      * The name to use for the management MBean.
      */
     public static final String MBEAN_NAME = "type=GrpcProxy";
+
+    /**
+     *
+     */
+    private final ConcurrentLinkedQueue<ProxyServiceChannel> f_channels = new ConcurrentLinkedQueue<>();
     }

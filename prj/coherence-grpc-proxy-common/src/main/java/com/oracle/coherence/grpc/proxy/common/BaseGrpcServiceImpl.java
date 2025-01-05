@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -32,10 +32,12 @@ import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.NullImplementation;
 import io.grpc.Status;
 
+import java.io.Closeable;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -391,6 +393,16 @@ public class BaseGrpcServiceImpl
         return serializer;
         }
 
+    public void addCloseable(Closeable closeable)
+        {
+        f_listCloseable.add(closeable);
+        }
+
+    public void removeCloseable(Closeable closeable)
+        {
+        f_listCloseable.remove(closeable);
+        }
+
     // ----- inner interface: Dependencies ----------------------------------
 
     /**
@@ -510,4 +522,9 @@ public class BaseGrpcServiceImpl
      * The transfer threshold used for paged requests.
      */
     protected long transferThreshold = DEFAULT_TRANSFER_THRESHOLD;
+
+    /**
+     * A list of things to close when this service is stopped.
+     */
+    protected ConcurrentLinkedQueue<Closeable> f_listCloseable = new ConcurrentLinkedQueue<>();
     }
