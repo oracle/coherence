@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,6 +16,7 @@ import com.tangosol.io.pof.schema.annotation.PortableType;
 
 import com.tangosol.util.extractor.ChainedExtractor;
 import com.tangosol.util.extractor.ChainedFragmentExtractor;
+import com.tangosol.util.extractor.CollectionExtractor;
 import com.tangosol.util.extractor.FragmentExtractor;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.KeyExtractor;
@@ -38,6 +39,7 @@ import java.util.Objects;
  * of {@code Extractor} classes.
  *
  * @author lh, hr, as, mf  2018.06.14
+ * @author Gunnar Hillert  2024.09.19
  */
 @SuppressWarnings("rawtypes")
 public class Extractors
@@ -245,6 +247,59 @@ public class Extractors
     public static <T, E> ValueExtractor<T, E> identityCast()
         {
         return IdentityExtractor.INSTANCE;
+        }
+
+    /**
+     * Returns a {@link CollectionExtractor} that extracts the specified fields
+     * where extraction occurs in a chain where the result of each
+     * field extraction is the input to the next extractor. The result
+     * returned is the result of the final extractor in the chain.
+     *
+     * @param fields  the field names to extract (if any field name contains a dot '.'
+     *                that field name is split into multiple field names delimiting on
+     *                the dots.
+     *
+     * @param <T> the type of the object to extract from
+     * @param <E> the type of the extracted value
+     *
+     * @return a {@link CollectionExtractor} that extracts the value(s) of the specified field(s)
+     *
+     * @throws IllegalArgumentException if the fields parameter is {@code null} or an
+     *         empty array
+     *
+     * @see CollectionExtractor
+     * @see ChainedExtractor
+     */
+    public static <T, E> CollectionExtractor<T, E> fromCollection(String... fields)
+        {
+        return new CollectionExtractor(chained(fields));
+        }
+
+    /**
+     * Returns a {@link CollectionExtractor} that wraps the specified {@link ValueExtractor}s.
+     * <p>
+     * If the {@code extractors} parameter is a single {@link ValueExtractor} then a
+     * {@link CollectionExtractor} is returned wrapping that extractor. If the {@code extractors} is
+     * multiple {@link ValueExtractor} instances in a chain, a {@link CollectionExtractor} is returned
+     * that wraps a {@link ChainedExtractor} that wraps the chain of {@link ValueExtractor}
+     * instances
+     *
+     * @param extractors  the chain of {@link ValueExtractor}s to use to extract the value
+     * @param <T>         the type of the object to extract from
+     * @param <E>         the type of the extracted value
+     *
+     * @return a {@link CollectionExtractor} that extracts the value(s) of the specified field(s)
+     *
+     * @throws IllegalArgumentException if the fields parameter is {@code null} or an
+     *         empty array
+     *
+     * @see CollectionExtractor
+     * @see ChainedExtractor
+     *
+     */
+    public static <T, E> CollectionExtractor<T, E> fromCollection(ValueExtractor<?, ?>... extractors)
+        {
+        return new CollectionExtractor(chained(extractors));
         }
 
     /**

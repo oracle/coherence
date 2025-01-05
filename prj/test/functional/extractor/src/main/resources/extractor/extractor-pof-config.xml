@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -91,5 +91,17 @@
       <type-id>1015</type-id>
       <class-name>extractor.ConditionalExtractorTests$MyAddress</class-name>
     </user-type>
+
+
+    <user-type>
+      <type-id>1050</type-id>
+      <class-name>data.collectionExtractor.City</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1051</type-id>
+      <class-name>data.collectionExtractor.Country</class-name>
+    </user-type>
+
   </user-type-list>
 </pof-config>
