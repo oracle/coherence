@@ -250,56 +250,45 @@ public class Extractors
         }
 
     /**
-     * Returns a {@link CollectionExtractor} that extracts the specified fields
-     * where extraction occurs in a chain where the result of each
-     * field extraction is the input to the next extractor. The result
-     * returned is the result of the final extractor in the chain.
+     * Returns a {@link CollectionExtractor} that extracts the specified field.
      *
-     * @param fields  the field names to extract (if any field name contains a dot '.'
-     *                that field name is split into multiple field names delimiting on
-     *                the dots.
+     * @param from  the field name to extract the value from
      *
      * @param <T> the type of the object to extract from
      * @param <E> the type of the extracted value
      *
-     * @return a {@link CollectionExtractor} that extracts the value(s) of the specified field(s)
+     * @return a {@link CollectionExtractor} that extracts the value(s) of the specified field
      *
-     * @throws IllegalArgumentException if the fields parameter is {@code null} or an
-     *         empty array
+     * @throws IllegalArgumentException if the fields parameter is {@code null} or empty
      *
      * @see CollectionExtractor
-     * @see ChainedExtractor
      */
-    public static <T, E> CollectionExtractor<T, E> fromCollection(String... fields)
+    public static <T, E> CollectionExtractor<T, E> fromCollection(String from)
         {
-        return new CollectionExtractor(chained(fields));
+        if (Objects.requireNonNull(from).isBlank())
+            {
+            throw new IllegalArgumentException("The fromCollection parameter cannot be empty");
+            }
+        return new CollectionExtractor<>(extract(from));
         }
 
     /**
-     * Returns a {@link CollectionExtractor} that wraps the specified {@link ValueExtractor}s.
-     * <p>
-     * If the {@code extractors} parameter is a single {@link ValueExtractor} then a
-     * {@link CollectionExtractor} is returned wrapping that extractor. If the {@code extractors} is
-     * multiple {@link ValueExtractor} instances in a chain, a {@link CollectionExtractor} is returned
-     * that wraps a {@link ChainedExtractor} that wraps the chain of {@link ValueExtractor}
-     * instances
+     * Returns a {@link CollectionExtractor} that wraps the specified {@link ValueExtractor}.
      *
-     * @param extractors  the chain of {@link ValueExtractor}s to use to extract the value
+     * @param extractor   the {@link ValueExtractor} to use to extract the value
      * @param <T>         the type of the object to extract from
      * @param <E>         the type of the extracted value
      *
-     * @return a {@link CollectionExtractor} that extracts the value(s) of the specified field(s)
+     * @return a {@link CollectionExtractor} that extracts the value(s) of the specified field
      *
-     * @throws IllegalArgumentException if the fields parameter is {@code null} or an
-     *         empty array
+     * @throws IllegalArgumentException if the fields parameter is {@code null}
      *
      * @see CollectionExtractor
-     * @see ChainedExtractor
      *
      */
-    public static <T, E> CollectionExtractor<T, E> fromCollection(ValueExtractor<?, ?>... extractors)
+    public static <T, E> CollectionExtractor<T, E> fromCollection(ValueExtractor<T, E> extractor)
         {
-        return new CollectionExtractor(chained(extractors));
+        return new CollectionExtractor<>(extractor);
         }
 
     /**

@@ -87,7 +87,7 @@ public class CollectionExtractorTest
     @Test(expected = IllegalArgumentException.class)
     public void testUseExtractorsFromCollectionWithEmptyStringParams()
         {
-        Extractors.fromCollection(new String[]{});
+        Extractors.fromCollection("");
         }
 
     @Test
@@ -108,7 +108,7 @@ public class CollectionExtractorTest
     @Test(expected = IllegalArgumentException.class)
     public void testUseExtractorsFromCollectionWithEmptyParams()
         {
-        Extractors.fromCollection(new UniversalExtractor[]{});
+        Extractors.fromCollection((ValueExtractor) null);
         }
     }
 
