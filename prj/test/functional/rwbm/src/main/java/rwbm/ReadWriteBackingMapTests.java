@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -566,6 +566,15 @@ public class ReadWriteBackingMapTests
 
             // reset
             cache.clear();
+
+            // Test getOrDefault() to make sure that the call gets through to the cache store.
+            // For the purpose of this test, when the entry does not exist,
+            // the cache store load("Key10") (TestBinaryCacheStore, TestCacheStore)
+            // returns the key as its value.
+            String sExpected = (String) cache.getOrDefault("Key10", "V10");
+            assertEquals(sExpected, "Key10");
+            cache.clear();
+
             store.getStorageMap().putAll(mapContents);
             store.resetStats();
 
