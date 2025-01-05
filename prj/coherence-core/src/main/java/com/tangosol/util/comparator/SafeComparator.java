@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,6 +19,7 @@ import com.tangosol.util.ClassHelper;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.QueryMap;
 
+import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.extractor.KeyExtractor;
 
 import com.tangosol.util.function.Remote;
@@ -242,7 +243,15 @@ public class SafeComparator<T>
             {
             try
                 {
-                return comparator.compare(o1, o2);
+                if (comparator instanceof ValueExtractor)
+                    {
+                    // honor NullFirst; the default abstract implementation goes to the static (with NullFirst == true always) version of compare()
+                    return compareSafe(null, ((ValueExtractor) comparator).extract(o1), ((ValueExtractor) comparator).extract(o2), fNullFirst);
+                    }
+                else
+                    {
+                    return comparator.compare(o1, o2);
+                    }
                 }
             catch (NullPointerException e) {}
             }
