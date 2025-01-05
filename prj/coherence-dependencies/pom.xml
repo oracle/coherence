@@ -171,7 +171,7 @@
     typically matching the patch component of the GraalVM image tag above (ie. 21.0.4 => 23.1.4)
     -->
     <graalvm.version>23.1.4</graalvm.version>
-    <grpc.version>1.60.0</grpc.version>
+    <grpc.version>1.65.1</grpc.version>
     <!--
     NOTE: changing this version may mean updating other dependencies to match versions that Helidon uses:
     eclipse.mp.config.version
@@ -180,7 +180,7 @@
     grpc.version ???
     This is not always possible if we need to bump versions for CVE's
     -->
-    <helidon.version>2.6.8</helidon.version>
+    <helidon.version>2.6.10</helidon.version>
     <helidon.sitegen.version>2.1.2</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
     <groovy.version>4.0.11</groovy.version>
@@ -218,7 +218,7 @@
     <mvel.version>2.4.12.Final</mvel.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
-    <netty.version>4.1.108.Final</netty.version>
+    <netty.version>4.1.115.Final</netty.version>
     <opentelemetry.version>1.29.0</opentelemetry.version>
     <opentelemetry.proto.version>1.0.0-alpha</opentelemetry.proto.version>
     <opentracing.grpc.version>0.2.3</opentracing.grpc.version>
