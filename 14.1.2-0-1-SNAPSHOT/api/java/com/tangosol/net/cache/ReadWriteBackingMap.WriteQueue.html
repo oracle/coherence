@@ -245,7 +245,8 @@ loadScripts(document, 'script');</script>
  wait time has passed.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#remove(java.lang.Object)" class="member-name-link">remove</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;binKey)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#remove(java.lang.Object,boolean)" class="member-name-link">remove</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;binKey,
+ boolean&nbsp;fWriteBehind)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Remove a key from the queue if the key is in the queue.</div>
 </div>
@@ -395,15 +396,17 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="remove(java.lang.Object)">
+<section class="detail" id="remove(java.lang.Object,boolean)">
 <h3>remove</h3>
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a></span>&nbsp;<span class="element-name">remove</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;binKey)</span></div>
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="ReadWriteBackingMap.Entry.html" title="class in com.tangosol.net.cache">ReadWriteBackingMap.Entry</a></span>&nbsp;<span class="element-name">remove</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;binKey,
+ boolean&nbsp;fWriteBehind)</span></div>
 <div class="block">Remove a key from the queue if the key is in the queue. This method
  is used, for example, if an item has actually been removed from
  the backing map.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>binKey</code> - the key object</dd>
+<dd><code>fWriteBehind</code> - a flag to indicate whether write behind is enabled</dd>
 <dt>Returns:</dt>
 <dd>the corresponding entry in the queue or null if the
          specified key was not in the queue</dd>
@@ -458,7 +461,7 @@ loadScripts(document, 'script');</script>
 <div class="block">Check for a ripe or soft-ripe item in the queue, and if there is
  one, return it; otherwise, return null.
  <p>
- Unlike the <a href="#remove(java.lang.Object)"><code>remove(java.lang.Object)</code></a> method, this method will also remove
+ Unlike the <a href="#remove(java.lang.Object,boolean)"><code>remove(java.lang.Object, boolean)</code></a> method, this method will also remove
  soft-ripe items as calculated using the write-batch factor. A
  soft-ripe item is an item that has been in the write-behind queue
  for at least the following duration:
